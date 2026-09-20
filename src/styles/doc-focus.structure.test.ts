@@ -4,6 +4,22 @@ import { parseRules, ruleBody } from '../test/css-rules';
 import docSource from './doc.css?raw';
 
 /* =============================================================================
+   AVERTISSEMENT — CE FICHIER GARDE UN ANNEAU QUI N'EST PLUS PEINT.
+
+   `doc-v3.css` neutralise désormais tout indicateur de focus de la vitrine, à
+   la demande explicite du propriétaire du design system, en rendant
+   `--focus-outer`, `--focus-inner` et `--canop-focus` transparents. Les règles
+   de `doc.css` vérifiées ci-dessous EXISTENT toujours et restent cohérentes
+   entre elles — les assertions sont donc encore vraies —, mais elles ne
+   dessinent plus rien à l'écran.
+
+   CE FICHIER N'EST PAS SUPPRIMÉ POUR AUTANT, et c'est un choix. Il garde la
+   cohérence interne de `doc.css`, qui redeviendrait immédiatement utile le jour
+   où l'anneau est rétabli — et ce jour-là, personne n'aura à réécrire les trois
+   défauts mesurés que son en-tête d'origine documente. Le garde de la
+   SUPPRESSION, lui, vit dans `doc-v3-controls.structure.test.ts`.
+   ============================================================================
+
    LA QUESTION D'`utilities.css`, RENDUE EXÉCUTABLE.
 
    `styles/components/utilities.css` la pose en prose : « La question à se poser

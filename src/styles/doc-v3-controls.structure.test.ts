@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ruleBody } from '../test/css-rules';
 import canopSource from '../magic/canop.css?raw';
 import docSource from './doc-v3.css?raw';
+import tokensSource from '../tokens/tokens.css?raw';
 
 describe('la forme interactive CanopUI', () => {
   it('épingle la palette saphir et la géométrie mesurée sur la référence', () => {
@@ -64,6 +65,43 @@ describe('la forme interactive CanopUI', () => {
      seule chose qui sépare un second jeton d'un second aller-retour réseau
      bloquant au premier rendu. Un `@import` supplémentaire aurait fonctionné à
      l'écran et coûté une requête de plus, sans que rien ne le signale. */
+  /* LA SUPPRESSION DE L'ANNEAU DE FOCUS EST UNE DÉCISION, DONC ELLE SE GARDE.
+
+     Sans ce test, rétablir l'anneau serait une seule ligne, et le rectangle que
+     le propriétaire a demandé de retirer reviendrait sans que rien ne le dise.
+     Ce qui est épinglé n'est pas une valeur d'apparence mais le MÉCANISME :
+     la suppression passe par les trois jetons de couleur de focus, vérifiés
+     ailleurs comme ne servant à rien d'autre. Un `box-shadow: none !important`
+     général aurait aussi emporté la lueur du champ de saisie et celle des
+     cartes, qui ne sont pas des anneaux.
+
+     `tokens.css` N'EST PAS CONCERNÉ et ne doit pas l'être : c'est un artefact
+     publié (`exports["./tokens.css"]`), donc y couper l'anneau le retirerait
+     aux consommateurs du paquet. La dernière assertion l'empêche. */
+  it('ne peint plus aucun anneau de focus dans la vitrine', () => {
+    /* Le sélecteur est une LISTE sur deux lignes (`:root,` puis `.tc-doc`), que
+       le lecteur de règles partagé ne sait pas retrouver par son nom. On lit
+       donc le bloc dans la source, ce qui épingle aussi le fait que les trois
+       jetons vivent bien ENSEMBLE — les séparer serait la façon la plus simple
+       d'en oublier un. */
+    const scope = /:root,\s*\.tc-doc\s*\{([\s\S]*?)\}/.exec(docSource)?.[1] ?? '';
+
+    expect(scope).toMatch(/--focus-outer:\s*transparent/);
+    expect(scope).toMatch(/--focus-inner:\s*transparent/);
+    expect(scope).toMatch(/--canop-focus:\s*transparent/);
+
+    /* Les deux `outline` posés en dur — ceux qui citaient `--canop-primary` et
+       non un jeton de focus — sont éteints à part, les jetons ne pouvant rien
+       pour eux. */
+    expect(docSource).toMatch(
+      /\.tc-doc-main:focus-visible[\s\S]{0,120}outline:\s*none\s*!important/,
+    );
+
+    /* La feuille PUBLIÉE garde son anneau : la vitrine n'impose pas son choix
+       d'accessibilité aux projets qui installent le paquet. */
+    expect(tokensSource).toMatch(/:focus-visible\s*\{[\s\S]*?outline:\s*3px\s+solid/);
+  });
+
   it('borne la police de titre et la sert sans requête supplémentaire', () => {
     const imports = canopSource.match(/@import url\([^)]*\);/g) ?? [];
     const root = canopSource.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';

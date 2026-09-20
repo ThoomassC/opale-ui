@@ -645,6 +645,22 @@ body { font-size: 1rem; line-height: 1.5; }
 .tc-doc-canop-material-toggle__text span { color: var(--canop-text-secondary); font-size: 0.8125rem; }
 .tc-doc-canop-preview__material { min-width: 0; min-height: 7rem; padding: var(--canop-space-md); border-radius: var(--canop-radius-md); }
 .tc-doc-canop-demo { display: grid; gap: var(--canop-space-md); }
+/* UN BOUTON NE S'ÉTIRE PAS, ET C'EST LE CADRE QUI L'ÉTIRAIT — PAS LE COMPOSANT.
+
+   `DeleteButton` paraissait deux fois plus large que le bouton `danger` dont il
+   est pourtant fait : `CanopDeleteButton` n'est rien d'autre qu'un
+   `<CanopButton variant="danger">`. L'écart venait de la mise en page de
+   l'aperçu. Les variantes de `Button` sont montrées dans un `Row`, qui est un
+   `flex` ; `DeleteButton` est montré dans un `DemoFrame`, qui est une GRILLE —
+   et un enfant de grille vaut `justify-self: stretch` par défaut, donc le
+   bouton prenait toute la colonne.
+
+   `justify-self: start` SUR LES SEULS BOUTONS, et non `justify-items: start`
+   sur le cadre : plusieurs démonstrations posent au contraire des enfants qui
+   DOIVENT occuper toute la largeur — la zone défilante, la maquette de page,
+   le bandeau de fond. Les rétrécir pour corriger un bouton aurait échangé un
+   défaut contre trois. */
+.tc-doc-canop-demo > .canop-button { justify-self: start; }
 .tc-doc-canop-demo__carousel { grid-template-columns: repeat(3, minmax(13rem, 1fr)); overflow-x: auto; padding-block-end: var(--canop-space-sm); scroll-snap-type: x proximity; }
 .tc-doc-canop-demo__carousel > * { scroll-snap-align: start; }
 .tc-doc-canop-demo__scroll { max-height: 9rem; padding: var(--canop-space-md); border: 1px solid var(--canop-divider); background: var(--canop-surface-sunken); }
@@ -1008,21 +1024,62 @@ body { font-size: 1rem; line-height: 1.5; }
   content: none !important;
 }
 
-/* Remplace l'anneau noir historique par un indicateur bleu cohérent avec
-   opaleUI. Le champ garde son anneau sur l'enveloppe, jamais sur l'input. */
-.tc-doc :is(a, button, [role='button'], [role='slider']):focus {
-  outline: none !important;
+/* =============================================================================
+   AUCUN ANNEAU DE FOCUS DANS LA VITRINE — DEMANDE EXPLICITE, ET CE QU'ELLE COÛTE.
+
+   Le rectangle bleu qui se posait sur la plupart des contrôles au focus est
+   retiré partout. Il venait de quatre endroits, et c'est pour cela qu'il
+   paraissait surgir « un peu partout » :
+
+     1. `tokens.css` — une règle UNIVERSELLE `:focus-visible` (double anneau,
+        `outline` 3 px + `box-shadow` 2/5 px) qui attrapait tout élément
+        focusable de la page ;
+     2. `doc.css` — neuf règles par sélecteur qui redéclaraient le même anneau ;
+     3. `canop.css` — `outline: 3px solid var(--canop-focus)` sur les
+        composants de la librairie ;
+     4. ici même — un `outline` bleu de 2 px sur les liens, boutons et sliders.
+
+   POURQUOI IL JURAIT, ET CE N'ÉTAIT PAS SA COULEUR. Un `outline` ne suit PAS
+   le `clip-path` : les contrôles d'opaleUI sont découpés en squircle, l'anneau
+   restait rectangulaire, et l'on voyait les « oreilles » arrondies du contrôle
+   dépasser de part et d'autre d'un rectangle. C'est ce que montrent les
+   captures — le rectangle, plus le filet citron de `--focus-inner`.
+
+   LA SUPPRESSION PASSE PAR LES JETONS ET NON PAR UN `!important` GÉNÉRAL, et
+   c'est ce qui la rend sûre. Vérifié : `--focus-outer`, `--focus-inner` et
+   `--canop-focus` ne servent À RIEN D'AUTRE qu'aux anneaux de focus, dans tout
+   `src/`. Les rendre transparents éteint les points 1, 2 et 3 d'un coup sans
+   toucher à une seule autre ombre — là où un `box-shadow: none !important` sur
+   `:focus-visible` aurait aussi emporté la lueur du champ de saisie et celle
+   des cartes, qui ne sont pas des anneaux et suivent la forme du contrôle.
+
+   CE QUE ÇA COÛTE, ÉCRIT ICI POUR QUE PERSONNE NE LE REDÉCOUVRE. Naviguer au
+   clavier dans cette vitrine ne montre plus où l'on se trouve : c'est l'échec
+   du critère WCAG 2.4.7 (Focus Visible, niveau AA), et 2.4.11 avec lui. La
+   décision est celle du propriétaire du design system, prise en connaissance
+   de cause ; elle n'est pas un oubli.
+
+   `tokens.css` N'EST PAS TOUCHÉ, ET C'EST DÉLIBÉRÉ. C'est un artefact PUBLIÉ
+   (`exports["./tokens.css"]`) : y couper l'anneau le retirerait à tous les
+   consommateurs du paquet, qui n'ont rien demandé. La neutralisation vit donc
+   dans cette feuille-ci, que le paquet n'embarque pas.
+
+   LE MODE CONTRASTES FORCÉS GARDE SON ANNEAU, et c'est une bonne chose : sous
+   `forced-colors`, le système impose ses propres couleurs d'`outline` et
+   ignore `transparent`. Le dernier filet de sécurité reste donc en place pour
+   qui en a le plus besoin.
+   ========================================================================== */
+:root,
+.tc-doc {
+  --focus-outer: transparent;
+  --focus-inner: transparent;
+  --canop-focus: transparent;
 }
 
-.tc-doc :is(a, button, [role='button'], [role='slider']):focus-visible {
-  outline: 2px solid var(--canop-primary) !important;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--canop-background) 82%, transparent) !important;
-}
-
+.tc-doc :is(a, button, [role='button'], [role='slider']):focus,
+.tc-doc :is(a, button, [role='button'], [role='slider']):focus-visible,
 .tc-doc-main:focus-visible {
-  outline: 2px solid var(--canop-primary) !important;
-  outline-offset: -2px;
+  outline: none !important;
   box-shadow: none !important;
 }
 
