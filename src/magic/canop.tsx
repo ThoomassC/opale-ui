@@ -115,7 +115,14 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
         variant={GLASS_VARIANT[variant]}
         size={size}
         disabled={disabled || loading}
-        className={className}
+        /* `canop-button--glass` REND LA GÉOMÉTRIE D'OPALE À LA MATIÈRE DE
+           L'AUTRE. Sans elle, basculer le commutateur changeait la TAILLE du
+           bouton en même temps que sa surface — 120 × 52 px contre 90 × 44 —,
+           si bien que la mise en page sautait et qu'on ne comparait plus deux
+           états du même composant mais deux composants. La silhouette
+           arrondie, elle, reste celle du verre : c'est son identité, pas un
+           accident de dimension. */
+        className={cx('canop-button--glass', className)}
         {...props}
       >
         {children}

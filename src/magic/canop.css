@@ -317,6 +317,36 @@
 
 .canop-button--full { width: 100%; }
 
+/* =============================================================================
+   LE BOUTON DE VERRE AUX MESURES D'OPALE.
+
+   Le commutateur ne doit changer QUE la matière. Sans cette règle il changeait
+   aussi la taille — 125 × 52 px contre 100 × 44 mesurés à l'écran —, donc la
+   rangée se décalait et l'on comparait deux composants au lieu de deux états
+   d'un seul.
+
+   `!important` EST NÉCESSAIRE ICI, ET C'EST LA SEULE RAISON QUI LE JUSTIFIE :
+   les mesures adverses viennent d'un module CSS vendoré (`Button.module.scss`),
+   dont les classes générées sont injectées après cette feuille. À poids égal,
+   c'est l'ordre qui tranche, et l'ordre nous est défavorable. Toucher au module
+   vendoré serait une divergence de plus dans un fichier qu'on garde fidèle.
+
+   L'ENCRE SUIT LE THÈME AU LIEU D'ÊTRE BLANCHE. Le composant vendoré écrit en
+   blanc parce qu'il a été dessiné pour un fond sombre. Posé à la place du
+   bouton Opale, sur la carte claire, il devenait un libellé blanc sur un voile
+   blanc : « Primaire » disparaissait purement et simplement. `--canop-text`
+   bascule avec le thème — encre sombre en clair, claire en sombre —, donc le
+   libellé reste lisible des deux côtés sans qu'on ait à choisir un camp.
+
+   La silhouette arrondie du verre, elle, n'est pas touchée : c'est son
+   identité, pas un accident de dimension. */
+.canop-button--glass {
+  min-height: 2.75rem !important;
+  padding: 0.375rem 1.25rem !important;
+  color: var(--canop-text) !important;
+  font: 600 0.875rem/1.75 var(--canop-font-body) !important;
+}
+
 .canop-button.canop-liquid {
   --canop-button-background:
     radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.7), transparent 52%),

@@ -817,7 +817,9 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'CanopClipboard':
       preview = (
-        <Opale.Clipboard value="npm install @thomascaron/opale-ui">Copier la commande</Opale.Clipboard>
+        <Opale.Clipboard value="npm install @thomascaron/opale-ui">
+          Copier la commande
+        </Opale.Clipboard>
       );
       break;
     case 'CanopSvgMap':
@@ -838,8 +840,16 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   }
 
   return (
+    /* LE MATÉRIAU EST SUR LE COMPOSANT, PAS SUR SON CADRE.
+
+       Ce conteneur portait `canop-liquid` : une plaque de verre grande comme
+       toute la zone de démonstration, DERRIÈRE le composant qui en portait déjà
+       une. On voyait donc deux surfaces empilées là où l'on venait en observer
+       une, et le spécimen ne se lisait plus à la place ni à la taille qu'il
+       aurait dans une vraie page. Le cadre redevient neutre ; l'attribut reste,
+       il sert au ciblage. */
     <div
-      className={`tc-doc-canop-preview__material${liquidGlass ? ' canop-liquid' : ''}`}
+      className="tc-doc-canop-preview__material"
       data-liquid-glass={liquidGlass ? 'true' : undefined}
       data-preview-component={name}
     >
