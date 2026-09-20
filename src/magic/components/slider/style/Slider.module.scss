@@ -14,12 +14,36 @@
     }
 }
 
+/* ÉCART OPALE — LA PISTE DEVIENT LA SURFACE DE SAISIE.
+   `Slider.tsx` déplace les gestionnaires de pointeur de la poignée vers cette
+   piste (voir l'en-tête du composant). Deux conséquences ici :
+   le curseur doit annoncer la prise en main sur toute la barre, et la barre
+   doit être attrapable — 6 px de haut, c'est sous le seuil de visée confortable
+   de n'importe quelle souris. Le `::before` étend la cible sur les 30 px du
+   conteneur SANS toucher à la mise en page : il est absolu, donc hors flux, et
+   invisible faute de fond. */
 .sliderTrack {
     @apply relative w-full;
     width: calc(100% - 1.5rem);
     margin-inline: 0.75rem;
     height: 6px;
     touch-action: none;
+    cursor: grab;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset-block: -12px;
+        /* La poignée déborde de la piste d'une demi-largeur à chaque extrémité :
+           la cible s'étend d'autant pour qu'un clic sur la capsule en butée
+           atterrisse bien sur la piste. */
+        inset-inline: -18px;
+        z-index: -1;
+    }
+
+    &:active {
+        @apply cursor-grabbing;
+    }
 }
 
 .trackBackground {

@@ -10,6 +10,33 @@
    le matériau liquide commun. Seule la poignée se déplace après une prise en
    main, en continu à l'écran, même lorsque `step` arrondit la valeur émise.
    À corriger en amont chez tweeedlex, pas par une divergence locale. */
+/* ÉCART OPALE — LES GESTIONNAIRES DE POINTEUR PASSENT DE LA POIGNÉE À LA PISTE.
+
+   Chez eux, `onPointerDown`, `onPointerMove` et `onPointerUp` sont posés sur la
+   seule POIGNÉE. Conséquence mesurable : la piste est morte. Un clic dessus ne
+   déplace rien, et la moitié des gestes réels — on vise la barre, pas la
+   capsule de 36 px — n'obtient aucune réponse. Le composant ne « suit pas le
+   curseur » parce qu'il n'écoute pas là où le curseur descend.
+
+   La capture de pointeur héritait du même défaut : elle était prise sur la
+   poignée. Elle est désormais prise sur la piste, qui est l'élément dont le
+   rectangle sert de repère à `updateValue`. C'est ce qui garantit que le geste
+   continue à être suivi quand le pointeur SORT du composant — la poignée, elle,
+   se dérobe sous le curseur dès qu'on va plus vite qu'elle.
+
+   CE QUI N'A PAS CHANGÉ, PARCE QUE LA MESURE NE LE DEMANDAIT PAS : il n'y a
+   AUCUNE transition sur `left` (poignée) ni sur `width` (`.trackFill`) dans
+   `Slider.module.scss`. La seule transition de la poignée porte sur
+   `transform`, qui n'encode que le centrage et l'agrandissement au survol, pas
+   la position. Le rendu ne traînait donc pas derrière le curseur : il ne
+   partait pas du tout. La position reste pilotée par `left` plutôt que par un
+   `translate3d` — le gain serait théorique sur un unique élément absolu de
+   6 px de haut, et le coût serait une divergence de plus sur du code vendoré.
+
+   `updateValue` centre la poignée SUR le curseur, y compris quand le geste
+   commence sur la capsule elle-même : c'est le comportement d'origine, et
+   c'est littéralement « glisser avec le curseur ». Conserver l'écart de prise
+   en main aurait été un changement de comportement, pas une correction. */
 
 import React, { useState, useRef, type PointerEvent } from "react";
 import styles from "./style/Slider.module.scss";
@@ -76,7 +103,12 @@ const Slider: React.FC<SliderProps> = ({
     const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
         if (disabled) return;
 
-        e.currentTarget.setPointerCapture(e.pointerId);
+        /* jsdom n'implémente pas l'API de capture de pointeur : sans cette
+           garde, le moindre clic sur un slider rendu dans un test lèverait un
+           TypeError. La garde n'a aucun effet dans un navigateur. */
+        if (typeof e.currentTarget.setPointerCapture === "function") {
+            e.currentTarget.setPointerCapture(e.pointerId);
+        }
         setIsDragging(true);
         updateValue(e.clientX);
     };
@@ -88,7 +120,7 @@ const Slider: React.FC<SliderProps> = ({
     };
 
     const handlePointerUp = (e: PointerEvent<HTMLDivElement>) => {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
             e.currentTarget.releasePointerCapture(e.pointerId);
         }
         setIsDragging(false);
@@ -102,7 +134,14 @@ const Slider: React.FC<SliderProps> = ({
             {...props}
             className={clsx(styles.sliderContainer, styles[size], disabled && styles.disabled)}
         >
-            <div ref={sliderRef} className={clsx(styles.sliderTrack, styles[size])}>
+            <div
+                ref={sliderRef}
+                className={clsx(styles.sliderTrack, styles[size])}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+            >
                 <div className={clsx(styles.trackBackground, styles[size])}>
                     <div
                         className={styles.trackFill}
@@ -112,10 +151,6 @@ const Slider: React.FC<SliderProps> = ({
                 <div
                     className={clsx(styles.thumb, isDragging && styles.dragging)}
                     style={{ left: `${displayedPercentage}%` }}
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerUp}
                 />
             </div>
         </Glass>

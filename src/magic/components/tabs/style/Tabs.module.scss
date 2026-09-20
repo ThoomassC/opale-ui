@@ -13,7 +13,58 @@
 
 // List
 .tabsList {
-    @apply flex gap-2;
+    @apply flex gap-2 relative;
+}
+
+/* ÉCART OPALE — LE FOND DE LA SÉLECTION QUITTE LE DÉCLENCHEUR POUR CET ÉLÉMENT.
+   Voir l'en-tête de `Tabs.tsx` : tant que deux fonds s'allumaient sur deux
+   boutons, il n'y avait aucun déplacement à animer. Celui-ci est unique, donc
+   il se déplace.
+
+   IL EST RENDU EN DESSOUS DES DÉCLENCHEURS, PAS AU-DESSUS. Le conteneur Glass
+   de chaque onglet est un contexte d'empilement à `z-index: 0` posé APRÈS lui
+   dans le document : à `z-index` égal, l'ordre du document suffit à le faire
+   passer derrière, sans surenchère de `z-index`. C'est la seule position
+   tenable — au-dessus, il masquerait le libellé de l'onglet qu'il désigne ; et
+   en dessous, il est échantillonné par le `backdrop-filter` du verre, donc il
+   se lit à travers la matière comme n'importe quel fond de la page. */
+.tabsIndicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    /* Placé par JavaScript. `opacity: 0` couvre l'instant qui précède la
+       première mesure, et l'absence de sélection (`value` inconnue). */
+    opacity: 0;
+    pointer-events: none;
+    /* Le même rayon que le conteneur Glass du déclencheur, à la même variable :
+       l'indicateur épouse la capsule qu'il remplit plutôt que de deviner. */
+    border-radius: var(--lg-radius, 22px);
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    will-change: transform, width, height;
+}
+
+/* La transition n'est armée qu'au second placement — `Tabs.tsx` pose l'attribut
+   après la première mesure. La courbe est la même que celle des onglets
+   Material : sortie franche, arrivée amortie. */
+.tabsIndicator[data-animated="true"] {
+    transition:
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        height 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* `magic.scss` neutralise déjà le mouvement à l'échelle de la feuille, mais il
+   n'y parvient QUE si le consommateur importe `opale.css`. Ce module est aussi
+   consommé seul (vitrine, `vitest`, build de la bibliothèque) : la règle est
+   redite ici, au plus près de la transition qu'elle annule. L'indicateur se
+   pose alors d'un coup — ce qui est exactement le comportement d'origine du
+   composant, pas une dégradation. */
+@media (prefers-reduced-motion: reduce) {
+    .tabsIndicator[data-animated="true"] {
+        transition: none;
+    }
 }
 
 .tabsListVertical {
@@ -29,9 +80,17 @@
     @apply bg-white/10 hover:bg-white/20 active:bg-white/25 transition-colors px-4 py-2 rounded-lg text-sm font-medium outline-none;
     @apply focus-visible:ring-2 focus-visible:ring-white/40;
 
+    /* ÉCART OPALE — le déclencheur sélectionné n'a plus de fond propre. Il
+       portait `bg-white/25` et le liseré interne, tous deux repris à
+       l'identique par `.tabsIndicator`. Les laisser ici les aurait EMPILÉS sur
+       l'indicateur : la capsule aurait changé de densité pendant son trajet,
+       en s'éclaircissant à l'arrivée. Le film translucide de base
+       (`bg-white/10`) reste, lui, sur les quatre onglets — c'est ce qui donne à
+       l'indicateur son contraste sans qu'il ait à se renforcer. La règle est
+       conservée plutôt que supprimée : la classe reste dans le DOM et fait
+       partie de ce sur quoi un consommateur peut se greffer. */
     &.triggerSelected {
-        @apply bg-white/25;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        @apply bg-transparent;
     }
 }
 

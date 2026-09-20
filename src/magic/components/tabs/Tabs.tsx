@@ -2,6 +2,43 @@
    https://github.com/tweeedlex/react-magic-ui
    Kept byte-faithful on purpose: this file is NOT covered by Opale's colour
    contract and is not styled with Opale's tokens. See src/magic/README.md. */
+/* ÉCART OPALE — UN INDICATEUR UNIQUE QUI GLISSE SOUS L'ONGLET ACTIF.
+
+   Chez eux, la sélection est UNIQUEMENT une classe posée sur le déclencheur
+   choisi (`.triggerSelected`). Deux fonds distincts s'allument et s'éteignent
+   donc en même temps sur deux éléments différents : à l'écran, le fond SAUTE
+   d'un onglet à l'autre, sans aucun déplacement à suivre des yeux. Aucune
+   transition CSS ne peut rattraper ça, parce qu'il n'y a rien qui se déplace.
+
+   Un seul élément décoratif est donc rendu dans la liste, et c'est LUI qui
+   porte le fond de la sélection. Il est mesuré au déclencheur actif puis
+   déplacé en `translate3d` + `width`/`height`. Trois conséquences pesées :
+
+   - `translate3d` ET `width`/`height` PLUTÔT QU'UN AXE CHOISI SELON
+     `orientation`. Poser les quatre grandeurs rend le code indifférent à
+     l'axe : la liste verticale est animée par la même ligne que l'horizontale,
+     et un `.tabsList` qui passe à la ligne (`flex-wrap` chez un consommateur)
+     reste juste. Un indicateur qui n'animerait que `translateX` et `width`
+     aurait demandé une seconde branche, et se serait trompé au retour à la
+     ligne.
+
+   - LE PREMIER PLACEMENT NE S'ANIME PAS. À la première mise en page, les
+     rectangles valent encore 0 : un indicateur animé dès le montage partirait
+     du coin haut-gauche et glisserait jusqu'à sa place sous les yeux de
+     l'utilisateur, à chaque chargement de page. La transition n'est donc armée
+     (`data-animated`) qu'APRÈS le premier placement, et après une lecture de
+     `offsetWidth` qui force le navigateur à prendre cette position pour état
+     de départ.
+
+   - `role="tab"` + `aria-selected` RESTENT LA SOURCE DE VÉRITÉ. La position
+     est lue dans le DOM, pas dans un second registre tenu en parallèle : il ne
+     peut pas y avoir de désaccord entre ce que l'assistance technique annonce
+     et ce que l'indicateur montre. L'indicateur est `aria-hidden` : il ne dit
+     rien de plus que `aria-selected`, et n'a donc rien à faire dans l'arbre
+     d'accessibilité.
+
+   `prefers-reduced-motion` est traité dans `Tabs.module.scss`, au plus près de
+   la transition qu'il annule. */
 
 import React, {
   type ComponentPropsWithoutRef,
@@ -10,6 +47,7 @@ import React, {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -208,11 +246,95 @@ export type TabsListProps = ComponentPropsWithoutRef<"div"> & {
 
 const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
   ({ className, children, ...rest }, ref) => {
-    const { orientation } = useTabsContext("Tabs.List");
+    const { orientation, value } = useTabsContext("Tabs.List");
+
+    const listRef = useRef<HTMLDivElement | null>(null);
+    const indicatorRef = useRef<HTMLSpanElement | null>(null);
+    const hasPlacedRef = useRef(false);
+
+    const composedRef = useCallback(
+      (node: HTMLDivElement | null) => {
+        listRef.current = node;
+
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref],
+    );
+
+    useLayoutEffect(() => {
+      const list = listRef.current;
+      const indicator = indicatorRef.current;
+
+      if (!list || !indicator) return;
+
+      const place = () => {
+        const active = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+
+        if (!active) {
+          indicator.style.opacity = "0";
+          return;
+        }
+
+        const listRect = list.getBoundingClientRect();
+        const activeRect = active.getBoundingClientRect();
+
+        /* Deux cas rendent la mesure inexploitable et un seul est une erreur :
+           la première mise en page d'un conteneur Glass, où tout vaut encore 0,
+           et jsdom, qui n'a pas de mise en page du tout. Dans les deux, on ne
+           place RIEN plutôt que de placer un indicateur de 0 px en haut à
+           gauche — c'est ce placement fantôme qui produirait le glissement
+           depuis le coin au premier vrai calcul. */
+        if (activeRect.width === 0 || activeRect.height === 0) return;
+
+        /* Coordonnées du CONTENU, pas du visible : l'indicateur est absolu dans
+           la liste, donc il défile avec elle. Sans les `scroll*`, une liste
+           d'onglets débordante le laisserait derrière. */
+        const x = activeRect.left - listRect.left + list.scrollLeft;
+        const y = activeRect.top - listRect.top + list.scrollTop;
+
+        indicator.style.opacity = "1";
+        indicator.style.width = `${activeRect.width}px`;
+        indicator.style.height = `${activeRect.height}px`;
+        indicator.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+        if (!hasPlacedRef.current) {
+          hasPlacedRef.current = true;
+          /* Lecture forcée de la mise en page : elle vide le calcul de style en
+             attente, donc la position ci-dessus devient l'état de DÉPART de la
+             transition qu'on arme juste après, au lieu d'en être la cible. */
+          void indicator.offsetWidth;
+          indicator.dataset.animated = "true";
+        }
+      };
+
+      place();
+
+      /* Un onglet peut changer de largeur sans que la liste bouge (chargement
+         d'une police, libellé traduit), et la liste peut changer de largeur
+         sans qu'aucun onglet bouge. Les deux sont observés. */
+      const observer =
+        typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(place);
+
+      if (observer) {
+        observer.observe(list);
+        list.querySelectorAll('[role="tab"]').forEach((trigger) => observer.observe(trigger));
+      }
+
+      window.addEventListener("resize", place);
+
+      return () => {
+        observer?.disconnect();
+        window.removeEventListener("resize", place);
+      };
+    }, [orientation, value]);
 
     return (
       <div
-        ref={ref}
+        ref={composedRef}
         role="tablist"
         aria-orientation={orientation}
         className={cn(
@@ -222,6 +344,7 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
         )}
         {...rest}
       >
+        <span ref={indicatorRef} aria-hidden="true" className={styles.tabsIndicator} />
         {children}
       </div>
     );
