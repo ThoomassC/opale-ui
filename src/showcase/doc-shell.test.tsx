@@ -295,10 +295,7 @@ describe('DocShell — la largeur du sommaire', () => {
     fireEvent.pointerMove(resizeHandle, { pointerId: 7, clientX: 124 });
 
     expect(body).toHaveStyle(`--tc-doc-nav-width: ${DOC_NAV_WIDTH_DEFAULT + 24}px`);
-    expect(resizeHandle).toHaveAttribute(
-      'aria-valuenow',
-      String(DOC_NAV_WIDTH_DEFAULT + 24),
-    );
+    expect(resizeHandle).toHaveAttribute('aria-valuenow', String(DOC_NAV_WIDTH_DEFAULT + 24));
 
     fireEvent.pointerUp(resizeHandle, { pointerId: 7, clientX: 124 });
 
@@ -317,9 +314,7 @@ describe('DocShell — la largeur du sommaire', () => {
     expect(resizeHandle).toHaveAttribute('aria-valuemin', String(DOC_NAV_WIDTH_MIN));
     expect(resizeHandle).toHaveAttribute('aria-valuemax', String(DOC_NAV_WIDTH_MAX));
     expect(resizeHandle).toHaveAttribute('aria-valuenow', String(DOC_NAV_WIDTH_DEFAULT));
-    expect(body?.getAttribute('style')).toContain(
-      `--tc-doc-nav-width: ${DOC_NAV_WIDTH_DEFAULT}px`,
-    );
+    expect(body?.getAttribute('style')).toContain(`--tc-doc-nav-width: ${DOC_NAV_WIDTH_DEFAULT}px`);
 
     resizeHandle.focus();
     await user.keyboard('{ArrowRight}');
@@ -590,9 +585,7 @@ describe('DocShell — la bascule de la barre du haut', () => {
   it('ne devrait plus rendre de commande pour plier le sommaire', () => {
     render(<DocShell pages={FIXTURE_PAGES} />);
 
-    expect(
-      topbar().queryByRole('button', { name: 'Afficher ou masquer le sommaire' }),
-    ).toBeNull();
+    expect(topbar().queryByRole('button', { name: 'Afficher ou masquer le sommaire' })).toBeNull();
     expect(document.querySelector('#tc-doc-nav-content')).toBeNull();
     expect(sommaire()).toBeInTheDocument();
   });
@@ -642,7 +635,24 @@ describe('DocShell — le rendu de la page', () => {
     navigate('#/composants/opale-button');
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Button');
-    expect(screen.getByText(/import \{ Opale \}/)).toBeInTheDocument();
+    /* L'`import` A CHANGÉ DE BLOC, PAS DE PAGE. Il vivait dans une plaque de
+       code figée en tête, qui répétait mot pour mot l'extrait dépliable juste
+       en dessous ; la plaque est supprimée et l'`import` a rejoint l'extrait.
+
+       LE TEST DÉPLIE, PARCE QUE LE PANNEAU EST `aria-hidden` QUAND IL EST
+       REPLIÉ — et c'est correct : ce qu'on ne peut pas voir ne doit pas être
+       dans l'arbre d'accessibilité. Interroger le DOM par-dessous aurait fait
+       passer le test sur un contenu qu'aucun utilisateur n'atteint. On clique
+       donc, comme on le ferait.
+
+       Et l'on compare des `textContent` plutôt qu'un texte : la coloration
+       syntaxique découpe la ligne en un `<span>` par jeton, donc aucun nœud ne
+       porte la phrase entière. */
+    fireEvent.click(screen.getByRole('button', { name: 'Afficher le code' }));
+
+    expect(
+      screen.getByRole('group', { name: 'Exemple Button, défilement horizontal' }).textContent,
+    ).toContain("import { Opale } from '@thomascaron/opale-ui';");
     expect(screen.queryByRole('heading', { name: 'API' })).toBeNull();
     expect(screen.queryByText(/Explorer/i)).toBeNull();
     expect(document.body).not.toHaveTextContent(/Canop/i);

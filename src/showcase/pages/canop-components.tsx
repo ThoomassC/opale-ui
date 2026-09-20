@@ -134,9 +134,6 @@ function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
         <Opale.Badge>{entry.category}</Opale.Badge>
         <span>Composant Opale · TypeScript strict</span>
       </div>
-      <div className="tc-doc-code tc-doc-code--canop">
-        <code>{`import { Opale } from '@thomascaron/opale-ui';\n\n${code}`}</code>
-      </div>
       <section
         className="tc-doc-specimen tc-doc-specimen--canop"
         aria-label={`Démonstration ${displayName}`}
@@ -168,7 +165,20 @@ function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
         <div className="tc-doc-canop-preview" data-liquid-glass={liquidGlass ? 'true' : undefined}>
           <CatalogPreview name={entry.name} liquidGlass={liquidGlass} />
         </div>
-        <UsageBlock label={`Exemple ${displayName}`} code={code} />
+        {/* LA LIGNE D'`import` EST REMONTÉE ICI, ET CE N'EST PAS UN DÉTAIL DE
+            DÉPLACEMENT. La page affichait le même extrait DEUX fois : une plaque
+            figée en tête, et ce bloc dépliable — la première ne servait plus
+            qu'à occuper le haut de page avec ce que la seconde donne déjà, en
+            mieux (copiable, et suivant le commutateur de matériau).
+
+            Elle avait toutefois une chose que le bloc dépliable n'avait pas :
+            l'`import`. Sans lui, un extrait copié ne compile pas chez qui le
+            colle. Il part donc avec le reste plutôt que de disparaître avec la
+            plaque. */}
+        <UsageBlock
+          label={`Exemple ${displayName}`}
+          code={`import { Opale } from '@thomascaron/opale-ui';\n\n${code}`}
+        />
       </section>
     </div>
   );
