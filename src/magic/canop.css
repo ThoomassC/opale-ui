@@ -135,6 +135,14 @@
   --canop-glass-border: rgba(255, 255, 255, 0.72);
   --canop-glass-shadow: 0 1.25rem 3rem rgba(35, 69, 122, 0.16);
   --canop-glass-blur: 18px;
+  /* L'ENCRE DU VERRE EST UN JETON, PARCE QU'ELLE DÉPEND DE CE QU'IL Y A DERRIÈRE.
+     Un verre est transparent : son texte se lit sur le FOND, pas sur lui. Sur la
+     carte claire d'un consommateur, il faut une encre sombre ; posé sur une
+     photographie — la scène du matériau —, il faut l'encre claire que `Glass`
+     déclare lui-même (`--lg-text: #ffffff`). Une seule valeur ne peut pas
+     servir les deux, d'où ce réglage, que l'hôte redéfinit sur la scène. */
+  --canop-glass-ink: var(--canop-text);
+  --canop-glass-ink-muted: var(--canop-text-secondary);
 }
 
 :root[data-theme='dark'] {
@@ -414,7 +422,7 @@
 .canop-button--glass {
   min-height: 2.75rem !important;
   padding: 0.375rem 1.25rem !important;
-  color: var(--canop-text) !important;
+  color: var(--canop-glass-ink) !important;
   font: 600 0.875rem/1.75 var(--canop-font-body) !important;
 }
 
@@ -431,10 +439,17 @@
 
    `rootClassName` atteint l'enveloppe `<Glass>` et c'est le bon crochet — mais
    `Input`, `Select` et `Slider` ne l'exposent pas : ils ne répandent pas leurs
-   props sur `<Glass>`. Pour ces trois-là, la règle vise l'ENFANT DIRECT d'une
-   enveloppe à nous. C'est structurel et non nominal, faute de pouvoir nommer
-   une classe de module hachée à la compilation. Le sélecteur `> div` est sûr :
-   `Glass` rend exactement deux enfants, un `<svg>` masqué et le conteneur.
+   props sur `<Glass>`. Pour ces trois-là, LA RÈGLE VISE LA CLASSE DU MODULE PAR
+   SOUS-CHAÎNE — `[class*='glassContainer']`, `[class*='glassContent']` —, qui
+   est la technique déjà employée par la page « Le verre liquide » pour atteindre
+   les couches internes du matériau (`doc.css`, `.tc-doc-liquid-modal`).
+
+   POURQUOI PAS UN SÉLECTEUR STRUCTUREL. Une première version disait `> div` et
+   `> :last-child`. Cela marchait, et cela se serait tu le jour où `Glass`
+   gagnerait une couche : la règle aurait habillé l'élément voisin sans rien
+   faire rougir. La sous-chaîne nomme CE QU'ON VISE. Le nom de la classe est
+   haché à la compilation, mais le préfixe lisible survit au hachage — c'est
+   précisément ce sur quoi la page du matériau s'appuie depuis le début.
 
    `className` N'EST PAS UN CROCHET, SAUF SUR `Badge`. Les cinq autres ne le
    déstructurent pas : ils posent le leur puis répandent `{...props}`
@@ -462,7 +477,7 @@
 .canop-badge--glass {
   padding: 0.25rem 0.65rem !important;
   border-radius: var(--canop-radius-pill) !important;
-  color: var(--canop-text) !important;
+  color: var(--canop-glass-ink) !important;
   font: 600 0.8125rem/1.4 var(--canop-font-body) !important;
   letter-spacing: normal !important;
   text-transform: none !important;
@@ -498,24 +513,44 @@
    un écart de hauteur, c'était la carte d'Opale rendue dans une autre police
    que celle de la page. Le rembourrage et la gouttière, eux, coïncidaient
    déjà : 24 px et 16 px des deux côtés. */
-.canop-card--glass-root > :last-child {
+.canop-card--glass-root > [class*='glassContent'] {
   display: flex !important;
   width: 100% !important;
   flex-direction: column !important;
   align-items: stretch !important;
   gap: var(--canop-space-md) !important;
   padding: var(--canop-space-lg) !important;
-  color: var(--canop-text) !important;
+  color: var(--canop-glass-ink) !important;
   font: 400 1rem/1.6 var(--canop-font-body) !important;
 }
 
-/* La case et l'interrupteur : décorations inertes. `pointer-events: none` est
-   ce qui empêche la double bascule — leur case est un `<button>` cliquable,
-   posé dans un `<label>` qui bascule déjà. */
+/* LA CASE ET L'INTERRUPTEUR SONT INERTES — ET LE SÉLECTEUR DOIT DESCENDRE.
+
+   `pointer-events: none` posé sur la seule enveloppe NE SUFFISAIT PAS, et le
+   commutateur de verre en est mort au clic. Mesuré au navigateur :
+   `elementFromPoint` au centre de l'interrupteur visible renvoyait leur
+   `<button>`, dont le `pointer-events` calculé valait `auto`. Un descendant
+   peut RÉACTIVER le pointeur qu'un ancêtre a coupé — c'est la règle de la
+   propriété, et leur module s'en sert. Le clic mourait donc sur un bouton sans
+   gestionnaire, au lieu de traverser jusqu'au `<label>` qui bascule.
+
+   POURQUOI AUCUN TEST NE L'AVAIT VU : les miens cliquaient
+   `getByRole('checkbox')`, c'est-à-dire l'`<input>` natif — jamais la surface
+   qu'on voit. Ils vérifiaient que le contrôle répond quand on l'atteint, pas
+   qu'on peut l'atteindre. Le garde ajouté plus bas vise désormais la règle
+   elle-même, faute de pouvoir calculer une cascade en jsdom.
+
+   Le `*` est donc nécessaire, et il est sûr : rien dans ces deux enveloppes
+   n'est censé recevoir un clic, le contrôle réel étant ailleurs. */
 .canop-checkbox--glass,
 .canop-toggle--glass {
   display: inline-flex;
-  pointer-events: none;
+}
+.canop-checkbox--glass,
+.canop-checkbox--glass *,
+.canop-toggle--glass,
+.canop-toggle--glass * {
+  pointer-events: none !important;
 }
 .canop-checkbox--glass-root {
   width: 1.25rem !important;
@@ -540,10 +575,10 @@
    L'ÉTAT EST LU SUR UNE ENVELOPPE À NOUS (`data-checked`) et non sur leur
    classe, dont le nom est haché à la compilation et donc impossible à viser.
    C'est aussi ce qui garde la règle vraie si leur module change de nom. */
-.canop-toggle--glass[data-checked='true'] .canop-toggle--glass-root > :last-child {
+.canop-toggle--glass[data-checked='true'] .canop-toggle--glass-root > [class*='glassContent'] {
   background: color-mix(in srgb, var(--canop-primary) 68%, transparent) !important;
 }
-.canop-checkbox--glass[data-checked='true'] .canop-checkbox--glass-root > :last-child {
+.canop-checkbox--glass[data-checked='true'] .canop-checkbox--glass-root > [class*='glassContent'] {
   background: color-mix(in srgb, var(--canop-primary) 78%, transparent) !important;
 }
 
@@ -552,7 +587,7 @@
 .canop-input--glass {
   display: block;
 }
-.canop-input--glass > div {
+.canop-input--glass > [class*='glassContainer'] {
   width: 100% !important;
   min-height: 3rem !important;
   border-radius: var(--canop-radius-md) !important;
@@ -561,7 +596,7 @@
   width: 100% !important;
   min-height: 3rem !important;
   padding: 0 var(--canop-space-md) !important;
-  color: var(--canop-text) !important;
+  color: var(--canop-glass-ink) !important;
   font: 400 1rem/1.5 var(--canop-font-body) !important;
 }
 /* LE TEXTE INDICATIF ÉTAIT BLANC, DONC INVISIBLE — LE MÊME PIÈGE QUE LE BOUTON.
@@ -576,7 +611,7 @@
    Les valeurs reprises sont celles de `.canop-input::placeholder`, pour que le
    champ de verre et le champ plein disent la même chose de la même façon. */
 .canop-input--glass input::placeholder {
-  color: var(--canop-text-secondary) !important;
+  color: var(--canop-glass-ink-muted) !important;
   opacity: 0.72 !important;
 }
 
@@ -601,8 +636,8 @@
   display: flex;
   width: 100%;
 }
-.canop-select--glass > div:first-of-type,
-.canop-slider--glass > div:first-of-type {
+.canop-select--glass > [class*='selectContainer'],
+.canop-slider--glass > [class*='glassContainer'] {
   width: 100% !important;
 }
 .canop-select--native,
@@ -617,7 +652,7 @@
   opacity: 0;
   cursor: pointer;
 }
-.canop-select--glass > div:first-of-type > :last-child {
+.canop-select--glass [class*='glassContainer'] > [class*='glassContent'] {
   min-height: 3rem !important;
   border-radius: var(--canop-radius-md) !important;
   font: 400 1rem/1.5 var(--canop-font-body) !important;
@@ -633,8 +668,8 @@
    CE DÉFAUT NE SE VOIT PAS SUR UNE CAPTURE PRISE DE LOIN : on lit un champ
    vide et on passe. C'est un balayage des contrastes, composant par composant,
    qui l'a trouvé — pas l'œil. */
-.canop-select--glass > div:first-of-type :is(span, button, svg) {
-  color: var(--canop-text) !important;
+.canop-select--glass [class*='selectContainer'] :is(span, button, svg) {
+  color: var(--canop-glass-ink) !important;
 }
 
 .canop-button.canop-liquid {

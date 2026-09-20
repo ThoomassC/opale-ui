@@ -323,3 +323,62 @@ describe('les teintes du verre', () => {
     }
   });
 });
+
+/* =============================================================================
+   LA PEAU DE VERRE NE DOIT PAS INTERCEPTER LE CLIC — LE DÉFAUT A ÉTÉ LIVRÉ.
+
+   Le commutateur de verre était MORT AU CLIC en production, et toute la suite
+   était verte. La cause : `pointer-events: none` posé sur la seule enveloppe.
+   Un descendant peut réactiver le pointeur qu'un ancêtre a coupé, et leur
+   module le fait — le clic mourait sur un `<button>` sans gestionnaire au lieu
+   de traverser jusqu'au `<label>`.
+
+   POURQUOI LES TESTS DE COMPORTEMENT NE L'ONT PAS VU, et c'est la leçon : ils
+   cliquent `getByRole('checkbox')`, c'est-à-dire l'`<input>` natif — jamais la
+   surface qu'un humain vise. Ils prouvent que le contrôle répond quand on
+   l'atteint, pas qu'on peut l'atteindre. jsdom ne calcule ni cascade ni
+   `elementFromPoint` : la vérification par l'usage est impossible ici, elle a
+   été faite au navigateur. Reste à épingler la RÈGLE, pour qu'on ne la
+   rétrécisse pas à l'enveloppe une seconde fois.
+   ========================================================================== */
+describe('l’inertie de la peau de verre', () => {
+  const stripped = canopSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  it.each(['.canop-checkbox--glass', '.canop-toggle--glass'])(
+    '%s coupe le pointeur sur ses DESCENDANTS et pas seulement sur lui-même',
+    (wrapper) => {
+      const rules = [...stripped.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, , body]) =>
+        /pointer-events:\s*none/.test(body),
+      );
+      const covers = rules.some(([, selector]) =>
+        selector.split(',').some((part) => part.trim() === `${wrapper} *`),
+      );
+
+      expect(
+        covers,
+        `Aucune règle ne coupe \`pointer-events\` sur « ${wrapper} * ».\n\n` +
+          'Le couper sur la seule enveloppe NE SUFFIT PAS : le composant vendoré ' +
+          'remet `pointer-events: auto` sur son bouton interne, qui intercepte alors ' +
+          'le clic et ne fait rien. C’est exactement le défaut qui a rendu ' +
+          'l’interrupteur de verre inutilisable en production.',
+      ).toBe(true);
+    },
+  );
+
+  /* La technique de sélection est celle de la page du matériau. Un sélecteur
+     structurel (`> div`, `> :last-child`) viserait le bon élément aujourd'hui
+     et le voisin demain, sans rien faire rougir. */
+  it('atteint les couches du verre par leur classe, jamais par leur position', () => {
+    const positional = [...stripped.matchAll(/([^{}]*--glass[^{}]*)\{/g)]
+      .map(([, selector]) => selector.trim())
+      .filter((selector) => /(>\s*div\b|:last-child|:first-of-type|:nth-child)/.test(selector));
+
+    expect(
+      positional,
+      'Ces règles de verre visent une POSITION plutôt qu’une classe :\n  ' +
+        positional.join('\n  ') +
+        "\n\nUtilisez la forme de `doc.css` — `[class*='glassContent']` — qui nomme " +
+        'la couche visée et survit à l’ajout d’un calque dans `Glass`.',
+    ).toEqual([]);
+  });
+});
