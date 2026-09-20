@@ -1,4 +1,4 @@
-import { Badge, Opale, Topbar } from '../../../magic';
+import { Opale, Topbar } from '../../../magic';
 import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
@@ -6,14 +6,14 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Topbar } from '@thomascaron/opale-ui';
+const USAGE = `import { Opale, Topbar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 <Topbar size="comfortable">
   <Topbar.Brand icon={<Logo />} title="Voyages" subtitle="12 étapes" />
   <Topbar.Divider />
   <Topbar.Section grow>
-    <Badge variant="info">brouillon</Badge>
+    <Opale.Badge>brouillon</Opale.Badge>
   </Topbar.Section>
   <Topbar.Actions>
     <Opale.Button size="small">Publier</Opale.Button>
@@ -118,7 +118,14 @@ export const topbarPage: DocPage = {
             />
             <Topbar.Divider />
             <Topbar.Section grow>
-              <Badge variant="info">brouillon</Badge>
+              {/* `Opale.Badge` ET NON LE `Badge` VENDORÉ, qui n'est plus une
+                  porte publique : il est la matière derrière
+                  `Opale.Badge liquidGlass`. Le ton par défaut remplace son
+                  `variant="info"`, qui n'a pas d'équivalent — Opale en expose
+                  trois (`primary`, `accent`, `danger`) là où le vendoré en
+                  proposait six. Un `accent` aurait dit « attention » sur une
+                  pastille qui ne fait qu'étiqueter un brouillon. */}
+              <Opale.Badge>brouillon</Opale.Badge>
             </Topbar.Section>
             <Topbar.Actions>
               <Opale.Button size="small">Publier</Opale.Button>

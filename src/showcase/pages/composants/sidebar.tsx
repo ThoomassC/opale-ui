@@ -203,27 +203,44 @@ export const sidebarPage: DocPage = {
         TypeScript intersecte les deux signatures, si bien que le paramètre arrive en{' '}
         <code>boolean | ToggleEvent&lt;HTMLElement&gt;</code> : passer un <code>setCollapsed</code>{' '}
         de React <strong>ne compile pas</strong>. Il faut un{' '}
-        <code>typeof next === &apos;boolean&apos;</code>, comme le fait le code de cette page. Le
-        même motif atteint <code>Checkbox.onChange</code> par <code>GlassProps</code> — voir{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/checkbox')}>
-          Checkbox
-        </a>
-        .
+        <code>typeof next === &apos;boolean&apos;</code>, comme le fait le code de cette page.
+        {/* CE RENVOI A ÉTÉ RETIRÉ PLUTÔT QUE REDIRIGÉ, et c'est délibéré. Il
+            pointait la page du `Checkbox` VENDORÉ, dont le `onChange` subissait
+            exactement la même intersection par `GlassProps`. Cette page a
+            fusionné avec celle d'`Opale.Checkbox` — mais `CanopCheckboxProps`
+            étend `InputHTMLAttributes<HTMLInputElement>` et émet un
+            `ChangeEvent` ordinaire : la collision n'y existe PAS. Rediriger
+            aurait envoyé le lecteur vérifier un défaut sur un composant qui ne
+            l'a pas, ce qui est pire qu'un lien mort — il aurait eu l'air
+            confirmé. La phrase dit donc où le motif se rencontre encore. */}{' '}
+        <strong>C’est désormais le dernier endroit du paquet où ce motif se rencontre :</strong> les
+        composants d’Opale n’intersectent pas <code>GlassProps</code> — leur prop{' '}
+        <code>liquidGlass</code> rend le verre sans emprunter son typage.
       </p>
 
       <p className="tc-doc-prose">
         <strong>
           Le piège de <code>badge</code>, mesuré en écrivant cette page.
         </strong>{' '}
+        {/* LE LIEN VISAIT LE `Badge` VENDORÉ, dont la page a fusionné avec celle
+            d'Opale, et LA PHRASE NE TENAIT PLUS TELLE QUELLE : `Opale.Badge`
+            rend un `<span>`, parfaitement valide dans un bouton. Le piège n'a
+            pas disparu pour autant — il s'est déplacé sur la prop : sous
+            `liquidGlass`, `CanopBadge` délègue au vendoré, qui passe par
+            `Glass` et son `<div>`. C'est plus utile à dire que l'ancienne
+            interdiction générale, parce que c'est la version qu'on écrit sans
+            y penser en activant le verre partout. */}
         Y passer un{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/badge')}>
+        <a className="tc-doc-link" href={hrefFor('composants/opale-badge')}>
           Badge
         </a>{' '}
-        est tentant et produit du HTML invalide : <code>Sidebar.Item</code> rend un{' '}
-        <code>&lt;button&gt;</code>, et <code>Badge</code> passe par <code>Glass</code>, qui
-        enveloppe toujours son contenu dans un <code>&lt;div&gt;</code>. Un bloc dans un bouton —
-        que ni TypeScript ni React ne signalent. Le spécimen ci-dessus emploie donc un{' '}
-        <code>&lt;span&gt;</code>.
+        est tentant, et l’écriture nue est sûre : <code>Opale.Badge</code> rend un{' '}
+        <code>&lt;span&gt;</code>. <strong>Ajoutez-lui</strong> <code>liquidGlass</code>{' '}
+        <strong>et le HTML devient invalide</strong> : la prop délègue au composant vendoré, qui
+        passe par <code>Glass</code> et enveloppe toujours son contenu dans un{' '}
+        <code>&lt;div&gt;</code>, or <code>Sidebar.Item</code> rend un <code>&lt;button&gt;</code>.
+        Un bloc dans un bouton — que ni TypeScript ni React ne signalent. Le spécimen ci-dessus
+        emploie donc un <code>&lt;span&gt;</code> nu.
       </p>
 
       <p className="tc-doc-prose">

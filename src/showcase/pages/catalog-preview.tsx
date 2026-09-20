@@ -150,6 +150,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'CanopCheckbox':
       preview = (
         <Opale.Checkbox
+          liquidGlass={liquidGlass}
           label="Recevoir les notifications"
           description="Les nouveautés du design system."
           defaultChecked
@@ -164,6 +165,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'CanopSlider':
       preview = (
         <Opale.Slider
+          liquidGlass={liquidGlass}
           label="Volume"
           value={slider}
           valueLabel={`${slider} %`}
@@ -190,6 +192,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'CanopSelect':
       preview = (
         <Opale.Select
+          liquidGlass={liquidGlass}
           label="Domaine"
           value={selected}
           options={OPTIONS}
@@ -369,9 +372,13 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'CanopBadge':
       preview = (
         <Row>
-          <Opale.Badge>Stable</Opale.Badge>
-          <Opale.Badge tone="accent">Nouveau</Opale.Badge>
-          <Opale.Badge tone="danger">Critique</Opale.Badge>
+          <Opale.Badge liquidGlass={liquidGlass}>Stable</Opale.Badge>
+          <Opale.Badge liquidGlass={liquidGlass} tone="accent">
+            Nouveau
+          </Opale.Badge>
+          <Opale.Badge liquidGlass={liquidGlass} tone="danger">
+            Critique
+          </Opale.Badge>
         </Row>
       );
       break;

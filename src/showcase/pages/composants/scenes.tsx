@@ -2,21 +2,10 @@ import { useState } from 'react';
 
 import { UI_VERSION } from '../../version';
 
-import {
-  Opale,
-  Checkbox,
-  Modal,
-  Select,
-  Sidebar,
-  Slider,
-  Switch,
-  Tabs,
-  ToastProvider,
-  useToast,
-} from '../../../magic';
-import type { SelectOption, ToastDefinition } from '../../../magic';
+import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../magic';
+import type { ToastDefinition } from '../../../magic';
 
-import { MagicCell, MagicStage } from './stage';
+import { MagicStage } from './stage';
 
 /* =============================================================================
    LES SCÈNES QUI ONT UN ÉTAT.
@@ -41,161 +30,20 @@ import { MagicCell, MagicStage } from './stage';
    dans sa page : elle n'a pas d'état, donc elle n'a pas besoin d'être un
    composant, et la garder sur place la garde lisible à côté de sa prose.
 
-   Les huit composants ci-dessous sont, à une exception près, la liste des
-   composants de `/magic` SANS ÉTAT INTERNE : `Checkbox`, `Select`, `Slider`,
-   `Switch` et `Modal` sont toujours contrôlés, et `Toast` exige un fournisseur.
-   `Tabs` et `Sidebar` savent se piloter seuls — leurs scènes contrôlées sont
-   ici pour MONTRER l'autre mode, pas parce qu'il le faut.
+   IL Y EN AVAIT HUIT, IL EN RESTE CINQ, ET LES TROIS PARTIES N'ONT PAS ÉTÉ
+   PERDUES. `CheckboxSizeScene`, `SelectSizeScene`, `SwitchSizeScene`,
+   `SliderSizeScene` et `SliderStepScene` mettaient en scène des composants
+   vendorés dont la page a fusionné avec celle du jumeau Opale : plus aucune
+   page ne les appelait, et une scène qu'aucune page ne joue n'est pas une
+   réserve, c'est du code mort qui continue d'importer sa dépendance. Ce que
+   ces composants montrent se voit désormais sur `composants/opale-checkbox`,
+   `opale-select`, `opale-toggle` et `opale-slider`, verre compris.
+
+   LES CINQ QUI RESTENT N'ONT PAS DE JUMEAU OPALE. `Modal` est toujours
+   contrôlé et `Toast` exige un fournisseur ; `Tabs` et `Sidebar` savent se
+   piloter seuls — leurs scènes contrôlées sont ici pour MONTRER l'autre mode,
+   pas parce qu'il le faut.
    ========================================================================== */
-
-/** Les trois crans de `Checkbox`, chacun avec son propre état. */
-export function CheckboxSizeScene() {
-  const [checked, setChecked] = useState<Record<string, boolean>>({
-    small: false,
-    medium: true,
-    large: false,
-  });
-
-  return (
-    <MagicStage>
-      {(['small', 'medium', 'large'] as const).map((size) => (
-        <MagicCell key={size} label={<code>size=&quot;{size}&quot;</code>}>
-          {/* `typeof next === 'boolean'` N'EST PAS DE LA PRUDENCE DÉCORATIVE.
-              `CheckboxProps` déclare `onChange?: (checked: boolean) => void`
-              PUIS intersecte `GlassProps`, qui apporte le `onChange` de React
-              (`ChangeEventHandler<HTMLDivElement>`). TypeScript intersecte les
-              deux signatures, si bien que le paramètre arrive en
-              `boolean | ChangeEvent<HTMLDivElement>` et qu'un `setChecked(next)`
-              direct NE COMPILE PAS. À l'exécution le composant n'appelle jamais
-              qu'avec un booléen : le garde est là pour le compilateur, et la
-              collision est décrite dans la prose de la page. */}
-          <Checkbox
-            size={size}
-            checked={checked[size] ?? false}
-            onChange={(next) => {
-              if (typeof next === 'boolean') setChecked((all) => ({ ...all, [size]: next }));
-            }}
-            label={`cran ${size}`}
-            aria-label={`cran ${size}`}
-          />
-        </MagicCell>
-      ))}
-    </MagicStage>
-  );
-}
-
-/** Les trois crans de `Select`. La scène est haute : le panneau se déploie. */
-export function SelectSizeScene({ options }: { readonly options: readonly SelectOption[] }) {
-  const [values, setValues] = useState<Record<string, string | undefined>>({
-    small: undefined,
-    medium: 'perou',
-    large: undefined,
-  });
-
-  return (
-    <MagicStage tall>
-      {(['small', 'medium', 'large'] as const).map((size) => (
-        <MagicCell key={size} label={<code>size=&quot;{size}&quot;</code>}>
-          {/* `[...options]` et non `options` : leur `SelectProps` déclare
-              `options: SelectOption[]`, un tableau MUTABLE, donc un
-              `readonly SelectOption[]` est refusé. Une copie, pas un `as`. */}
-          <Select
-            size={size}
-            options={[...options]}
-            value={values[size]}
-            onChange={(next) => setValues((all) => ({ ...all, [size]: next }))}
-            placeholder="Choisir un pays"
-          />
-        </MagicCell>
-      ))}
-    </MagicStage>
-  );
-}
-
-/** Les trois crans de `Switch`. */
-export function SwitchSizeScene() {
-  const [active, setActive] = useState<Record<string, boolean>>({
-    small: false,
-    medium: true,
-    large: false,
-  });
-
-  return (
-    <MagicStage>
-      {(['small', 'medium', 'large'] as const).map((size) => (
-        <MagicCell key={size} label={<code>size=&quot;{size}&quot;</code>}>
-          <Switch
-            size={size}
-            isActive={active[size] ?? false}
-            setIsActive={(next) => setActive((all) => ({ ...all, [size]: next }))}
-            aria-label={`Interrupteur ${size}`}
-          />
-        </MagicCell>
-      ))}
-    </MagicStage>
-  );
-}
-
-/**
- * Les trois crans de `Slider`.
- *
- * La valeur est affichée par la LÉGENDE de la figure et non par le composant :
- * sa prop `showValue` est déstructurée et jamais lue — elle n'a aucun effet.
- */
-export function SliderSizeScene() {
-  const [values, setValues] = useState<Record<string, number>>({
-    small: 25,
-    medium: 50,
-    large: 75,
-  });
-
-  return (
-    <MagicStage stack>
-      {(['small', 'medium', 'large'] as const).map((size) => (
-        <MagicCell
-          key={size}
-          label={
-            <>
-              <code>size=&quot;{size}&quot;</code> — valeur {values[size]} (affichée par la légende,
-              pas par le composant)
-            </>
-          }
-        >
-          <Slider
-            size={size}
-            value={values[size] ?? 50}
-            onChange={(next) => setValues((all) => ({ ...all, [size]: next }))}
-          />
-        </MagicCell>
-      ))}
-    </MagicStage>
-  );
-}
-
-/** Le pas de 25 : cinq valeurs émises, avec une poignée visuellement continue. */
-export function SliderStepScene() {
-  const [value, setValue] = useState(50);
-
-  return (
-    <MagicStage stack>
-      <MagicCell
-        label={
-          <>
-            <code>
-              min={'{0}'} max={'{100}'} step={'{25}'}
-            </code>{' '}
-            — valeur {value}
-          </>
-        }
-      >
-        <Slider min={0} max={100} step={25} value={value} onChange={setValue} />
-      </MagicCell>
-      <MagicCell label={<code>disabled</code>}>
-        <Slider disabled value={60} />
-      </MagicCell>
-    </MagicStage>
-  );
-}
 
 /** La barre latérale pliable, contrôlée pour que son état soit affiché. */
 export function SidebarCollapsibleScene() {
@@ -210,8 +58,10 @@ export function SidebarCollapsibleScene() {
           `ComponentPropsWithoutRef<'aside'>`, qui apporte le `onToggle` du DOM
           (`ToggleEventHandler`, l'événement de `<details>`). TypeScript
           intersecte les deux, donc le paramètre arrive en
-          `boolean | ToggleEvent<HTMLElement>`. Même motif que
-          `Checkbox.onChange`, décrit dans la prose des deux pages. */}
+          `boolean | ToggleEvent<HTMLElement>`. Le `Checkbox` vendoré portait
+          exactement le même motif par `GlassProps` ; sa page a fusionné avec
+          celle d'`Opale.Checkbox`, donc `Sidebar` est le dernier endroit du
+          dépôt où le piège se rencontre encore. Il est décrit dans sa prose. */}
       <Sidebar
         collapsible
         collapsed={collapsed}
@@ -230,11 +80,13 @@ export function SidebarCollapsibleScene() {
           <Sidebar.Item itemId="etapes" icon={<span aria-hidden="true">◆</span>}>
             Étapes
           </Sidebar.Item>
-          {/* `badge` reçoit un `<span>` ET NON un `Badge` de /magic, à dessein.
-              `Sidebar.Item` rend un `<button>`, et `Badge` passe par `Glass`,
-              qui enveloppe toujours son contenu dans un `<div>` : ce serait un
-              bloc dans un bouton, c'est-à-dire du HTML invalide — que ni
-              TypeScript ni React ne signalent. Écrit dans la prose de la page. */}
+          {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
+              `<button>` : un `Opale.Badge` sans verre y tiendrait (c'est un
+              `<span>`), mais le même sous `liquidGlass` délègue au vendoré, qui
+              passe par `Glass` et enveloppe toujours son contenu dans un
+              `<div>` — un bloc dans un bouton, c'est-à-dire du HTML invalide,
+              que ni TypeScript ni React ne signalent. Le `<span>` écrit ici ne
+              dépend d'aucune prop. Écrit dans la prose de la page. */}
           <Sidebar.Item itemId="carte" badge={<span>3</span>}>
             Carte
           </Sidebar.Item>

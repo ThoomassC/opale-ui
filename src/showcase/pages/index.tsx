@@ -13,18 +13,11 @@ import { palettePage } from './fondations/palette';
 import { typographiePage } from './fondations/typographie';
 import { verrePage } from './fondations/verre';
 
-import { badgePage } from './composants/badge';
-import { cardPage } from './composants/card';
-import { checkboxPage } from './composants/checkbox';
 import { glassPage } from './composants/glass';
-import { inputPage } from './composants/input';
 import { modalPage } from './composants/modal';
 import { searchBarPage } from './composants/search-bar';
-import { selectPage } from './composants/select';
 import { sidebarPage } from './composants/sidebar';
-import { sliderPage } from './composants/slider';
 import { siteNavPage } from './composants/site-nav';
-import { switchPage } from './composants/switch';
 import { tabsPage } from './composants/tabs';
 import { toastPage } from './composants/toast';
 import { topbarPage } from './composants/topbar';
@@ -40,8 +33,10 @@ import { opaleComponentPages } from './canop-components';
    L'ORDRE DE CE TABLEAU EST L'ORDRE DE LA NAVIGATION à l'intérieur de chaque
    groupe. Les fondations suivent l'ordre de lecture — la couleur avant les
    échelles, l'accessibilité en fin de chapitre. Les composants sont ALPHABÉTIQUES
-   et pas thématiques : c'est une colonne de quatorze entrées où l'on vient
-   chercher un nom qu'on connaît déjà, jamais une progression pédagogique.
+   et pas thématiques : c'est une colonne où l'on vient chercher un nom qu'on
+   connaît déjà, jamais une progression pédagogique. Elle comptait quatorze
+   entrées vendorées ; il en reste sept, les autres ayant fusionné avec leur
+   jumeau Opale — voir le bloc du milieu.
 
    CE QUI A CHANGÉ EN 2.0, ET CE QUE LE REGISTRE EN GARDE. Ce tableau comptait
    cinq familles et vingt-quatre entrées : dix-sept pages de composants d'Opale,
@@ -80,24 +75,31 @@ export const PAGES: readonly DocPage[] = [
   verrePage,
   accessibilitePage,
 
-  /* LES QUATORZE COMPOSANTS PUBLIÉS. Ils sont copiés de `react-magic-ui` (MIT,
-     @tweeedlex) et gardés fidèles au caractère : hors du contrat de couleur,
-     sans un seul jeton `--tc-*`, et aucun de leurs ratios n'a été mesuré.
-     Chaque page le dit en tête par `MagicPreamble` — le préfixe `Magic` des
-     briques partagées nomme cette PROVENANCE, qui reste vraie, et non le
-     groupe de la vitrine, qui n'existe plus. */
-  badgePage,
-  cardPage,
-  checkboxPage,
+  /* LES COMPOSANTS VENDORÉS QUI ONT ENCORE UNE PAGE À EUX. Ils sont copiés de
+     `react-magic-ui` (MIT, @tweeedlex) et gardés fidèles au caractère : hors du
+     contrat de couleur, sans un seul jeton `--tc-*`, et aucun de leurs ratios
+     n'a été mesuré. Chaque page le dit en tête par `MagicPreamble` — le préfixe
+     `Magic` des briques partagées nomme cette PROVENANCE, qui reste vraie, et
+     non le groupe de la vitrine, qui n'existe plus.
+
+     ILS ÉTAIENT QUATORZE, ILS SONT SEPT, ET CE N'EST PAS UNE PERTE DE
+     DOCUMENTATION. Huit pages sont parties — `button`, puis `badge`, `card`,
+     `checkbox`, `input`, `select`, `slider` et `switch` — parce que leurs
+     composants ne sont plus une porte publique : ils sont la matière que rend
+     `Opale.X liquidGlass`, et c'est donc la page Opale (`composants/opale-x`)
+     qui les documente désormais, commutateur de verre compris. Ce qui reste
+     ici n'a pas de jumeau Opale.
+
+     `toastPage` EST L'EXCEPTION ET ELLE A CHANGÉ D'ADRESSE. Le vendoré ne
+     publie pas de `Toast` : il publie `ToastProvider` et `useToast`, une file
+     portaillée dans `document.body`. Ce n'était donc pas un doublon
+     d'`Opale.Toast` mais une homonymie de sommaire, réglée en nommant la page
+     d'après ce qu'elle documente. */
   glassPage,
-  inputPage,
   modalPage,
   searchBarPage,
-  selectPage,
   sidebarPage,
   siteNavPage,
-  sliderPage,
-  switchPage,
   tabsPage,
   toastPage,
   topbarPage,

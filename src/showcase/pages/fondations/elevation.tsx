@@ -88,14 +88,26 @@ export const elevationPage: DocPage = {
         </div>
       </Specimen>
 
+      {/* LE LIEN VISAIT LA PAGE DE LA `Card` VENDORÉE, QUI N'EXISTE PLUS : ce
+          composant est devenu la matière derrière `Opale.Card liquidGlass`. Le
+          renvoi pointe donc la page d'Opale — mais la PHRASE ne pouvait pas
+          suivre telle quelle. Elle disait « une carte de verre, sans cran », ce
+          qui était vrai de la vendorée et ne l'est plus : `CanopCardProps`
+          déclare bel et bien `elevation?: 0 | 1 | 2 | 3`. Vérifié avant
+          réécriture : la prop ne pose que la classe `canop-card--e{n}`, et
+          aucune feuille du dépôt ne sert cette classe ni ne lit
+          `--elevation-*`. Le titre du paragraphe reste donc exact, et c'est le
+          détail qui devient plus précis, pas moins. */}
       <p className="tc-doc-prose tc-doc-aside">
         <strong>Plus aucun composant publié ne consomme ces quatre jetons.</strong> La 1.0 les
-        exposait par la prop <code>elevation</code> de sa <code>Card</code> ; la 2.0 ne publie
-        qu’une carte de verre, sans cran — voir{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/card')}>
+        exposait par la prop <code>elevation</code> de sa <code>Card</code>. La 2.0 publie bien une{' '}
+        <a className="tc-doc-link" href={hrefFor('composants/opale-card')}>
           Card
-        </a>
-        . Les jetons restent publiés pour qui compose ses propres surfaces.
+        </a>{' '}
+        qui garde une prop <code>elevation</code> à quatre crans, mais celle-ci ne pose qu’une
+        classe — <code>canop-card--e{'{n}'}</code> — qu’aucune feuille ne sert : elle ne lit aucun
+        de ces jetons et ne peint donc aucune ombre. Les jetons restent publiés pour qui compose ses
+        propres surfaces.
       </p>
     </PageBody>
   ),

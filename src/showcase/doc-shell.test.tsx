@@ -68,6 +68,19 @@ const PALETTE_FIXTURE: DocPage = {
   render: () => <p>corps de la palette</p>,
 };
 
+/*
+ * LES DEUX SPÉCIMENS CI-DESSOUS SONT FABRIQUÉS, ET LEURS ADRESSES NE DÉSIGNENT
+ * PLUS AUCUNE PAGE SERVIE.
+ *
+ * Ils ne sont jamais passés qu'à `<DocShell pages={FIXTURE_PAGES} />`, donc ce
+ * que la coquille en fait ne dépend que de ce qui est écrit ici. `composants/
+ * button` et `composants/card` étaient de vrais slugs quand ils ont été
+ * choisis ; les pages vendorées correspondantes ont depuis fusionné avec leur
+ * jumeau Opale. Rien à corriger : un spécimen dont l'adresse ne croise aucune
+ * vraie page est PLUS sûr, puisqu'il ne peut pas se mettre à passer — ou à
+ * rougir — pour une raison qui vient du registre réel. Ils sont laissés tels
+ * quels, et cette note existe pour qu'on ne les prenne pas pour des renvois.
+ */
 const BUTTON_FIXTURE: DocPage = {
   slug: 'composants/button',
   label: 'Button',

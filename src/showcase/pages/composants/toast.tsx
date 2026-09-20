@@ -1,11 +1,12 @@
 import type { DocPage } from '../../doc-model';
+import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
 import { MagicGroundNote, MagicPreamble } from './stage';
 
-const USAGE = `import { ToastProvider, useToast } from '@thomascaron/opale-ui';
+const USAGE = `import { Opale, ToastProvider, useToast } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 // 1. Le fournisseur, AUTOUR de l'arbre qui déclenchera les toasts.
@@ -18,10 +19,11 @@ function Publish() {
   const { showToast, dismissToast, clearToasts } = useToast();
 
   return (
-    <Button
-      text="Publier"
+    <Opale.Button
       onClick={() => showToast({ title: 'Étape publiée', variant: 'success' })}
-    />
+    >
+      Publier
+    </Opale.Button>
   );
 }`;
 
@@ -100,11 +102,35 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
+/* =============================================================================
+   CETTE PAGE S'APPELLE « ToastProvider » DEPUIS QU'ON A REGARDÉ CE QU'ELLE
+   DOCUMENTE.
+
+   ELLE S'APPELAIT « Toast », ET LE SOMMAIRE AFFICHAIT DONC « Toast » DEUX FOIS
+   dans FEEDBACK — une fois pour elle, une fois pour `Opale.Toast`. Les sept
+   autres homonymes du sommaire se sont réglés par une fusion : le vendoré est
+   devenu la matière derrière `liquidGlass`, et sa page a disparu.
+
+   CELUI-CI NE SE FUSIONNE PAS, ET IL FAUT DIRE POURQUOI PLUTÔT QUE LE FAIRE.
+   Le paquet vendoré N'EXPORTE AUCUN COMPOSANT `Toast` : il exporte
+   `ToastProvider` et `useToast`, c'est-à-dire une FILE — les cartes sont
+   internes, montées par `createPortal` sur `document.body`, groupées par coin,
+   empilées, animées et minutées. `Opale.Toast` est autre chose : un
+   `<div role="status">` rendu SUR PLACE, ouvert et fermé par une prop `open`,
+   sans file ni minuterie.
+
+   LES SUBSTITUER AURAIT CASSÉ LES DEUX. Une `Opale.Toast liquidGlass` aurait
+   fait partir dans un coin de l'écran la carte que l'appelant avait posée dans
+   son flux — un déplacement, pas un changement de matière —, et la seule API
+   de file du paquet n'aurait plus eu de porte publique. Deux mécanismes
+   distincts ont droit à deux noms ; c'était le LIBELLÉ qui doublonnait, pas le
+   composant, et c'est donc le libellé qu'on corrige.
+   ========================================================================== */
 export const toastPage: DocPage = {
-  slug: 'composants/toast',
-  label: 'Toast',
+  slug: 'composants/toast-provider',
+  label: 'ToastProvider',
   group: 'composants',
-  title: 'Toast',
+  title: 'ToastProvider',
   lede: (
     <>
       Le seul composant de la librairie qui ne s’importe pas comme un composant : c’est un{' '}
@@ -118,7 +144,7 @@ export const toastPage: DocPage = {
     <PageBody>
       <MagicPreamble />
 
-      <UsageBlock label="Le montage de Toast, en deux temps" code={USAGE} />
+      <UsageBlock label="Le montage de ToastProvider, en deux temps" code={USAGE} />
 
       <p className="tc-doc-prose">
         <strong>Ce que son montage exige, et l’ordre compte.</strong> Un <code>ToastProvider</code>{' '}
@@ -167,7 +193,13 @@ export const toastPage: DocPage = {
           <>
             <code>ToastProvider</code> est un composant de configuration : ses cinq props sont les{' '}
             <em>défauts</em> de la file, et chaque appel à <code>showToast</code> peut les
-            surcharger. Aucun composant <code>Toast</code> n’est exporté — la carte est interne.
+            surcharger.{' '}
+            <strong>
+              Cette file n’exporte aucun composant <code>Toast</code>
+            </strong>{' '}
+            — sa carte est interne et n’est atteignable que par <code>showToast</code>. Le{' '}
+            <code>Opale.Toast</code> que publie le paquet est un composant à part, rendu en place :
+            il n’est pas la carte de cette file.
           </>
         }
         rows={PROPS}
@@ -186,10 +218,20 @@ export const toastPage: DocPage = {
       </p>
 
       <p className="tc-doc-prose">
-        <strong>Il n’y a plus de message d’état dans le flux.</strong> La 1.0 publiait un{' '}
-        <code>Message</code> posé <em>à côté</em> de ce qui l’avait produit — donc lisible sans
-        limite de temps, et retrouvable en relisant la page. La 2.0 ne le publie plus : le seul
-        moyen d’annoncer un état est cette carte flottante, qui s’efface au bout de quatre secondes.
+        <strong>
+          Ce n’est pas le message d’état dans le flux, et il ne faut pas les confondre.
+        </strong>{' '}
+        La 1.0 publiait un <code>Message</code> posé <em>à côté</em> de ce qui l’avait produit —
+        lisible sans limite de temps, retrouvable en relisant la page. Cette file-ci fait l’inverse
+        : elle sort la carte du flux pour la porter dans un coin de la fenêtre, et l’efface au bout
+        de quatre secondes. Le composant qui reprend le rôle du message en place est{' '}
+        <code>Opale.Toast</code> — voir{' '}
+        <a className="tc-doc-link" href={hrefFor('composants/opale-toast')}>
+          Toast
+        </a>{' '}
+        —, un <code>&lt;div role=&quot;status&quot;&gt;</code> rendu là où on l’écrit, ouvert et
+        fermé par une prop <code>open</code>. Même mot, deux mécanismes : l’un interrompt, l’autre
+        accompagne.
       </p>
     </PageBody>
   ),

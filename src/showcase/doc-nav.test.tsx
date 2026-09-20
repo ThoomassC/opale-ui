@@ -79,18 +79,55 @@ describe('DocNav — rail permanent et statique', () => {
       'verre-liquide',
       'accessibilite',
     ]);
-    /* `composants/button` A DISPARU, ET C'EST LE BUT. La page du bouton vendoré
-       doublonnait celle du bouton Opale : un seul `Button` subsiste, dont la
-       prop `liquidGlass` rend la matière de l'autre. Le garde vise donc un
-       historique qui, lui, n'a pas d'équivalent Opale. */
-    expect(sectionFor('inputs')?.entries.map((entry) => entry.page.slug)).toContain(
-      'composants/opale-button',
+    /* LES HUIT DOUBLONS ONT DISPARU, ET C'EST LE BUT. Chaque page de composant
+       vendoré doublonnait celle de son jumeau Opale : un seul `Button`, un seul
+       `Input`, un seul `Badge`… subsistent, dont la prop `liquidGlass` rend la
+       matière de l'autre. Le garde vérifie donc les DEUX moitiés de chaque
+       fusion — la page Opale est là, la page vendorée n'y est plus.
+
+       LES DEUX ASSERTIONS SONT NÉCESSAIRES, et la seconde plus que la première.
+       `navSectionsForPages` résout chaque slug de `CANOP_NAV_SECTIONS` par un
+       `bySlug.get()` et SAUTE EN SILENCE ceux qu'aucune page ne sert : une
+       entrée laissée en place après la suppression de sa page ne rend rien et
+       ne rougit nulle part. C'est exactement ce qui est arrivé à
+       `composants/button`, resté huit commits dans la liste sans que personne
+       le voie. Seul un `not.toContain` sur le slug l'attrape. */
+    const inputs = () => sectionFor('inputs')?.entries.map((entry) => entry.page.slug) ?? [];
+    const affichage = () =>
+      sectionFor('affichage-de-donnees')?.entries.map((entry) => entry.page.slug) ?? [];
+
+    for (const [opale, vendore] of [
+      ['composants/opale-button', 'composants/button'],
+      ['composants/opale-input', 'composants/input'],
+      ['composants/opale-checkbox', 'composants/checkbox'],
+      ['composants/opale-slider', 'composants/slider'],
+      ['composants/opale-select', 'composants/select'],
+      /* Le seul dont les deux noms diffèrent : Opale appelle `Toggle` ce que le
+         vendoré appelait `Switch`. Le doublon est bien le même. */
+      ['composants/opale-toggle', 'composants/switch'],
+    ] as const) {
+      expect(inputs(), `${opale} devrait être servi`).toContain(opale);
+      expect(inputs(), `${vendore} ne devrait plus être servi`).not.toContain(vendore);
+    }
+
+    for (const [opale, vendore] of [
+      ['composants/opale-badge', 'composants/badge'],
+      ['composants/opale-card', 'composants/card'],
+    ] as const) {
+      expect(affichage(), `${opale} devrait être servi`).toContain(opale);
+      expect(affichage(), `${vendore} ne devrait plus être servi`).not.toContain(vendore);
+    }
+
+    /* `Toast` NE FUSIONNE PAS : le vendoré ne publie pas de composant `Toast`
+       mais une file (`ToastProvider` + `useToast`) portaillée sur
+       `document.body`, quand `Opale.Toast` est une notification rendue en
+       place. C'était le LIBELLÉ qui doublonnait, d'où le renommage du slug —
+       et les deux entrées restent servies, côte à côte. */
+    expect(sectionFor('feedback')?.entries.map((entry) => entry.page.slug)).toEqual(
+      expect.arrayContaining(['composants/opale-toast', 'composants/toast-provider']),
     );
-    expect(sectionFor('inputs')?.entries.map((entry) => entry.page.slug)).not.toContain(
-      'composants/button',
-    );
-    expect(sectionFor('affichage-de-donnees')?.entries.map((entry) => entry.page.slug)).toContain(
-      'composants/card',
+    expect(sectionFor('feedback')?.entries.map((entry) => entry.page.slug)).not.toContain(
+      'composants/toast',
     );
     expect(sectionFor('feedback')?.entries.map((entry) => entry.page.slug)).toContain(
       'composants/modal',

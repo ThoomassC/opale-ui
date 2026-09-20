@@ -47,10 +47,17 @@ import { PAGES } from './pages';
  * `ToastProvider` est le fournisseur de contexte du système de notification :
  * seul, il ne rend rien de visible et n'a pas de spécimen à montrer. Ce qui
  * s'emploie est le couple `ToastProvider` + `useToast`, et les deux se
- * documentent donc sur la page « Toast ». La correspondance est écrite ici, et
+ * documentent donc sur la même page. La correspondance est écrite ici, et
  * non retirée en silence de la liste des composants à documenter : une
  * exclusion muette est le mécanisme même par lequel un composant finit sans
  * page.
+ *
+ * LE LIBELLÉ VISÉ EST `ToastProvider` ET NON PLUS « Toast », et ce n'est pas
+ * cosmétique. La page s'appelait « Toast », comme `Opale.Toast` : deux entrées
+ * du même nom dans FEEDBACK, pour deux mécanismes sans rapport — une file
+ * portaillée d'un côté, une notification rendue en place de l'autre. La page a
+ * donc pris le nom de ce qu'elle documente. Si cette ligne gardait « Toast »,
+ * le garde exigerait une page portant un libellé que plus personne ne sert.
  *
  * `useToast` N'EST PAS DANS CETTE LISTE ET N'A PAS À Y ÊTRE : le filtre
  * ci-dessous ne retient que les exports dont le nom commence par une majuscule,
@@ -58,7 +65,7 @@ import { PAGES } from './pages';
  * rien ici ne l'exige — c'est une limite connue de ce garde, pas un oubli.
  */
 const DOCUMENTED_WITH: Readonly<Record<string, string>> = {
-  ToastProvider: 'Toast',
+  ToastProvider: 'ToastProvider',
 };
 
 /** Ce qui doit finir dans une URL : minuscules, chiffres, tirets, barres. */
@@ -127,12 +134,25 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
  * racine publie les composants historiques et les nouvelles briques compatibles.
  * verre liquide historiques, ainsi que `SiteNav` et `SearchBar`.
  */
-/* 92 ET NON 93 DEPUIS QUE LE BOUTON N'EST PLUS EN DOUBLE. Le paquet exportait
-   deux `Button` : le vendoré, qui passe par `<Glass>`, et `CanopButton`. Le
-   premier n'est plus une porte publique — il est la matière derrière
-   `liquidGlass` — donc il n'a plus de page à exiger, et le compte descend d'un.
-   Le module, lui, existe toujours. */
-const PUBLISHED_COMPONENT_COUNT = 92;
+/* 85, ET CHAQUE UNITÉ PERDUE EST UNE PORTE FERMÉE, PAS UN COMPOSANT SUPPRIMÉ.
+   Le compte était 93 ; le bouton l'a fait tomber à 92 ; les sept derniers
+   doublons — `Badge`, `Card`, `Checkbox`, `Input`, `Select`, `Slider` et
+   `Switch` — le mettent à 85.
+
+   POURQUOI IL BAISSE : ce garde compte les exports de `src/magic/index.ts`, et
+   ces sept-là ne sont plus réexportés par `src/magic/components/index.ts`. Ils
+   sont devenus la matière derrière la prop `liquidGlass` de leur jumeau Opale,
+   que `canop.tsx` importe par chemin direct. Les sept MODULES existent
+   toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
+   ils n'ont simplement plus de nom public, donc plus de page à exiger.
+
+   IL NE RESTE QUE HUIT EXPORTS NON PRÉFIXÉS `Canop` : `Glass`, `Modal`,
+   `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` et `Topbar`.
+   Ce sont exactement les huit vendorés sans jumeau Opale, et exactement les
+   huit pages qui subsistent dans `src/showcase/pages/composants/`. Si ce
+   chiffre bouge sans qu'un composant ait été ajouté ou retiré, c'est le barril
+   qu'il faut relire. */
+const PUBLISHED_COMPONENT_COUNT = 85;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {

@@ -17,15 +17,23 @@ import { CatalogPreview } from './catalog-preview';
    qu'une documentation absente.
 
    LA PROP N'EST AJOUTÉE QU'AUX COMPOSANTS DONT L'APERÇU LA TRANSMET RÉELLEMENT.
-   Six sur soixante-dix-sept la reçoivent aujourd'hui ; l'écrire sur les autres
+   Dix sur soixante-dix-sept la reçoivent aujourd'hui ; l'écrire sur les autres
    donnerait un code qui compile et ne fait rien, ce qui est le second genre de
    mensonge qu'on veut éviter ici. La liste est vérifiée par un test, qui la
-   compare à ce que `catalog-preview.tsx` transmet vraiment. */
+   compare à ce que `catalog-preview.tsx` transmet vraiment.
+
+   LES QUATRE DERNIERS VENUS — `Badge`, `Checkbox`, `Select`, `Slider` — sont
+   arrivés avec la suppression des doublons : leur homologue vendoré avait sa
+   propre page, et il est devenu la matière de ce commutateur. */
 const FORWARDS_LIQUID_GLASS: readonly string[] = [
+  'CanopBadge',
   'CanopButton',
   'CanopCard',
   'CanopCardGrid',
+  'CanopCheckbox',
   'CanopInput',
+  'CanopSelect',
+  'CanopSlider',
   'CanopStatCard',
   'CanopToggle',
 ];

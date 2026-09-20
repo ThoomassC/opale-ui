@@ -62,17 +62,28 @@
     calc(100% - var(--canop-squircle-radius) * 0.0057) calc(var(--canop-squircle-radius) * 0.7427),
     100% var(--canop-squircle-radius),
     100% calc(100% - var(--canop-squircle-radius)),
-    calc(100% - var(--canop-squircle-radius) * 0.0057) calc(100% - var(--canop-squircle-radius) * 0.7427),
-    calc(100% - var(--canop-squircle-radius) * 0.0228) calc(100% - var(--canop-squircle-radius) * 0.5939),
-    calc(100% - var(--canop-squircle-radius) * 0.0514) calc(100% - var(--canop-squircle-radius) * 0.4729),
-    calc(100% - var(--canop-squircle-radius) * 0.0914) calc(100% - var(--canop-squircle-radius) * 0.37),
-    calc(100% - var(--canop-squircle-radius) * 0.143) calc(100% - var(--canop-squircle-radius) * 0.2817),
-    calc(100% - var(--canop-squircle-radius) * 0.2063) calc(100% - var(--canop-squircle-radius) * 0.2063),
-    calc(100% - var(--canop-squircle-radius) * 0.2817) calc(100% - var(--canop-squircle-radius) * 0.143),
-    calc(100% - var(--canop-squircle-radius) * 0.37) calc(100% - var(--canop-squircle-radius) * 0.0914),
-    calc(100% - var(--canop-squircle-radius) * 0.4729) calc(100% - var(--canop-squircle-radius) * 0.0514),
-    calc(100% - var(--canop-squircle-radius) * 0.5939) calc(100% - var(--canop-squircle-radius) * 0.0228),
-    calc(100% - var(--canop-squircle-radius) * 0.7427) calc(100% - var(--canop-squircle-radius) * 0.0057),
+    calc(100% - var(--canop-squircle-radius) * 0.0057)
+      calc(100% - var(--canop-squircle-radius) * 0.7427),
+    calc(100% - var(--canop-squircle-radius) * 0.0228)
+      calc(100% - var(--canop-squircle-radius) * 0.5939),
+    calc(100% - var(--canop-squircle-radius) * 0.0514)
+      calc(100% - var(--canop-squircle-radius) * 0.4729),
+    calc(100% - var(--canop-squircle-radius) * 0.0914)
+      calc(100% - var(--canop-squircle-radius) * 0.37),
+    calc(100% - var(--canop-squircle-radius) * 0.143)
+      calc(100% - var(--canop-squircle-radius) * 0.2817),
+    calc(100% - var(--canop-squircle-radius) * 0.2063)
+      calc(100% - var(--canop-squircle-radius) * 0.2063),
+    calc(100% - var(--canop-squircle-radius) * 0.2817)
+      calc(100% - var(--canop-squircle-radius) * 0.143),
+    calc(100% - var(--canop-squircle-radius) * 0.37)
+      calc(100% - var(--canop-squircle-radius) * 0.0914),
+    calc(100% - var(--canop-squircle-radius) * 0.4729)
+      calc(100% - var(--canop-squircle-radius) * 0.0514),
+    calc(100% - var(--canop-squircle-radius) * 0.5939)
+      calc(100% - var(--canop-squircle-radius) * 0.0228),
+    calc(100% - var(--canop-squircle-radius) * 0.7427)
+      calc(100% - var(--canop-squircle-radius) * 0.0057),
     calc(100% - var(--canop-squircle-radius)) 100%,
     var(--canop-squircle-radius) 100%,
     calc(var(--canop-squircle-radius) * 0.7427) calc(100% - var(--canop-squircle-radius) * 0.0057),
@@ -95,10 +106,10 @@
   --canop-space-lg: 1.5rem;
   --canop-space-xl: 2.25rem;
   --canop-space-2xl: 3rem;
-  --canop-shadow-1: 0 0.0625rem 0.125rem rgba(20, 30, 24, 0.06),
-    0 0.0625rem 0.1875rem rgba(20, 30, 24, 0.1);
-  --canop-shadow-2: 0 0.125rem 0.375rem rgba(20, 30, 24, 0.08),
-    0 0.25rem 0.75rem rgba(20, 30, 24, 0.1);
+  --canop-shadow-1:
+    0 0.0625rem 0.125rem rgba(20, 30, 24, 0.06), 0 0.0625rem 0.1875rem rgba(20, 30, 24, 0.1);
+  --canop-shadow-2:
+    0 0.125rem 0.375rem rgba(20, 30, 24, 0.08), 0 0.25rem 0.75rem rgba(20, 30, 24, 0.1);
   --canop-shadow-3: 0 0.375rem 1rem rgba(20, 30, 24, 0.12);
   --canop-shadow-4: 0 0.75rem 1.75rem rgba(20, 30, 24, 0.16);
   --canop-font-body: 'Chivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -110,7 +121,8 @@
      pièces pour une demande qui en visait deux. Bricolage Grotesque ne sert
      donc qu'aux titres de pages et aux chiffres de l'accueil, et le reste de
      la vitrine garde son Chivo. */
-  --canop-font-title: 'Bricolage Grotesque', 'Chivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --canop-font-title:
+    'Bricolage Grotesque', 'Chivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --canop-font-mono: 'Hack', ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, monospace;
   --canop-motion-fast: 140ms;
   --canop-motion: 220ms;
@@ -147,10 +159,9 @@
   --canop-danger: #e2726b;
   --canop-divider: #2c322d;
   --canop-focus: #a9c7f4;
-  --canop-shadow-1: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.25),
-    0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.35);
-  --canop-shadow-2: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.3),
-    0 0.25rem 0.75rem rgba(0, 0, 0, 0.38);
+  --canop-shadow-1:
+    0 0.0625rem 0.125rem rgba(0, 0, 0, 0.25), 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.35);
+  --canop-shadow-2: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.3), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.38);
   --canop-shadow-3: 0 0.375rem 1rem rgba(0, 0, 0, 0.4);
   --canop-shadow-4: 0 0.75rem 1.75rem rgba(0, 0, 0, 0.48);
   --canop-glass-surface: rgba(38, 44, 39, 0.7);
@@ -178,10 +189,16 @@
 .canop-liquid {
   background:
     radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.7), transparent 52%),
-    radial-gradient(100% 130% at 100% 100%, color-mix(in srgb, var(--canop-primary) 14%, transparent), transparent 62%),
+    radial-gradient(
+      100% 130% at 100% 100%,
+      color-mix(in srgb, var(--canop-primary) 14%, transparent),
+      transparent 62%
+    ),
     var(--canop-glass-surface);
   border-color: var(--canop-glass-border);
-  box-shadow: var(--canop-glass-shadow), inset 1px 1px 0 rgba(255, 255, 255, 0.54);
+  box-shadow:
+    var(--canop-glass-shadow),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.54);
   -webkit-backdrop-filter: blur(var(--canop-glass-blur)) saturate(1.35);
   backdrop-filter: blur(var(--canop-glass-blur)) saturate(1.35);
 }
@@ -287,8 +304,16 @@
 }
 
 .canop-button--tonal {
-  --canop-button-background: color-mix(in srgb, var(--canop-primary-light) 26%, var(--canop-surface));
-  --canop-button-hover-background: color-mix(in srgb, var(--canop-primary-light) 40%, var(--canop-surface));
+  --canop-button-background: color-mix(
+    in srgb,
+    var(--canop-primary-light) 26%,
+    var(--canop-surface)
+  );
+  --canop-button-hover-background: color-mix(
+    in srgb,
+    var(--canop-primary-light) 40%,
+    var(--canop-surface)
+  );
   color: var(--canop-primary);
 }
 
@@ -329,7 +354,9 @@
   font-size: 1rem;
 }
 
-.canop-button--full { width: 100%; }
+.canop-button--full {
+  width: 100%;
+}
 
 /* =============================================================================
    LE BOUTON DE VERRE AUX MESURES D'OPALE.
@@ -371,10 +398,18 @@
    matériau est de laisser voir ce qu'il y a derrière, donc la couleur s'y pose
    à faible densité. Les rôles sans couleur propre — `tonal`, `ghost`, `text` —
    n'en reçoivent aucune et gardent le verre nu. */
-.canop-button--glass-primary { background: color-mix(in srgb, var(--canop-primary) 26%, transparent) !important; }
-.canop-button--glass-secondary { background: color-mix(in srgb, var(--canop-secondary-dark) 26%, transparent) !important; }
-.canop-button--glass-accent { background: color-mix(in srgb, var(--canop-accent) 30%, transparent) !important; }
-.canop-button--glass-danger { background: color-mix(in srgb, var(--canop-danger) 26%, transparent) !important; }
+.canop-button--glass-primary {
+  background: color-mix(in srgb, var(--canop-primary) 26%, transparent) !important;
+}
+.canop-button--glass-secondary {
+  background: color-mix(in srgb, var(--canop-secondary-dark) 26%, transparent) !important;
+}
+.canop-button--glass-accent {
+  background: color-mix(in srgb, var(--canop-accent) 30%, transparent) !important;
+}
+.canop-button--glass-danger {
+  background: color-mix(in srgb, var(--canop-danger) 26%, transparent) !important;
+}
 
 .canop-button--glass {
   min-height: 2.75rem !important;
@@ -383,23 +418,258 @@
   font: 600 0.875rem/1.75 var(--canop-font-body) !important;
 }
 
+/* =============================================================================
+   LES SIX AUTRES PEAUX DE VERRE, AUX MESURES D'OPALE.
+
+   Même exigence que pour le bouton, et même contrainte de cascade : les
+   mesures adverses viennent de modules CSS vendorés, injectés APRÈS cette
+   feuille. À poids égal l'ordre tranche, et il nous est défavorable — d'où les
+   `!important`, qui n'ont pas d'autre justification ici et n'en demandent pas
+   d'autre.
+
+   DEUX CROCHETS SEULEMENT, ET ILS NE SE VALENT PAS.
+
+   `rootClassName` atteint l'enveloppe `<Glass>` et c'est le bon crochet — mais
+   `Input`, `Select` et `Slider` ne l'exposent pas : ils ne répandent pas leurs
+   props sur `<Glass>`. Pour ces trois-là, la règle vise l'ENFANT DIRECT d'une
+   enveloppe à nous. C'est structurel et non nominal, faute de pouvoir nommer
+   une classe de module hachée à la compilation. Le sélecteur `> div` est sûr :
+   `Glass` rend exactement deux enfants, un `<svg>` masqué et le conteneur.
+
+   `className` N'EST PAS UN CROCHET, SAUF SUR `Badge`. Les cinq autres ne le
+   déstructurent pas : ils posent le leur puis répandent `{...props}`
+   par-dessus, si bien qu'une classe venue de l'extérieur EFFACE la leur — la
+   case, la piste ou la carte perdent leur dessin d'un coup, sans rien de
+   rouge. `Badge` seul le fusionne.
+
+   `.glassContainer` EST EN `width: fit-content`. Tout champ pleine largeur
+   doit donc forcer `100 %`, sans quoi il rétrécit au basculement — c'est
+   exactement le défaut « pas la même taille » déjà refusé une fois.
+   ========================================================================== */
+
+/* Le badge : une pilule, comme l'original. Leur `rootClassName="rounded-full"`
+   est remplacé par le nôtre, donc l'arrondi est à reposer. */
+.canop-badge--glass-root {
+  display: inline-flex !important;
+  border-radius: var(--canop-radius-pill) !important;
+}
+/* `text-transform: none` N'EST PAS UNE PRÉFÉRENCE DE GOÛT. Leur pastille passe
+   son contenu en CAPITALES ; « Stable » devenait « STABLE » au basculement du
+   commutateur. Le commutateur promet de changer la MATIÈRE, et le texte n'en
+   est pas une — un libellé qui change de casse quand on change de surface est
+   une promesse rompue, et il déborde de la largeur mesurée par-dessus le
+   marché. */
+.canop-badge--glass {
+  padding: 0.25rem 0.65rem !important;
+  border-radius: var(--canop-radius-pill) !important;
+  color: var(--canop-text) !important;
+  font: 600 0.8125rem/1.4 var(--canop-font-body) !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+.canop-badge--glass-primary {
+  background: color-mix(in srgb, var(--canop-primary) 22%, transparent) !important;
+}
+.canop-badge--glass-accent {
+  background: color-mix(in srgb, var(--canop-accent) 34%, transparent) !important;
+}
+.canop-badge--glass-danger {
+  background: color-mix(in srgb, var(--canop-danger) 22%, transparent) !important;
+}
+
+/* La carte : pleine largeur et découpée comme une surface Opale. Le rembourrage
+   se pose sur le CONTENU du verre, qui est son dernier enfant. */
+.canop-card--glass-root {
+  width: 100% !important;
+  border-radius: 0 !important;
+  clip-path: var(--canop-squircle-clip);
+}
+/* DEUX CAUSES, TOUTES DEUX MESURÉES, POUR UNE MÊME PERTE DE 37 PIXELS.
+
+   La première : leur carte pose `align-items: flex-start`, donc le contenu se
+   rétractait à sa largeur propre — 264 px au lieu de 511 — et le texte revenait
+   à la ligne plus tôt. `stretch` est la valeur par défaut de `.canop-card`, et
+   il faut la réclamer.
+
+   La seconde, invisible dans une capture et pourtant la plus grave : leur
+   carte impose SA typographie à tout ce qu'elle contient. Relevé au
+   navigateur, `font-size` passait de 16 à 15 px et `line-height` de 25,6 à
+   15 px au basculement — le texte rétrécissait et se serrait. Ce n'était plus
+   un écart de hauteur, c'était la carte d'Opale rendue dans une autre police
+   que celle de la page. Le rembourrage et la gouttière, eux, coïncidaient
+   déjà : 24 px et 16 px des deux côtés. */
+.canop-card--glass-root > :last-child {
+  display: flex !important;
+  width: 100% !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: var(--canop-space-md) !important;
+  padding: var(--canop-space-lg) !important;
+  color: var(--canop-text) !important;
+  font: 400 1rem/1.6 var(--canop-font-body) !important;
+}
+
+/* La case et l'interrupteur : décorations inertes. `pointer-events: none` est
+   ce qui empêche la double bascule — leur case est un `<button>` cliquable,
+   posé dans un `<label>` qui bascule déjà. */
+.canop-checkbox--glass,
+.canop-toggle--glass {
+  display: inline-flex;
+  pointer-events: none;
+}
+.canop-checkbox--glass-root {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  border-radius: 0.375rem !important;
+}
+.canop-toggle--glass-root {
+  width: 3.25rem !important;
+  height: 1.75rem !important;
+  border-radius: var(--canop-radius-pill) !important;
+}
+
+/* L'ÉTAT ACTIF PORTE LA COULEUR D'OPALE, ET NON CELLE DE L'AUTRE PALETTE.
+
+   Mesuré à l'écran : leur interrupteur actif est peint en `#34d399` à 68 % —
+   un VERT — et leur coche en blanc. Basculés à la place des contrôles d'Opale,
+   qui sont bleu saphir, on obtenait un interrupteur vert au milieu d'une
+   interface bleue : exactement le défaut déjà corrigé sur le bouton
+   secondaire, où le verre empruntait la teinte `positive` d'une palette
+   étrangère. Une couleur codée en dur chez le vendoré ne suit aucune marque.
+
+   L'ÉTAT EST LU SUR UNE ENVELOPPE À NOUS (`data-checked`) et non sur leur
+   classe, dont le nom est haché à la compilation et donc impossible à viser.
+   C'est aussi ce qui garde la règle vraie si leur module change de nom. */
+.canop-toggle--glass[data-checked='true'] .canop-toggle--glass-root > :last-child {
+  background: color-mix(in srgb, var(--canop-primary) 68%, transparent) !important;
+}
+.canop-checkbox--glass[data-checked='true'] .canop-checkbox--glass-root > :last-child {
+  background: color-mix(in srgb, var(--canop-primary) 78%, transparent) !important;
+}
+
+/* Le champ de saisie : la seule substitution complète des sept, le vendoré
+   rendant un vrai `<input>`. Il ne reste qu'à lui rendre la boîte d'Opale. */
+.canop-input--glass {
+  display: block;
+}
+.canop-input--glass > div {
+  width: 100% !important;
+  min-height: 3rem !important;
+  border-radius: var(--canop-radius-md) !important;
+}
+.canop-input--glass input {
+  width: 100% !important;
+  min-height: 3rem !important;
+  padding: 0 var(--canop-space-md) !important;
+  color: var(--canop-text) !important;
+  font: 400 1rem/1.5 var(--canop-font-body) !important;
+}
+/* LE TEXTE INDICATIF ÉTAIT BLANC, DONC INVISIBLE — LE MÊME PIÈGE QUE LE BOUTON.
+
+   Relevé au navigateur : `rgba(255, 255, 255, 0.75)`. Leur champ a été dessiné
+   pour un fond sombre ; posé sur la carte claire d'Opale, l'adresse d'exemple
+   disparaissait purement et simplement, exactement comme le libellé
+   « Primaire » l'avait fait. L'encre saisie, elle, était déjà corrigée par la
+   règle ci-dessus — c'est le propre de ce défaut de n'atteindre que l'état
+   VIDE du champ, celui qu'on ne pense pas à regarder.
+
+   Les valeurs reprises sont celles de `.canop-input::placeholder`, pour que le
+   champ de verre et le champ plein disent la même chose de la même façon. */
+.canop-input--glass input::placeholder {
+  color: var(--canop-text-secondary) !important;
+  opacity: 0.72 !important;
+}
+
+/* LE CONTRÔLE NATIF PAR-DESSUS LA PEAU, ET C'EST TOUT LE MÉCANISME.
+
+   Le natif est transparent mais PRÉSENT : il reçoit le pointeur, le focus et
+   le clavier, tandis que le verre au-dessous peint la valeur. `opacity: 0` et
+   non `visibility: hidden` ni `display: none`, qui le retireraient de la
+   soumission et du parcours de tabulation — c'est-à-dire qui le casseraient.
+
+   `cursor` est repris explicitement : un élément transparent garde le curseur
+   de sa propre boîte, et sans cela on survolerait un curseur de texte au-dessus
+   d'une piste de réglage. */
+/* `flex` ET NON `block`, POUR SUPPRIMER LA LIGNE DE TEXTE FANTÔME. En bloc, le
+   conteneur du verre est un enfant EN LIGNE : le navigateur lui réserve une
+   ligne, avec son jambage descendant, et le champ gagnait 8 px qu'aucune
+   déclaration ne demandait — mesuré, 56 px contre 48 pour le verre lui-même.
+   Un conteneur flex n'ouvre pas de ligne de texte. */
+.canop-select--glass,
+.canop-slider--glass {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+.canop-select--glass > div:first-of-type,
+.canop-slider--glass > div:first-of-type {
+  width: 100% !important;
+}
+.canop-select--native,
+.canop-range--glass {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.canop-select--glass > div:first-of-type > :last-child {
+  min-height: 3rem !important;
+  border-radius: var(--canop-radius-md) !important;
+  font: 400 1rem/1.5 var(--canop-font-body) !important;
+}
+/* L'ENCRE DESCEND JUSQU'À LA VALEUR AFFICHÉE, et pas seulement jusqu'au bouton.
+
+   Troisième occurrence du même défaut, après le libellé du bouton et le texte
+   indicatif du champ : leur `selectedValue` est peint en `rgb(255, 255, 255)`
+   — mesuré, contraste 1,00 sur le fond clair, c'est-à-dire rigoureusement
+   invisible. Poser l'encre sur le seul conteneur ne suffisait pas, la valeur
+   portant sa propre couleur. La flèche, elle, suit `currentColor`.
+
+   CE DÉFAUT NE SE VOIT PAS SUR UNE CAPTURE PRISE DE LOIN : on lit un champ
+   vide et on passe. C'est un balayage des contrastes, composant par composant,
+   qui l'a trouvé — pas l'œil. */
+.canop-select--glass > div:first-of-type :is(span, button, svg) {
+  color: var(--canop-text) !important;
+}
+
 .canop-button.canop-liquid {
   --canop-button-background:
     radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.7), transparent 52%),
-    radial-gradient(100% 130% at 100% 100%, color-mix(in srgb, var(--canop-primary) 14%, transparent), transparent 62%),
+    radial-gradient(
+      100% 130% at 100% 100%,
+      color-mix(in srgb, var(--canop-primary) 14%, transparent),
+      transparent 62%
+    ),
     var(--canop-glass-surface);
   --canop-button-hover-background:
     radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.78), transparent 52%),
-    radial-gradient(100% 130% at 100% 100%, color-mix(in srgb, var(--canop-primary) 20%, transparent), transparent 62%),
+    radial-gradient(
+      100% 130% at 100% 100%,
+      color-mix(in srgb, var(--canop-primary) 20%, transparent),
+      transparent 62%
+    ),
     var(--canop-glass-surface);
   color: var(--canop-text);
 }
-.canop-button.canop-liquid.canop-button--primary { color: var(--canop-text); }
+.canop-button.canop-liquid.canop-button--primary {
+  color: var(--canop-text);
+}
 
 @media (max-width: 37.499rem) {
-  .canop-button { min-height: 3rem; }
-  .canop-button--small { min-height: 2.5rem; }
-  .canop-button--large { min-height: 3.25rem; }
+  .canop-button {
+    min-height: 3rem;
+  }
+  .canop-button--small {
+    min-height: 2.5rem;
+  }
+  .canop-button--large {
+    min-height: 3.25rem;
+  }
 }
 
 .canop-card {
@@ -432,32 +702,111 @@
   letter-spacing: -0.035em;
 }
 
-.canop-card__title { font-size: 1.2rem; }
-.canop-card__subtitle { margin: 0; color: var(--canop-text-secondary); }
-.canop-card__body { display: grid; gap: var(--canop-space-sm); }
-.canop-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: var(--canop-space-lg); }
-.canop-empty-state { text-align: center; }
-.canop-empty-state .canop-card__header { justify-content: center; }
-.canop-empty-state .canop-card__body { justify-items: center; }
+.canop-card__title {
+  font-size: 1.2rem;
+}
+.canop-card__subtitle {
+  margin: 0;
+  color: var(--canop-text-secondary);
+}
+.canop-card__body {
+  display: grid;
+  gap: var(--canop-space-sm);
+}
+.canop-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--canop-space-lg);
+}
+.canop-empty-state {
+  text-align: center;
+}
+.canop-empty-state .canop-card__header {
+  justify-content: center;
+}
+.canop-empty-state .canop-card__body {
+  justify-items: center;
+}
 
-.canop-text { margin: 0; color: var(--canop-text); }
-.canop-text--label { font-size: 0.875rem; font-weight: 600; }
-.canop-text--caption { color: var(--canop-text-secondary); font-size: 0.8125rem; }
-.canop-text--metric { font-family: var(--canop-font-display); font-size: 2rem; font-weight: 400; line-height: 1.05; }
-.canop-icon { display: inline-grid; min-width: 2.5rem; min-height: 2.5rem; place-items: center; color: var(--canop-primary); font-size: 1.5rem; }
-.canop-link { color: var(--canop-primary); font-weight: 600; text-underline-offset: 0.2em; }
-.canop-link:hover { color: var(--canop-primary-dark); }
+.canop-text {
+  margin: 0;
+  color: var(--canop-text);
+}
+.canop-text--label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.canop-text--caption {
+  color: var(--canop-text-secondary);
+  font-size: 0.8125rem;
+}
+.canop-text--metric {
+  font-family: var(--canop-font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.05;
+}
+.canop-icon {
+  display: inline-grid;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  place-items: center;
+  color: var(--canop-primary);
+  font-size: 1.5rem;
+}
+.canop-link {
+  color: var(--canop-primary);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+}
+.canop-link:hover {
+  color: var(--canop-primary-dark);
+}
 
-.canop-field { display: grid; gap: var(--canop-space-xs); }
-.canop-field__label { color: var(--canop-text); font-size: 0.875rem; font-weight: 600; }
-.canop-field__helper { margin: 0; color: var(--canop-text-secondary); font-size: 0.875rem; }
-.canop-field__helper--error { color: var(--canop-danger); }
-.canop-input-shell { display: flex; align-items: center; gap: var(--canop-space-xs); padding: 0 var(--canop-space-md); }
-.canop-input-shell:focus-within { border-color: var(--canop-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--canop-primary) 18%, transparent); }
+.canop-field {
+  display: grid;
+  gap: var(--canop-space-xs);
+}
+.canop-field__label {
+  color: var(--canop-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.canop-field__helper {
+  margin: 0;
+  color: var(--canop-text-secondary);
+  font-size: 0.875rem;
+}
+.canop-field__helper--error {
+  color: var(--canop-danger);
+}
+.canop-input-shell {
+  display: flex;
+  align-items: center;
+  gap: var(--canop-space-xs);
+  padding: 0 var(--canop-space-md);
+}
+.canop-input-shell:focus-within {
+  border-color: var(--canop-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--canop-primary) 18%, transparent);
+}
 .canop-input,
-.canop-select { width: 100%; min-height: 3rem; border: 0; outline: 0; background: transparent; color: var(--canop-text); font: 400 1rem/1.5 var(--canop-font-body); }
-.canop-input::placeholder { color: var(--canop-text-secondary); opacity: 0.72; }
-.canop-select { cursor: pointer; }
+.canop-select {
+  width: 100%;
+  min-height: 3rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--canop-text);
+  font: 400 1rem/1.5 var(--canop-font-body);
+}
+.canop-input::placeholder {
+  color: var(--canop-text-secondary);
+  opacity: 0.72;
+}
+.canop-select {
+  cursor: pointer;
+}
 
 /* =============================================================================
    LA SÉLECTION MULTIPLE, REPRISE DANS LA DA D'OPALE.
@@ -484,12 +833,41 @@
    retirer du formulaire : ni `display: none` ni `visibility: hidden`, qui
    l'excluraient de la soumission et de la validation.
    ========================================================================== */
-.canop-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.canop-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
-.canop-multiselect { display: grid; gap: 0.15rem; padding: var(--canop-space-2xs); border: 1px solid var(--canop-divider); border-radius: var(--canop-radius-md); background: var(--canop-surface); }
+.canop-multiselect {
+  display: grid;
+  gap: 0.15rem;
+  padding: var(--canop-space-2xs);
+  border: 1px solid var(--canop-divider);
+  border-radius: var(--canop-radius-md);
+  background: var(--canop-surface);
+}
 .canop-multiselect:focus-within,
-.canop-multiselect:focus { border-color: var(--canop-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--canop-primary) 18%, transparent); outline: none; }
-.canop-multiselect__option { display: flex; align-items: center; gap: var(--canop-space-sm); min-height: 2.5rem; padding: 0 var(--canop-space-sm); border-radius: var(--canop-radius-sm); color: var(--canop-text); cursor: pointer; font: 400 0.9375rem/1.4 var(--canop-font-body); transition: background var(--canop-motion) var(--canop-ease); }
+.canop-multiselect:focus {
+  border-color: var(--canop-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--canop-primary) 18%, transparent);
+  outline: none;
+}
+.canop-multiselect__option {
+  display: flex;
+  align-items: center;
+  gap: var(--canop-space-sm);
+  min-height: 2.5rem;
+  padding: 0 var(--canop-space-sm);
+  border-radius: var(--canop-radius-sm);
+  color: var(--canop-text);
+  cursor: pointer;
+  font: 400 0.9375rem/1.4 var(--canop-font-body);
+  transition: background var(--canop-motion) var(--canop-ease);
+}
 /* LE LAVIS DE LA DÉSIGNATION NE SE PEINT QUE SI LA LISTE A LE FOCUS, et c'est
    la correction d'un défaut vu à l'écran : au repos, `activeIndex` vaut 0, donc
    la PREMIÈRE option portait en permanence un fond de survol que rien ne
@@ -497,27 +875,102 @@
    au repos — le pire des deux, puisqu'il ne bouge pas et qu'il ne veut rien
    dire. Le survol, lui, reste inconditionnel : il suit une souris réelle. */
 .canop-multiselect__option:hover,
-.canop-multiselect:focus-within .canop-multiselect__option[data-active='true'] { background: color-mix(in srgb, var(--canop-primary) 12%, transparent); }
-.canop-multiselect__mark { display: grid; width: 1.25rem; height: 1.25rem; flex: none; place-items: center; border: 2px solid var(--canop-primary); border-radius: 0.375rem; transition: background var(--canop-motion) var(--canop-ease); }
+.canop-multiselect:focus-within .canop-multiselect__option[data-active='true'] {
+  background: color-mix(in srgb, var(--canop-primary) 12%, transparent);
+}
+.canop-multiselect__mark {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  place-items: center;
+  border: 2px solid var(--canop-primary);
+  border-radius: 0.375rem;
+  transition: background var(--canop-motion) var(--canop-ease);
+}
 /* La coche est dessinée et non écrite : un caractère « ✓ » suivrait la police
    du système et sortirait du carré sur les machines qui n'ont pas Chivo. */
-.canop-multiselect__mark::after { width: 0.6rem; height: 0.32rem; border-left: 2px solid #fff; border-bottom: 2px solid #fff; margin-block-start: -0.12rem; content: ''; opacity: 0; transform: rotate(-45deg); }
-.canop-multiselect__option[aria-selected='true'] .canop-multiselect__mark { background: var(--canop-primary); }
-.canop-multiselect__option[aria-selected='true'] .canop-multiselect__mark::after { opacity: 1; }
-.canop-multiselect__option[aria-selected='true'] { color: var(--canop-text); font-weight: 600; }
+.canop-multiselect__mark::after {
+  width: 0.6rem;
+  height: 0.32rem;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  margin-block-start: -0.12rem;
+  content: '';
+  opacity: 0;
+  transform: rotate(-45deg);
+}
+.canop-multiselect__option[aria-selected='true'] .canop-multiselect__mark {
+  background: var(--canop-primary);
+}
+.canop-multiselect__option[aria-selected='true'] .canop-multiselect__mark::after {
+  opacity: 1;
+}
+.canop-multiselect__option[aria-selected='true'] {
+  color: var(--canop-text);
+  font-weight: 600;
+}
 
 .canop-checkbox-row,
-.canop-toggle-row { display: flex; align-items: center; gap: var(--canop-space-sm); color: var(--canop-text); }
+.canop-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--canop-space-sm);
+  color: var(--canop-text);
+}
 .canop-checkbox,
-.canop-toggle { position: absolute; block-size: 1px; inline-size: 1px; opacity: 0; }
-.canop-checkbox-mark { display: grid; width: 1.25rem; height: 1.25rem; place-items: center; border: 2px solid var(--canop-primary); border-radius: 0.375rem; }
-.canop-checkbox:checked + .canop-checkbox-mark { background: var(--canop-primary); color: #fff; }
-.canop-checkbox:checked + .canop-checkbox-mark::before { content: '✓'; font-size: 0.75rem; font-weight: 700; }
-.canop-toggle-track { position: relative; display: inline-flex; width: 3.25rem; height: 1.75rem; align-items: center; border-radius: var(--canop-radius-pill); background: color-mix(in srgb, var(--canop-primary) 32%, var(--canop-divider)); cursor: pointer; }
-.canop-toggle-thumb { width: 1.25rem; height: 1.25rem; margin-left: 0.25rem; border-radius: 50%; background: #fff; box-shadow: var(--canop-shadow-1); transition: transform var(--canop-motion) var(--canop-ease); }
-.canop-toggle:checked + .canop-toggle-track { background: var(--canop-primary); }
-.canop-toggle:checked + .canop-toggle-track .canop-toggle-thumb { transform: translateX(1.5rem); }
-.canop-range { width: 100%; accent-color: var(--canop-primary); }
+.canop-toggle {
+  position: absolute;
+  block-size: 1px;
+  inline-size: 1px;
+  opacity: 0;
+}
+.canop-checkbox-mark {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  border: 2px solid var(--canop-primary);
+  border-radius: 0.375rem;
+}
+.canop-checkbox:checked + .canop-checkbox-mark {
+  background: var(--canop-primary);
+  color: #fff;
+}
+.canop-checkbox:checked + .canop-checkbox-mark::before {
+  content: '✓';
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.canop-toggle-track {
+  position: relative;
+  display: inline-flex;
+  width: 3.25rem;
+  height: 1.75rem;
+  align-items: center;
+  border-radius: var(--canop-radius-pill);
+  background: color-mix(in srgb, var(--canop-primary) 32%, var(--canop-divider));
+  cursor: pointer;
+}
+.canop-toggle-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--canop-shadow-1);
+  transition: transform var(--canop-motion) var(--canop-ease);
+}
+.canop-toggle:checked + .canop-toggle-track {
+  background: var(--canop-primary);
+}
+.canop-toggle:checked + .canop-toggle-track .canop-toggle-thumb {
+  transform: translateX(1.5rem);
+}
+.canop-range {
+  width: 100%;
+  accent-color: var(--canop-primary);
+}
 
 /* La pastille de sélection est un élément à part (`__indicator`) qui GLISSE
    d'une option à l'autre, au lieu d'un fond qui s'allumait sur un bouton en
@@ -530,35 +983,166 @@
    `prefers-reduced-motion` est couvert par le bloc en fin de feuille, qui
    ramène toute `transition-duration` à 0,01 ms : la pastille s'y pose d'un
    coup, ce qui est le comportement d'avant. */
-.canop-segmented { position: relative; display: inline-flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-radius: var(--canop-radius-pill); background: var(--canop-surface-sunken); }
-.canop-segmented__indicator { position: absolute; top: 0; left: 0; z-index: 0; opacity: 0; border-radius: var(--canop-radius-pill); background: var(--canop-surface); box-shadow: var(--canop-shadow-1); pointer-events: none; will-change: transform, width, height; }
+.canop-segmented {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--canop-radius-pill);
+  background: var(--canop-surface-sunken);
+}
+.canop-segmented__indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  opacity: 0;
+  border-radius: var(--canop-radius-pill);
+  background: var(--canop-surface);
+  box-shadow: var(--canop-shadow-1);
+  pointer-events: none;
+  will-change: transform, width, height;
+}
 /* Armée seulement après le premier placement : sans l'attribut, la pastille
    traverserait le composant depuis le coin haut-gauche à chaque montage. */
-.canop-segmented__indicator[data-animated='true'] { transition: transform 0.28s var(--canop-ease), width 0.28s var(--canop-ease), height 0.28s var(--canop-ease); }
-.canop-segmented__item { position: relative; z-index: 1; border: 0; border-radius: var(--canop-radius-pill); padding: 0.5rem 0.875rem; background: transparent; color: var(--canop-text-secondary); cursor: pointer; font: 500 0.875rem var(--canop-font-body); transition: color var(--canop-motion) var(--canop-ease); }
-.canop-segmented__item[aria-pressed='true'] { color: var(--canop-primary); }
+.canop-segmented__indicator[data-animated='true'] {
+  transition:
+    transform 0.28s var(--canop-ease),
+    width 0.28s var(--canop-ease),
+    height 0.28s var(--canop-ease);
+}
+.canop-segmented__item {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  border-radius: var(--canop-radius-pill);
+  padding: 0.5rem 0.875rem;
+  background: transparent;
+  color: var(--canop-text-secondary);
+  cursor: pointer;
+  font: 500 0.875rem var(--canop-font-body);
+  transition: color var(--canop-motion) var(--canop-ease);
+}
+.canop-segmented__item[aria-pressed='true'] {
+  color: var(--canop-primary);
+}
 .canop-chip,
-.canop-badge { display: inline-flex; width: fit-content; align-items: center; gap: 0.35rem; border-radius: var(--canop-radius-pill); padding: 0.25rem 0.65rem; background: color-mix(in srgb, var(--canop-primary) 13%, transparent); color: var(--canop-primary); font-size: 0.8125rem; font-weight: 600; }
-.canop-badge--accent { background: color-mix(in srgb, var(--canop-accent) 34%, transparent); color: #785200; }
-.canop-badge--danger { background: color-mix(in srgb, var(--canop-danger) 14%, transparent); color: var(--canop-danger); }
+.canop-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: var(--canop-radius-pill);
+  padding: 0.25rem 0.65rem;
+  background: color-mix(in srgb, var(--canop-primary) 13%, transparent);
+  color: var(--canop-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.canop-badge--accent {
+  background: color-mix(in srgb, var(--canop-accent) 34%, transparent);
+  color: #785200;
+}
+.canop-badge--danger {
+  background: color-mix(in srgb, var(--canop-danger) 14%, transparent);
+  color: var(--canop-danger);
+}
 
-.canop-feedback { display: grid; grid-template-columns: auto 1fr; gap: var(--canop-space-sm); padding: var(--canop-space-md); border-radius: var(--canop-radius-md); border: 1px solid currentColor; }
-.canop-feedback--success { color: var(--canop-success); background: color-mix(in srgb, var(--canop-success) 9%, var(--canop-surface)); }
-.canop-feedback--info { color: var(--canop-info); background: color-mix(in srgb, var(--canop-info) 9%, var(--canop-surface)); }
-.canop-feedback--warning { color: var(--canop-warning); background: color-mix(in srgb, var(--canop-warning) 9%, var(--canop-surface)); }
-.canop-feedback--error { color: var(--canop-danger); background: color-mix(in srgb, var(--canop-danger) 9%, var(--canop-surface)); }
-.canop-spinner { width: 1.5rem; height: 1.5rem; border: 3px solid color-mix(in srgb, var(--canop-primary) 22%, transparent); border-top-color: var(--canop-primary); border-radius: 50%; animation: canop-spin 0.8s linear infinite; }
-.canop-progress { overflow: hidden; height: 0.5rem; border-radius: var(--canop-radius-pill); background: color-mix(in srgb, var(--canop-primary) 12%, var(--canop-surface-sunken)); }
-.canop-progress__value { height: 100%; border-radius: inherit; background: var(--canop-primary); transition: width var(--canop-motion) var(--canop-ease); }
+.canop-feedback {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--canop-space-sm);
+  padding: var(--canop-space-md);
+  border-radius: var(--canop-radius-md);
+  border: 1px solid currentColor;
+}
+.canop-feedback--success {
+  color: var(--canop-success);
+  background: color-mix(in srgb, var(--canop-success) 9%, var(--canop-surface));
+}
+.canop-feedback--info {
+  color: var(--canop-info);
+  background: color-mix(in srgb, var(--canop-info) 9%, var(--canop-surface));
+}
+.canop-feedback--warning {
+  color: var(--canop-warning);
+  background: color-mix(in srgb, var(--canop-warning) 9%, var(--canop-surface));
+}
+.canop-feedback--error {
+  color: var(--canop-danger);
+  background: color-mix(in srgb, var(--canop-danger) 9%, var(--canop-surface));
+}
+.canop-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid color-mix(in srgb, var(--canop-primary) 22%, transparent);
+  border-top-color: var(--canop-primary);
+  border-radius: 50%;
+  animation: canop-spin 0.8s linear infinite;
+}
+.canop-progress {
+  overflow: hidden;
+  height: 0.5rem;
+  border-radius: var(--canop-radius-pill);
+  background: color-mix(in srgb, var(--canop-primary) 12%, var(--canop-surface-sunken));
+}
+.canop-progress__value {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--canop-primary);
+  transition: width var(--canop-motion) var(--canop-ease);
+}
 
-.canop-nav { display: flex; flex-direction: column; gap: var(--canop-space-xs); padding: var(--canop-space-md); }
-.canop-nav__item { display: flex; align-items: center; gap: var(--canop-space-sm); border: 0; border-radius: var(--canop-radius-sm); padding: 0.7rem 0.875rem; background: transparent; color: var(--canop-text-secondary); text-align: left; text-decoration: none; cursor: pointer; font: 500 0.9375rem var(--canop-font-body); }
+.canop-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--canop-space-xs);
+  padding: var(--canop-space-md);
+}
+.canop-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--canop-space-sm);
+  border: 0;
+  border-radius: var(--canop-radius-sm);
+  padding: 0.7rem 0.875rem;
+  background: transparent;
+  color: var(--canop-text-secondary);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font: 500 0.9375rem var(--canop-font-body);
+}
 .canop-nav__item:hover,
-.canop-nav__item[aria-current='page'] { background: color-mix(in srgb, var(--canop-primary) 12%, transparent); color: var(--canop-primary); }
-.canop-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: var(--canop-space-xs); color: var(--canop-text-secondary); font-size: 0.875rem; }
-.canop-breadcrumb a { color: var(--canop-primary); text-decoration: none; }
-.canop-panel { padding: var(--canop-space-lg); }
-.canop-dialog-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: var(--canop-space-lg); background: rgba(12, 15, 13, 0.46); }
+.canop-nav__item[aria-current='page'] {
+  background: color-mix(in srgb, var(--canop-primary) 12%, transparent);
+  color: var(--canop-primary);
+}
+.canop-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--canop-space-xs);
+  color: var(--canop-text-secondary);
+  font-size: 0.875rem;
+}
+.canop-breadcrumb a {
+  color: var(--canop-primary);
+  text-decoration: none;
+}
+.canop-panel {
+  padding: var(--canop-space-lg);
+}
+.canop-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: var(--canop-space-lg);
+  background: rgba(12, 15, 13, 0.46);
+}
 /* LE DIALOGUE RESPIRE : UNE GRILLE, ET UNE GOUTTIÈRE ENTRE SES TROIS BANDES.
 
    Il n'avait qu'un `padding` : le titre, le message et les boutons se
@@ -568,63 +1152,307 @@
    l'œil doit pouvoir s'arrêter. La gouttière `lg` (1,5 rem) sépare les bandes ;
    le corps garde sa gouttière `sm` entre ses propres lignes, pour que le
    message reste UN bloc et non trois phrases éparses. */
-.canop-dialog { display: grid; width: min(100%, 34rem); padding: var(--canop-space-lg); gap: var(--canop-space-lg); }
-.canop-dialog__body { display: grid; gap: var(--canop-space-sm); color: var(--canop-text-secondary); }
-.canop-dialog__close { border: 0; background: transparent; color: var(--canop-text-secondary); cursor: pointer; font-size: 1.5rem; }
+.canop-dialog {
+  display: grid;
+  width: min(100%, 34rem);
+  padding: var(--canop-space-lg);
+  gap: var(--canop-space-lg);
+}
+.canop-dialog__body {
+  display: grid;
+  gap: var(--canop-space-sm);
+  color: var(--canop-text-secondary);
+}
+.canop-dialog__close {
+  border: 0;
+  background: transparent;
+  color: var(--canop-text-secondary);
+  cursor: pointer;
+  font-size: 1.5rem;
+}
 
-.canop-stack { display: flex; gap: var(--canop-space-md); }
-.canop-stack--column { flex-direction: column; }
-.canop-stack--wrap { flex-wrap: wrap; }
-.canop-layout { display: grid; min-height: 100%; grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr); }
-.canop-layout__content { min-width: 0; padding: var(--canop-space-2xl); }
-.canop-page-scaffold { min-height: 100%; background: var(--canop-background); }
-.canop-page-content { width: min(100%, 72rem); margin-inline: auto; }
-.canop-divider { border: 0; border-top: 1px solid var(--canop-divider); }
-.canop-separator { width: 0.35rem; height: 0.35rem; border-radius: 50%; background: var(--canop-primary); }
-.canop-canopy-background { position: relative; overflow: hidden; background: var(--canop-background); }
+.canop-stack {
+  display: flex;
+  gap: var(--canop-space-md);
+}
+.canop-stack--column {
+  flex-direction: column;
+}
+.canop-stack--wrap {
+  flex-wrap: wrap;
+}
+.canop-layout {
+  display: grid;
+  min-height: 100%;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+}
+.canop-layout__content {
+  min-width: 0;
+  padding: var(--canop-space-2xl);
+}
+.canop-page-scaffold {
+  min-height: 100%;
+  background: var(--canop-background);
+}
+.canop-page-content {
+  width: min(100%, 72rem);
+  margin-inline: auto;
+}
+.canop-divider {
+  border: 0;
+  border-top: 1px solid var(--canop-divider);
+}
+.canop-separator {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--canop-primary);
+}
+.canop-canopy-background {
+  position: relative;
+  overflow: hidden;
+  background: var(--canop-background);
+}
 .canop-canopy-background::before,
-.canop-shape-background::before { position: absolute; inset: -20%; content: ''; pointer-events: none; background: radial-gradient(circle at 20% 12%, color-mix(in srgb, var(--canop-primary-light) 28%, transparent), transparent 34%), radial-gradient(circle at 86% 82%, color-mix(in srgb, var(--canop-accent) 16%, transparent), transparent 34%); filter: blur(28px); }
-.canop-shape-background { position: relative; overflow: hidden; background: var(--canop-background); }
-.canop-shape-background::after { position: absolute; right: -12rem; bottom: -14rem; width: 32rem; height: 32rem; border-radius: 42% 58% 65% 35%; content: ''; background: color-mix(in srgb, var(--canop-secondary) 18%, transparent); transform: rotate(18deg); }
-.canop-sliding-indicator { position: relative; display: inline-flex; gap: var(--canop-space-xs); padding: 0.25rem; border-radius: var(--canop-radius-pill); background: var(--canop-surface-sunken); }
-.canop-scrollbar { overflow: auto; scrollbar-color: var(--canop-primary) var(--canop-surface-sunken); scrollbar-width: thin; }
+.canop-shape-background::before {
+  position: absolute;
+  inset: -20%;
+  content: '';
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 20% 12%,
+      color-mix(in srgb, var(--canop-primary-light) 28%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 86% 82%,
+      color-mix(in srgb, var(--canop-accent) 16%, transparent),
+      transparent 34%
+    );
+  filter: blur(28px);
+}
+.canop-shape-background {
+  position: relative;
+  overflow: hidden;
+  background: var(--canop-background);
+}
+.canop-shape-background::after {
+  position: absolute;
+  right: -12rem;
+  bottom: -14rem;
+  width: 32rem;
+  height: 32rem;
+  border-radius: 42% 58% 65% 35%;
+  content: '';
+  background: color-mix(in srgb, var(--canop-secondary) 18%, transparent);
+  transform: rotate(18deg);
+}
+.canop-sliding-indicator {
+  position: relative;
+  display: inline-flex;
+  gap: var(--canop-space-xs);
+  padding: 0.25rem;
+  border-radius: var(--canop-radius-pill);
+  background: var(--canop-surface-sunken);
+}
+.canop-scrollbar {
+  overflow: auto;
+  scrollbar-color: var(--canop-primary) var(--canop-surface-sunken);
+  scrollbar-width: thin;
+}
 
-.canop-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--canop-space-md); }
-.canop-stat-card { display: grid; gap: 0.35rem; padding: var(--canop-space-lg); }
-.canop-stat-card__label { color: var(--canop-text-secondary); font-size: 0.875rem; }
-.canop-stat-card__value { font-size: 2.369rem; }
-.canop-stat-card__delta { color: var(--canop-primary); font-weight: 600; }
-.canop-description-list { display: grid; grid-template-columns: minmax(8rem, 0.6fr) 1fr; gap: 0.65rem 1.5rem; }
-.canop-description-list dt { color: var(--canop-text-secondary); font-weight: 600; }
-.canop-description-list dd { margin: 0; color: var(--canop-text); }
-.canop-bullet-list { display: grid; gap: var(--canop-space-xs); margin: 0; padding-left: 1.25rem; color: var(--canop-text-secondary); }
-.canop-rating { display: inline-flex; gap: 0.15rem; color: var(--canop-accent); }
-.canop-donut { display: grid; width: 9rem; height: 9rem; place-items: center; border-radius: 50%; background: conic-gradient(var(--canop-primary) var(--canop-donut-value, 60%), var(--canop-surface-sunken) 0); }
-.canop-donut::after { display: grid; width: 6rem; height: 6rem; place-items: center; border-radius: 50%; content: attr(data-label); background: var(--canop-surface); color: var(--canop-text); font-family: var(--canop-font-display); }
-.canop-table { width: 100%; border-collapse: collapse; }
+.canop-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--canop-space-md);
+}
+.canop-stat-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: var(--canop-space-lg);
+}
+.canop-stat-card__label {
+  color: var(--canop-text-secondary);
+  font-size: 0.875rem;
+}
+.canop-stat-card__value {
+  font-size: 2.369rem;
+}
+.canop-stat-card__delta {
+  color: var(--canop-primary);
+  font-weight: 600;
+}
+.canop-description-list {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.6fr) 1fr;
+  gap: 0.65rem 1.5rem;
+}
+.canop-description-list dt {
+  color: var(--canop-text-secondary);
+  font-weight: 600;
+}
+.canop-description-list dd {
+  margin: 0;
+  color: var(--canop-text);
+}
+.canop-bullet-list {
+  display: grid;
+  gap: var(--canop-space-xs);
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--canop-text-secondary);
+}
+.canop-rating {
+  display: inline-flex;
+  gap: 0.15rem;
+  color: var(--canop-accent);
+}
+.canop-donut {
+  display: grid;
+  width: 9rem;
+  height: 9rem;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--canop-primary) var(--canop-donut-value, 60%),
+    var(--canop-surface-sunken) 0
+  );
+}
+.canop-donut::after {
+  display: grid;
+  width: 6rem;
+  height: 6rem;
+  place-items: center;
+  border-radius: 50%;
+  content: attr(data-label);
+  background: var(--canop-surface);
+  color: var(--canop-text);
+  font-family: var(--canop-font-display);
+}
+.canop-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 .canop-table th,
-.canop-table td { padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--canop-divider); text-align: left; }
-.canop-table th { color: var(--canop-text-secondary); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.canop-table td {
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--canop-divider);
+  text-align: left;
+}
+.canop-table th {
+  color: var(--canop-text-secondary);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
 
-.canop-file-card { display: flex; align-items: center; gap: var(--canop-space-md); padding: var(--canop-space-md); }
-.canop-file-card__icon { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: var(--canop-radius-sm); background: color-mix(in srgb, var(--canop-primary) 12%, transparent); color: var(--canop-primary); }
-.canop-dropzone { display: grid; min-height: 9rem; place-items: center; gap: var(--canop-space-xs); padding: var(--canop-space-lg); border: 1px dashed var(--canop-primary); border-radius: var(--canop-radius-md); background: color-mix(in srgb, var(--canop-primary) 5%, var(--canop-surface)); color: var(--canop-text-secondary); text-align: center; }
-.canop-lightbox { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 2rem; background: rgba(12, 15, 13, 0.86); }
-.canop-lightbox img { max-width: 100%; max-height: 100%; border-radius: var(--canop-radius-md); box-shadow: var(--canop-shadow-4); }
-.canop-upload-list { display: grid; gap: var(--canop-space-xs); }
-.canop-countdown { display: inline-flex; align-items: baseline; gap: var(--canop-space-xs); font-family: var(--canop-font-display); color: var(--canop-primary); }
-.canop-map { display: grid; min-height: 14rem; place-items: center; border-radius: var(--canop-radius-md); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--canop-primary) 8%, transparent) 0 1rem, transparent 1rem 2rem), var(--canop-surface-sunken); color: var(--canop-text-secondary); }
-.canop-game { display: grid; gap: var(--canop-space-sm); padding: var(--canop-space-lg); }
-.canop-svg-map { width: 100%; min-height: 12rem; border-radius: var(--canop-radius-md); background: var(--canop-surface-sunken); }
-.canop-legal-links { display: flex; flex-wrap: wrap; gap: var(--canop-space-md); color: var(--canop-text-secondary); font-size: 0.875rem; }
-.canop-legal-links a { color: inherit; }
+.canop-file-card {
+  display: flex;
+  align-items: center;
+  gap: var(--canop-space-md);
+  padding: var(--canop-space-md);
+}
+.canop-file-card__icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: var(--canop-radius-sm);
+  background: color-mix(in srgb, var(--canop-primary) 12%, transparent);
+  color: var(--canop-primary);
+}
+.canop-dropzone {
+  display: grid;
+  min-height: 9rem;
+  place-items: center;
+  gap: var(--canop-space-xs);
+  padding: var(--canop-space-lg);
+  border: 1px dashed var(--canop-primary);
+  border-radius: var(--canop-radius-md);
+  background: color-mix(in srgb, var(--canop-primary) 5%, var(--canop-surface));
+  color: var(--canop-text-secondary);
+  text-align: center;
+}
+.canop-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: rgba(12, 15, 13, 0.86);
+}
+.canop-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--canop-radius-md);
+  box-shadow: var(--canop-shadow-4);
+}
+.canop-upload-list {
+  display: grid;
+  gap: var(--canop-space-xs);
+}
+.canop-countdown {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--canop-space-xs);
+  font-family: var(--canop-font-display);
+  color: var(--canop-primary);
+}
+.canop-map {
+  display: grid;
+  min-height: 14rem;
+  place-items: center;
+  border-radius: var(--canop-radius-md);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--canop-primary) 8%, transparent) 0 1rem,
+      transparent 1rem 2rem
+    ),
+    var(--canop-surface-sunken);
+  color: var(--canop-text-secondary);
+}
+.canop-game {
+  display: grid;
+  gap: var(--canop-space-sm);
+  padding: var(--canop-space-lg);
+}
+.canop-svg-map {
+  width: 100%;
+  min-height: 12rem;
+  border-radius: var(--canop-radius-md);
+  background: var(--canop-surface-sunken);
+}
+.canop-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--canop-space-md);
+  color: var(--canop-text-secondary);
+  font-size: 0.875rem;
+}
+.canop-legal-links a {
+  color: inherit;
+}
 
-@keyframes canop-spin { to { transform: rotate(360deg); } }
+@keyframes canop-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @media (max-width: 48rem) {
-  .canop-layout { grid-template-columns: 1fr; }
-  .canop-layout__content { padding: var(--canop-space-lg); }
-  .canop-description-list { grid-template-columns: 1fr; gap: 0.25rem; }
+  .canop-layout {
+    grid-template-columns: 1fr;
+  }
+  .canop-layout__content {
+    padding: var(--canop-space-lg);
+  }
+  .canop-description-list {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

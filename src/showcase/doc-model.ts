@@ -148,12 +148,21 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       canopEntry('CanopLanguageSelector', 'LanguageSelector'),
       canopEntry('CanopSegmentedControl', 'SegmentedControl'),
       canopEntry('CanopThemeToggle', 'ThemeToggle'),
-      { label: 'Button', slug: 'composants/button' },
-      { label: 'Input', slug: 'composants/input' },
-      { label: 'Checkbox', slug: 'composants/checkbox' },
-      { label: 'Slider', slug: 'composants/slider' },
-      { label: 'Select', slug: 'composants/select' },
-      { label: 'Switch', slug: 'composants/switch' },
+      /* SIX ENTRÉES VENDORÉES ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
+         `Checkbox`, `Slider`, `Select` et `Switch`. Chacune doublonnait la
+         `canopEntry` qui la précède : le rail affichait « Input » puis
+         « Input » sans dire lequel prendre. Leurs composants sont désormais la
+         matière derrière `liquidGlass`, documentée sur la page Opale, et leurs
+         pages sont supprimées.
+
+         `composants/button` ÉTAIT DÉJÀ MORTE AVANT CE NETTOYAGE, et personne ne
+         l'avait vu : `navSectionsForPages` résout chaque slug par un
+         `bySlug.get()` et SAUTE EN SILENCE ceux qu'aucune page ne sert. Une
+         entrée fantôme ne rougit donc nulle part et ne s'affiche pas non plus —
+         elle se contente de mentir à qui lit cette liste. C'est la raison pour
+         laquelle les cinq autres partent ici et pas « plus tard ».
+
+         `SearchBar` reste : il n'a pas de jumeau Opale. */
       { label: 'SearchBar', slug: 'composants/search-bar' },
     ],
   },
@@ -189,8 +198,10 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       canopEntry('CanopHeading', 'Heading'),
       canopEntry('CanopText', 'Text'),
       canopEntry('CanopIcon', 'Icon'),
-      { label: 'Badge', slug: 'composants/badge' },
-      { label: 'Card', slug: 'composants/card' },
+      /* `Badge` et `Card` vendorés sont partis pour la même raison que les six
+         d'INPUTS : ils doublonnaient `canopEntry('CanopBadge')` et
+         `canopEntry('CanopCard')` juste au-dessus. `Glass` reste — c'est le
+         matériau lui-même, et rien côté Opale ne le documente. */
       { label: 'Glass', slug: 'composants/glass' },
     ],
   },
@@ -205,7 +216,13 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       canopEntry('CanopConfirmDialog', 'ConfirmDialog'),
       canopEntry('CanopEmptyState', 'EmptyState'),
       { label: 'Modal', slug: 'composants/modal' },
-      { label: 'Toast', slug: 'composants/toast' },
+      /* « ToastProvider » ET NON « Toast » : le doublon de cette section
+         n'était pas un composant mais un NOM. Le vendoré n'expose pas de
+         `Toast` — il expose une file (`ToastProvider` + `useToast`) portaillée
+         sur `document.body`, là où `canopEntry('CanopToast')` ci-dessus
+         documente une notification rendue en place. Les deux restent, sous
+         deux noms qui les distinguent enfin. */
+      { label: 'ToastProvider', slug: 'composants/toast-provider' },
     ],
   },
   {

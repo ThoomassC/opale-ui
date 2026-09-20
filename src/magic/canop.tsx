@@ -7,16 +7,101 @@ import {
   useState,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
+  type ComponentProps,
+  type ComponentType,
   type CSSProperties,
   type FormHTMLAttributes,
   type HTMLAttributes,
   type InputHTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
+  type Ref,
   type SelectHTMLAttributes,
 } from 'react';
 
+import MagicBadge from './components/badge/Badge';
 import MagicButton from './components/button/Button';
+import MagicCard from './components/card/Card';
+import MagicCheckbox from './components/checkbox/Checkbox';
+import MagicInput from './components/input/Input';
+import MagicSelect from './components/select/Select';
+import MagicSlider from './components/slider/Slider';
+import MagicSwitch from './components/switch/Switch';
+
+/* =============================================================================
+   LE VERRE EST LA PEAU, LE CONTRÔLE NATIF RESTE LE MOTEUR.
+
+   C'est la règle qui gouverne les sept fusions de ce fichier, et elle mérite
+   d'être posée une fois plutôt que réexpliquée sept.
+
+   LE PATRON VIENT DE `Button` : un seul composant par nom, et la prop
+   `liquidGlass` choisit la MATIÈRE. Le paquet publiait deux `Button`, deux
+   `Input`, deux `Card`… dont l'un imitait l'autre en CSS. La prop rend
+   désormais le vrai matériau, et la porte publique du vendoré se ferme.
+
+   MAIS `Button` EST LE CAS FACILE, ET IL FAUT LE DIRE. Un bouton n'a pas
+   d'état : `children`, `disabled`, un clic. Le vendoré le porte en entier,
+   donc on peut le substituer tel quel. Les six autres ont un ÉTAT et un
+   CONTRAT D'ÉVÉNEMENT, et là le vendoré ne suit plus :
+
+     — `Checkbox` émet `onChange(checked: boolean)` quand Opale émet un
+       `ChangeEvent<HTMLInputElement>` ;
+     — `Slider` émet `onChange(value: number)`, et sa piste est un `<div>` sans
+       rôle, sans `tabindex` et sans clavier — défaut réel, documenté en tête
+       de `Slider.tsx` ;
+     — `Switch` expose `isActive`/`setIsActive` là où `CanopToggle` étend
+       `InputHTMLAttributes` : `name`, `required`, participation au formulaire ;
+     — `Select` n'est pas un `<select>` : c'est un bouton et une liste de
+       `<button>`, donc ni nom de formulaire, ni sélecteur natif mobile.
+
+   Substituer purement et simplement aurait donc échangé un composant accessible
+   contre un composant qui ne l'est pas, et fait taire des `onChange` que des
+   formulaires écoutent. Une prop d'apparence n'a pas à casser un contrat.
+
+   D'OÙ LA RÈGLE : le composant vendoré est rendu pour ce qu'on lui demande —
+   SA SURFACE. Il est inerte (`aria-hidden`, `tabIndex={-1}`,
+   `pointer-events: none`), et le contrôle natif d'Opale reste monté, garde le
+   focus, le clavier, le nom de formulaire et son événement. Un état miroir
+   (`useMirrorState`) tient le vendoré au courant de la valeur pour qu'il la
+   peigne.
+
+   CE QUI EST DONC VRAI À L'ÉCRAN : basculer le commutateur ne change QUE la
+   matière — ni la taille, ni la position, ni le comportement, ni ce qu'entend
+   un lecteur d'écran. C'était l'exigence.
+
+   `Badge` ET `Card` N'ONT PAS D'ÉTAT, donc ils échappent à tout cela : ils sont
+   substitués comme `Button`, sans miroir ni contrôle caché.
+   ========================================================================== */
+
+/**
+ * La valeur affichée par la peau de verre, qu'on soit contrôlé ou non.
+ *
+ * Le vendoré a besoin d'une valeur pour se peindre, et Opale accepte les deux
+ * modes. En mode contrôlé la prop fait foi et le miroir ne sert pas ; en mode
+ * non contrôlé le DOM fait foi, et le miroir est le seul moyen de le savoir.
+ */
+function useMirrorState<T>(controlled: T | undefined, initial: T): [T, (next: T) => void] {
+  const [mirror, setMirror] = useState<T>(initial);
+  return [controlled ?? mirror, setMirror];
+}
+
+/** Rend un composant vendoré inerte : il peint, il n'agit pas. */
+const DECORATIVE = { 'aria-hidden': true, tabIndex: -1 } as const;
+
+/* `Input` NE DÉCLARE PAS DE `ref`, ET REACT 19 LA TRANSMET QUAND MÊME.
+
+   Leur composant est un `React.FC` typé `ComponentPropsWithoutRef<'input'>`,
+   donc TypeScript refuse `ref`. À l'exécution, en revanche, React 19 traite
+   `ref` comme une prop ordinaire sur un composant fonction : elle tombe dans
+   leur `{...props}` et atterrit sur le vrai `<input>`.
+
+   Sans ce recast, il aurait fallu renoncer à `ref` sous verre — et
+   `CanopInput` est un `forwardRef`. Une référence qui cesse silencieusement
+   d'être transmise est précisément le genre de panne qu'aucun test de rendu
+   n'attrape : le champ s'affiche, et `inputRef.current` vaut `null`. */
+const GlassInput = MagicInput as unknown as ComponentType<
+  ComponentProps<typeof MagicInput> & { ref?: Ref<HTMLInputElement> }
+>;
 
 type CanopButtonVariant =
   'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text';
@@ -180,12 +265,8 @@ export function CanopCard({
   children,
   ...props
 }: CanopCardProps) {
-  return (
-    <Surface
-      className={cx('canop-card', `canop-card--e${elevation}`, className)}
-      liquidGlass={liquidGlass}
-      {...props}
-    >
+  const content = (
+    <>
       {(title || subtitle || actions) && (
         <div className="canop-card__header">
           <div>
@@ -197,6 +278,31 @@ export function CanopCard({
       )}
       <div className="canop-card__body">{children}</div>
       {footer && <div className="canop-card__footer">{footer}</div>}
+    </>
+  );
+
+  /* LA CLASSE DU CONSOMMATEUR PART SUR LA RACINE, PAS SUR LE CONTENU, et ce
+     n'est pas un détail de goût. `Card` ne déstructure PAS `className` : il
+     pose la sienne puis répand `{...props}` par-dessus, si bien qu'une classe
+     venue de l'extérieur EFFACE `styles.card` — la carte perd son fond, son
+     rayon et son rembourrage d'un coup, sans que rien ne rougisse. La racine
+     du verre est de toute façon l'élément qu'on voit ; c'est là qu'une classe
+     d'habillage a sa place.
+
+     `elevation` N'A PAS D'ÉQUIVALENT et n'en aura pas : le verre porte sa
+     propre ombre, qui EST sa profondeur. Lui superposer les trois niveaux
+     d'Opale donnerait deux ombres sur une surface translucide. */
+  if (liquidGlass) {
+    return (
+      <MagicCard rootClassName={cx('canop-card--glass-root', className)} {...props}>
+        {content}
+      </MagicCard>
+    );
+  }
+
+  return (
+    <Surface className={cx('canop-card', `canop-card--e${elevation}`, className)} {...props}>
+      {content}
     </Surface>
   );
 }
@@ -224,10 +330,31 @@ export const CanopInput = forwardRef<HTMLInputElement, CanopFieldProps>(
     return (
       <label className={cx('canop-field', className)} htmlFor={inputId}>
         {label && <span className="canop-field__label">{label}</span>}
-        <span className={cx('canop-input-shell', liquidGlass && 'canop-liquid')}>
-          {icon}
-          <input ref={ref} id={inputId} className="canop-input" {...props} />
-        </span>
+        {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
+
+            Ce qui porte du TEXTE reste à Opale — le libellé, le texte d'aide,
+            le message d'erreur, et l'association `htmlFor`/`id` qui les relie.
+            Seule la BOÎTE du champ devient du verre. Envoyer le libellé au
+            vendoré n'était pas possible de toute façon : il n'en a pas.
+
+            LE VENDORÉ REND UN VRAI `<input>` ET REÇOIT `{...props}` DESSUS,
+            donc c'est le seul des sept où la substitution est complète : la
+            valeur, le type, le nom, le `placeholder` et l'`onChange` natif
+            passent tels quels. Rien à pontifier, rien à masquer.
+
+            CE QUI SE PERD : `icon`. Le vendoré n'a aucun emplacement où la
+            poser, et l'insérer de force demanderait de reconstruire son
+            balisage — c'est-à-dire de recréer le doublon qu'on supprime. */}
+        {liquidGlass ? (
+          <span className="canop-input--glass">
+            <GlassInput ref={ref} id={inputId} {...props} />
+          </span>
+        ) : (
+          <span className="canop-input-shell">
+            {icon}
+            <input ref={ref} id={inputId} className="canop-input" {...props} />
+          </span>
+        )}
         {(error || helperText) && (
           <span
             className={cx('canop-field__helper', Boolean(error) && 'canop-field__helper--error')}
@@ -244,13 +371,62 @@ CanopInput.displayName = 'CanopInput';
 export interface CanopCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: ReactNode;
   description?: ReactNode;
+  liquidGlass?: boolean;
 }
 
-export function CanopCheckbox({ label, description, className, ...props }: CanopCheckboxProps) {
+export function CanopCheckbox({
+  label,
+  description,
+  liquidGlass = false,
+  className,
+  onChange,
+  ...props
+}: CanopCheckboxProps) {
+  const [checked, setChecked] = useMirrorState(
+    props.checked,
+    props.defaultChecked ?? props.checked ?? false,
+  );
+
+  /* LE VERRE REMPLACE LA COCHE PEINTE, PAS LA CASE.
+
+     `.canop-checkbox-mark` est déjà une décoration `aria-hidden` : la vraie
+     case est l'`<input>` natif, invisible et posé sur toute la rangée. Le
+     verre prend exactement la place de cette décoration, et reste comme elle
+     inerte — c'est le `<label>` qui reçoit le clic, comme avant.
+
+     `pointer-events: none` (posé en CSS) EST CE QUI ÉVITE LA DOUBLE BASCULE :
+     leur case est un `<button>` avec son propre `onClick`. Laissé cliquable à
+     l'intérieur d'un `<label>`, il aurait coché puis décoché dans le même
+     geste, ou pire, selon que le navigateur considère ou non qu'un bouton
+     interrompt la propagation du libellé. On ne parie pas là-dessus. */
   return (
     <label className={cx('canop-checkbox-row', className)}>
-      <input type="checkbox" className="canop-checkbox" {...props} />
-      <span className="canop-checkbox-mark" aria-hidden="true" />
+      <input
+        type="checkbox"
+        className="canop-checkbox"
+        onChange={(event) => {
+          setChecked(event.currentTarget.checked);
+          onChange?.(event);
+        }}
+        {...props}
+      />
+      {liquidGlass ? (
+        <span
+          className="canop-checkbox--glass"
+          data-checked={checked ? 'true' : undefined}
+          aria-hidden="true"
+        >
+          <MagicCheckbox
+            checked={checked}
+            disabled={props.disabled}
+            enableClickAnimation={false}
+            rootClassName="canop-checkbox--glass-root"
+            {...DECORATIVE}
+          />
+        </span>
+      ) : (
+        <span className="canop-checkbox-mark" aria-hidden="true" />
+      )}
       <span>{label ?? description}</span>
       {label && description && <small className="canop-field__helper">{description}</small>}
     </label>
@@ -262,13 +438,54 @@ export interface CanopToggleProps extends Omit<InputHTMLAttributes<HTMLInputElem
   liquidGlass?: boolean;
 }
 
-export function CanopToggle({ label, liquidGlass = false, className, ...props }: CanopToggleProps) {
+export function CanopToggle({
+  label,
+  liquidGlass = false,
+  className,
+  onChange,
+  ...props
+}: CanopToggleProps) {
+  const [checked, setChecked] = useMirrorState(
+    props.checked,
+    props.defaultChecked ?? props.checked ?? false,
+  );
+
+  /* `liquidGlass` NE POSAIT QU'UNE CLASSE, ET C'EST CE QUI EST CORRIGÉ ICI.
+     Elle ajoutait `canop-liquid` à la RANGÉE — un lavis CSS sur le fond du
+     libellé, qui imitait le verre sans l'être et ne touchait même pas la
+     piste. La prop rend désormais l'interrupteur vendoré à la place de la
+     piste peinte, inerte comme elle l'était (`aria-hidden`), l'`<input>`
+     natif gardant le focus, le clavier et le nom de formulaire. */
   return (
-    <label className={cx('canop-toggle-row', liquidGlass && 'canop-liquid', className)}>
-      <input type="checkbox" className="canop-toggle" {...props} />
-      <span className="canop-toggle-track" aria-hidden="true">
-        <span className="canop-toggle-thumb" />
-      </span>
+    <label className={cx('canop-toggle-row', className)}>
+      <input
+        type="checkbox"
+        className="canop-toggle"
+        onChange={(event) => {
+          setChecked(event.currentTarget.checked);
+          onChange?.(event);
+        }}
+        {...props}
+      />
+      {liquidGlass ? (
+        <span
+          className="canop-toggle--glass"
+          data-checked={checked ? 'true' : undefined}
+          aria-hidden="true"
+        >
+          <MagicSwitch
+            isActive={checked}
+            disabled={props.disabled}
+            enableClickAnimation={false}
+            rootClassName="canop-toggle--glass-root"
+            {...DECORATIVE}
+          />
+        </span>
+      ) : (
+        <span className="canop-toggle-track" aria-hidden="true">
+          <span className="canop-toggle-thumb" />
+        </span>
+      )}
       {label && <span>{label}</span>}
     </label>
   );
@@ -277,9 +494,48 @@ export function CanopToggle({ label, liquidGlass = false, className, ...props }:
 export interface CanopSliderProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: ReactNode;
   valueLabel?: ReactNode;
+  liquidGlass?: boolean;
 }
 
-export function CanopSlider({ label, valueLabel, className, ...props }: CanopSliderProps) {
+export function CanopSlider({
+  label,
+  valueLabel,
+  liquidGlass = false,
+  className,
+  onChange,
+  ...props
+}: CanopSliderProps) {
+  const [value, setValue] = useMirrorState(
+    props.value === undefined ? undefined : Number(props.value),
+    Number(props.defaultValue ?? props.value ?? 0),
+  );
+
+  /* ICI LE CONTRÔLE NATIF N'EST PAS UNE PRÉCAUTION, C'EST UNE CORRECTION.
+
+     Leur piste est un `<div>` sans rôle, sans `tabindex` et sans clavier — le
+     défaut est relevé en tête de `Slider.tsx`, dans ce dépôt. Le substituer à
+     l'`<input type="range">` d'Opale aurait échangé un curseur utilisable au
+     clavier contre un curseur qui ne l'est pas : une régression
+     d'accessibilité déguisée en changement d'apparence. WCAG 2.1.1 n'admet pas
+     ce troc, et le propriétaire n'a pas demandé de perdre le clavier.
+
+     LE NATIF EST DONC POSÉ PAR-DESSUS, TRANSPARENT (voir `canop.css`) : il
+     reçoit le pointeur ET les flèches du clavier, et le verre au-dessous se
+     contente de peindre la valeur qu'il annonce. C'est le geste inverse de
+     celui du bouton, et c'est le même principe — rendre la matière sans rien
+     retirer au composant. */
+  const range = (
+    <input
+      type="range"
+      className={cx('canop-range', liquidGlass && 'canop-range--glass')}
+      onChange={(event) => {
+        setValue(Number(event.currentTarget.value));
+        onChange?.(event);
+      }}
+      {...props}
+    />
+  );
+
   return (
     <label className={cx('canop-field', className)}>
       {(label || valueLabel) && (
@@ -288,7 +544,21 @@ export function CanopSlider({ label, valueLabel, className, ...props }: CanopSli
           <span>{valueLabel ?? props.value}</span>
         </span>
       )}
-      <input type="range" className="canop-range" {...props} />
+      {liquidGlass ? (
+        <span className="canop-slider--glass">
+          <MagicSlider
+            value={value}
+            min={props.min === undefined ? undefined : Number(props.min)}
+            max={props.max === undefined ? undefined : Number(props.max)}
+            step={props.step === undefined ? undefined : Number(props.step)}
+            disabled={props.disabled}
+            enableClickAnimation={false}
+          />
+          {range}
+        </span>
+      ) : (
+        range
+      )}
     </label>
   );
 }
@@ -308,23 +578,77 @@ export function CanopSelect({
   className,
   id,
   children,
+  onChange,
   ...props
 }: CanopSelectProps) {
   const generatedId = useId();
   const selectId = id ?? generatedId;
+  const [value, setValue] = useMirrorState(
+    props.value === undefined ? undefined : String(props.value),
+    String(props.defaultValue ?? props.value ?? options?.[0]?.value ?? ''),
+  );
+
+  const nativeSelect = (
+    <select
+      id={selectId}
+      className={cx('canop-select', liquidGlass && 'canop-select--native')}
+      onChange={(event) => {
+        setValue(event.currentTarget.value);
+        onChange?.(event);
+      }}
+      {...props}
+    >
+      {options?.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+      {children}
+    </select>
+  );
+
+  /* LE `<select>` NATIF RESTE, ET IL RESTE AU-DESSUS.
+
+     Leur `Select` n'est pas un `<select>` : c'est un bouton et une liste de
+     `<button>`. Le substituer aurait coûté trois choses à la fois — le nom de
+     formulaire (`name`), le sélecteur natif du mobile, et les `<option>` que
+     le consommateur passe en enfants. Le champ aurait continué de s'afficher,
+     et le formulaire aurait cessé d'envoyer sa valeur : la panne muette
+     typique.
+
+     Le natif est donc posé par-dessus la peau de verre, transparent. Il garde
+     le clic, le clavier et la soumission ; le verre peint l'état fermé, qui
+     est le seul que l'on voie — la liste ouverte, elle, est celle du système,
+     exactement comme sans verre.
+
+     LES LIBELLÉS D'OPTION SONT DES `ReactNode` ET LE VENDORÉ VEUT DES CHAÎNES.
+     Seules les options dont le libellé EST une chaîne lui sont passées ; les
+     autres gardent leur rendu natif au-dessus, donc rien ne disparaît à
+     l'écran, seule la peau est moins bavarde. */
+  if (liquidGlass) {
+    return (
+      <label className={cx('canop-field', className)} htmlFor={selectId}>
+        {label && <span className="canop-field__label">{label}</span>}
+        <span className="canop-select--glass">
+          <MagicSelect
+            options={(options ?? [])
+              .filter((option) => typeof option.label === 'string')
+              .map((option) => ({ value: option.value, label: option.label as string }))}
+            value={value}
+            disabled={props.disabled}
+            enableClickAnimation={false}
+          />
+          {nativeSelect}
+        </span>
+        {helperText && <span className="canop-field__helper">{helperText}</span>}
+      </label>
+    );
+  }
+
   return (
     <label className={cx('canop-field', className)} htmlFor={selectId}>
       {label && <span className="canop-field__label">{label}</span>}
-      <span className={cx('canop-input-shell', liquidGlass && 'canop-liquid')}>
-        <select id={selectId} className="canop-select" {...props}>
-          {options?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-          {children}
-        </select>
-      </span>
+      <span className="canop-input-shell">{nativeSelect}</span>
       {helperText && <span className="canop-field__helper">{helperText}</span>}
     </label>
   );
@@ -753,13 +1077,35 @@ export function CanopIconActionButton({
 
 export function CanopBadge({
   tone = 'primary',
+  liquidGlass = false,
   children,
   className,
 }: {
   tone?: 'primary' | 'accent' | 'danger';
+  liquidGlass?: boolean;
   children: ReactNode;
   className?: string;
 }) {
+  /* `Badge` EST LE SEUL VENDORÉ QUI FUSIONNE `className` AU LIEU DE L'ÉCRASER
+     (il le déstructure et le passe à `clsx`), donc c'est le seul où la
+     géométrie peut voyager par là. Les six autres exigent `rootClassName`.
+
+     SA VARIANTE N'EST PAS EMPLOYÉE, pour la raison qui a déjà tranché sur le
+     bouton : ses six teintes viennent d'une autre palette, et une
+     correspondance arbitraire entre les tons d'Opale et les leurs se dément au
+     premier changement de marque — le secondaire du bouton était resté vert.
+     La teinte vient donc d'une classe par ton, tirée des jetons. */
+  if (liquidGlass) {
+    return (
+      <MagicBadge
+        className={cx('canop-badge--glass', `canop-badge--glass-${tone}`, className)}
+        rootClassName="canop-badge--glass-root"
+      >
+        {children}
+      </MagicBadge>
+    );
+  }
+
   return (
     <span className={cx('canop-badge', tone !== 'primary' && `canop-badge--${tone}`, className)}>
       {children}
