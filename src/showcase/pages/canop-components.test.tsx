@@ -2,6 +2,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import canopComponentsSource from './canop-components.tsx?raw';
+import catalogPreviewSource from './catalog-preview.tsx?raw';
 import { CANOP_CATALOG, Opale } from '../../magic';
 import { catalogComponentLabel } from '../doc-model';
 import { CatalogPreview } from './catalog-preview';
@@ -70,6 +72,46 @@ describe('le catalogue interactif V3', () => {
     expect(preview).not.toBeNull();
     expect(preview).not.toHaveTextContent('Démonstration manquante');
     expect(preview?.childElementCount).toBeGreaterThan(0);
+  });
+
+  /* =============================================================================
+     LA LISTE DES COMPOSANTS « À VERRE » NE PEUT PAS DÉRIVER DE LA RÉALITÉ.
+
+     `canop-components.tsx` n'ajoute ` liquidGlass` à l'extrait de code que pour
+     les composants dont l'aperçu transmet vraiment la prop. Cette liste est
+     écrite à la main, donc elle vieillira : câbler un septième aperçu sans
+     l'inscrire donnerait un exemple qui ne reproduit pas ce qu'on voit, et
+     l'inscrire sans câbler donnerait un exemple qui compile sans rien faire.
+     Les deux sont des mensonges, et aucun ne se voit à la lecture.
+
+     Le test rapproche donc la liste de ce que `catalog-preview.tsx` transmet
+     réellement. C'est la seule endroit où les deux se regardent. */
+  it('n’annonce le verre dans le code que pour les aperçus qui le transmettent', () => {
+    const declared = (
+      /const FORWARDS_LIQUID_GLASS: readonly string\[\] = \[([\s\S]*?)\];/.exec(
+        canopComponentsSource,
+      )?.[1] ?? ''
+    )
+      .match(/'(Canop[A-Za-z0-9]+)'/g)
+      ?.map((quoted) => quoted.replaceAll("'", ''))
+      .sort();
+
+    const wired = [...catalogPreviewSource.matchAll(/case '(Canop[A-Za-z0-9]+)':([\s\S]*?)break;/g)]
+      .filter(([, , body]) => body.includes('liquidGlass={liquidGlass}'))
+      .map(([, name]) => name)
+      .sort();
+
+    expect(
+      declared,
+      'FORWARDS_LIQUID_GLASS est introuvable dans canop-components.tsx.',
+    ).toBeDefined();
+    expect(
+      declared,
+      'La liste des composants qui annoncent `liquidGlass` dans leur extrait ne correspond ' +
+        'plus aux aperçus qui transmettent la prop.\n' +
+        `  annoncés : ${declared?.join(', ')}\n` +
+        `  câblés   : ${wired.join(', ')}`,
+    ).toEqual(wired);
   });
 
   it('fait réellement basculer ThemeToggle', async () => {

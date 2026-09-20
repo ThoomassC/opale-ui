@@ -13,8 +13,15 @@
   --canop-primary: #315c9e;
   --canop-primary-dark: #23457a;
   --canop-primary-light: #5f87c4;
-  --canop-secondary: #8f9a74;
-  --canop-secondary-dark: #6a7455;
+  /* LE SECONDAIRE EST UN BLEU, PLUS UNE OLIVE. Un bouton « secondaire » vert à
+     côté d'un primaire saphir ne se lisait pas comme le second rôle du même
+     rôle, mais comme une autre intention. Le bleu d'acier ci-dessous reste de
+     la famille du saphir — écart perceptuel mesuré à 6,2 en Oklab, assez pour
+     les distinguer côte à côte, trop peu pour qu'ils se contredisent.
+     `--canop-secondary-dark` EST LE FOND DU BOUTON, et c'est lui qu'on mesure :
+     5,52:1 avec l'encre claire, contre 4,75 pour l'olive qu'il remplace. */
+  --canop-secondary: #5990b0;
+  --canop-secondary-dark: #3a6b8a;
   --canop-accent: #f4ad15;
   --canop-danger: #b3261e;
   --canop-info: #1a4f8b;
@@ -128,8 +135,15 @@
   --canop-primary: #5d87cb;
   --canop-primary-dark: #739cda;
   --canop-primary-light: #a9c7f4;
-  --canop-secondary: #a9b48c;
-  --canop-secondary-dark: #7f8a63;
+  /* Le pendant clair du bleu d'acier, dans la même bande que le primaire
+     sombre (#5d87cb). Il n'est PAS remonté au-dessus du seuil AA, et c'est
+     délibéré : en thème sombre les boutons canop posent tous une encre claire
+     sur un fond moyen — primaire 3,48:1, danger 2,94:1, secondaire 3,52:1. Le
+     défaut est systémique. Corriger le seul secondaire l'aurait rendu
+     incohérent avec ses voisins sans régler quoi que ce soit ; la reprise du
+     couple encre/fond du thème sombre est un chantier à part. */
+  --canop-secondary: #8fb5cd;
+  --canop-secondary-dark: #6f9cba;
   --canop-danger: #e2726b;
   --canop-divider: #2c322d;
   --canop-focus: #a9c7f4;
@@ -340,6 +354,28 @@
 
    La silhouette arrondie du verre, elle, n'est pas touchée : c'est son
    identité, pas un accident de dimension. */
+/* LA SQUIRCLE, PAS LA PILULE. Le bouton Opale n'a pas de `border-radius` : il
+   est DÉCOUPÉ par `--canop-squircle-clip`, un polygone dont les flancs sont
+   plus droits et les coins plus serrés qu'un arrondi. Le verre, lui, arrive
+   avec la pilule du composant vendoré — d'où des boutons visiblement plus ronds
+   que leurs originaux au moment où le commutateur bascule. Le découpage est
+   posé sur les DEUX couches : le conteneur, qui porte la silhouette visible et
+   l'ombre, et le contenu, qui porte le fond teinté de la variante. */
+.canop-button--glass-root,
+.canop-button--glass {
+  border-radius: 0 !important;
+  clip-path: var(--canop-squircle-clip);
+}
+
+/* La teinte du verre, par rôle Opale. Un lavis et non un aplat : le propre du
+   matériau est de laisser voir ce qu'il y a derrière, donc la couleur s'y pose
+   à faible densité. Les rôles sans couleur propre — `tonal`, `ghost`, `text` —
+   n'en reçoivent aucune et gardent le verre nu. */
+.canop-button--glass-primary { background: color-mix(in srgb, var(--canop-primary) 26%, transparent) !important; }
+.canop-button--glass-secondary { background: color-mix(in srgb, var(--canop-secondary-dark) 26%, transparent) !important; }
+.canop-button--glass-accent { background: color-mix(in srgb, var(--canop-accent) 30%, transparent) !important; }
+.canop-button--glass-danger { background: color-mix(in srgb, var(--canop-danger) 26%, transparent) !important; }
+
 .canop-button--glass {
   min-height: 2.75rem !important;
   padding: 0.375rem 1.25rem !important;

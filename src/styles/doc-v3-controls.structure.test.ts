@@ -21,7 +21,13 @@ describe('la forme interactive CanopUI', () => {
     expect(root).toMatch(/--canop-font-mono:\s*'Hack'/);
     expect(darkRoot).toMatch(/--canop-primary:\s*#5d87cb/);
     expect(darkRoot).toMatch(/--canop-primary-dark:\s*#739cda/);
-    expect(root).toMatch(/--canop-secondary-dark:\s*#6a7455/);
+    /* LE SECONDAIRE EST PASSÉ DE L'OLIVE AU BLEU D'ACIER, et ce garde suit.
+       Un bouton « secondaire » vert à côté d'un primaire saphir ne se lisait pas
+       comme le second rôle du même rôle. Le chiffre change, l'exigence non :
+       c'est toujours `--canop-secondary-dark` qui peint le fond du bouton, et
+       il est désormais mesuré à 5,52:1 avec l'encre claire — contre 4,75 pour
+       l'olive qu'il remplace. */
+    expect(root).toMatch(/--canop-secondary-dark:\s*#3a6b8a/);
     expect(root).toMatch(/--canop-accent:\s*#f4ad15/);
     expect(root).toMatch(/--canop-danger:\s*#b3261e/);
     expect(root).toMatch(/--canop-radius-md:\s*1\.375rem/);

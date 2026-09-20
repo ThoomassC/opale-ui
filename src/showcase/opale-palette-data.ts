@@ -73,10 +73,10 @@ export const OPALE_PLATES: readonly Plate[] = [
       },
       {
         title: 'Les encres secondaires',
-        note: 'L’olive et l’ambre accompagnent ; ils ne portent jamais l’action principale.',
+        note: 'Le bleu d’acier et l’ambre accompagnent ; ils ne portent jamais l’action principale.',
         swatches: [
-          { token: '--canop-secondary', hex: '#8f9a74', against: 'variante secondaire' },
-          { token: '--canop-secondary-dark', hex: '#6a7455', against: 'appui de la secondaire' },
+          { token: '--canop-secondary', hex: '#5990b0', against: 'variante secondaire' },
+          { token: '--canop-secondary-dark', hex: '#3a6b8a', against: 'fond du bouton secondaire' },
           { token: '--canop-accent', hex: '#f4ad15', against: 'accent éditorial' },
         ],
       },
@@ -128,8 +128,8 @@ export const OPALE_PLATES: readonly Plate[] = [
         title: 'Les encres secondaires',
         note: 'L’ambre ne change pas de thème : il tient sur les deux sols.',
         swatches: [
-          { token: '--canop-secondary', hex: '#a9b48c', against: 'variante secondaire' },
-          { token: '--canop-secondary-dark', hex: '#7f8a63', against: 'appui de la secondaire' },
+          { token: '--canop-secondary', hex: '#8fb5cd', against: 'variante secondaire' },
+          { token: '--canop-secondary-dark', hex: '#6f9cba', against: 'fond du bouton secondaire' },
           { token: '--canop-accent', hex: '#f4ad15', against: 'accent — identique au clair' },
         ],
       },

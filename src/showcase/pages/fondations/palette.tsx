@@ -29,7 +29,7 @@ export const palettePage: DocPage = {
           active du sommaire.
         </li>
         <li className="tc-doc-laws__item tc-doc-laws__item--copper">
-          <strong>L’olive et l’ambre accompagnent.</strong> Ils décorent et signalent, ils ne
+          <strong>Le bleu d’acier et l’ambre accompagnent.</strong> Ils décorent et signalent, ils ne
           portent jamais l’action principale.
         </li>
         <li className="tc-doc-laws__item tc-doc-laws__item--neutral">

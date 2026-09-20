@@ -6,85 +6,126 @@ import type { DocPage } from '../doc-model';
 import { UsageBlock } from './api';
 import { CatalogPreview } from './catalog-preview';
 
-function exampleCode(name: string): string {
+/* =============================================================================
+   L'EXEMPLE DIT SI LE VERRE EST ACTIF, PARCE QU'IL NE LE DISAIT PAS.
+
+   Le commutateur changeait la démonstration sans changer une ligne du code
+   affiché. Qui basculait le verre, aimait ce qu'il voyait, puis cliquait
+   « Afficher le code » repartait avec un extrait qui ne le reproduit PAS — il
+   n'y avait aucune trace de la prop qui fait toute la différence. Une
+   documentation dont l'exemple ne reproduit pas ce qu'il montre est pire
+   qu'une documentation absente.
+
+   LA PROP N'EST AJOUTÉE QU'AUX COMPOSANTS DONT L'APERÇU LA TRANSMET RÉELLEMENT.
+   Six sur soixante-dix-sept la reçoivent aujourd'hui ; l'écrire sur les autres
+   donnerait un code qui compile et ne fait rien, ce qui est le second genre de
+   mensonge qu'on veut éviter ici. La liste est vérifiée par un test, qui la
+   compare à ce que `catalog-preview.tsx` transmet vraiment. */
+const FORWARDS_LIQUID_GLASS: readonly string[] = [
+  'CanopButton',
+  'CanopCard',
+  'CanopCardGrid',
+  'CanopInput',
+  'CanopStatCard',
+  'CanopToggle',
+];
+
+/**
+ * Ajoute ` liquidGlass` à chaque balise ouvrante `<Opale.X …>` d'un extrait.
+ *
+ * `[^>]*?` NE PEUT PAS FRANCHIR UN `>`, donc la substitution s'arrête à la fin
+ * de la balise ouvrante et ne touche ni au contenu ni aux balises fermantes.
+ * C'est aussi ce qui la rend sûre sur les exemples multilignes, où le `/>`
+ * final se trouve plusieurs lignes plus bas.
+ */
+function withLiquidGlass(code: string): string {
+  return code.replace(
+    /(<Opale\.[A-Za-z]+[^>]*?)(\s*\/?>)/g,
+    (_match, open: string, close: string) => `${open} liquidGlass${close}`,
+  );
+}
+
+function exampleCode(name: string, liquidGlass = false): string {
   const displayName = catalogComponentLabel(name);
+  const decorate = (code: string) =>
+    liquidGlass && FORWARDS_LIQUID_GLASS.includes(name) ? withLiquidGlass(code) : code;
 
   switch (name) {
     case 'CanopButton':
-      return `<Opale.Button variant="primary">Primaire</Opale.Button>
+      return decorate(`<Opale.Button variant="primary">Primaire</Opale.Button>
 <Opale.Button variant="secondary">Secondaire</Opale.Button>
 <Opale.Button variant="accent">Accent</Opale.Button>
-<Opale.Button variant="danger">Danger</Opale.Button>`;
+<Opale.Button variant="danger">Danger</Opale.Button>`);
     case 'CanopInput':
-      return `<Opale.Input
+      return decorate(`<Opale.Input
   label="Email"
   placeholder="thomas@crn-studio.com"
   helperText="Une adresse valide est requise."
-/>`;
+/>`);
     case 'CanopCheckbox':
-      return `<Opale.Checkbox
+      return decorate(`<Opale.Checkbox
   label="Recevoir les notifications"
   description="Les nouveautés du design system."
   defaultChecked
-/>`;
+/>`);
     case 'CanopToggle':
-      return '<Opale.Toggle label="Activées" defaultChecked />';
+      return decorate('<Opale.Toggle label="Activées" defaultChecked />');
     case 'CanopSlider':
-      return '<Opale.Slider label="Volume" defaultValue={64} min={0} max={100} />';
+      return decorate('<Opale.Slider label="Volume" defaultValue={64} min={0} max={100} />');
     case 'CanopSegmentedControl':
-      return `<Opale.SegmentedControl
+      return decorate(`<Opale.SegmentedControl
   value="all"
   options={[
     { value: 'all', label: 'Tout' },
     { value: 'active', label: 'Actifs' },
     { value: 'archived', label: 'Archivés' },
   ]}
-/>`;
+/>`);
     case 'CanopCard':
-      return `<Opale.Card title="Une surface Opale" subtitle="Carte, actions et élévation.">
+      return decorate(`<Opale.Card title="Une surface Opale" subtitle="Carte, actions et élévation.">
   <p>Une surface claire, lisible et responsive.</p>
-</Opale.Card>`;
+</Opale.Card>`);
     case 'CanopCardGrid':
-      return `<Opale.CardGrid>
+      return decorate(`<Opale.CardGrid>
   <Opale.StatCard label="Composants" value="77" delta="+12 cette version" />
   <Opale.StatCard label="Thèmes" value="2 globaux + 1 matériau" />
-</Opale.CardGrid>`;
+</Opale.CardGrid>`);
     case 'CanopBadge':
-      return '<Opale.Badge tone="accent">Nouveau</Opale.Badge>';
+      return decorate('<Opale.Badge tone="accent">Nouveau</Opale.Badge>');
     case 'CanopStatCard':
-      return '<Opale.StatCard label="Disponibilité" value="99,9 %" delta="+0,4 %" />';
+      return decorate('<Opale.StatCard label="Disponibilité" value="99,9 %" delta="+0,4 %" />');
     case 'CanopHeading':
-      return '<Opale.Heading level={2}>Titre de section</Opale.Heading>';
+      return decorate('<Opale.Heading level={2}>Titre de section</Opale.Heading>');
     case 'CanopText':
-      return '<Opale.Text variant="caption">Légende secondaire</Opale.Text>';
+      return decorate('<Opale.Text variant="caption">Légende secondaire</Opale.Text>');
     case 'CanopDataTable':
-      return `<Opale.DataTable
+      return decorate(`<Opale.DataTable
   columns={[{ key: 'name', label: 'Nom' }, { key: 'status', label: 'Statut' }]}
   rows={[{ name: 'Button', status: 'Stable' }, { name: 'DataTable', status: 'Nouveau' }]}
-/>`;
+/>`);
     case 'CanopFeedback':
-      return `<Opale.Feedback severity="success" title="En production">
+      return decorate(`<Opale.Feedback severity="success" title="En production">
   La dernière version est disponible.
-</Opale.Feedback>`;
+</Opale.Feedback>`);
     case 'CanopToast':
-      return '<Opale.Toast message="Modifications enregistrées" />';
+      return decorate('<Opale.Toast message="Modifications enregistrées" />');
     case 'CanopProgressBar':
-      return '<Opale.ProgressBar label="Progression" value={72} />';
+      return decorate('<Opale.ProgressBar label="Progression" value={72} />');
     case 'CanopLink':
-      return '<Opale.Link href="/installation">Lire le guide</Opale.Link>';
+      return decorate('<Opale.Link href="/installation">Lire le guide</Opale.Link>');
     case 'CanopFileCard':
-      return '<Opale.FileCard name="design-system.fig" size="2,4 Mo" />';
+      return decorate('<Opale.FileCard name="design-system.fig" size="2,4 Mo" />');
     case 'CanopClipboard':
-      return '<Opale.Clipboard value="npm install @thomascaron/opale-ui" />';
+      return decorate('<Opale.Clipboard value="npm install @thomascaron/opale-ui" />');
     default:
-      return `<Opale.${displayName} />`;
+      return decorate(`<Opale.${displayName} />`);
   }
 }
 
 function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
-  const code = exampleCode(entry.name);
+  const code = exampleCode(entry.name, liquidGlass);
 
   return (
     <div className="tc-doc-canop-page">
