@@ -1,0 +1,188 @@
+import type { Plate } from './palette-data';
+
+/* =============================================================================
+   LA PALETTE QUI PEINT RÉELLEMENT LE SITE.
+
+   POURQUOI UN SECOND JEU DE PLAQUES, ET NON UNE RÉÉCRITURE DU PREMIER.
+   `palette-data.ts` documente les rôles de `src/tokens/roles.css` — le teal et
+   le cuivre de la 2.x. Ces valeurs ne sont PAS périmées : `tokens.css` est un
+   artefact publié (`exports["./tokens.css"]`), donc ces rôles sont exactement
+   ce qu'installe un consommateur du paquet, et 172 tests les tiennent contre
+   la feuille. Les effacer aurait supprimé une information vraie.
+
+   Seulement, ce n'est plus ce que la VITRINE rend. Depuis la V3, tout ce qu'on
+   voit à l'écran est peint par les jetons `--canop-*` : un saphir à la place du
+   teal, un sol crème, une olive et un ambre. La page de palette annonçait donc
+   une marque que le site n'affichait plus — le même défaut que la page de
+   typographie, qui promettait trois polices système alors que Chivo et
+   Bricolage Grotesque arrivaient de Google Fonts.
+
+   Les deux jeux cohabitent donc, dans cet ordre : d'abord ce qu'on voit,
+   ensuite ce qu'on installe.
+
+   LES HEXADÉCIMAUX SONT LITTÉRAUX, POUR LA MÊME RAISON QUE DANS L'AUTRE
+   FICHIER : une plaque documente UN thème et doit le montrer quel que soit
+   celui que le lecteur a choisi. Une pastille en `var(--canop-primary)` ne
+   montrerait jamais qu'une moitié de la palette.
+
+   ET ILS SONT TENUS PAR UN TEST, pour la raison que `palette-data.ts` a apprise
+   à ses dépens : une valeur écrite à la main sans garde diverge de la feuille
+   sans que rien ne proteste. `opale-palette-data.test.ts` relit `canop.css` et
+   compare chaque valeur au jeton déclaré, thème par thème.
+
+   AUCUN RATIO N'EST RECOPIÉ ICI. `canop.css` n'en documente pas, et inventer un
+   chiffre serait pire que de n'en donner aucun. Le test les CALCULE avec
+   `contrastRatio` du contrat de couleur et vérifie les paires qui portent du
+   texte ; la page, elle, n'en affiche aucun plutôt qu'un chiffre non mesuré.
+   ========================================================================== */
+
+/** Le sol, la surface et l'encre d'un thème — ce sur quoi tout le reste se pose. */
+const LIGHT = {
+  ground: '#f7f4ef',
+  ink: '#14100b',
+  inkMuted: '#5c574d',
+  rule: '#e6e1d8',
+} as const;
+
+const DARK = {
+  ground: '#0c0f0d',
+  ink: '#f3f1ec',
+  inkMuted: '#b8b3a7',
+  rule: '#2c322d',
+} as const;
+
+export const OPALE_PLATES: readonly Plate[] = [
+  {
+    id: 'opale-light',
+    theme: 'light',
+    title: 'Opale — thème clair',
+    groundLabel: 'sol #f7f4ef',
+    ground: LIGHT.ground,
+    ink: LIGHT.ink,
+    inkMuted: LIGHT.inkMuted,
+    rule: LIGHT.rule,
+    groups: [
+      {
+        title: 'Le saphir',
+        note: 'L’encre des actions : boutons, liens, onglet courant, entrée active du sommaire.',
+        swatches: [
+          { token: '--canop-primary', hex: '#315c9e', against: 'encre des actions' },
+          { token: '--canop-primary-dark', hex: '#23457a', against: 'appui et survol soutenu' },
+          { token: '--canop-primary-light', hex: '#5f87c4', against: 'lavis et états atténués' },
+        ],
+      },
+      {
+        title: 'Les encres secondaires',
+        note: 'L’olive et l’ambre accompagnent ; ils ne portent jamais l’action principale.',
+        swatches: [
+          { token: '--canop-secondary', hex: '#8f9a74', against: 'variante secondaire' },
+          { token: '--canop-secondary-dark', hex: '#6a7455', against: 'appui de la secondaire' },
+          { token: '--canop-accent', hex: '#f4ad15', against: 'accent éditorial' },
+        ],
+      },
+      {
+        title: 'Les encres d’état',
+        note: 'Elles ne signifient jamais seules : chaque emploi porte un mot et un glyphe.',
+        swatches: [
+          { token: '--canop-info', hex: '#1a4f8b', against: 'information' },
+          { token: '--canop-success', hex: '#2e7d32', against: 'succès' },
+          { token: '--canop-warning', hex: '#b26a00', against: 'avertissement' },
+          { token: '--canop-danger', hex: '#b3261e', against: 'erreur, action destructrice' },
+        ],
+      },
+      {
+        title: 'Les sols et les encres',
+        note: 'Trois surfaces empilées du sol vers la carte, et deux encres.',
+        swatches: [
+          { token: '--canop-background', hex: '#f7f4ef', against: 'le sol de la page' },
+          { token: '--canop-surface', hex: '#ffffff', against: 'la carte, posée sur le sol' },
+          { token: '--canop-surface-base', hex: '#fbfaf9', against: 'surface intermédiaire' },
+          { token: '--canop-surface-sunken', hex: '#efebe4', against: 'creux : piste, champ' },
+          { token: '--canop-text', hex: '#14100b', against: 'texte courant' },
+          { token: '--canop-text-secondary', hex: '#5c574d', against: 'méta, libellé, aide' },
+          { token: '--canop-divider', hex: '#e6e1d8', against: 'filet et contour au repos' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'opale-dark',
+    theme: 'dark',
+    title: 'Opale — thème sombre',
+    groundLabel: 'sol #0c0f0d',
+    ground: DARK.ground,
+    ink: DARK.ink,
+    inkMuted: DARK.inkMuted,
+    rule: DARK.rule,
+    groups: [
+      {
+        title: 'Le saphir',
+        note: 'Éclairci sur fond sombre : un bleu de plein jour y tomberait sous le seuil.',
+        swatches: [
+          { token: '--canop-primary', hex: '#5d87cb', against: 'encre des actions' },
+          { token: '--canop-primary-dark', hex: '#739cda', against: 'appui — plus CLAIR ici' },
+          { token: '--canop-primary-light', hex: '#a9c7f4', against: 'lavis et états atténués' },
+        ],
+      },
+      {
+        title: 'Les encres secondaires',
+        note: 'L’ambre ne change pas de thème : il tient sur les deux sols.',
+        swatches: [
+          { token: '--canop-secondary', hex: '#a9b48c', against: 'variante secondaire' },
+          { token: '--canop-secondary-dark', hex: '#7f8a63', against: 'appui de la secondaire' },
+          { token: '--canop-accent', hex: '#f4ad15', against: 'accent — identique au clair' },
+        ],
+      },
+      {
+        title: 'Les encres d’état',
+        note: 'Seule l’erreur est éclaircie ; les trois autres tiennent déjà sur le sol sombre.',
+        swatches: [
+          { token: '--canop-info', hex: '#1a4f8b', against: 'information — hérité du clair' },
+          { token: '--canop-success', hex: '#2e7d32', against: 'succès — hérité du clair' },
+          { token: '--canop-warning', hex: '#b26a00', against: 'avertissement — hérité du clair' },
+          { token: '--canop-danger', hex: '#e2726b', against: 'erreur, action destructrice' },
+        ],
+      },
+      {
+        title: 'Les sols et les encres',
+        note: 'Le sombre inverse l’empilement : la carte est plus CLAIRE que le sol.',
+        swatches: [
+          { token: '--canop-background', hex: '#0c0f0d', against: 'le sol de la page' },
+          { token: '--canop-surface', hex: '#262c27', against: 'la carte, posée sur le sol' },
+          { token: '--canop-surface-base', hex: '#1d221e', against: 'surface intermédiaire' },
+          { token: '--canop-surface-sunken', hex: '#121713', against: 'creux : piste, champ' },
+          { token: '--canop-text', hex: '#f3f1ec', against: 'texte courant' },
+          { token: '--canop-text-secondary', hex: '#b8b3a7', against: 'méta, libellé, aide' },
+          { token: '--canop-divider', hex: '#2c322d', against: 'filet et contour au repos' },
+        ],
+      },
+    ],
+  },
+];
+
+/**
+ * Les paires qui portent du TEXTE, et le seuil qu'elles doivent tenir.
+ *
+ * Elles sont déclarées ici plutôt que dans le test parce qu'elles font partie
+ * de la description de la palette : dire « cette encre est faite pour ce sol »
+ * est une affirmation de design, que le test se contente de vérifier.
+ *
+ * 4,5:1 est le seuil AA du texte courant (WCAG 1.4.3). Les trois paires
+ * retenues sont celles qu'on lit vraiment : le texte sur le sol, le texte sur
+ * la carte, et la méta sur la carte.
+ */
+export interface ContrastPair {
+  readonly theme: 'light' | 'dark';
+  readonly ink: string;
+  readonly ground: string;
+  readonly label: string;
+}
+
+export const OPALE_TEXT_PAIRS: readonly ContrastPair[] = [
+  { theme: 'light', ink: '#14100b', ground: '#f7f4ef', label: 'texte sur le sol, clair' },
+  { theme: 'light', ink: '#14100b', ground: '#ffffff', label: 'texte sur la carte, clair' },
+  { theme: 'light', ink: '#5c574d', ground: '#ffffff', label: 'méta sur la carte, clair' },
+  { theme: 'dark', ink: '#f3f1ec', ground: '#0c0f0d', label: 'texte sur le sol, sombre' },
+  { theme: 'dark', ink: '#f3f1ec', ground: '#262c27', label: 'texte sur la carte, sombre' },
+  { theme: 'dark', ink: '#b8b3a7', ground: '#262c27', label: 'méta sur la carte, sombre' },
+];
