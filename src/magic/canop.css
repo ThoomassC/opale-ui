@@ -393,6 +393,53 @@
 .canop-input::placeholder { color: var(--canop-text-secondary); opacity: 0.72; }
 .canop-select { cursor: pointer; }
 
+/* =============================================================================
+   LA SÉLECTION MULTIPLE, REPRISE DANS LA DA D'OPALE.
+
+   Le composant rendait un `<select multiple>` natif, dont le système
+   d'exploitation peint lui-même les rangées cochées : des bandes GRISES, au
+   milieu d'une vitrine qui n'a pas une seule autre surface grise, et
+   qu'AUCUNE déclaration CSS ne peut atteindre. La liste visible est désormais
+   faite d'éléments à nous, et elle emprunte trois choses à ce qui existe déjà
+   plutôt que d'inventer une quatrième apparence :
+
+     — la coquille de `.canop-input-shell` : même bordure, même rayon, même
+       anneau doux au focus, pour qu'un champ multi-choix se lise comme un
+       champ ;
+     — la coche de `.canop-checkbox-mark` : même carré de 1,25 rem, même bord
+       primaire de 2 px, même remplissage plein à la sélection. Choisir dans une
+       liste et cocher une case sont le même geste, ils doivent avoir le même
+       signe ;
+     — le lavis primaire à 12 % du survol, celui des entrées du sommaire et des
+       options de la recherche.
+
+   Le natif reste rendu, masqué, comme porteur de valeur — voir le commentaire
+   de `CanopMultiSelect`. `.canop-visually-hidden` le retire de l'écran sans le
+   retirer du formulaire : ni `display: none` ni `visibility: hidden`, qui
+   l'excluraient de la soumission et de la validation.
+   ========================================================================== */
+.canop-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.canop-multiselect { display: grid; gap: 0.15rem; padding: var(--canop-space-2xs); border: 1px solid var(--canop-divider); border-radius: var(--canop-radius-md); background: var(--canop-surface); }
+.canop-multiselect:focus-within,
+.canop-multiselect:focus { border-color: var(--canop-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--canop-primary) 18%, transparent); outline: none; }
+.canop-multiselect__option { display: flex; align-items: center; gap: var(--canop-space-sm); min-height: 2.5rem; padding: 0 var(--canop-space-sm); border-radius: var(--canop-radius-sm); color: var(--canop-text); cursor: pointer; font: 400 0.9375rem/1.4 var(--canop-font-body); transition: background var(--canop-motion) var(--canop-ease); }
+/* LE LAVIS DE LA DÉSIGNATION NE SE PEINT QUE SI LA LISTE A LE FOCUS, et c'est
+   la correction d'un défaut vu à l'écran : au repos, `activeIndex` vaut 0, donc
+   la PREMIÈRE option portait en permanence un fond de survol que rien ne
+   survolait. On lisait un état actif là où il n'y avait qu'un curseur clavier
+   au repos — le pire des deux, puisqu'il ne bouge pas et qu'il ne veut rien
+   dire. Le survol, lui, reste inconditionnel : il suit une souris réelle. */
+.canop-multiselect__option:hover,
+.canop-multiselect:focus-within .canop-multiselect__option[data-active='true'] { background: color-mix(in srgb, var(--canop-primary) 12%, transparent); }
+.canop-multiselect__mark { display: grid; width: 1.25rem; height: 1.25rem; flex: none; place-items: center; border: 2px solid var(--canop-primary); border-radius: 0.375rem; transition: background var(--canop-motion) var(--canop-ease); }
+/* La coche est dessinée et non écrite : un caractère « ✓ » suivrait la police
+   du système et sortirait du carré sur les machines qui n'ont pas Chivo. */
+.canop-multiselect__mark::after { width: 0.6rem; height: 0.32rem; border-left: 2px solid #fff; border-bottom: 2px solid #fff; margin-block-start: -0.12rem; content: ''; opacity: 0; transform: rotate(-45deg); }
+.canop-multiselect__option[aria-selected='true'] .canop-multiselect__mark { background: var(--canop-primary); }
+.canop-multiselect__option[aria-selected='true'] .canop-multiselect__mark::after { opacity: 1; }
+.canop-multiselect__option[aria-selected='true'] { color: var(--canop-text); font-weight: 600; }
+
 .canop-checkbox-row,
 .canop-toggle-row { display: flex; align-items: center; gap: var(--canop-space-sm); color: var(--canop-text); }
 .canop-checkbox,
@@ -406,9 +453,24 @@
 .canop-toggle:checked + .canop-toggle-track .canop-toggle-thumb { transform: translateX(1.5rem); }
 .canop-range { width: 100%; accent-color: var(--canop-primary); }
 
-.canop-segmented { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-radius: var(--canop-radius-pill); background: var(--canop-surface-sunken); }
-.canop-segmented__item { border: 0; border-radius: var(--canop-radius-pill); padding: 0.5rem 0.875rem; background: transparent; color: var(--canop-text-secondary); cursor: pointer; font: 500 0.875rem var(--canop-font-body); }
-.canop-segmented__item[aria-pressed='true'] { background: var(--canop-surface); color: var(--canop-primary); box-shadow: var(--canop-shadow-1); }
+/* La pastille de sélection est un élément à part (`__indicator`) qui GLISSE
+   d'une option à l'autre, au lieu d'un fond qui s'allumait sur un bouton en
+   s'éteignant sur un autre — deux fonds ne se déplacent pas, ils sautent. Le
+   fond et l'ombre qui étaient posés sur `[aria-pressed='true']` sont repris
+   ici à l'identique ; l'option pressée ne garde que sa couleur de texte, seule
+   propriété qui doit changer AU MOMENT du clic et non à l'arrivée de la
+   pastille. La pastille passe DERRIÈRE les options (`z-index: 0` contre `1`)
+   pour ne pas masquer leur libellé.
+   `prefers-reduced-motion` est couvert par le bloc en fin de feuille, qui
+   ramène toute `transition-duration` à 0,01 ms : la pastille s'y pose d'un
+   coup, ce qui est le comportement d'avant. */
+.canop-segmented { position: relative; display: inline-flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem; border-radius: var(--canop-radius-pill); background: var(--canop-surface-sunken); }
+.canop-segmented__indicator { position: absolute; top: 0; left: 0; z-index: 0; opacity: 0; border-radius: var(--canop-radius-pill); background: var(--canop-surface); box-shadow: var(--canop-shadow-1); pointer-events: none; will-change: transform, width, height; }
+/* Armée seulement après le premier placement : sans l'attribut, la pastille
+   traverserait le composant depuis le coin haut-gauche à chaque montage. */
+.canop-segmented__indicator[data-animated='true'] { transition: transform 0.28s var(--canop-ease), width 0.28s var(--canop-ease), height 0.28s var(--canop-ease); }
+.canop-segmented__item { position: relative; z-index: 1; border: 0; border-radius: var(--canop-radius-pill); padding: 0.5rem 0.875rem; background: transparent; color: var(--canop-text-secondary); cursor: pointer; font: 500 0.875rem var(--canop-font-body); transition: color var(--canop-motion) var(--canop-ease); }
+.canop-segmented__item[aria-pressed='true'] { color: var(--canop-primary); }
 .canop-chip,
 .canop-badge { display: inline-flex; width: fit-content; align-items: center; gap: 0.35rem; border-radius: var(--canop-radius-pill); padding: 0.25rem 0.65rem; background: color-mix(in srgb, var(--canop-primary) 13%, transparent); color: var(--canop-primary); font-size: 0.8125rem; font-weight: 600; }
 .canop-badge--accent { background: color-mix(in srgb, var(--canop-accent) 34%, transparent); color: #785200; }
@@ -431,7 +493,16 @@
 .canop-breadcrumb a { color: var(--canop-primary); text-decoration: none; }
 .canop-panel { padding: var(--canop-space-lg); }
 .canop-dialog-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: var(--canop-space-lg); background: rgba(12, 15, 13, 0.46); }
-.canop-dialog { width: min(100%, 34rem); padding: var(--canop-space-lg); }
+/* LE DIALOGUE RESPIRE : UNE GRILLE, ET UNE GOUTTIÈRE ENTRE SES TROIS BANDES.
+
+   Il n'avait qu'un `padding` : le titre, le message et les boutons se
+   touchaient, empilés par le flux normal sans rien entre eux. Les trois ne
+   disent pourtant pas la même chose — ce qu'on va faire, ce que ça coûte, et
+   la décision — et sur une action irréversible, c'est précisément l'endroit où
+   l'œil doit pouvoir s'arrêter. La gouttière `lg` (1,5 rem) sépare les bandes ;
+   le corps garde sa gouttière `sm` entre ses propres lignes, pour que le
+   message reste UN bloc et non trois phrases éparses. */
+.canop-dialog { display: grid; width: min(100%, 34rem); padding: var(--canop-space-lg); gap: var(--canop-space-lg); }
 .canop-dialog__body { display: grid; gap: var(--canop-space-sm); color: var(--canop-text-secondary); }
 .canop-dialog__close { border: 0; background: transparent; color: var(--canop-text-secondary); cursor: pointer; font-size: 1.5rem; }
 

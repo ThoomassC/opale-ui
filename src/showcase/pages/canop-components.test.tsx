@@ -135,19 +135,45 @@ describe('le catalogue interactif V3', () => {
     expect(screen.getByRole('combobox', { name: 'Langue' })).toHaveValue('ES');
     expect(screen.getByText('ES')).toBeInTheDocument();
 
+    /* LA SÉLECTION MULTIPLE N'EST PLUS UN `<select multiple>` VISIBLE, et ce
+       test a changé avec elle — pas pour s'adoucir, pour suivre.
+
+       Trois différences, toutes des améliorations, et c'est pourquoi le test
+       les épingle plutôt que de les contourner :
+
+       1. LE NOM. Il valait « Sélection multiple », un `aria-label` générique
+          posé sur le natif, qui recouvrait le libellé visible. La liste est
+          désormais nommée par CE libellé — « Domaines ». Un contrôle doit
+          s'annoncer avec le mot qu'on lit à côté de lui (WCAG 2.5.3).
+       2. LA CIBLE. `selectOptions` pilote un `<select>` ; la commande visible
+          est maintenant une `listbox` ARIA, donc on clique ses `option` comme
+          le ferait un utilisateur.
+       3. LA VALEUR. Elle se lit sur `aria-selected`, et non plus sur la
+          propriété `value` du natif.
+
+       LE NATIF SURVIT, MASQUÉ, comme porteur de valeur : la dernière assertion
+       le vérifie, car c'est lui qui garantit que `onChange` continue de rendre
+       `currentTarget.selectedOptions` aux consommateurs existants. C'est le
+       contrat qui ne devait PAS bouger. */
     rerender(<CatalogPreview name="CanopMultiSelect" liquidGlass={false} />);
-    await user.deselectOptions(
-      screen.getByRole('listbox', { name: 'Sélection multiple' }),
-      'design',
-    );
-    await user.selectOptions(screen.getByRole('listbox', { name: 'Sélection multiple' }), [
-      'code',
-      'docs',
-    ]);
-    expect(screen.getByRole('listbox', { name: 'Sélection multiple' })).toHaveValue([
-      'code',
-      'docs',
-    ]);
+
+    const liste = screen.getByRole('listbox', { name: 'Domaines' });
+    const optionsDe = () =>
+      within(liste)
+        .getAllByRole('option')
+        .filter((option) => option.getAttribute('aria-selected') === 'true')
+        .map((option) => option.textContent);
+
+    expect(optionsDe()).toEqual(['Design system', 'Documentation']);
+
+    await user.click(within(liste).getByRole('option', { name: 'Design system' }));
+    await user.click(within(liste).getByRole('option', { name: 'Code' }));
+
+    expect(optionsDe()).toEqual(['Code', 'Documentation']);
+
+    /* Le `<select>` masqué porte la même vérité : c'est lui que reçoit le
+       `onChange` du consommateur. */
+    expect(document.querySelector('select[multiple]')).toHaveValue(['code', 'docs']);
   });
 
   it('confirme les actions des boutons spécialisés', async () => {

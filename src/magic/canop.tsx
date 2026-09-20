@@ -2,6 +2,8 @@ import {
   forwardRef,
   useEffect,
   useId,
+  useLayoutEffect,
+  useRef,
   useState,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
@@ -9,6 +11,7 @@ import {
   type FormHTMLAttributes,
   type HTMLAttributes,
   type InputHTMLAttributes,
+  type KeyboardEvent,
   type ReactNode,
   type SelectHTMLAttributes,
 } from 'react';
@@ -220,8 +223,185 @@ export interface CanopMultiSelectProps extends CanopSelectProps {
   values?: readonly string[];
 }
 
-export function CanopMultiSelect({ values, ...props }: CanopMultiSelectProps) {
-  return <CanopSelect multiple value={values} aria-label="Sélection multiple" {...props} />;
+/**
+ * La sélection multiple, habillée aux couleurs d'Opale.
+ *
+ * ================================================================
+ * POURQUOI CE COMPOSANT N'EST PLUS UN `<select multiple>` VISIBLE.
+ *
+ * Il en était un, et c'était un mur : la liste déroulante multiple native est
+ * la SEULE commande de formulaire qu'aucune feuille de style ne peut habiller.
+ * Ses rangées sélectionnées sont peintes par le système d'exploitation — d'où
+ * les bandes GRISES qui traversaient le composant au milieu d'une vitrine qui
+ * n'a pas une seule autre surface grise. Ni `background`, ni `color`, ni
+ * `::selection`, ni `appearance: none` n'ont de prise dessus : le rendu
+ * appartient au moteur, pas au document.
+ *
+ * LE NATIF N'A PAS DISPARU POUR AUTANT — IL EST DEVENU LE PORTEUR DE VALEUR.
+ * Un `<select multiple>` reste rendu, masqué visuellement, et c'est lui qui
+ * porte les `<option>` et leur état `selected`. Cela préserve À L'IDENTIQUE le
+ * contrat des consommateurs : `onChange` reçoit un événement dont
+ * `currentTarget.selectedOptions` est la liste attendue, et le champ continue
+ * de participer à la soumission d'un formulaire avec son `name`. Réécrire
+ * l'API aurait cassé tous les appels existants pour un gain d'apparence.
+ *
+ * L'ÉVÉNEMENT EST ÉMIS SUR LE NATIF, ET C'EST CE QUI REND L'ILLUSION HONNÊTE.
+ * Cocher une option modifie `option.selected` puis distribue un `change` qui
+ * bouillonne : React l'entend à la racine et appelle le `onChange` du
+ * consommateur avec le vrai `<select>` pour cible. Personne n'a à savoir que
+ * la liste visible est faite de `<div>`.
+ *
+ * LE NATIF EST HORS DE L'ARBRE D'ACCESSIBILITÉ (`aria-hidden`, `tabIndex={-1}`)
+ * et la liste VISIBLE porte les rôles. L'inverse — garder le natif focusable
+ * et décorer par-dessus — était tentant et faux : un champ focusable invisible
+ * est un piège au clavier, d'autant plus depuis que la vitrine ne peint plus
+ * d'anneau de focus. Ici, ce qu'on voit est ce qu'on pilote.
+ * ================================================================
+ */
+export function CanopMultiSelect({
+  values,
+  label,
+  helperText,
+  options = [],
+  liquidGlass = false,
+  className,
+  id,
+  onChange,
+  ...props
+}: CanopMultiSelectProps) {
+  const generatedId = useId();
+  const fieldId = id ?? generatedId;
+  const labelId = `${fieldId}-label`;
+  const selectRef = useRef<HTMLSelectElement>(null);
+  const selected = new Set(values ?? []);
+
+  /* `activeIndex` est l'option DÉSIGNÉE au clavier, distincte des options
+     COCHÉES : dans une `listbox` multi-sélection, on parcourt sans choisir et
+     l'on choisit sans se déplacer. Les confondre obligerait à cocher tout ce
+     qu'on survole en chemin. */
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const toggle = (value: string) => {
+    const select = selectRef.current;
+
+    if (!select) return;
+
+    for (const option of Array.from(select.options)) {
+      if (option.value === value) option.selected = !option.selected;
+    }
+
+    /* `bubbles`, sans quoi React ne verra rien : son écouteur n'est pas posé
+       sur le `<select>` mais à la racine de l'arbre. */
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const last = options.length - 1;
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        setActiveIndex((current) => (current >= last ? 0 : current + 1));
+        return;
+      case 'ArrowUp':
+        event.preventDefault();
+        setActiveIndex((current) => (current <= 0 ? last : current - 1));
+        return;
+      case 'Home':
+        event.preventDefault();
+        setActiveIndex(0);
+        return;
+      case 'End':
+        event.preventDefault();
+        setActiveIndex(last);
+        return;
+      case ' ':
+      case 'Enter': {
+        event.preventDefault();
+        const option = options[activeIndex];
+        if (option) toggle(option.value);
+        return;
+      }
+      default:
+    }
+  };
+
+  return (
+    <div className={cx('canop-field', className)}>
+      {label && (
+        <span className="canop-field__label" id={labelId}>
+          {label}
+        </span>
+      )}
+
+      <select
+        ref={selectRef}
+        id={fieldId}
+        className="canop-visually-hidden"
+        multiple
+        value={values}
+        onChange={onChange}
+        aria-hidden="true"
+        tabIndex={-1}
+        {...props}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {typeof option.label === 'string' ? option.label : option.value}
+          </option>
+        ))}
+      </select>
+
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- la
+          `listbox` EST la commande : c'est le motif ARIA de la sélection
+          multiple, et les `option` en sont les enfants exigés. */}
+      <div
+        className={cx('canop-multiselect', liquidGlass && 'canop-liquid')}
+        role="listbox"
+        aria-multiselectable="true"
+        aria-labelledby={label ? labelId : undefined}
+        aria-activedescendant={`${fieldId}-option-${activeIndex}`}
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+      >
+        {options.map((option, index) => {
+          const isSelected = selected.has(option.value);
+
+          return (
+            /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
+               LES DEUX RÈGLES SE TROMPENT ICI, ET POUR LA MÊME RAISON. Elles
+               réclament un écouteur clavier et un `tabIndex` sur l'option. Or
+               le motif `listbox` + `aria-activedescendant` veut exactement
+               l'inverse : le focus reste sur la LISTE, qui porte tout le
+               clavier, et l'option désignée l'est par son identifiant. Rendre
+               l'option focusable ajouterait autant d'arrêts de tabulation que
+               d'options et couperait la frappe de la liste ; y poser un
+               `onKeyDown` serait du code mort, l'élément ne pouvant jamais
+               recevoir d'événement clavier. Même arbitrage que le combobox de
+               la recherche de la vitrine. */
+            <div
+              key={option.value}
+              id={`${fieldId}-option-${index}`}
+              className="canop-multiselect__option"
+              role="option"
+              aria-selected={isSelected}
+              data-active={index === activeIndex ? 'true' : undefined}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                setActiveIndex(index);
+                toggle(option.value);
+              }}
+            >
+              <span className="canop-multiselect__mark" aria-hidden="true" />
+              <span className="canop-multiselect__label">{option.label}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {helperText && <span className="canop-field__helper">{helperText}</span>}
+    </div>
+  );
 }
 
 export interface CanopAutocompleteProps extends CanopFieldProps {
@@ -249,9 +429,87 @@ export interface CanopSegmentedControlProps {
   className?: string;
 }
 
+/**
+ * Le fond de la sélection est un élément UNIQUE qui glisse sous l'option
+ * choisie, et non un fond qui s'allume sur un bouton pendant qu'il s'éteint sur
+ * un autre — cette seconde forme ne laisse rien à animer, elle saute.
+ *
+ * Le raisonnement est celui de `Tabs.List` (voir l'en-tête de
+ * `components/tabs/Tabs.tsx`), redit ici parce que ce fichier ne dépend
+ * d'AUCUN composant de `components/**` et que c'est délibéré : `canop.tsx` est
+ * une feuille autonome, lisible d'un bout à l'autre sans ouvrir le reste du
+ * dossier. Les trois points qui comptent :
+ *  - `aria-pressed` reste la source de vérité, lue dans le DOM ;
+ *  - l'indicateur est `aria-hidden`, il n'annonce rien que `aria-pressed` ne
+ *    dise déjà ;
+ *  - le premier placement ne s'anime pas, sinon l'indicateur traverserait le
+ *    composant à chaque montage.
+ *
+ * `translate3d` avec les deux axes, et non le seul X : `.canop-segmented` est
+ * en `flex-wrap: wrap`, donc les options passent à la ligne dès que la place
+ * manque et l'indicateur doit descendre avec elles.
+ */
 export function CanopSegmentedControl({ options, value, onChange, className }: CanopSegmentedControlProps) {
+  const groupRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const hasPlacedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    const group = groupRef.current;
+    const indicator = indicatorRef.current;
+
+    if (!group || !indicator) return;
+
+    const place = () => {
+      const active = group.querySelector<HTMLElement>('[aria-pressed="true"]');
+
+      if (!active) {
+        indicator.style.opacity = '0';
+        return;
+      }
+
+      const groupRect = group.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+
+      /* Rectangles nuls : première mise en page, ou jsdom qui n'a pas de mise
+         en page. On ne place rien plutôt que de poser un indicateur de 0 px
+         dans le coin, d'où il glisserait à la première vraie mesure. */
+      if (activeRect.width === 0 || activeRect.height === 0) return;
+
+      indicator.style.opacity = '1';
+      indicator.style.width = `${activeRect.width}px`;
+      indicator.style.height = `${activeRect.height}px`;
+      indicator.style.transform = `translate3d(${activeRect.left - groupRect.left + group.scrollLeft}px, ${activeRect.top - groupRect.top + group.scrollTop}px, 0)`;
+
+      if (!hasPlacedRef.current) {
+        hasPlacedRef.current = true;
+        /* Force le calcul de la mise en page : la position ci-dessus devient
+           l'état de départ de la transition armée juste après. */
+        void indicator.offsetWidth;
+        indicator.dataset.animated = 'true';
+      }
+    };
+
+    place();
+
+    const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(place);
+
+    if (observer) {
+      observer.observe(group);
+      group.querySelectorAll('.canop-segmented__item').forEach((item) => observer.observe(item));
+    }
+
+    window.addEventListener('resize', place);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', place);
+    };
+  }, [options, value]);
+
   return (
-    <div className={cx('canop-segmented', className)} role="group">
+    <div ref={groupRef} className={cx('canop-segmented', className)} role="group">
+      <span ref={indicatorRef} aria-hidden="true" className="canop-segmented__indicator" />
       {options.map((option) => (
         <button key={option.value} type="button" className="canop-segmented__item" aria-pressed={value === option.value} onClick={() => onChange?.(option.value)}>{option.label}</button>
       ))}
