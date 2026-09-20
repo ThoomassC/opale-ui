@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
 import { Opale } from '../../magic';
 
@@ -25,6 +25,62 @@ function DemoFrame({ children }: { children: ReactNode }) {
   return <div className="tc-doc-canop-demo">{children}</div>;
 }
 
+/* =============================================================================
+   LA BARRE DE PROGRESSION SE REMPLIT, PARCE QU'UNE BARRE FIGÉE NE MONTRE RIEN.
+
+   L'aperçu affichait `value={72}` : un rectangle immobile, dont on ne pouvait
+   deviner ni la façon dont il se remplit, ni l'animation de sa bande. Qui vient
+   choisir un composant a besoin de le voir VIVRE — c'est tout l'objet d'une
+   démonstration.
+
+   LE MOUVEMENT EST DANS LA DÉMONSTRATION ET NON DANS LE COMPOSANT, et c'est la
+   distinction qui compte : `CanopProgressBar` reste piloté par sa prop `value`,
+   comme doit l'être une barre DÉTERMINÉE. Lui coudre une animation interne
+   mentirait sur une progression réelle et retirerait au consommateur le
+   contrôle de sa propre valeur.
+
+   LE MINUTEUR NE TOURNE QUE SUR LA PAGE CONCERNÉE (`active`). Sans ce garde, un
+   `setInterval` rerendrait l'aperçu quatre fois par seconde sur les
+   quatre-vingt-treize pages du catalogue, y compris celles qui n'affichent
+   aucune barre.
+
+   `prefers-reduced-motion` EST RESPECTÉ, ET C'EST UNE OBLIGATION, PAS UNE
+   POLITESSE : une barre qui se remplit en boucle est un mouvement répété et non
+   essentiel, exactement ce que WCAG 2.3.3 demande de pouvoir désactiver. Dans ce
+   cas la barre se pose à 72 %, la valeur d'origine — on ne voit pas le
+   remplissage, on voit tout de même à quoi la barre ressemble.
+   ========================================================================== */
+const PROGRESS_STEP = 4;
+const PROGRESS_TICK_MS = 240;
+const PROGRESS_STATIC_VALUE = 72;
+
+function useDemoProgress(active: boolean): number {
+  const [value, setValue] = useState(PROGRESS_STATIC_VALUE);
+
+  useEffect(() => {
+    if (!active) return;
+
+    /* `matchMedia` est optionnel : jsdom ne l'implémente pas, et l'aperçu est
+       monté par la suite de tests du catalogue. Sans ce repli, chaque page
+       testée jetterait. */
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    /* AUCUN `setValue` SYNCHRONE ICI, et ce n'est pas un détail de style : poser
+       l'état pendant l'effet déclenche un second rendu en cascade avant la
+       peinture — ce que la règle `react-hooks` du dépôt refuse, à raison. La
+       barre démarre donc à sa valeur de repos et c'est le premier battement du
+       minuteur qui la met en mouvement ; elle repasse par zéro d'elle-même en
+       fin de course. */
+    const timer = window.setInterval(() => {
+      setValue((current) => (current >= 100 ? 0 : Math.min(100, current + PROGRESS_STEP)));
+    }, PROGRESS_TICK_MS);
+
+    return () => window.clearInterval(timer);
+  }, [active]);
+
+  return value;
+}
+
 export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlass: boolean }) {
   const [message, setMessage] = useState('Prêt');
   const [text, setText] = useState('Opale');
@@ -44,6 +100,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [allowed, setAllowed] = useState(true);
   const [valid, setValid] = useState(true);
   const [score, setScore] = useState(12);
+  const progress = useDemoProgress(name === 'CanopProgressBar');
 
   let preview: ReactNode;
 
@@ -85,7 +142,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         <Opale.Input
           liquidGlass={liquidGlass}
           label="Email"
-          placeholder="martin@qvl-studio.com"
+          placeholder="thomas@crn-studio.com"
           helperText="Une adresse valide est requise."
         />
       );
@@ -400,7 +457,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = <Opale.Spinner label="Chargement des composants" />;
       break;
     case 'CanopProgressBar':
-      preview = <Opale.ProgressBar label="Progression" value={72} />;
+      preview = <Opale.ProgressBar label="Progression" value={progress} />;
       break;
     case 'CanopConfirmDialog':
       preview = (

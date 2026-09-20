@@ -18,7 +18,7 @@ function exampleCode(name: string): string {
     case 'CanopInput':
       return `<Opale.Input
   label="Email"
-  placeholder="martin@qvl-studio.com"
+  placeholder="thomas@crn-studio.com"
   helperText="Une adresse valide est requise."
 />`;
     case 'CanopCheckbox':
