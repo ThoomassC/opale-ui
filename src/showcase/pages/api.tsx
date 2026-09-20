@@ -143,6 +143,16 @@ export interface UsageBlockProps {
   readonly language?: 'shell' | 'tsx';
   /** Les pages didactiques peuvent montrer immédiatement une commande essentielle. */
   readonly defaultOpen?: boolean;
+  /**
+   * Retire la barre de commandes et pose le code ouvert, définitivement.
+   *
+   * Les pages de prise en main ne montrent qu'UN exemple, court, qui EST le
+   * propos de la page — le replier n'économise rien et demande un clic pour
+   * lire ce qu'on est venu lire. Là où un catalogue de quatre-vingts
+   * spécimens a besoin que son code s'efface, un guide a besoin qu'il se
+   * voie.
+   */
+  readonly actions?: boolean;
 }
 
 type CopyState = 'idle' | 'copied' | 'error';
@@ -317,8 +327,13 @@ export function UsageBlock({
   code,
   language = 'tsx',
   defaultOpen = false,
+  actions = true,
 }: UsageBlockProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  /* SANS BARRE DE COMMANDES, LE PANNEAU EST OUVERT ET LE RESTE : le seul
+     appelant de `setOpen` est le bouton de repli, qui n'est alors pas rendu.
+     L'état existe encore pour que le reste du composant — `data-open`,
+     `aria-hidden`, `tabIndex` — n'ait pas à connaître les deux cas. */
+  const [open, setOpen] = useState(actions ? defaultOpen : true);
   const [copyState, setCopyState] = useState<CopyState>('idle');
   const resetTimer = useRef<number | undefined>(undefined);
   const panelId = `${useId()}-code`;
@@ -348,32 +363,34 @@ export function UsageBlock({
 
   return (
     <div className="tc-doc-codeexample">
-      <div
-        className="tc-doc-codeexample__actions"
-        role="group"
-        aria-label={`Actions pour ${label}`}
-      >
-        <CanopButton
-          className="tc-doc-codeaction"
-          variant="tonal"
-          size="small"
-          aria-controls={panelId}
-          aria-expanded={open}
-          startIcon={<EyeIcon open={open} />}
-          onClick={() => setOpen((current) => !current)}
+      {actions ? (
+        <div
+          className="tc-doc-codeexample__actions"
+          role="group"
+          aria-label={`Actions pour ${label}`}
         >
-          {open ? 'Masquer le code' : 'Afficher le code'}
-        </CanopButton>
-        <CanopButton
-          className="tc-doc-codeaction"
-          variant="tonal"
-          size="small"
-          startIcon={<CopyIcon copied={copyState === 'copied'} />}
-          onClick={() => void copyCode()}
-        >
-          {copyLabel}
-        </CanopButton>
-      </div>
+          <CanopButton
+            className="tc-doc-codeaction"
+            variant="tonal"
+            size="small"
+            aria-controls={panelId}
+            aria-expanded={open}
+            startIcon={<EyeIcon open={open} />}
+            onClick={() => setOpen((current) => !current)}
+          >
+            {open ? 'Masquer le code' : 'Afficher le code'}
+          </CanopButton>
+          <CanopButton
+            className="tc-doc-codeaction"
+            variant="tonal"
+            size="small"
+            startIcon={<CopyIcon copied={copyState === 'copied'} />}
+            onClick={() => void copyCode()}
+          >
+            {copyLabel}
+          </CanopButton>
+        </div>
+      ) : null}
 
       <div
         className="tc-doc-codeexample__reveal"
@@ -393,13 +410,17 @@ export function UsageBlock({
         </div>
       </div>
 
-      <span className="tc-visually-hidden" role="status" aria-live="polite">
-        {copyState === 'copied'
-          ? 'Code copié dans le presse-papier.'
-          : copyState === 'error'
-            ? 'La copie a échoué.'
-            : ''}
-      </span>
+      {/* La région live annonce le résultat d'une copie : sans le bouton, elle
+          n'aurait jamais rien à dire et resterait un nœud vide dans l'arbre. */}
+      {actions ? (
+        <span className="tc-visually-hidden" role="status" aria-live="polite">
+          {copyState === 'copied'
+            ? 'Code copié dans le presse-papier.'
+            : copyState === 'error'
+              ? 'La copie a échoué.'
+              : ''}
+        </span>
+      ) : null}
     </div>
   );
 }

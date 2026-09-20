@@ -29,8 +29,18 @@ function guidePage(options: GuidePageOptions): DocPage {
             ))}
           </ul>
         </Specimen>
+        {/* LE CODE EST OUVERT ET SANS COMMANDES SUR LES TROIS GUIDES.
+
+            Ces pages ne montrent qu'UNE ligne, et cette ligne EST le propos de
+            la page : la replier derrière « Afficher le code » demandait un clic
+            pour lire ce qu'on était venu lire. La barre disparaît avec le
+            repli — un bouton « Masquer » n'a plus d'objet quand rien ne peut
+            être masqué, et « Copier » part avec lui : trois mots se
+            sélectionnent à la souris. Le catalogue, lui, garde les deux : chez
+            lui les exemples sont longs, nombreux, et rarement ce qu'on vient
+            chercher. */}
         <Specimen title="Exemple">
-          <UsageBlock label="Point de départ" code={options.code} />
+          <UsageBlock label="Point de départ" code={options.code} actions={false} />
         </Specimen>
       </PageBody>
     ),
@@ -53,10 +63,16 @@ export const utilisationPage = guidePage({
   ],
 });
 
+/* « THEMING » ÉTAIT LE SEUL ANGLICISME DES LIBELLÉS DE NAVIGATION, et il ne
+   disait pas grand-chose : le mot désigne en anglais le fait de décliner une
+   interface en plusieurs thèmes. Le libellé français dit la même chose sans
+   demander de traduction — « Thèmes ». LE SLUG NE BOUGE PAS : `#/theming` est
+   déjà dans des signets et dans les tables de traduction, et le renommer
+   casserait ces adresses pour un gain nul, l'adresse n'étant pas lue. */
 export const themingPage = guidePage({
   slug: 'theming',
-  label: 'Theming',
-  title: 'Theming',
+  label: 'Thèmes',
+  title: 'Thèmes',
   lede: 'Le thème clair, le thème sombre et le matériau Liquid Glass partagent les mêmes composants.',
   overview:
     'Le thème global règle la lumière de l’interface. Le matériau Liquid Glass reste un choix local : il se déclenche composant par composant dans les spécimens de la vitrine.',

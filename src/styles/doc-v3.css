@@ -563,6 +563,30 @@ body { font-size: 1rem; line-height: 1.5; }
 .tc-doc-nav__grouptitle::before { content: none !important; display: none !important; }
 .tc-doc-nav__group + .tc-doc-nav__group { margin-block-start: 0.85rem; }
 .tc-doc-nav__list { display: grid; gap: 0.15rem; margin: 0; padding: 0 0.15rem 0.15rem; list-style: none; }
+/* L'ÉCHELLE TYPOGRAPHIQUE SE MONTRE DANS LA POLICE DU SITE, PAS DANS UNE SERIF
+   QUE PLUS RIEN NE SERT. `doc.css` peint ses spécimens en `var(--font-display)`
+   — l'Iowan Old Style de la 2.x. Résultat : la page qui documente la
+   typographie était la seule à l'afficher, et elle affichait la mauvaise. Ces
+   huit lignes parlent de TAILLES : elles doivent donc être rendues dans la
+   police du texte courant, la seule dont ces tailles décident vraiment. Les
+   rangées de la section « familles » gardent leur police propre, posée en
+   attribut `style`, qui l'emporte sur cette règle. */
+.tc-doc-scale__sample { font-family: var(--canop-font-body); }
+
+/* LA COLONNE DU SPÉCIMEN NE PEUT PLUS ÊTRE ÉCRASÉE, ET LE DÉFAUT S'EST VU AVANT
+   D'ÊTRE DEVINÉ. `doc.css` pose `grid-template-columns: minmax(0, auto)
+   minmax(0, 1fr)` : une piste `auto` réclame sa largeur de contenu maximale
+   AVANT que le `fr` ne reçoive quoi que ce soit. Tant que les libellés étaient
+   courts, personne ne l'a remarqué ; en allongeant ceux des familles, la piste
+   de gauche a pris toute la place et le spécimen s'est retrouvé large d'un
+   caractère — « Portfolio & travels » s'écrivait verticalement, une lettre par
+   ligne, sur toute la hauteur de l'écran.
+
+   Le plancher de 12 rem sur la SECONDE piste force la première à céder. Il
+   corrige la cause plutôt que le symptôme : raccourcir les libellés aurait
+   remis la panne au premier texte un peu long. */
+.tc-doc-scale__row { grid-template-columns: minmax(0, auto) minmax(12rem, 1fr); }
+
 .tc-doc-nav__link { --tc-doc-control-fill: transparent; position: relative; isolation: isolate; display: flex; min-height: 2.25rem; align-items: center; border: 0 !important; border-radius: 0; padding: 0.45rem 0.6rem; background: transparent !important; color: var(--canop-text-secondary) !important; font-family: var(--canop-font-body) !important; font-size: 0.92rem; line-height: 1.3; text-decoration: none; }
 .tc-doc-nav__link::before { position: absolute; z-index: -1; inset: 0; background: var(--tc-doc-control-fill); clip-path: var(--canop-squircle-clip); content: ''; pointer-events: none; transition: background var(--canop-motion) var(--canop-ease); }
 .tc-doc-nav__link:hover,

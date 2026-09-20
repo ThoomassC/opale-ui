@@ -109,7 +109,11 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     label: 'PRISE EN MAIN',
     entries: [
       { label: 'Utilisation', slug: 'utilisation' },
-      { label: 'Theming', slug: 'theming' },
+      /* « Thèmes » et non « Theming » : le sommaire tient ses libellés à part
+         de ceux des pages, donc renommer la page ne suffisait pas — la
+         navigation aurait gardé l'anglicisme. Le slug reste `theming`, déjà
+         dans les signets et dans les tables de traduction. */
+      { label: 'Thèmes', slug: 'theming' },
       { label: 'Typographie', slug: 'typographie' },
       { label: 'Icônes', slug: 'icones' },
     ],
