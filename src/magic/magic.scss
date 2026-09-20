@@ -172,7 +172,7 @@
    À CONDITION QUE LE CONSOMMATEUR IMPORTE `tokens.css`. Or c'est exactement ce
    que la 2.0 change : les composants publiés n'emploient plus AUCUN jeton
    `--tc-*`, donc plus personne n'a de raison d'importer la feuille de jetons. Un
-   consommateur qui n'importe que `@thomascaron/opale/opale.css` — l'usage
+   consommateur qui n'importe que `@thomascaron/opale-ui/opale.css` — l'usage
    normal, et celui que le README montre — avait du verre qui ondule en boucle
    chez quelqu'un qui a demandé à son système de réduire les animations. Le garde
    est devenu détachable au moment précis où il a cessé d'être implicite. Cette

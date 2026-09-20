@@ -14,7 +14,7 @@ traduit pas.
 - **Ce qui en vient** : les quatorze composants de `src/magic/`, ainsi que leurs
   feuilles `*.module.scss`. Depuis la 2.0, ce ne sont plus un sous-chemin du
   paquet mais **son point d'entrée racine** — `import { Button } from
-'@thomascaron/opale'` sert ce code, et `@thomascaron/opale/opale.css` sert sa
+'@thomascaron/opale-ui'` sert ce code, et `@thomascaron/opale-ui/opale.css` sert sa
   feuille. Le code est gardé **fidèle au caractère** ; les seuls écarts sont
   énumérés dans `src/magic/README.md` et chaque fichier porte un bandeau qui dit
   d'où il vient.

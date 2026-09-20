@@ -47,7 +47,7 @@ const stripStyleImportFromTypes = (): Plugin => ({
 });
 
 /**
- * The `@thomascaron/opale` ROOT entry point.
+ * The `@thomascaron/opale-ui` ROOT entry point.
  *
  * This is a THIRD build, kept apart from the other two on purpose:
  *
@@ -111,7 +111,7 @@ export default defineConfig({
     // `src/contract` and nothing else, so the collision is gone at the source.
     emptyOutDir: false,
     // One sheet, not one per component. It is published as a single
-    // `@thomascaron/opale/opale.css` import — the only component stylesheet
+    // `@thomascaron/opale-ui/opale.css` import — the only component stylesheet
     // the package has in 2.0, next to `./tokens.css`.
     cssCodeSplit: false,
     sourcemap: true,

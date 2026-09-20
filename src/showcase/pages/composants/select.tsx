@@ -15,8 +15,8 @@ const OPTIONS: readonly SelectOption[] = [
   { value: 'maroc', label: 'Maroc' },
 ];
 
-const USAGE = `import { Select } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Select } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // TOUJOURS contrôlé pour la valeur ; l'ouverture, elle, est interne.
 const [country, setCountry] = useState<string>();

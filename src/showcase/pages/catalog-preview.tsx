@@ -817,7 +817,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'CanopClipboard':
       preview = (
-        <Opale.Clipboard value="npm install @thomascaron/opale">Copier la commande</Opale.Clipboard>
+        <Opale.Clipboard value="npm install @thomascaron/opale-ui">Copier la commande</Opale.Clipboard>
       );
       break;
     case 'CanopSvgMap':

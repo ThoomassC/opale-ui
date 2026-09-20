@@ -8,8 +8,8 @@ import type { PropRow } from '../api';
 import { SidebarCollapsibleScene } from './scenes';
 import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Sidebar } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Sidebar } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // \`collapsible\` est OBLIGATOIRE pour que Sidebar.Toggle rende quoi que ce soit.
 <Sidebar collapsible defaultActiveItemId="etapes">

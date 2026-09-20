@@ -5,12 +5,12 @@ import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
 
 const INSTALL_PRODUCTION = 'npm install opale';
-const INSTALL = `npm i "@thomascaron/opale@github:ThoomassC/opale#v${UI_VERSION}"`;
+const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"`;
 
-const IMPORTS = `import '@thomascaron/opale/tokens.css';
-import '@thomascaron/opale/opale.css';
+const IMPORTS = `import '@thomascaron/opale-ui/tokens.css';
+import '@thomascaron/opale-ui/opale.css';
 
-import { Button, Opale } from '@thomascaron/opale';`;
+import { Button, Opale } from '@thomascaron/opale-ui';`;
 
 export const installationPage: DocPage = {
   slug: 'installation',

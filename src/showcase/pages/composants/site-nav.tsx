@@ -5,8 +5,8 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MagicStage } from './stage';
 
-const USAGE = `import { SiteNav } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { SiteNav } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 <SiteNav
   items={[

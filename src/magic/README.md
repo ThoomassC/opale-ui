@@ -9,8 +9,8 @@ Le texte de licence est celui du dépôt d'origine, recopié dans
 provenance.
 
 **Depuis la 2.0, ce dossier EST le point d'entrée racine du paquet.** Il n'y a
-plus de sous-chemin `@thomascaron/opale/magic` : `import { Button } from
-'@thomascaron/opale'` sert ce code, et `@thomascaron/opale/opale.css` sert
+plus de sous-chemin `@thomascaron/opale-ui/magic` : `import { Button } from
+'@thomascaron/opale-ui'` sert ce code, et `@thomascaron/opale-ui/opale.css` sert
 `magic.scss` compilée. Le dossier garde son nom parce que c'est lui qui porte la
 provenance MIT — le renommer casserait le chemin sur lequel s'appuient le fichier
 de notices et les bandeaux.

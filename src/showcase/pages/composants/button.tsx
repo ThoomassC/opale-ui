@@ -12,8 +12,8 @@ type MagicButtonSize = 'small' | 'medium' | 'large';
 const VARIANTS: readonly MagicButtonVariant[] = ['default', 'positive', 'negative', 'warning'];
 const SIZES: readonly MagicButtonSize[] = ['small', 'medium', 'large'];
 
-const USAGE = `import { Button } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Button } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // \`text\` OU des enfants — les enfants gagnent.
 <Button text="Envoyer" />

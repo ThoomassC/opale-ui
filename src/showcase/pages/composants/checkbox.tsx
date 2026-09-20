@@ -7,8 +7,8 @@ import type { PropRow } from '../api';
 import { CheckboxSizeScene } from './scenes';
 import { MagicCell, MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Checkbox } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Checkbox } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // TOUJOURS contrôlé : \`checked\` retombe sur \`false\` sans état à vous.
 const [accepted, setAccepted] = useState(false);

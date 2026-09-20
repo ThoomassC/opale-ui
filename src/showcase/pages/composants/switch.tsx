@@ -7,8 +7,8 @@ import type { PropRow } from '../api';
 import { SwitchSizeScene } from './scenes';
 import { MagicCell, MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Switch } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Switch } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // La prop s'appelle \`setIsActive\`, pas \`onChange\`.
 const [glass, setGlass] = useState(false);

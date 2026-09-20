@@ -75,7 +75,7 @@ function exampleCode(name: string): string {
     case 'CanopFileCard':
       return '<Opale.FileCard name="design-system.fig" size="2,4 Mo" />';
     case 'CanopClipboard':
-      return '<Opale.Clipboard value="npm install @thomascaron/opale" />';
+      return '<Opale.Clipboard value="npm install @thomascaron/opale-ui" />';
     default:
       return `<Opale.${displayName} />`;
   }
@@ -94,7 +94,7 @@ function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
         <span>Composant Opale · TypeScript strict</span>
       </div>
       <div className="tc-doc-code tc-doc-code--canop">
-        <code>{`import { Opale } from '@thomascaron/opale';\n\n${code}`}</code>
+        <code>{`import { Opale } from '@thomascaron/opale-ui';\n\n${code}`}</code>
       </div>
       <section
         className="tc-doc-specimen tc-doc-specimen--canop"

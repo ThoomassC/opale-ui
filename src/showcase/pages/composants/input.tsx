@@ -5,8 +5,8 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MagicCell, MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Input } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Input } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // Non contrôlé : \`defaultValue\`, et on lit la valeur à la soumission.
 <Input defaultValue="Kyoto" aria-label="Ville" />

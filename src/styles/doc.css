@@ -452,7 +452,7 @@ body {
 
      C'est accepté plutôt que corrigé, pour une raison qui se vérifie : le lien
      GARDE SON NOM ACCESSIBLE. Le texte est clippé par `overflow: hidden`, pas
-     retiré du DOM, donc le lien s'annonce toujours « @thomascaron/opale, lien » et
+     retiré du DOM, donc le lien s'annonce toujours « @thomascaron/opale-ui, lien » et
      reste une cible de 44 px vers l'accueil. Ce qui se perd est la lecture du
      nom à l'œil sur un téléphone — le motif « logo seul en étroit », qui est
      celui de tout le monde, et non une dégradation silencieuse. */

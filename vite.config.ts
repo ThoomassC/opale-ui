@@ -14,11 +14,11 @@ import tailwindConfig from './tailwind.config.ts';
  * apart on purpose: `dist/` is what a consumer installs, `dist-showcase/` is a
  * static site nobody depends on.
  *
- * NO `resolve.alias` FOR `@thomascaron/opale`, AND THAT IS A MEASURED CHOICE.
+ * NO `resolve.alias` FOR `@thomascaron/opale-ui`, AND THAT IS A MEASURED CHOICE.
  * The showcase pages import the fourteen published components through the
  * relative specifier `'../../../magic'`, not through the package name a
  * consumer would write. The package is self-referenceable — `package.json` has
- * both a `name` and an `exports` map — so `@thomascaron/opale` DOES resolve
+ * both a `name` and an `exports` map — so `@thomascaron/opale-ui` DOES resolve
  * from inside the repo; it just resolves to the wrong thing. Measured, not
  * assumed, with `tsc --traceResolution`:
  *
@@ -37,7 +37,7 @@ import tailwindConfig from './tailwind.config.ts';
  * them are outside this file's remit: `resolve.alias` here, `compilerOptions.
  * paths` in `tsconfig.app.json`, and `test.alias` in `vitest.config.ts`. The
  * documented USAGE snippets on every component page already say
- * `@thomascaron/opale`, because that IS what a consumer writes — only the
+ * `@thomascaron/opale-ui`, because that IS what a consumer writes — only the
  * showcase's own imports differ, and the difference is deliberate.
  */
 export default defineConfig({

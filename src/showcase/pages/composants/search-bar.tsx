@@ -5,8 +5,8 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { SearchBar } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { SearchBar } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 <SearchBar placeholder="Un voyage, un lieu, un pays…" />`;
 

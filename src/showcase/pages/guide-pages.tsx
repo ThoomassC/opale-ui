@@ -45,7 +45,7 @@ export const utilisationPage = guidePage({
   lede: 'Composez une page Opale en partant des primitives et des composants dont vous avez besoin.',
   overview:
     'Chaque composant peut être utilisé indépendamment. Les exemples de la documentation restent interactifs afin de comparer les états et les variantes directement dans la page.',
-  code: "import { Opale } from '@thomascaron/opale';",
+  code: "import { Opale } from '@thomascaron/opale-ui';",
   points: [
     'Commencez par une primitive de mise en page, puis ajoutez les composants métier.',
     'Conservez les libellés visibles et les états de focus dans chaque composition.',

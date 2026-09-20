@@ -1,5 +1,5 @@
 {
-  "name": "@thomascaron/opale",
+  "name": "@thomascaron/opale-ui",
   "version": "3.0.0",
   "private": true,
   "description": "Opale — le socle UI commun de portfolio et travels_in_world : jetons mesures, contrat de couleur executable, composants verre liquide.",

@@ -7,8 +7,8 @@ import type { PropRow } from '../api';
 import { TabsControlledScene } from './scenes';
 import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Tabs } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Tabs } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // Non contrôlé : \`defaultValue\`, et l'état vit dans le composant.
 <Tabs defaultValue="etapes">

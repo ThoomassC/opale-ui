@@ -2,7 +2,7 @@ import { DocShell } from './doc-shell';
 import { PAGES } from './pages';
 
 /**
- * La vitrine de `@thomascaron/opale`.
+ * La vitrine de `@thomascaron/opale-ui`.
  *
  * Elle était UNE page de charte qui déroulait sept sections ; elle est
  * désormais un site de documentation — une barre de navigation à gauche, une

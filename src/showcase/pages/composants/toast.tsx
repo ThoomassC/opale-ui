@@ -5,8 +5,8 @@ import type { PropRow } from '../api';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
 import { MagicGroundNote, MagicPreamble } from './stage';
 
-const USAGE = `import { ToastProvider, useToast } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { ToastProvider, useToast } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 // 1. Le fournisseur, AUTOUR de l'arbre qui déclenchera les toasts.
 <ToastProvider position="bottom-right" duration={4000}>

@@ -23,7 +23,7 @@ import { PageBody } from '../api';
    2. LES JETONS DU MATÉRIAU — `--glass-fill`, `--glass-blur`, `--glass-border`,
       `--glass-specular`… Ceux-là SURVIVENT : ils sont déclarés dans
       `src/tokens/materials.css`, que `tokens.css` importe, donc ils sont
-      toujours publiés par `@thomascaron/opale/tokens.css`. Et ils sont toujours
+      toujours publiés par `@thomascaron/opale-ui/tokens.css`. Et ils sont toujours
       MESURÉS : `src/contract/glass.contract.test.ts` lit `materials.css` et
       recalcule ses onze sections à chaque exécution de la suite.
 
@@ -210,7 +210,7 @@ export const verrePage: DocPage = {
           <li>
             <strong>Les onze jetons restent publiés.</strong> Ils sont déclarés dans{' '}
             <code>src/tokens/materials.css</code>, que <code>tokens.css</code> importe : un
-            consommateur de <code>@thomascaron/opale/tokens.css</code> les a tous.
+            consommateur de <code>@thomascaron/opale-ui/tokens.css</code> les a tous.
           </li>
           <li>
             <strong>Ils restent mesurés.</strong> <code>glass.contract.test.ts</code> lit cette
@@ -220,7 +220,7 @@ export const verrePage: DocPage = {
           </li>
           <li>
             <strong>La feuille qui les composait est supprimée.</strong> <code>glass.css</code>{' '}
-            n’est plus publiée, et le point d’entrée <code>@thomascaron/opale/glass.css</code>{' '}
+            n’est plus publiée, et le point d’entrée <code>@thomascaron/opale-ui/glass.css</code>{' '}
             n’existe plus dans <code>exports</code>. Composer ces jetons est désormais le travail de
             l’appelant.
           </li>

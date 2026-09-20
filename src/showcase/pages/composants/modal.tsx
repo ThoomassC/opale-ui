@@ -5,8 +5,8 @@ import type { PropRow } from '../api';
 import { ModalScene } from './scenes';
 import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Modal } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Modal } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 const [open, setOpen] = useState(false);
 

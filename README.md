@@ -1,4 +1,4 @@
-# Opale — `@thomascaron/opale`
+# Opale — `@thomascaron/opale-ui`
 
 Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/portfolio) et
 [`travels_in_world`](https://github.com/ThoomassC/travels_in_world).
@@ -77,7 +77,7 @@ de ces composants.**
 Le paquet s'installe depuis git, et il n'est pas publié sur npm.
 
 ```bash
-npm i "@thomascaron/opale@github:ThoomassC/opale"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui"
 ```
 
 > **Les tags de publication restent la source de vérité du paquet.** La vitrine 3.0.0 et les
@@ -89,13 +89,13 @@ Le paquet se compile à l'installation (`prepare` → `build:lib`). **Quatre poi
 et les deux premiers suffisent :
 
 ```js
-import '@thomascaron/opale/tokens.css'; // la palette, les échelles, le focus, le mouvement
-import '@thomascaron/opale/opale.css'; // les styles des quatorze composants, une fois par app
-import { Button, Glass, CanopButton } from '@thomascaron/opale';
+import '@thomascaron/opale-ui/tokens.css'; // la palette, les échelles, le focus, le mouvement
+import '@thomascaron/opale-ui/opale.css'; // les styles des quatorze composants, une fois par app
+import { Button, Glass, CanopButton } from '@thomascaron/opale-ui';
 ```
 
 ```ts
-import { contrastRatio, parseThemes } from '@thomascaron/opale/contract'; // dev seulement
+import { contrastRatio, parseThemes } from '@thomascaron/opale-ui/contract'; // dev seulement
 ```
 
 La forme exacte, telle qu'elle est déclarée dans `package.json` :
@@ -175,15 +175,15 @@ import {
   compositeLayers, // une pile de couches alpha → l'aplat opaque qu'elle présente
   oklab, // la conversion, et la mesure derrière le NOM des primitives
   deltaEOklab, // le plancher de séparation entre deux rôles voisins
-} from '@thomascaron/opale/contract';
+} from '@thomascaron/opale-ui/contract';
 import {
   resolveBackdrop, // (theme, spec) → l'aplat OPAQUE que la pile présente à une encre
   GLASS_BACKDROPS, // les CINQ supports sur lesquels une surface est mesurée
   GLASS_LAYERS, // les couches nommées une fois : page, halos, remplissage, repli opaque
   STATE_WASHES, // les trois lavis d'état, du repos à l'appui
   withWash, // le même support, un lavis posé dessus
-} from '@thomascaron/opale/contract';
-import type { BackdropSpec, Theme, ThemeName } from '@thomascaron/opale/contract';
+} from '@thomascaron/opale-ui/contract';
+import type { BackdropSpec, Theme, ThemeName } from '@thomascaron/opale-ui/contract';
 ```
 
 Le **support composé** est dans le contrat, et il n'y a qu'une définition du mot « fond » :

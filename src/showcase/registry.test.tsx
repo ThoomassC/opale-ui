@@ -8,9 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
    qu'avant — les exports réels de ce qu'un consommateur installe — à un chemin
    près.
 
-   IMPORT RELATIF ET NON `@thomascaron/opale`, ET C'EST MESURÉ. Le paquet est
+   IMPORT RELATIF ET NON `@thomascaron/opale-ui`, ET C'EST MESURÉ. Le paquet est
    auto-référençable (son `package.json` a un `name` et un `exports`), donc
-   `@thomascaron/opale` RÉSOUT — mais vers `dist/`, le produit du build :
+   `@thomascaron/opale-ui` RÉSOUT — mais vers `dist/`, le produit du build :
    `tsc --traceResolution` le confirme (« successfully resolved to
    .../dist/magic/index.d.ts »), et Vitest y charge `dist/magic/index.js`. La
    suite éprouverait alors un artefact de build au lieu de la source, et

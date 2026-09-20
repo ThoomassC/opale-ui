@@ -6,8 +6,8 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MagicCell, MagicGroundNote, MagicPreamble, MagicStage } from './stage';
 
-const USAGE = `import { Card } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Card } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 <Card>
   <h3>Titre</h3>

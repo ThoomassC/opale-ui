@@ -158,7 +158,7 @@ export function MagicGroundNote() {
 export function MagicPreamble() {
   return (
     <p className="tc-doc-install">
-      <code>{`npm i "@thomascaron/opale@github:ThoomassC/opale#v${UI_VERSION}"`}</code>
+      <code>{`npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"`}</code>
     </p>
   );
 }

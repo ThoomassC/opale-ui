@@ -18,7 +18,7 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
-const REPOSITORY_URL = 'https://github.com/ThoomassC/opale';
+const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
 
 /**
  * Du plus récent au plus ancien. L'ordre est celui de la page et de la

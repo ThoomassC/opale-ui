@@ -5,8 +5,8 @@ import type { PropRow } from '../api';
 import { SliderSizeScene, SliderStepScene } from './scenes';
 import { MagicGroundNote, MagicPreamble } from './stage';
 
-const USAGE = `import { Slider } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Slider } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 const [zoom, setZoom] = useState(50);
 

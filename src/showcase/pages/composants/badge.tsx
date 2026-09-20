@@ -17,8 +17,8 @@ const VARIANTS: readonly BadgeVariant[] = [
   'neutral',
 ];
 
-const USAGE = `import { Badge } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Badge } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 <Badge>active</Badge>
 <Badge variant="positive">publié</Badge>

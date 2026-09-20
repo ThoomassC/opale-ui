@@ -51,10 +51,10 @@ function LiquidGlassFilter() {
   );
 }
 
-const USAGE = `npm i "@thomascaron/opale@github:ThoomassC/opale#v${UI_VERSION}"
+const USAGE = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"
 
-import { Button, Glass } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+import { Button, Glass } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
 
 <Glass enableLiquidAnimation>Modale</Glass>
 <Button text="Continuer" />`;
