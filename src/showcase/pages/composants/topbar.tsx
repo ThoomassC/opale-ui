@@ -1,4 +1,4 @@
-import { Badge, Button, Topbar } from '../../../magic';
+import { Badge, Opale, Topbar } from '../../../magic';
 import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
@@ -16,7 +16,7 @@ import '@thomascaron/opale-ui/opale.css';
     <Badge variant="info">brouillon</Badge>
   </Topbar.Section>
   <Topbar.Actions>
-    <Button size="small" text="Publier" />
+    <Opale.Button size="small">Publier</Opale.Button>
   </Topbar.Actions>
 </Topbar>`;
 
@@ -121,7 +121,7 @@ export const topbarPage: DocPage = {
               <Badge variant="info">brouillon</Badge>
             </Topbar.Section>
             <Topbar.Actions>
-              <Button size="small" text="Publier" />
+              <Opale.Button size="small">Publier</Opale.Button>
             </Topbar.Actions>
           </Topbar>
         </MagicStage>

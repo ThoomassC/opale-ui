@@ -118,7 +118,13 @@ function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
             onChange={(event) => setLiquidGlass(event.currentTarget.checked)}
           />
         </div>
-        <div className="tc-doc-canop-preview">
+        {/* LE SUPPORT S'ASSOMBRIT AVEC LE MATÉRIAU, et ce n'est pas un effet de
+            mise en scène : un verre RÉFRACTE ce qui est derrière lui. Posé sur
+            la carte blanche, il n'avait rien à réfracter — on voyait un
+            rectangle pâle, et l'encre claire du bouton « Primaire » disparaissait
+            purement et simplement dans le fond. Le commutateur pose donc la
+            scène en même temps que la matière. */}
+        <div className="tc-doc-canop-preview" data-liquid-glass={liquidGlass ? 'true' : undefined}>
           <CatalogPreview name={entry.name} liquidGlass={liquidGlass} />
         </div>
         <UsageBlock label={`Exemple ${displayName}`} code={code} />

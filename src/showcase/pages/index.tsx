@@ -14,7 +14,6 @@ import { typographiePage } from './fondations/typographie';
 import { verrePage } from './fondations/verre';
 
 import { badgePage } from './composants/badge';
-import { buttonPage } from './composants/button';
 import { cardPage } from './composants/card';
 import { checkboxPage } from './composants/checkbox';
 import { glassPage } from './composants/glass';
@@ -88,7 +87,6 @@ export const PAGES: readonly DocPage[] = [
      briques partagées nomme cette PROVENANCE, qui reste vraie, et non le
      groupe de la vitrine, qui n'existe plus. */
   badgePage,
-  buttonPage,
   cardPage,
   checkboxPage,
   glassPage,

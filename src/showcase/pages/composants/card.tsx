@@ -1,4 +1,4 @@
-import { Badge, Button, Card } from '../../../magic';
+import { Badge, Card, Opale } from '../../../magic';
 import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
@@ -16,7 +16,7 @@ import '@thomascaron/opale-ui/opale.css';
 
 <Card size="large" direction="row" align="center" justify="space-between">
   <span>Étape publiée</span>
-  <Button text="Ouvrir" />
+  <Opale.Button>Ouvrir</Opale.Button>
 </Card>`;
 
 const PROPS: readonly PropRow[] = [
@@ -139,7 +139,7 @@ export const cardPage: DocPage = {
           >
             <Card direction="row" justify="space-between" align="center">
               <span>Kyoto</span>
-              <Button size="small" text="Ouvrir" />
+              <Opale.Button size="small">Ouvrir</Opale.Button>
             </Card>
           </MagicCell>
         </MagicStage>

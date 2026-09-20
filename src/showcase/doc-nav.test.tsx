@@ -79,7 +79,14 @@ describe('DocNav — rail permanent et statique', () => {
       'verre-liquide',
       'accessibilite',
     ]);
+    /* `composants/button` A DISPARU, ET C'EST LE BUT. La page du bouton vendoré
+       doublonnait celle du bouton Opale : un seul `Button` subsiste, dont la
+       prop `liquidGlass` rend la matière de l'autre. Le garde vise donc un
+       historique qui, lui, n'a pas d'équivalent Opale. */
     expect(sectionFor('inputs')?.entries.map((entry) => entry.page.slug)).toContain(
+      'composants/opale-button',
+    );
+    expect(sectionFor('inputs')?.entries.map((entry) => entry.page.slug)).not.toContain(
       'composants/button',
     );
     expect(sectionFor('affichage-de-donnees')?.entries.map((entry) => entry.page.slug)).toContain(

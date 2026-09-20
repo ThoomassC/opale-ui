@@ -16,6 +16,8 @@ import {
   type SelectHTMLAttributes,
 } from 'react';
 
+import MagicButton from './components/button/Button';
+
 type CanopButtonVariant = 'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text';
 type CanopButtonSize = 'small' | 'medium' | 'large';
 
@@ -47,6 +49,48 @@ export interface CanopButtonProps extends ButtonHTMLAttributes<HTMLButtonElement
   liquidGlass?: boolean;
 }
 
+/* =============================================================================
+   UN SEUL BOUTON, ET `liquidGlass` CHOISIT SA MATIÈRE.
+
+   IL Y EN AVAIT DEUX, ET C'EST CE QUI EST CORRIGÉ ICI. Le paquet exportait un
+   `Button` vendoré — celui qui passe par `<Glass>`, avec ses filtres SVG de
+   déplacement et son onde au clic — ET ce `CanopButton`, dont la prop
+   `liquidGlass` ne posait qu'une classe CSS : deux dégradés radiaux sur
+   `--canop-glass-surface`. Deux composants du même nom, dont l'un imitait
+   l'autre sans l'égaler.
+
+   DÉSORMAIS LA PROP DÉLÈGUE AU VRAI MATÉRIAU. `liquidGlass` ne repeint plus un
+   fond : elle rend le composant de verre lui-même. « Activer le verre » et
+   « utiliser le composant de verre » sont devenus la même chose, ce qui était
+   déjà la promesse de la prop — elle ne la tenait pas.
+
+   CE QUE CELA DONNE À QUI INTÈGRE : un seul nom à connaître, et le choix
+   d'embarquer ou non le matériau, composant par composant, sans changer
+   d'import.
+
+   LA CORRESPONDANCE DES VARIANTES EST EXPLICITE PARCE QU'ELLE EST ARBITRAIRE.
+   Les deux jeux ne se recouvrent pas — quatre teintes vendorées contre sept
+   rôles Opale. Le tableau ci-dessous garde le SENS plutôt que la teinte :
+   `danger` va sur `negative`, `accent` sur `warning`. Les rôles sans
+   équivalent retombent sur `default`, le verre neutre, plutôt que d'emprunter
+   une couleur qui dirait autre chose.
+
+   CE QUI SE PERD, ET IL FAUT LE SAVOIR : `loading`, `startIcon`, `endIcon` et
+   `fullWidth` n'existent pas sur le composant vendoré. Ils sont ignorés sous
+   verre, et c'est préférable à une seconde implémentation qui les simulerait
+   mal. `canop.tsx` cesse par ailleurs d'être une feuille autonome : c'est le
+   prix d'un composant unique, et il est moins cher que le doublon.
+   ========================================================================== */
+const GLASS_VARIANT: Readonly<Record<CanopButtonVariant, 'default' | 'positive' | 'negative' | 'warning'>> = {
+  primary: 'default',
+  secondary: 'positive',
+  accent: 'warning',
+  danger: 'negative',
+  tonal: 'default',
+  ghost: 'default',
+  text: 'default',
+};
+
 export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
   (
     {
@@ -64,7 +108,19 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
       ...props
     },
     ref,
-  ) => (
+  ) =>
+    liquidGlass ? (
+      <MagicButton
+        ref={ref}
+        variant={GLASS_VARIANT[variant]}
+        size={size}
+        disabled={disabled || loading}
+        className={className}
+        {...props}
+      >
+        {children}
+      </MagicButton>
+    ) : (
     <button
       ref={ref}
       className={cx(
@@ -72,7 +128,6 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
         `canop-button--${variant}`,
         size !== 'medium' && `canop-button--${size}`,
         fullWidth && 'canop-button--full',
-        liquidGlass && 'canop-liquid',
         className,
       )}
       data-liquid-glass={liquidGlass ? 'true' : undefined}
@@ -84,7 +139,7 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
       <span>{children}</span>
       {!loading && endIcon}
     </button>
-  ),
+    ),
 );
 CanopButton.displayName = 'CanopButton';
 

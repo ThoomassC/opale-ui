@@ -1,4 +1,11 @@
-import { Button, Glass } from '../../magic';
+import { Glass } from '../../magic';
+
+/* LE BOUTON DE VERRE EST IMPORTÉ PAR SON CHEMIN DIRECT, et c'est la seule page
+   qui en a le droit. Il n'est plus réexporté par le paquet depuis que
+   `Opale.Button liquidGlass` délègue à lui — mais CETTE page documente le
+   MATÉRIAU, et elle a besoin de ses crochets propres (`rootClassName`,
+   `rootStyle`) que la façade Opale ne transmet pas. */
+import Button from '../../magic/components/button/Button';
 import type { CSSProperties } from 'react';
 import type { DocPage } from '../doc-model';
 import { UI_VERSION } from '../version';
@@ -24,13 +31,7 @@ const SQUIRE_CIRCLE_STYLE = {
 function LiquidGlassFilter() {
   return (
     <svg className="tc-doc-liquid-filter" aria-hidden="true">
-      <filter
-        id="tc-doc-liquid-modal-dist"
-        x="-20%"
-        y="-20%"
-        width="140%"
-        height="140%"
-      >
+      <filter id="tc-doc-liquid-modal-dist" x="-20%" y="-20%" width="140%" height="140%">
         <feTurbulence
           type="fractalNoise"
           baseFrequency="0.025 0.018"
@@ -53,11 +54,11 @@ function LiquidGlassFilter() {
 
 const USAGE = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"
 
-import { Button, Glass } from '@thomascaron/opale-ui';
+import { Glass, Opale } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 <Glass enableLiquidAnimation>Modale</Glass>
-<Button text="Continuer" />`;
+<Opale.Button liquidGlass>Continuer</Opale.Button>`;
 
 export const verreLiquidePage: DocPage = {
   slug: 'verre-liquide',
@@ -145,7 +146,13 @@ export const verreLiquidePage: DocPage = {
                     <clipPath id="tc-doc-squire-drop-clip">
                       <path d="M16 3.25c5.75 5.25 9.1 9.5 9.1 15.1a9.1 9.1 0 0 1-18.2 0c0-5.6 3.35-9.85 9.1-15.1Z" />
                     </clipPath>
-                    <filter id="tc-doc-squire-drop-soft" x="-30%" y="-30%" width="160%" height="160%">
+                    <filter
+                      id="tc-doc-squire-drop-soft"
+                      x="-30%"
+                      y="-30%"
+                      width="160%"
+                      height="160%"
+                    >
                       <feGaussianBlur stdDeviation="0.45" />
                     </filter>
                   </defs>

@@ -667,6 +667,54 @@ body { font-size: 1rem; line-height: 1.5; }
 .tc-doc-canop-material-toggle__text { display: grid; gap: 0.15rem; }
 .tc-doc-canop-material-toggle__text strong { color: var(--canop-text); }
 .tc-doc-canop-material-toggle__text span { color: var(--canop-text-secondary); font-size: 0.8125rem; }
+/* =============================================================================
+   LA SCÈNE DU MATÉRIAU LIQUID GLASS.
+
+   Le verre d'Opale est une SURFACE RÉFRACTANTE : ses filtres SVG déplacent ce
+   qui se trouve derrière, et sa teinte est translucide. Sur le fond blanc de la
+   carte de démonstration, il n'avait donc rien à montrer — mesuré à l'écran, le
+   bouton « Primaire » en `bg-default` devenait une encre presque blanche sur un
+   verre presque blanc, illisible.
+
+   Le fond sombre n'est pas une préférence d'éclairage : c'est la condition pour
+   que la matière soit visible. La page du bouton vendoré posait déjà la sienne
+   avant d'être fusionnée ; la scène revient ici, au commutateur, donc pour TOUS
+   les composants et plus seulement pour un.
+
+   ELLE NE S'APPLIQUE QU'AU MATÉRIAU ACTIVÉ. Hors commutateur, l'aperçu garde le
+   fond de la page : les composants Opale s'y lisent comme dans une vraie
+   application, ce qui est l'autre moitié du propos. */
+.tc-doc-canop-preview[data-liquid-glass='true'] {
+  border-radius: var(--canop-radius-md);
+  padding: var(--canop-space-lg);
+  background:
+    radial-gradient(120% 140% at 12% 0%, color-mix(in srgb, var(--canop-primary) 34%, transparent), transparent 58%),
+    radial-gradient(110% 120% at 100% 100%, color-mix(in srgb, var(--canop-secondary) 20%, transparent), transparent 62%),
+    #0e1220;
+  color: #f3f1ec;
+
+  /* LE MATÉRIAU PREND SES VALEURS SOMBRES, PARCE QUE LA SCÈNE EST SOMBRE.
+
+     En thème clair, `--canop-glass-surface` vaut `rgba(255, 255, 255, 0.58)` :
+     un voile BLANC. Composé sur la scène, il donnait un gris moyen, et l'encre
+     blanche du bouton y tombait à environ 2,5:1 — visible sur la capture, le
+     libellé « Primaire » se lisait gris sur gris.
+
+     Ces trois jetons sont donc redéclarés à leurs valeurs de thème sombre,
+     celles-là mêmes que `canop.css` sert sous `[data-theme='dark']`. Ce n'est
+     pas un habillage de circonstance : un verre emprunte sa teinte à son
+     contexte, et ce contexte-ci est nocturne. Recomposé, le blanc repasse
+     largement au-dessus du seuil. */
+  --canop-glass-surface: rgba(38, 44, 39, 0.7);
+  --canop-glass-border: rgba(169, 199, 244, 0.28);
+  --canop-glass-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.34);
+}
+/* L'encre claire doit gagner sur celle des composants, qui se croient encore
+   sur fond clair — leurs règles portent `!important` pour la même raison. */
+.tc-doc-canop-preview[data-liquid-glass='true'] :is(p, span, strong, label, dt, dd, li, code) {
+  color: #f3f1ec !important;
+}
+
 .tc-doc-canop-preview__material { min-width: 0; min-height: 7rem; padding: var(--canop-space-md); border-radius: var(--canop-radius-md); }
 .tc-doc-canop-demo { display: grid; gap: var(--canop-space-md); }
 /* UN BOUTON NE S'ÉTIRE PAS, ET C'EST LE CADRE QUI L'ÉTIRAIT — PAS LE COMPOSANT.

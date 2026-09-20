@@ -79,7 +79,10 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         L’identité de l’onglet. Rend un{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/button')}>
+        {/* La page du bouton VENDORÉ n'existe plus : il n'y a qu'un `Button`
+            désormais, et c'est celui d'Opale — le vendoré est devenu la
+            matière derrière sa prop `liquidGlass`. Le lien suit. */}
+        <a className="tc-doc-link" href={hrefFor('composants/opale-button')}>
           Button
         </a>{' '}
         de la librairie en <code>size=&quot;small&quot;</code>, avec{' '}

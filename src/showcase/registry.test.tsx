@@ -127,7 +127,12 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
  * racine publie les composants historiques et les nouvelles briques compatibles.
  * verre liquide historiques, ainsi que `SiteNav` et `SearchBar`.
  */
-const PUBLISHED_COMPONENT_COUNT = 93;
+/* 92 ET NON 93 DEPUIS QUE LE BOUTON N'EST PLUS EN DOUBLE. Le paquet exportait
+   deux `Button` : le vendoré, qui passe par `<Glass>`, et `CanopButton`. Le
+   premier n'est plus une porte publique — il est la matière derrière
+   `liquidGlass` — donc il n'a plus de page à exiger, et le compte descend d'un.
+   Le module, lui, existe toujours. */
+const PUBLISHED_COMPONENT_COUNT = 92;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {
@@ -202,7 +207,7 @@ afterEach(() => {
 
 describe('Le registre des pages', () => {
   describe('la couverture des composants publiés', () => {
-    it('devrait trouver les 16 composants publiés par l’entrée racine', () => {
+    it('devrait trouver les composants publiés par l’entrée racine', () => {
       /* Garde-fou du garde-fou : si la reconnaissance des exports cassait, le
          test suivant passerait sur une liste tronquée et ne dirait plus rien. */
       expect(

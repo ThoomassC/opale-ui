@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { UI_VERSION } from '../../version';
 
 import {
-  Button,
+  Opale,
   Checkbox,
   Modal,
   Select,
@@ -304,7 +304,7 @@ export function ModalScene({
 
   return (
     <>
-      <Button text={label} onClick={() => setOpen(true)} />
+      <Opale.Button onClick={() => setOpen(true)}>{label}</Opale.Button>
 
       <Modal
         open={open}
@@ -316,13 +316,12 @@ export function ModalScene({
         description="Cette action est définitive."
         footer={
           <>
-            <Button size="small" text="Annuler" onClick={() => setOpen(false)} />
-            <Button
-              size="small"
-              variant="negative"
-              text="Supprimer"
-              onClick={() => setOpen(false)}
-            />
+            <Opale.Button size="small" onClick={() => setOpen(false)}>
+              Annuler
+            </Opale.Button>
+            <Opale.Button size="small" variant="danger" onClick={() => setOpen(false)}>
+              Supprimer
+            </Opale.Button>
           </>
         }
       >
@@ -352,14 +351,22 @@ function ToastTrigger({
 }) {
   const { showToast } = useToast();
 
-  return <Button size="small" text={label} onClick={() => showToast(toast)} />;
+  return (
+    <Opale.Button size="small" onClick={() => showToast(toast)}>
+      {label}
+    </Opale.Button>
+  );
 }
 
 /** Le bouton qui vide la file — même contrainte de contexte. */
 function ToastClear() {
   const { clearToasts } = useToast();
 
-  return <Button size="small" text="Tout fermer" onClick={() => clearToasts()} />;
+  return (
+    <Opale.Button size="small" onClick={() => clearToasts()}>
+      Tout fermer
+    </Opale.Button>
+  );
 }
 
 /** Les quatre variantes de toast, dans le coin par défaut. */
