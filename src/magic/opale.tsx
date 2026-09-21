@@ -49,7 +49,7 @@ import MagicSwitch from './components/switch/Switch';
      — `Slider` émet `onChange(value: number)`, et sa piste est un `<div>` sans
        rôle, sans `tabindex` et sans clavier — défaut réel, documenté en tête
        de `Slider.tsx` ;
-     — `Switch` expose `isActive`/`setIsActive` là où `CanopToggle` étend
+     — `Switch` expose `isActive`/`setIsActive` là où `Toggle` étend
        `InputHTMLAttributes` : `name`, `required`, participation au formulaire ;
      — `Select` n'est pas un `<select>` : c'est un bouton et une liste de
        `<button>`, donc ni nom de formulaire, ni sélecteur natif mobile.
@@ -96,16 +96,16 @@ const DECORATIVE = { 'aria-hidden': true, tabIndex: -1 } as const;
    leur `{...props}` et atterrit sur le vrai `<input>`.
 
    Sans ce recast, il aurait fallu renoncer à `ref` sous verre — et
-   `CanopInput` est un `forwardRef`. Une référence qui cesse silencieusement
+   `Input` est un `forwardRef`. Une référence qui cesse silencieusement
    d'être transmise est précisément le genre de panne qu'aucun test de rendu
    n'attrape : le champ s'affiche, et `inputRef.current` vaut `null`. */
 const GlassInput = MagicInput as unknown as ComponentType<
   ComponentProps<typeof MagicInput> & { ref?: Ref<HTMLInputElement> }
 >;
 
-type CanopButtonVariant =
+type ButtonVariant =
   'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text';
-type CanopButtonSize = 'small' | 'medium' | 'large';
+type ButtonSize = 'small' | 'medium' | 'large';
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
@@ -117,7 +117,7 @@ interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
 function Surface({ liquidGlass = false, className, children, ...props }: SurfaceProps) {
   return (
     <div
-      className={cx('canop-surface', liquidGlass && 'canop-liquid', className)}
+      className={cx('opale-surface', liquidGlass && 'opale-liquid', className)}
       data-liquid-glass={liquidGlass ? 'true' : undefined}
       {...props}
     >
@@ -126,9 +126,9 @@ function Surface({ liquidGlass = false, className, children, ...props }: Surface
   );
 }
 
-export interface CanopButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: CanopButtonVariant;
-  size?: CanopButtonSize;
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
   startIcon?: ReactNode;
   endIcon?: ReactNode;
@@ -141,9 +141,9 @@ export interface CanopButtonProps extends ButtonHTMLAttributes<HTMLButtonElement
 
    IL Y EN AVAIT DEUX, ET C'EST CE QUI EST CORRIGÉ ICI. Le paquet exportait un
    `Button` vendoré — celui qui passe par `<Glass>`, avec ses filtres SVG de
-   déplacement et son onde au clic — ET ce `CanopButton`, dont la prop
+   déplacement et son onde au clic — ET ce `Button`, dont la prop
    `liquidGlass` ne posait qu'une classe CSS : deux dégradés radiaux sur
-   `--canop-glass-surface`. Deux composants du même nom, dont l'un imitait
+   `--opale-glass-surface`. Deux composants du même nom, dont l'un imitait
    l'autre sans l'égaler.
 
    DÉSORMAIS LA PROP DÉLÈGUE AU VRAI MATÉRIAU. `liquidGlass` ne repeint plus un
@@ -171,10 +171,10 @@ export interface CanopButtonProps extends ButtonHTMLAttributes<HTMLButtonElement
    CE QUI SE PERD, ET IL FAUT LE SAVOIR : `loading`, `startIcon`, `endIcon` et
    `fullWidth` n'existent pas sur le composant vendoré. Ils sont ignorés sous
    verre, et c'est préférable à une seconde implémentation qui les simulerait
-   mal. `canop.tsx` cesse par ailleurs d'être une feuille autonome : c'est le
+   mal. `opale.tsx` cesse par ailleurs d'être une feuille autonome : c'est le
    prix d'un composant unique, et il est moins cher que le doublon.
    ========================================================================== */
-export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       variant = 'primary',
@@ -197,14 +197,14 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
         ref={ref}
         size={size}
         disabled={disabled || loading}
-        /* `canop-button--glass` REND LA GÉOMÉTRIE D'OPALE À LA MATIÈRE DE
+        /* `opale-button--glass` REND LA GÉOMÉTRIE D'OPALE À LA MATIÈRE DE
            L'AUTRE. Sans elle, basculer le commutateur changeait la TAILLE du
            bouton en même temps que sa surface — 120 × 52 px contre 90 × 44 —,
            si bien que la mise en page sautait et qu'on ne comparait plus deux
            états du même composant mais deux composants. La silhouette
            arrondie, elle, reste celle du verre : c'est son identité, pas un
            accident de dimension. */
-        className={cx('canop-button--glass', `canop-button--glass-${variant}`, className)}
+        className={cx('opale-button--glass', `opale-button--glass-${variant}`, className)}
         /* LA SILHOUETTE EST CELLE D'OPALE, ET IL FAUT L'ENVELOPPE POUR L'AVOIR.
            Le verre est arrondi par le `border-radius` de son conteneur, pas par
            le bouton : habiller le seul contenu laissait des coins ronds tout
@@ -212,7 +212,7 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
            le transmet à `<Glass>`. Il est passé APRÈS le sien dans les props,
            donc il l'emporte — celui-ci ne sert qu'au mode `rounded`, qu'on
            n'emploie pas. */
-        rootClassName="canop-button--glass-root"
+        rootClassName="opale-button--glass-root"
         {...props}
       >
         {children}
@@ -221,10 +221,10 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
       <button
         ref={ref}
         className={cx(
-          'canop-button',
-          `canop-button--${variant}`,
-          size !== 'medium' && `canop-button--${size}`,
-          fullWidth && 'canop-button--full',
+          'opale-button',
+          `opale-button--${variant}`,
+          size !== 'medium' && `opale-button--${size}`,
+          fullWidth && 'opale-button--full',
           className,
         )}
         data-liquid-glass={liquidGlass ? 'true' : undefined}
@@ -232,20 +232,20 @@ export const CanopButton = forwardRef<HTMLButtonElement, CanopButtonProps>(
         type={type}
         {...props}
       >
-        {loading ? <span className="canop-spinner" aria-hidden="true" /> : startIcon}
+        {loading ? <span className="opale-spinner" aria-hidden="true" /> : startIcon}
         <span>{children}</span>
         {!loading && endIcon}
       </button>
     ),
 );
-CanopButton.displayName = 'CanopButton';
+Button.displayName = 'Button';
 
-export const CanopPressable = forwardRef<HTMLButtonElement, CanopButtonProps>((props, ref) => (
-  <CanopButton ref={ref} variant="text" {...props} />
+export const Pressable = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => (
+  <Button ref={ref} variant="text" {...props} />
 ));
-CanopPressable.displayName = 'CanopPressable';
+Pressable.displayName = 'Pressable';
 
-export interface CanopCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   title?: ReactNode;
   subtitle?: ReactNode;
   actions?: ReactNode;
@@ -254,7 +254,7 @@ export interface CanopCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'ti
   liquidGlass?: boolean;
 }
 
-export function CanopCard({
+export function Card({
   title,
   subtitle,
   actions,
@@ -264,20 +264,20 @@ export function CanopCard({
   className,
   children,
   ...props
-}: CanopCardProps) {
+}: CardProps) {
   const content = (
     <>
       {(title || subtitle || actions) && (
-        <div className="canop-card__header">
+        <div className="opale-card__header">
           <div>
-            {title && <h3 className="canop-card__title">{title}</h3>}
-            {subtitle && <p className="canop-card__subtitle">{subtitle}</p>}
+            {title && <h3 className="opale-card__title">{title}</h3>}
+            {subtitle && <p className="opale-card__subtitle">{subtitle}</p>}
           </div>
           {actions}
         </div>
       )}
-      <div className="canop-card__body">{children}</div>
-      {footer && <div className="canop-card__footer">{footer}</div>}
+      <div className="opale-card__body">{children}</div>
+      {footer && <div className="opale-card__footer">{footer}</div>}
     </>
   );
 
@@ -294,28 +294,28 @@ export function CanopCard({
      d'Opale donnerait deux ombres sur une surface translucide. */
   if (liquidGlass) {
     return (
-      <MagicCard rootClassName={cx('canop-card--glass-root', className)} {...props}>
+      <MagicCard rootClassName={cx('opale-card--glass-root', className)} {...props}>
         {content}
       </MagicCard>
     );
   }
 
   return (
-    <Surface className={cx('canop-card', `canop-card--e${elevation}`, className)} {...props}>
+    <Surface className={cx('opale-card', `opale-card--e${elevation}`, className)} {...props}>
       {content}
     </Surface>
   );
 }
 
-export function CanopCardGrid({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function CardGrid({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cx('canop-card-grid', className)} {...props}>
+    <div className={cx('opale-card-grid', className)} {...props}>
       {children}
     </div>
   );
 }
 
-export interface CanopFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: ReactNode;
   helperText?: ReactNode;
   error?: ReactNode;
@@ -323,13 +323,13 @@ export interface CanopFieldProps extends Omit<InputHTMLAttributes<HTMLInputEleme
   liquidGlass?: boolean;
 }
 
-export const CanopInput = forwardRef<HTMLInputElement, CanopFieldProps>(
+export const Input = forwardRef<HTMLInputElement, FieldProps>(
   ({ label, helperText, error, icon, liquidGlass = false, className, id, ...props }, ref) => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
     return (
-      <label className={cx('canop-field', className)} htmlFor={inputId}>
-        {label && <span className="canop-field__label">{label}</span>}
+      <label className={cx('opale-field', className)} htmlFor={inputId}>
+        {label && <span className="opale-field__label">{label}</span>}
         {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
 
             Ce qui porte du TEXTE reste à Opale — le libellé, le texte d'aide,
@@ -346,18 +346,18 @@ export const CanopInput = forwardRef<HTMLInputElement, CanopFieldProps>(
             poser, et l'insérer de force demanderait de reconstruire son
             balisage — c'est-à-dire de recréer le doublon qu'on supprime. */}
         {liquidGlass ? (
-          <span className="canop-input--glass">
+          <span className="opale-input--glass">
             <GlassInput ref={ref} id={inputId} {...props} />
           </span>
         ) : (
-          <span className="canop-input-shell">
+          <span className="opale-input-shell">
             {icon}
-            <input ref={ref} id={inputId} className="canop-input" {...props} />
+            <input ref={ref} id={inputId} className="opale-input" {...props} />
           </span>
         )}
         {(error || helperText) && (
           <span
-            className={cx('canop-field__helper', Boolean(error) && 'canop-field__helper--error')}
+            className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
           >
             {error || helperText}
           </span>
@@ -366,22 +366,22 @@ export const CanopInput = forwardRef<HTMLInputElement, CanopFieldProps>(
     );
   },
 );
-CanopInput.displayName = 'CanopInput';
+Input.displayName = 'Input';
 
-export interface CanopCheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: ReactNode;
   description?: ReactNode;
   liquidGlass?: boolean;
 }
 
-export function CanopCheckbox({
+export function Checkbox({
   label,
   description,
   liquidGlass = false,
   className,
   onChange,
   ...props
-}: CanopCheckboxProps) {
+}: CheckboxProps) {
   const [checked, setChecked] = useMirrorState(
     props.checked,
     props.defaultChecked ?? props.checked ?? false,
@@ -389,7 +389,7 @@ export function CanopCheckbox({
 
   /* LE VERRE REMPLACE LA COCHE PEINTE, PAS LA CASE.
 
-     `.canop-checkbox-mark` est déjà une décoration `aria-hidden` : la vraie
+     `.opale-checkbox-mark` est déjà une décoration `aria-hidden` : la vraie
      case est l'`<input>` natif, invisible et posé sur toute la rangée. Le
      verre prend exactement la place de cette décoration, et reste comme elle
      inerte — c'est le `<label>` qui reçoit le clic, comme avant.
@@ -400,10 +400,10 @@ export function CanopCheckbox({
      geste, ou pire, selon que le navigateur considère ou non qu'un bouton
      interrompt la propagation du libellé. On ne parie pas là-dessus. */
   return (
-    <label className={cx('canop-checkbox-row', className)}>
+    <label className={cx('opale-checkbox-row', className)}>
       <input
         type="checkbox"
-        className="canop-checkbox"
+        className="opale-checkbox"
         onChange={(event) => {
           setChecked(event.currentTarget.checked);
           onChange?.(event);
@@ -412,7 +412,7 @@ export function CanopCheckbox({
       />
       {liquidGlass ? (
         <span
-          className="canop-checkbox--glass"
+          className="opale-checkbox--glass"
           data-checked={checked ? 'true' : undefined}
           aria-hidden="true"
         >
@@ -420,47 +420,47 @@ export function CanopCheckbox({
             checked={checked}
             disabled={props.disabled}
             enableClickAnimation={false}
-            rootClassName="canop-checkbox--glass-root"
+            rootClassName="opale-checkbox--glass-root"
             {...DECORATIVE}
           />
         </span>
       ) : (
-        <span className="canop-checkbox-mark" aria-hidden="true" />
+        <span className="opale-checkbox-mark" aria-hidden="true" />
       )}
       <span>{label ?? description}</span>
-      {label && description && <small className="canop-field__helper">{description}</small>}
+      {label && description && <small className="opale-field__helper">{description}</small>}
     </label>
   );
 }
 
-export interface CanopToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface ToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: ReactNode;
   liquidGlass?: boolean;
 }
 
-export function CanopToggle({
+export function Toggle({
   label,
   liquidGlass = false,
   className,
   onChange,
   ...props
-}: CanopToggleProps) {
+}: ToggleProps) {
   const [checked, setChecked] = useMirrorState(
     props.checked,
     props.defaultChecked ?? props.checked ?? false,
   );
 
   /* `liquidGlass` NE POSAIT QU'UNE CLASSE, ET C'EST CE QUI EST CORRIGÉ ICI.
-     Elle ajoutait `canop-liquid` à la RANGÉE — un lavis CSS sur le fond du
+     Elle ajoutait `opale-liquid` à la RANGÉE — un lavis CSS sur le fond du
      libellé, qui imitait le verre sans l'être et ne touchait même pas la
      piste. La prop rend désormais l'interrupteur vendoré à la place de la
      piste peinte, inerte comme elle l'était (`aria-hidden`), l'`<input>`
      natif gardant le focus, le clavier et le nom de formulaire. */
   return (
-    <label className={cx('canop-toggle-row', className)}>
+    <label className={cx('opale-toggle-row', className)}>
       <input
         type="checkbox"
-        className="canop-toggle"
+        className="opale-toggle"
         onChange={(event) => {
           setChecked(event.currentTarget.checked);
           onChange?.(event);
@@ -469,7 +469,7 @@ export function CanopToggle({
       />
       {liquidGlass ? (
         <span
-          className="canop-toggle--glass"
+          className="opale-toggle--glass"
           data-checked={checked ? 'true' : undefined}
           aria-hidden="true"
         >
@@ -477,13 +477,13 @@ export function CanopToggle({
             isActive={checked}
             disabled={props.disabled}
             enableClickAnimation={false}
-            rootClassName="canop-toggle--glass-root"
+            rootClassName="opale-toggle--glass-root"
             {...DECORATIVE}
           />
         </span>
       ) : (
-        <span className="canop-toggle-track" aria-hidden="true">
-          <span className="canop-toggle-thumb" />
+        <span className="opale-toggle-track" aria-hidden="true">
+          <span className="opale-toggle-thumb" />
         </span>
       )}
       {label && <span>{label}</span>}
@@ -491,20 +491,20 @@ export function CanopToggle({
   );
 }
 
-export interface CanopSliderProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface SliderProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label?: ReactNode;
   valueLabel?: ReactNode;
   liquidGlass?: boolean;
 }
 
-export function CanopSlider({
+export function Slider({
   label,
   valueLabel,
   liquidGlass = false,
   className,
   onChange,
   ...props
-}: CanopSliderProps) {
+}: SliderProps) {
   const [value, setValue] = useMirrorState(
     props.value === undefined ? undefined : Number(props.value),
     Number(props.defaultValue ?? props.value ?? 0),
@@ -519,7 +519,7 @@ export function CanopSlider({
      d'accessibilité déguisée en changement d'apparence. WCAG 2.1.1 n'admet pas
      ce troc, et le propriétaire n'a pas demandé de perdre le clavier.
 
-     LE NATIF EST DONC POSÉ PAR-DESSUS, TRANSPARENT (voir `canop.css`) : il
+     LE NATIF EST DONC POSÉ PAR-DESSUS, TRANSPARENT (voir `opale.css`) : il
      reçoit le pointeur ET les flèches du clavier, et le verre au-dessous se
      contente de peindre la valeur qu'il annonce. C'est le geste inverse de
      celui du bouton, et c'est le même principe — rendre la matière sans rien
@@ -527,7 +527,7 @@ export function CanopSlider({
   const range = (
     <input
       type="range"
-      className={cx('canop-range', liquidGlass && 'canop-range--glass')}
+      className={cx('opale-range', liquidGlass && 'opale-range--glass')}
       onChange={(event) => {
         setValue(Number(event.currentTarget.value));
         onChange?.(event);
@@ -537,15 +537,15 @@ export function CanopSlider({
   );
 
   return (
-    <label className={cx('canop-field', className)}>
+    <label className={cx('opale-field', className)}>
       {(label || valueLabel) && (
-        <span className="canop-card__header">
-          <span className="canop-field__label">{label}</span>
+        <span className="opale-card__header">
+          <span className="opale-field__label">{label}</span>
           <span>{valueLabel ?? props.value}</span>
         </span>
       )}
       {liquidGlass ? (
-        <span className="canop-slider--glass">
+        <span className="opale-slider--glass">
           <MagicSlider
             value={value}
             min={props.min === undefined ? undefined : Number(props.min)}
@@ -563,14 +563,14 @@ export function CanopSlider({
   );
 }
 
-export interface CanopSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: ReactNode;
   helperText?: ReactNode;
   options?: readonly { value: string; label: ReactNode }[];
   liquidGlass?: boolean;
 }
 
-export function CanopSelect({
+export function Select({
   label,
   helperText,
   options,
@@ -580,7 +580,7 @@ export function CanopSelect({
   children,
   onChange,
   ...props
-}: CanopSelectProps) {
+}: SelectProps) {
   const generatedId = useId();
   const selectId = id ?? generatedId;
   const [value, setValue] = useMirrorState(
@@ -591,7 +591,7 @@ export function CanopSelect({
   const nativeSelect = (
     <select
       id={selectId}
-      className={cx('canop-select', liquidGlass && 'canop-select--native')}
+      className={cx('opale-select', liquidGlass && 'opale-select--native')}
       onChange={(event) => {
         setValue(event.currentTarget.value);
         onChange?.(event);
@@ -627,9 +627,9 @@ export function CanopSelect({
      l'écran, seule la peau est moins bavarde. */
   if (liquidGlass) {
     return (
-      <label className={cx('canop-field', className)} htmlFor={selectId}>
-        {label && <span className="canop-field__label">{label}</span>}
-        <span className="canop-select--glass">
+      <label className={cx('opale-field', className)} htmlFor={selectId}>
+        {label && <span className="opale-field__label">{label}</span>}
+        <span className="opale-select--glass">
           <MagicSelect
             options={(options ?? [])
               .filter((option) => typeof option.label === 'string')
@@ -640,21 +640,21 @@ export function CanopSelect({
           />
           {nativeSelect}
         </span>
-        {helperText && <span className="canop-field__helper">{helperText}</span>}
+        {helperText && <span className="opale-field__helper">{helperText}</span>}
       </label>
     );
   }
 
   return (
-    <label className={cx('canop-field', className)} htmlFor={selectId}>
-      {label && <span className="canop-field__label">{label}</span>}
-      <span className="canop-input-shell">{nativeSelect}</span>
-      {helperText && <span className="canop-field__helper">{helperText}</span>}
+    <label className={cx('opale-field', className)} htmlFor={selectId}>
+      {label && <span className="opale-field__label">{label}</span>}
+      <span className="opale-input-shell">{nativeSelect}</span>
+      {helperText && <span className="opale-field__helper">{helperText}</span>}
     </label>
   );
 }
 
-export interface CanopMultiSelectProps extends CanopSelectProps {
+export interface MultiSelectProps extends SelectProps {
   values?: readonly string[];
 }
 
@@ -693,7 +693,7 @@ export interface CanopMultiSelectProps extends CanopSelectProps {
  * d'anneau de focus. Ici, ce qu'on voit est ce qu'on pilote.
  * ================================================================
  */
-export function CanopMultiSelect({
+export function MultiSelect({
   values,
   label,
   helperText,
@@ -703,7 +703,7 @@ export function CanopMultiSelect({
   id,
   onChange,
   ...props
-}: CanopMultiSelectProps) {
+}: MultiSelectProps) {
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
@@ -762,9 +762,9 @@ export function CanopMultiSelect({
   };
 
   return (
-    <div className={cx('canop-field', className)}>
+    <div className={cx('opale-field', className)}>
       {label && (
-        <span className="canop-field__label" id={labelId}>
+        <span className="opale-field__label" id={labelId}>
           {label}
         </span>
       )}
@@ -772,7 +772,7 @@ export function CanopMultiSelect({
       <select
         ref={selectRef}
         id={fieldId}
-        className="canop-visually-hidden"
+        className="opale-visually-hidden"
         multiple
         value={values}
         onChange={onChange}
@@ -791,7 +791,7 @@ export function CanopMultiSelect({
           `listbox` EST la commande : c'est le motif ARIA de la sélection
           multiple, et les `option` en sont les enfants exigés. */}
       <div
-        className={cx('canop-multiselect', liquidGlass && 'canop-liquid')}
+        className={cx('opale-multiselect', liquidGlass && 'opale-liquid')}
         role="listbox"
         aria-multiselectable="true"
         aria-labelledby={label ? labelId : undefined}
@@ -817,7 +817,7 @@ export function CanopMultiSelect({
             <div
               key={option.value}
               id={`${fieldId}-option-${index}`}
-              className="canop-multiselect__option"
+              className="opale-multiselect__option"
               role="option"
               aria-selected={isSelected}
               data-active={index === activeIndex ? 'true' : undefined}
@@ -827,27 +827,27 @@ export function CanopMultiSelect({
                 toggle(option.value);
               }}
             >
-              <span className="canop-multiselect__mark" aria-hidden="true" />
-              <span className="canop-multiselect__label">{option.label}</span>
+              <span className="opale-multiselect__mark" aria-hidden="true" />
+              <span className="opale-multiselect__label">{option.label}</span>
             </div>
           );
         })}
       </div>
 
-      {helperText && <span className="canop-field__helper">{helperText}</span>}
+      {helperText && <span className="opale-field__helper">{helperText}</span>}
     </div>
   );
 }
 
-export interface CanopAutocompleteProps extends CanopFieldProps {
+export interface AutocompleteProps extends FieldProps {
   options?: readonly string[];
 }
 
-export function CanopAutocomplete({ options = [], ...props }: CanopAutocompleteProps) {
+export function Autocomplete({ options = [], ...props }: AutocompleteProps) {
   const listId = useId();
   return (
     <>
-      <CanopInput list={listId} {...props} />
+      <Input list={listId} {...props} />
       <datalist id={listId}>
         {options.map((option) => (
           <option key={option} value={option} />
@@ -857,11 +857,11 @@ export function CanopAutocomplete({ options = [], ...props }: CanopAutocompleteP
   );
 }
 
-export function CanopInlineInput(props: CanopFieldProps) {
-  return <CanopInput {...props} />;
+export function InlineInput(props: FieldProps) {
+  return <Input {...props} />;
 }
 
-export interface CanopSegmentedControlProps {
+export interface SegmentedControlProps {
   options: readonly { value: string; label: ReactNode }[];
   value?: string;
   onChange?: (value: string) => void;
@@ -875,7 +875,7 @@ export interface CanopSegmentedControlProps {
  *
  * Le raisonnement est celui de `Tabs.List` (voir l'en-tête de
  * `components/tabs/Tabs.tsx`), redit ici parce que ce fichier ne dépend
- * d'AUCUN composant de `components/**` et que c'est délibéré : `canop.tsx` est
+ * d'AUCUN composant de `components/**` et que c'est délibéré : `opale.tsx` est
  * une feuille autonome, lisible d'un bout à l'autre sans ouvrir le reste du
  * dossier. Les trois points qui comptent :
  *  - `aria-pressed` reste la source de vérité, lue dans le DOM ;
@@ -884,16 +884,16 @@ export interface CanopSegmentedControlProps {
  *  - le premier placement ne s'anime pas, sinon l'indicateur traverserait le
  *    composant à chaque montage.
  *
- * `translate3d` avec les deux axes, et non le seul X : `.canop-segmented` est
+ * `translate3d` avec les deux axes, et non le seul X : `.opale-segmented` est
  * en `flex-wrap: wrap`, donc les options passent à la ligne dès que la place
  * manque et l'indicateur doit descendre avec elles.
  */
-export function CanopSegmentedControl({
+export function SegmentedControl({
   options,
   value,
   onChange,
   className,
-}: CanopSegmentedControlProps) {
+}: SegmentedControlProps) {
   const groupRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const hasPlacedRef = useRef(false);
@@ -940,7 +940,7 @@ export function CanopSegmentedControl({
 
     if (observer) {
       observer.observe(group);
-      group.querySelectorAll('.canop-segmented__item').forEach((item) => observer.observe(item));
+      group.querySelectorAll('.opale-segmented__item').forEach((item) => observer.observe(item));
     }
 
     window.addEventListener('resize', place);
@@ -952,13 +952,13 @@ export function CanopSegmentedControl({
   }, [options, value]);
 
   return (
-    <div ref={groupRef} className={cx('canop-segmented', className)} role="group">
-      <span ref={indicatorRef} aria-hidden="true" className="canop-segmented__indicator" />
+    <div ref={groupRef} className={cx('opale-segmented', className)} role="group">
+      <span ref={indicatorRef} aria-hidden="true" className="opale-segmented__indicator" />
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
-          className="canop-segmented__item"
+          className="opale-segmented__item"
           aria-pressed={value === option.value}
           onClick={() => onChange?.(option.value)}
         >
@@ -969,11 +969,11 @@ export function CanopSegmentedControl({
   );
 }
 
-export function CanopForm({ className, ...props }: FormHTMLAttributes<HTMLFormElement>) {
-  return <form className={cx('canop-stack', 'canop-stack--column', className)} {...props} />;
+export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement>) {
+  return <form className={cx('opale-stack', 'opale-stack--column', className)} {...props} />;
 }
 
-export function CanopLanguageSelector({
+export function LanguageSelector({
   value = 'FR',
   onChange,
   className,
@@ -985,7 +985,7 @@ export function CanopLanguageSelector({
   ariaLabel?: string;
 }) {
   return (
-    <CanopSelect
+    <Select
       className={className}
       aria-label={ariaLabel}
       value={value}
@@ -999,7 +999,7 @@ export function CanopLanguageSelector({
   );
 }
 
-export function CanopThemeToggle({
+export function ThemeToggle({
   dark = false,
   onChange,
   className,
@@ -1009,7 +1009,7 @@ export function CanopThemeToggle({
   className?: string;
 }) {
   return (
-    <CanopToggle
+    <Toggle
       className={className}
       aria-label="Thème"
       checked={dark}
@@ -1018,20 +1018,20 @@ export function CanopThemeToggle({
   );
 }
 
-export function CanopAddButton(props: Omit<CanopButtonProps, 'children'>) {
+export function AddButton(props: Omit<ButtonProps, 'children'>) {
   return (
-    <CanopButton {...props} startIcon="+">
+    <Button {...props} startIcon="+">
       Ajouter
-    </CanopButton>
+    </Button>
   );
 }
-export function CanopSaveButton({
+export function SaveButton({
   onSaved,
   ...props
-}: Omit<CanopButtonProps, 'children'> & { onSaved?: () => void }) {
+}: Omit<ButtonProps, 'children'> & { onSaved?: () => void }) {
   const [saved, setSaved] = useState(false);
   return (
-    <CanopButton
+    <Button
       {...props}
       onClick={(event) => {
         setSaved(true);
@@ -1040,42 +1040,42 @@ export function CanopSaveButton({
       }}
     >
       {saved ? 'Enregistré' : 'Enregistrer'}
-    </CanopButton>
+    </Button>
   );
 }
-export function CanopApproveButton(props: Omit<CanopButtonProps, 'children'>) {
+export function ApproveButton(props: Omit<ButtonProps, 'children'>) {
   return (
-    <CanopButton {...props} variant="primary" startIcon="✓">
+    <Button {...props} variant="primary" startIcon="✓">
       Valider
-    </CanopButton>
+    </Button>
   );
 }
-export function CanopEditButton(props: Omit<CanopButtonProps, 'children'>) {
+export function EditButton(props: Omit<ButtonProps, 'children'>) {
   return (
-    <CanopButton {...props} variant="tonal" startIcon="✎">
+    <Button {...props} variant="tonal" startIcon="✎">
       Modifier
-    </CanopButton>
+    </Button>
   );
 }
-export function CanopDeleteButton(props: Omit<CanopButtonProps, 'children'>) {
+export function DeleteButton(props: Omit<ButtonProps, 'children'>) {
   return (
-    <CanopButton {...props} variant="danger" startIcon="×">
+    <Button {...props} variant="danger" startIcon="×">
       Supprimer
-    </CanopButton>
+    </Button>
   );
 }
-export function CanopIconActionButton({
+export function IconActionButton({
   label = 'Action',
   ...props
-}: Omit<CanopButtonProps, 'children'> & { label?: string }) {
+}: Omit<ButtonProps, 'children'> & { label?: string }) {
   return (
-    <CanopButton {...props} aria-label={label} variant="ghost">
+    <Button {...props} aria-label={label} variant="ghost">
       {label.slice(0, 1)}
-    </CanopButton>
+    </Button>
   );
 }
 
-export function CanopBadge({
+export function Badge({
   tone = 'primary',
   liquidGlass = false,
   children,
@@ -1098,8 +1098,8 @@ export function CanopBadge({
   if (liquidGlass) {
     return (
       <MagicBadge
-        className={cx('canop-badge--glass', `canop-badge--glass-${tone}`, className)}
-        rootClassName="canop-badge--glass-root"
+        className={cx('opale-badge--glass', `opale-badge--glass-${tone}`, className)}
+        rootClassName="opale-badge--glass-root"
       >
         {children}
       </MagicBadge>
@@ -1107,23 +1107,23 @@ export function CanopBadge({
   }
 
   return (
-    <span className={cx('canop-badge', tone !== 'primary' && `canop-badge--${tone}`, className)}>
+    <span className={cx('opale-badge', tone !== 'primary' && `opale-badge--${tone}`, className)}>
       {children}
     </span>
   );
 }
 
-export function CanopStatusChip({
+export function StatusChip({
   status = 'En production',
   className,
 }: {
   status?: string;
   className?: string;
 }) {
-  return <CanopBadge className={className}>{status}</CanopBadge>;
+  return <Badge className={className}>{status}</Badge>;
 }
 
-export function CanopHeading({
+export function Heading({
   level = 2,
   children,
   className,
@@ -1133,10 +1133,10 @@ export function CanopHeading({
   className?: string;
 }) {
   const Heading = `h${level}` as 'h1';
-  return <Heading className={cx('canop-heading', className)}>{children}</Heading>;
+  return <Heading className={cx('opale-heading', className)}>{children}</Heading>;
 }
 
-export function CanopText({
+export function Text({
   variant = 'body',
   children,
   className,
@@ -1145,10 +1145,10 @@ export function CanopText({
   children: ReactNode;
   className?: string;
 }) {
-  return <p className={cx('canop-text', `canop-text--${variant}`, className)}>{children}</p>;
+  return <p className={cx('opale-text', `opale-text--${variant}`, className)}>{children}</p>;
 }
 
-export function CanopIcon({
+export function Icon({
   name = '✦',
   label,
   className,
@@ -1159,7 +1159,7 @@ export function CanopIcon({
 }) {
   return (
     <span
-      className={cx('canop-icon', className)}
+      className={cx('opale-icon', className)}
       aria-label={label}
       role={label ? 'img' : undefined}
     >
@@ -1168,7 +1168,7 @@ export function CanopIcon({
   );
 }
 
-export function CanopFeedback({
+export function Feedback({
   severity = 'info',
   title,
   children,
@@ -1181,7 +1181,7 @@ export function CanopFeedback({
 }) {
   return (
     <div
-      className={cx('canop-feedback', `canop-feedback--${severity}`, className)}
+      className={cx('opale-feedback', `opale-feedback--${severity}`, className)}
       role={severity === 'error' ? 'alert' : 'status'}
     >
       <strong>{title ?? severity}</strong>
@@ -1190,7 +1190,7 @@ export function CanopFeedback({
   );
 }
 
-export function CanopToast({
+export function Toast({
   message,
   open = true,
   onClose,
@@ -1203,10 +1203,10 @@ export function CanopToast({
 }) {
   if (!open) return null;
   return (
-    <div className={cx('canop-surface', 'canop-panel', className)} role="status">
+    <div className={cx('opale-surface', 'opale-panel', className)} role="status">
       <span>{message}</span>
       {onClose && (
-        <button className="canop-dialog__close" type="button" onClick={onClose} aria-label="Fermer">
+        <button className="opale-dialog__close" type="button" onClick={onClose} aria-label="Fermer">
           ×
         </button>
       )}
@@ -1214,7 +1214,7 @@ export function CanopToast({
   );
 }
 
-export function CanopSpinner({
+export function Spinner({
   label = 'Chargement',
   className,
 }: {
@@ -1222,14 +1222,14 @@ export function CanopSpinner({
   className?: string;
 }) {
   return (
-    <span className={cx('canop-stack', className)} role="status">
-      <span className="canop-spinner" aria-hidden="true" />
+    <span className={cx('opale-stack', className)} role="status">
+      <span className="opale-spinner" aria-hidden="true" />
       <span>{label}</span>
     </span>
   );
 }
 
-export function CanopProgressBar({
+export function ProgressBar({
   value = 0,
   label,
   className,
@@ -1239,17 +1239,17 @@ export function CanopProgressBar({
   className?: string;
 }) {
   return (
-    <div className={cx('canop-field', className)}>
-      {label && <span className="canop-field__label">{label}</span>}
+    <div className={cx('opale-field', className)}>
+      {label && <span className="opale-field__label">{label}</span>}
       <div
-        className="canop-progress"
+        className="opale-progress"
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={100}
       >
         <div
-          className="canop-progress__value"
+          className="opale-progress__value"
           style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
         />
       </div>
@@ -1257,7 +1257,7 @@ export function CanopProgressBar({
   );
 }
 
-export function CanopConfirmDialog({
+export function ConfirmDialog({
   open = false,
   title = 'Confirmer',
   children,
@@ -1272,19 +1272,19 @@ export function CanopConfirmDialog({
 }) {
   if (!open) return null;
   return (
-    <div className="canop-dialog-backdrop">
+    <div className="opale-dialog-backdrop">
       <div
-        className="canop-dialog"
+        className="opale-dialog"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="canop-confirm-title"
+        aria-labelledby="opale-confirm-title"
       >
-        <div className="canop-dialog__header">
-          <h2 id="canop-confirm-title" className="canop-card__title">
+        <div className="opale-dialog__header">
+          <h2 id="opale-confirm-title" className="opale-card__title">
             {title}
           </h2>
           <button
-            className="canop-dialog__close"
+            className="opale-dialog__close"
             type="button"
             onClick={onCancel}
             aria-label="Fermer"
@@ -1292,19 +1292,19 @@ export function CanopConfirmDialog({
             ×
           </button>
         </div>
-        <div className="canop-dialog__body">{children}</div>
-        <div className="canop-dialog__footer">
-          <CanopButton variant="text" onClick={onCancel}>
+        <div className="opale-dialog__body">{children}</div>
+        <div className="opale-dialog__footer">
+          <Button variant="text" onClick={onCancel}>
             Annuler
-          </CanopButton>
-          <CanopButton onClick={onConfirm}>Confirmer</CanopButton>
+          </Button>
+          <Button onClick={onConfirm}>Confirmer</Button>
         </div>
       </div>
     </div>
   );
 }
 
-export function CanopEmptyState({
+export function EmptyState({
   title = 'Aucun résultat',
   description,
   action,
@@ -1314,37 +1314,37 @@ export function CanopEmptyState({
   action?: ReactNode;
 }) {
   return (
-    <CanopCard className="canop-empty-state" title={title} subtitle={description} actions={action}>
-      <CanopIcon name="⌁" />
-    </CanopCard>
+    <Card className="opale-empty-state" title={title} subtitle={description} actions={action}>
+      <Icon name="⌁" />
+    </Card>
   );
 }
 
-export interface CanopNavItem {
+export interface NavItem {
   id: string;
   label: ReactNode;
   href?: string;
   icon?: ReactNode;
 }
-export function CanopNavbar({
+export function Navbar({
   items = [],
   activeId,
   onSelect,
   className,
 }: {
-  items?: readonly CanopNavItem[];
+  items?: readonly NavItem[];
   activeId?: string;
   onSelect?: (id: string) => void;
   className?: string;
 }) {
   return (
-    <nav className={cx('canop-surface', 'canop-nav', className)} aria-label="Navigation">
+    <nav className={cx('opale-surface', 'opale-nav', className)} aria-label="Navigation">
       {items.map((item) =>
         item.href ? (
           <a
             key={item.id}
             href={item.href}
-            className="canop-nav__item"
+            className="opale-nav__item"
             aria-current={activeId === item.id ? 'page' : undefined}
           >
             {item.icon}
@@ -1354,7 +1354,7 @@ export function CanopNavbar({
           <button
             key={item.id}
             type="button"
-            className="canop-nav__item"
+            className="opale-nav__item"
             aria-current={activeId === item.id ? 'page' : undefined}
             onClick={() => onSelect?.(item.id)}
           >
@@ -1367,38 +1367,38 @@ export function CanopNavbar({
   );
 }
 
-export function CanopMenu({
+export function Menu({
   label = 'Menu',
   items = [],
   className,
   children,
 }: {
   label?: ReactNode;
-  items?: readonly CanopNavItem[];
+  items?: readonly NavItem[];
   className?: string;
   children?: ReactNode;
 }) {
   return (
-    <details className={cx('canop-surface', 'canop-panel', className)}>
+    <details className={cx('opale-surface', 'opale-panel', className)}>
       <summary>{label}</summary>
-      {items.length > 0 ? <CanopNavbar items={items} /> : children}
+      {items.length > 0 ? <Navbar items={items} /> : children}
     </details>
   );
 }
 
-export function CanopLink({
+export function Link({
   children,
   className,
   ...props
 }: AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode }) {
   return (
-    <a className={cx('canop-link', className)} {...props}>
+    <a className={cx('opale-link', className)} {...props}>
       {children}
     </a>
   );
 }
 
-export function CanopSidePanel({
+export function SidePanel({
   open = false,
   title = 'Panneau',
   children,
@@ -1411,12 +1411,12 @@ export function CanopSidePanel({
 }) {
   if (!open) return null;
   return (
-    <div className="canop-dialog-backdrop">
-      <aside className="canop-dialog" aria-label={typeof title === 'string' ? title : undefined}>
-        <div className="canop-dialog__header">
-          <h2 className="canop-card__title">{title}</h2>
+    <div className="opale-dialog-backdrop">
+      <aside className="opale-dialog" aria-label={typeof title === 'string' ? title : undefined}>
+        <div className="opale-dialog__header">
+          <h2 className="opale-card__title">{title}</h2>
           <button
-            className="canop-dialog__close"
+            className="opale-dialog__close"
             type="button"
             onClick={onClose}
             aria-label="Fermer"
@@ -1430,7 +1430,7 @@ export function CanopSidePanel({
   );
 }
 
-export function CanopSettingsMenu({
+export function SettingsMenu({
   children,
   className,
 }: {
@@ -1438,12 +1438,12 @@ export function CanopSettingsMenu({
   className?: string;
 }) {
   return (
-    <CanopMenu className={className} label="Réglages" items={[]}>
-      <div className="canop-stack canop-stack--column">{children}</div>
-    </CanopMenu>
+    <Menu className={className} label="Réglages" items={[]}>
+      <div className="opale-stack opale-stack--column">{children}</div>
+    </Menu>
   );
 }
-export function CanopCommandPalette({
+export function CommandPalette({
   open = false,
   value = '',
   onChange,
@@ -1455,9 +1455,9 @@ export function CanopCommandPalette({
   children?: ReactNode;
 }) {
   return open ? (
-    <div className="canop-dialog-backdrop">
-      <div className="canop-dialog">
-        <CanopInput
+    <div className="opale-dialog-backdrop">
+      <div className="opale-dialog">
+        <Input
           value={value}
           onChange={(event) => onChange?.(event.currentTarget.value)}
           placeholder="Rechercher une commande"
@@ -1468,9 +1468,9 @@ export function CanopCommandPalette({
   ) : null;
 }
 
-export function CanopBreadcrumb({ items = [] }: { items?: readonly CanopNavItem[] }) {
+export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
   return (
-    <nav className="canop-breadcrumb" aria-label="Fil d'Ariane">
+    <nav className="opale-breadcrumb" aria-label="Fil d'Ariane">
       {items.map((item, index) => (
         <span key={item.id}>
           {index > 0 && <span aria-hidden="true">/</span>}
@@ -1480,14 +1480,14 @@ export function CanopBreadcrumb({ items = [] }: { items?: readonly CanopNavItem[
     </nav>
   );
 }
-export function CanopToolbar({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function Toolbar({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cx('canop-surface', 'canop-toolbar', 'canop-panel', className)} {...props}>
+    <div className={cx('opale-surface', 'opale-toolbar', 'opale-panel', className)} {...props}>
       {children}
     </div>
   );
 }
-export function CanopCookieBanner({
+export function CookieBanner({
   open = true,
   children = 'Nous utilisons des cookies pour améliorer votre expérience.',
   onAccept,
@@ -1497,15 +1497,15 @@ export function CanopCookieBanner({
   onAccept?: () => void;
 }) {
   return open ? (
-    <CanopFeedback severity="info" title="Cookies">
+    <Feedback severity="info" title="Cookies">
       {children}
-      <CanopButton size="small" onClick={onAccept}>
+      <Button size="small" onClick={onAccept}>
         Accepter
-      </CanopButton>
-    </CanopFeedback>
+      </Button>
+    </Feedback>
   ) : null;
 }
-export function CanopSelectionBar({
+export function SelectionBar({
   selectedCount = 0,
   children,
 }: {
@@ -1513,7 +1513,7 @@ export function CanopSelectionBar({
   children?: ReactNode;
 }) {
   return (
-    <div className="canop-surface canop-selection-bar canop-panel">
+    <div className="opale-surface opale-selection-bar opale-panel">
       <span>
         {selectedCount} sélectionné{selectedCount > 1 ? 's' : ''}
       </span>
@@ -1521,11 +1521,11 @@ export function CanopSelectionBar({
     </div>
   );
 }
-export function CanopScrollbar({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('canop-scrollbar', className)}>{children}</div>;
+export function Scrollbar({ children, className }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx('opale-scrollbar', className)}>{children}</div>;
 }
 
-export function CanopStack({
+export function Stack({
   direction = 'column',
   wrap = false,
   className,
@@ -1535,9 +1535,9 @@ export function CanopStack({
   return (
     <div
       className={cx(
-        'canop-stack',
-        direction === 'column' && 'canop-stack--column',
-        wrap && 'canop-stack--wrap',
+        'opale-stack',
+        direction === 'column' && 'opale-stack--column',
+        wrap && 'opale-stack--wrap',
         className,
       )}
       {...props}
@@ -1546,7 +1546,7 @@ export function CanopStack({
     </div>
   );
 }
-export function CanopLayout({
+export function Layout({
   navigation,
   children,
   className,
@@ -1556,41 +1556,41 @@ export function CanopLayout({
   className?: string;
 }) {
   return (
-    <div className={cx('canop-layout', className)}>
+    <div className={cx('opale-layout', className)}>
       {navigation}
-      <main className="canop-layout__content">{children}</main>
+      <main className="opale-layout__content">{children}</main>
     </div>
   );
 }
-export function CanopPageScaffold({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('canop-page-scaffold', className)}>{children}</div>;
+export function PageScaffold({ children, className }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx('opale-page-scaffold', className)}>{children}</div>;
 }
-export function CanopPageContent({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <section className={cx('canop-page-content', className)}>{children}</section>;
+export function PageContent({ children, className }: HTMLAttributes<HTMLDivElement>) {
+  return <section className={cx('opale-page-content', className)}>{children}</section>;
 }
-export function CanopDivider({ className }: { className?: string }) {
-  return <hr className={cx('canop-divider', className)} />;
+export function Divider({ className }: { className?: string }) {
+  return <hr className={cx('opale-divider', className)} />;
 }
-export function CanopSeparator({ className }: { className?: string }) {
-  return <span className={cx('canop-separator', className)} aria-hidden="true" />;
+export function Separator({ className }: { className?: string }) {
+  return <span className={cx('opale-separator', className)} aria-hidden="true" />;
 }
-export function CanopCanopyBackground({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('canop-canopy-background', className)}>{children}</div>;
+export function BackgroundSurface({ children, className }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx('opale-opaley-background', className)}>{children}</div>;
 }
-export function CanopShapeBackground({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('canop-shape-background', className)}>{children}</div>;
+export function ShapeBackground({ children, className }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx('opale-shape-background', className)}>{children}</div>;
 }
-export function CanopSlidingIndicator({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('canop-sliding-indicator', className)}>{children}</div>;
+export function SlidingIndicator({ children, className }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx('opale-sliding-indicator', className)}>{children}</div>;
 }
 
-export function CanopDescriptionList({
+export function DescriptionList({
   items = [],
 }: {
   items?: readonly { term: ReactNode; description: ReactNode }[];
 }) {
   return (
-    <dl className="canop-description-list">
+    <dl className="opale-description-list">
       {items.map((item, index) => (
         <span key={index}>
           <dt>{item.term}</dt>
@@ -1600,18 +1600,18 @@ export function CanopDescriptionList({
     </dl>
   );
 }
-export function CanopBulletList({ items = [] }: { items?: readonly ReactNode[] }) {
+export function BulletList({ items = [] }: { items?: readonly ReactNode[] }) {
   return (
-    <ul className="canop-bullet-list">
+    <ul className="opale-bullet-list">
       {items.map((item, index) => (
         <li key={index}>{item}</li>
       ))}
     </ul>
   );
 }
-export function CanopRating({ value = 0, max = 5 }: { value?: number; max?: number }) {
+export function Rating({ value = 0, max = 5 }: { value?: number; max?: number }) {
   return (
-    <span className="canop-rating" aria-label={`${value} sur ${max}`}>
+    <span className="opale-rating" aria-label={`${value} sur ${max}`}>
       {Array.from({ length: max }, (_, index) => (
         <span key={index} aria-hidden="true">
           {index + 1 <= value ? '★' : '☆'}
@@ -1620,7 +1620,7 @@ export function CanopRating({ value = 0, max = 5 }: { value?: number; max?: numb
     </span>
   );
 }
-export function CanopStatCard({
+export function StatCard({
   label,
   value,
   delta,
@@ -1632,14 +1632,14 @@ export function CanopStatCard({
   liquidGlass?: boolean;
 }) {
   return (
-    <Surface className="canop-stat-card" liquidGlass={liquidGlass}>
-      <span className="canop-stat-card__label">{label}</span>
-      <strong className="canop-stat-card__value">{value}</strong>
-      {delta && <span className="canop-stat-card__delta">{delta}</span>}
+    <Surface className="opale-stat-card" liquidGlass={liquidGlass}>
+      <span className="opale-stat-card__label">{label}</span>
+      <strong className="opale-stat-card__value">{value}</strong>
+      {delta && <span className="opale-stat-card__delta">{delta}</span>}
     </Surface>
   );
 }
-export function CanopDonut({
+export function Donut({
   value = 60,
   label = `${value}%`,
 }: {
@@ -1648,24 +1648,24 @@ export function CanopDonut({
 }) {
   return (
     <div
-      className="canop-donut"
+      className="opale-donut"
       data-label={label}
-      style={{ '--canop-donut-value': `${value}%` } as CSSProperties}
+      style={{ '--opale-donut-value': `${value}%` } as CSSProperties}
       role="img"
       aria-label={label}
     />
   );
 }
-export function CanopLegend({
+export function Legend({
   items = [],
 }: {
   items?: readonly { label: ReactNode; color?: string }[];
 }) {
   return (
-    <div className="canop-stack canop-stack--wrap">
+    <div className="opale-stack opale-stack--wrap">
       {items.map((item, index) => (
-        <span key={index} className="canop-stack">
-          <CanopSeparator />
+        <span key={index} className="opale-stack">
+          <Separator />
           {item.label}
         </span>
       ))}
@@ -1673,14 +1673,14 @@ export function CanopLegend({
   );
 }
 
-export interface CanopDataTableProps {
+export interface DataTableProps {
   columns?: readonly { key: string; label: ReactNode }[];
   rows?: readonly Record<string, ReactNode>[];
 }
-export function CanopDataTable({ columns = [], rows = [] }: CanopDataTableProps) {
+export function DataTable({ columns = [], rows = [] }: DataTableProps) {
   return (
-    <div className="canop-surface canop-panel">
-      <table className="canop-table">
+    <div className="opale-surface opale-panel">
+      <table className="opale-table">
         <thead>
           <tr>
             {columns.map((column) => (
@@ -1702,12 +1702,12 @@ export function CanopDataTable({ columns = [], rows = [] }: CanopDataTableProps)
   );
 }
 
-export function CanopCarousel({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('canop-card-grid', className)}>{children}</div>;
+export function Carousel({ children, className }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx('opale-card-grid', className)}>{children}</div>;
 }
-export function CanopLegalLinks({ links = [] }: { links?: readonly CanopNavItem[] }) {
+export function LegalLinks({ links = [] }: { links?: readonly NavItem[] }) {
   return (
-    <nav className="canop-legal-links" aria-label="Liens légaux">
+    <nav className="opale-legal-links" aria-label="Liens légaux">
       {links.map((link) => (
         <a key={link.id} href={link.href}>
           {link.label}
@@ -1717,7 +1717,7 @@ export function CanopLegalLinks({ links = [] }: { links?: readonly CanopNavItem[
   );
 }
 
-export function CanopFileCard({
+export function FileCard({
   name,
   size,
   selected = false,
@@ -1731,18 +1731,18 @@ export function CanopFileCard({
   return (
     <button
       type="button"
-      className={cx('canop-surface', 'canop-file-card', selected && 'canop-liquid')}
+      className={cx('opale-surface', 'opale-file-card', selected && 'opale-liquid')}
       onClick={onClick}
     >
-      <span className="canop-file-card__icon">⌁</span>
+      <span className="opale-file-card__icon">⌁</span>
       <span>
         <strong>{name}</strong>
-        {size && <small className="canop-field__helper">{size}</small>}
+        {size && <small className="opale-field__helper">{size}</small>}
       </span>
     </button>
   );
 }
-export function CanopDropzone({
+export function Dropzone({
   onFiles,
   children = 'Déposez vos fichiers ici',
 }: {
@@ -1750,7 +1750,7 @@ export function CanopDropzone({
   children?: ReactNode;
 }) {
   return (
-    <label className="canop-dropzone">
+    <label className="opale-dropzone">
       <input
         type="file"
         hidden
@@ -1762,10 +1762,10 @@ export function CanopDropzone({
     </label>
   );
 }
-export function CanopFileUploader({ onFiles }: { onFiles?: (files: FileList) => void }) {
-  return <CanopDropzone onFiles={onFiles} />;
+export function FileUploader({ onFiles }: { onFiles?: (files: FileList) => void }) {
+  return <Dropzone onFiles={onFiles} />;
 }
-export function CanopLightbox({
+export function Lightbox({
   src,
   alt = '',
   open = false,
@@ -1777,22 +1777,22 @@ export function CanopLightbox({
   onClose?: () => void;
 }) {
   return open && src ? (
-    <div className="canop-lightbox" role="dialog" aria-label="Aperçu">
+    <div className="opale-lightbox" role="dialog" aria-label="Aperçu">
       <img src={src} alt={alt} />
-      <CanopButton variant="ghost" onClick={onClose}>
+      <Button variant="ghost" onClick={onClose}>
         Fermer
-      </CanopButton>
+      </Button>
     </div>
   ) : null;
 }
-export function CanopMap({ children = 'Carte interactive' }: { children?: ReactNode }) {
+export function Map({ children = 'Carte interactive' }: { children?: ReactNode }) {
   return (
-    <div className="canop-map" role="img" aria-label="Carte">
+    <div className="opale-map" role="img" aria-label="Carte">
       {children}
     </div>
   );
 }
-export function CanopRouteGuard({
+export function RouteGuard({
   allowed = true,
   fallback = 'Accès refusé',
   children,
@@ -1801,45 +1801,45 @@ export function CanopRouteGuard({
   fallback?: ReactNode;
   children?: ReactNode;
 }) {
-  return allowed ? <>{children}</> : <CanopFeedback severity="error">{fallback}</CanopFeedback>;
+  return allowed ? <>{children}</> : <Feedback severity="error">{fallback}</Feedback>;
 }
-export function CanopI18n({ children }: { children?: ReactNode }) {
+export function I18n({ children }: { children?: ReactNode }) {
   return <>{children}</>;
 }
-export function CanopHttp({ status = 'API prête' }: { status?: ReactNode }) {
-  return <CanopStatusChip status={String(status)} />;
+export function Http({ status = 'API prête' }: { status?: ReactNode }) {
+  return <StatusChip status={String(status)} />;
 }
-export function CanopValidation({ valid = true }: { valid?: boolean }) {
-  return <CanopStatusChip status={valid ? 'Valide' : 'À corriger'} />;
+export function Validation({ valid = true }: { valid?: boolean }) {
+  return <StatusChip status={valid ? 'Valide' : 'À corriger'} />;
 }
-export function CanopSound({ enabled = true }: { enabled?: boolean }) {
-  return <CanopToggle label="Sons" defaultChecked={enabled} />;
+export function Sound({ enabled = true }: { enabled?: boolean }) {
+  return <Toggle label="Sons" defaultChecked={enabled} />;
 }
-export function CanopLocalStore({ children }: { children?: ReactNode }) {
+export function LocalStore({ children }: { children?: ReactNode }) {
   return <>{children}</>;
 }
-export function CanopCountdown({ seconds = 60 }: { seconds?: number }) {
+export function Countdown({ seconds = 60 }: { seconds?: number }) {
   const [remaining, setRemaining] = useState(seconds);
   useEffect(() => {
     const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000);
     return () => window.clearInterval(timer);
   }, []);
   return (
-    <span className="canop-countdown" aria-live="polite">
+    <span className="opale-countdown" aria-live="polite">
       {remaining}s
     </span>
   );
 }
-export function CanopGame({ score = 0 }: { score?: number }) {
+export function Game({ score = 0 }: { score?: number }) {
   return (
-    <div className="canop-surface canop-game">
-      <CanopHeading level={3}>Partie</CanopHeading>
-      <strong className="canop-stat-card__value">{score}</strong>
-      <CanopButton size="small">Continuer</CanopButton>
+    <div className="opale-surface opale-game">
+      <Heading level={3}>Partie</Heading>
+      <strong className="opale-stat-card__value">{score}</strong>
+      <Button size="small">Continuer</Button>
     </div>
   );
 }
-export function CanopClipboard({
+export function Clipboard({
   value,
   children = 'Copier',
 }: {
@@ -1848,7 +1848,7 @@ export function CanopClipboard({
 }) {
   const [copied, setCopied] = useState(false);
   return (
-    <CanopButton
+    <Button
       size="small"
       variant="tonal"
       onClick={() => {
@@ -1857,12 +1857,12 @@ export function CanopClipboard({
       }}
     >
       {copied ? 'Copié' : children}
-    </CanopButton>
+    </Button>
   );
 }
-export function CanopSvgMap({ children }: { children?: ReactNode }) {
+export function SvgMap({ children }: { children?: ReactNode }) {
   return (
-    <svg className="canop-svg-map" viewBox="0 0 400 180" role="img" aria-label="Carte SVG">
+    <svg className="opale-svg-map" viewBox="0 0 400 180" role="img" aria-label="Carte SVG">
       <path
         d="M20 135 C80 35 135 165 205 75 S325 35 380 125"
         fill="none"
@@ -1875,171 +1875,171 @@ export function CanopSvgMap({ children }: { children?: ReactNode }) {
   );
 }
 
-export interface CanopCatalogEntry {
+export interface CatalogEntry {
   readonly name: string;
   readonly category: string;
   readonly description: string;
 }
 
-export const CANOP_CATALOG: readonly CanopCatalogEntry[] = [
-  ['CanopButton', 'Inputs', "Bouton d'action avec variantes, tailles et état de chargement."],
-  ['CanopPressable', 'Inputs', 'Surface cliquable sans apparence : forme, focus et sélection.'],
-  ['CanopInlineInput', 'Inputs', "Champ d'édition en place : Entrée valide, Échap abandonne."],
-  ['CanopInput', 'Inputs', 'Champ de saisie avec validation, icône et types spécialisés.'],
-  ['CanopCheckbox', 'Inputs', 'Case à cocher avec label, sous-label et état indéterminé.'],
-  ['CanopToggle', 'Inputs', 'Interrupteur animé pour les états binaires.'],
-  ['CanopSlider', 'Inputs', 'Curseur contrôlé avec libellé, valeur et graduations.'],
-  ['CanopMultiSelect', 'Inputs', 'Sélection multiple avec chips et liste déroulante.'],
-  ['CanopSelect', 'Inputs', 'Sélecteur mono-valeur avec libellé accessible et options illustrées.'],
-  ['CanopAutocomplete', 'Inputs', 'Champ à suggestions avec filtrage et présélection.'],
-  ['CanopForm', 'Inputs', 'Formulaire orchestré par les primitives contrôlées.'],
-  ['CanopLanguageSelector', 'Inputs', "Sélecteur de langue branché sur l'i18n."],
-  ['CanopSegmentedControl', 'Inputs', 'Sélecteur segmenté animé pour choisir une option.'],
-  ['CanopThemeToggle', 'Inputs', 'Bascule de thème clair ou sombre, avec matériau local.'],
-  ['CanopAddButton', 'Boutons spécialisés', "Bouton d'ajout avec icône plus intégrée."],
-  ['CanopSaveButton', 'Boutons spécialisés', "Bouton d'enregistrement unique, avec confirmation."],
-  ['CanopApproveButton', 'Boutons spécialisés', 'Bouton de validation avec icône check.'],
-  ['CanopEditButton', 'Boutons spécialisés', "Bouton d'édition avec icône crayon."],
-  ['CanopDeleteButton', 'Boutons spécialisés', 'Bouton de suppression avec confirmation intégrée.'],
-  ['CanopIconActionButton', 'Boutons spécialisés', "Bouton d'action carré à icône."],
-  ['CanopCard', 'Affichage de données', 'Carte avec titre, sous-titre, actions et élévations.'],
-  ['CanopCardGrid', 'Affichage de données', 'Grille responsive auto-adaptative pour cartes.'],
-  ['CanopCarousel', 'Affichage de données', 'Carrousel de cartes avec navigation.'],
-  ['CanopDataTable', 'Affichage de données', 'Table riche avec tri, sélection et clavier.'],
-  ['CanopDescriptionList', 'Affichage de données', 'Liste de paires libellé / valeur.'],
-  ['CanopBulletList', 'Affichage de données', 'Liste à puces avec icônes personnalisables.'],
-  ['CanopStatusChip', 'Affichage de données', 'Pastille de statut en plusieurs tonalités.'],
-  ['CanopBadge', 'Affichage de données', 'Pastille de compteur ou point de notification.'],
-  ['CanopRating', 'Affichage de données', 'Note moyenne en étoiles, remplissage fractionnaire.'],
-  ['CanopStatCard', 'Affichage de données', 'Carte de métrique avec valeur, variation et icône.'],
-  ['CanopDonut', 'Affichage de données', 'Graphique en anneau segmenté avec contenu central.'],
-  ['CanopLegalLinks', 'Affichage de données', 'Pied de page légal et mentions.'],
-  ['CanopLegend', 'Affichage de données', 'Légende de statuts pour tableaux et graphiques.'],
-  ['CanopHeading', 'Affichage de données', 'Titres hiérarchisés avec échelle typographique.'],
-  ['CanopText', 'Affichage de données', 'Corps de texte, labels, légendes et métriques.'],
-  ['CanopIcon', 'Affichage de données', 'Icônes Opale en plusieurs tailles.'],
-  ['CanopFeedback', 'Feedback', 'Encart de message contextuel en quatre sévérités.'],
-  ['CanopToast', 'Feedback', 'Notification éphémère avec fermeture automatique.'],
-  ['CanopSpinner', 'Feedback', 'Indicateur de chargement circulaire.'],
-  ['CanopProgressBar', 'Feedback', 'Barre de progression déterminée ou segmentée.'],
-  ['CanopConfirmDialog', 'Feedback', "Boîte de dialogue de confirmation d'action."],
-  ['CanopEmptyState', 'Feedback', 'État vide illustré avec titre, description et action.'],
-  ['CanopNavbar', 'Navigation', 'Barre de navigation responsive avec sous-menus.'],
-  ['CanopMenu', 'Navigation', 'Menu contextuel positionnable avec items.'],
-  ['CanopLink', 'Navigation', 'Lien stylé compatible avec les routeurs externes.'],
-  ['CanopSidePanel', 'Navigation', 'Panneau latéral coulissant avec titre et footer.'],
-  ['CanopSettingsMenu', 'Navigation', 'Menu de réglages : thème, langue et session.'],
-  ['CanopCommandPalette', 'Navigation', 'Palette de commandes avec recherche clavier.'],
-  ['CanopBreadcrumb', 'Navigation', "Fil d'Ariane avec repli automatique."],
-  ['CanopToolbar', 'Navigation', 'Barre d’outils : recherche, tri et actions.'],
-  ['CanopCookieBanner', 'Navigation', 'Bandeau de consentement avec mémorisation.'],
-  ['CanopScrollbar', 'Navigation', 'Barre de défilement appliquée par le thème.'],
-  ['CanopSelectionBar', 'Navigation', "Barre d'actions groupées sur sélection multiple."],
-  ['CanopStack', 'Mise en page', 'Empilement flexbox avec gaps issus des tokens.'],
-  ['CanopLayout', 'Mise en page', 'Gabarit de page avec navigation et contenu.'],
-  ['CanopPageScaffold', 'Mise en page', 'Squelette complet : navigation, contenu et footer.'],
-  ['CanopPageContent', 'Mise en page', 'Conteneur de contenu avec en-tête et footer.'],
-  ['CanopDivider', 'Mise en page', 'Séparateur horizontal ou vertical.'],
-  ['CanopSeparator', 'Mise en page', 'Séparateur décoratif léger.'],
-  ['CanopCanopyBackground', 'Mise en page', 'Fond animé par thème.'],
-  ['CanopShapeBackground', 'Mise en page', 'Arrière-plan décoratif à formes organiques.'],
-  ['CanopSlidingIndicator', 'Mise en page', 'Indicateur coulissant partagé entre éléments.'],
-  ['CanopFileUploader', 'Modules', 'Upload de fichiers par chunks.'],
-  ['CanopFileCard', 'Modules', 'Carte de fichier ou dossier avec aperçu et sélection.'],
-  ['CanopDropzone', 'Modules', 'Zone de dépôt par glisser-déposer ou sélection.'],
-  ['CanopLightbox', 'Modules', "Visionneuse plein écran d'images et documents."],
-  ['CanopMap', 'Modules', 'Carte avec marqueurs, bulles et clic.'],
-  ['CanopRouteGuard', 'Modules', 'Garde de routes et redirections.'],
-  ['CanopI18n', 'Modules', 'Provider d’internationalisation et messages.'],
-  ['CanopHttp', 'Modules', 'Client API avec gestion d’erreurs normalisée.'],
-  ['CanopValidation', 'Modules', 'Règles de validation réutilisables.'],
-  ['CanopSound', 'Modules', 'Sons sémantiques, coupure et volume.'],
-  ['CanopLocalStore', 'Modules', 'État local typé, versionné et synchronisé.'],
-  ['CanopCountdown', 'Modules', 'Compte à rebours calé sur une échéance absolue.'],
-  ['CanopGame', 'Modules', 'Pièces de partie, série et grille partageable.'],
-  ['CanopClipboard', 'Modules', 'Copie dans le presse-papier avec état fugace.'],
-  ['CanopSvgMap', 'Modules', 'Carte SVG gestuelle et accessible au clavier.'],
+export const OPALE_CATALOG: readonly CatalogEntry[] = [
+  ['Button', 'Inputs', "Bouton d'action avec variantes, tailles et état de chargement."],
+  ['Pressable', 'Inputs', 'Surface cliquable sans apparence : forme, focus et sélection.'],
+  ['InlineInput', 'Inputs', "Champ d'édition en place : Entrée valide, Échap abandonne."],
+  ['Input', 'Inputs', 'Champ de saisie avec validation, icône et types spécialisés.'],
+  ['Checkbox', 'Inputs', 'Case à cocher avec label, sous-label et état indéterminé.'],
+  ['Toggle', 'Inputs', 'Interrupteur animé pour les états binaires.'],
+  ['Slider', 'Inputs', 'Curseur contrôlé avec libellé, valeur et graduations.'],
+  ['MultiSelect', 'Inputs', 'Sélection multiple avec chips et liste déroulante.'],
+  ['Select', 'Inputs', 'Sélecteur mono-valeur avec libellé accessible et options illustrées.'],
+  ['Autocomplete', 'Inputs', 'Champ à suggestions avec filtrage et présélection.'],
+  ['Form', 'Inputs', 'Formulaire orchestré par les primitives contrôlées.'],
+  ['LanguageSelector', 'Inputs', "Sélecteur de langue branché sur l'i18n."],
+  ['SegmentedControl', 'Inputs', 'Sélecteur segmenté animé pour choisir une option.'],
+  ['ThemeToggle', 'Inputs', 'Bascule de thème clair ou sombre, avec matériau local.'],
+  ['AddButton', 'Boutons spécialisés', "Bouton d'ajout avec icône plus intégrée."],
+  ['SaveButton', 'Boutons spécialisés', "Bouton d'enregistrement unique, avec confirmation."],
+  ['ApproveButton', 'Boutons spécialisés', 'Bouton de validation avec icône check.'],
+  ['EditButton', 'Boutons spécialisés', "Bouton d'édition avec icône crayon."],
+  ['DeleteButton', 'Boutons spécialisés', 'Bouton de suppression avec confirmation intégrée.'],
+  ['IconActionButton', 'Boutons spécialisés', "Bouton d'action carré à icône."],
+  ['Card', 'Affichage de données', 'Carte avec titre, sous-titre, actions et élévations.'],
+  ['CardGrid', 'Affichage de données', 'Grille responsive auto-adaptative pour cartes.'],
+  ['Carousel', 'Affichage de données', 'Carrousel de cartes avec navigation.'],
+  ['DataTable', 'Affichage de données', 'Table riche avec tri, sélection et clavier.'],
+  ['DescriptionList', 'Affichage de données', 'Liste de paires libellé / valeur.'],
+  ['BulletList', 'Affichage de données', 'Liste à puces avec icônes personnalisables.'],
+  ['StatusChip', 'Affichage de données', 'Pastille de statut en plusieurs tonalités.'],
+  ['Badge', 'Affichage de données', 'Pastille de compteur ou point de notification.'],
+  ['Rating', 'Affichage de données', 'Note moyenne en étoiles, remplissage fractionnaire.'],
+  ['StatCard', 'Affichage de données', 'Carte de métrique avec valeur, variation et icône.'],
+  ['Donut', 'Affichage de données', 'Graphique en anneau segmenté avec contenu central.'],
+  ['LegalLinks', 'Affichage de données', 'Pied de page légal et mentions.'],
+  ['Legend', 'Affichage de données', 'Légende de statuts pour tableaux et graphiques.'],
+  ['Heading', 'Affichage de données', 'Titres hiérarchisés avec échelle typographique.'],
+  ['Text', 'Affichage de données', 'Corps de texte, labels, légendes et métriques.'],
+  ['Icon', 'Affichage de données', 'Icônes Opale en plusieurs tailles.'],
+  ['Feedback', 'Feedback', 'Encart de message contextuel en quatre sévérités.'],
+  ['Toast', 'Feedback', 'Notification éphémère avec fermeture automatique.'],
+  ['Spinner', 'Feedback', 'Indicateur de chargement circulaire.'],
+  ['ProgressBar', 'Feedback', 'Barre de progression déterminée ou segmentée.'],
+  ['ConfirmDialog', 'Feedback', "Boîte de dialogue de confirmation d'action."],
+  ['EmptyState', 'Feedback', 'État vide illustré avec titre, description et action.'],
+  ['Navbar', 'Navigation', 'Barre de navigation responsive avec sous-menus.'],
+  ['Menu', 'Navigation', 'Menu contextuel positionnable avec items.'],
+  ['Link', 'Navigation', 'Lien stylé compatible avec les routeurs externes.'],
+  ['SidePanel', 'Navigation', 'Panneau latéral coulissant avec titre et footer.'],
+  ['SettingsMenu', 'Navigation', 'Menu de réglages : thème, langue et session.'],
+  ['CommandPalette', 'Navigation', 'Palette de commandes avec recherche clavier.'],
+  ['Breadcrumb', 'Navigation', "Fil d'Ariane avec repli automatique."],
+  ['Toolbar', 'Navigation', 'Barre d’outils : recherche, tri et actions.'],
+  ['CookieBanner', 'Navigation', 'Bandeau de consentement avec mémorisation.'],
+  ['Scrollbar', 'Navigation', 'Barre de défilement appliquée par le thème.'],
+  ['SelectionBar', 'Navigation', "Barre d'actions groupées sur sélection multiple."],
+  ['Stack', 'Mise en page', 'Empilement flexbox avec gaps issus des tokens.'],
+  ['Layout', 'Mise en page', 'Gabarit de page avec navigation et contenu.'],
+  ['PageScaffold', 'Mise en page', 'Squelette complet : navigation, contenu et footer.'],
+  ['PageContent', 'Mise en page', 'Conteneur de contenu avec en-tête et footer.'],
+  ['Divider', 'Mise en page', 'Séparateur horizontal ou vertical.'],
+  ['Separator', 'Mise en page', 'Séparateur décoratif léger.'],
+  ['BackgroundSurface', 'Mise en page', 'Fond animé par thème.'],
+  ['ShapeBackground', 'Mise en page', 'Arrière-plan décoratif à formes organiques.'],
+  ['SlidingIndicator', 'Mise en page', 'Indicateur coulissant partagé entre éléments.'],
+  ['FileUploader', 'Modules', 'Upload de fichiers par chunks.'],
+  ['FileCard', 'Modules', 'Carte de fichier ou dossier avec aperçu et sélection.'],
+  ['Dropzone', 'Modules', 'Zone de dépôt par glisser-déposer ou sélection.'],
+  ['Lightbox', 'Modules', "Visionneuse plein écran d'images et documents."],
+  ['Map', 'Modules', 'Carte avec marqueurs, bulles et clic.'],
+  ['RouteGuard', 'Modules', 'Garde de routes et redirections.'],
+  ['I18n', 'Modules', 'Provider d’internationalisation et messages.'],
+  ['Http', 'Modules', 'Client API avec gestion d’erreurs normalisée.'],
+  ['Validation', 'Modules', 'Règles de validation réutilisables.'],
+  ['Sound', 'Modules', 'Sons sémantiques, coupure et volume.'],
+  ['LocalStore', 'Modules', 'État local typé, versionné et synchronisé.'],
+  ['Countdown', 'Modules', 'Compte à rebours calé sur une échéance absolue.'],
+  ['Game', 'Modules', 'Pièces de partie, série et grille partageable.'],
+  ['Clipboard', 'Modules', 'Copie dans le presse-papier avec état fugace.'],
+  ['SvgMap', 'Modules', 'Carte SVG gestuelle et accessible au clavier.'],
 ].map(([name, category, description]) => ({ name, category, description }));
 
-export const CanopUI = {
-  Button: CanopButton,
-  Pressable: CanopPressable,
-  Card: CanopCard,
-  CardGrid: CanopCardGrid,
-  Input: CanopInput,
-  InlineInput: CanopInlineInput,
-  Checkbox: CanopCheckbox,
-  Toggle: CanopToggle,
-  Slider: CanopSlider,
-  Select: CanopSelect,
-  MultiSelect: CanopMultiSelect,
-  Autocomplete: CanopAutocomplete,
-  Form: CanopForm,
-  LanguageSelector: CanopLanguageSelector,
-  SegmentedControl: CanopSegmentedControl,
-  ThemeToggle: CanopThemeToggle,
-  AddButton: CanopAddButton,
-  SaveButton: CanopSaveButton,
-  ApproveButton: CanopApproveButton,
-  EditButton: CanopEditButton,
-  DeleteButton: CanopDeleteButton,
-  IconActionButton: CanopIconActionButton,
-  Carousel: CanopCarousel,
-  DataTable: CanopDataTable,
-  DescriptionList: CanopDescriptionList,
-  BulletList: CanopBulletList,
-  StatusChip: CanopStatusChip,
-  Badge: CanopBadge,
-  Rating: CanopRating,
-  StatCard: CanopStatCard,
-  Donut: CanopDonut,
-  LegalLinks: CanopLegalLinks,
-  Legend: CanopLegend,
-  Heading: CanopHeading,
-  Text: CanopText,
-  Icon: CanopIcon,
-  Feedback: CanopFeedback,
-  Toast: CanopToast,
-  Spinner: CanopSpinner,
-  ProgressBar: CanopProgressBar,
-  ConfirmDialog: CanopConfirmDialog,
-  EmptyState: CanopEmptyState,
-  Navbar: CanopNavbar,
-  Menu: CanopMenu,
-  Link: CanopLink,
-  SidePanel: CanopSidePanel,
-  SettingsMenu: CanopSettingsMenu,
-  CommandPalette: CanopCommandPalette,
-  Breadcrumb: CanopBreadcrumb,
-  Toolbar: CanopToolbar,
-  CookieBanner: CanopCookieBanner,
-  Scrollbar: CanopScrollbar,
-  SelectionBar: CanopSelectionBar,
-  Stack: CanopStack,
-  Layout: CanopLayout,
-  PageScaffold: CanopPageScaffold,
-  PageContent: CanopPageContent,
-  Divider: CanopDivider,
-  Separator: CanopSeparator,
-  CanopyBackground: CanopCanopyBackground,
-  ShapeBackground: CanopShapeBackground,
-  SlidingIndicator: CanopSlidingIndicator,
-  FileUploader: CanopFileUploader,
-  FileCard: CanopFileCard,
-  Dropzone: CanopDropzone,
-  Lightbox: CanopLightbox,
-  Map: CanopMap,
-  RouteGuard: CanopRouteGuard,
-  I18n: CanopI18n,
-  Http: CanopHttp,
-  Validation: CanopValidation,
-  Sound: CanopSound,
-  LocalStore: CanopLocalStore,
-  Countdown: CanopCountdown,
-  Game: CanopGame,
-  Clipboard: CanopClipboard,
-  SvgMap: CanopSvgMap,
+export const OpaleUI = {
+  Button: Button,
+  Pressable: Pressable,
+  Card: Card,
+  CardGrid: CardGrid,
+  Input: Input,
+  InlineInput: InlineInput,
+  Checkbox: Checkbox,
+  Toggle: Toggle,
+  Slider: Slider,
+  Select: Select,
+  MultiSelect: MultiSelect,
+  Autocomplete: Autocomplete,
+  Form: Form,
+  LanguageSelector: LanguageSelector,
+  SegmentedControl: SegmentedControl,
+  ThemeToggle: ThemeToggle,
+  AddButton: AddButton,
+  SaveButton: SaveButton,
+  ApproveButton: ApproveButton,
+  EditButton: EditButton,
+  DeleteButton: DeleteButton,
+  IconActionButton: IconActionButton,
+  Carousel: Carousel,
+  DataTable: DataTable,
+  DescriptionList: DescriptionList,
+  BulletList: BulletList,
+  StatusChip: StatusChip,
+  Badge: Badge,
+  Rating: Rating,
+  StatCard: StatCard,
+  Donut: Donut,
+  LegalLinks: LegalLinks,
+  Legend: Legend,
+  Heading: Heading,
+  Text: Text,
+  Icon: Icon,
+  Feedback: Feedback,
+  Toast: Toast,
+  Spinner: Spinner,
+  ProgressBar: ProgressBar,
+  ConfirmDialog: ConfirmDialog,
+  EmptyState: EmptyState,
+  Navbar: Navbar,
+  Menu: Menu,
+  Link: Link,
+  SidePanel: SidePanel,
+  SettingsMenu: SettingsMenu,
+  CommandPalette: CommandPalette,
+  Breadcrumb: Breadcrumb,
+  Toolbar: Toolbar,
+  CookieBanner: CookieBanner,
+  Scrollbar: Scrollbar,
+  SelectionBar: SelectionBar,
+  Stack: Stack,
+  Layout: Layout,
+  PageScaffold: PageScaffold,
+  PageContent: PageContent,
+  Divider: Divider,
+  Separator: Separator,
+  BackgroundSurface: BackgroundSurface,
+  ShapeBackground: ShapeBackground,
+  SlidingIndicator: SlidingIndicator,
+  FileUploader: FileUploader,
+  FileCard: FileCard,
+  Dropzone: Dropzone,
+  Lightbox: Lightbox,
+  Map: Map,
+  RouteGuard: RouteGuard,
+  I18n: I18n,
+  Http: Http,
+  Validation: Validation,
+  Sound: Sound,
+  LocalStore: LocalStore,
+  Countdown: Countdown,
+  Game: Game,
+  Clipboard: Clipboard,
+  SvgMap: SvgMap,
 } as const;
 
 /** Namespace public Opale pour les composants du catalogue V3. */
-export const Opale = { ...CanopUI, Background: CanopCanopyBackground } as const;
+export const Opale = { ...OpaleUI, Background: BackgroundSurface } as const;

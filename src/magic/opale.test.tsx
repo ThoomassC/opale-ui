@@ -1,16 +1,16 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { CanopButton, CanopSegmentedControl } from './canop';
+import { Button, SegmentedControl } from './opale';
 
 afterEach(cleanup);
 
-describe('CanopButton', () => {
+describe('Button', () => {
   it('utilise button comme type sûr par défaut et respecte un type explicite', () => {
     render(
       <>
-        <CanopButton>Action</CanopButton>
-        <CanopButton type="submit">Envoyer</CanopButton>
+        <Button>Action</Button>
+        <Button type="submit">Envoyer</Button>
       </>,
     );
 
@@ -21,20 +21,20 @@ describe('CanopButton', () => {
   it.each(['primary', 'secondary', 'accent', 'danger'] as const)(
     'expose la variante pleine %s',
     (variant) => {
-      render(<CanopButton variant={variant}>{variant}</CanopButton>);
-      expect(screen.getByRole('button', { name: variant })).toHaveClass(`canop-button--${variant}`);
+      render(<Button variant={variant}>{variant}</Button>);
+      expect(screen.getByRole('button', { name: variant })).toHaveClass(`opale-button--${variant}`);
     },
   );
 
   it('conserve ghost dans l’API pour les boutons spécialisés existants', () => {
-    render(<CanopButton variant="ghost">Action secondaire</CanopButton>);
+    render(<Button variant="ghost">Action secondaire</Button>);
     expect(screen.getByRole('button', { name: 'Action secondaire' })).toHaveClass(
-      'canop-button--ghost',
+      'opale-button--ghost',
     );
   });
 });
 
-describe('CanopSegmentedControl', () => {
+describe('SegmentedControl', () => {
   const OPTIONS = [
     { value: 'design', label: 'Design system' },
     { value: 'code', label: 'Code' },
@@ -61,8 +61,8 @@ describe('CanopSegmentedControl', () => {
   });
 
   it('garde aria-pressed comme seule annonce de la sélection', () => {
-    const { container } = render(<CanopSegmentedControl options={OPTIONS} value="code" />);
-    const indicator = container.querySelector('.canop-segmented__indicator');
+    const { container } = render(<SegmentedControl options={OPTIONS} value="code" />);
+    const indicator = container.querySelector('.opale-segmented__indicator');
 
     expect(indicator).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getAllByRole('button')).toHaveLength(2);
@@ -70,15 +70,15 @@ describe('CanopSegmentedControl', () => {
   });
 
   it('laisse la pastille sans position tant que rien n’est mesurable', () => {
-    const { container } = render(<CanopSegmentedControl options={OPTIONS} value="code" />);
-    const indicator = container.querySelector<HTMLElement>('.canop-segmented__indicator');
+    const { container } = render(<SegmentedControl options={OPTIONS} value="code" />);
+    const indicator = container.querySelector<HTMLElement>('.opale-segmented__indicator');
 
     expect(indicator?.style.transform).toBe('');
     expect(indicator?.dataset.animated).toBeUndefined();
   });
 
   it('place la pastille sous l’option pressée', () => {
-    const { container } = render(<CanopSegmentedControl options={OPTIONS} value="code" />);
+    const { container } = render(<SegmentedControl options={OPTIONS} value="code" />);
     const group = screen.getByRole('group');
     const pressed = screen.getByRole('button', { name: 'Code' });
 
@@ -87,7 +87,7 @@ describe('CanopSegmentedControl', () => {
 
     fireEvent(window, new Event('resize'));
 
-    const indicator = container.querySelector<HTMLElement>('.canop-segmented__indicator');
+    const indicator = container.querySelector<HTMLElement>('.opale-segmented__indicator');
     expect(indicator?.style.transform).toBe('translate3d(130px, 0px, 0)');
     expect(indicator?.style.width).toBe('72px');
     expect(indicator?.dataset.animated).toBe('true');

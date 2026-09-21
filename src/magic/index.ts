@@ -4,6 +4,6 @@
    contract and is not styled with Opale's tokens. See src/magic/README.md. */
 
 import './magic.scss';
-import './canop.css';
+import './opale.css';
 export * from './components';
-export * from './canop';
+export * from './opale';

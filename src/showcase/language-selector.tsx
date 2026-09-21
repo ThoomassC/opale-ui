@@ -8,7 +8,7 @@ import { LANGUAGE_OPTIONS, type Language } from './localization';
    LE SÉLECTEUR DE LANGUE — un `combobox` à liste seule, habillé en opaleUI.
 
    CE QUI A CHANGÉ. C'était un `<select>` natif rendu par
-   `CanopLanguageSelector`, qui affichait « Français », « English »,
+   `LanguageSelector`, qui affichait « Français », « English »,
    « Español ». Il affiche maintenant des DRAPEAUX, et un `<select>` ne peut
    pas les porter : le contenu d'une `<option>` est du texte brut dans tous les
    navigateurs, aucun n'y peint un SVG. Le contrôle est donc refait à la main,

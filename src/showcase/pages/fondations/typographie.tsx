@@ -56,31 +56,31 @@ interface FontFamily {
    CE QUI REND VRAIMENT LA VITRINE AUJOURD'HUI, mesuré dans le navigateur :
    Bricolage Grotesque sur les titres de pages et les chiffres de l'accueil,
    Chivo partout ailleurs, Hack pour le code. Les deux premières viennent d'une
-   requête Google Fonts déclarée en tête de `canop.css` ; Hack est embarquée
+   requête Google Fonts déclarée en tête de `opale.css` ; Hack est embarquée
    avec la vitrine.
 
-   LES JETONS CITÉS SONT DONC LES `--canop-font-*` ET NON LES `--font-*`. Les
+   LES JETONS CITÉS SONT DONC LES `--opale-font-*` ET NON LES `--font-*`. Les
    seconds existent encore et `doc.css` les consomme cent trente-cinq fois,
    mais la couche V3 les recouvre : les nommer ici enverrait le lecteur vers
    des variables qui ne décident plus de rien. */
 const FAMILIES: readonly FontFamily[] = [
   {
-    token: '--canop-font-title',
+    token: '--opale-font-title',
     name: 'Bricolage Grotesque — opsz 72, graisse 600',
     note: 'Les titres de page et les chiffres de l’accueil, et eux seuls.',
   },
   {
-    token: '--canop-font-body',
+    token: '--opale-font-body',
     name: 'Chivo, system-ui, Segoe UI, Roboto',
     note: 'Tout le reste : texte courant, contrôles, étiquettes, sommaire, onglets.',
   },
   {
-    token: '--canop-font-display',
+    token: '--opale-font-display',
     name: 'Chivo, system-ui, Segoe UI, Roboto',
     note: 'Les titres des composants de la librairie — métrique, donut, plaques.',
   },
   {
-    token: '--canop-font-mono',
+    token: '--opale-font-mono',
     name: 'Hack, ui-monospace, Cascadia Code, Consolas',
     note: 'Les mesures et le code : hexadécimaux, ratios, noms de jetons.',
   },

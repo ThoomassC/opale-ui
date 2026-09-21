@@ -3,9 +3,9 @@
 Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/portfolio) et
 [`travels_in_world`](https://github.com/ThoomassC/travels_in_world).
 
-> **La 3.0 adopte le langage visuel de CanopUI.** Les quatorze composants verre liquide
+> **La 3.0 adopte le langage visuel de OpaleUI.** Les quatorze composants verre liquide
 > historiques restent publiés et utilisables ; le catalogue V3 ajoute les primitives,
-> composants de données, feedback, navigation, layout et modules compatibles avec CanopUI.
+> composants de données, feedback, navigation, layout et modules compatibles avec OpaleUI.
 > Le matériau Liquid Glass est opt-in composant par composant ; la vitrine propose les thèmes
 > globaux `light` et `dark`.
 
@@ -34,8 +34,8 @@ Ce dépôt est ce garde. Il publie, dans cet ordre de valeur :
 2. **la feuille de jetons canonique** — la palette du portfolio, devenue référence parce
    qu'elle est la seule des deux à être mesurée et testée ;
 3. **le catalogue de composants**, qui réunit les quatorze composants verre liquide
-   historiques et les nouvelles briques CanopUI. Les composants historiques restent hors
-   du contrat de couleur ; les primitives V3 utilisent les tokens CanopUI dédiés.
+   historiques et les nouvelles briques OpaleUI. Les composants historiques restent hors
+   du contrat de couleur ; les primitives V3 utilisent les tokens OpaleUI dédiés.
 
 Les trois points sont vrais et testés à leur niveau : le contrat mesure la charte, la vitrine
 mesure les routes et le catalogue, et les composants historiques conservent leur provenance.
@@ -91,7 +91,7 @@ et les deux premiers suffisent :
 ```js
 import '@thomascaron/opale-ui/tokens.css'; // la palette, les échelles, le focus, le mouvement
 import '@thomascaron/opale-ui/opale.css'; // les styles des quatorze composants, une fois par app
-import { Button, Glass, CanopButton } from '@thomascaron/opale-ui';
+import { Button, Glass, Button } from '@thomascaron/opale-ui';
 ```
 
 ```ts
@@ -133,11 +133,11 @@ Les composants historiques sont publiés à la racine, exportés par `src/magic/
 `Badge`, `Button`, `Card`, `Checkbox`, `Glass`, `Input`, `Modal`, `Select`, `Sidebar`,
 `Slider`, `Switch`, `Tabs`, `ToastProvider` (plus le hook `useToast`), `Topbar`.
 
-La V3 ajoute les exports `Canop*` correspondants au catalogue CanopUI : boutons, champs,
+La V3 ajoute les exports `Opale*` correspondants au catalogue OpaleUI : boutons, champs,
 cartes, données, feedback, navigation, layout et modules. La liste complète et une page de
-démonstration par composant sont générées depuis `CANOP_CATALOG` dans
-`src/magic/canop.tsx`. Le namespace `CanopUI` expose aussi ces briques sous les noms de la
-librairie de référence (`CanopUI.Button`, `CanopUI.Card`, etc.), sans écraser les exports
+démonstration par composant sont générées depuis `OPALE_CATALOG` dans
+`src/magic/opale.tsx`. Le namespace `OpaleUI` expose aussi ces briques sous les noms de la
+librairie de référence (`OpaleUI.Button`, `OpaleUI.Card`, etc.), sans écraser les exports
 historiques `Button`, `Card`, `Input` et leurs pairs. Les composants qui portent `liquidGlass`
 activent le matériau composant par composant via le contrôle local de chaque fiche.
 

@@ -60,28 +60,28 @@ import './tokens/tokens.css';
 import './magic/magic.scss';
 
 /* =============================================================================
-   `canop.css` EST IMPORTÉ ICI POUR LA MÊME RAISON QUE `magic.scss`, ET SON
+   `opale.css` EST IMPORTÉ ICI POUR LA MÊME RAISON QUE `magic.scss`, ET SON
    ABSENCE S'EST VUE EN PRODUCTION AVANT DE SE VOIR ICI.
 
    Le commentaire ci-dessus démonte l'élagage qui fait disparaître les
    instructions de tête de `src/magic/index.ts`. Ce baril en porte DEUX :
-   `import './magic.scss';` — traité — et `import './canop.css';` — oublié. La
+   `import './magic.scss';` — traité — et `import './opale.css';` — oublié. La
    seconde feuille a donc continué de tomber, et rien ne le disait : le serveur
    de développement n'élague pas, donc la vitrine était juste à l'écran pendant
    que la vitrine CONSTRUITE ne l'était pas.
 
    MESURÉ SUR LE PREMIER DÉPLOIEMENT DE RECETTE : le paquet CSS servi portait
-   51 usages de `var(--canop-primary)` et ZÉRO déclaration. Aucun jeton
-   `--canop-*` n'existait, donc aucune couleur de marque, aucun rayon, aucune
+   51 usages de `var(--opale-primary)` et ZÉRO déclaration. Aucun jeton
+   `--opale-*` n'existait, donc aucune couleur de marque, aucun rayon, aucune
    police — les titres tombaient sur le sérif par défaut du navigateur, et la
-   règle `@import` de Google Fonts qui ouvre `canop.css` n'était jamais servie
+   règle `@import` de Google Fonts qui ouvre `opale.css` n'était jamais servie
    non plus, donc ni Chivo ni Bricolage Grotesque n'étaient téléchargés.
 
    Le repli le rendait DISCRET plutôt que visible : `var(--x)` sans valeur ne
    casse pas la feuille, il invalide une déclaration à la fois. La page se
    peignait, mal, sans une erreur de console.
    ========================================================================== */
-import './magic/canop.css';
+import './magic/opale.css';
 
 // Hack est embarquée avec la vitrine : les exemples restent identiques sur
 // toutes les machines, sans dépendre d'une police installée localement.

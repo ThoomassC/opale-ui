@@ -19,13 +19,13 @@ import packageJson from '../../package.json';
 
    CE QUE CE GARDE AJOUTE À CE COMMENTAIRE. `main.tsx` raconte la panne et la
    corrige POUR UNE FEUILLE. Le baril en importait DEUX — `magic.scss`, traitée,
-   et `canop.css`, oubliée — et rien ne rapprochait les deux listes. La seconde
+   et `opale.css`, oubliée — et rien ne rapprochait les deux listes. La seconde
    est donc tombée de la vitrine construite pendant des semaines sans qu'un
    test, un avertissement ou une erreur de console ne le dise : le serveur de
    développement n'élague pas, donc tout était juste à l'écran.
 
    MESURÉ SUR LE PREMIER DÉPLOIEMENT DE RECETTE : le paquet CSS servi portait
-   51 usages de `var(--canop-primary)` et ZÉRO déclaration. La page se peignait
+   51 usages de `var(--opale-primary)` et ZÉRO déclaration. La page se peignait
    quand même — `var(--x)` sans valeur invalide une déclaration à la fois, il ne
    casse pas la feuille —, simplement sans aucune couleur de marque, sans rayon,
    et avec les titres tombés sur le sérif par défaut du navigateur.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import canopSource from '../magic/canop.css?raw';
+import opaleSource from '../magic/opale.css?raw';
 import { contrastRatio } from '../contract/color';
 import { OPALE_PLATES, OPALE_TEXT_PAIRS } from './opale-palette-data';
 
@@ -13,7 +13,7 @@ import { OPALE_PLATES, OPALE_TEXT_PAIRS } from './opale-palette-data';
    ne proteste — c'est arrivé une fois dans ce dépôt, `LIGHT_PLATE.ground`
    affichait `#deedf0` pendant que la feuille déclarait `#f2e9d6`.
 
-   Ce fichier relit donc `canop.css` et compare, jeton par jeton et thème par
+   Ce fichier relit donc `opale.css` et compare, jeton par jeton et thème par
    thème. Une divergence est un rouge, pas un commentaire.
 
    DEUX RÉCIPROQUES, parce qu'une comparaison seule ne voit que ce qu'on lui
@@ -24,31 +24,31 @@ import { OPALE_PLATES, OPALE_TEXT_PAIRS } from './opale-palette-data';
        couleur à la palette sans la documenter passerait inaperçu.
    ========================================================================== */
 
-/** Le corps d'un bloc de `canop.css`, à accolades équilibrées. */
+/** Le corps d'un bloc de `opale.css`, à accolades équilibrées. */
 function blockBody(selector: string): string {
-  const start = canopSource.indexOf(`${selector} {`);
+  const start = opaleSource.indexOf(`${selector} {`);
 
-  if (start === -1) throw new Error(`Bloc « ${selector} » introuvable dans canop.css.`);
+  if (start === -1) throw new Error(`Bloc « ${selector} » introuvable dans opale.css.`);
 
-  const open = canopSource.indexOf('{', start);
+  const open = opaleSource.indexOf('{', start);
   let depth = 0;
 
-  for (let index = open; index < canopSource.length; index += 1) {
-    if (canopSource[index] === '{') depth += 1;
-    if (canopSource[index] === '}') {
+  for (let index = open; index < opaleSource.length; index += 1) {
+    if (opaleSource[index] === '{') depth += 1;
+    if (opaleSource[index] === '}') {
       depth -= 1;
-      if (depth === 0) return canopSource.slice(open + 1, index);
+      if (depth === 0) return opaleSource.slice(open + 1, index);
     }
   }
 
   throw new Error(`Bloc « ${selector} » non refermé.`);
 }
 
-/** Les déclarations `--canop-*` d'un bloc, en minuscules. */
+/** Les déclarations `--opale-*` d'un bloc, en minuscules. */
 function declarations(body: string): Map<string, string> {
   const found = new Map<string, string>();
 
-  for (const match of body.matchAll(/(--canop-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+  for (const match of body.matchAll(/(--opale-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
     found.set(match[1], match[2].trim().toLowerCase());
   }
 
@@ -68,11 +68,11 @@ function resolve(theme: 'light' | 'dark', token: string): string | undefined {
    exclusion dont le jeton n'existe plus fait rougir le test : une exclusion
    périmée est un mensonge silencieux. */
 const NOT_PLATED: Readonly<Record<string, string>> = {
-  '--canop-focus':
+  '--opale-focus':
     'anneau de focus — rendu transparent dans la vitrine, il ne peint plus rien à montrer',
-  '--canop-glass-surface':
+  '--opale-glass-surface':
     'lavis du matériau Liquid Glass — documenté par la page « Verre », qui montre la pile composée plutôt que la couche seule',
-  '--canop-glass-border': 'liseré du matériau Liquid Glass — même raison',
+  '--opale-glass-border': 'liseré du matériau Liquid Glass — même raison',
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {
@@ -82,10 +82,10 @@ describe('la palette Opale affichée par la page de fondation', () => {
         group.swatches.map((swatch) => ({ theme: plate.theme, ...swatch })),
       ),
     ),
-  )('$theme · $token vaut ce que déclare canop.css', ({ theme, token, hex }) => {
+  )('$theme · $token vaut ce que déclare opale.css', ({ theme, token, hex }) => {
     expect(
       resolve(theme, token),
-      `« ${token} » n’est pas déclaré dans canop.css pour le thème ${theme}.`,
+      `« ${token} » n’est pas déclaré dans opale.css pour le thème ${theme}.`,
     ).toBeDefined();
     expect(
       resolve(theme, token),
@@ -110,7 +110,7 @@ describe('la palette Opale affichée par la page de fondation', () => {
 
     expect(
       missing,
-      `Ces couleurs de canop.css ne sont ni plaquées ni exclues : ${missing.join(', ')}. ` +
+      `Ces couleurs de opale.css ne sont ni plaquées ni exclues : ${missing.join(', ')}. ` +
         'Ajoutez-les à une plaque, ou inscrivez-les dans NOT_PLATED avec leur raison.',
     ).toEqual([]);
 
@@ -122,7 +122,7 @@ describe('la palette Opale affichée par la page de fondation', () => {
     ).toEqual([]);
   });
 
-  /* LES RATIOS SONT CALCULÉS, JAMAIS RECOPIÉS. `canop.css` n'en documente
+  /* LES RATIOS SONT CALCULÉS, JAMAIS RECOPIÉS. `opale.css` n'en documente
      aucun ; un chiffre écrit à la main dans la page serait invérifiable. Ce
      garde mesure les paires qui portent vraiment du texte et exige le seuil AA
      du texte courant. */

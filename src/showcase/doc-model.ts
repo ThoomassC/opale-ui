@@ -81,18 +81,26 @@ function kebabCase(value: string): string {
 }
 
 function normalizeCatalogLabel(value: string): string {
-  return value === 'CanopyBackground' ? 'Background' : value;
+  return value === 'BackgroundSurface' ? 'Background' : value;
 }
 
+/* LE PRÉFIXE A DISPARU AVEC LE NOM DE L'AUTRE LIBRAIRIE, ET LE DÉCAPAGE AVEC.
+
+   Les composants portaient un préfixe hérité de la librairie amont dont ce
+   catalogue est issu, et cette fonction le retirait pour afficher « Button ».
+   Ils s'appellent désormais `Button` et `Card` tout court : il n'y a plus rien
+   à retirer, et garder un `replace(/^Opale/, '')` aurait été pire qu'inutile —
+   il aurait mangé le début du premier composant dont le nom commence par
+   « Opale ». */
 export function catalogComponentLabel(name: string): string {
-  return normalizeCatalogLabel(name.replace(/^Canop/, ''));
+  return normalizeCatalogLabel(name);
 }
 
 export function catalogComponentSlug(name: string): string {
   return `composants/opale-${kebabCase(catalogComponentLabel(name))}`;
 }
 
-function canopEntry(name: string, label = name.replace(/^Canop/, '')): DocNavEntryDefinition {
+function opaleEntry(name: string, label = name): DocNavEntryDefinition {
   return { label: normalizeCatalogLabel(label), slug: catalogComponentSlug(name) };
 }
 
@@ -103,7 +111,7 @@ function canopEntry(name: string, label = name.replace(/^Canop/, '')): DocNavEnt
  * décrit seulement l'ordre éditorial du rail. C'est ce qui permet de copier
  * le sommaire sans déplacer ni supprimer les pages déjà publiées par Opale.
  */
-export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
+export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
   {
     id: 'prise-en-main',
     label: 'PRISE EN MAIN',
@@ -134,23 +142,23 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     id: 'inputs',
     label: 'INPUTS',
     entries: [
-      canopEntry('CanopButton', 'Button'),
-      canopEntry('CanopPressable', 'Pressable'),
-      canopEntry('CanopInlineInput', 'InlineInput'),
-      canopEntry('CanopInput', 'Input'),
-      canopEntry('CanopCheckbox', 'Checkbox'),
-      canopEntry('CanopToggle', 'Toggle'),
-      canopEntry('CanopSlider', 'Slider'),
-      canopEntry('CanopMultiSelect', 'MultiSelect'),
-      canopEntry('CanopSelect', 'Select'),
-      canopEntry('CanopAutocomplete', 'Autocomplete'),
-      canopEntry('CanopForm', 'Form'),
-      canopEntry('CanopLanguageSelector', 'LanguageSelector'),
-      canopEntry('CanopSegmentedControl', 'SegmentedControl'),
-      canopEntry('CanopThemeToggle', 'ThemeToggle'),
+      opaleEntry('Button', 'Button'),
+      opaleEntry('Pressable', 'Pressable'),
+      opaleEntry('InlineInput', 'InlineInput'),
+      opaleEntry('Input', 'Input'),
+      opaleEntry('Checkbox', 'Checkbox'),
+      opaleEntry('Toggle', 'Toggle'),
+      opaleEntry('Slider', 'Slider'),
+      opaleEntry('MultiSelect', 'MultiSelect'),
+      opaleEntry('Select', 'Select'),
+      opaleEntry('Autocomplete', 'Autocomplete'),
+      opaleEntry('Form', 'Form'),
+      opaleEntry('LanguageSelector', 'LanguageSelector'),
+      opaleEntry('SegmentedControl', 'SegmentedControl'),
+      opaleEntry('ThemeToggle', 'ThemeToggle'),
       /* SIX ENTRÉES VENDORÉES ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
          `Checkbox`, `Slider`, `Select` et `Switch`. Chacune doublonnait la
-         `canopEntry` qui la précède : le rail affichait « Input » puis
+         `opaleEntry` qui la précède : le rail affichait « Input » puis
          « Input » sans dire lequel prendre. Leurs composants sont désormais la
          matière derrière `liquidGlass`, documentée sur la page Opale, et leurs
          pages sont supprimées.
@@ -170,37 +178,37 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     id: 'boutons-specialises',
     label: 'BOUTONS SPÉCIALISÉS',
     entries: [
-      canopEntry('CanopAddButton', 'AddButton'),
-      canopEntry('CanopSaveButton', 'SaveButton'),
-      canopEntry('CanopApproveButton', 'ApproveButton'),
-      canopEntry('CanopEditButton', 'EditButton'),
-      canopEntry('CanopDeleteButton', 'DeleteButton'),
-      canopEntry('CanopIconActionButton', 'IconActionButton'),
+      opaleEntry('AddButton', 'AddButton'),
+      opaleEntry('SaveButton', 'SaveButton'),
+      opaleEntry('ApproveButton', 'ApproveButton'),
+      opaleEntry('EditButton', 'EditButton'),
+      opaleEntry('DeleteButton', 'DeleteButton'),
+      opaleEntry('IconActionButton', 'IconActionButton'),
     ],
   },
   {
     id: 'affichage-de-donnees',
     label: 'AFFICHAGE DE DONNÉES',
     entries: [
-      canopEntry('CanopCard', 'Card'),
-      canopEntry('CanopCardGrid', 'CardGrid'),
-      canopEntry('CanopCarousel', 'Carousel'),
-      canopEntry('CanopDataTable', 'DataTable'),
-      canopEntry('CanopDescriptionList', 'DescriptionList'),
-      canopEntry('CanopBulletList', 'BulletList'),
-      canopEntry('CanopStatusChip', 'StatusChip'),
-      canopEntry('CanopBadge', 'Badge'),
-      canopEntry('CanopRating', 'Rating'),
-      canopEntry('CanopStatCard', 'StatCard'),
-      canopEntry('CanopDonut', 'Donut'),
-      canopEntry('CanopLegalLinks', 'LegalLinks'),
-      canopEntry('CanopLegend', 'Legend'),
-      canopEntry('CanopHeading', 'Heading'),
-      canopEntry('CanopText', 'Text'),
-      canopEntry('CanopIcon', 'Icon'),
+      opaleEntry('Card', 'Card'),
+      opaleEntry('CardGrid', 'CardGrid'),
+      opaleEntry('Carousel', 'Carousel'),
+      opaleEntry('DataTable', 'DataTable'),
+      opaleEntry('DescriptionList', 'DescriptionList'),
+      opaleEntry('BulletList', 'BulletList'),
+      opaleEntry('StatusChip', 'StatusChip'),
+      opaleEntry('Badge', 'Badge'),
+      opaleEntry('Rating', 'Rating'),
+      opaleEntry('StatCard', 'StatCard'),
+      opaleEntry('Donut', 'Donut'),
+      opaleEntry('LegalLinks', 'LegalLinks'),
+      opaleEntry('Legend', 'Legend'),
+      opaleEntry('Heading', 'Heading'),
+      opaleEntry('Text', 'Text'),
+      opaleEntry('Icon', 'Icon'),
       /* `Badge` et `Card` vendorés sont partis pour la même raison que les six
-         d'INPUTS : ils doublonnaient `canopEntry('CanopBadge')` et
-         `canopEntry('CanopCard')` juste au-dessus. `Glass` reste — c'est le
+         d'INPUTS : ils doublonnaient `opaleEntry('Badge')` et
+         `opaleEntry('Card')` juste au-dessus. `Glass` reste — c'est le
          matériau lui-même, et rien côté Opale ne le documente. */
       { label: 'Glass', slug: 'composants/glass' },
     ],
@@ -209,17 +217,17 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     id: 'feedback',
     label: 'FEEDBACK',
     entries: [
-      canopEntry('CanopFeedback', 'Feedback'),
-      canopEntry('CanopToast', 'Toast'),
-      canopEntry('CanopSpinner', 'Spinner'),
-      canopEntry('CanopProgressBar', 'ProgressBar'),
-      canopEntry('CanopConfirmDialog', 'ConfirmDialog'),
-      canopEntry('CanopEmptyState', 'EmptyState'),
+      opaleEntry('Feedback', 'Feedback'),
+      opaleEntry('Toast', 'Toast'),
+      opaleEntry('Spinner', 'Spinner'),
+      opaleEntry('ProgressBar', 'ProgressBar'),
+      opaleEntry('ConfirmDialog', 'ConfirmDialog'),
+      opaleEntry('EmptyState', 'EmptyState'),
       { label: 'Modal', slug: 'composants/modal' },
       /* « ToastProvider » ET NON « Toast » : le doublon de cette section
          n'était pas un composant mais un NOM. Le vendoré n'expose pas de
          `Toast` — il expose une file (`ToastProvider` + `useToast`) portaillée
-         sur `document.body`, là où `canopEntry('CanopToast')` ci-dessus
+         sur `document.body`, là où `opaleEntry('Toast')` ci-dessus
          documente une notification rendue en place. Les deux restent, sous
          deux noms qui les distinguent enfin. */
       { label: 'ToastProvider', slug: 'composants/toast-provider' },
@@ -229,17 +237,17 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     id: 'navigation',
     label: 'NAVIGATION',
     entries: [
-      canopEntry('CanopNavbar', 'Navbar'),
-      canopEntry('CanopMenu', 'Menu'),
-      canopEntry('CanopLink', 'Link'),
-      canopEntry('CanopSidePanel', 'SidePanel'),
-      canopEntry('CanopSettingsMenu', 'SettingsMenu'),
-      canopEntry('CanopCommandPalette', 'CommandPalette'),
-      canopEntry('CanopBreadcrumb', 'Breadcrumb'),
-      canopEntry('CanopToolbar', 'Toolbar'),
-      canopEntry('CanopCookieBanner', 'CookieBanner'),
-      canopEntry('CanopScrollbar', 'Scrollbar'),
-      canopEntry('CanopSelectionBar', 'SelectionBar'),
+      opaleEntry('Navbar', 'Navbar'),
+      opaleEntry('Menu', 'Menu'),
+      opaleEntry('Link', 'Link'),
+      opaleEntry('SidePanel', 'SidePanel'),
+      opaleEntry('SettingsMenu', 'SettingsMenu'),
+      opaleEntry('CommandPalette', 'CommandPalette'),
+      opaleEntry('Breadcrumb', 'Breadcrumb'),
+      opaleEntry('Toolbar', 'Toolbar'),
+      opaleEntry('CookieBanner', 'CookieBanner'),
+      opaleEntry('Scrollbar', 'Scrollbar'),
+      opaleEntry('SelectionBar', 'SelectionBar'),
       { label: 'Tabs', slug: 'composants/tabs' },
       { label: 'Sidebar', slug: 'composants/sidebar' },
       { label: 'SiteNav', slug: 'composants/site-nav' },
@@ -250,41 +258,41 @@ export const CANOP_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     id: 'mise-en-page',
     label: 'MISE EN PAGE',
     entries: [
-      canopEntry('CanopStack', 'Stack'),
-      canopEntry('CanopLayout', 'Layout'),
-      canopEntry('CanopPageScaffold', 'PageScaffold'),
-      canopEntry('CanopPageContent', 'PageContent'),
-      canopEntry('CanopDivider', 'Divider'),
-      canopEntry('CanopSeparator', 'Separator'),
-      canopEntry('CanopCanopyBackground', 'Background'),
-      canopEntry('CanopShapeBackground', 'ShapeBackground'),
-      canopEntry('CanopSlidingIndicator', 'SlidingIndicator'),
+      opaleEntry('Stack', 'Stack'),
+      opaleEntry('Layout', 'Layout'),
+      opaleEntry('PageScaffold', 'PageScaffold'),
+      opaleEntry('PageContent', 'PageContent'),
+      opaleEntry('Divider', 'Divider'),
+      opaleEntry('Separator', 'Separator'),
+      opaleEntry('BackgroundSurface', 'Background'),
+      opaleEntry('ShapeBackground', 'ShapeBackground'),
+      opaleEntry('SlidingIndicator', 'SlidingIndicator'),
     ],
   },
   {
     id: 'modules',
     label: 'MODULES',
     entries: [
-      canopEntry('CanopFileUploader', 'Upload'),
-      canopEntry('CanopFileCard', 'FileCard'),
-      canopEntry('CanopDropzone', 'Dropzone'),
-      canopEntry('CanopLightbox', 'Lightbox'),
-      canopEntry('CanopMap', 'Map'),
-      canopEntry('CanopRouteGuard', 'Auth'),
-      canopEntry('CanopI18n', 'i18n'),
-      canopEntry('CanopHttp', 'HTTP'),
-      canopEntry('CanopValidation', 'Validation'),
-      canopEntry('CanopSound', 'Sound'),
-      canopEntry('CanopLocalStore', 'Local store'),
-      canopEntry('CanopCountdown', 'Countdown'),
-      canopEntry('CanopGame', 'Game'),
-      canopEntry('CanopClipboard', 'Clipboard'),
-      canopEntry('CanopSvgMap', 'SVG map'),
+      opaleEntry('FileUploader', 'Upload'),
+      opaleEntry('FileCard', 'FileCard'),
+      opaleEntry('Dropzone', 'Dropzone'),
+      opaleEntry('Lightbox', 'Lightbox'),
+      opaleEntry('Map', 'Map'),
+      opaleEntry('RouteGuard', 'Auth'),
+      opaleEntry('I18n', 'i18n'),
+      opaleEntry('Http', 'HTTP'),
+      opaleEntry('Validation', 'Validation'),
+      opaleEntry('Sound', 'Sound'),
+      opaleEntry('LocalStore', 'Local store'),
+      opaleEntry('Countdown', 'Countdown'),
+      opaleEntry('Game', 'Game'),
+      opaleEntry('Clipboard', 'Clipboard'),
+      opaleEntry('SvgMap', 'SVG map'),
     ],
   },
 ];
 
-const CANOP_NAV_MARKER_SLUG = 'composants/opale-button';
+const OPALE_NAV_MARKER_SLUG = 'composants/opale-button';
 
 function legacyNavSectionsForPages(pages: readonly DocPage[]): readonly DocNavSection[] {
   return GROUPS.flatMap((group) => {
@@ -307,13 +315,13 @@ function legacyNavSectionsForPages(pages: readonly DocPage[]): readonly DocNavSe
  * leur rôle : il n'existe pas de catégorie « Opale » fourre-tout.
  */
 export function navSectionsForPages(pages: readonly DocPage[]): readonly DocNavSection[] {
-  if (!pages.some((page) => page.slug === CANOP_NAV_MARKER_SLUG)) {
+  if (!pages.some((page) => page.slug === OPALE_NAV_MARKER_SLUG)) {
     return legacyNavSectionsForPages(pages);
   }
 
   const bySlug = new Map(pages.map((page) => [page.slug, page]));
   const assignedSlugs = new Set<string>();
-  const sections = CANOP_NAV_SECTIONS.flatMap((section) => {
+  const sections = OPALE_NAV_SECTIONS.flatMap((section) => {
     const entries = section.entries.flatMap((definition) => {
       const page = bySlug.get(definition.slug);
 

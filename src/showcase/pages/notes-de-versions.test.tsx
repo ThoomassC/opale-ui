@@ -17,11 +17,11 @@ describe('Notes de versions — actions', () => {
     expect(sourceLinks).toHaveLength(RELEASES.length);
 
     for (const link of applicationLinks) {
-      expect(link).toHaveClass('canop-button', 'canop-button--primary');
+      expect(link).toHaveClass('opale-button', 'opale-button--primary');
     }
 
     for (const link of sourceLinks) {
-      expect(link).toHaveClass('canop-button', 'canop-button--tonal');
+      expect(link).toHaveClass('opale-button', 'opale-button--tonal');
       expect(link).not.toHaveClass('tc-doc-link');
     }
   });

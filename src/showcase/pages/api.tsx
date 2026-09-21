@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
-import { CanopButton } from '../../magic';
+import { Button } from '../../magic';
 
 /* =============================================================================
    LES TROIS BRIQUES QUE TOUTE PAGE DE COMPOSANT RÉEMPLOIE.
@@ -369,7 +369,7 @@ export function UsageBlock({
           role="group"
           aria-label={`Actions pour ${label}`}
         >
-          <CanopButton
+          <Button
             className="tc-doc-codeaction"
             variant="tonal"
             size="small"
@@ -379,8 +379,8 @@ export function UsageBlock({
             onClick={() => setOpen((current) => !current)}
           >
             {open ? 'Masquer le code' : 'Afficher le code'}
-          </CanopButton>
-          <CanopButton
+          </Button>
+          <Button
             className="tc-doc-codeaction"
             variant="tonal"
             size="small"
@@ -388,7 +388,7 @@ export function UsageBlock({
             onClick={() => void copyCode()}
           >
             {copyLabel}
-          </CanopButton>
+          </Button>
         </div>
       ) : null}
 

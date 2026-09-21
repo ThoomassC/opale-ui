@@ -86,7 +86,7 @@ describe('DocNav — rail permanent et statique', () => {
        fusion — la page Opale est là, la page vendorée n'y est plus.
 
        LES DEUX ASSERTIONS SONT NÉCESSAIRES, et la seconde plus que la première.
-       `navSectionsForPages` résout chaque slug de `CANOP_NAV_SECTIONS` par un
+       `navSectionsForPages` résout chaque slug de `OPALE_NAV_SECTIONS` par un
        `bySlug.get()` et SAUTE EN SILENCE ceux qu'aucune page ne sert : une
        entrée laissée en place après la suppression de sa page ne rend rien et
        ne rougit nulle part. C'est exactement ce qui est arrivé à

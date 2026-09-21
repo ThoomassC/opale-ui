@@ -1,37 +1,37 @@
 import { describe, expect, it } from 'vitest';
 
 import { ruleBody } from '../test/css-rules';
-import canopSource from '../magic/canop.css?raw';
+import opaleSource from '../magic/opale.css?raw';
 import docSource from './doc-v3.css?raw';
 import tokensSource from '../tokens/tokens.css?raw';
 
-describe('la forme interactive CanopUI', () => {
+describe('la forme interactive OpaleUI', () => {
   it('épingle la palette saphir et la géométrie mesurée sur la référence', () => {
-    const root = canopSource.match(/:root\s*\{([\s\S]*?)\}/)?.[1] ?? '';
-    const darkRoot = ruleBody(canopSource, ":root[data-theme='dark']") ?? '';
-    const button = ruleBody(canopSource, '.canop-button') ?? '';
-    const small = ruleBody(canopSource, '.canop-button--small') ?? '';
-    const large = ruleBody(canopSource, '.canop-button--large') ?? '';
+    const root = opaleSource.match(/:root\s*\{([\s\S]*?)\}/)?.[1] ?? '';
+    const darkRoot = ruleBody(opaleSource, ":root[data-theme='dark']") ?? '';
+    const button = ruleBody(opaleSource, '.opale-button') ?? '';
+    const small = ruleBody(opaleSource, '.opale-button--small') ?? '';
+    const large = ruleBody(opaleSource, '.opale-button--large') ?? '';
 
-    expect(root).toMatch(/--canop-primary:\s*#315c9e/);
-    expect(root).toMatch(/--canop-primary-dark:\s*#23457a/);
-    expect(root).toMatch(/--canop-primary-light:\s*#5f87c4/);
-    expect(root).toMatch(/--canop-font-display:\s*'Chivo'/);
-    expect(root).not.toMatch(/--canop-font-display:\s*'Titan One'/);
-    expect(root).toMatch(/--canop-font-mono:\s*'Hack'/);
-    expect(darkRoot).toMatch(/--canop-primary:\s*#5d87cb/);
-    expect(darkRoot).toMatch(/--canop-primary-dark:\s*#739cda/);
+    expect(root).toMatch(/--opale-primary:\s*#315c9e/);
+    expect(root).toMatch(/--opale-primary-dark:\s*#23457a/);
+    expect(root).toMatch(/--opale-primary-light:\s*#5f87c4/);
+    expect(root).toMatch(/--opale-font-display:\s*'Chivo'/);
+    expect(root).not.toMatch(/--opale-font-display:\s*'Titan One'/);
+    expect(root).toMatch(/--opale-font-mono:\s*'Hack'/);
+    expect(darkRoot).toMatch(/--opale-primary:\s*#5d87cb/);
+    expect(darkRoot).toMatch(/--opale-primary-dark:\s*#739cda/);
     /* LE SECONDAIRE EST PASSÉ DE L'OLIVE AU BLEU D'ACIER, et ce garde suit.
        Un bouton « secondaire » vert à côté d'un primaire saphir ne se lisait pas
        comme le second rôle du même rôle. Le chiffre change, l'exigence non :
-       c'est toujours `--canop-secondary-dark` qui peint le fond du bouton, et
+       c'est toujours `--opale-secondary-dark` qui peint le fond du bouton, et
        il est désormais mesuré à 5,52:1 avec l'encre claire — contre 4,75 pour
        l'olive qu'il remplace. */
-    expect(root).toMatch(/--canop-secondary-dark:\s*#3a6b8a/);
-    expect(root).toMatch(/--canop-accent:\s*#f4ad15/);
-    expect(root).toMatch(/--canop-danger:\s*#b3261e/);
-    expect(root).toMatch(/--canop-radius-md:\s*1\.375rem/);
-    expect(root).toMatch(/--canop-squircle-clip:\s*polygon\(/);
+    expect(root).toMatch(/--opale-secondary-dark:\s*#3a6b8a/);
+    expect(root).toMatch(/--opale-accent:\s*#f4ad15/);
+    expect(root).toMatch(/--opale-danger:\s*#b3261e/);
+    expect(root).toMatch(/--opale-radius-md:\s*1\.375rem/);
+    expect(root).toMatch(/--opale-squircle-clip:\s*polygon\(/);
     expect(root).toContain('0.0057');
     expect(root).toContain('0.7427');
 
@@ -55,7 +55,7 @@ describe('la forme interactive CanopUI', () => {
     const homeTitle = ruleBody(docSource, '.tc-doc-main--home .tc-doc-page__title') ?? '';
     const stats = ruleBody(docSource, '.tc-doc-home__stats dt') ?? '';
 
-    expect(canopSource).not.toContain('family=Titan+One');
+    expect(opaleSource).not.toContain('family=Titan+One');
     expect(pageTitle).toMatch(/font:\s*600\s+clamp\(1\.8rem,\s*3vw,\s*2\.75rem\)/);
     expect(pageTitle).toMatch(/letter-spacing:\s*-0\.03em/);
     expect(homeTitle).toMatch(/font-size:\s*clamp\(1\.8rem,\s*3vw,\s*2\.75rem\)/);
@@ -64,7 +64,7 @@ describe('la forme interactive CanopUI', () => {
        sujet, et aucun autre test ne le verrait. */
     expect(homeTitle).toMatch(/font-weight:\s*600/);
     expect(stats).toMatch(/font:\s*600\s+clamp\(1\.4rem,\s*2\.5vw,\s*2rem\)/);
-    expect(ruleBody(canopSource, '.canop-text--metric') ?? '').toMatch(/font-size:\s*2rem/);
+    expect(ruleBody(opaleSource, '.opale-text--metric') ?? '').toMatch(/font-size:\s*2rem/);
   });
 
   /* LA POLICE DE TITRE EST SERVIE PAR LA MÊME REQUÊTE QUE CHIVO, et c'est la
@@ -94,9 +94,9 @@ describe('la forme interactive CanopUI', () => {
 
     expect(scope).toMatch(/--focus-outer:\s*transparent/);
     expect(scope).toMatch(/--focus-inner:\s*transparent/);
-    expect(scope).toMatch(/--canop-focus:\s*transparent/);
+    expect(scope).toMatch(/--opale-focus:\s*transparent/);
 
-    /* Les deux `outline` posés en dur — ceux qui citaient `--canop-primary` et
+    /* Les deux `outline` posés en dur — ceux qui citaient `--opale-primary` et
        non un jeton de focus — sont éteints à part, les jetons ne pouvant rien
        pour eux. */
     expect(docSource).toMatch(
@@ -109,28 +109,28 @@ describe('la forme interactive CanopUI', () => {
   });
 
   it('borne la police de titre et la sert sans requête supplémentaire', () => {
-    const imports = canopSource.match(/@import url\([^)]*\);/g) ?? [];
-    const root = canopSource.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const imports = opaleSource.match(/@import url\([^)]*\);/g) ?? [];
+    const root = opaleSource.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
     expect(imports).toHaveLength(1);
     expect(imports[0]).toContain('family=Bricolage+Grotesque');
     expect(imports[0]).toContain('family=Chivo');
-    expect(root).toMatch(/--canop-font-title:\s*'Bricolage Grotesque'/);
-    /* `--canop-font-display` NE BOUGE PAS : il habille le titre du rail, les
+    expect(root).toMatch(/--opale-font-title:\s*'Bricolage Grotesque'/);
+    /* `--opale-font-display` NE BOUGE PAS : il habille le titre du rail, les
        titres de plaques, la métrique, le donut et le compte à rebours, qui
        gardent Chivo. Le jeton dédié est ce qui borne le changement. */
-    expect(root).toMatch(/--canop-font-display:\s*'Chivo'/);
+    expect(root).toMatch(/--opale-font-display:\s*'Chivo'/);
   });
 
   it('dessine Button avec le polygone sur un calque qui ne rogne pas le focus', () => {
-    const shape = canopSource.match(/\.canop-button::before\s*\{([\s\S]*?)\}/)?.[1] ?? '';
+    const shape = opaleSource.match(/\.opale-button::before\s*\{([\s\S]*?)\}/)?.[1] ?? '';
 
-    expect(shape).toMatch(/clip-path:\s*var\(--canop-squircle-clip\)/);
-    expect(shape).toMatch(/background:\s*var\(--canop-button-background\)/);
-    expect(canopSource).toMatch(
-      /\.canop-button:focus-visible,[\s\S]{0,240}outline:\s*3px\s+solid\s+var\(--canop-focus\)/,
+    expect(shape).toMatch(/clip-path:\s*var\(--opale-squircle-clip\)/);
+    expect(shape).toMatch(/background:\s*var\(--opale-button-background\)/);
+    expect(opaleSource).toMatch(
+      /\.opale-button:focus-visible,[\s\S]{0,240}outline:\s*3px\s+solid\s+var\(--opale-focus\)/,
     );
-    expect(canopSource).toMatch(/outline-offset:\s*3px/);
+    expect(opaleSource).toMatch(/outline-offset:\s*3px/);
   });
 
   it.each([
@@ -141,7 +141,7 @@ describe('la forme interactive CanopUI', () => {
     '.tc-doc-home__action::before',
   ])('%s devrait réutiliser la même squircle', (selector) => {
     expect(ruleBody(docSource, selector) ?? '').toMatch(
-      /clip-path:\s*var\(--canop-squircle-clip\)/,
+      /clip-path:\s*var\(--opale-squircle-clip\)/,
     );
   });
 
@@ -166,7 +166,7 @@ describe('la forme interactive CanopUI', () => {
 
     expect(code).toMatch(/border:\s*0\s*!important/);
     expect(code).toMatch(/border-inline-start:\s*0\s*!important/);
-    expect(code).toMatch(/font-family:\s*var\(--canop-font-mono\)/);
+    expect(code).toMatch(/font-family:\s*var\(--opale-font-mono\)/);
     expect(ruleBody(docSource, '.tc-doc-token--string') ?? '').toMatch(
       /color:\s*var\(--tc-doc-code-string\)/,
     );
@@ -177,7 +177,7 @@ describe('la forme interactive CanopUI', () => {
     const searchFocus = ruleBody(docSource, '.tc-doc-search:focus-within') ?? '';
 
     expect(docSource).toMatch(
-      /\.tc-doc-search::after\s*\{[\s\S]*?z-index:\s*-1;[\s\S]*?background:\s*var\(--canop-surface\)/,
+      /\.tc-doc-search::after\s*\{[\s\S]*?z-index:\s*-1;[\s\S]*?background:\s*var\(--opale-surface\)/,
     );
     expect(searchFocus).toMatch(/box-shadow:\s*none\s*!important/);
     expect(docSource).toMatch(

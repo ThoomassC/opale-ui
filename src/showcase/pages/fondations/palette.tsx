@@ -38,7 +38,7 @@ export const palettePage: DocPage = {
         </li>
       </ul>
 
-      {/* CE QUE LE SITE REND, EN PREMIER. Les plaques `--canop-*` viennent avant
+      {/* CE QUE LE SITE REND, EN PREMIER. Les plaques `--opale-*` viennent avant
           celles de `roles.css` parce que c'est cette palette-là que le lecteur a
           sous les yeux pendant qu'il lit la page. */}
       <div className="tc-doc-plates">

@@ -207,7 +207,7 @@ export const sidebarPage: DocPage = {
         {/* CE RENVOI A ÉTÉ RETIRÉ PLUTÔT QUE REDIRIGÉ, et c'est délibéré. Il
             pointait la page du `Checkbox` VENDORÉ, dont le `onChange` subissait
             exactement la même intersection par `GlassProps`. Cette page a
-            fusionné avec celle d'`Opale.Checkbox` — mais `CanopCheckboxProps`
+            fusionné avec celle d'`Opale.Checkbox` — mais `CheckboxProps`
             étend `InputHTMLAttributes<HTMLInputElement>` et émet un
             `ChangeEvent` ordinaire : la collision n'y existe PAS. Rediriger
             aurait envoyé le lecteur vérifier un défaut sur un composant qui ne
@@ -226,7 +226,7 @@ export const sidebarPage: DocPage = {
             d'Opale, et LA PHRASE NE TENAIT PLUS TELLE QUELLE : `Opale.Badge`
             rend un `<span>`, parfaitement valide dans un bouton. Le piège n'a
             pas disparu pour autant — il s'est déplacé sur la prop : sous
-            `liquidGlass`, `CanopBadge` délègue au vendoré, qui passe par
+            `liquidGlass`, `Badge` délègue au vendoré, qui passe par
             `Glass` et son `<div>`. C'est plus utile à dire que l'ancienne
             interdiction générale, parce que c'est la version qu'on écrit sans
             y penser en activant le verre partout. */}

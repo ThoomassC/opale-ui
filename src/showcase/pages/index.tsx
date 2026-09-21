@@ -21,7 +21,7 @@ import { siteNavPage } from './composants/site-nav';
 import { tabsPage } from './composants/tabs';
 import { toastPage } from './composants/toast';
 import { topbarPage } from './composants/topbar';
-import { opaleComponentPages } from './canop-components';
+import { opaleComponentPages } from './opale-components';
 
 /* =============================================================================
    LE REGISTRE — l'unique liste des pages du site, et donc de sa navigation.

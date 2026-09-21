@@ -92,9 +92,9 @@ export const elevationPage: DocPage = {
           composant est devenu la matière derrière `Opale.Card liquidGlass`. Le
           renvoi pointe donc la page d'Opale — mais la PHRASE ne pouvait pas
           suivre telle quelle. Elle disait « une carte de verre, sans cran », ce
-          qui était vrai de la vendorée et ne l'est plus : `CanopCardProps`
+          qui était vrai de la vendorée et ne l'est plus : `CardProps`
           déclare bel et bien `elevation?: 0 | 1 | 2 | 3`. Vérifié avant
-          réécriture : la prop ne pose que la classe `canop-card--e{n}`, et
+          réécriture : la prop ne pose que la classe `opale-card--e{n}`, et
           aucune feuille du dépôt ne sert cette classe ni ne lit
           `--elevation-*`. Le titre du paragraphe reste donc exact, et c'est le
           détail qui devient plus précis, pas moins. */}
@@ -105,7 +105,7 @@ export const elevationPage: DocPage = {
           Card
         </a>{' '}
         qui garde une prop <code>elevation</code> à quatre crans, mais celle-ci ne pose qu’une
-        classe — <code>canop-card--e{'{n}'}</code> — qu’aucune feuille ne sert : elle ne lit aucun
+        classe — <code>opale-card--e{'{n}'}</code> — qu’aucune feuille ne sert : elle ne lit aucun
         de ces jetons et ne peint donc aucune ombre. Les jetons restent publiés pour qui compose ses
         propres surfaces.
       </p>

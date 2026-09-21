@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import canopSource from './canop.css?raw';
-import { Opale } from './canop';
+import opaleSource from './opale.css?raw';
+import { Opale } from './opale';
 
 /* =============================================================================
    LE COMMUTATEUR NE DOIT CHANGER QUE LA MATIÈRE.
@@ -32,7 +32,7 @@ import { Opale } from './canop';
  * Le marqueur du vrai matériau.
  *
  * `Glass` monte un filtre SVG de déplacement (`lg-dist`) pour chacune de ses
- * instances. Sa présence distingue le VERRE du lavis CSS `.canop-liquid` qui
+ * instances. Sa présence distingue le VERRE du lavis CSS `.opale-liquid` qui
  * l'imitait — et c'est exactement la distinction que ces fusions établissent :
  * chercher une classe d'Opale aurait laissé passer l'imitation.
  */
@@ -224,7 +224,7 @@ describe('les sept fusions original / liquid glass', () => {
     expect(data.get('role')).toBe('b');
   });
 
-  /* LA RÉFÉRENCE DE `CanopInput`, dont la perte est la plus silencieuse de
+  /* LA RÉFÉRENCE DE `Input`, dont la perte est la plus silencieuse de
      toutes : le champ s'affiche, et `ref.current` vaut `null`. Le composant
      vendoré ne DÉCLARE pas de `ref` — React 19 la transmet quand même, et
      c'est ce que ce test épingle, car un recast qui saute ne fait rougir
@@ -288,7 +288,7 @@ describe('les teintes du verre', () => {
      venait le vert. Sans ce nettoyage, le garde rougissait sur sa propre
      documentation — un faux positif qu'on aurait fini par désactiver, et le
      garde avec. */
-  const stripped = canopSource.replace(/\/\*[\s\S]*?\*\//g, '');
+  const stripped = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
   const glassRules = [...stripped.matchAll(/([^{}]*--glass[^{}]*)\{([^}]*)\}/g)].map(
     ([, selector, body]) => `${selector.trim()} { ${body.replace(/\s+/g, ' ').trim()} }`,
   );
@@ -310,14 +310,14 @@ describe('les teintes du verre', () => {
   });
 
   it('peint les états actifs avec le primaire d’Opale', () => {
-    for (const selector of ['.canop-toggle--glass', '.canop-checkbox--glass']) {
+    for (const selector of ['.opale-toggle--glass', '.opale-checkbox--glass']) {
       const rule = new RegExp(
-        `${selector.replace('.', '\\.')}\\[data-checked='true'\\][^{]*\\{[^}]*var\\(--canop-primary\\)`,
+        `${selector.replace('.', '\\.')}\\[data-checked='true'\\][^{]*\\{[^}]*var\\(--opale-primary\\)`,
       );
 
       expect(
-        canopSource,
-        `L’état actif de « ${selector} » ne cite pas --canop-primary : sa couleur ` +
+        opaleSource,
+        `L’état actif de « ${selector} » ne cite pas --opale-primary : sa couleur ` +
           'vient donc d’ailleurs que de la palette d’Opale.',
       ).toMatch(rule);
     }
@@ -342,9 +342,9 @@ describe('les teintes du verre', () => {
    rétrécisse pas à l'enveloppe une seconde fois.
    ========================================================================== */
 describe('l’inertie de la peau de verre', () => {
-  const stripped = canopSource.replace(/\/\*[\s\S]*?\*\//g, '');
+  const stripped = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
 
-  it.each(['.canop-checkbox--glass', '.canop-toggle--glass'])(
+  it.each(['.opale-checkbox--glass', '.opale-toggle--glass'])(
     '%s coupe le pointeur sur ses DESCENDANTS et pas seulement sur lui-même',
     (wrapper) => {
       const rules = [...stripped.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, , body]) =>

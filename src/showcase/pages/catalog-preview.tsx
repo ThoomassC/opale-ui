@@ -18,11 +18,11 @@ const PREVIEW_IMAGE =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23dce7fb%22/%3E%3Ccircle cx=%22180%22 cy=%22155%22 r=%2275%22 fill=%22%233d66aa%22/%3E%3Cpath d=%22M40 320 245 120l95 105 80-70 180 165Z%22 fill=%22%23f8b31a%22 opacity=%22.85%22/%3E%3C/svg%3E';
 
 function Row({ children }: { children: ReactNode }) {
-  return <div className="tc-doc-canop-preview__row">{children}</div>;
+  return <div className="tc-doc-opale-preview__row">{children}</div>;
 }
 
 function DemoFrame({ children }: { children: ReactNode }) {
-  return <div className="tc-doc-canop-demo">{children}</div>;
+  return <div className="tc-doc-opale-demo">{children}</div>;
 }
 
 /* =============================================================================
@@ -34,7 +34,7 @@ function DemoFrame({ children }: { children: ReactNode }) {
    démonstration.
 
    LE MOUVEMENT EST DANS LA DÉMONSTRATION ET NON DANS LE COMPOSANT, et c'est la
-   distinction qui compte : `CanopProgressBar` reste piloté par sa prop `value`,
+   distinction qui compte : `ProgressBar` reste piloté par sa prop `value`,
    comme doit l'être une barre DÉTERMINÉE. Lui coudre une animation interne
    mentirait sur une progression réelle et retirerait au consommateur le
    contrôle de sa propre valeur.
@@ -100,12 +100,12 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [allowed, setAllowed] = useState(true);
   const [valid, setValid] = useState(true);
   const [score, setScore] = useState(12);
-  const progress = useDemoProgress(name === 'CanopProgressBar');
+  const progress = useDemoProgress(name === 'ProgressBar');
 
   let preview: ReactNode;
 
   switch (name) {
-    case 'CanopButton':
+    case 'Button':
       preview = (
         <Row>
           <Opale.Button liquidGlass={liquidGlass}>Primaire</Opale.Button>
@@ -121,14 +121,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopPressable':
+    case 'Pressable':
       preview = (
         <Opale.Pressable onClick={() => setMessage('Surface activée')}>
           Surface pressable · {message}
         </Opale.Pressable>
       );
       break;
-    case 'CanopInlineInput':
+    case 'InlineInput':
       preview = (
         <Opale.InlineInput
           label="Nom du projet"
@@ -137,7 +137,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopInput':
+    case 'Input':
       preview = (
         <Opale.Input
           liquidGlass={liquidGlass}
@@ -147,7 +147,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopCheckbox':
+    case 'Checkbox':
       preview = (
         <Opale.Checkbox
           liquidGlass={liquidGlass}
@@ -157,12 +157,12 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopToggle':
+    case 'Toggle':
       preview = (
         <Opale.Toggle liquidGlass={liquidGlass} label="Notifications activées" defaultChecked />
       );
       break;
-    case 'CanopSlider':
+    case 'Slider':
       preview = (
         <Opale.Slider
           liquidGlass={liquidGlass}
@@ -175,7 +175,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopMultiSelect':
+    case 'MultiSelect':
       preview = (
         <Opale.MultiSelect
           label="Domaines"
@@ -189,7 +189,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopSelect':
+    case 'Select':
       preview = (
         <Opale.Select
           liquidGlass={liquidGlass}
@@ -200,7 +200,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopAutocomplete':
+    case 'Autocomplete':
       preview = (
         <Opale.Autocomplete
           label="Composant"
@@ -209,7 +209,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopForm':
+    case 'Form':
       preview = (
         <Opale.Form
           onSubmit={(event: FormEvent<HTMLFormElement>) => {
@@ -223,7 +223,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Form>
       );
       break;
-    case 'CanopLanguageSelector':
+    case 'LanguageSelector':
       preview = (
         <Row>
           <Opale.LanguageSelector
@@ -234,12 +234,12 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopSegmentedControl':
+    case 'SegmentedControl':
       preview = (
         <Opale.SegmentedControl options={OPTIONS} value={selected} onChange={setSelected} />
       );
       break;
-    case 'CanopThemeToggle':
+    case 'ThemeToggle':
       preview = (
         <Row>
           <Opale.ThemeToggle dark={dark} onChange={setDark} />
@@ -247,7 +247,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopAddButton':
+    case 'AddButton':
       preview = (
         <DemoFrame>
           <Opale.AddButton onClick={() => setMessage('Élément ajouté')} />
@@ -255,10 +255,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopSaveButton':
+    case 'SaveButton':
       preview = <Opale.SaveButton onSaved={() => setMessage('Modification enregistrée')} />;
       break;
-    case 'CanopApproveButton':
+    case 'ApproveButton':
       preview = (
         <DemoFrame>
           <Opale.ApproveButton onClick={() => setMessage('Demande validée')} />
@@ -266,7 +266,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopEditButton':
+    case 'EditButton':
       preview = (
         <DemoFrame>
           <Opale.EditButton onClick={() => setMessage('Mode édition')} />
@@ -274,7 +274,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopDeleteButton':
+    case 'DeleteButton':
       preview = (
         <DemoFrame>
           <Opale.DeleteButton onClick={() => setMessage('Élément supprimé')} />
@@ -282,7 +282,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopIconActionButton':
+    case 'IconActionButton':
       preview = (
         <DemoFrame>
           <Opale.IconActionButton label="Partager" onClick={() => setMessage('Lien partagé')} />
@@ -290,7 +290,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopCard':
+    case 'Card':
       preview = (
         <Opale.Card
           liquidGlass={liquidGlass}
@@ -302,7 +302,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Card>
       );
       break;
-    case 'CanopCardGrid':
+    case 'CardGrid':
       preview = (
         <Opale.CardGrid>
           <Opale.StatCard
@@ -320,16 +320,16 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.CardGrid>
       );
       break;
-    case 'CanopCarousel':
+    case 'Carousel':
       preview = (
-        <Opale.Carousel className="tc-doc-canop-demo__carousel">
+        <Opale.Carousel className="tc-doc-opale-demo__carousel">
           <Opale.Card title="Carte 1">Découvrir</Opale.Card>
           <Opale.Card title="Carte 2">Comparer</Opale.Card>
           <Opale.Card title="Carte 3">Adopter</Opale.Card>
         </Opale.Carousel>
       );
       break;
-    case 'CanopDataTable':
+    case 'DataTable':
       preview = (
         <Opale.DataTable
           columns={[
@@ -343,7 +343,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopDescriptionList':
+    case 'DescriptionList':
       preview = (
         <Opale.DescriptionList
           items={[
@@ -354,14 +354,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopBulletList':
+    case 'BulletList':
       preview = (
         <Opale.BulletList
           items={['Accessible au clavier', 'TypeScript strict', 'Thèmes clair et sombre']}
         />
       );
       break;
-    case 'CanopStatusChip':
+    case 'StatusChip':
       preview = (
         <Row>
           <Opale.StatusChip status="En production" />
@@ -369,7 +369,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopBadge':
+    case 'Badge':
       preview = (
         <Row>
           <Opale.Badge liquidGlass={liquidGlass}>Stable</Opale.Badge>
@@ -382,10 +382,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopRating':
+    case 'Rating':
       preview = <Opale.Rating value={4} max={5} />;
       break;
-    case 'CanopStatCard':
+    case 'StatCard':
       preview = (
         <Opale.StatCard
           liquidGlass={liquidGlass}
@@ -395,10 +395,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopDonut':
+    case 'Donut':
       preview = <Opale.Donut value={72} label="72 %" />;
       break;
-    case 'CanopLegalLinks':
+    case 'LegalLinks':
       preview = (
         <Opale.LegalLinks
           links={[
@@ -408,12 +408,12 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopLegend':
+    case 'Legend':
       preview = (
         <Opale.Legend items={[{ label: 'Stable' }, { label: 'En cours' }, { label: 'Déprécié' }]} />
       );
       break;
-    case 'CanopHeading':
+    case 'Heading':
       preview = (
         <DemoFrame>
           <Opale.Heading level={2}>Titre de section</Opale.Heading>
@@ -421,7 +421,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopText':
+    case 'Text':
       preview = (
         <DemoFrame>
           <Opale.Text>Corps de texte lisible.</Opale.Text>
@@ -430,7 +430,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopIcon':
+    case 'Icon':
       preview = (
         <Row>
           <Opale.Icon name="✦" label="Étincelle" />
@@ -439,14 +439,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopFeedback':
+    case 'Feedback':
       preview = (
         <Opale.Feedback severity="success" title="En production">
           La dernière version est disponible.
         </Opale.Feedback>
       );
       break;
-    case 'CanopToast':
+    case 'Toast':
       preview = (
         <DemoFrame>
           <Opale.Button size="small" onClick={() => setToastOpen(true)}>
@@ -460,13 +460,13 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopSpinner':
+    case 'Spinner':
       preview = <Opale.Spinner label="Chargement des composants" />;
       break;
-    case 'CanopProgressBar':
+    case 'ProgressBar':
       preview = <Opale.ProgressBar label="Progression" value={progress} />;
       break;
-    case 'CanopConfirmDialog':
+    case 'ConfirmDialog':
       preview = (
         <>
           <Opale.Button onClick={() => setDialogOpen(true)}>Supprimer le fichier</Opale.Button>
@@ -484,7 +484,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </>
       );
       break;
-    case 'CanopEmptyState':
+    case 'EmptyState':
       preview = (
         <Opale.EmptyState
           title="Aucun projet"
@@ -493,10 +493,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopNavbar':
+    case 'Navbar':
       preview = <Opale.Navbar items={NAV_ITEMS} activeId={activeNav} onSelect={setActiveNav} />;
       break;
-    case 'CanopMenu':
+    case 'Menu':
       preview = (
         <Opale.Menu
           label="Actions"
@@ -507,10 +507,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopLink':
+    case 'Link':
       preview = <Opale.Link href="#/installation">Lire le guide d’installation →</Opale.Link>;
       break;
-    case 'CanopSidePanel':
+    case 'SidePanel':
       preview = (
         <>
           <Opale.Button onClick={() => setPanelOpen(true)}>Ouvrir le panneau</Opale.Button>
@@ -520,7 +520,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </>
       );
       break;
-    case 'CanopSettingsMenu':
+    case 'SettingsMenu':
       preview = (
         <Opale.SettingsMenu>
           <Opale.ThemeToggle dark={dark} onChange={setDark} />
@@ -531,7 +531,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.SettingsMenu>
       );
       break;
-    case 'CanopCommandPalette':
+    case 'CommandPalette':
       preview = (
         <>
           <Opale.Button onClick={() => setPaletteOpen(true)}>Ouvrir la palette</Opale.Button>
@@ -543,7 +543,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </>
       );
       break;
-    case 'CanopBreadcrumb':
+    case 'Breadcrumb':
       preview = (
         <Opale.Breadcrumb
           items={[
@@ -554,7 +554,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopToolbar':
+    case 'Toolbar':
       preview = (
         <Opale.Toolbar>
           <Opale.Input aria-label="Rechercher" placeholder="Rechercher" />
@@ -562,7 +562,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Toolbar>
       );
       break;
-    case 'CanopCookieBanner':
+    case 'CookieBanner':
       preview = (
         <DemoFrame>
           <Opale.Button size="small" onClick={() => setCookieOpen(true)}>
@@ -572,16 +572,16 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopScrollbar':
+    case 'Scrollbar':
       preview = (
-        <Opale.Scrollbar className="tc-doc-canop-demo__scroll">
+        <Opale.Scrollbar className="tc-doc-opale-demo__scroll">
           {Array.from({ length: 8 }, (_, index) => (
             <p key={index}>Ligne de contenu {index + 1}</p>
           ))}
         </Opale.Scrollbar>
       );
       break;
-    case 'CanopSelectionBar':
+    case 'SelectionBar':
       preview = (
         <Opale.SelectionBar selectedCount={3}>
           <Opale.Button size="small" variant="danger">
@@ -590,7 +590,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.SelectionBar>
       );
       break;
-    case 'CanopStack':
+    case 'Stack':
       preview = (
         <Opale.Stack direction="row" wrap>
           <Opale.Badge>Design</Opale.Badge>
@@ -599,10 +599,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Stack>
       );
       break;
-    case 'CanopLayout':
+    case 'Layout':
       preview = (
         <Opale.Layout
-          className="tc-doc-canop-demo__layout"
+          className="tc-doc-opale-demo__layout"
           navigation={<Opale.Navbar items={NAV_ITEMS.slice(0, 2)} activeId="overview" />}
         >
           <Opale.Heading level={3}>Contenu principal</Opale.Heading>
@@ -610,9 +610,9 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Layout>
       );
       break;
-    case 'CanopPageScaffold':
+    case 'PageScaffold':
       preview = (
-        <Opale.PageScaffold className="tc-doc-canop-demo__page">
+        <Opale.PageScaffold className="tc-doc-opale-demo__page">
           <Opale.Toolbar>
             <strong>Opale</strong>
             <Opale.Badge>V3</Opale.Badge>
@@ -623,7 +623,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.PageScaffold>
       );
       break;
-    case 'CanopPageContent':
+    case 'PageContent':
       preview = (
         <Opale.PageContent>
           <Opale.Heading level={3}>Contenu centré</Opale.Heading>
@@ -631,7 +631,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.PageContent>
       );
       break;
-    case 'CanopDivider':
+    case 'Divider':
       preview = (
         <DemoFrame>
           <span>Avant le séparateur</span>
@@ -640,7 +640,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopSeparator':
+    case 'Separator':
       preview = (
         <Row>
           <span>Stable</span>
@@ -651,21 +651,21 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopCanopyBackground':
+    case 'BackgroundSurface':
       preview = (
-        <Opale.CanopyBackground className="tc-doc-canop-demo__background">
-          <Opale.Card title="Fond Canopy">Contenu au premier plan</Opale.Card>
-        </Opale.CanopyBackground>
+        <Opale.BackgroundSurface className="tc-doc-opale-demo__background">
+          <Opale.Card title="Fond animé">Contenu au premier plan</Opale.Card>
+        </Opale.BackgroundSurface>
       );
       break;
-    case 'CanopShapeBackground':
+    case 'ShapeBackground':
       preview = (
-        <Opale.ShapeBackground className="tc-doc-canop-demo__background">
+        <Opale.ShapeBackground className="tc-doc-opale-demo__background">
           <Opale.Card title="Formes organiques">Décor non interactif</Opale.Card>
         </Opale.ShapeBackground>
       );
       break;
-    case 'CanopSlidingIndicator':
+    case 'SlidingIndicator':
       preview = (
         <Opale.SlidingIndicator>
           <Opale.Button size="small" variant="tonal">
@@ -677,7 +677,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.SlidingIndicator>
       );
       break;
-    case 'CanopFileUploader':
+    case 'FileUploader':
       preview = (
         <DemoFrame>
           <Opale.FileUploader
@@ -687,7 +687,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopFileCard':
+    case 'FileCard':
       preview = (
         <Opale.FileCard
           name="design-system.fig"
@@ -697,14 +697,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'CanopDropzone':
+    case 'Dropzone':
       preview = (
         <Opale.Dropzone onFiles={(files) => setMessage(`${files.length} fichier(s) déposé(s)`)}>
           Déposez les maquettes ici
         </Opale.Dropzone>
       );
       break;
-    case 'CanopLightbox':
+    case 'Lightbox':
       preview = (
         <>
           <Opale.Button onClick={() => setLightboxOpen(true)}>Voir l’image</Opale.Button>
@@ -717,7 +717,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </>
       );
       break;
-    case 'CanopMap':
+    case 'Map':
       preview = (
         <Opale.Map>
           <Row>
@@ -727,7 +727,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Map>
       );
       break;
-    case 'CanopRouteGuard':
+    case 'RouteGuard':
       preview = (
         <DemoFrame>
           <Opale.Toggle
@@ -741,7 +741,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopI18n':
+    case 'I18n':
       preview = (
         <Opale.I18n>
           <Row>
@@ -756,7 +756,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.I18n>
       );
       break;
-    case 'CanopHttp':
+    case 'Http':
       preview = (
         <DemoFrame>
           <Opale.Http status={message === 'Chargement' ? 'Chargement…' : 'API prête · 200'} />
@@ -772,7 +772,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopValidation':
+    case 'Validation':
       preview = (
         <DemoFrame>
           <Opale.Input
@@ -787,10 +787,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopSound':
+    case 'Sound':
       preview = <Opale.Sound enabled />;
       break;
-    case 'CanopLocalStore':
+    case 'LocalStore':
       preview = (
         <Opale.LocalStore>
           <DemoFrame>
@@ -804,7 +804,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.LocalStore>
       );
       break;
-    case 'CanopCountdown':
+    case 'Countdown':
       preview = (
         <Row>
           <span>Départ dans</span>
@@ -812,7 +812,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Row>
       );
       break;
-    case 'CanopGame':
+    case 'Game':
       preview = (
         <DemoFrame>
           <Opale.Game score={score} />
@@ -822,14 +822,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'CanopClipboard':
+    case 'Clipboard':
       preview = (
         <Opale.Clipboard value="npm install @thomascaron/opale-ui">
           Copier la commande
         </Opale.Clipboard>
       );
       break;
-    case 'CanopSvgMap':
+    case 'SvgMap':
       preview = (
         <Opale.SvgMap>
           <circle cx="205" cy="75" r="12" fill="currentColor">
@@ -849,14 +849,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   return (
     /* LE MATÉRIAU EST SUR LE COMPOSANT, PAS SUR SON CADRE.
 
-       Ce conteneur portait `canop-liquid` : une plaque de verre grande comme
+       Ce conteneur portait `opale-liquid` : une plaque de verre grande comme
        toute la zone de démonstration, DERRIÈRE le composant qui en portait déjà
        une. On voyait donc deux surfaces empilées là où l'on venait en observer
        une, et le spécimen ne se lisait plus à la place ni à la taille qu'il
        aurait dans une vraie page. Le cadre redevient neutre ; l'attribut reste,
        il sert au ciblage. */
     <div
-      className="tc-doc-canop-preview__material"
+      className="tc-doc-opale-preview__material"
       data-liquid-glass={liquidGlass ? 'true' : undefined}
       data-preview-component={name}
     >

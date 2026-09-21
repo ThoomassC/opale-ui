@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { CANOP_CATALOG, type CanopCatalogEntry, Opale } from '../../magic';
+import { OPALE_CATALOG, type CatalogEntry, Opale } from '../../magic';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import type { DocPage } from '../doc-model';
 import { UsageBlock } from './api';
@@ -26,16 +26,16 @@ import { CatalogPreview } from './catalog-preview';
    arrivés avec la suppression des doublons : leur homologue vendoré avait sa
    propre page, et il est devenu la matière de ce commutateur. */
 const FORWARDS_LIQUID_GLASS: readonly string[] = [
-  'CanopBadge',
-  'CanopButton',
-  'CanopCard',
-  'CanopCardGrid',
-  'CanopCheckbox',
-  'CanopInput',
-  'CanopSelect',
-  'CanopSlider',
-  'CanopStatCard',
-  'CanopToggle',
+  'Badge',
+  'Button',
+  'Card',
+  'CardGrid',
+  'Checkbox',
+  'Input',
+  'Select',
+  'Slider',
+  'StatCard',
+  'Toggle',
 ];
 
 /**
@@ -59,28 +59,28 @@ function exampleCode(name: string, liquidGlass = false): string {
     liquidGlass && FORWARDS_LIQUID_GLASS.includes(name) ? withLiquidGlass(code) : code;
 
   switch (name) {
-    case 'CanopButton':
+    case 'Button':
       return decorate(`<Opale.Button variant="primary">Primaire</Opale.Button>
 <Opale.Button variant="secondary">Secondaire</Opale.Button>
 <Opale.Button variant="accent">Accent</Opale.Button>
 <Opale.Button variant="danger">Danger</Opale.Button>`);
-    case 'CanopInput':
+    case 'Input':
       return decorate(`<Opale.Input
   label="Email"
   placeholder="thomas@crn-studio.com"
   helperText="Une adresse valide est requise."
 />`);
-    case 'CanopCheckbox':
+    case 'Checkbox':
       return decorate(`<Opale.Checkbox
   label="Recevoir les notifications"
   description="Les nouveautés du design system."
   defaultChecked
 />`);
-    case 'CanopToggle':
+    case 'Toggle':
       return decorate('<Opale.Toggle label="Activées" defaultChecked />');
-    case 'CanopSlider':
+    case 'Slider':
       return decorate('<Opale.Slider label="Volume" defaultValue={64} min={0} max={100} />');
-    case 'CanopSegmentedControl':
+    case 'SegmentedControl':
       return decorate(`<Opale.SegmentedControl
   value="all"
   options={[
@@ -89,61 +89,61 @@ function exampleCode(name: string, liquidGlass = false): string {
     { value: 'archived', label: 'Archivés' },
   ]}
 />`);
-    case 'CanopCard':
+    case 'Card':
       return decorate(`<Opale.Card title="Une surface Opale" subtitle="Carte, actions et élévation.">
   <p>Une surface claire, lisible et responsive.</p>
 </Opale.Card>`);
-    case 'CanopCardGrid':
+    case 'CardGrid':
       return decorate(`<Opale.CardGrid>
   <Opale.StatCard label="Composants" value="77" delta="+12 cette version" />
   <Opale.StatCard label="Thèmes" value="2 globaux + 1 matériau" />
 </Opale.CardGrid>`);
-    case 'CanopBadge':
+    case 'Badge':
       return decorate('<Opale.Badge tone="accent">Nouveau</Opale.Badge>');
-    case 'CanopStatCard':
+    case 'StatCard':
       return decorate('<Opale.StatCard label="Disponibilité" value="99,9 %" delta="+0,4 %" />');
-    case 'CanopHeading':
+    case 'Heading':
       return decorate('<Opale.Heading level={2}>Titre de section</Opale.Heading>');
-    case 'CanopText':
+    case 'Text':
       return decorate('<Opale.Text variant="caption">Légende secondaire</Opale.Text>');
-    case 'CanopDataTable':
+    case 'DataTable':
       return decorate(`<Opale.DataTable
   columns={[{ key: 'name', label: 'Nom' }, { key: 'status', label: 'Statut' }]}
   rows={[{ name: 'Button', status: 'Stable' }, { name: 'DataTable', status: 'Nouveau' }]}
 />`);
-    case 'CanopFeedback':
+    case 'Feedback':
       return decorate(`<Opale.Feedback severity="success" title="En production">
   La dernière version est disponible.
 </Opale.Feedback>`);
-    case 'CanopToast':
+    case 'Toast':
       return decorate('<Opale.Toast message="Modifications enregistrées" />');
-    case 'CanopProgressBar':
+    case 'ProgressBar':
       return decorate('<Opale.ProgressBar label="Progression" value={72} />');
-    case 'CanopLink':
+    case 'Link':
       return decorate('<Opale.Link href="/installation">Lire le guide</Opale.Link>');
-    case 'CanopFileCard':
+    case 'FileCard':
       return decorate('<Opale.FileCard name="design-system.fig" size="2,4 Mo" />');
-    case 'CanopClipboard':
+    case 'Clipboard':
       return decorate('<Opale.Clipboard value="npm install @thomascaron/opale-ui" />');
     default:
       return decorate(`<Opale.${displayName} />`);
   }
 }
 
-function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
+function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
   const code = exampleCode(entry.name, liquidGlass);
 
   return (
-    <div className="tc-doc-canop-page">
+    <div className="tc-doc-opale-page">
       <p className="tc-doc-lede">{entry.description}</p>
-      <div className="tc-doc-canop-meta">
+      <div className="tc-doc-opale-meta">
         <Opale.Badge>{entry.category}</Opale.Badge>
         <span>Composant Opale · TypeScript strict</span>
       </div>
       <section
-        className="tc-doc-specimen tc-doc-specimen--canop"
+        className="tc-doc-specimen tc-doc-specimen--opale"
         aria-label={`Démonstration ${displayName}`}
       >
         <div className="tc-doc-specimen__header">
@@ -153,8 +153,8 @@ function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
           </div>
           <Opale.Badge tone="accent">V3</Opale.Badge>
         </div>
-        <div className="tc-doc-canop-material-toggle">
-          <div className="tc-doc-canop-material-toggle__text">
+        <div className="tc-doc-opale-material-toggle">
+          <div className="tc-doc-opale-material-toggle__text">
             <strong>Rendu Liquid Glass</strong>
             <span>Appliquer le matériau uniquement à ce composant.</span>
           </div>
@@ -170,7 +170,7 @@ function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
             rectangle pâle, et l'encre claire du bouton « Primaire » disparaissait
             purement et simplement dans le fond. Le commutateur pose donc la
             scène en même temps que la matière. */}
-        <div className="tc-doc-canop-preview" data-liquid-glass={liquidGlass ? 'true' : undefined}>
+        <div className="tc-doc-opale-preview" data-liquid-glass={liquidGlass ? 'true' : undefined}>
           <CatalogPreview name={entry.name} liquidGlass={liquidGlass} />
         </div>
         {/* LA LIGNE D'`import` EST REMONTÉE ICI, ET CE N'EST PAS UN DÉTAIL DE
@@ -192,10 +192,10 @@ function CanopComponentPage({ entry }: { entry: CanopCatalogEntry }) {
   );
 }
 
-export const opaleComponentPages: readonly DocPage[] = CANOP_CATALOG.map((entry) => ({
+export const opaleComponentPages: readonly DocPage[] = OPALE_CATALOG.map((entry) => ({
   slug: catalogComponentSlug(entry.name),
   label: catalogComponentLabel(entry.name),
   group: 'composants',
   title: catalogComponentLabel(entry.name),
-  render: () => <CanopComponentPage entry={entry} />,
+  render: () => <ComponentPage entry={entry} />,
 }));

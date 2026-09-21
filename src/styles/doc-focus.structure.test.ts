@@ -8,7 +8,7 @@ import docSource from './doc.css?raw';
 
    `doc-v3.css` neutralise désormais tout indicateur de focus de la vitrine, à
    la demande explicite du propriétaire du design system, en rendant
-   `--focus-outer`, `--focus-inner` et `--canop-focus` transparents. Les règles
+   `--focus-outer`, `--focus-inner` et `--opale-focus` transparents. Les règles
    de `doc.css` vérifiées ci-dessous EXISTENT toujours et restent cohérentes
    entre elles — les assertions sont donc encore vraies —, mais elles ne
    dessinent plus rien à l'écran.

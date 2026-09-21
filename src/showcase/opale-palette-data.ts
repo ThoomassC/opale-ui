@@ -11,7 +11,7 @@ import type { Plate } from './palette-data';
    la feuille. Les effacer aurait supprimé une information vraie.
 
    Seulement, ce n'est plus ce que la VITRINE rend. Depuis la V3, tout ce qu'on
-   voit à l'écran est peint par les jetons `--canop-*` : un saphir à la place du
+   voit à l'écran est peint par les jetons `--opale-*` : un saphir à la place du
    teal, un sol crème, une olive et un ambre. La page de palette annonçait donc
    une marque que le site n'affichait plus — le même défaut que la page de
    typographie, qui promettait trois polices système alors que Chivo et
@@ -22,15 +22,15 @@ import type { Plate } from './palette-data';
 
    LES HEXADÉCIMAUX SONT LITTÉRAUX, POUR LA MÊME RAISON QUE DANS L'AUTRE
    FICHIER : une plaque documente UN thème et doit le montrer quel que soit
-   celui que le lecteur a choisi. Une pastille en `var(--canop-primary)` ne
+   celui que le lecteur a choisi. Une pastille en `var(--opale-primary)` ne
    montrerait jamais qu'une moitié de la palette.
 
    ET ILS SONT TENUS PAR UN TEST, pour la raison que `palette-data.ts` a apprise
    à ses dépens : une valeur écrite à la main sans garde diverge de la feuille
-   sans que rien ne proteste. `opale-palette-data.test.ts` relit `canop.css` et
+   sans que rien ne proteste. `opale-palette-data.test.ts` relit `opale.css` et
    compare chaque valeur au jeton déclaré, thème par thème.
 
-   AUCUN RATIO N'EST RECOPIÉ ICI. `canop.css` n'en documente pas, et inventer un
+   AUCUN RATIO N'EST RECOPIÉ ICI. `opale.css` n'en documente pas, et inventer un
    chiffre serait pire que de n'en donner aucun. Le test les CALCULE avec
    `contrastRatio` du contrat de couleur et vérifie les paires qui portent du
    texte ; la page, elle, n'en affiche aucun plutôt qu'un chiffre non mesuré.
@@ -66,41 +66,41 @@ export const OPALE_PLATES: readonly Plate[] = [
         title: 'Le saphir',
         note: 'L’encre des actions : boutons, liens, onglet courant, entrée active du sommaire.',
         swatches: [
-          { token: '--canop-primary', hex: '#315c9e', against: 'encre des actions' },
-          { token: '--canop-primary-dark', hex: '#23457a', against: 'appui et survol soutenu' },
-          { token: '--canop-primary-light', hex: '#5f87c4', against: 'lavis et états atténués' },
+          { token: '--opale-primary', hex: '#315c9e', against: 'encre des actions' },
+          { token: '--opale-primary-dark', hex: '#23457a', against: 'appui et survol soutenu' },
+          { token: '--opale-primary-light', hex: '#5f87c4', against: 'lavis et états atténués' },
         ],
       },
       {
         title: 'Les encres secondaires',
         note: 'Le bleu d’acier et l’ambre accompagnent ; ils ne portent jamais l’action principale.',
         swatches: [
-          { token: '--canop-secondary', hex: '#5990b0', against: 'variante secondaire' },
-          { token: '--canop-secondary-dark', hex: '#3a6b8a', against: 'fond du bouton secondaire' },
-          { token: '--canop-accent', hex: '#f4ad15', against: 'accent éditorial' },
+          { token: '--opale-secondary', hex: '#5990b0', against: 'variante secondaire' },
+          { token: '--opale-secondary-dark', hex: '#3a6b8a', against: 'fond du bouton secondaire' },
+          { token: '--opale-accent', hex: '#f4ad15', against: 'accent éditorial' },
         ],
       },
       {
         title: 'Les encres d’état',
         note: 'Elles ne signifient jamais seules : chaque emploi porte un mot et un glyphe.',
         swatches: [
-          { token: '--canop-info', hex: '#1a4f8b', against: 'information' },
-          { token: '--canop-success', hex: '#2e7d32', against: 'succès' },
-          { token: '--canop-warning', hex: '#b26a00', against: 'avertissement' },
-          { token: '--canop-danger', hex: '#b3261e', against: 'erreur, action destructrice' },
+          { token: '--opale-info', hex: '#1a4f8b', against: 'information' },
+          { token: '--opale-success', hex: '#2e7d32', against: 'succès' },
+          { token: '--opale-warning', hex: '#b26a00', against: 'avertissement' },
+          { token: '--opale-danger', hex: '#b3261e', against: 'erreur, action destructrice' },
         ],
       },
       {
         title: 'Les sols et les encres',
         note: 'Trois surfaces empilées du sol vers la carte, et deux encres.',
         swatches: [
-          { token: '--canop-background', hex: '#f7f4ef', against: 'le sol de la page' },
-          { token: '--canop-surface', hex: '#ffffff', against: 'la carte, posée sur le sol' },
-          { token: '--canop-surface-base', hex: '#fbfaf9', against: 'surface intermédiaire' },
-          { token: '--canop-surface-sunken', hex: '#efebe4', against: 'creux : piste, champ' },
-          { token: '--canop-text', hex: '#14100b', against: 'texte courant' },
-          { token: '--canop-text-secondary', hex: '#5c574d', against: 'méta, libellé, aide' },
-          { token: '--canop-divider', hex: '#e6e1d8', against: 'filet et contour au repos' },
+          { token: '--opale-background', hex: '#f7f4ef', against: 'le sol de la page' },
+          { token: '--opale-surface', hex: '#ffffff', against: 'la carte, posée sur le sol' },
+          { token: '--opale-surface-base', hex: '#fbfaf9', against: 'surface intermédiaire' },
+          { token: '--opale-surface-sunken', hex: '#efebe4', against: 'creux : piste, champ' },
+          { token: '--opale-text', hex: '#14100b', against: 'texte courant' },
+          { token: '--opale-text-secondary', hex: '#5c574d', against: 'méta, libellé, aide' },
+          { token: '--opale-divider', hex: '#e6e1d8', against: 'filet et contour au repos' },
         ],
       },
     ],
@@ -119,41 +119,41 @@ export const OPALE_PLATES: readonly Plate[] = [
         title: 'Le saphir',
         note: 'Éclairci sur fond sombre : un bleu de plein jour y tomberait sous le seuil.',
         swatches: [
-          { token: '--canop-primary', hex: '#5d87cb', against: 'encre des actions' },
-          { token: '--canop-primary-dark', hex: '#739cda', against: 'appui — plus CLAIR ici' },
-          { token: '--canop-primary-light', hex: '#a9c7f4', against: 'lavis et états atténués' },
+          { token: '--opale-primary', hex: '#5d87cb', against: 'encre des actions' },
+          { token: '--opale-primary-dark', hex: '#739cda', against: 'appui — plus CLAIR ici' },
+          { token: '--opale-primary-light', hex: '#a9c7f4', against: 'lavis et états atténués' },
         ],
       },
       {
         title: 'Les encres secondaires',
         note: 'L’ambre ne change pas de thème : il tient sur les deux sols.',
         swatches: [
-          { token: '--canop-secondary', hex: '#8fb5cd', against: 'variante secondaire' },
-          { token: '--canop-secondary-dark', hex: '#6f9cba', against: 'fond du bouton secondaire' },
-          { token: '--canop-accent', hex: '#f4ad15', against: 'accent — identique au clair' },
+          { token: '--opale-secondary', hex: '#8fb5cd', against: 'variante secondaire' },
+          { token: '--opale-secondary-dark', hex: '#6f9cba', against: 'fond du bouton secondaire' },
+          { token: '--opale-accent', hex: '#f4ad15', against: 'accent — identique au clair' },
         ],
       },
       {
         title: 'Les encres d’état',
         note: 'Seule l’erreur est éclaircie ; les trois autres tiennent déjà sur le sol sombre.',
         swatches: [
-          { token: '--canop-info', hex: '#1a4f8b', against: 'information — hérité du clair' },
-          { token: '--canop-success', hex: '#2e7d32', against: 'succès — hérité du clair' },
-          { token: '--canop-warning', hex: '#b26a00', against: 'avertissement — hérité du clair' },
-          { token: '--canop-danger', hex: '#e2726b', against: 'erreur, action destructrice' },
+          { token: '--opale-info', hex: '#1a4f8b', against: 'information — hérité du clair' },
+          { token: '--opale-success', hex: '#2e7d32', against: 'succès — hérité du clair' },
+          { token: '--opale-warning', hex: '#b26a00', against: 'avertissement — hérité du clair' },
+          { token: '--opale-danger', hex: '#e2726b', against: 'erreur, action destructrice' },
         ],
       },
       {
         title: 'Les sols et les encres',
         note: 'Le sombre inverse l’empilement : la carte est plus CLAIRE que le sol.',
         swatches: [
-          { token: '--canop-background', hex: '#0c0f0d', against: 'le sol de la page' },
-          { token: '--canop-surface', hex: '#262c27', against: 'la carte, posée sur le sol' },
-          { token: '--canop-surface-base', hex: '#1d221e', against: 'surface intermédiaire' },
-          { token: '--canop-surface-sunken', hex: '#121713', against: 'creux : piste, champ' },
-          { token: '--canop-text', hex: '#f3f1ec', against: 'texte courant' },
-          { token: '--canop-text-secondary', hex: '#b8b3a7', against: 'méta, libellé, aide' },
-          { token: '--canop-divider', hex: '#2c322d', against: 'filet et contour au repos' },
+          { token: '--opale-background', hex: '#0c0f0d', against: 'le sol de la page' },
+          { token: '--opale-surface', hex: '#262c27', against: 'la carte, posée sur le sol' },
+          { token: '--opale-surface-base', hex: '#1d221e', against: 'surface intermédiaire' },
+          { token: '--opale-surface-sunken', hex: '#121713', against: 'creux : piste, champ' },
+          { token: '--opale-text', hex: '#f3f1ec', against: 'texte courant' },
+          { token: '--opale-text-secondary', hex: '#b8b3a7', against: 'méta, libellé, aide' },
+          { token: '--opale-divider', hex: '#2c322d', against: 'filet et contour au repos' },
         ],
       },
     ],

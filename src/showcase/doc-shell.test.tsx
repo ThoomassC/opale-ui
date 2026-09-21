@@ -638,7 +638,6 @@ describe('DocShell — le rendu de la page', () => {
     expect(screen.getByRole('heading', { name: 'Opale UI 3.0.0' })).toBeInTheDocument();
     expect(screen.getByText('91 composants')).toBeInTheDocument();
     expect(screen.queryByText(/Rejoindre la bêta/i)).toBeNull();
-    expect(document.body).not.toHaveTextContent(/Canop/i);
     expect(screen.queryByText(/Explorer/i)).toBeNull();
   });
 
@@ -668,7 +667,6 @@ describe('DocShell — le rendu de la page', () => {
     ).toContain("import { Opale } from '@thomascaron/opale-ui';");
     expect(screen.queryByRole('heading', { name: 'API' })).toBeNull();
     expect(screen.queryByText(/Explorer/i)).toBeNull();
-    expect(document.body).not.toHaveTextContent(/Canop/i);
   });
 
   it('ne devrait rien insérer entre le titre et le corps quand la page n’a pas de chapeau', () => {

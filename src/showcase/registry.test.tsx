@@ -142,11 +142,11 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    POURQUOI IL BAISSE : ce garde compte les exports de `src/magic/index.ts`, et
    ces sept-là ne sont plus réexportés par `src/magic/components/index.ts`. Ils
    sont devenus la matière derrière la prop `liquidGlass` de leur jumeau Opale,
-   que `canop.tsx` importe par chemin direct. Les sept MODULES existent
+   que `opale.tsx` importe par chemin direct. Les sept MODULES existent
    toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
    ils n'ont simplement plus de nom public, donc plus de page à exiger.
 
-   IL NE RESTE QUE HUIT EXPORTS NON PRÉFIXÉS `Canop` : `Glass`, `Modal`,
+   IL NE RESTE QUE HUIT EXPORTS NON PRÉFIXÉS `Opale` : `Glass`, `Modal`,
    `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` et `Topbar`.
    Ce sont exactement les huit vendorés sans jumeau Opale, et exactement les
    huit pages qui subsistent dans `src/showcase/pages/composants/`. Si ce
