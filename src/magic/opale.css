@@ -316,6 +316,20 @@
   color: #0c0f0d;
 }
 
+/* SAUF SOUS VERRE, ET LA RAISON EST DANS LA RÈGLE CI-DESSUS.
+
+   En thème sombre, le primaire devient un bleu CLAIR : une encre sombre y est
+   donc la bonne, sur un bouton plein. Sous verre, ce même bleu n'est plus un
+   aplat mais un lavis à 26 % posé sur une photographie — l'encre sombre s'y
+   retrouve sur l'image, pas sur le bouton. Mesuré avant correction :
+   **3,47:1**, le seul défaut que le thème sombre ait produit.
+
+   La spécificité est délibérément portée à (0,3,0) : la règle du thème pèse
+   (0,2,0) et gagnerait autrement, quel que soit l'ordre des feuilles. */
+:root[data-theme='dark'] .opale-button--glass.opale-button--primary {
+  color: var(--opale-glass-ink);
+}
+
 .opale-button--secondary {
   --opale-button-background: var(--opale-secondary-dark);
   --opale-button-hover-background: color-mix(in srgb, var(--opale-secondary-dark) 86%, #14100b);
