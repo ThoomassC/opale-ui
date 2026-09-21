@@ -441,19 +441,25 @@ describe('la technique de sélection des couches', () => {
    ========================================================================== */
 describe('l’accessibilité du matériau', () => {
   const glassSheet = glassSource.replace(/\/\*[\s\S]*?\*\//g, '');
+  const opaleSheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
 
-  /* CE GARDE EXIGEAIT UN `outline`, ET C'ÉTAIT LUI QUI AVAIT TORT.
+  /* CE GARDE A DÉJÀ EU TORT DEUX FOIS, ET LES DEUX FOIS DE LA MÊME FAÇON.
 
-     Il vérifiait la présence d'un `outline: 2px solid` et passait au vert — sur
-     un anneau qui n'était pas peint. Le bouton de verre porte un `clip-path`
-     pour sa silhouette en squircle, et un `clip-path` rogne l'outline de son
-     propre élément : mesuré, 0 % du périmètre au-dessus de 3:1, médiane 1,13:1.
-     Le garde épinglait donc la DÉCLARATION sans rien savoir du rendu.
+     Première version : il exigeait un `outline: 2px solid` et passait au vert
+     — sur un anneau qui n'était pas peint. Le bouton porte un `clip-path` pour
+     sa silhouette en squircle, et un `clip-path` rogne l'`outline` de son
+     propre élément. Mesuré alors : 0 % du périmètre au-dessus de 3:1.
 
-     Il vise désormais un `box-shadow: inset`, peint à l'intérieur de la boîte,
-     que le découpage n'atteint pas. La leçon vaut d'être écrite : un garde de
-     feuille de style ne prouve jamais qu'une règle est PEINTE. */
-  it('rend le focus visible sans rétablir le rectangle refusé', () => {
+     Deuxième version : il exigeait un `box-shadow: inset`, peint à l'intérieur
+     de la boîte, donc hors d'atteinte du découpage. Correct, et devenu faux le
+     jour où le traitement choisi est passé à une ombre EXTÉRIEURE.
+
+     LA LEÇON, ÉCRITE UNE FOIS POUR TOUTES : un garde de feuille de style ne
+     prouve jamais qu'une règle est PEINTE. Il ne peut vérifier que la
+     cohérence entre la déclaration et ce que la boîte autorise — c'est ce que
+     fait le test suivant, qui interdit au découpage et au halo de coexister
+     sur la même boîte. */
+  it('marque le focus par une ombre extérieure, sans rétablir le rectangle refusé', () => {
     const rule = /\.glass:focus-within[^{]*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
 
     expect(
@@ -461,18 +467,115 @@ describe('l’accessibilité du matériau', () => {
       'Le matériau ne marque plus le focus. Les jetons d’anneau de la vitrine ' +
         'valent `transparent` : sans cette règle, un champ de verre n’a AUCUN ' +
         'indicateur au clavier (WCAG 2.4.7).',
-    ).toMatch(/box-shadow:[^;]*inset/);
+    ).toMatch(/box-shadow:\s*var\(\s*--opale-glass-focus-halo/);
 
     expect(
       rule,
-      'Un `outline` est rogné par le `clip-path` des composants qui en portent un. ' +
-        'L’indicateur doit être intérieur.',
+      'Le traitement retenu est une ombre AUTOUR de la silhouette. Une ombre ' +
+        '`inset` est peinte dedans : ce serait un autre traitement.',
+    ).not.toMatch(/box-shadow:[^;]*inset/);
+
+    expect(
+      rule,
+      'Un `outline` est rogné par le `clip-path` des composants qui en portent un.',
     ).not.toMatch(/outline:\s*\d/);
     expect(rule).not.toMatch(/--opale-focus/);
     expect(
       rule,
-      'L’arête du verre doit s’allumer : c’est l’indicateur porté par la matière.',
+      'L’arête du verre doit s’allumer avec le halo : une ombre sombre seule ne ' +
+        'se distingue pas d’un fond sombre.',
     ).toMatch(/--opale-glass-edge/);
+  });
+
+  /* UN HALO EXTÉRIEUR ET UN DÉCOUPAGE NE PEUVENT PAS COEXISTER SUR UNE BOÎTE.
+
+     C'est la règle que les deux pannes précédentes avaient en commun, et le
+     seul garde qui les aurait vues. Le bouton porte donc sa silhouette sur ses
+     COUCHES : même forme à l'écran, enveloppe libre de peindre autour d'elle.
+
+     CE QUE CE TEST NE PEUT PAS FAIRE : constater que le halo est peint. jsdom
+     ne compose rien. Ce qu'il constate est plus étroit et suffisant — la boîte
+     qui le porte n'a rien qui puisse l'effacer. */
+  it('ne découpe pas l’enveloppe qui porte le halo', () => {
+    const root = /\.opale-button--glass-root\s*\{([^}]*)\}/.exec(opaleSheet)?.[1] ?? '';
+
+    expect(root, '`.opale-button--glass-root` est introuvable.').not.toBe('');
+    expect(
+      root,
+      'L’enveloppe du bouton se découpe elle-même : son `box-shadow` extérieur ' +
+        'est donc rogné, et le focus n’est pas peint. La silhouette doit ' +
+        'descendre sur les couches.',
+    ).not.toMatch(/clip-path/);
+
+    expect(
+      opaleSheet,
+      'La silhouette en squircle a disparu du bouton : elle doit être portée ' +
+        'par les enfants de l’enveloppe.',
+    ).toMatch(/\.opale-button--glass-root > \*\s*\{[^}]*clip-path/);
+  });
+
+  /* LE HALO PORTE DEUX TONS, ET CE N'EST PAS UN GOÛT.
+
+     MESURÉ, sur les pixels du cliché des scènes ramenés à leurs quantiles de
+     luminance et sur les surfaces plates des deux thèmes, en composant l'alpha
+     réel de chaque ombre à chaque distance du bord :
+
+       une ombre marine seule ....... 1,05:1 au pire fond
+       une ombre noire seule ........ 1,10:1
+       les deux tons, réglés ........ 4,08:1
+
+     Le verre se pose aussi bien sur une carte blanche que sur une
+     photographie voilée à 65 %, qui est sombre : aucune teinte unique ne
+     contraste contre les deux. Le plancher de 1.4.11 est 3:1.
+
+     CE QUE CE TEST GARDE, c'est la CONSTRUCTION dont ce résultat dépend —
+     deux tons, aucun bord net —, pas les chiffres eux-mêmes, qu'aucun test en
+     jsdom ne peut recalculer : il faudrait composer des pixels. Voir le
+     premier réglage essayé, qui avait la bonne construction et tombait
+     pourtant à 2,01:1 : la construction est nécessaire, pas suffisante. Ce
+     garde attrape la régression grossière, la mesure attrape le réglage. */
+  it('garde deux tons flous, seule construction qui tienne sur les deux fonds', () => {
+    const halos = [...opaleSheet.matchAll(/--opale-glass-focus-halo:\s*([^;]+);/g)].map((match) =>
+      match[1].replace(/\s+/g, ' ').trim(),
+    );
+
+    expect(halos.length, 'Le halo du focus n’est plus défini nulle part.').toBeGreaterThan(0);
+
+    for (const halo of halos) {
+      expect(
+        halo,
+        `Pas de lueur claire dans « ${halo} » : sur un fond sombre, l’ombre disparaît.`,
+      ).toMatch(/rgba\(255, 255, 255/);
+      expect(
+        halo,
+        `Pas d’ombre sombre dans « ${halo} » : sur un fond clair, la lueur disparaît.`,
+      ).toMatch(/rgba\((?:7, 28, 43|0, 0, 0)/);
+
+      /* Le traitement choisi est une OMBRE, pas un anneau : aucun de ses
+         rayons n'a le droit d'avoir un bord net, ce qu'un flou nul donnerait. */
+      const blurs = [...halo.matchAll(/0 0 (\d+)px/g)].map((match) => Number(match[1]));
+
+      expect(blurs.length, `Les rayons de « ${halo} » sont illisibles.`).toBe(2);
+      for (const blur of blurs) {
+        expect(
+          blur,
+          `Un rayon flouté à ${blur} px dessine un trait, pas une ombre.`,
+        ).toBeGreaterThanOrEqual(4);
+      }
+
+      /* Les deux tons se recouvrent au ras de la boîte, là où chacun est le
+         plus dense, et la lueur DÉLAVE l'ombre. Les écarter dans l'espace est
+         ce qui a fait passer le réglage de 2,01:1 à 4,08:1 — l'étalement de
+         l'ombre sombre doit rester nettement supérieur à celui de la lueur. */
+      const spreads = [...halo.matchAll(/0 0 \d+px (\d+)px/g)].map((match) => Number(match[1]));
+
+      expect(spreads.length, `Les étalements de « ${halo} » sont illisibles.`).toBe(2);
+      expect(
+        spreads[1] - spreads[0],
+        'L’ombre sombre doit s’étaler bien au-delà de la lueur, sans quoi les ' +
+          'deux se recouvrent et se délavent l’une l’autre.',
+      ).toBeGreaterThanOrEqual(4);
+    }
   });
 
   /* LE CONTRÔLE POSÉ À CÔTÉ DU VERRE DOIT L'ALLUMER AUSSI. La case et

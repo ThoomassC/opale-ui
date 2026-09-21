@@ -172,6 +172,50 @@
   --opale-glass-ink: #fff;
   --opale-glass-ink-muted: rgba(255, 255, 255, 0.86);
   --opale-glass-scrim: rgba(7, 28, 43, 0.65);
+
+  /* L'OMBRE DOUCE DU FOCUS, ET POURQUOI ELLE A DEUX TONS.
+
+     LE TRAITEMENT CHOISI est une ombre floue posée autour de la silhouette,
+     sans aucun trait : rien n'est ajouté au composant, seul son entourage
+     change.
+
+     UNE SEULE OMBRE NE PEUT PAS MARCHER, ET C'EST MESURÉ. Une ombre marine
+     seule plafonne à 1,05:1 contre le pire fond rencontré — la photographie
+     voilée, qui est elle-même sombre. Une ombre noire seule : 1,10:1. Le
+     verre se pose aussi bien sur une carte blanche que sur un cliché voilé à
+     65 % : aucune teinte unique ne contraste contre les deux.
+
+     D'OÙ LES DEUX TONS, TOUS DEUX FLOUS. Une lueur claire collée à la
+     silhouette, une ombre sombre au-delà. Sur un fond clair c'est la seconde
+     qui porte, sur un fond sombre la première.
+
+     LES VALEURS VIENNENT D'UNE RECHERCHE, PAS DU GOÛT. Les deux ombres se
+     recouvrent forcément au ras de la boîte — c'est là que chacune est la plus
+     dense —, si bien que la claire DÉLAVE la sombre. Le premier réglage essayé
+     (lueur 5/1 à 78 %, ombre 14/4 à 92 %) tombait à 2,73:1 sur blanc et 2,01:1
+     au pire pixel du cliché voilé : sous le plancher. La sortie est d'écarter
+     les deux tons dans l'espace — la sombre prend 8 px d'étalement, donc son
+     maximum tombe là où la claire s'est déjà éteinte.
+
+     MESURÉ sur les 90 000 pixels du cliché ramenés à leurs quantiles de
+     luminance, plus les surfaces plates des deux thèmes, en composant l'alpha
+     réel de chaque ombre à chaque distance (étalement, puis gaussienne
+     d'écart-type flou/2) :
+
+       fond                        pire rapport
+       photo voilée, pire pixel    4,08:1
+       blanc pur                   ≥ 4,08:1
+       fond sombre #0c0f0d         ≥ 4,08:1
+
+     Le plancher de 1.4.11 est 3:1. Le même réglage tient dans les DEUX
+     thèmes, d'où un seul jeton : une reprise en thème sombre n'apporterait
+     rien et donnerait deux valeurs à garder cohérentes.
+
+     AUCUN DES DEUX RAYONS N'A DE BORD NET — 4 px et 12 px de flou. C'est ce
+     qui distingue une ombre d'un anneau, et c'est l'identité du traitement
+     retenu. */
+  --opale-glass-focus-halo:
+    0 0 4px 2px rgba(255, 255, 255, 1), 0 0 12px 8px rgba(7, 28, 43, 0.9);
 }
 
 :root[data-theme='dark'] {
@@ -445,8 +489,30 @@
    écrite ici perdrait la cascade en silence. Les variables, elles, sont lues
    par le module quel que soit l'ordre — voir l'en-tête de `Glass.module.css`,
    qui détaille les trois défauts que ce détour a corrigés. */
+/* LE DÉCOUPAGE DU BOUTON PORTE SUR SES COUCHES, PAS SUR SON ENVELOPPE.
+
+   POURQUOI CE DÉTOUR. Le focus est une ombre EXTÉRIEURE, et un `clip-path`
+   rogne tout ce que son élément peint hors de la boîte — son `outline` comme
+   son `box-shadow`. Découpée sur l'enveloppe, la silhouette effaçait donc
+   l'indicateur en entier ; c'est exactement le défaut qui avait déjà rendu
+   l'`outline` invisible sur ce même bouton. Les couches et le contenu portent
+   la même forme, dans la même boîte : le rendu ne change pas, et l'enveloppe
+   redevient libre de peindre autour d'elle.
+
+   LE RAYON DE L'ENVELOPPE N'EST PAS DÉCORATIF, IL EST CALCULÉ. L'ombre suit le
+   `border-radius`, jamais le découpage. Trop grand, le rectangle arrondi
+   passerait À L'INTÉRIEUR du squircle aux diagonales et l'`overflow: hidden`
+   du matériau raboterait les angles de la silhouette ; trop petit, le halo
+   s'écarterait de la forme. Le squircle passe à 0,2057 r du coin sur la
+   diagonale, un arc de rayon r' y passe à 0,293 r' : il faut donc
+   r' ≤ 0,70 r, soit 15,4 px pour le rayon moyen de 22 px. 0,9375 rem = 15 px
+   tient la contrainte avec une marge, et se trouve être aussi le rayon dont la
+   courbure ressemble le plus à celle du squircle. */
 .opale-button--glass-root {
-  --opale-glass-radius: 0;
+  --opale-glass-radius: 0.9375rem;
+}
+
+.opale-button--glass-root > * {
   clip-path: var(--opale-squircle-clip);
 }
 .opale-badge--glass-root {
@@ -535,10 +601,8 @@
 .opale-checkbox:focus-visible + [data-opale-glass],
 .opale-toggle:focus-visible + [data-opale-glass] {
   --opale-glass-edge: rgba(255, 255, 255, 0.98);
-  --opale-glass-tint: rgba(7, 28, 43, 0.42);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.96),
-    inset 0 0 0 4px rgba(7, 28, 43, 0.55);
+  --opale-glass-tint: rgba(7, 28, 43, 0.5);
+  box-shadow: var(--opale-glass-focus-halo);
 }
 
 /* LE CHAMP DE SAISIE MÉRITE UN LAVIS PLUS DENSE, ET C'EST MESURÉ.

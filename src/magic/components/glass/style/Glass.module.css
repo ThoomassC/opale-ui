@@ -38,6 +38,11 @@
   width: var(--opale-glass-width, fit-content);
   overflow: hidden;
   border-radius: var(--opale-glass-radius, var(--opale-radius-md, 1.375rem));
+  /* Le halo s'établit au lieu d'apparaître d'un coup. Ce n'est pas du
+     mouvement — rien ne se déplace, rien ne change de taille : une ombre prend
+     sa densité. Le bloc anti-mouvement plus bas la coupe malgré tout, et c'est
+     sans conséquence : l'indicateur est déjà là à la première image. */
+  transition: box-shadow 130ms ease;
 }
 
 /* LA RÉFRACTION EST LA SEULE COUCHE QUI REGARDE DERRIÈRE.
@@ -209,58 +214,78 @@
    c'est une apparence, pas un mouvement. */
 
 /* =============================================================================
-   LE FOCUS EST PORTÉ PAR LE MATÉRIAU, PAS PAR UN RECTANGLE POSÉ DESSUS.
+   LE FOCUS EST UNE OMBRE DOUCE, ET RIEN D'AUTRE.
 
    LE CONTEXTE, PARCE QU'IL EXPLIQUE LA FORME DE CETTE RÈGLE. Le propriétaire a
    demandé le retrait de l'anneau de focus bleu partout dans la vitrine : trois
    jetons de couleur y sont mis à `transparent`, et un test l'épingle. Mesuré
-   sur un champ de verre avant cette règle : `outline-width: 0px`,
-   `outline-style: none`, aucune ombre — soit AUCUN indicateur de focus, ce qui
-   est un échec du critère 2.4.7.
+   sur un champ de verre avant toute règle : `outline-width: 0px`,
+   `outline-style: none`, aucune ombre — soit AUCUN indicateur, ce qui est un
+   échec du critère 2.4.7.
 
-   RÉTABLIR LE RECTANGLE AURAIT ÉTÉ DÉFAIRE UNE DÉCISION. Le verre a mieux à
-   offrir : il possède déjà une arête de lumière, le filet spéculaire. Au focus,
-   cette arête S'ALLUME et le lavis s'éclaircit — le composant se met à briller
-   plutôt qu'à porter un cadre. C'est le matériau qui indique, pas un ornement
-   étranger.
+   CE QUI A ÉTÉ CHOISI, ET CE QUI A ÉTÉ ÉCARTÉ. Dix traitements ont été
+   proposés côte à côte sur la photographie des scènes. Le retenu ne dessine
+   AUCUN trait : la silhouette se détache par une ombre floue posée autour
+   d'elle. C'est le seul de la série qui n'ajoute pas de géométrie au
+   composant — il change ce qu'il y a AUTOUR, pas le composant lui-même.
 
-   L'ANNEAU FIN RESTE, ET IL N'EST PAS DÉCORATIF : le critère 2.4.11 demande que
-   l'indicateur tienne 3:1 contre ce qui l'entoure, et une lueur interne ne se
-   mesure pas contre l'extérieur. Il est BLANC et non bleu — sur le voile
-   mesuré, le blanc tient 5,56:1, très au-dessus du seuil.
+   POURQUOI `box-shadow` ET NON `filter: drop-shadow()`. Une ombre portée
+   suivrait la silhouette RÉELLE, découpage compris, là où `box-shadow` ne
+   connaît que le `border-radius`. Elle est pourtant exclue, et c'est mesuré :
+   un `filter` sur un ancêtre crée une nouvelle racine de fond, ce qui coupe
+   net le `backdrop-filter` de la couche de réfraction. Vérifié au navigateur
+   sur la page « Le verre liquide », réfraction poussée à
+   `blur(6px) saturate(4) hue-rotate(120deg)` pour rendre la panne
+   indiscutable : sans `filter` sur l'enveloppe, l'intérieur du bouton vire au
+   magenta ; avec, le paysage repasse intact — la réfraction avait disparu.
+   Un verre sans réfraction n'est plus du verre : l'ombre portée est donc
+   inutilisable ici, quel que soit son avantage de forme.
 
-   L'ANNEAU EST INTÉRIEUR, ET C'EST LA CORRECTION D'UNE ERREUR DE DIAGNOSTIC.
+   CE QUE CE CHOIX COÛTE EN FORME. Sur le bouton, la silhouette est un squircle
+   et l'ombre suit un rectangle arrondi : les deux s'écartent d'environ deux
+   pixels aux diagonales. Le rayon de l'enveloppe est réglé pour que le
+   rectangle CONTIENNE le squircle — voir `.opale-button--glass-root` dans
+   `opale.css`, qui documente le calcul —, et le flou de l'ombre est plus large
+   que l'écart. Ce n'est pas exact, c'est imperceptible, et c'est dit.
 
-   Une première version posait un `outline` sur l'enveloppe, avec cette
-   justification : « un élément n'est jamais rogné par son propre
-   `overflow: hidden` ». C'est exact, et c'est le mauvais piège. Le bouton porte
-   aussi un `clip-path` — la silhouette en squircle —, et un `clip-path`, LUI,
-   rogne l'outline de son propre élément. Mesuré sur le bord d'un bouton
-   focalisé : **0 % du périmètre** au-dessus de 3:1, médiane 1,13:1. L'anneau
-   n'était tout simplement pas peint. Sur le champ de saisie, qui n'a pas de
-   `clip-path`, le même anneau tenait 12,43:1 — d'où l'illusion qu'il
-   fonctionnait.
+   LE HALO EST EXTÉRIEUR, DONC UN DÉCOUPAGE LE TUERAIT. C'est la troisième
+   fois que ce piège se présente sur ce composant : un `clip-path` rogne
+   l'`outline` de son propre élément, et il rogne tout autant son `box-shadow`
+   extérieur. Le bouton porte donc désormais son découpage sur ses COUCHES et
+   non sur son enveloppe. Un garde le vérifie, parce que rien ne rougit quand
+   un halo n'est pas peint.
 
-   Un `box-shadow: inset` est peint À L'INTÉRIEUR de la boîte, donc le découpage
-   ne l'atteint pas. Il est doublé d'un liseré sombre : un anneau clair sur une
-   photographie claire ne tiendrait pas 3:1 partout, et 2.4.11 exige ce plancher
-   contre CE QUI ENTOURE l'indicateur.
+   LE CRITÈRE EXACT, PARCE QUE JE L'AI MAL NOMMÉ AILLEURS. Le plancher de 3:1
+   d'un indicateur de focus vient de 1.4.11 « Contraste des éléments non
+   textuels », niveau AA. Le 2.4.11 de WCAG 2.2 est « Focus non masqué » et ne
+   parle pas de contraste ; les règles d'aire et d'épaisseur sont 2.4.13, de
+   niveau AAA.
 
-   LE LAVIS S'ASSOMBRIT AU LIEU DE S'ÉCLAIRCIR. Il passait de 6 à 16 % de blanc,
-   soit un écart de luminance de 1,25:1 entre focalisé et non focalisé —
-   invisible. Assombrir contraste bien mieux sur un fond déjà clair par endroits.
+   L'ARÊTE ET LE LAVIS ACCOMPAGNENT LE HALO, et ce n'est pas de l'ornement :
+   une ombre sombre seule ne se distingue pas d'un fond sombre. Le filet
+   spéculaire passe au blanc franc et le lavis se densifie, si bien que
+   l'indicateur est toujours un CONTRASTE — clair contre sombre — et non une
+   seule couleur qui espère tomber sur le bon fond. Les valeurs viennent de la
+   mesure consignée dans `opale-liquid-glass.test.tsx`.
 
-   `:focus-within` NE SUFFIT PAS, et c'est le second défaut de la version
-   précédente : pour la case à cocher et l'interrupteur, le contrôle natif est
-   posé À CÔTÉ du verre, pas dedans. L'attribut `data-opale-glass-focus`, qu'une
-   règle voisine pose depuis le contrôle, couvre ce cas. */
+   `:focus-within` NE SUFFIT PAS : pour la case à cocher et l'interrupteur, le
+   contrôle natif est posé À CÔTÉ du verre, pas dedans. L'attribut
+   `data-opale-glass-focus`, qu'une règle voisine pose depuis le contrôle,
+   couvre ce cas. */
 .glass:focus-within,
 .glass[data-opale-glass-focus='true'] {
   --opale-glass-edge: rgba(255, 255, 255, 0.98);
-  --opale-glass-tint: rgba(7, 28, 43, 0.42);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.96),
-    inset 0 0 0 4px rgba(7, 28, 43, 0.55);
+  --opale-glass-tint: rgba(7, 28, 43, 0.5);
+  /* LA VALEUR DE REPLI N'EST PAS UNE COQUETTERIE. Ce module est toujours
+     livré avec le composant ; `opale.css`, qui porte le jeton, doit être
+     importé par le consommateur. S'il ne l'est pas, une `box-shadow` réduite
+     à une variable absente devient invalide et retombe à `none` : le focus
+     disparaîtrait en silence. Le repli est la valeur du thème clair. */
+  box-shadow: var(
+    --opale-glass-focus-halo,
+    0 0 4px 2px rgba(255, 255, 255, 1),
+    0 0 12px 8px rgba(7, 28, 43, 0.9)
+  );
 }
 
 /* =============================================================================
