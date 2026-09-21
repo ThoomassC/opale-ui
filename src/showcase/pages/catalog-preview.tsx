@@ -176,9 +176,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'MultiSelect':
+      /* PAS DE `liquidGlass` ICI, ET CE N'EST PAS UN OUBLI. `MultiSelect`
+         accepte la prop — ses props héritent de `SelectProps` — mais il ne
+         rend PAS le matériau : il pose la classe `.opale-liquid`, l'ancienne
+         imitation en lavis laiteux, dernière survivante d'avant la réécriture
+         du verre. Transmettre la prop donnerait un exemple qui promet du verre
+         et montre autre chose. */
       preview = (
         <Opale.MultiSelect
-          liquidGlass={liquidGlass}
           label="Domaines"
           values={multiSelected}
           options={OPTIONS}

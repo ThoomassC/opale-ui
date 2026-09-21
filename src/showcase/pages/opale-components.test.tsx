@@ -293,26 +293,42 @@ describe('le catalogue interactif V3', () => {
    ========================================================================== */
 describe('les exemples du catalogue', () => {
   it('transmet le matériau à tout composant qui sait le porter', () => {
-    /** Les interfaces de props qui portent `liquidGlass`, héritage compris. */
-    const declares = (name: string, depth = 0): boolean => {
-      if (depth > 4) return false;
+    /* « SAIT LE PORTER » SE LIT DANS LE RENDU, PAS DANS LE TYPE.
 
-      const match = new RegExp(
-        `export interface ${name}Props extends ([\\w]+)[^{]*\\{([\\s\\S]*?)\\n\\}`,
-      ).exec(opaleMagicSource);
+       Une première version interrogeait les interfaces de props : un
+       composant qui déclare `liquidGlass` devait recevoir la prop. C'était
+       trop large. `MultiSelect` hérite de `SelectProps`, donc il DÉCLARE la
+       prop — et il ne rend pas le matériau, il pose l'ancienne classe
+       d'imitation. Le garde réclamait un exemple qui aurait promis du verre
+       pour montrer autre chose.
 
-      if (!match) return false;
-      if (match[2].includes('liquidGlass')) return true;
+       Ce qui compte est donc ce que le corps du composant REND : `FieldShell`
+       (la coquille des champs, qui bascule sur `Glass`) ou `Glass` lui-même. */
+    const rendersMaterial = (name: string): boolean => {
+      const start = new RegExp(
+        `export (?:function ${name}\\(|const ${name} = (?:forwardRef|function))`,
+      ).exec(opaleMagicSource)?.index;
 
-      /* L'héritage : `AutocompleteProps extends FieldProps` ne cite pas la
-         prop, il la reçoit. Le parent est nommé « …Props », on remonte. */
-      return match[1].endsWith('Props')
-        ? declares(match[1].slice(0, -'Props'.length), depth + 1)
-        : false;
+      if (start === undefined) return false;
+
+      const next = /\nexport (?:function|const|interface) /.exec(
+        opaleMagicSource.slice(start + 10),
+      );
+      const body = opaleMagicSource.slice(start, next ? start + 10 + next.index : undefined);
+
+      /* LA DÉLÉGATION N'EST PAS COMPTÉE ICI, ET C'EST UNE LIMITE ASSUMÉE.
+         Une vingtaine de composants rendent un `Button` ou un `Input` et
+         hériteraient donc du matériau si on leur transmettait la prop —
+         `Pressable`, `InlineInput`, les six boutons d'action, `ThemeToggle`…
+         Faut-il le faire ? C'est une décision de catalogue, pas un défaut
+         constaté : tant qu'elle n'est pas prise, ce garde n'a pas à la forcer.
+         Le garde voisin, qui compare la liste des extraits aux aperçus
+         câblés, couvre les régressions sur ceux qui sont déjà branchés. */
+      return /<FieldShell|<Glass/.test(body);
     };
 
     const manquants = [...catalogPreviewSource.matchAll(/case '(\w+)':([\s\S]*?)\n {6}break;/g)]
-      .filter(([, name, body]) => declares(name) && !body.includes('liquidGlass'))
+      .filter(([, name, body]) => rendersMaterial(name) && !body.includes('liquidGlass'))
       .map(([, name]) => name);
 
     expect(

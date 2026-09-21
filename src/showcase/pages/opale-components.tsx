@@ -33,7 +33,6 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'CardGrid',
   'Checkbox',
   'Input',
-  'MultiSelect',
   'Select',
   'Slider',
   'StatCard',
