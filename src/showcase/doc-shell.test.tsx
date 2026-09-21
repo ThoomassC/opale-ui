@@ -635,7 +635,13 @@ describe('DocShell — le rendu de la page', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'Le design system de l’écosystème Opale.',
     );
-    expect(screen.getByRole('heading', { name: 'Opale UI 3.0.0' })).toBeInTheDocument();
+    /* LA VERSION EST DÉRIVÉE, PAS RECOPIÉE. Écrite en dur, elle imposait de
+       retoucher ce test à chaque publication — et surtout elle n'aurait pas
+       rougi si le bandeau avait cessé d'afficher la version courante pour en
+       figer une ancienne, ce qui est le seul défaut qui compte ici. Le reste
+       du fichier dérive déjà de `UI_VERSION` ; cette ligne était la seule
+       copie restante. */
+    expect(screen.getByRole('heading', { name: `Opale UI ${UI_VERSION}` })).toBeInTheDocument();
     expect(screen.getByText('91 composants')).toBeInTheDocument();
     expect(screen.queryByText(/Rejoindre la bêta/i)).toBeNull();
     expect(screen.queryByText(/Explorer/i)).toBeNull();

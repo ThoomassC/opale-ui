@@ -8,4 +8,4 @@
  * rougit à la moindre dérive coûtent moins qu'un interrupteur de compilation
  * ouvert sur le paquet publié.
  */
-export const UI_VERSION = '3.0.0';
+export const UI_VERSION = '3.1.1';

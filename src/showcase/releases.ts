@@ -26,10 +26,34 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.1.1',
+    publishedAt: '2026-09-21',
+    dateLabel: '21 septembre 2026',
+    summary:
+      'Opale porte ses propres composants et fait du verre liquide une option de chacun d’eux.',
+    changes: [
+      'Chaque composant du catalogue porte désormais le nom d’Opale — Button, Card, Input — au lieu du préfixe hérité de la bibliothèque de référence sur laquelle le catalogue avait été calqué.',
+      'Un seul composant par nom : les sept doublons « original » et « verre liquide » sont fusionnés en Badge, Card, Checkbox, Input, Select, Slider et Toggle.',
+      'Le verre liquide devient une propriété des composants (liquidGlass) et non un second jeu de composants : le commutateur change la matière, jamais la taille, la position ni le comportement.',
+      'Sous verre, le contrôle natif reste le moteur : le champ garde son focus, son clavier, son nom de formulaire et son événement de changement.',
+      'Les démonstrations de verre se posent sur un paysage, sans quoi le matériau n’a rien à réfracter et ne se voit pas.',
+      'Rupture : les jetons CSS et les classes publiés prennent le préfixe opale-, et les exports nommés perdent le leur. Le chemin Opale.Button ne change pas.',
+    ],
+    breaking: true,
+    appHref: '#/',
+    /* LE TAG ET NON LA BRANCHE. `feat/composants` avance à chaque commit :
+       « le code qui a produit cette version » y désignerait autre chose demain,
+       ce que le contrat de ce champ interdit. Un tag ne bouge pas — c'est
+       d'ailleurs le même que celui qu'installe la commande affichée sur la
+       page « Installation ». */
+    sourceHref: `${REPOSITORY_URL}/tree/v3.1.1`,
+  },
+  {
     version: '3.0.0',
     publishedAt: '2026-09-18',
     dateLabel: '18 septembre 2026',
-    summary: 'Opale adopte un langage visuel unifié et étend son catalogue sans retirer les composants historiques.',
+    summary:
+      'Opale adopte un langage visuel unifié et étend son catalogue sans retirer les composants historiques.',
     changes: [
       'Ajout des tokens, layouts et primitives visuelles du catalogue Opale.',
       'Ajout des thèmes clair et sombre, avec Liquid Glass activable composant par composant.',
