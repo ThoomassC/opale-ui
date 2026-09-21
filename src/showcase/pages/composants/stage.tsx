@@ -22,7 +22,7 @@ import { UI_VERSION } from '../../version';
    conservées.
 
    `stage.tsx` ÉTAIT UN BON ENDROIT POUR UN CORRECTIF ET UN MAUVAIS ENDROIT
-   POUR LA RÈGLE. Il était le seul module que les quatorze pages importent
+   POUR LA RÈGLE. Il était le seul module que toutes les pages de composants importent
    toutes, donc le seul où l'import ne pouvait pas être oublié en ajoutant une
    page — mais une feuille dont dépend l'application entière n'a rien à faire
    dans une brique de mise en page de la documentation. Vérifié après retrait,
@@ -31,19 +31,28 @@ import { UI_VERSION } from '../../version';
    ========================================================================== */
 
 /* =============================================================================
-   LES BRIQUES PARTAGÉES PAR LES QUATORZE PAGES DE COMPOSANTS.
+   LES BRIQUES PARTAGÉES PAR LES PAGES DE COMPOSANTS COMPOSÉS.
 
    `pages/api.tsx` sert les trois briques de toute page de composant — `PageBody`,
-   `UsageBlock`, `PropsTable`. Ce fichier sert les DEUX qui ne valent que pour
-   les composants vendorés : la scène sombre, et l'avertissement qui dit d'où
-   vient ce code.
+   `UsageBlock`, `PropsTable`. Ce fichier sert celles qui ne valent que pour les
+   huit composants composés de `src/magic/components` : la scène, et ses
+   cellules légendées.
 
-   LE PRÉFIXE `Magic` EST GARDÉ, ET IL NE NOMME PLUS UN GROUPE DE LA VITRINE.
-   Le groupe « Magic » a disparu en 2.0 : ces quatorze composants ne sont plus
-   un second point d'entrée à part, ils SONT ce que publie l'entrée racine. Le
-   préfixe nomme désormais leur PROVENANCE — `react-magic-ui` —, qui reste vraie
-   et reste la raison d'être de ces briques. Le renommer coûterait aussi les six
-   classes `.tc-doc-magicstage*` de `doc.css` pour ne rien gagner.
+   LA SCÈNE EST SOMBRE POUR UNE RAISON QUI A CHANGÉ. Elle l'était parce que ces
+   composants imposaient une encre blanche en dur, illisible sur le sol clair de
+   la vitrine. Réécrits par Opale, ils n'imposent plus de couleur. Le fond
+   sombre reste parce qu'un VERRE POSÉ SUR UN APLAT NE RÉFRACTE RIEN : le
+   matériau a besoin de quelque chose derrière lui pour se voir — c'est la même
+   raison qui fait poser un paysage derrière les démonstrations de verre du
+   catalogue.
+
+   LE PRÉFIXE `Magic` EST GARDÉ, ET IL NE NOMME PLUS RIEN D'EXTÉRIEUR. Il
+   nommait la provenance de ces composants, qui venaient d'ailleurs ; ils sont
+   désormais écrits par Opale. Ce qui le retient est mécanique : les six classes
+   `.tc-doc-magicstage*` de `doc.css`, et surtout le préfixe `opale-magic-` des
+   modules CSS, dont dépend le sélecteur du filet anti-mouvement de
+   `magic.scss`. Renommer sans y toucher rendrait cette règle inerte en
+   silence.
 
    Aucune classe nouvelle inventée ici : `doc.css` porte `.tc-doc-magicstage*`,
    et tout le reste réemploie le vocabulaire existant de la vitrine.

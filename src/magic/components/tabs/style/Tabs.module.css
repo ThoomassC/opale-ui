@@ -1,0 +1,197 @@
+/* =============================================================================
+   LES ONGLETS — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce dont chaque règle empruntait ses
+   déclarations à Tailwind par directive — une dépendance que ce paquet ne
+   portait QUE pour ce code. Les valeurs visuelles sont celles qu'on
+   avait à l'écran — capsules translucides, pastille à 0,28 de blanc, liseré
+   interne, courbe d'arrivée amortie — portées par nos propres noms et par les
+   jetons `--opale-*`.
+
+   LES COULEURS SONT DÉCLARÉES UNE SEULE FOIS, EN TÊTE, ET CE N'EST PAS UN
+   DÉTAIL DE RANGEMENT. Ce dossier peint du blanc translucide sur un fond
+   sombre : c'est un matériau, pas un thème, et aucun jeton publié ne décrit
+   cette famille-là (`--opale-text` est une encre SOMBRE, elle disparaîtrait
+   sur la scène du verre). Plutôt que de semer des `rgba(255,255,255,…)` dans
+   quinze règles, les cinq valeurs vivent sur `.tabs` sous des noms
+   `--opale-tabs-*` : l'hôte qui pose ces onglets sur un fond clair redéfinit
+   ces cinq lignes et tout suit, y compris l'anneau de focus. Les rayons, les
+   espacements, la police, la durée et la courbe, eux, viennent des jetons
+   publiés sans intermédiaire.
+   ========================================================================== */
+
+.tabs {
+  /* L'encre et les voiles du matériau. Cinq réglages, et le seul endroit de
+     cette feuille où une couleur est écrite. */
+  --opale-tabs-ink: rgba(255, 255, 255, 0.94);
+  --opale-tabs-surface: rgba(255, 255, 255, 0.1);
+  --opale-tabs-indicator: rgba(255, 255, 255, 0.28);
+  --opale-tabs-highlight: var(--opale-glass-highlight, rgba(255, 255, 255, 0.35));
+  /* L'ANNEAU DE FOCUS SUIT L'ENCRE, PAS `--opale-focus`. Le saphir d'Opale est
+     fait pour le fond crème de la vitrine ; posé sur la scène sombre où ce
+     matériau se lit, il tombe sous le seuil. L'encre, elle, est la seule
+     couleur dont on sait qu'elle contraste avec ce que le verre laisse voir —
+     c'est la définition même d'une encre lisible. */
+  --opale-tabs-focus: var(--opale-tabs-ink);
+  /* Le rayon des capsules ET de la pastille, à une seule variable : l'une
+     épouse l'autre au lieu de la deviner. */
+  --opale-tabs-radius: var(--opale-radius-md);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--opale-space-md);
+  padding: var(--opale-space-md);
+  color: var(--opale-tabs-ink);
+  font-family: var(--opale-font-body);
+}
+
+/* L'AXE VERTICAL MET LA LISTE À CÔTÉ DES PANNEAUX, ET NON AU-DESSUS.
+
+   La version tierce empilait la liste verticale par-dessus son panneau et
+   bornait l'ensemble à 320 px pour que ça reste tenable — une liste d'onglets
+   en colonne au-dessus d'un panneau pleine largeur n'a pas de forme. Une fois
+   la liste posée à gauche, la borne n'a plus de raison d'être et disparaît :
+   `orientation="vertical"` dessine enfin ce que `aria-orientation="vertical"`
+   annonce, et le panneau prend la place qui reste. */
+.tabsVertical {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--opale-space-lg);
+}
+
+.tabsVertical .tabsContent {
+  flex: 1;
+}
+
+.tabsList {
+  position: relative;
+  display: flex;
+  gap: var(--opale-space-2xs);
+}
+
+.tabsListHorizontal {
+  flex-direction: row;
+}
+
+.tabsListVertical {
+  flex-direction: column;
+}
+
+/* LE FOND DE LA SÉLECTION EST UN ÉLÉMENT UNIQUE, ET C'EST TOUTE L'AFFAIRE.
+
+   Tant que la sélection n'est qu'une classe posée sur l'onglet choisi, deux
+   fonds s'allument et s'éteignent sur deux éléments différents : à l'écran, le
+   fond SAUTE, et aucune transition ne peut rattraper ça puisque rien ne se
+   déplace. Ici, un seul élément porte le fond ; il est mesuré au déclencheur
+   actif puis déplacé. `Tabs.tsx` détaille la mécanique.
+
+   IL EST RENDU EN DESSOUS DES DÉCLENCHEURS, PAS AU-DESSUS. Le conteneur de
+   verre de chaque onglet est un contexte d'empilement à `z-index: 0` posé
+   APRÈS lui dans le document : à `z-index` égal, l'ordre du document suffit à
+   le faire passer derrière, sans surenchère. C'est la seule position tenable —
+   au-dessus, il masquerait le libellé de l'onglet qu'il désigne ; en dessous,
+   il est échantillonné par le `backdrop-filter` du verre, donc il se lit À
+   TRAVERS la matière comme n'importe quel fond de la page. */
+.tabsIndicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  /* Placé par JavaScript. `opacity: 0` couvre l'instant qui précède la
+     première mesure, et l'absence de sélection. */
+  opacity: 0;
+  border-radius: var(--opale-tabs-radius);
+  background: var(--opale-tabs-indicator);
+  box-shadow: inset 0 1px 0 var(--opale-tabs-highlight);
+  pointer-events: none;
+  will-change: transform, width, height;
+}
+
+/* La transition n'est armée qu'APRÈS le premier placement — `Tabs.tsx` pose
+   l'attribut une fois la première mesure faite. Sans ce délai, la pastille
+   traverserait le composant depuis le coin haut gauche à chaque montage. */
+.tabsIndicator[data-animated='true'] {
+  transition:
+    transform var(--opale-motion) var(--opale-ease),
+    width var(--opale-motion) var(--opale-ease),
+    height var(--opale-motion) var(--opale-ease);
+}
+
+/* Le déclencheur est un vrai `<button>` : il faut donc lui retirer ce que le
+   navigateur lui met — fond, bordure, police héritée — avant de l'habiller. */
+.tabsTrigger {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: var(--opale-space-xs) var(--opale-space-md);
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity var(--opale-motion-fast) var(--opale-ease);
+}
+
+/* L'ANNEAU DE FOCUS EST TIRÉ VERS L'INTÉRIEUR, ET C'EST UNE CONTRAINTE, PAS UN
+   GOÛT. L'enveloppe de verre porte `overflow: hidden` pour tenir la réfraction
+   dans sa silhouette : un anneau posé à l'extérieur du bouton serait coupé par
+   elle, et on ne verrait du focus que les coins. Décalé vers l'intérieur, il
+   longe le bord de la capsule et reste entier. */
+.tabsTrigger:focus-visible {
+  outline: 2px solid var(--opale-tabs-focus);
+  outline-offset: -3px;
+}
+
+.tabsTrigger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Le voile de base est posé sur TOUS les onglets, y compris le sélectionné :
+   c'est lui qui donne son contraste à la pastille sans que celle-ci ait à se
+   renforcer. Le sélectionné n'a donc aucun fond propre — s'il en avait un, il
+   s'EMPILERAIT sur la pastille et la capsule changerait de densité pendant le
+   trajet, en s'éclaircissant à l'arrivée. */
+.tabsTriggerRoot {
+  --opale-glass-radius: var(--opale-tabs-radius);
+  background: var(--opale-tabs-surface);
+}
+
+.tabsContent {
+  border-radius: var(--opale-radius-sm);
+  padding: var(--opale-space-md);
+  background: var(--opale-tabs-surface);
+  box-shadow: inset 0 1px 0 var(--opale-tabs-highlight);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* Le panneau est atteignable à la tabulation (voir `Tabs.tsx`), donc il peut
+   recevoir le focus : il lui faut son anneau. Rien ne le rogne ici, il reste
+   donc à l'extérieur, comme partout ailleurs dans Opale. */
+.tabsContent:focus-visible {
+  outline: 2px solid var(--opale-tabs-focus);
+  outline-offset: 2px;
+}
+
+/* `[hidden]` vaut `display: none` dans la feuille du navigateur, mais cette
+   règle-là a une spécificité nulle : la moindre déclaration de `display` sur
+   `.tabsContent` la battrait et le panneau inactif resterait à l'écran. La
+   règle est donc redite ici, où elle gagne. */
+.tabsContent[hidden] {
+  display: none;
+}
+
+/* WCAG 2.3.3 — le glissement est du mouvement non essentiel. La feuille
+   d'ensemble neutralise déjà le mouvement, mais elle n'y parvient QUE si le
+   consommateur importe `opale.css` ; ce module est aussi consommé seul
+   (vitrine, tests, build de la bibliothèque). La règle est donc redite au plus
+   près de la transition qu'elle annule. La pastille se pose alors d'un coup —
+   ce qui reste juste : elle est toujours sous l'onglet actif. */
+@media (prefers-reduced-motion: reduce) {
+  .tabsIndicator[data-animated='true'] {
+    transition: none;
+  }
+}

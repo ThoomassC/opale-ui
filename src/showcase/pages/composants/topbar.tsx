@@ -4,7 +4,7 @@ import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
-import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
+import { MagicPreamble, MagicStage } from './stage';
 
 const USAGE = `import { Opale, Topbar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -37,7 +37,14 @@ const PROPS: readonly PropRow[] = [
     name: 'elevated',
     type: 'boolean',
     defaultValue: 'true',
-    description: 'Ajoute l’ombre portée. C’est la seule prop propre en dehors de la taille.',
+    description: (
+      <>
+        Ajoute l’ombre portée, sur <strong>l’enveloppe de verre</strong>. Elle était posée sur le{' '}
+        <code>&lt;header&gt;</code> intérieur, c’est-à-dire du mauvais côté de l’
+        <code>overflow: hidden</code> de l’enveloppe : elle était rognée par son propre parent et ne
+        se voyait pas. C’est la seule prop propre en dehors de la taille.
+      </>
+    ),
   },
   {
     name: 'Topbar.Section grow',
@@ -105,7 +112,11 @@ export const topbarPage: DocPage = {
         note={
           <>
             La section du milieu porte <code>grow</code> : c’est elle qui repousse les actions à
-            droite. Sans elle, tout se colle à gauche. <MagicGroundNote />
+            droite. Sans elle, tout se colle à gauche. Le fond sombre n’est plus une{' '}
+            <strong>condition de lisibilité</strong> — la barre n’écrit plus d’encre en dur, elle
+            hérite de celle de son contexte, ici le blanc de la scène. Il reste pour une autre
+            raison : un verre posé sur un aplat ne réfracte rien, et ne se voit qu’au-dessus de
+            quelque chose.
           </>
         }
       >
@@ -170,9 +181,15 @@ export const topbarPage: DocPage = {
         note={
           <>
             <code>TopbarProps</code> étend{' '}
-            <code>ComponentPropsWithoutRef&lt;&apos;header&apos;&gt;</code> et{' '}
-            <code>GlassProps</code>. <code>Topbar.useTopbar()</code> ne rend que{' '}
-            <code>{'{ size }'}</code> — c’est tout ce que le contexte porte.
+            <code>ComponentPropsWithoutRef&lt;&apos;header&apos;&gt;</code> et reprend{' '}
+            <strong>quatre props nommées</strong> de <code>GlassProps</code> —{' '}
+            <code>rootClassName</code>, <code>rootStyle</code>, <code>enableLiquidAnimation</code>,{' '}
+            <code>triggerAnimation</code>. Il n’intersecte plus <code>GlassProps</code> en entier :
+            cela exposait le <code>as</code> du verre, avec lequel un appelant pouvait remplacer le{' '}
+            <code>&lt;header&gt;</code> — donc faire disparaître le point de repère{' '}
+            <code>banner</code> — en passant une prop qu’aucune documentation ne mentionnait.{' '}
+            <code>Topbar.useTopbar()</code> ne rend que <code>{'{ size }'}</code> — c’est tout ce que
+            le contexte porte.
           </>
         }
         rows={PROPS}
@@ -186,6 +203,19 @@ export const topbarPage: DocPage = {
         de fenêtre est à votre charge, comme l’est le décalage de défilement qui empêche la barre de
         manger l’anneau de focus (WCAG 2.4.11) — la barre de cette vitrine le fait dans{' '}
         <code>doc.css</code>.
+      </p>
+
+      <p className="tc-doc-prose">
+        <strong>La barre n’impose plus son encre, et c’est ce qui change le plus à l’usage.</strong>{' '}
+        La version d’où ce composant vient écrivait <code>text-white</code> sur la barre et sur la
+        marque. Un verre est transparent : son texte se lit sur ce qu’il y a derrière, donc une encre
+        blanche en dur est juste au-dessus d’une photographie et invisible au-dessus d’une carte
+        blanche — <strong>1,00:1</strong>, mesuré sur le sol clair de cette vitrine. La barre hérite
+        désormais la couleur de son contexte, et les deux nuances dont elle a besoin — le sous-titre,
+        le fond de la pastille de marque — se dérivent de <code>currentColor</code> par{' '}
+        <code>color-mix</code> : elles suivent l’encre, donc elles suivent le fond. Aucune couleur
+        n’est écrite dans sa feuille ; les rayons, les coussins, l’ombre et le filet viennent des
+        jetons <code>--opale-*</code>.
       </p>
 
       <p className="tc-doc-prose">

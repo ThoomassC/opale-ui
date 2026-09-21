@@ -1,32 +1,62 @@
 # Third-party notices
 
-Ce fichier existe pour une raison juridique et non documentaire : la licence MIT
-exige que sa notice de droit d'auteur soit **incluse dans toute copie ou portion
-substantielle** du logiciel. `src/magic/` est une portion substantielle.
+Ce fichier contient désormais **deux choses de nature différente**, et les
+confondre serait une faute dans les deux sens.
 
-Il est écrit en anglais pour la partie citée — une licence se recopie, elle ne se
+1. **Une obligation en cours** — la police **Hack**, dont les fichiers sont
+   réellement distribués avec la vitrine déployée. Sa licence MIT exige que sa
+   notice accompagne cette distribution. Cette partie du fichier n'est pas
+   facultative.
+2. **Une attribution historique** — **`react-magic-ui`**, dont plus une ligne
+   n'est distribuée. L'obligation MIT ne s'applique plus ; la notice est gardée
+   parce qu'elle est vraie et utile, pas parce qu'elle est due.
+
+Les textes de licence sont en anglais : une licence se recopie, elle ne se
 traduit pas.
 
 ---
 
-## react-magic-ui
+## react-magic-ui — attribution historique, plus une obligation
 
-- **Ce qui en vient** : les quatorze composants de `src/magic/`, ainsi que leurs
-  feuilles `*.module.scss`. Depuis la 2.0, ce ne sont plus un sous-chemin du
-  paquet mais **son point d'entrée racine** — `import { Button } from
-'@thomascaron/opale-ui'` sert ce code, et `@thomascaron/opale-ui/opale.css` sert sa
-  feuille. Le code est gardé **fidèle au caractère** ; les seuls écarts sont
-  énumérés dans `src/magic/README.md` et chaque fichier porte un bandeau qui dit
-  d'où il vient.
-- **Ce qui n'en vient pas** : ce qui reste d'Opale, c'est-à-dire la charte et son
-  garde. Les jetons de `src/tokens/` (publiés en `./tokens.css`) et le contrat de
-  couleur exécutable de `src/contract/` (publié en `./contract`) ne contiennent
-  aucune ligne de ce projet. Les dix-huit composants de `src/components/` et les
-  points d'entrée CSS de la 1.x n'en contenaient pas davantage ; ils ont été
-  supprimés en 2.0 et ne sont donc plus à distinguer.
+> **Ce code n'est plus distribué.** La clause de la MIT — « the above copyright
+> notice […] shall be included in all copies or substantial portions of the
+> Software » — ne s'applique qu'à une copie ou à une portion substantielle
+> distribuée. Il n'y en a plus. **Cette section ne décrit donc aucune obligation
+> juridique en cours**, et il serait malhonnête de la présenter comme telle.
+
+**Pourquoi la garder, alors.** Trois raisons, et la première suffirait.
+
+- **La réécriture s'est faite en regardant l'original.** Les composants
+  d'aujourd'hui ne partagent plus une ligne avec lui, mais ils partagent son
+  découpage, ses noms de props, et pour le matériau son idée. Une réécriture
+  informée par une source n'est pas un plagiat et n'appelle aucune notice ; elle
+  appelle quand même qu'on dise d'où vient l'idée, parce que c'est la vérité de
+  l'histoire du dossier.
+- **Le dossier porte encore son nom.** `src/magic/` s'appelle ainsi à cause de
+  cette librairie, et le préfixe de classe `opale-magic-` en découle. Sans cette
+  section, ce nom devient une énigme — exactement le genre de question qu'on se
+  repose tous les six mois faute d'une réponse écrite quelque part.
+- **Supprimer une attribution ne coûte rien et ne rapporte rien.** Le fichier ne
+  pèse sur personne ; l'effacer ferait disparaître une information vraie pour un
+  gain nul.
+
+**Ce qui en venait** : les quatorze composants de `src/magic/components/` et
+leurs feuilles `*.module.scss`, copiés au caractère depuis la version 1.0.9.
+
+**Ce qu'il en reste** : rien. Huit des quatorze composants (`Badge`, `Button`,
+`Card`, `Checkbox`, `Input`, `Select`, `Slider`, `Switch`) ont été **supprimés**,
+n'étant plus que des peaux posées sous la prop `liquidGlass` d'un composant
+d'Opale portant le même nom. Les six autres (`Glass`, `Modal`, `Tabs`, `Toast`,
+`Topbar`, `Sidebar`) ont été **réécrits intégralement**, matériau compris.
+L'échafaudage Tailwind qui servait leurs `@apply` est parti avec eux, et
+**Tailwind, PostCSS et Autoprefixer sont sortis des dépendances du paquet**.
+
 - **Source** : <https://github.com/tweeedlex/react-magic-ui>
-- **Version copiée** : 1.0.9
-- **Licence** : MIT
+- **Version qui avait été copiée** : 1.0.9
+- **Licence** : MIT, Copyright (c) 2025 tweeedlex
+
+Le texte de la licence est reproduit ci-dessous **pour mémoire**, afin que la
+section soit lisible sans aller chercher le dépôt d'origine.
 
 ```
 MIT License
@@ -54,7 +84,19 @@ SOFTWARE.
 
 ---
 
-## Hack
+## Hack — obligation en cours
+
+**Celle-ci est due, et il faut la laisser où elle est.** La police monospace des
+exemples de code de la vitrine est distribuée : `npm run build` émet ses fichiers
+dans `dist-showcase/assets/` (vérifié — `hack-regular-*.woff2`,
+`hack-italic-*.woff`, `hack-bold-*.woff2` et leurs pairs), et c'est ce dossier
+qui est déployé. Distribuer la police, c'est en distribuer une copie ; la clause
+MIT s'applique donc pleinement, ainsi que la licence Bitstream Vera que le projet
+reproduit.
+
+**Le paquet npm, lui, n'embarque pas la police** : `dist/` n'en contient aucun
+fichier, et `hack-font` est une dépendance de développement. L'obligation porte
+sur la vitrine déployée, pas sur `@thomascaron/opale-ui`.
 
 - **Ce qui en vient** : la police monospace des exemples de code de la vitrine.
 - **Source** : <https://github.com/source-foundry/Hack>
@@ -138,27 +180,42 @@ further information, contact: fonts at gnome dot org.
 
 ---
 
+## Deux polices chargées à distance, et c'est un point ouvert
+
+`src/magic/opale.css` — publiée en `@thomascaron/opale-ui/opale.css` — ouvre sur
+un `@import url('https://fonts.googleapis.com/…')` qui charge **Bricolage
+Grotesque** et **Chivo**.
+
+Ce n'est pas une question de notices : rien n'est redistribué, Google sert les
+fichiers directement au navigateur du visiteur, et les licences de ces deux
+familles (OFL) n'obligent à rien dans ce cas. **C'est en revanche un problème
+technique et un problème de vie privée**, et il est signalé ici faute d'un
+meilleur endroit : la feuille étant publiée, l'import impose une requête tierce à
+**tout consommateur du paquet**, échoue hors ligne, et expose l'adresse IP de ses
+visiteurs à un tiers qu'ils n'ont pas choisi.
+
+Les deux familles ont un repli système déclaré (`--opale-font-body`,
+`--opale-font-title`), donc retirer l'import ne casse aucune page. C'est écrit
+dans « Reste ouvert » de `src/magic/README.md`.
+
+---
+
 ## Ce qu'Opale, elle, ne dit pas
 
 **Opale n'a aucun fichier de licence à elle**, et `package.json` porte
 `"private": true`. En l'absence de licence explicite, le droit d'auteur par
 défaut s'applique : tous droits réservés. C'est cohérent avec un paquet privé
-consommé par `portfolio` et `travels_in_world`, et ça n'entre pas en conflit avec
-la MIT ci-dessus — la MIT autorise la sous-licence, donc rien n'oblige Opale à
-être MIT parce qu'elle en incorpore.
+consommé par `portfolio` et `travels_in_world`.
 
-**La 2.0 donne du poids à ce silence, et c'est le point à retenir de cette
-section.** En 1.x, le code MIT était un sous-chemin optionnel à côté de dix-huit
-composants maison ; il est devenu le point d'entrée racine, et les composants
-maison ont disparu. Ce que le paquet publie aujourd'hui, c'est donc **du code MIT
-de tweeedlex à la racine, plus une charte et un contrat qui sont les seules
-parties dont Thomas Caron est l'auteur**. Un paquet dont la surface principale est
-sous une licence permissive et dont le tout est « tous droits réservés » par
-défaut n'est pas une contradiction juridique, mais c'est une combinaison qu'un
-lecteur extérieur ne peut pas deviner : elle mérite d'être écrite plutôt que
-laissée à l'absence de fichier.
+**Ce que la 3.1 a changé, et c'est le point à retenir.** En 2.0, le paquet
+publiait à sa racine du code MIT qui n'était pas de lui, et la combinaison « code
+permissif à la racine, tout droits réservés par défaut sur l'ensemble » méritait
+d'être expliquée. Cette tension a disparu avec le code : **tout ce que
+`@thomascaron/opale-ui` publie aujourd'hui est écrit par Thomas Caron** — la
+charte, le contrat de couleur, les huit composants composés, le catalogue et le
+matériau.
 
-Ce serait à trancher le jour où le paquet est publié pour de vrai — et ce jour-là,
-la question n'est plus « quelle licence pour Opale » mais « quelle licence pour une
-charte de quelques centaines de lignes et un contrat de test, distribués avec
-quatorze composants MIT qui ne sont pas d'elle ». C'est signalé ici, pas décidé.
+La question de la licence reste donc entière, mais elle est redevenue simple :
+c'est « quelle licence pour du code entièrement à soi », et non plus « quelle
+licence pour un assemblage ». Elle se tranchera le jour où le paquet sera publié
+pour de vrai. C'est signalé ici, pas décidé.

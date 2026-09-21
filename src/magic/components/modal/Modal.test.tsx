@@ -1,12 +1,22 @@
-/* Vendored from react-magic-ui — MIT, Copyright (c) 2025 tweeedlex.
-   https://github.com/tweeedlex/react-magic-ui
-   Kept byte-faithful on purpose: this file is NOT covered by Opale's colour
-   contract and is not styled with Opale's tokens. See src/magic/README.md. */
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import Modal, { type ModalProps } from "./Modal";
+import Modal, { type ModalProps } from './Modal';
+
+/* =============================================================================
+   LES SIX CAS D'ORIGINE SONT TOUS LÀ, ET AUCUN N'A ÉTÉ AFFAIBLI.
+
+   Ils tenaient le contrat visible du composant — rendu, voile, Échap, portail,
+   verrou de défilement — et c'est ce contrat que la réécriture devait garder
+   intact. Ils sont repris À L'IDENTIQUE dans leurs assertions ; seul leur
+   habillage suit le style du dépôt (français, `getByRole` plutôt que
+   `getByTestId` là où le rôle existait déjà).
+
+   CE QUI EST AJOUTÉ TIENT LE CONTRAT QUI N'ÉTAIT PAS TESTÉ, c'est-à-dire
+   exactement celui que la réécriture apporte : piège de focus, restitution du
+   focus au déclencheur, inertie de l'arrière-plan. Un motif de dialogue dont
+   ces trois-là ne sont pas mesurés est un motif dont on espère qu'il marche.
+   ========================================================================== */
 
 const renderModal = (props?: Partial<ModalProps>) => {
   const onOpenChange = vi.fn();
@@ -24,99 +34,190 @@ const renderModal = (props?: Partial<ModalProps>) => {
     </Modal>,
   );
 
-  return {
-    ...result,
-    onOpenChange,
-  };
+  return { ...result, onOpenChange };
 };
 
-describe("Modal component", () => {
-  it("renders dialog content when open", () => {
+describe('Modal', () => {
+  it('rend le contenu du dialogue à l’ouverture', () => {
     renderModal();
 
-    expect(
-      screen.getByRole("dialog", { name: "Glass modal" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Modal body content")).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Glass modal' })).toBeInTheDocument();
+    expect(screen.getByText('Modal body content')).toBeInTheDocument();
   });
 
-  it("calls onOpenChange when overlay clicked", () => {
+  it('appelle onOpenChange au clic sur le voile', () => {
     const { onOpenChange } = renderModal();
 
-    const overlay = screen.getByTestId("modal-overlay");
+    const overlay = screen.getByTestId('modal-overlay');
     expect(overlay).toBeInTheDocument();
-
-    if (overlay) {
-      fireEvent.click(overlay);
-    }
+    fireEvent.click(overlay);
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("does not close when overlay click disabled", () => {
+  it('ne ferme pas quand le clic sur le voile est désarmé', () => {
     const { onOpenChange } = renderModal({ closeOnOverlay: false });
 
-    const overlay = screen.getByTestId("modal-overlay");
+    const overlay = screen.getByTestId('modal-overlay');
     expect(overlay).toBeInTheDocument();
-
-    if (overlay) {
-      fireEvent.click(overlay);
-    }
+    fireEvent.click(overlay);
 
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it("invokes onOpenChange when escape key pressed", () => {
+  it('appelle onOpenChange sur Échap', () => {
     const { onOpenChange } = renderModal();
 
-    fireEvent.keyDown(window, { key: "Escape" });
+    fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("renders in the body by default", () => {
-    render(
-      <Modal
-        open
-        onOpenChange={() => { }}
-        title="Glass modal"
-        description="Keeps the focus on your content."
-      >
-        <p>Modal body content</p>
-      </Modal>,
-    );
+  it('se portaille dans le body par défaut', () => {
+    renderModal();
 
-    const modalContainer = screen.getByTestId("modal-container");
-    expect(modalContainer.parentElement!.tagName).toBe("BODY");
+    const modalContainer = screen.getByTestId('modal-container');
+    expect(modalContainer.parentElement!.tagName).toBe('BODY');
   });
 
-  it("locks body scroll while open and restores on close", () => {
+  it('verrouille le défilement du body à l’ouverture et le restaure à la fermeture', () => {
     const { rerender } = render(
-      <Modal
-        open
-        onOpenChange={() => { }}
-        title="Glass modal"
-        description="Keeps the focus on your content."
-      >
+      <Modal open onOpenChange={() => {}} title="Glass modal">
         <p>Modal body content</p>
       </Modal>,
     );
 
-    expect(document.body.style.overflow).toBe("hidden");
+    expect(document.body.style.overflow).toBe('hidden');
 
     rerender(
-      <Modal
-        open={false}
-        onOpenChange={() => { }}
-        title="Glass modal"
-        description="Keeps the focus on your content."
-      >
+      <Modal open={false} onOpenChange={() => {}} title="Glass modal">
         <p>Modal body content</p>
       </Modal>,
     );
 
-    expect(document.body.style.overflow).toBe("");
+    expect(document.body.style.overflow).toBe('');
+  });
+
+  /* ---------------------------------------------------------------------- */
+
+  it('donne le focus au panneau à l’ouverture', () => {
+    renderModal();
+
+    expect(screen.getByRole('dialog', { name: 'Glass modal' })).toHaveFocus();
+  });
+
+  it('rend le focus au déclencheur à la fermeture', () => {
+    /* LE DÉCLENCHEUR DOIT VIVRE HORS DU MODAL ET SURVIVRE À SA FERMETURE :
+       c'est tout le cas d'usage. On le rend donc à côté, et on le focalise à
+       la main avant l'ouverture — ce que fait un vrai clic. */
+    const Harness = ({ open }: { open: boolean }) => (
+      <>
+        <button type="button">Ouvrir</button>
+        <Modal open={open} onClose={() => {}} title="Glass modal">
+          <p>Modal body content</p>
+        </Modal>
+      </>
+    );
+
+    const { rerender } = render(<Harness open={false} />);
+    const trigger = screen.getByRole('button', { name: 'Ouvrir' });
+    trigger.focus();
+    expect(trigger).toHaveFocus();
+
+    rerender(<Harness open />);
+    expect(trigger).not.toHaveFocus();
+
+    rerender(<Harness open={false} />);
+    expect(trigger).toHaveFocus();
+  });
+
+  it('piège la tabulation entre le premier et le dernier élément focusable', () => {
+    render(
+      <Modal open onClose={() => {}} title="Glass modal" footer={<button type="button">OK</button>}>
+        <button type="button">Dans le corps</button>
+      </Modal>,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Glass modal' });
+    const close = screen.getByRole('button', { name: 'Fermer' });
+    const last = screen.getByRole('button', { name: 'OK' });
+
+    /* `Tab` depuis le dernier revient au premier. On ne teste pas les pas
+       intermédiaires : ils appartiennent au navigateur, et jsdom ne les joue
+       pas — c'est précisément pour ça que le piège ne s'occupe que des bords. */
+    last.focus();
+    fireEvent.keyDown(dialog, { key: 'Tab' });
+    expect(close).toHaveFocus();
+
+    /* `Shift+Tab` depuis le premier repart au dernier. */
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true });
+    expect(last).toHaveFocus();
+  });
+
+  it('retient le focus sur le panneau quand le dialogue n’a aucun élément focusable', () => {
+    /* Sans `onClose` ni `onOpenChange`, la croix n'est pas rendue : le
+       dialogue n'a plus rien de focusable, et la tabulation s'échapperait vers
+       une page rendue inerte, c'est-à-dire nulle part. */
+    render(
+      <Modal open title="Glass modal">
+        <p>Modal body content</p>
+      </Modal>,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Glass modal' });
+    fireEvent.keyDown(dialog, { key: 'Tab' });
+
+    expect(dialog).toHaveFocus();
+  });
+
+  it('rend l’arrière-plan inerte le temps de l’ouverture, et le restitue ensuite', () => {
+    const Harness = ({ open }: { open: boolean }) => (
+      <>
+        <button type="button">Derrière</button>
+        <Modal open={open} onClose={() => {}} title="Glass modal">
+          <p>Modal body content</p>
+        </Modal>
+      </>
+    );
+
+    const { rerender, baseElement } = render(<Harness open={false} />);
+
+    /* Le conteneur de rendu de Testing Library est un frère du portail : c'est
+       lui, l'arrière-plan, dans ce test. */
+    const background = baseElement.querySelector('div')!;
+    expect(background).not.toHaveAttribute('inert');
+
+    rerender(<Harness open />);
+    expect(background).toHaveAttribute('inert');
+    expect(background).toHaveAttribute('aria-hidden', 'true');
+
+    rerender(<Harness open={false} />);
+    expect(background).not.toHaveAttribute('inert');
+    expect(background).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('n’expose aucun dialogue quand il est fermé', () => {
+    render(
+      <Modal open={false} onClose={() => {}} title="Glass modal">
+        <p>Modal body content</p>
+      </Modal>,
+    );
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('modal-container')).not.toBeInTheDocument();
+  });
+
+  it('laisse l’appelant surcharger le nom accessible sans perdre role ni aria-modal', () => {
+    /* `{...rest}` passe désormais AVANT les attributs du contrat : un appelant
+       ne peut plus casser le motif en posant son propre `role`, mais il garde
+       la main sur le nom. */
+    render(
+      <Modal open onClose={() => {}} aria-label="Dialogue nommé par l’appelant" role="alertdialog">
+        <p>Modal body content</p>
+      </Modal>,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Dialogue nommé par l’appelant' });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
   });
 });
-
-

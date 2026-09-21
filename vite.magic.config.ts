@@ -2,13 +2,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import react from '@vitejs/plugin-react';
-import autoprefixer from 'autoprefixer';
-import tailwindcss from 'tailwindcss';
 import { defineConfig, type Plugin } from 'vite';
 
 // Extension-ful on purpose: Vite's forthcoming native config loader cannot
 // resolve an extensionless TypeScript import and warns on every build.
-import tailwindConfig from './tailwind.config.ts';
 
 const MAGIC_OUT_DIR = 'dist/magic';
 const TYPES_ENTRY = `${MAGIC_OUT_DIR}/index.d.ts`;
@@ -73,16 +70,28 @@ const stripStyleImportFromTypes = (): Plugin => ({
 export default defineConfig({
   plugins: [react(), stripStyleImportFromTypes()],
 
+  /* =======================================================================
+     PLUS AUCUN POST-TRAITEMENT CSS, ET C'EST UNE SUPPRESSION.
+
+     Ce bloc déclarait `tailwindcss` et `autoprefixer` en ligne, avec une longue
+     note expliquant pourquoi un `postcss.config.js` à la racine aurait été pire
+     — il aurait été ramassé par tout processus Vite du dépôt, `vitest` compris,
+     et Tailwind se serait mis à traiter les feuilles sur lesquelles le contrat
+     de couleur mesure.
+
+     LA QUESTION NE SE POSE PLUS : Tailwind n'était là que pour les centaines de
+     `@apply` des composants copiés d'une librairie tierce. Ces composants sont
+     réécrits par Opale, en CSS simple et sur les jetons `--opale-*`, donc les
+     trois paquets — `tailwindcss`, `postcss`, `autoprefixer` — sont sortis des
+     dépendances.
+
+     CE QU'ON PERD, ET IL FAUT LE SAVOIR : les préfixes constructeur
+     qu'`autoprefixer` ajoutait. Les feuilles d'Opale les écrivent donc à la
+     main là où ils comptent — `-webkit-backdrop-filter` à côté de
+     `backdrop-filter` dans le matériau de verre, qui est le seul endroit où
+     Safari l'exige encore.
+     ==================================================================== */
   css: {
-    // The PostCSS pipeline is declared INLINE, not in a root
-    // `postcss.config.js`. A root config is picked up by every Vite process in
-    // the repository — the showcase build and Vitest included — which would
-    // point Tailwind at Opale's own token sheets and at the stylesheets the
-    // colour contract asserts on. Scoping it here means `/magic` is the only
-    // thing Tailwind ever sees.
-    postcss: {
-      plugins: [tailwindcss(tailwindConfig), autoprefixer()],
-    },
     modules: {
       // A CONTRACT with `src/magic/magic.scss`. That sheet scopes the font
       // family with `:where([class*='opale-magic-'])`, a selector that matches

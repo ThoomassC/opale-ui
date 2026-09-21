@@ -31,13 +31,17 @@ import { Opale } from './opale';
 /**
  * Le marqueur du vrai matériau.
  *
- * `Glass` monte un filtre SVG de déplacement (`lg-dist`) pour chacune de ses
- * instances. Sa présence distingue le VERRE du lavis CSS `.opale-liquid` qui
- * l'imitait — et c'est exactement la distinction que ces fusions établissent :
- * chercher une classe d'Opale aurait laissé passer l'imitation.
+ * `Glass` pose `data-opale-glass` sur son enveloppe. C'est un CONTRAT, pas un
+ * détail d'implémentation : la classe du module est hachée à la compilation,
+ * donc inutilisable ici comme dans la feuille d'un hôte.
+ *
+ * La version précédente cherchait le filtre SVG `#lg-dist`, que le composant
+ * tiers montait DANS chaque instance. Le nôtre n'en monte qu'un pour toute la
+ * page, sur `document.body` — un identifiant unique au lieu de dix doublons —,
+ * si bien que le chercher sous le composant ne prouvait plus rien.
  */
 function hasGlassMaterial(container: HTMLElement): boolean {
-  return container.querySelector('filter#lg-dist') !== null;
+  return container.querySelector('[data-opale-glass]') !== null;
 }
 
 /** Les sept fusions, et de quoi rendre chacune. */
@@ -309,66 +313,104 @@ describe('les teintes du verre', () => {
     ).toEqual([]);
   });
 
+  /* CE GARDE A CHANGÉ DE CIBLE PARCE QUE LE MÉCANISME A CHANGÉ, et le
+     changement vaut d'être dit. L'état actif était porté par un `data-checked`
+     que React recopiait depuis un état miroir tenu en JavaScript : il fallait
+     ce miroir pour dire à un composant TIERS de se peindre coché. La coche et
+     la piste étant désormais les nôtres, le CSS lit directement `:checked` sur
+     l'`<input>` natif — un état dérivé de moins, donc une désynchronisation de
+     moins. L'exigence, elle, ne bouge pas d'un pouce : la couleur d'un état
+     actif vient de la palette d'Opale, jamais d'un hexadécimal emprunté. */
   it('peint les états actifs avec le primaire d’Opale', () => {
-    for (const selector of ['.opale-toggle--glass', '.opale-checkbox--glass']) {
-      const rule = new RegExp(
-        `${selector.replace('.', '\\.')}\\[data-checked='true'\\][^{]*\\{[^}]*var\\(--opale-primary\\)`,
-      );
+    for (const mark of ['opale-checkbox-mark', 'opale-toggle-track']) {
+      const rule = new RegExp(`:checked \\+ \\* \\.${mark}[^{]*\\{[^}]*var\\(--opale-primary\\)`);
 
       expect(
         opaleSource,
-        `L’état actif de « ${selector} » ne cite pas --opale-primary : sa couleur ` +
-          'vient donc d’ailleurs que de la palette d’Opale.',
+        `L’état coché de « .${mark} » sous verre ne cite pas --opale-primary : sa ` +
+          'couleur vient donc d’ailleurs que de la palette d’Opale.',
       ).toMatch(rule);
     }
   });
 });
 
 /* =============================================================================
-   LA PEAU DE VERRE NE DOIT PAS INTERCEPTER LE CLIC — LE DÉFAUT A ÉTÉ LIVRÉ.
+   CLIQUER SUR CE QU'ON VOIT DOIT BASCULER LE CONTRÔLE.
 
-   Le commutateur de verre était MORT AU CLIC en production, et toute la suite
-   était verte. La cause : `pointer-events: none` posé sur la seule enveloppe.
-   Un descendant peut réactiver le pointeur qu'un ancêtre a coupé, et leur
-   module le fait — le clic mourait sur un `<button>` sans gestionnaire au lieu
-   de traverser jusqu'au `<label>`.
+   LE DÉFAUT LIVRÉ, ET POURQUOI TOUTE LA SUITE ÉTAIT VERTE PENDANT CE TEMPS.
+   Le commutateur de verre était MORT AU CLIC : la peau était alors un
+   composant tiers, et son `<button>` interne remettait `pointer-events: auto`
+   sous l'enveloppe qui les coupait. Le clic mourait sur un bouton sans
+   gestionnaire au lieu de traverser jusqu'au `<label>`.
 
-   POURQUOI LES TESTS DE COMPORTEMENT NE L'ONT PAS VU, et c'est la leçon : ils
-   cliquent `getByRole('checkbox')`, c'est-à-dire l'`<input>` natif — jamais la
-   surface qu'un humain vise. Ils prouvent que le contrôle répond quand on
-   l'atteint, pas qu'on peut l'atteindre. jsdom ne calcule ni cascade ni
-   `elementFromPoint` : la vérification par l'usage est impossible ici, elle a
-   été faite au navigateur. Reste à épingler la RÈGLE, pour qu'on ne la
-   rétrécisse pas à l'enveloppe une seconde fois.
+   Les tests de comportement ne l'ont pas vu parce qu'ils cliquaient
+   `getByRole('checkbox')` — l'`<input>` natif, jamais la surface qu'un humain
+   vise. Ils prouvaient que le contrôle répond quand on l'atteint, pas qu'on
+   peut l'atteindre. C'est le seul endroit du fichier où cette distinction
+   comptait, et c'est exactement là qu'elle manquait.
+
+   CE GARDE A REMPLACÉ UN GARDE DE MÉCANISME. La version précédente vérifiait
+   qu'une règle CSS coupait bien `pointer-events` sur les DESCENDANTS de la
+   peau. Cette règle n'existe plus et n'a plus lieu d'exister : la peau n'est
+   plus un composant tiers avec ses propres gestionnaires, c'est le `<span>`
+   décoratif d'Opale enveloppé de verre. Garder le garde aurait exigé d'écrire
+   la règle pour lui seul — un test qui impose du code dont il est le seul
+   usager. On vise donc le RÉSULTAT, qui lui reste vrai quelle que soit la
+   mécanique : un clic sur la surface visible bascule le contrôle.
    ========================================================================== */
-describe('l’inertie de la peau de verre', () => {
+describe('le clic sur la surface visible', () => {
+  it.each([
+    { name: 'Checkbox', mark: 'opale-checkbox-mark', label: 'Notifications' },
+    { name: 'Toggle', mark: 'opale-toggle-track', label: 'Activé' },
+  ])('$name bascule quand on clique sa peau de verre', async ({ name, mark, label }) => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = render(
+      name === 'Checkbox' ? (
+        <Opale.Checkbox liquidGlass label={label} onChange={onChange} />
+      ) : (
+        <Opale.Toggle liquidGlass label={label} onChange={onChange} />
+      ),
+    );
+
+    const skin = container.querySelector(`.${mark}`);
+
+    expect(skin, `la peau « .${mark} » n’est pas rendue sous verre`).not.toBeNull();
+
+    await user.click(skin as Element);
+
+    expect(
+      onChange,
+      `Cliquer la surface visible de ${name} n’a rien basculé. Le contrôle natif ` +
+        'est ailleurs : si un élément de la peau intercepte le clic sans le ' +
+        'transmettre au `<label>`, le composant est mort au pointeur — et tous ' +
+        'les autres tests restent verts, parce qu’ils cliquent l’input directement.',
+    ).toHaveBeenCalledOnce();
+    expect(onChange.mock.calls[0][0].target.checked).toBe(true);
+  });
+});
+
+describe('la technique de sélection des couches', () => {
   const stripped = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
 
-  it.each(['.opale-checkbox--glass', '.opale-toggle--glass'])(
-    '%s coupe le pointeur sur ses DESCENDANTS et pas seulement sur lui-même',
-    (wrapper) => {
-      const rules = [...stripped.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, , body]) =>
-        /pointer-events:\s*none/.test(body),
-      );
-      const covers = rules.some(([, selector]) =>
-        selector.split(',').some((part) => part.trim() === `${wrapper} *`),
-      );
+  /* ON NE VISE PAS UNE COUCHE PAR SA POSITION, ET LE DÉPÔT EN A PAYÉ LES DEUX
+     FORMES.
 
-      expect(
-        covers,
-        `Aucune règle ne coupe \`pointer-events\` sur « ${wrapper} * ».\n\n` +
-          'Le couper sur la seule enveloppe NE SUFFIT PAS : le composant vendoré ' +
-          'remet `pointer-events: auto` sur son bouton interne, qui intercepte alors ' +
-          'le clic et ne fait rien. C’est exactement le défaut qui a rendu ' +
-          'l’interrupteur de verre inutilisable en production.',
-      ).toBe(true);
-    },
-  );
+     La première : des sélecteurs structurels (`> div`, `> :last-child`) qui
+     désignent le bon élément aujourd'hui et son voisin le jour où `Glass`
+     gagne un calque.
 
-  /* La technique de sélection est celle de la page du matériau. Un sélecteur
-     structurel (`> div`, `> :last-child`) viserait le bon élément aujourd'hui
-     et le voisin demain, sans rien faire rougir. */
-  it('atteint les couches du verre par leur classe, jamais par leur position', () => {
+     La seconde, plus insidieuse, a réellement cassé : les feuilles de la
+     vitrine attrapaient les couches par `[class*='glassFilter']`, faute de
+     pouvoir nommer une classe de module hachée. Vingt-neuf sélecteurs se sont
+     tus d'un coup quand le matériau a été réécrit et que les couches ont
+     changé de nom — un sélecteur sans correspondance ne rougit nulle part, et
+     la barre du haut avait perdu son verre sans que rien ne le dise.
+
+     `Glass` expose donc `data-opale-glass` sur son enveloppe et
+     `data-opale-glass-layer` sur chaque couche. C'est un contrat, au même
+     titre que ses props. */
+  it('atteint les couches du verre par leur nom, jamais par leur position', () => {
     const positional = [...stripped.matchAll(/([^{}]*--glass[^{}]*)\{/g)]
       .map(([, selector]) => selector.trim())
       .filter((selector) => /(>\s*div\b|:last-child|:first-of-type|:nth-child)/.test(selector));
@@ -377,8 +419,8 @@ describe('l’inertie de la peau de verre', () => {
       positional,
       'Ces règles de verre visent une POSITION plutôt qu’une classe :\n  ' +
         positional.join('\n  ') +
-        "\n\nUtilisez la forme de `doc.css` — `[class*='glassContent']` — qui nomme " +
-        'la couche visée et survit à l’ajout d’un calque dans `Glass`.',
+        "\n\nVisez la couche par son nom — `[data-opale-glass-layer='tint']` — que " +
+        '`Glass` pose exprès pour cela et qui survit à l’ajout d’un calque.',
     ).toEqual([]);
   });
 });

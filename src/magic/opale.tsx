@@ -7,26 +7,16 @@ import {
   useState,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
-  type ComponentProps,
-  type ComponentType,
   type CSSProperties,
   type FormHTMLAttributes,
   type HTMLAttributes,
   type InputHTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
-  type Ref,
   type SelectHTMLAttributes,
 } from 'react';
 
-import MagicBadge from './components/badge/Badge';
-import MagicButton from './components/button/Button';
-import MagicCard from './components/card/Card';
-import MagicCheckbox from './components/checkbox/Checkbox';
-import MagicInput from './components/input/Input';
-import MagicSelect from './components/select/Select';
-import MagicSlider from './components/slider/Slider';
-import MagicSwitch from './components/switch/Switch';
+import Glass from './components/glass/Glass';
 
 /* =============================================================================
    LE VERRE EST LA PEAU, LE CONTRÔLE NATIF RESTE LE MOTEUR.
@@ -34,93 +24,104 @@ import MagicSwitch from './components/switch/Switch';
    C'est la règle qui gouverne les sept fusions de ce fichier, et elle mérite
    d'être posée une fois plutôt que réexpliquée sept.
 
-   LE PATRON VIENT DE `Button` : un seul composant par nom, et la prop
-   `liquidGlass` choisit la MATIÈRE. Le paquet publiait deux `Button`, deux
-   `Input`, deux `Card`… dont l'un imitait l'autre en CSS. La prop rend
-   désormais le vrai matériau, et la porte publique du vendoré se ferme.
+   UN SEUL COMPOSANT PAR NOM, ET `liquidGlass` CHOISIT SA MATIÈRE.
 
-   MAIS `Button` EST LE CAS FACILE, ET IL FAUT LE DIRE. Un bouton n'a pas
-   d'état : `children`, `disabled`, un clic. Le vendoré le porte en entier,
-   donc on peut le substituer tel quel. Les six autres ont un ÉTAT et un
-   CONTRAT D'ÉVÉNEMENT, et là le vendoré ne suit plus :
+   Le paquet publiait deux `Button`, deux `Input`, deux `Card`… : les siens, et
+   ceux d'une librairie tierce dont le code était copié dans le dépôt. La prop
+   `liquidGlass` ne posait qu'une classe — un lavis CSS qui imitait le verre
+   sans l'être.
 
-     — `Checkbox` émet `onChange(checked: boolean)` quand Opale émet un
-       `ChangeEvent<HTMLInputElement>` ;
-     — `Slider` émet `onChange(value: number)`, et sa piste est un `<div>` sans
-       rôle, sans `tabindex` et sans clavier — défaut réel, documenté en tête
-       de `Slider.tsx` ;
-     — `Switch` expose `isActive`/`setIsActive` là où `Toggle` étend
-       `InputHTMLAttributes` : `name`, `required`, participation au formulaire ;
-     — `Select` n'est pas un `<select>` : c'est un bouton et une liste de
-       `<button>`, donc ni nom de formulaire, ni sélecteur natif mobile.
+   ELLE REND DÉSORMAIS LE VRAI MATÉRIAU, ET CE MATÉRIAU EST LE NÔTRE.
+   `Glass` (`./components/glass/Glass`) est écrit par Opale : trois couches —
+   réfraction, lavis, filet spéculaire — et un contenu. Il ne reste aucune
+   ligne de code tiers derrière cette prop.
 
-   Substituer purement et simplement aurait donc échangé un composant accessible
-   contre un composant qui ne l'est pas, et fait taire des `onChange` que des
-   formulaires écoutent. Une prop d'apparence n'a pas à casser un contrat.
+   CE QUE CELA A SIMPLIFIÉ, ET C'EST LE VRAI GAIN. Une version précédente
+   rendait le composant TIERS comme peau, par-dessus le contrôle d'Opale. Il
+   fallait alors lui reprendre de force sa géométrie, sa typographie et ses
+   couleurs, à coups de `!important`, parce que son module CSS était injecté
+   après notre feuille. Chacun de ces rattrapages a coûté un défaut vu à
+   l'écran : un bouton de 125 px au lieu de 100, une carte qui perdait 37 px,
+   un texte indicatif blanc sur blanc, un interrupteur VERT au milieu d'une
+   interface bleue, un badge qui passait ses libellés en capitales.
 
-   D'OÙ LA RÈGLE : le composant vendoré est rendu pour ce qu'on lui demande —
-   SA SURFACE. Il est inerte (`aria-hidden`, `tabIndex={-1}`,
-   `pointer-events: none`), et le contrôle natif d'Opale reste monté, garde le
-   focus, le clavier, le nom de formulaire et son événement. Un état miroir
-   (`useMirrorState`) tient le vendoré au courant de la valeur pour qu'il la
-   peigne.
+   Tout cela vient de disparaître, et pour une raison simple : le verre
+   enveloppe désormais LE BALISAGE D'OPALE. `<Glass as="button"
+   className="opale-button opale-button--primary">` est le bouton d'Opale — ses
+   classes, sa silhouette, sa taille, son encre — posé sur nos trois couches.
+   Il n'y a plus deux géométries à réconcilier, donc plus rien à forcer.
 
-   CE QUI EST DONC VRAI À L'ÉCRAN : basculer le commutateur ne change QUE la
-   matière — ni la taille, ni la position, ni le comportement, ni ce qu'entend
-   un lecteur d'écran. C'était l'exigence.
-
-   `Badge` ET `Card` N'ONT PAS D'ÉTAT, donc ils échappent à tout cela : ils sont
-   substitués comme `Button`, sans miroir ni contrôle caché.
+   LE CONTRÔLE NATIF RESTE LE MOTEUR, et cela n'a pas changé : là où un
+   composant porte un état — case, interrupteur, curseur, sélecteur —, c'est
+   l'élément natif qui garde le focus, le clavier, le nom de formulaire et son
+   `ChangeEvent`. Le verre ne fait que l'habiller.
    ========================================================================== */
 
-/**
- * La valeur affichée par la peau de verre, qu'on soit contrôlé ou non.
- *
- * Le vendoré a besoin d'une valeur pour se peindre, et Opale accepte les deux
- * modes. En mode contrôlé la prop fait foi et le miroir ne sert pas ; en mode
- * non contrôlé le DOM fait foi, et le miroir est le seul moyen de le savoir.
- */
-function useMirrorState<T>(controlled: T | undefined, initial: T): [T, (next: T) => void] {
-  const [mirror, setMirror] = useState<T>(initial);
-  return [controlled ?? mirror, setMirror];
-}
-
-/** Rend un composant vendoré inerte : il peint, il n'agit pas. */
-const DECORATIVE = { 'aria-hidden': true, tabIndex: -1 } as const;
-
-/* `Input` NE DÉCLARE PAS DE `ref`, ET REACT 19 LA TRANSMET QUAND MÊME.
-
-   Leur composant est un `React.FC` typé `ComponentPropsWithoutRef<'input'>`,
-   donc TypeScript refuse `ref`. À l'exécution, en revanche, React 19 traite
-   `ref` comme une prop ordinaire sur un composant fonction : elle tombe dans
-   leur `{...props}` et atterrit sur le vrai `<input>`.
-
-   Sans ce recast, il aurait fallu renoncer à `ref` sous verre — et
-   `Input` est un `forwardRef`. Une référence qui cesse silencieusement
-   d'être transmise est précisément le genre de panne qu'aucun test de rendu
-   n'attrape : le champ s'affiche, et `inputRef.current` vaut `null`. */
-const GlassInput = MagicInput as unknown as ComponentType<
-  ComponentProps<typeof MagicInput> & { ref?: Ref<HTMLInputElement> }
->;
-
-type ButtonVariant =
-  'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text';
+type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text';
 type ButtonSize = 'small' | 'medium' | 'large';
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
 
+/**
+ * La coquille d'un champ : du verre quand on le demande, un simple `<span>`
+ * sinon.
+ *
+ * Les cinq champs à état — saisie, sélection, curseur, case, interrupteur —
+ * ont exactement le même besoin : remplacer LA BOÎTE par du verre sans toucher
+ * à ce qu'elle contient. L'écrire cinq fois aurait fait diverger cinq copies à
+ * la première correction ; c'est d'ailleurs ce qui était en train d'arriver.
+ *
+ * LE CONTENU EST IDENTIQUE DANS LES DEUX BRANCHES, et c'est la propriété qui
+ * compte : le contrôle natif, son `id`, son `name`, son `ref` et son
+ * `ChangeEvent` ne dépendent pas de la matière choisie.
+ */
+function FieldShell({
+  liquidGlass,
+  className,
+  rootClassName,
+  children,
+}: {
+  liquidGlass: boolean;
+  className?: string;
+  rootClassName?: string;
+  children: ReactNode;
+}) {
+  if (!liquidGlass) return <span className={className}>{children}</span>;
+
+  return (
+    <Glass as="span" className={className} rootClassName={rootClassName}>
+      {children}
+    </Glass>
+  );
+}
+
 interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
   liquidGlass?: boolean;
 }
 
+/* LA SURFACE PARTAGÉE REND LE VRAI VERRE, ELLE AUSSI.
+
+   Elle posait `opale-liquid` : un lavis CSS — deux dégradés radiaux et un flou
+   d'arrière-plan — qui IMITAIT le matériau. L'imitation se voyait dès qu'on
+   comparait : la carte affichait du vrai verre sous le commutateur pendant que
+   `StatCard`, bâtie sur cette même surface, gardait le lavis. Deux rendus du
+   même « Liquid Glass » sur la même page.
+
+   Le matériau étant désormais le nôtre, il n'y a plus de raison de l'imiter. */
 function Surface({ liquidGlass = false, className, children, ...props }: SurfaceProps) {
+  const classes = cx('opale-surface', liquidGlass && 'opale-surface--glass', className);
+
+  if (liquidGlass) {
+    return (
+      <Glass className={classes} rootClassName="opale-surface--glass-root" {...props}>
+        {children}
+      </Glass>
+    );
+  }
+
   return (
-    <div
-      className={cx('opale-surface', liquidGlass && 'opale-liquid', className)}
-      data-liquid-glass={liquidGlass ? 'true' : undefined}
-      {...props}
-    >
+    <div className={classes} {...props}>
       {children}
     </div>
   );
@@ -191,52 +192,57 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ...props
     },
     ref,
-  ) =>
-    liquidGlass ? (
-      <MagicButton
-        ref={ref}
-        size={size}
-        disabled={disabled || loading}
-        /* `opale-button--glass` REND LA GÉOMÉTRIE D'OPALE À LA MATIÈRE DE
-           L'AUTRE. Sans elle, basculer le commutateur changeait la TAILLE du
-           bouton en même temps que sa surface — 120 × 52 px contre 90 × 44 —,
-           si bien que la mise en page sautait et qu'on ne comparait plus deux
-           états du même composant mais deux composants. La silhouette
-           arrondie, elle, reste celle du verre : c'est son identité, pas un
-           accident de dimension. */
-        className={cx('opale-button--glass', `opale-button--glass-${variant}`, className)}
-        /* LA SILHOUETTE EST CELLE D'OPALE, ET IL FAUT L'ENVELOPPE POUR L'AVOIR.
-           Le verre est arrondi par le `border-radius` de son conteneur, pas par
-           le bouton : habiller le seul contenu laissait des coins ronds tout
-           autour. `rootClassName` atteint ce conteneur, et le composant vendoré
-           le transmet à `<Glass>`. Il est passé APRÈS le sien dans les props,
-           donc il l'emporte — celui-ci ne sert qu'au mode `rounded`, qu'on
-           n'emploie pas. */
-        rootClassName="opale-button--glass-root"
-        {...props}
-      >
-        {children}
-      </MagicButton>
-    ) : (
-      <button
-        ref={ref}
-        className={cx(
-          'opale-button',
-          `opale-button--${variant}`,
-          size !== 'medium' && `opale-button--${size}`,
-          fullWidth && 'opale-button--full',
-          className,
-        )}
-        data-liquid-glass={liquidGlass ? 'true' : undefined}
-        disabled={disabled || loading}
-        type={type}
-        {...props}
-      >
+  ) => {
+    /* LE MÊME CONTENU DANS LES DEUX ÉTATS, et c'est ce qui garantit que le
+       commutateur ne change QUE la matière. Une version précédente déléguait à
+       un composant tiers qui n'avait ni `loading`, ni `startIcon`, ni
+       `endIcon`, ni `fullWidth` : ces quatre props étaient silencieusement
+       ignorées sous verre. Elles fonctionnent maintenant des deux côtés,
+       puisqu'il n'y a plus qu'un seul balisage. */
+    const content = (
+      <>
         {loading ? <span className="opale-spinner" aria-hidden="true" /> : startIcon}
         <span>{children}</span>
         {!loading && endIcon}
+      </>
+    );
+
+    const classes = cx(
+      'opale-button',
+      `opale-button--${variant}`,
+      size !== 'medium' && `opale-button--${size}`,
+      fullWidth && 'opale-button--full',
+      liquidGlass && 'opale-button--glass',
+      className,
+    );
+
+    /* LE DÉCOUPAGE EN SQUIRCLE APPARTIENT À L'ENVELOPPE, pas au contenu. Les
+       trois couches du verre vivent DERRIÈRE le bouton, dans le conteneur : ne
+       découper que le contenu laissait la réfraction et le filet spéculaire
+       dépasser en rectangle tout autour de la silhouette. */
+    if (liquidGlass) {
+      return (
+        <Glass
+          as="button"
+          ref={ref}
+          className={classes}
+          rootClassName={cx('opale-button--glass-root', fullWidth && 'opale-button--full')}
+          enableLiquidAnimation
+          disabled={disabled || loading}
+          type={type}
+          {...props}
+        >
+          {content}
+        </Glass>
+      );
+    }
+
+    return (
+      <button ref={ref} className={classes} disabled={disabled || loading} type={type} {...props}>
+        {content}
       </button>
-    ),
+    );
+  },
 );
 Button.displayName = 'Button';
 
@@ -281,27 +287,28 @@ export function Card({
     </>
   );
 
-  /* LA CLASSE DU CONSOMMATEUR PART SUR LA RACINE, PAS SUR LE CONTENU, et ce
-     n'est pas un détail de goût. `Card` ne déstructure PAS `className` : il
-     pose la sienne puis répand `{...props}` par-dessus, si bien qu'une classe
-     venue de l'extérieur EFFACE `styles.card` — la carte perd son fond, son
-     rayon et son rembourrage d'un coup, sans que rien ne rougisse. La racine
-     du verre est de toute façon l'élément qu'on voit ; c'est là qu'une classe
-     d'habillage a sa place.
+  const classes = cx(
+    'opale-card',
+    `opale-card--e${elevation}`,
+    liquidGlass && 'opale-card--glass',
+    className,
+  );
 
-     `elevation` N'A PAS D'ÉQUIVALENT et n'en aura pas : le verre porte sa
-     propre ombre, qui EST sa profondeur. Lui superposer les trois niveaux
-     d'Opale donnerait deux ombres sur une surface translucide. */
+  /* `elevation` GARDE SON SENS SOUS VERRE, ce qui n'était pas le cas avant :
+     la carte tierce imposait sa propre ombre et sa propre typographie, si bien
+     que le niveau demandé était perdu et que le texte passait de 16 px à 15.
+     La carte d'Opale étant désormais le contenu du verre, elle garde ses
+     classes, donc son élévation et son échelle. */
   if (liquidGlass) {
     return (
-      <MagicCard rootClassName={cx('opale-card--glass-root', className)} {...props}>
+      <Glass className={classes} rootClassName="opale-card--glass-root" {...props}>
         {content}
-      </MagicCard>
+      </Glass>
     );
   }
 
   return (
-    <Surface className={cx('opale-card', `opale-card--e${elevation}`, className)} {...props}>
+    <Surface className={classes} {...props}>
       {content}
     </Surface>
   );
@@ -332,29 +339,22 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
         {label && <span className="opale-field__label">{label}</span>}
         {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
 
-            Ce qui porte du TEXTE reste à Opale — le libellé, le texte d'aide,
-            le message d'erreur, et l'association `htmlFor`/`id` qui les relie.
-            Seule la BOÎTE du champ devient du verre. Envoyer le libellé au
-            vendoré n'était pas possible de toute façon : il n'en a pas.
+            Ce qui porte du TEXTE reste hors du verre — le libellé, le texte
+            d'aide, le message d'erreur, et l'association `htmlFor`/`id` qui les
+            relie. Seule la BOÎTE du champ devient du verre.
 
-            LE VENDORÉ REND UN VRAI `<input>` ET REÇOIT `{...props}` DESSUS,
-            donc c'est le seul des sept où la substitution est complète : la
-            valeur, le type, le nom, le `placeholder` et l'`onChange` natif
-            passent tels quels. Rien à pontifier, rien à masquer.
-
-            CE QUI SE PERD : `icon`. Le vendoré n'a aucun emplacement où la
-            poser, et l'insérer de force demanderait de reconstruire son
-            balisage — c'est-à-dire de recréer le doublon qu'on supprime. */}
-        {liquidGlass ? (
-          <span className="opale-input--glass">
-            <GlassInput ref={ref} id={inputId} {...props} />
-          </span>
-        ) : (
-          <span className="opale-input-shell">
-            {icon}
-            <input ref={ref} id={inputId} className="opale-input" {...props} />
-          </span>
-        )}
+            `icon` FONCTIONNE MAINTENANT SOUS VERRE. Le champ tiers n'avait
+            aucun emplacement où la poser, donc la prop était silencieusement
+            ignorée dès qu'on basculait le commutateur. La coquille étant
+            désormais la nôtre, l'icône y reste. */}
+        <FieldShell
+          liquidGlass={liquidGlass}
+          className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
+          rootClassName="opale-input--glass-root"
+        >
+          {icon}
+          <input ref={ref} id={inputId} className="opale-input" {...props} />
+        </FieldShell>
         {(error || helperText) && (
           <span
             className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
@@ -382,51 +382,27 @@ export function Checkbox({
   onChange,
   ...props
 }: CheckboxProps) {
-  const [checked, setChecked] = useMirrorState(
-    props.checked,
-    props.defaultChecked ?? props.checked ?? false,
-  );
+  /* L'ÉTAT N'A PLUS BESOIN D'ÊTRE RECOPIÉ EN JAVASCRIPT.
 
-  /* LE VERRE REMPLACE LA COCHE PEINTE, PAS LA CASE.
-
-     `.opale-checkbox-mark` est déjà une décoration `aria-hidden` : la vraie
-     case est l'`<input>` natif, invisible et posé sur toute la rangée. Le
-     verre prend exactement la place de cette décoration, et reste comme elle
-     inerte — c'est le `<label>` qui reçoit le clic, comme avant.
-
-     `pointer-events: none` (posé en CSS) EST CE QUI ÉVITE LA DOUBLE BASCULE :
-     leur case est un `<button>` avec son propre `onClick`. Laissé cliquable à
-     l'intérieur d'un `<label>`, il aurait coché puis décoché dans le même
-     geste, ou pire, selon que le navigateur considère ou non qu'un bouton
-     interrompt la propagation du libellé. On ne parie pas là-dessus. */
+     La version précédente tenait un état miroir (`useMirrorState`) pour dire à
+     la case tierce si elle devait se peindre cochée. La coche est désormais la
+     nôtre : `.opale-checkbox:checked + * .opale-checkbox-mark` la peint depuis
+     le CSS, à partir de l'état réel du natif. Un état dérivé de moins, c'est
+     une occasion de désynchronisation de moins — et `onChange` redevient un
+     simple passe-plat. */
   return (
     <label className={cx('opale-checkbox-row', className)}>
-      <input
-        type="checkbox"
-        className="opale-checkbox"
-        onChange={(event) => {
-          setChecked(event.currentTarget.checked);
-          onChange?.(event);
-        }}
-        {...props}
-      />
-      {liquidGlass ? (
-        <span
-          className="opale-checkbox--glass"
-          data-checked={checked ? 'true' : undefined}
-          aria-hidden="true"
-        >
-          <MagicCheckbox
-            checked={checked}
-            disabled={props.disabled}
-            enableClickAnimation={false}
-            rootClassName="opale-checkbox--glass-root"
-            {...DECORATIVE}
-          />
-        </span>
-      ) : (
-        <span className="opale-checkbox-mark" aria-hidden="true" />
-      )}
+      <input type="checkbox" className="opale-checkbox" onChange={onChange} {...props} />
+      {/* LA COCHE EST UNE DÉCORATION, sous verre comme sans. La vraie case est
+          l'`<input>` natif, invisible et posé sur toute la rangée ; c'est le
+          `<label>` qui reçoit le clic. */}
+      <FieldShell
+        liquidGlass={liquidGlass}
+        className={cx('opale-checkbox-mark', liquidGlass && 'opale-checkbox-mark--glass')}
+        rootClassName="opale-checkbox--glass-root"
+      >
+        {null}
+      </FieldShell>
       <span>{label ?? description}</span>
       {label && description && <small className="opale-field__helper">{description}</small>}
     </label>
@@ -438,54 +414,20 @@ export interface ToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   liquidGlass?: boolean;
 }
 
-export function Toggle({
-  label,
-  liquidGlass = false,
-  className,
-  onChange,
-  ...props
-}: ToggleProps) {
-  const [checked, setChecked] = useMirrorState(
-    props.checked,
-    props.defaultChecked ?? props.checked ?? false,
-  );
-
-  /* `liquidGlass` NE POSAIT QU'UNE CLASSE, ET C'EST CE QUI EST CORRIGÉ ICI.
-     Elle ajoutait `opale-liquid` à la RANGÉE — un lavis CSS sur le fond du
-     libellé, qui imitait le verre sans l'être et ne touchait même pas la
-     piste. La prop rend désormais l'interrupteur vendoré à la place de la
-     piste peinte, inerte comme elle l'était (`aria-hidden`), l'`<input>`
-     natif gardant le focus, le clavier et le nom de formulaire. */
+export function Toggle({ label, liquidGlass = false, className, onChange, ...props }: ToggleProps) {
+  /* Même simplification que pour la case : la piste et sa poignée sont celles
+     d'Opale, et `.opale-toggle:checked` les peint depuis le CSS. Le verre
+     habille la piste sans se mêler de son état. */
   return (
     <label className={cx('opale-toggle-row', className)}>
-      <input
-        type="checkbox"
-        className="opale-toggle"
-        onChange={(event) => {
-          setChecked(event.currentTarget.checked);
-          onChange?.(event);
-        }}
-        {...props}
-      />
-      {liquidGlass ? (
-        <span
-          className="opale-toggle--glass"
-          data-checked={checked ? 'true' : undefined}
-          aria-hidden="true"
-        >
-          <MagicSwitch
-            isActive={checked}
-            disabled={props.disabled}
-            enableClickAnimation={false}
-            rootClassName="opale-toggle--glass-root"
-            {...DECORATIVE}
-          />
-        </span>
-      ) : (
-        <span className="opale-toggle-track" aria-hidden="true">
-          <span className="opale-toggle-thumb" />
-        </span>
-      )}
+      <input type="checkbox" className="opale-toggle" onChange={onChange} {...props} />
+      <FieldShell
+        liquidGlass={liquidGlass}
+        className={cx('opale-toggle-track', liquidGlass && 'opale-toggle-track--glass')}
+        rootClassName="opale-toggle--glass-root"
+      >
+        <span className="opale-toggle-thumb" />
+      </FieldShell>
       {label && <span>{label}</span>}
     </label>
   );
@@ -505,37 +447,17 @@ export function Slider({
   onChange,
   ...props
 }: SliderProps) {
-  const [value, setValue] = useMirrorState(
-    props.value === undefined ? undefined : Number(props.value),
-    Number(props.defaultValue ?? props.value ?? 0),
-  );
+  /* LA SUPERPOSITION A DISPARU, ET C'ÉTAIT UNE BÉQUILLE.
 
-  /* ICI LE CONTRÔLE NATIF N'EST PAS UNE PRÉCAUTION, C'EST UNE CORRECTION.
+     Le curseur tiers était une piste en `<div>` sans rôle, sans `tabindex` et
+     sans clavier. Pour ne pas perdre l'accessibilité en basculant la matière,
+     il fallait le poser SOUS un `<input type="range">` rendu transparent : le
+     natif recevait le geste, le verre peignait la valeur, et un état miroir
+     tenait les deux d'accord. Trois pièces pour un seul curseur.
 
-     Leur piste est un `<div>` sans rôle, sans `tabindex` et sans clavier — le
-     défaut est relevé en tête de `Slider.tsx`, dans ce dépôt. Le substituer à
-     l'`<input type="range">` d'Opale aurait échangé un curseur utilisable au
-     clavier contre un curseur qui ne l'est pas : une régression
-     d'accessibilité déguisée en changement d'apparence. WCAG 2.1.1 n'admet pas
-     ce troc, et le propriétaire n'a pas demandé de perdre le clavier.
-
-     LE NATIF EST DONC POSÉ PAR-DESSUS, TRANSPARENT (voir `opale.css`) : il
-     reçoit le pointeur ET les flèches du clavier, et le verre au-dessous se
-     contente de peindre la valeur qu'il annonce. C'est le geste inverse de
-     celui du bouton, et c'est le même principe — rendre la matière sans rien
-     retirer au composant. */
-  const range = (
-    <input
-      type="range"
-      className={cx('opale-range', liquidGlass && 'opale-range--glass')}
-      onChange={(event) => {
-        setValue(Number(event.currentTarget.value));
-        onChange?.(event);
-      }}
-      {...props}
-    />
-  );
-
+     Le verre enveloppant maintenant notre propre piste, il n'y a plus qu'un
+     élément : l'`<input type="range">`, visible, avec ses flèches et son
+     `ChangeEvent`. */
   return (
     <label className={cx('opale-field', className)}>
       {(label || valueLabel) && (
@@ -544,21 +466,13 @@ export function Slider({
           <span>{valueLabel ?? props.value}</span>
         </span>
       )}
-      {liquidGlass ? (
-        <span className="opale-slider--glass">
-          <MagicSlider
-            value={value}
-            min={props.min === undefined ? undefined : Number(props.min)}
-            max={props.max === undefined ? undefined : Number(props.max)}
-            step={props.step === undefined ? undefined : Number(props.step)}
-            disabled={props.disabled}
-            enableClickAnimation={false}
-          />
-          {range}
-        </span>
-      ) : (
-        range
-      )}
+      <FieldShell
+        liquidGlass={liquidGlass}
+        className={cx('opale-range-shell', liquidGlass && 'opale-range-shell--glass')}
+        rootClassName="opale-range--glass-root"
+      >
+        <input type="range" className="opale-range" onChange={onChange} {...props} />
+      </FieldShell>
     </label>
   );
 }
@@ -583,72 +497,37 @@ export function Select({
 }: SelectProps) {
   const generatedId = useId();
   const selectId = id ?? generatedId;
-  const [value, setValue] = useMirrorState(
-    props.value === undefined ? undefined : String(props.value),
-    String(props.defaultValue ?? props.value ?? options?.[0]?.value ?? ''),
-  );
 
-  const nativeSelect = (
-    <select
-      id={selectId}
-      className={cx('opale-select', liquidGlass && 'opale-select--native')}
-      onChange={(event) => {
-        setValue(event.currentTarget.value);
-        onChange?.(event);
-      }}
-      {...props}
-    >
-      {options?.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-      {children}
-    </select>
-  );
+  /* LE SÉLECTEUR REDEVIENT UN SEUL ÉLÉMENT, ET C'EST UN SOULAGEMENT.
 
-  /* LE `<select>` NATIF RESTE, ET IL RESTE AU-DESSUS.
+     Le composant tiers n'était pas un `<select>` : un bouton et une liste de
+     `<button>`. Le substituer aurait coûté le nom de formulaire, le sélecteur
+     natif du mobile et les `<option>` passés en enfants — le champ se serait
+     affiché et le formulaire aurait cessé d'envoyer sa valeur. Il fallait donc
+     superposer le natif, transparent, par-dessus la peau, tenir les deux
+     d'accord par un état miroir, et n'envoyer à la peau que les libellés qui
+     étaient des chaînes, les `ReactNode` lui étant incompréhensibles.
 
-     Leur `Select` n'est pas un `<select>` : c'est un bouton et une liste de
-     `<button>`. Le substituer aurait coûté trois choses à la fois — le nom de
-     formulaire (`name`), le sélecteur natif du mobile, et les `<option>` que
-     le consommateur passe en enfants. Le champ aurait continué de s'afficher,
-     et le formulaire aurait cessé d'envoyer sa valeur : la panne muette
-     typique.
-
-     Le natif est donc posé par-dessus la peau de verre, transparent. Il garde
-     le clic, le clavier et la soumission ; le verre peint l'état fermé, qui
-     est le seul que l'on voie — la liste ouverte, elle, est celle du système,
-     exactement comme sans verre.
-
-     LES LIBELLÉS D'OPTION SONT DES `ReactNode` ET LE VENDORÉ VEUT DES CHAÎNES.
-     Seules les options dont le libellé EST une chaîne lui sont passées ; les
-     autres gardent leur rendu natif au-dessus, donc rien ne disparaît à
-     l'écran, seule la peau est moins bavarde. */
-  if (liquidGlass) {
-    return (
-      <label className={cx('opale-field', className)} htmlFor={selectId}>
-        {label && <span className="opale-field__label">{label}</span>}
-        <span className="opale-select--glass">
-          <MagicSelect
-            options={(options ?? [])
-              .filter((option) => typeof option.label === 'string')
-              .map((option) => ({ value: option.value, label: option.label as string }))}
-            value={value}
-            disabled={props.disabled}
-            enableClickAnimation={false}
-          />
-          {nativeSelect}
-        </span>
-        {helperText && <span className="opale-field__helper">{helperText}</span>}
-      </label>
-    );
-  }
-
+     Tout cela tombe : le verre enveloppe le `<select>` natif d'Opale. Les
+     libellés redeviennent des `ReactNode` sans condition, et `children`
+     fonctionne sous verre comme sans. */
   return (
     <label className={cx('opale-field', className)} htmlFor={selectId}>
       {label && <span className="opale-field__label">{label}</span>}
-      <span className="opale-input-shell">{nativeSelect}</span>
+      <FieldShell
+        liquidGlass={liquidGlass}
+        className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
+        rootClassName="opale-input--glass-root"
+      >
+        <select id={selectId} className="opale-select" onChange={onChange} {...props}>
+          {options?.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+          {children}
+        </select>
+      </FieldShell>
       {helperText && <span className="opale-field__helper">{helperText}</span>}
     </label>
   );
@@ -888,12 +767,7 @@ export interface SegmentedControlProps {
  * en `flex-wrap: wrap`, donc les options passent à la ligne dès que la place
  * manque et l'indicateur doit descendre avec elles.
  */
-export function SegmentedControl({
-  options,
-  value,
-  onChange,
-  className,
-}: SegmentedControlProps) {
+export function SegmentedControl({ options, value, onChange, className }: SegmentedControlProps) {
   const groupRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const hasPlacedRef = useRef(false);
@@ -1086,31 +960,28 @@ export function Badge({
   children: ReactNode;
   className?: string;
 }) {
-  /* `Badge` EST LE SEUL VENDORÉ QUI FUSIONNE `className` AU LIEU DE L'ÉCRASER
-     (il le déstructure et le passe à `clsx`), donc c'est le seul où la
-     géométrie peut voyager par là. Les six autres exigent `rootClassName`.
+  /* LE BADGE EST LE MÊME DES DEUX CÔTÉS. La pastille tierce forçait ses
+     libellés en CAPITALES, imposait sa propre graisse et ignorait le ton
+     d'Opale au profit de six variantes d'une autre palette : il fallait
+     reprendre chacune de ces décisions à coups de `!important`. La pastille
+     d'Opale étant désormais le contenu du verre, elle garde son ton, sa
+     pilule et sa casse. */
+  const classes = cx(
+    'opale-badge',
+    tone !== 'primary' && `opale-badge--${tone}`,
+    liquidGlass && 'opale-badge--glass',
+    className,
+  );
 
-     SA VARIANTE N'EST PAS EMPLOYÉE, pour la raison qui a déjà tranché sur le
-     bouton : ses six teintes viennent d'une autre palette, et une
-     correspondance arbitraire entre les tons d'Opale et les leurs se dément au
-     premier changement de marque — le secondaire du bouton était resté vert.
-     La teinte vient donc d'une classe par ton, tirée des jetons. */
   if (liquidGlass) {
     return (
-      <MagicBadge
-        className={cx('opale-badge--glass', `opale-badge--glass-${tone}`, className)}
-        rootClassName="opale-badge--glass-root"
-      >
+      <Glass as="span" className={classes} rootClassName="opale-badge--glass-root">
         {children}
-      </MagicBadge>
+      </Glass>
     );
   }
 
-  return (
-    <span className={cx('opale-badge', tone !== 'primary' && `opale-badge--${tone}`, className)}>
-      {children}
-    </span>
-  );
+  return <span className={classes}>{children}</span>;
 }
 
 export function StatusChip({
@@ -1639,13 +1510,7 @@ export function StatCard({
     </Surface>
   );
 }
-export function Donut({
-  value = 60,
-  label = `${value}%`,
-}: {
-  value?: number;
-  label?: string;
-}) {
+export function Donut({ value = 60, label = `${value}%` }: { value?: number; label?: string }) {
   return (
     <div
       className="opale-donut"
@@ -1839,13 +1704,7 @@ export function Game({ score = 0 }: { score?: number }) {
     </div>
   );
 }
-export function Clipboard({
-  value,
-  children = 'Copier',
-}: {
-  value: string;
-  children?: ReactNode;
-}) {
+export function Clipboard({ value, children = 'Copier' }: { value: string; children?: ReactNode }) {
   const [copied, setCopied] = useState(false);
   return (
     <Button

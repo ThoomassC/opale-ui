@@ -6,7 +6,7 @@ import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { SidebarCollapsibleScene } from './scenes';
-import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
+import { MagicPreamble, MagicStage } from './stage';
 
 const USAGE = `import { Sidebar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -55,13 +55,14 @@ const PROPS: readonly PropRow[] = [
   },
   {
     name: 'onToggle',
-    type: '(collapsed: boolean) => void  ∩  ToggleEventHandler',
+    type: '(collapsed: boolean) => void',
     description: (
       <>
-        <strong>Le type est pollué par une collision</strong> :{' '}
-        <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> apporte le{' '}
-        <code>onToggle</code> du DOM — celui de <code>&lt;details&gt;</code>. Le paramètre arrive
-        donc en <code>boolean | ToggleEvent&lt;HTMLElement&gt;</code>. Voir plus bas.
+        L’état <em>suivant</em>, et rien d’autre. Ce type était{' '}
+        <strong>pollué par une collision</strong> jusqu’à la réécriture —{' '}
+        <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> apportait le{' '}
+        <code>onToggle</code> du DOM, celui de <code>&lt;details&gt;</code>. Voir plus bas ce que la
+        correction coûte.
       </>
     ),
   },
@@ -81,7 +82,7 @@ const PROPS: readonly PropRow[] = [
     defaultValue: "'medium'",
     description: (
       <>
-        La <strong>largeur</strong> de la barre dépliée. Posée sur l’enveloppe du verre, où
+        La <strong>largeur</strong> de la barre dépliée. Posée sur l’enveloppe du verre, ou
         remplacée par la classe « repliée » dès que <code>collapsed</code> est vrai.
       </>
     ),
@@ -92,8 +93,11 @@ const PROPS: readonly PropRow[] = [
     required: true,
     description: (
       <>
-        L’identité de l’entrée. Le composant calcule un <code>aria-label</code> depuis les enfants
-        s’ils sont une chaîne — sinon il retombe sur celui que vous passez.
+        L’identité de l’entrée : ce que reçoit <code>onSelectItem</code>, et ce que{' '}
+        <code>activeItemId</code> compare. L’entrée retenue porte{' '}
+        <code>aria-current=&quot;page&quot;</code>. Le <strong>nom accessible du bouton est son
+        libellé</strong>, lu dans le contenu — plus aucun <code>aria-label</code> n’est calculé à
+        votre place, et passer le vôtre l’emporte comme sur n’importe quel bouton.
       </>
     ),
   },
@@ -102,9 +106,35 @@ const PROPS: readonly PropRow[] = [
     type: 'ReactNode',
     description: (
       <>
-        L’icône est <code>aria-hidden</code>. Le badge n’est rendu que déplié. Sans icône, une barre
-        repliée affiche <code>collapsedFallback</code>, à défaut la première lettre du libellé, à
-        défaut un point médian.
+        L’icône et le badge sont <code>aria-hidden</code> : ni l’une ni l’autre n’entre dans le nom
+        du bouton. Le badge est <em>masqué à l’œil</em> au repli, pas retiré du DOM — comme le
+        libellé. Sans icône, une barre repliée affiche <code>collapsedFallback</code>, à défaut la
+        première lettre du libellé, à défaut un point médian ; les trois sont des vignettes, jamais
+        un nom.
+      </>
+    ),
+  },
+  {
+    name: 'Sidebar.Items aria-label',
+    type: 'string',
+    defaultValue: "'Sidebar'",
+    description: (
+      <>
+        Le <code>&lt;nav&gt;</code> est un <strong>point de repère nommé</strong>. Le défaut est
+        générique, et il faut le remplacer dès qu’une page porte deux rails : deux repères de même
+        nom ne se distinguent pas mieux que deux repères anonymes. Le sommaire de cette vitrine passe
+        « Sommaire ».
+      </>
+    ),
+  },
+  {
+    name: 'Sidebar.Toggle',
+    type: 'ComponentPropsWithoutRef<\'button\'>',
+    description: (
+      <>
+        Porte <code>aria-expanded</code> et <code>aria-controls</code> vers l’<code>&lt;aside&gt;</code>
+        , dont l’<code>id</code> est généré si vous n’en passez pas. Ses <code>children</code>{' '}
+        remplacent le chevron par défaut.
       </>
     ),
   },
@@ -120,8 +150,8 @@ export const sidebarPage: DocPage = {
       Une barre latérale de verre en cinq parties composées — <code>Sidebar</code>,{' '}
       <code>.Header</code>, <code>.Items</code>, <code>.Item</code>, <code>.Footer</code>, plus{' '}
       <code>.Toggle</code>. Elle rend un vrai <code>&lt;aside&gt;</code> et un vrai{' '}
-      <code>&lt;nav&gt;</code>, donc deux points de repère corrects ; ses entrées, en revanche, sont
-      des <code>&lt;button&gt;</code> et non des liens.
+      <code>&lt;nav&gt;</code> <em>nommé</em>, donc deux points de repère corrects ; ses entrées, en
+      revanche, sont des <code>&lt;button&gt;</code> et non des liens.
     </>
   ),
   render: () => (
@@ -136,7 +166,11 @@ export const sidebarPage: DocPage = {
           <>
             La scène impose 256 px de hauteur : une barre latérale haute de son seul contenu ne
             ressemble pas à une barre latérale. Le pli est <strong>contrôlé ici</strong>, pour que
-            l’état soit affiché sous la barre. <MagicGroundNote />
+            l’état soit affiché sous la barre. Le fond sombre n’est plus une{' '}
+            <strong>condition de lisibilité</strong> — le rail n’écrit plus d’encre en dur, il hérite
+            de celle de la scène ; il reste parce qu’un verre posé sur un aplat ne réfracte rien.
+            Repliez la barre et vérifiez au clavier : les libellés restent des noms de boutons, ils
+            sont seulement masqués à l’œil.
           </>
         }
       >
@@ -148,8 +182,10 @@ export const sidebarPage: DocPage = {
         note={
           <>
             Cette barre porte un <code>Sidebar.Toggle</code> dans son en-tête, et vous ne le voyez
-            pas : sans <code>collapsible</code>, il rend <code>null</code>. C’est un choix de leur
-            code, pas un oubli du spécimen.
+            pas : sans <code>collapsible</code>, il rend <code>null</code>. C’est un choix{' '}
+            <strong>délibéré du composant</strong>, pas un oubli du spécimen — un bouton qui ne peut
+            rien faire est pire qu’un bouton absent : il occupe un cran de tabulation, il s’annonce,
+            et il ne répond pas.
           </>
         }
       >
@@ -173,8 +209,14 @@ export const sidebarPage: DocPage = {
         note={
           <>
             <code>SidebarProps</code> étend{' '}
-            <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> et{' '}
-            <code>GlassProps</code>. Chaque sous-composant étend l’élément qu’il rend —{' '}
+            <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> — moins son{' '}
+            <code>onToggle</code> du DOM, voir plus bas — et reprend{' '}
+            <strong>quatre props nommées</strong> de <code>GlassProps</code> :{' '}
+            <code>rootClassName</code>, <code>rootStyle</code>, <code>enableLiquidAnimation</code>,{' '}
+            <code>triggerAnimation</code>. Il n’intersecte plus <code>GlassProps</code> en entier,
+            qui apportait le <code>as</code> du verre — de quoi remplacer l’
+            <code>&lt;aside&gt;</code> — et tous les attributs d’un <code>&lt;div&gt;</code>. Chaque
+            sous-composant étend l’élément qu’il rend —{' '}
             <code>&apos;div&apos;</code> pour l’en-tête et le pied, <code>&apos;nav&apos;</code>{' '}
             pour <code>.Items</code>, <code>&apos;button&apos;</code> pour <code>.Item</code> et{' '}
             <code>.Toggle</code>. <code>Sidebar.useSidebar()</code> expose le contexte.
@@ -184,63 +226,82 @@ export const sidebarPage: DocPage = {
       />
 
       <p className="tc-doc-prose">
-        <strong>Ce qu’il manque pour une vraie navigation.</strong> Les entrées sont des boutons :
-        pas de <code>href</code>, donc ni clic du milieu, ni « ouvrir dans un nouvel onglet », ni
-        glisser vers la barre d’adresse — et aucun <code>aria-current</code> sur l’entrée retenue,
-        dont l’état actif n’est qu’une classe. Le <code>&lt;nav&gt;</code> de{' '}
-        <code>Sidebar.Items</code> n’a pas de nom accessible, donc il s’annonce « navigation » tout
-        court ; passez-lui un <code>aria-label</code>. Le sommaire de cette vitrine montre l’autre
-        parti — des <code>&lt;a&gt;</code> dans des <code>&lt;li&gt;</code>, un{' '}
-        <code>aria-current=&quot;page&quot;</code> et des listes nommées.
+        <strong>Ce que la réécriture a corrigé, et qui ne se voit pas à l’écran.</strong> Quatre
+        défauts d’accessibilité, hérités tels quels de la librairie d’où ce composant vient.{' '}
+        <strong>Le premier est le plus grave</strong> : une entrée repliée perdait son nom. Le
+        libellé était retiré du DOM au repli et le nom rattrapé par un <code>aria-label</code>{' '}
+        calculé depuis les enfants — mais seulement <code>typeof children === &apos;string&apos;</code>
+        . Toute entrée dont le libellé passait par un élément — une traduction, un{' '}
+        <code>&lt;span&gt;</code>, du texte enrichi — devenait un <em>bouton anonyme</em> dès qu’on
+        repliait le rail, ce que ni TypeScript ni React ne signalent. Le libellé est désormais
+        toujours rendu et seulement masqué à l’œil, si bien que le nom est le même dans les deux
+        états et ne dépend plus du type des enfants. Les trois autres : le <code>&lt;nav&gt;</code>{' '}
+        est nommé, l’entrée retenue porte <code>aria-current=&quot;page&quot;</code>, et la bascule
+        porte <code>aria-expanded</code> — son nom disait l’action, rien ne disait l’état à froid.
       </p>
 
       <p className="tc-doc-prose">
-        <strong>Une collision de types, trouvée en écrivant cette page.</strong>{' '}
-        <code>onToggle</code> est déclarée <code>(collapsed: boolean) =&gt; void</code>, mais{' '}
-        <code>SidebarProps</code> étend{' '}
-        <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code>, qui apporte déjà un{' '}
-        <code>onToggle</code> — celui du DOM, l’événement de <code>&lt;details&gt;</code>.
-        TypeScript intersecte les deux signatures, si bien que le paramètre arrive en{' '}
+        <strong>Ce qui reste, et qui n’est pas un oubli.</strong> Les entrées sont des boutons : pas
+        de <code>href</code>, donc ni clic du milieu, ni « ouvrir dans un nouvel onglet », ni glisser
+        vers la barre d’adresse. C’est le contrat public du composant —{' '}
+        <code>SidebarItemProps</code> étend <code>&lt;button&gt;</code> et{' '}
+        <code>onSelectItem</code> reçoit un <code>MouseEvent&lt;HTMLButtonElement&gt;</code> —, et en
+        faire un composant polymorphe serait une autre interface, pas une correction. Le badge, lui,
+        est <code>aria-hidden</code> : le laisser dans l’arbre ferait du nom du bouton « Analytics
+        4 », un nom qui ne correspond plus au libellé visible (WCAG 2.5.3) et qui change à chaque
+        fois que le compteur bouge. Ce qu’on y perd est réel — le compteur ne s’entend pas —, et une
+        entrée dont le compte est une information à part entière doit passer son propre{' '}
+        <code>aria-label</code>. Le sommaire de cette vitrine montre l’autre parti, celui d’une vraie
+        navigation : des <code>&lt;a&gt;</code> dans des <code>&lt;li&gt;</code> et des listes
+        nommées.
+      </p>
+
+      <p className="tc-doc-prose">
+        <strong>Une collision de types, trouvée en écrivant cette page — et corrigée depuis.</strong>{' '}
+        <code>onToggle</code> était déclarée <code>(collapsed: boolean) =&gt; void</code>, mais{' '}
+        <code>SidebarProps</code> étendait{' '}
+        <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> en entier, qui apporte déjà un{' '}
+        <code>onToggle</code> — celui du DOM, l’événement de <code>&lt;details&gt;</code>. TypeScript
+        intersectait les deux signatures, si bien que le paramètre arrivait en{' '}
         <code>boolean | ToggleEvent&lt;HTMLElement&gt;</code> : passer un <code>setCollapsed</code>{' '}
-        de React <strong>ne compile pas</strong>. Il faut un{' '}
-        <code>typeof next === &apos;boolean&apos;</code>, comme le fait le code de cette page.
-        {/* CE RENVOI A ÉTÉ RETIRÉ PLUTÔT QUE REDIRIGÉ, et c'est délibéré. Il
-            pointait la page du `Checkbox` VENDORÉ, dont le `onChange` subissait
-            exactement la même intersection par `GlassProps`. Cette page a
-            fusionné avec celle d'`Opale.Checkbox` — mais `CheckboxProps`
-            étend `InputHTMLAttributes<HTMLInputElement>` et émet un
-            `ChangeEvent` ordinaire : la collision n'y existe PAS. Rediriger
-            aurait envoyé le lecteur vérifier un défaut sur un composant qui ne
-            l'a pas, ce qui est pire qu'un lien mort — il aurait eu l'air
-            confirmé. La phrase dit donc où le motif se rencontre encore. */}{' '}
-        <strong>C’est désormais le dernier endroit du paquet où ce motif se rencontre :</strong> les
-        composants d’Opale n’intersectent pas <code>GlassProps</code> — leur prop{' '}
-        <code>liquidGlass</code> rend le verre sans emprunter son typage.
+        de React <em>ne compilait pas</em>, et il fallait un{' '}
+        <code>typeof next === &apos;boolean&apos;</code> qui ne servait à rien à l’exécution.{' '}
+        <strong>
+          Le <code>onToggle</code> du DOM est désormais retiré du type
+        </strong>
+        , et la signature documentée est enfin la vraie. Ce que cela coûte, en toute rigueur : un
+        appelant ne peut plus écouter l’événement <code>toggle</code> natif sur l’{' '}
+        <code>&lt;aside&gt;</code> par cette prop — un événement qu’un <code>&lt;aside&gt;</code> ne
+        déclenche que s’il porte un <code>popover</code>, et qui se branche alors sur son{' '}
+        <code>ref</code>. Le même motif guette n’importe quel type qui étend un élément du DOM et
+        redéclare un de ses gestionnaires ; les composants d’Opale l’évitent autrement, leur prop{' '}
+        <code>liquidGlass</code> rendant le verre sans emprunter le typage de{' '}
+        <code>GlassProps</code>.
       </p>
 
       <p className="tc-doc-prose">
         <strong>
           Le piège de <code>badge</code>, mesuré en écrivant cette page.
         </strong>{' '}
-        {/* LE LIEN VISAIT LE `Badge` VENDORÉ, dont la page a fusionné avec celle
-            d'Opale, et LA PHRASE NE TENAIT PLUS TELLE QUELLE : `Opale.Badge`
-            rend un `<span>`, parfaitement valide dans un bouton. Le piège n'a
-            pas disparu pour autant — il s'est déplacé sur la prop : sous
-            `liquidGlass`, `Badge` délègue au vendoré, qui passe par
-            `Glass` et son `<div>`. C'est plus utile à dire que l'ancienne
-            interdiction générale, parce que c'est la version qu'on écrit sans
-            y penser en activant le verre partout. */}
+        {/* LE MÉCANISME A ÉTÉ RÉÉCRIT, PAS LE PIÈGE. La phrase disait que
+            `liquidGlass` « délègue au composant vendoré » : ce n'est plus vrai,
+            il n'y a plus de composant tiers derrière la prop. `Opale.Badge`
+            rend lui-même `<Glass as="span">`, et c'est `Glass` — le nôtre — qui
+            enveloppe toujours son contenu dans un `<div>`. Le HTML invalide est
+            donc EXACTEMENT le même, pour une raison qui nous appartient
+            désormais : dire le contraire aurait laissé croire que la réécriture
+            avait réglé ce cas-là aussi. */}
         Y passer un{' '}
         <a className="tc-doc-link" href={hrefFor('composants/opale-badge')}>
           Badge
         </a>{' '}
         est tentant, et l’écriture nue est sûre : <code>Opale.Badge</code> rend un{' '}
         <code>&lt;span&gt;</code>. <strong>Ajoutez-lui</strong> <code>liquidGlass</code>{' '}
-        <strong>et le HTML devient invalide</strong> : la prop délègue au composant vendoré, qui
-        passe par <code>Glass</code> et enveloppe toujours son contenu dans un{' '}
-        <code>&lt;div&gt;</code>, or <code>Sidebar.Item</code> rend un <code>&lt;button&gt;</code>.
-        Un bloc dans un bouton — que ni TypeScript ni React ne signalent. Le spécimen ci-dessus
-        emploie donc un <code>&lt;span&gt;</code> nu.
+        <strong>et le HTML devient invalide</strong> : la pastille passe alors par{' '}
+        <code>Glass</code>, dont l’enveloppe est un <code>&lt;div&gt;</code> quel que soit le{' '}
+        <code>as</code> demandé, or <code>Sidebar.Item</code> rend un <code>&lt;button&gt;</code>. Un
+        bloc dans un bouton — que ni TypeScript ni React ne signalent. Le spécimen ci-dessus emploie
+        donc un <code>&lt;span&gt;</code> nu.
       </p>
 
       <p className="tc-doc-prose">

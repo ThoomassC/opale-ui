@@ -1,577 +1,654 @@
-/* Vendored from react-magic-ui — MIT, Copyright (c) 2025 tweeedlex.
-   https://github.com/tweeedlex/react-magic-ui
-   Kept byte-faithful on purpose: this file is NOT covered by Opale's colour
-   contract and is not styled with Opale's tokens. See src/magic/README.md. */
-/* ÉCART OPALE — UN INDICATEUR UNIQUE QUI GLISSE SOUS L'ONGLET ACTIF.
-
-   Chez eux, la sélection est UNIQUEMENT une classe posée sur le déclencheur
-   choisi (`.triggerSelected`). Deux fonds distincts s'allument et s'éteignent
-   donc en même temps sur deux éléments différents : à l'écran, le fond SAUTE
-   d'un onglet à l'autre, sans aucun déplacement à suivre des yeux. Aucune
-   transition CSS ne peut rattraper ça, parce qu'il n'y a rien qui se déplace.
-
-   Un seul élément décoratif est donc rendu dans la liste, et c'est LUI qui
-   porte le fond de la sélection. Il est mesuré au déclencheur actif puis
-   déplacé en `translate3d` + `width`/`height`. Trois conséquences pesées :
-
-   - `translate3d` ET `width`/`height` PLUTÔT QU'UN AXE CHOISI SELON
-     `orientation`. Poser les quatre grandeurs rend le code indifférent à
-     l'axe : la liste verticale est animée par la même ligne que l'horizontale,
-     et un `.tabsList` qui passe à la ligne (`flex-wrap` chez un consommateur)
-     reste juste. Un indicateur qui n'animerait que `translateX` et `width`
-     aurait demandé une seconde branche, et se serait trompé au retour à la
-     ligne.
-
-   - LE PREMIER PLACEMENT NE S'ANIME PAS. À la première mise en page, les
-     rectangles valent encore 0 : un indicateur animé dès le montage partirait
-     du coin haut-gauche et glisserait jusqu'à sa place sous les yeux de
-     l'utilisateur, à chaque chargement de page. La transition n'est donc armée
-     (`data-animated`) qu'APRÈS le premier placement, et après une lecture de
-     `offsetWidth` qui force le navigateur à prendre cette position pour état
-     de départ.
-
-   - `role="tab"` + `aria-selected` RESTENT LA SOURCE DE VÉRITÉ. La position
-     est lue dans le DOM, pas dans un second registre tenu en parallèle : il ne
-     peut pas y avoir de désaccord entre ce que l'assistance technique annonce
-     et ce que l'indicateur montre. L'indicateur est `aria-hidden` : il ne dit
-     rien de plus que `aria-selected`, et n'a donc rien à faire dans l'arbre
-     d'accessibilité.
-
-   `prefers-reduced-motion` est traité dans `Tabs.module.scss`, au plus près de
-   la transition qu'il annule. */
-
-import React, {
-  type ComponentPropsWithoutRef,
-  type ReactNode,
+import {
+  createContext,
   forwardRef,
   useCallback,
-  useEffect,
+  useContext,
   useId,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
-} from "react";
-import { cn } from "../../func";
-import Glass, { type GlassProps } from "../glass/Glass";
-import Button from "../button/Button";
-import styles from "./style/Tabs.module.scss";
+  type ComponentPropsWithoutRef,
+  type FocusEvent,
+  type ForwardRefExoticComponent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+  type RefAttributes,
+} from 'react';
 
-type TabsOrientation = "horizontal" | "vertical";
-type TabsActivationMode = "auto" | "manual";
+import Glass, { type GlassProps } from '../glass/Glass';
+import styles from './style/Tabs.module.css';
 
-type TriggerEntry = {
-  ref: HTMLButtonElement | null;
-  disabled: boolean;
-};
+/* =============================================================================
+   LES ONGLETS, ÉCRITS PAR OPALE.
+
+   POURQUOI CE FICHIER A ÉTÉ RÉÉCRIT. Il était copié d'une librairie tierce, et
+   c'était le plus gros des composants repris — 796 lignes. `Tabs` n'est pas un
+   assemblage de `<div>` : c'est un MOTIF, décrit au mot près par les pratiques
+   ARIA, et un motif se tient ou ne se tient pas. Tant qu'il venait d'ailleurs,
+   Opale héritait aussi de ce qui, chez eux, ne tenait pas.
+
+   LE CONTRAT, POINT PAR POINT, ET C'EST LUI LA SPÉCIFICATION.
+
+     — `role="tablist"` porte `aria-orientation` ; chaque déclencheur porte
+       `role="tab"`, `aria-selected` et `aria-controls` ; chaque panneau porte
+       `role="tabpanel"` et `aria-labelledby`. Les identifiants des deux bouts
+       sont dérivés d'un même `useId`, donc ils ne peuvent pas se désapparier.
+
+     — UN SEUL ARRÊT DE TABULATION POUR TOUT LE GROUPE. L'onglet qui compte est
+       à `tabIndex` 0, les autres à -1 : la tabulation traverse le groupe d'un
+       coup au lieu de le parcourir onglet par onglet, et ce sont les flèches
+       qui circulent à l'intérieur.
+
+     — LES FLÈCHES SUIVENT L'AXE : gauche/droite en horizontal, haut/bas en
+       vertical, plus Début et Fin. En horizontal, haut et bas ne sont PAS
+       interceptées — elles appartiennent au défilement de la page.
+
+     — `activationMode` distingue enfin deux comportements. En `"auto"`, se
+       déplacer change de panneau ; en `"manual"`, le déplacement ne fait que
+       déplacer, et c'est Entrée ou Espace qui confirme. Le `<button>` natif
+       fait ce dernier point sans une ligne de code.
+
+   CE QUI CHANGE PAR RAPPORT À LA VERSION TIERCE, ET POURQUOI.
+
+   — `activationMode` ÉTAIT INERTE. Le mode n'était lu que par une fonction
+     `deactivate` exposée dans le contexte et JAMAIS APPELÉE : les deux modes
+     se comportaient à l'identique, et la documentation promettait une
+     distinction qui n'existait pas. La fonction disparaît, le mode agit.
+
+   — LE PREMIER ONGLET NON DÉSACTIVÉ SE SÉLECTIONNAIT EN DERNIER. Sans
+     `defaultValue`, chaque déclencheur portait un effet qui se sélectionnait
+     lui-même s'il ne voyait aucune sélection. Or les effets d'un même rendu
+     lisent tous la MÊME valeur périmée : les trois se croyaient premiers, les
+     trois appelaient, et c'est le DERNIER qui l'emportait. Le composant
+     s'ouvrait donc sur le dernier onglet en prétendant ouvrir le premier. La
+     décision est remontée en un seul endroit — la liste, qui voit ses onglets
+     dans l'ordre du document.
+
+   — LE REGISTRE PARALLÈLE DES DÉCLENCHEURS A DISPARU. Le parent tenait une
+     `Map` de déclencheurs et un tableau d'ordre, alimentés par quatre
+     fonctions de contexte (`registerTrigger`, `unregisterTrigger`,
+     `updateTriggerDisabled`, `focusValue`) — un second état, tenu à la main, à
+     côté d'un DOM qui dit déjà tout : qui est là, dans quel ordre, et lequel
+     est désactivé. Deux registres qui décrivent la même chose finissent par se
+     contredire ; celui-ci se contredisait déjà, puisque son ORDRE était celui
+     des montages et non celui du document. Le groupe se lit désormais dans le
+     DOM, qui est la source de vérité — la même que celle sur laquelle
+     l'indicateur se mesure.
+
+   — UN `onFocus` QUI REDONNAIT LE FOCUS À L'ÉLÉMENT DÉJÀ FOCALISÉ. Le
+     déclencheur se cherchait par `getElementById` pour appeler `focus()` sur
+     lui-même, au moment précis où il venait de le recevoir. Supprimé.
+
+   — LE PANNEAU EST ATTEIGNABLE À LA TABULATION (`tabIndex` 0). Sans lui, un
+     panneau sans élément focalisable est un cul-de-sac : on lit son onglet, on
+     tabule, et on saute par-dessus son contenu.
+
+   — `lazyMount` GARDE CE QU'IL A MONTÉ. Il démontait le panneau à chaque fois
+     qu'on le quittait, ce qui n'est pas « monter tard » mais « remonter
+     toujours » : la carte rechargée, le formulaire vidé, le défilement perdu à
+     chaque aller-retour. Le panneau n'existe toujours pas avant sa première
+     ouverture ; ensuite il reste, simplement caché.
+
+   — AUCUN TAILWIND. La feuille tierce empruntait chacune de ses déclarations
+     à Tailwind par directive, et le TSX posait en plus des classes
+     utilitaires en chaîne. Tailwind n'était une dépendance de ce paquet QUE
+     pour ce code-là : il s'en va avec lui.
+
+   L'INDICATEUR QUI GLISSE — la mécanique est celle de `SegmentedControl` dans
+   `opale.tsx`, et elle est reprise plutôt que réinventée. Trois points pesés :
+
+     1. `translate3d` ET `width`/`height`, PLUTÔT QU'UN AXE CHOISI SELON
+        L'ORIENTATION. Poser les quatre grandeurs rend le code indifférent à
+        l'axe : la liste verticale est animée par la même ligne que
+        l'horizontale, et une liste qui passerait à la ligne resterait juste.
+
+     2. LE PREMIER PLACEMENT NE S'ANIME PAS. À la première mise en page, les
+        rectangles valent encore 0 ; un indicateur animé dès le montage
+        partirait du coin haut gauche à chaque chargement de page. La
+        transition n'est armée qu'APRÈS le premier placement réel, et après une
+        lecture forcée de `offsetWidth` qui fait de cette position l'état de
+        départ plutôt que la cible.
+
+     3. `aria-selected` RESTE LA SOURCE DE VÉRITÉ. La position est lue dans le
+        DOM : il ne peut donc pas y avoir de désaccord entre ce que
+        l'assistance technique annonce et ce que la pastille montre. La
+        pastille est `aria-hidden` — elle ne dit rien de plus.
+
+   `prefers-reduced-motion` est traité dans `Tabs.module.css`, au plus près de
+   la transition qu'il annule.
+   ========================================================================== */
+
+export type TabsOrientation = 'horizontal' | 'vertical';
+export type TabsActivationMode = 'auto' | 'manual';
 
 export type TabsContextValue = {
-  value?: string;
-  setValue: (next: string) => void;
-  deactivate: (next: string) => void;
-  activationMode: TabsActivationMode;
-  orientation: TabsOrientation;
-  isControlled: boolean;
-  registerTrigger: (value: string, node: HTMLButtonElement | null, disabled: boolean) => void;
-  unregisterTrigger: (value: string) => void;
-  updateTriggerDisabled: (value: string, disabled: boolean) => void;
-  focusValue: (value: string) => void;
-  getEnabledTriggerValues: () => string[];
-  getTriggerId: (value: string) => string;
-  getContentId: (value: string) => string;
+  /** L'onglet retenu, ou `undefined` tant qu'aucun ne l'est. */
+  readonly value: string | undefined;
+  /** Retient un onglet, et prévient l'appelant dans les deux modes. */
+  readonly setValue: (next: string) => void;
+  readonly activationMode: TabsActivationMode;
+  readonly orientation: TabsOrientation;
+  /** Vrai quand l'appelant tient la valeur : le composant n'écrit alors rien. */
+  readonly isControlled: boolean;
+  readonly getTriggerId: (value: string) => string;
+  readonly getContentId: (value: string) => string;
 };
 
-const TabsContext = React.createContext<TabsContextValue | null>(null);
+const TabsContext = createContext<TabsContextValue | null>(null);
 
-const useTabsContext = (component: string) => {
-  const context = React.useContext(TabsContext);
+function useTabsContext(component: string): TabsContextValue {
+  const context = useContext(TabsContext);
 
   if (!context) {
-    throw new Error(`${component} must be used within Tabs`);
+    throw new Error(`${component} doit être rendu à l’intérieur de Tabs.`);
   }
 
   return context;
-};
+}
 
-const sanitizeIdPart = (part: string) => part.replace(/[^a-zA-Z0-9_-]/g, "-");
+const classes = (...values: readonly (string | false | undefined)[]): string =>
+  values.filter(Boolean).join(' ');
 
-export type TabsProps = ComponentPropsWithoutRef<"div"> & {
-  value?: string;
-  defaultValue?: string;
-  onValueChange?: (next: string) => void;
-  activationMode?: TabsActivationMode;
-  orientation?: TabsOrientation;
+/* Une valeur d'onglet est écrite par l'appelant et se retrouve dans un `id` :
+   tout ce qui n'est pas sûr dans un identifiant est remplacé. Le `useId` qui
+   préfixe garde l'unicité même si deux valeurs se réduisent au même mot. */
+const sanitizeIdPart = (part: string): string => part.replace(/[^a-zA-Z0-9_-]/g, '-');
+
+/** Les déclencheurs de cette liste, dans l'ordre du document. */
+function tabsOf(list: HTMLElement): readonly HTMLElement[] {
+  return [...list.querySelectorAll<HTMLElement>('[role="tab"]')];
+}
+
+/** Ceux d'entre eux qu'on peut atteindre : un bouton désactivé ne se focalise pas. */
+function focusableTabsOf(list: HTMLElement): readonly HTMLElement[] {
+  return tabsOf(list).filter(
+    (tab) => !tab.hasAttribute('disabled') && tab.getAttribute('aria-disabled') !== 'true',
+  );
+}
+
+/**
+ * Pose l'arrêt de tabulation unique du groupe.
+ *
+ * POURQUOI CE RÉGLAGE EST IMPÉRATIF ALORS QUE LE DÉCLENCHEUR REND DÉJÀ SON
+ * `tabIndex`. Le rendu suffit au cas courant — l'onglet sélectionné est
+ * l'arrêt — mais il ne peut pas connaître les deux cas où ça ne suffit pas, et
+ * les deux laissent le groupe SANS AUCUN arrêt, c'est-à-dire un composant que
+ * la tabulation saute et que le clavier n'atteint plus du tout :
+ *
+ *   — en mode contrôlé, une `value` qui ne désigne aucun onglet (faute
+ *     d'appel, valeur venue d'une URL, onglet retiré depuis) ;
+ *   — un onglet sélectionné qui est aussi `disabled`.
+ *
+ * Et en activation manuelle, l'arrêt doit suivre le FOCUS et non la sélection :
+ * qui s'est déplacé sur le troisième onglet sans le confirmer doit retrouver le
+ * troisième onglet en revenant par la tabulation, pas le premier.
+ *
+ * Un déclencheur ne peut répondre à rien de tout cela depuis son seul rendu —
+ * c'est une question de GROUPE, et le groupe se lit dans le DOM. Ce réglage est
+ * donc rejoué après chaque rendu de la liste et à chaque prise de focus : c'est
+ * toujours lui qui a le dernier mot, jamais un reste du rendu précédent.
+ */
+function roveTabStop(list: HTMLElement): void {
+  const reachable = focusableTabsOf(list);
+
+  if (reachable.length === 0) return;
+
+  const focused = reachable.find((tab) => tab === document.activeElement);
+  const selected = reachable.find((tab) => tab.getAttribute('aria-selected') === 'true');
+  const stop = focused ?? selected ?? reachable[0];
+
+  for (const tab of tabsOf(list)) {
+    tab.tabIndex = tab === stop ? 0 : -1;
+  }
+}
+
+/**
+ * Les flèches, Début et Fin — le déplacement à l'intérieur du groupe.
+ *
+ * ÉCRIT HORS DU COMPOSANT, ET APPELÉ PAR LE DÉCLENCHEUR FOCALISÉ. Se déplacer
+ * demande de connaître ses voisins, lesquels sont atteignables et dans quel
+ * ordre ils sont posés — c'est-à-dire de lire le groupe entier. Le déclencheur
+ * n'a rien de tout ça en mémoire, mais il a mieux : il est DANS le groupe, donc
+ * il le retrouve par `closest`. Le registre parallèle que tenait la version
+ * copiée servait à répondre à ces trois questions ; le DOM y répond déjà, et
+ * sans jamais se désynchroniser.
+ *
+ * L'autre écriture possible — un seul gestionnaire posé sur la liste, qui
+ * profite de la remontée des événements — a été essayée et écartée : elle
+ * oblige à rendre la liste focalisable pour satisfaire `jsx-a11y`, c'est-à-dire
+ * à poser un `tabIndex` sur un conteneur qui n'a aucune raison d'en avoir un.
+ */
+function moveWithKeyboard(
+  event: KeyboardEvent<HTMLButtonElement>,
+  orientation: TabsOrientation,
+  activationMode: TabsActivationMode,
+  setValue: (next: string) => void,
+): void {
+  const current = event.currentTarget;
+  const list = current.closest<HTMLElement>('[role="tablist"]');
+
+  if (!list) return;
+
+  const reachable = focusableTabsOf(list);
+  const index = reachable.indexOf(current);
+
+  if (index === -1) return;
+
+  const previousKey = orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft';
+  const nextKey = orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight';
+
+  let destination: HTMLElement | undefined;
+
+  switch (event.key) {
+    /* La boucle est délibérée : après le dernier onglet vient le premier.
+       C'est ce que décrivent les pratiques ARIA, et c'est ce qui évite qu'une
+       flèche « ne fasse rien » en bout de liste. */
+    case previousKey:
+      destination = reachable[(index - 1 + reachable.length) % reachable.length];
+      break;
+    case nextKey:
+      destination = reachable[(index + 1) % reachable.length];
+      break;
+    case 'Home':
+      destination = reachable[0];
+      break;
+    case 'End':
+      destination = reachable[reachable.length - 1];
+      break;
+    default:
+      /* Tout le reste appartient à la page — en horizontal, haut et bas la
+         font défiler, et les intercepter serait un vol. */
+      return;
+  }
+
+  if (!destination) return;
+
+  event.preventDefault();
+  destination.focus();
+
+  /* LA DIFFÉRENCE ENTRE LES DEUX MODES TIENT EN CES TROIS LIGNES. En activation
+     automatique, le déplacement change de panneau ; en manuelle, il ne fait que
+     déplacer, et c'est Entrée ou Espace — donc le clic natif du `<button>` —
+     qui confirme. */
+  if (activationMode === 'auto' && destination.dataset.value !== undefined) {
+    setValue(destination.dataset.value);
+  }
+}
+
+/**
+ * Mesure l'onglet actif et y pose la pastille. Rend `true` quand la mesure
+ * était exploitable, c'est-à-dire quand quelque chose a vraiment été placé.
+ */
+function placeIndicator(list: HTMLElement, indicator: HTMLElement): boolean {
+  const active = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+
+  if (!active) {
+    indicator.style.opacity = '0';
+    return false;
+  }
+
+  const listRect = list.getBoundingClientRect();
+  const activeRect = active.getBoundingClientRect();
+
+  /* Deux situations rendent la mesure inexploitable et une seule est une
+     erreur : la première mise en page, où tout vaut encore 0, et jsdom, qui
+     n'a pas de mise en page du tout. Dans les deux, on ne place RIEN plutôt
+     que de poser une pastille de 0 px dans le coin — c'est ce placement
+     fantôme qui produirait le glissement depuis le coin au premier vrai
+     calcul. */
+  if (activeRect.width === 0 || activeRect.height === 0) return false;
+
+  /* Coordonnées du CONTENU, pas du visible : la pastille est absolue dans la
+     liste, donc elle défile avec elle. Sans les `scroll*`, une liste d'onglets
+     débordante la laisserait derrière. */
+  const x = activeRect.left - listRect.left + list.scrollLeft;
+  const y = activeRect.top - listRect.top + list.scrollTop;
+
+  indicator.style.opacity = '1';
+  indicator.style.width = `${activeRect.width}px`;
+  indicator.style.height = `${activeRect.height}px`;
+  indicator.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+  return true;
+}
+
+export type TabsProps = ComponentPropsWithoutRef<'div'> & {
+  /** Présente, l'appelant tient la valeur : le composant n'écrit plus la sienne. */
+  readonly value?: string;
+  /** L'onglet initial en mode non contrôlé. */
+  readonly defaultValue?: string;
+  readonly onValueChange?: (next: string) => void;
+  readonly activationMode?: TabsActivationMode;
+  readonly orientation?: TabsOrientation;
 } & GlassProps;
 
-const TabsBase = forwardRef<HTMLDivElement, TabsProps>(
-  (
-    {
-      value: valueProp,
-      defaultValue,
-      onValueChange,
-      activationMode = "auto",
-      orientation = "horizontal",
-      className,
-      children,
-      ...rest
+const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
+  {
+    value: valueProp,
+    defaultValue,
+    onValueChange,
+    activationMode = 'auto',
+    orientation = 'horizontal',
+    className,
+    children,
+    ...rest
+  },
+  ref,
+) {
+  const isControlled = valueProp !== undefined;
+  const [ownValue, setOwnValue] = useState(defaultValue);
+  const value = isControlled ? valueProp : ownValue;
+
+  const setValue = useCallback(
+    (next: string) => {
+      if (!isControlled) setOwnValue(next);
+      onValueChange?.(next);
     },
-    ref,
-  ) => {
-    const isControlled = valueProp !== undefined;
-    const [valueState, setValueState] = useState(defaultValue);
+    [isControlled, onValueChange],
+  );
 
-    const value = isControlled ? valueProp : valueState;
+  const baseId = useId();
+  const getTriggerId = useCallback(
+    (triggerValue: string) => `${baseId}-trigger-${sanitizeIdPart(triggerValue)}`,
+    [baseId],
+  );
+  const getContentId = useCallback(
+    (triggerValue: string) => `${baseId}-content-${sanitizeIdPart(triggerValue)}`,
+    [baseId],
+  );
 
-    const setValue = useCallback(
-      (next: string) => {
-        if (!isControlled) {
-          setValueState(next);
-        }
-
-        onValueChange?.(next);
-      },
-      [isControlled, onValueChange],
-    );
-
-    const triggerEntries = useRef<Map<string, TriggerEntry>>(new Map());
-    const triggerOrder = useRef<string[]>([]);
-
-    const registerTrigger = useCallback(
-      (triggerValue: string, node: HTMLButtonElement | null, disabled: boolean) => {
-        const sanitizedValue = triggerValue;
-
-        if (node) {
-          triggerEntries.current.set(sanitizedValue, { ref: node, disabled });
-          if (!triggerOrder.current.includes(sanitizedValue)) {
-            triggerOrder.current.push(sanitizedValue);
-          }
-        } else {
-          triggerEntries.current.delete(sanitizedValue);
-          triggerOrder.current = triggerOrder.current.filter((item) => item !== sanitizedValue);
-        }
-      },
-      [],
-    );
-
-    const unregisterTrigger = useCallback((triggerValue: string) => {
-      triggerEntries.current.delete(triggerValue);
-      triggerOrder.current = triggerOrder.current.filter((item) => item !== triggerValue);
-    }, []);
-
-    const updateTriggerDisabled = useCallback((triggerValue: string, disabled: boolean) => {
-      const entry = triggerEntries.current.get(triggerValue);
-
-      if (entry) {
-        entry.disabled = disabled;
-      }
-    }, []);
-
-    const focusValue = useCallback((nextValue: string) => {
-      const entry = triggerEntries.current.get(nextValue);
-      entry?.ref?.focus();
-    }, []);
-
-    const getEnabledTriggerValues = useCallback(() => {
-      return triggerOrder.current.filter((item) => {
-        const entry = triggerEntries.current.get(item);
-        return Boolean(entry) && !entry?.disabled;
-      });
-    }, []);
-
-    const baseId = useId();
-
-    const getTriggerId = useCallback(
-      (triggerValue: string) =>
-        `${baseId}-trigger-${sanitizeIdPart(triggerValue)}`,
-      [baseId],
-    );
-
-    const getContentId = useCallback(
-      (triggerValue: string) =>
-        `${baseId}-content-${sanitizeIdPart(triggerValue)}`,
-      [baseId],
-    );
-
-    const deactivate = useCallback(
-      (next: string) => {
-        if (activationMode === "auto") {
-          setValue(next);
-        }
-      },
-      [activationMode, setValue],
-    );
-
-    const contextValue = useMemo<TabsContextValue>(
-      () => ({
-        value,
-        setValue,
-        deactivate,
-        activationMode,
-        orientation,
-        isControlled,
-        registerTrigger,
-        unregisterTrigger,
-        updateTriggerDisabled,
-        focusValue,
-        getEnabledTriggerValues,
-        getTriggerId,
-        getContentId,
-      }),
-      [value, setValue, deactivate, activationMode, orientation, isControlled, registerTrigger, unregisterTrigger, updateTriggerDisabled, focusValue, getEnabledTriggerValues, getTriggerId, getContentId],
-    );
-
-    return (
-      <TabsContext.Provider value={contextValue}>
-        <Glass
-          ref={ref}
-          className={cn(
-            styles.tabs,
-            orientation === "vertical" ? styles.tabsVertical : "",
-            className,
-          )}
-          {...rest}
-        >
-          {children}
-        </Glass>
-      </TabsContext.Provider>
-    );
-  },
-);
-
-TabsBase.displayName = "Tabs";
-
-export type TabsListProps = ComponentPropsWithoutRef<"div"> & {
-  children: ReactNode;
-};
-
-const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
-  ({ className, children, ...rest }, ref) => {
-    const { orientation, value } = useTabsContext("Tabs.List");
-
-    const listRef = useRef<HTMLDivElement | null>(null);
-    const indicatorRef = useRef<HTMLSpanElement | null>(null);
-    const hasPlacedRef = useRef(false);
-
-    const composedRef = useCallback(
-      (node: HTMLDivElement | null) => {
-        listRef.current = node;
-
-        if (typeof ref === "function") {
-          ref(node);
-        } else if (ref) {
-          ref.current = node;
-        }
-      },
-      [ref],
-    );
-
-    useLayoutEffect(() => {
-      const list = listRef.current;
-      const indicator = indicatorRef.current;
-
-      if (!list || !indicator) return;
-
-      const place = () => {
-        const active = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
-
-        if (!active) {
-          indicator.style.opacity = "0";
-          return;
-        }
-
-        const listRect = list.getBoundingClientRect();
-        const activeRect = active.getBoundingClientRect();
-
-        /* Deux cas rendent la mesure inexploitable et un seul est une erreur :
-           la première mise en page d'un conteneur Glass, où tout vaut encore 0,
-           et jsdom, qui n'a pas de mise en page du tout. Dans les deux, on ne
-           place RIEN plutôt que de placer un indicateur de 0 px en haut à
-           gauche — c'est ce placement fantôme qui produirait le glissement
-           depuis le coin au premier vrai calcul. */
-        if (activeRect.width === 0 || activeRect.height === 0) return;
-
-        /* Coordonnées du CONTENU, pas du visible : l'indicateur est absolu dans
-           la liste, donc il défile avec elle. Sans les `scroll*`, une liste
-           d'onglets débordante le laisserait derrière. */
-        const x = activeRect.left - listRect.left + list.scrollLeft;
-        const y = activeRect.top - listRect.top + list.scrollTop;
-
-        indicator.style.opacity = "1";
-        indicator.style.width = `${activeRect.width}px`;
-        indicator.style.height = `${activeRect.height}px`;
-        indicator.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-
-        if (!hasPlacedRef.current) {
-          hasPlacedRef.current = true;
-          /* Lecture forcée de la mise en page : elle vide le calcul de style en
-             attente, donc la position ci-dessus devient l'état de DÉPART de la
-             transition qu'on arme juste après, au lieu d'en être la cible. */
-          void indicator.offsetWidth;
-          indicator.dataset.animated = "true";
-        }
-      };
-
-      place();
-
-      /* Un onglet peut changer de largeur sans que la liste bouge (chargement
-         d'une police, libellé traduit), et la liste peut changer de largeur
-         sans qu'aucun onglet bouge. Les deux sont observés. */
-      const observer =
-        typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(place);
-
-      if (observer) {
-        observer.observe(list);
-        list.querySelectorAll('[role="tab"]').forEach((trigger) => observer.observe(trigger));
-      }
-
-      window.addEventListener("resize", place);
-
-      return () => {
-        observer?.disconnect();
-        window.removeEventListener("resize", place);
-      };
-    }, [orientation, value]);
-
-    return (
-      <div
-        ref={composedRef}
-        role="tablist"
-        aria-orientation={orientation}
-        className={cn(
-          styles.tabsList,
-          orientation === "vertical" ? styles.tabsListVertical : styles.tabsListHorizontal,
-          className,
-        )}
-        {...rest}
-      >
-        <span ref={indicatorRef} aria-hidden="true" className={styles.tabsIndicator} />
-        {children}
-      </div>
-    );
-  },
-);
-
-TabsList.displayName = "Tabs.List";
-
-export type TabsTriggerProps = ComponentPropsWithoutRef<"button"> & {
-  value: string;
-};
-
-const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
-  ({ value, disabled, className, onClick, onFocus, onKeyDown, children, ...rest }, ref) => {
-    const {
-      value: selectedValue,
+  const context = useMemo<TabsContextValue>(
+    () => ({
+      value,
       setValue,
+      activationMode,
       orientation,
       isControlled,
-      registerTrigger,
-      unregisterTrigger,
-      updateTriggerDisabled,
       getTriggerId,
       getContentId,
-      getEnabledTriggerValues,
-      focusValue,
-    } = useTabsContext("Tabs.Trigger");
+    }),
+    [value, setValue, activationMode, orientation, isControlled, getTriggerId, getContentId],
+  );
 
-    const triggerId = getTriggerId(value);
-    const contentId = getContentId(value);
-    const isSelected = selectedValue === value;
-
-    const handleClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-      if (disabled) return;
-      setValue(value);
-      onClick?.(event);
-    }, [disabled, onClick, setValue, value]);
-
-    const handleFocus = useCallback((event: React.FocusEvent<HTMLButtonElement>) => {
-      // Focus the trigger when tabbing in from outside the tab list
-      if (event.target === event.currentTarget) {
-        const enabledValues = getEnabledTriggerValues();
-        const currentIndex = enabledValues.indexOf(value);
-        if (currentIndex === -1) return;
-        
-        const triggerElement = document.getElementById(triggerId);
-        if (triggerElement) {
-          triggerElement.focus();
-        }
-      }
-      onFocus?.(event);
-    }, [getEnabledTriggerValues, onFocus, triggerId, value]);
-
-    const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLButtonElement>) => {
-      onKeyDown?.(event);
-      
-      if (event.defaultPrevented) return;
-      
-      const enabledValues = getEnabledTriggerValues();
-      if (enabledValues.length === 0) return;
-      
-      const currentIndex = enabledValues.indexOf(value);
-      if (currentIndex === -1) return;
-      
-      const moveFocus = (direction: 1 | -1) => {
-        let nextIndex = currentIndex + direction;
-        
-        // Wrap around if needed
-        if (nextIndex < 0) {
-          nextIndex = enabledValues.length - 1;
-        } else if (nextIndex >= enabledValues.length) {
-          nextIndex = 0;
-        }
-        
-        focusValue(enabledValues[nextIndex]);
-      };
-      
-      switch (event.key) {
-        case 'ArrowLeft':
-          if (orientation === 'horizontal') {
-            event.preventDefault();
-            moveFocus(-1);
-          }
-          break;
-          
-        case 'ArrowRight':
-          if (orientation === 'horizontal') {
-            event.preventDefault();
-            moveFocus(1);
-          }
-          break;
-          
-        case 'ArrowUp':
-          if (orientation === 'vertical') {
-            event.preventDefault();
-            moveFocus(-1);
-          }
-          break;
-          
-        case 'ArrowDown':
-          if (orientation === 'vertical') {
-            event.preventDefault();
-            moveFocus(1);
-          }
-          break;
-          
-        case 'Home':
-          event.preventDefault();
-          focusValue(enabledValues[0]);
-          break;
-          
-        case 'End':
-          event.preventDefault();
-          focusValue(enabledValues[enabledValues.length - 1]);
-          break;
-      }
-    }, [focusValue, getEnabledTriggerValues, onKeyDown, orientation, value]);
-
-    // handleFocus is already defined above with useCallback
-
-    const composedRef = useCallback(
-      (node: HTMLButtonElement | null) => {
-        registerTrigger(value, node, Boolean(disabled));
-
-        if (typeof ref === "function") {
-          ref(node);
-        } else if (ref) {
-          ref.current = node;
-        }
-
-        if (!node) {
-          unregisterTrigger(value);
-        }
-      },
-      [disabled, ref, registerTrigger, unregisterTrigger, value],
-    );
-
-    useEffect(() => {
-      updateTriggerDisabled(value, Boolean(disabled));
-    }, [disabled, updateTriggerDisabled, value]);
-
-    useEffect(() => {
-      if (!isControlled && selectedValue === undefined && !disabled) {
-        setValue(value);
-      }
-    }, [disabled, isControlled, selectedValue, setValue, value]);
-
-    return (
-      <Button
-        ref={composedRef}
-        role="tab"
-        id={triggerId}
-        size="small"
-        enableClickAnimation={true}
-        className={cn(
-          styles.tabsTrigger,
-          isSelected ? styles.triggerSelected : "",
+  return (
+    <TabsContext.Provider value={context}>
+      <Glass
+        ref={ref}
+        className={classes(
+          styles.tabs,
+          orientation === 'vertical' && styles.tabsVertical,
           className,
         )}
-        aria-selected={isSelected}
-        aria-controls={contentId}
-        tabIndex={isSelected ? 0 : -1}
-        disabled={disabled}
-        onClick={handleClick}
-        onFocus={handleFocus}
-        onKeyDown={handleKeyDown}
         {...rest}
       >
         {children}
-      </Button>
-    );
-  },
-);
+      </Glass>
+    </TabsContext.Provider>
+  );
+});
 
-TabsTrigger.displayName = "Tabs.Trigger";
+TabsBase.displayName = 'Tabs';
 
-export type TabsContentProps = ComponentPropsWithoutRef<"div"> & {
-  value: string;
-  lazyMount?: boolean;
+export type TabsListProps = ComponentPropsWithoutRef<'div'> & {
+  readonly children: ReactNode;
 };
 
-const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
-  ({ value, lazyMount, className, children, ...rest }, ref) => {
-    const { value: selectedValue, getTriggerId, getContentId } = useTabsContext("Tabs.Content");
+const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsList(
+  { className, children, ...rest },
+  ref,
+) {
+  const { value, setValue, isControlled, orientation } = useTabsContext('Tabs.List');
 
-    const isActive = selectedValue === value;
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const indicatorRef = useRef<HTMLSpanElement | null>(null);
+  const hasPlacedRef = useRef(false);
 
-    if (lazyMount && !isActive) {
-      return null;
+  const composedRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      listRef.current = node;
+
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref],
+  );
+
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const indicator = indicatorRef.current;
+
+    if (!list || !indicator) return undefined;
+
+    /* AUCUNE SÉLECTION ET PERSONNE POUR EN DÉCIDER : c'est ici, et nulle part
+       ailleurs, que le premier onglet atteignable se sélectionne. La liste est
+       le seul endroit qui voit ses onglets DANS L'ORDRE DU DOCUMENT, donc le
+       seul qui puisse dire lequel est le premier. En effet de mise en page, et
+       non de rendu : la sélection est posée avant que le navigateur ne peigne,
+       donc on ne voit jamais l'état sans onglet. L'effet est relancé aussitôt
+       par le changement de valeur — d'où le retour immédiat. */
+    if (!isControlled && value === undefined) {
+      const first = focusableTabsOf(list)[0]?.dataset.value;
+
+      if (first !== undefined) {
+        setValue(first);
+        return undefined;
+      }
     }
 
-    return (
-      <div
-        ref={ref}
-        role="tabpanel"
-        id={getContentId(value)}
-        aria-labelledby={getTriggerId(value)}
-        hidden={!isActive}
-        className={cn(
-          styles.tabsContent,
-          !isActive ? styles.contentHidden : "",
-          className,
-        )}
-        {...rest}
-      >
-        {children}
-      </div>
-    );
-  },
-);
+    const sync = () => {
+      roveTabStop(list);
 
-TabsContent.displayName = "Tabs.Content";
+      if (placeIndicator(list, indicator) && !hasPlacedRef.current) {
+        hasPlacedRef.current = true;
+        /* Lecture forcée de la mise en page : elle vide le calcul de style en
+           attente, donc la position qu'on vient d'écrire devient l'état de
+           DÉPART de la transition armée juste après, au lieu d'en être la
+           cible. */
+        void indicator.offsetWidth;
+        indicator.dataset.animated = 'true';
+      }
+    };
 
-type TabsCompoundComponent = React.ForwardRefExoticComponent<TabsProps & React.RefAttributes<HTMLDivElement>> & {
+    sync();
+
+    /* Un onglet peut changer de largeur sans que la liste bouge (une police
+       qui finit de charger, un libellé traduit), et la liste peut changer de
+       largeur sans qu'aucun onglet bouge. Les deux sont observés. */
+    const sizes = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(sync);
+    const observeEverything = () => {
+      if (!sizes) return;
+      sizes.observe(list);
+      for (const tab of tabsOf(list)) sizes.observe(tab);
+    };
+
+    observeEverything();
+
+    /* Les onglets peuvent aussi APPARAÎTRE et DISPARAÎTRE — une liste rendue
+       depuis des données qui arrivent. Ni le redimensionnement ni un rendu de
+       ce composant ne le signalent : c'est le DOM qui change sous lui. On
+       observe donc la liste elle-même, ce qui remet la pastille et l'arrêt de
+       tabulation d'aplomb, et met les nouveaux onglets sous surveillance.
+       Aucune boucle possible : `sync` n'écrit que des attributs, jamais un
+       nœud, et seuls les nœuds sont observés ici. */
+    const nodes =
+      typeof MutationObserver === 'undefined'
+        ? undefined
+        : new MutationObserver(() => {
+            observeEverything();
+            sync();
+          });
+
+    nodes?.observe(list, { childList: true, subtree: true });
+    window.addEventListener('resize', sync);
+
+    return () => {
+      sizes?.disconnect();
+      nodes?.disconnect();
+      window.removeEventListener('resize', sync);
+    };
+  }, [value, orientation, isControlled, setValue]);
+
+  return (
+    <div
+      ref={composedRef}
+      role="tablist"
+      aria-orientation={orientation}
+      className={classes(
+        styles.tabsList,
+        orientation === 'vertical' ? styles.tabsListVertical : styles.tabsListHorizontal,
+        className,
+      )}
+      {...rest}
+    >
+      <span ref={indicatorRef} aria-hidden="true" className={styles.tabsIndicator} />
+      {children}
+    </div>
+  );
+});
+
+TabsList.displayName = 'Tabs.List';
+
+export type TabsTriggerProps = ComponentPropsWithoutRef<'button'> & {
+  readonly value: string;
+};
+
+const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function TabsTrigger(
+  { value, className, children, disabled, onClick, onKeyDown, onFocus, ...rest },
+  ref,
+) {
+  const {
+    value: selected,
+    setValue,
+    orientation,
+    activationMode,
+    getTriggerId,
+    getContentId,
+  } = useTabsContext('Tabs.Trigger');
+
+  const isSelected = selected === value;
+
+  /* L'ORDRE EST LE MÊME POUR LES TROIS GESTIONNAIRES : le gestionnaire de
+     l'appelant d'abord, le nôtre ensuite. Et pour les deux qui décident de
+     quelque chose — le clic et la touche —, le nôtre ne s'exécute que si
+     l'appelant n'a pas coupé court : un composant composé doit pouvoir se faire
+     préempter sur un événement précis sans qu'on ait à le réécrire. */
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+
+    if (!event.defaultPrevented) setValue(value);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    onKeyDown?.(event);
+
+    if (!event.defaultPrevented) moveWithKeyboard(event, orientation, activationMode, setValue);
+  };
+
+  /* L'arrêt de tabulation suit le focus : voir `roveTabStop`. C'est le seul
+     moment où il se déplace sans qu'un rendu ait lieu — l'activation manuelle
+     ne change rien à l'état tant qu'on n'a pas confirmé. */
+  const handleFocus = (event: FocusEvent<HTMLButtonElement>) => {
+    onFocus?.(event);
+
+    const list = event.currentTarget.closest<HTMLElement>('[role="tablist"]');
+
+    if (list) roveTabStop(list);
+  };
+
+  return (
+    <Glass
+      as="button"
+      ref={ref}
+      type="button"
+      role="tab"
+      id={getTriggerId(value)}
+      /* La valeur est écrite dans le DOM parce que c'est le DOM qui sert de
+         registre : le déplacement au clavier lit ici de quel onglet il s'agit,
+         sans qu'un second état ait à être tenu à côté. */
+      data-value={value}
+      aria-selected={isSelected}
+      aria-controls={getContentId(value)}
+      /* L'arrêt de tabulation du cas courant. La liste le reprend après chaque
+         rendu pour les cas qu'un déclencheur seul ne peut pas voir — voir
+         `roveTabStop`. */
+      tabIndex={isSelected ? 0 : -1}
+      disabled={disabled}
+      enableLiquidAnimation={!disabled}
+      className={classes(styles.tabsTrigger, className)}
+      rootClassName={styles.tabsTriggerRoot}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
+      {...rest}
+    >
+      {children}
+    </Glass>
+  );
+});
+
+TabsTrigger.displayName = 'Tabs.Trigger';
+
+export type TabsContentProps = ComponentPropsWithoutRef<'div'> & {
+  readonly value: string;
+  /** Ne monte le panneau qu'à sa première ouverture. Ensuite il reste monté. */
+  readonly lazyMount?: boolean;
+};
+
+const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(function TabsContent(
+  { value, lazyMount = false, className, children, ...rest },
+  ref,
+) {
+  const { value: selected, getTriggerId, getContentId } = useTabsContext('Tabs.Content');
+
+  const isActive = selected === value;
+
+  /* « Monter tard » et « remonter à chaque fois » sont deux choses, et c'est la
+     seconde que faisait le code d'origine. Ce drapeau retient que le panneau a
+     déjà été ouvert : il n'est donc monté qu'à la première ouverture, puis il
+     reste — caché, mais entier, avec son défilement, son formulaire à moitié
+     rempli et ce qu'il a chargé. L'ajustement se fait pendant le rendu, ce que
+     React permet pour son propre état, et non dans un effet qui aurait fait
+     peindre une image de trop. */
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+
+  if (isActive && !hasBeenActive) setHasBeenActive(true);
+
+  if (lazyMount && !isActive && !hasBeenActive) return null;
+
+  return (
+    <div
+      ref={ref}
+      role="tabpanel"
+      id={getContentId(value)}
+      aria-labelledby={getTriggerId(value)}
+      hidden={!isActive}
+      /* Le panneau est un arrêt de tabulation : sans lui, un panneau dont le
+         contenu n'est pas focalisable serait purement et simplement sauté. */
+      tabIndex={0}
+      className={classes(styles.tabsContent, className)}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+});
+
+TabsContent.displayName = 'Tabs.Content';
+
+type TabsComponent = ForwardRefExoticComponent<TabsProps & RefAttributes<HTMLDivElement>> & {
   List: typeof TabsList;
   Trigger: typeof TabsTrigger;
   Content: typeof TabsContent;
   useTabs: () => TabsContextValue;
 };
 
-const Tabs = TabsBase as TabsCompoundComponent;
+const Tabs = TabsBase as TabsComponent;
 
 Tabs.List = TabsList;
 Tabs.Trigger = TabsTrigger;
 Tabs.Content = TabsContent;
-Tabs.useTabs = () => useTabsContext("Tabs.useTabs");
+Tabs.useTabs = () => useTabsContext('Tabs.useTabs');
 
 export default Tabs;
-
-

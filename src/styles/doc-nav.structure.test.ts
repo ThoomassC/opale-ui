@@ -48,7 +48,7 @@ function ruleBody(selector: string, within?: string): string | null {
 
 const TRACK = '.tc-doc-body:has(.tc-doc-nav__all:not([open]))';
 const NOTE = '.tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__versionnote';
-const ROOT = ".tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [class*='glassContainer']";
+const ROOT = ".tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass]";
 const NAV = '.tc-doc-nav';
 const TITLE = '.tc-doc-nav__alltitle';
 

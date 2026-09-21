@@ -314,11 +314,21 @@ export function DocShell({ pages }: DocShellProps) {
           flou n'échantillonne qu'un aplat : la surface composée est constante,
           et c'est elle qui est mesurée.
 
-          `elevated={false}`, ET CE N'EST PAS UN CHOIX D'APPARENCE : l'ombre
-          d'`elevated` est posée sur le `<header>`, c'est-à-dire À L'INTÉRIEUR
-          de l'enveloppe de verre, qui porte `overflow: hidden`. Elle est donc
-          rognée par son propre parent et ne se voit pas. La demander serait
-          annoncer une élévation que rien ne peint.
+          `elevated={false}`, ET C'EST DÉSORMAIS UN CHOIX D'APPARENCE — ça ne
+          l'a pas toujours été, et la distinction vaut d'être écrite.
+
+          L'ombre d'`elevated` était posée sur le `<header>`, c'est-à-dire À
+          L'INTÉRIEUR de l'enveloppe de verre, qui porte `overflow: hidden` :
+          elle était rognée par son propre parent et ne se voyait pas. La
+          demander revenait à annoncer une élévation que rien ne peignait.
+          `Topbar` a depuis déplacé la largeur et l'ombre SUR L'ENVELOPPE, donc
+          l'ombre se peindrait maintenant.
+
+          On continue de ne pas la vouloir, pour une autre raison : la barre est
+          pleine largeur, à ras du haut de la fenêtre, et son enveloppe porte
+          déjà une arête mesurée (`--doc-shell-edge`, 3,11:1 contre le blanc,
+          plancher WCAG 1.4.11). Une ombre portée en plus doublerait une
+          séparation qui est déjà faite, et le ferait par un moyen non mesuré.
           ================================================================== */}
       <div className="tc-doc-topbar" ref={topbarRef}>
         <Topbar

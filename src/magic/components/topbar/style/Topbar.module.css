@@ -1,0 +1,233 @@
+/* =============================================================================
+   LA BARRE D'APPLICATION — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce écrite ENTIÈREMENT en directives Tailwind :
+   trente-deux déclarations, dont pas une ne savait ce qu'est un jeton d'Opale.
+   Tailwind n'était une dépendance de ce paquet que pour ce genre de fichier, et
+   il est retiré — une directive oubliée ici casserait le build.
+
+   LES MESURES SONT CELLES DE L'ORIGINAL, LES VALEURS SONT LES NÔTRES. Les trois
+   hauteurs (52, 64 et 72 px) et les trois tailles de pastille de marque (36, 40
+   et 44 px) sont reprises telles quelles : c'est la silhouette que les pages de
+   la vitrine documentent, et la changer aurait été un second chantier caché
+   dans celui-ci. Les COUSSINS, eux, sont replacés sur la grille `--opale-space-*`
+   — l'original posait un `px-5` (1,25 rem) qui ne correspond à aucun pas de la
+   grille d'Opale, et garder un pas hors grille pour l'unique raison qu'il était
+   là aurait fait mentir la règle sur tous les autres.
+
+   AUCUNE COULEUR N'EST ÉCRITE ICI, ET AUCUNE N'EST IMPOSÉE NON PLUS.
+
+   C'est la différence la plus lourde de conséquences avec la version tierce,
+   qui posait `text-white` sur la barre et sur la marque. Une barre de verre est
+   TRANSPARENTE : son texte se lit sur ce qu'il y a derrière, pas sur elle. Une
+   encre blanche en dur est donc juste sur une photographie et illisible sur la
+   carte blanche d'un consommateur — mesuré ailleurs dans ce dépôt à 1,00:1,
+   c'est-à-dire invisible. La barre n'écrit plus de couleur de texte du tout :
+   elle HÉRITE celle de son contexte, que l'hôte choisit en connaissance de son
+   propre fond.
+
+   Ce qui a besoin d'une nuance — le sous-titre, le fond de la pastille de
+   marque — la dérive de `currentColor` par `color-mix`. Une teinte dérivée de
+   l'encre suit l'encre : elle reste juste que la barre soit posée sur un
+   paysage sombre ou sur du papier. Un jeton fixe, lui, n'aurait été juste que
+   d'un côté.
+   ========================================================================== */
+
+/* L'ENVELOPPE DU VERRE, ET POURQUOI LA LARGEUR EST ICI.
+
+   `Glass` pose `width: fit-content` sur son enveloppe : une barre d'application
+   qui se rétracte sur son contenu n'est pas une barre d'application. La version
+   tierce posait son `w-full` sur le `<header>` INTÉRIEUR, ce qui ne corrigeait
+   rien — un enfant à 100 % d'un parent en `fit-content` mesure encore le
+   contenu. La largeur appartient donc à l'enveloppe.
+
+   Cette règle l'emporte sur `.glass` par l'ORDRE des feuilles, pas par la
+   spécificité : `Topbar.tsx` importe `Glass` avant son propre module, donc
+   `Glass.module.css` est injectée avant celle-ci. C'est aussi ce qui laisse un
+   hôte reprendre la largeur avec une simple classe — la vitrine le fait. */
+.topbarRoot {
+  width: 100%;
+}
+
+/* L'OMBRE EST SUR L'ENVELOPPE, PAS SUR LE `<header>`, et c'est une correction.
+   L'original la posait à l'intérieur du verre, dont l'enveloppe porte
+   `overflow: hidden` : elle était rognée par son propre parent et ne se voyait
+   pas. `elevated` annonçait une élévation que rien ne peignait. */
+.elevated {
+  box-shadow: var(--opale-glass-shadow);
+}
+
+.topbar {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  font-family: var(--opale-font-body);
+}
+
+.compact {
+  min-height: 3.25rem;
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+  gap: var(--opale-space-sm);
+  font-size: 0.875rem;
+}
+
+.comfortable {
+  min-height: 4rem;
+  padding: var(--opale-space-sm) var(--opale-space-md);
+  gap: var(--opale-space-md);
+  font-size: 1rem;
+}
+
+.spacious {
+  min-height: 4.5rem;
+  padding: var(--opale-space-md) var(--opale-space-lg);
+  gap: var(--opale-space-lg);
+  font-size: 1rem;
+}
+
+/* --- Les sections ---------------------------------------------------------
+   `min-width: 0` sur toutes : sans lui, un enfant long empêche la section de
+   rétrécir sous sa largeur de contenu, et c'est la section VOISINE qui déborde
+   de la barre. C'est le défaut classique d'une rangée en flex, et il ne se voit
+   qu'à l'étroit. */
+
+.section {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.sectionGrow {
+  flex: 1 1 auto;
+}
+
+.sectionWrap {
+  flex-wrap: wrap;
+}
+
+.sectionNoWrap {
+  flex-wrap: nowrap;
+}
+
+.gapTight {
+  gap: var(--opale-space-xs);
+}
+
+.gapRegular {
+  gap: var(--opale-space-sm);
+}
+
+.gapRelaxed {
+  gap: var(--opale-space-md);
+}
+
+.alignLeft {
+  justify-content: flex-start;
+}
+
+.alignCenter {
+  justify-content: center;
+}
+
+.alignRight {
+  justify-content: flex-end;
+}
+
+.alignBetween {
+  justify-content: space-between;
+}
+
+/* --- La marque ----------------------------------------------------------- */
+
+.brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--opale-space-sm);
+}
+
+.brandIcon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--opale-radius-sm);
+  /* Le fond de la pastille SUIT L'ENCRE : 12 % de l'encre courante sur fond
+     transparent. Sur un verre sombre à encre claire c'est un voile clair, sur
+     un verre clair à encre sombre un voile sombre — dans les deux cas la
+     pastille se détache du verre sans jamais avaler son icône. */
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  box-shadow: var(--opale-shadow-2);
+}
+
+.brandIconCompact {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1rem;
+}
+
+.brandIconComfortable {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.125rem;
+}
+
+.brandIconSpacious {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.25rem;
+}
+
+.brandContent {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.brandTitle {
+  overflow: hidden;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brandSubtitle {
+  overflow: hidden;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Les actions --------------------------------------------------------- */
+
+.actions {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* --- Le séparateur -------------------------------------------------------
+   `--opale-divider` et non une dérive de `currentColor` : un filet de
+   séparation est exactement ce que ce jeton nomme, et c'est la seule pièce de
+   la barre qui ne soit ni du texte ni un fond de texte. */
+
+.divider {
+  width: 1px;
+  flex: none;
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-divider);
+}
+
+.dividerCompact {
+  height: 2rem;
+}
+
+.dividerComfortable {
+  height: 2.25rem;
+}
+
+.dividerSpacious {
+  height: 2.5rem;
+}

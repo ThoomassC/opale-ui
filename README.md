@@ -3,16 +3,18 @@
 Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/portfolio) et
 [`travels_in_world`](https://github.com/ThoomassC/travels_in_world).
 
-> **La 3.0 adopte le langage visuel de OpaleUI.** Les quatorze composants verre liquide
-> historiques restent publiés et utilisables ; le catalogue V3 ajoute les primitives,
-> composants de données, feedback, navigation, layout et modules compatibles avec OpaleUI.
-> Le matériau Liquid Glass est opt-in composant par composant ; la vitrine propose les thèmes
-> globaux `light` et `dark`.
+> **La 3.1 rend le paquet entièrement à lui-même.** Le code d'une librairie tierce qui
+> occupait `src/magic/` a été supprimé ou réécrit : huit composants qui n'étaient plus que
+> des peaux sous `liquidGlass` ont disparu au profit de leur jumeau d'Opale, six ont été
+> réécrits, et **Tailwind, PostCSS et Autoprefixer sont sortis des dépendances** avec les
+> `@apply` qu'ils servaient. Le matériau verre est désormais le nôtre, opt-in composant par
+> composant ; la vitrine propose les thèmes globaux `light` et `dark`.
 
-La vitrine est actuellement en **3.0.0**. Son historique est consultable dans l’onglet
+La vitrine est actuellement en **3.1.1**. Son historique est consultable dans l’onglet
 « Notes de versions » ; chaque état antérieur dispose aussi d’un snapshot utilisable sous
-`public/versions/`. La version **2.0** et ses composants vendorés restent documentés dans
-la section historique dédiée plus bas.
+`public/versions/`. Les états antérieurs du paquet, y compris la **2.0** et ses composants
+copiés d'une librairie tierce, sont décrits dans ces notes — et l'héritage lui-même dans
+[`src/magic/README.md`](./src/magic/README.md).
 
 Ce qui reste d'Opale, et qui est le cœur du dépôt : **la charte** — les jetons OKLab, les
 trois thèmes — et **le contrat de couleur exécutable** qui la garde.
@@ -33,44 +35,48 @@ Ce dépôt est ce garde. Il publie, dans cet ordre de valeur :
    les commentaires annoncent. Un chiffre faux fait échouer la CI le jour où il est écrit ;
 2. **la feuille de jetons canonique** — la palette du portfolio, devenue référence parce
    qu'elle est la seule des deux à être mesurée et testée ;
-3. **le catalogue de composants**, qui réunit les quatorze composants verre liquide
-   historiques et les nouvelles briques OpaleUI. Les composants historiques restent hors
-   du contrat de couleur ; les primitives V3 utilisent les tokens OpaleUI dédiés.
+3. **le catalogue de composants**, qui réunit huit composants composés — dialogue, barre
+   latérale, onglets, notifications, barres de navigation, champ de recherche et le
+   matériau verre — et les briques plates du catalogue V3. Tous emploient les jetons
+   `--opale-*` ; aucun n'écrit une couleur de texte en dur.
 
 Les trois points sont vrais et testés à leur niveau : le contrat mesure la charte, la vitrine
-mesure les routes et le catalogue, et les composants historiques conservent leur provenance.
+mesure les routes et le catalogue, et les composants ont leurs propres tests.
 
-## Ce que la 2.0 ne garantit pas
+## Ce que la 3.1 ne garantit pas
 
-**Les quatorze composants publiés à la racine sont hors du contrat de couleur.** Ce n'est
-pas une précaution de rédaction, c'est la conséquence directe du choix de style, et elle
-atteint le consommateur au premier écran.
+La 2.0 avait ici une section autrement plus lourde : les composants publiés à la racine
+étaient copiés d'une librairie tierce, n'employaient aucun jeton de la charte, et peignaient
+leurs libellés en **blanc pur, en dur** — soit du texte invisible (1,00:1) dès qu'on les
+posait sur un fond clair. **Ce défaut n'existe plus** : ce code a été supprimé ou réécrit,
+et les composants lisent aujourd'hui les jetons `--opale-*` comme le reste du paquet.
 
-- **Ils n'emploient aucun jeton `--tc-*`.** Vérifié : `grep -rn -- '--tc-' src/magic/` ne
-  trouve la chaîne que dans `magic.scss` et dans `src/magic/README.md`, et seulement dans des
-  commentaires qui disent précisément cela — aucune règle, aucun composant. Leurs couleurs
-  sont celles de tweeedlex : des blancs semi-transparents posés sur un fond sombre, plus neuf
-  couleurs de thème recopiées de leur `@theme`.
-- **Ils peignent leurs libellés en blanc pur, en dur.** `text-white` ou `color: white` dans
-  **onze des quatorze modules SCSS** — les trois autres (`Glass`, `Slider`, `Switch`)
-  n'écrivent pas de texte. Sur un fond blanc, du blanc vaut **1,00:1** : invisible. Sur la
-  plaque de spécimen d'Opale (`--surface`, `rgb(235,244,246)`), **1,12:1**. Le seuil AA du
-  texte courant est 4,5:1.
-- **Aucun de leurs ratios de contraste n'a été mesuré**, et aucun ne le sera : le code est
-  gardé fidèle, pas conforme. Les tests de contrat ne lisent que `src/tokens/`, ils ne
-  voient pas ce dossier.
+Ce qui reste vrai, et qu'il faut lire avant de s'y fier :
 
-**Conséquence pratique : un consommateur qui pose ces composants sur un fond clair obtient
-du texte blanc sur blanc.** C'est pour cette raison, et pas par goût, que la vitrine les
-présente sur des scènes sombres — un dégradé à trois arrêts (`#17314f`, `#2a2350`,
-`#101a2c`) dont le **plancher mesuré contre le blanc est 13,22:1**
-(`src/showcase/pages/composants/stage.tsx`). Leur propre dégradé d'origine ne tenait pas
-leur propre libellé : `#38adf1` donne 2,50:1 et `#7852f7` donne 4,83:1.
+- **Les composants ne sont pas dans le domaine du contrat de couleur.** Les tests de contrat
+  ne lisent que `src/tokens/` : ils mesurent la charte, pas ce qu'un composant compose avec
+  elle. Un jeton mesuré posé dans une pile non mesurée reste une affirmation humaine —
+  meilleure garantie qu'une couleur en dur, mais pas une preuve.
+- **Aucun rendu du verre n'a de garde automatisé.** `jsdom` ne peint pas. Ni le flou, ni le
+  ménisque, ni le filet spéculaire ne sont vérifiés en CI, et les mesures citées dans les
+  commentaires ont été faites à la main, une fois, sous Chromium.
+- **`filter: url(#…)` et `backdrop-filter` n'ont pas de comportement vérifié hors Chromium**,
+  et ce sont les deux déclarations dont le matériau dépend entièrement.
+- **`opale.css` charge deux polices depuis Google Fonts**, par un `@import` en première ligne
+  d'une feuille publiée. C'est une requête hors origine imposée à tout consommateur, en
+  contradiction avec la règle que ce dépôt s'applique partout ailleurs. Détaillé dans
+  [`src/magic/README.md`](./src/magic/README.md) et dans
+  [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
 
-Les défauts individuels — `Badge` qui n'est pas une pilule, les deux collisions de types qui
-empêchent de brancher un `setState` — sont énumérés et mesurés dans
-[`src/magic/README.md`](./src/magic/README.md). **C'est le fichier à lire avant d'employer un
-de ces composants.**
+La vitrine continue de présenter les composants sur des **scènes sombres** — un dégradé à
+trois arrêts (`#17314f`, `#2a2350`, `#101a2c`), plancher mesuré 13,22:1 contre le blanc
+(`src/showcase/pages/composants/stage.tsx`). **La raison a changé** : ce n'est plus pour
+rattraper des libellés illisibles, c'est parce qu'un verre a besoin de quelque chose à
+réfracter. Flouter du blanc donne du blanc, et le matériau disparaît sur un fond uni clair.
+
+[`src/magic/README.md`](./src/magic/README.md) reste le fichier à lire avant d'employer un
+de ces composants : il donne le matériau, les huit composants composés, ce qui est mesuré et
+ce qui ne l'est pas.
 
 ## Installation
 
@@ -80,9 +86,9 @@ Le paquet s'installe depuis git, et il n'est pas publié sur npm.
 npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui"
 ```
 
-> **Les tags de publication restent la source de vérité du paquet.** La vitrine 3.0.0 et les
+> **Les tags de publication restent la source de vérité du paquet.** La vitrine 3.1.1 et les
 > snapshots historiques sont conservés séparément pour permettre la comparaison visuelle ;
-> au moment de publier une version, poser et pousser le tag correspondant (`v3.0.0`, puis les
+> au moment de publier une version, poser et pousser le tag correspondant (`v3.1.1`, puis les
 > suivants) permet de l’installer sans dépendre d’un HEAD de branche.
 
 Le paquet se compile à l'installation (`prepare` → `build:lib`). **Quatre points d'entrée**,
@@ -90,8 +96,8 @@ et les deux premiers suffisent :
 
 ```js
 import '@thomascaron/opale-ui/tokens.css'; // la palette, les échelles, le focus, le mouvement
-import '@thomascaron/opale-ui/opale.css'; // les styles des quatorze composants, une fois par app
-import { Button, Glass, Button } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css'; // les jetons et les styles des composants, une fois par app
+import { Button, Glass, Modal } from '@thomascaron/opale-ui';
 ```
 
 ```ts
@@ -102,7 +108,7 @@ La forme exacte, telle qu'elle est déclarée dans `package.json` :
 
 | Spécifieur      | Cible                       | Ce que c'est                                     |
 | --------------- | --------------------------- | ------------------------------------------------ |
-| `.`             | `dist/magic/index.js`       | Les composants historiques et le catalogue V3    |
+| `.`             | `dist/magic/index.js`       | Les composants composés et le catalogue V3       |
 | `./contract`    | `dist/contract/index.js`    | Le contrat de couleur — dépendance de dev, zéro octet à l'exécution |
 | `./tokens.css`  | `dist/tokens/tokens.css`    | La charte : primitives, rôles, matériaux         |
 | `./opale.css`   | `dist/magic/magic.css`      | La feuille des composants                        |
@@ -118,9 +124,11 @@ annonce.
 `dist/magic/magic.css` et `dist/tokens/*.css` soient tous les deux couverts, `"*.css"` ne
 décrivant que la racine du paquet.
 
-`./tokens.css` reste **facultative** pour qui n'emploie que les composants : ils n'en citent
-aucun jeton. Elle est en revanche la charte elle-même, donc indispensable à qui écrit ses
-propres surfaces dans la palette d'Opale.
+`./tokens.css` reste **facultative** pour qui n'emploie que les composants : ils ne citent
+aucun jeton `--tc-*` — vérifié, `grep -rn -- '--tc-' src/magic/` ne rend rien. Leur
+vocabulaire est celui des jetons `--opale-*`, que `./opale.css` porte avec eux. `tokens.css`
+est en revanche la charte elle-même, donc indispensable à qui écrit ses propres surfaces dans
+la palette d'Opale.
 
 > **Point de vigilance en déploiement.** Si l'hôte n'exécute pas le script `prepare` (cache
 > npm, image de build minimale), `dist/` sera absent et le build cassera en production sans
@@ -128,36 +136,36 @@ propres surfaces dans la palette d'Opale.
 
 ## Le catalogue de composants
 
-Les composants historiques sont publiés à la racine, exportés par `src/magic/index.ts` :
+Tout est publié à la racine, exporté par `src/magic/index.ts`, et le catalogue a **deux
+étages qui ne se ressemblent pas**.
 
-`Badge`, `Button`, `Card`, `Checkbox`, `Glass`, `Input`, `Modal`, `Select`, `Sidebar`,
-`Slider`, `Switch`, `Tabs`, `ToastProvider` (plus le hook `useToast`), `Topbar`.
+**Huit composants composés**, un dossier chacun sous `src/magic/components/` : `Glass`,
+`Modal`, `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` (plus le hook
+`useToast`), `Topbar`. Ce sont les pièces qui ont une structure interne, un état, ou les
+deux.
 
-La V3 ajoute les exports `Opale*` correspondants au catalogue OpaleUI : boutons, champs,
-cartes, données, feedback, navigation, layout et modules. La liste complète et une page de
-démonstration par composant sont générées depuis `OPALE_CATALOG` dans
-`src/magic/opale.tsx`. Le namespace `OpaleUI` expose aussi ces briques sous les noms de la
-librairie de référence (`OpaleUI.Button`, `OpaleUI.Card`, etc.), sans écraser les exports
-historiques `Button`, `Card`, `Input` et leurs pairs. Les composants qui portent `liquidGlass`
-activent le matériau composant par composant via le contrôle local de chaque fiche.
+**Le catalogue plat**, dans `src/magic/opale.tsx` : **77 entrées** déclarées par
+`OPALE_CATALOG` — primitives, champs, cartes, données, retour d'information, navigation,
+disposition et modules —, dont la vitrine génère une page de démonstration chacune. Le
+namespace `OpaleUI` les réexpose sous un second jeu de noms, sans écraser les exports
+directs. Les composants qui portent `liquidGlass` activent le matériau un par un.
 
-`Glass` est la primitive de matériau, et **douze des treize autres la montent**. La seule
-exception, vérifiée dans le code, est **`Slider`** : il n'importe pas `Glass` du tout et
-porte son propre `backdrop-filter: blur(4px)` dans `Slider.module.scss:48`. Il n'a donc ni
-le filtre de déformation, ni le reflet spéculaire, ni l'animation de clic des treize autres —
-c'est le composant qui ressemble le moins au reste de la série.
+`Glass` est la primitive de matériau, et **six des sept autres composants composés la
+montent**. La seule exception, vérifiée dans le code, est **`SiteNav`** : sa bulle est un
+rendu à elle (`liquid-bubble.tsx`) et n'a pas besoin des trois couches.
 
-Contrairement aux dix-huit composants de la 1.x, **ceux-ci ont un état, des hooks et des
-effets** : `Glass` tient une animation de clic, `Modal` un portail, `ToastProvider` un
-contexte. Ils ne rendent donc pas tels quels en Server Component — une frontière `"use
-client"` est nécessaire en Next.js App Router, et ils coûtent au budget JavaScript de leur
-hôte. C'est l'inverse exact de la promesse que portait la 1.x, et il valait mieux l'écrire.
+**Ces composants ont un état, des hooks et des effets** : `Glass` tient une animation de
+clic et monte un filtre SVG partagé, `Modal` un portail, `ToastProvider` un contexte. Ils ne
+rendent donc pas tels quels en Server Component — une frontière `"use client"` est nécessaire
+en Next.js App Router, et ils coûtent au budget JavaScript de leur hôte. C'est l'inverse exact
+de la promesse que portait la 1.x, et il valait mieux l'écrire.
 
-Cinq d'entre eux gardent leurs tests d'origine : `Badge`, `Button`, `Modal`, `Sidebar` et
-`Topbar`. **23 tests, verts** sous le `vitest` d'Opale sans adaptation d'environnement —
-mesuré (`vitest run src/magic` → `Test Files 5 passed (5) · Tests 23 passed (23)`).
-
-Les neuf autres n'ont aucun test.
+**Sept des huit composants composés ont un fichier de test à côté d'eux.** Mesuré :
+`npx vitest run src/magic` → `Test Files 10 passed (10) · Tests 115 passed (115)`. `Glass`
+est celui qui n'en a pas en propre : il est exercé à travers ses consommateurs par
+`opale-liquid-glass.test.tsx` (33 tests), ce qui n'est pas la même chose qu'un test du
+matériau lui-même. Le détail par fichier est dans
+[`src/magic/README.md`](./src/magic/README.md).
 
 ## La charte, et le contrat qui la garde
 
@@ -310,9 +318,11 @@ domaine mesuré, et aucune assertion de ce dépôt ne doit prétendre le contrai
 4. **Ce qu'un navigateur peint vraiment sur un élément donné.** Le contrat prouve qu'une pile
    nommée est arithmétiquement juste ; l'appariement d'une pile avec une règle CSS reste une
    affirmation humaine.
-5. **Tout `src/magic/`.** C'est la limite la plus large, et elle est nouvelle en 2.0 : les
-   composants publiés à la racine ne sont pas dans le domaine du contrat, du tout. Voir « Ce
-   que la 2.0 ne garantit pas ».
+5. **Tout `src/magic/`.** C'est la limite la plus large : les composants publiés à la racine
+   ne sont pas dans le domaine du contrat. Ils ont cessé d'écrire leurs couleurs en dur et
+   lisent désormais des jetons, ce qui est une garantie bien meilleure qu'en 2.0 — mais c'est
+   la garantie du **jeton**, et le contrat ne mesure pas la pile que le composant en compose.
+   Voir « Ce que la 3.1 ne garantit pas ».
 
 ### Il n'y a aucun harnais navigateur dans ce dépôt
 
@@ -326,8 +336,9 @@ main, une fois. **Elles ne sont pas rejouées en CI**, et rien ne les surveille.
 ## Les règles, en sept lignes
 
 Une règle qu'on ne peut pas citer de mémoire n'est pas appliquée. Elles s'appliquent à la
-charte et à ce qu'un consommateur écrit avec elle — **pas** à `src/magic/`, qui est vendoré
-et dont le point 2 est justement ce qu'il ne respecte pas.
+charte et à ce qu'un consommateur écrit avec elle. `src/magic/` les suit désormais dans
+l'esprit — ses composants nomment des rôles et n'écrivent plus de couleur en dur —, mais le
+point 2 reste hors de sa portée : **ses valeurs ne sont pas recalculées en CI**.
 
 1. **Un jeton nomme un rôle, jamais un emplacement.** Cinq encres de texte, pas douze cases
    par écran. `--card-title-color` est une dette : il fige un composant dans la palette.
@@ -360,12 +371,13 @@ le contrat d'accessibilité, puis une page par composant. Le site est rendu **da
 qu'il documente** : le document est une instance de lui-même, et si une règle est fausse il
 se dégrade avec elle.
 
-Les pages de composants sont l'exception, et pour la raison donnée plus haut : les quatorze
-composants vendorés sont posés sur des **scènes sombres** (`MAGIC_STAGE_GROUND`, plancher
-mesuré 13,22:1 contre leur blanc en dur) plutôt que sur le sol de la vitrine, où ils seraient
-illisibles. La scène est la seule couleur littérale de ce dossier, et elle n'emploie aucun
-jeton `--tc-*` — la peindre avec un jeton publié affirmerait que ces composants sont dans la
-charte.
+Les pages de composants sont l'exception, et pour la raison donnée plus haut : les composants
+sont posés sur des **scènes sombres** (`MAGIC_STAGE_GROUND`, plancher mesuré 13,22:1) plutôt
+que sur le sol de la vitrine. Ce n'est plus, comme en 2.0, pour rattraper des libellés blancs
+en dur qui seraient illisibles ailleurs — c'est parce que le **verre a besoin d'un fond à
+réfracter** : flouter un aplat clair uni donne le même aplat clair, et le matériau disparaît.
+La scène reste la seule couleur littérale de ce dossier, et elle n'emploie aucun jeton
+`--tc-*` : c'est un décor de démonstration, pas une surface de la charte.
 
 Le routage passe par le fragment (`#/composants/button`) parce que la vitrine se construit en
 statique dans `dist-showcase/`, sans serveur capable de réécrire une URL profonde vers
@@ -396,18 +408,22 @@ src/
 │   ├── stylesheet.ts        ← lire une feuille en texte, reconstruire ses thèmes
 │   ├── backdrop.ts          ← les supports composés, nommés une fois
 │   └── *.test.ts            ← 1 096 assertions
-├── magic/                   ← LES COMPOSANTS, vendorés (MIT), publiés à la racine
-│   ├── README.md            ← LES DÉFAUTS, MESURÉS — à lire avant emploi
-│   ├── magic.scss           ← le point d'entrée, publié en ./opale.css
-│   └── components/…         ← quatorze dossiers, un module SCSS chacun
+├── magic/                   ← LES COMPOSANTS, publiés à la racine
+│   ├── README.md            ← le matériau, les composants, ce qui est mesuré
+│   ├── magic.scss           ← le filet anti-mouvement, publié avec ./opale.css
+│   ├── opale.css            ← les jetons --opale-* et le catalogue plat
+│   ├── opale.tsx            ← 77 entrées de catalogue, un seul fichier
+│   └── components/…         ← huit dossiers composés, un module de style chacun
 ├── showcase/                ← LA VITRINE, hors paquet
 └── styles/doc.css           ← la feuille de la vitrine, hors paquet
 ```
 
-`src/magic/` **garde son nom de dossier** : c'est lui qui porte la provenance MIT, et
-`THIRD-PARTY-NOTICES.md` s'appuie sur ce chemin. Le préfixe de classe produit par le build
-est `opale-magic-`, et trois règles de `magic.scss` en dépendent — le renommer ne casse rien
-au build et rend ces trois règles inertes.
+`src/magic/` **garde son nom de dossier**, alors qu'il ne contient plus rien de la librairie
+dont ce nom vient. La raison est mécanique : le préfixe de classe produit par le build est
+`opale-magic-`, et le sélecteur du filet anti-mouvement de `magic.scss` en dépend. Renommer
+le dossier ne casserait pas le build — cela rendrait cette règle **inerte, en silence**, ce
+qui est bien pire. L'héritage lui-même est raconté dans
+[`src/magic/README.md`](./src/magic/README.md).
 
 ## Scripts
 
@@ -441,41 +457,53 @@ dans le script, jamais en appauvrissant la source.
   `#c4d8de` vers `#deedf0`, donc de remesurer les remplissages de sa carte du monde — c'est
   un chantier réel, pas un chercher-remplacer. La 2.0 l'a rendu plus lourd, pas plus léger :
   les deux sites employaient les dix-huit composants qui viennent de disparaître.
-- Il **ne mesure rien de `src/magic/`.** Aucun ratio, aucun audit `axe`, aucun test de
-  lecteur d'écran, aucun rendu Firefox ni WebKit. Neuf des quatorze composants n'ont aucun
-  test du tout.
+- Il **ne mesure aucune couleur rendue de `src/magic/`.** Aucun ratio recalculé, aucun audit
+  `axe`, aucun test de lecteur d'écran, aucun rendu Firefox ni WebKit. Les composants ont en
+  revanche leurs propres tests de comportement : `npx vitest run src/magic` rend
+  `Test Files 10 passed (10) · Tests 115 passed (115)`.
 - Il **ne vérifie pas le rendu du verre.** Aucun harnais navigateur, aucune capture.
-- Il **n'a pas de police propre.** Piles système dans les deux projets, et aucune requête
-  hors origine n'est tolérée. `src/magic/` a la même règle : l'`@import` de Google Fonts de
-  la source a été retiré, et la famille devient le jeton `--magic-font` avec repli.
+- Il **n'a pas de police propre**, et **il ne tient plus tout à fait sa propre règle sur ce
+  point.** Piles système dans les deux projets, aucune requête hors origine tolérée — sauf
+  que `src/magic/opale.css`, qui est publiée, ouvre sur un `@import` de Google Fonts
+  chargeant Bricolage Grotesque et Chivo. Les deux ont un repli système déclaré
+  (`--opale-font-body`, `--opale-font-title`), donc rien ne casse sans elles ; l'import reste
+  à retirer. C'est signalé dans [`src/magic/README.md`](./src/magic/README.md) et dans
+  [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
 
 ## Ce qui reste à décider
 
 Par coût de retour en arrière décroissant.
 
-1. **Le tag de publication `v3.0.0`.** Le code et la vitrine sont prêts ; le tag doit être posé
+1. **Le tag de publication `v3.1.1`.** Le code et la vitrine sont prêts ; le tag doit être posé
    au moment de la publication pour rendre l’installation git immuable.
-2. **Le contraste des quatorze composants.** Le dépôt publie une charte mesurée et des
-   composants qui ne le sont pas. Deux issues cohérentes, et aucune n'est prise : documenter
-   la contrainte « fond sombre obligatoire » comme une condition d'emploi (l'état actuel), ou
-   ouvrir une couche de surcharge qui repeint leurs libellés par jeton — ce qui rompt la
-   fidélité au caractère, laquelle est une consigne explicite du propriétaire. À trancher par
-   lui, pas en passant.
-3. **Le harnais navigateur.** Le contrat de couleur sait recalculer une composition
+2. **L'`@import` de Google Fonts dans `opale.css`.** Il impose une requête tierce à tout
+   consommateur du paquet et contredit une règle que le dépôt s'applique partout ailleurs. Le
+   retirer est une ligne ; ce qui se décide, c'est ce qu'on met à la place — un repli système
+   assumé, ou des fichiers servis par le consommateur.
+3. **La mesure des couleurs composées par les composants.** Le blocage de la 2.0 a disparu
+   avec le code copié : plus rien n'oblige à rester « fidèle plutôt que conforme », puisque
+   le code est le nôtre. Reste à décider si le contrat doit s'étendre aux piles que les
+   composants composent, ou si la garantie du jeton suffit.
+4. **Le harnais navigateur.** Le contrat de couleur sait recalculer une composition
    d'alphas ; il ne sait pas ce qu'un `backdrop-filter` a mis sous un libellé. Une sonde qui
    capture, échantillonne le pixel réel derrière une encre et recalcule le ratio est chiffrée
-   à environ une journée. La 2.0 a multiplié la surface de rendu qu'aucun test ne garde.
-4. **Minifier le CSS publié dans `build:css`.** Mesuré sur la 1.x : le socle livré passait de
+   à environ une journée. La surface de rendu qu'aucun test ne garde n'a pas diminué avec la
+   réécriture : le matériau est toujours du `filter` et du `backdrop-filter`.
+5. **Minifier le CSS publié dans `build:css`.** Mesuré sur la 1.x : le socle livré passait de
    46,3 à 5,7 kB gzippés (−88 %). Le périmètre a changé, le chiffre est donc à refaire, mais
    la conclusion tient — les commentaires sont la valeur du dépôt dans `src/`, ils n'ont
    aucune raison d'être téléchargés.
-5. **Les tests manquants sur les neuf composants sans tests**, et la question de savoir si un
-   test écrit ici sur du code vendoré n'est pas un test à remonter chez tweeedlex.
-6. La bascule du fond de `travels_in_world` vers `#deedf0`, et le remesurage de sa carte.
-7. Les familles de caractères, et le budget de police qui va avec.
-8. La simulation de deutéranopie sur `--danger` / `--success` / `--warning` : elle n'a pas été
-   faite, et le résultat peut changer les trois valeurs. Le rouge n'est séparé du cuivre que
-   de 11,3° de teinte.
+6. **Un test unitaire de `Glass`.** C'est la primitive que six composants montent, et le seul
+   des huit composants composés sans fichier de test en propre. Ce qui mériterait d'être
+   tenu : le montage et le démontage du filtre SVG partagé, le compteur d'instances, et la
+   présence des quatre couches nommées.
+7. **Convertir le dernier module SCSS.** `SearchBar.module.scss` tient `sass` dans les
+   dépendances de développement à lui seul.
+8. La bascule du fond de `travels_in_world` vers `#deedf0`, et le remesurage de sa carte.
+9. Les familles de caractères, et le budget de police qui va avec.
+10. La simulation de deutéranopie sur `--danger` / `--success` / `--warning` : elle n'a pas
+    été faite, et le résultat peut changer les trois valeurs. Le rouge n'est séparé du cuivre
+    que de 11,3° de teinte.
 
 Deux questions que la charte laissait ouvertes sont **tranchées et mesurées** ici, plutôt que
 reportées :

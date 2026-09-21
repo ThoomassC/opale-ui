@@ -1,0 +1,157 @@
+/* =============================================================================
+   LE MATÉRIAU VERRE — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce écrite en `@apply` Tailwind. Les valeurs
+   visuelles — 0,75 px de flou, 1,08 de saturation, l'échelle 1,018, les deux
+   dégradés radiaux — sont celles réglées à l'œil sur la page « Le verre
+   liquide », qui reste la référence du matériau. Ce sont donc les MÊMES
+   chiffres, portés par nos propres noms et nos propres jetons.
+
+   AUCUNE BORDURE N'EST PEINTE. Le bord vient du seul filet spéculaire, en
+   `inset box-shadow`. Une `border` en plus donnerait deux contours, et c'est
+   le défaut le plus visible d'un faux verre.
+   ========================================================================== */
+
+.glass {
+  position: relative;
+  z-index: 0;
+  width: fit-content;
+  overflow: hidden;
+  border-radius: var(--opale-glass-radius, var(--opale-radius-md, 1.375rem));
+}
+
+/* LA RÉFRACTION EST LA SEULE COUCHE QUI REGARDE DERRIÈRE.
+
+   `backdrop-filter` échantillonne l'arrière-plan ; le `filter` de déplacement
+   le gauchit. L'échelle 1,018 déborde très légèrement pour que le déplacement
+   n'expose pas de bord vide au ras du cadre.
+
+   `isolation: isolate` la tient dans son propre plan de composition : sans
+   elle, le flou déborde sur les couches voisines quand le conteneur est
+   lui-même transformé. */
+.refraction {
+  position: absolute;
+  z-index: 0;
+  border-radius: inherit;
+  inset: 0;
+  backdrop-filter: blur(0.75px) saturate(1.08);
+  -webkit-backdrop-filter: blur(0.75px) saturate(1.08);
+  filter: url('#opale-glass-displacement');
+  isolation: isolate;
+  transform: scale(1.018);
+  transform-origin: center;
+  transition:
+    filter 0.3s ease,
+    transform 0.3s ease;
+}
+
+/* LE LAVIS A SON PROPRE JETON, ET LE NOM COMPTE.
+
+   Il lisait d'abord `--opale-glass-surface`. Ce jeton existait déjà — il
+   décrivait le lavis CSS qui IMITAIT le verre avant qu'on écrive le matériau,
+   et il vaut `rgba(255, 255, 255, 0.58)` en thème clair. Le verre peignait donc
+   sa teinte à 58 % d'opacité là où la référence est à 6 % : laiteux au lieu de
+   translucide, c'est-à-dire exactement l'imitation qu'il remplaçait.
+
+   Réutiliser un nom de jeton pour un autre sens ne casse rien et ne rougit
+   nulle part — la valeur est simplement fausse. D'où `--opale-glass-tint` et
+   `--opale-glass-edge`, qui n'appartiennent qu'au matériau.
+
+   Les deux dégradés de bombé passent AVANT la teinte : la lumière vient du coin
+   haut gauche, l'ombre du coin bas droit. */
+.tint {
+  position: absolute;
+  z-index: 1;
+  border-radius: inherit;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(88% 125% at 8% 0%, rgba(255, 255, 255, 0.2), transparent 52%),
+    radial-gradient(80% 120% at 100% 100%, rgba(5, 35, 48, 0.16), transparent 58%),
+    var(--opale-glass-tint, rgba(255, 255, 255, 0.06));
+  transition: background 0.3s ease;
+}
+
+.specular {
+  position: absolute;
+  z-index: 2;
+  border-radius: inherit;
+  inset: 0;
+  overflow: hidden;
+  box-shadow:
+    inset 1px 1px 0 var(--opale-glass-edge, rgba(255, 255, 255, 0.32)),
+    inset 0 0 5px var(--opale-glass-edge, rgba(255, 255, 255, 0.32));
+  transition: box-shadow 0.3s ease;
+}
+
+/* L'onde part du point cliqué. `translate(-50%, -50%)` la centre sur ce point
+   plutôt que sur son coin — sans quoi elle naîtrait en bas à droite du doigt. */
+.ripple {
+  position: absolute;
+  z-index: 2;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.1) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: opale-glass-ripple 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.content {
+  position: relative;
+  z-index: 3;
+}
+
+.squishing {
+  animation: opale-glass-squish 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes opale-glass-ripple {
+  0% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.6);
+  }
+}
+
+/* Le léger écrasement au clic : une matière qui répond. Les écarts sont sous
+   2 %, donc la mise en page ne bouge pas. */
+@keyframes opale-glass-squish {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  20% {
+    transform: scale(0.985, 1.015);
+  }
+  40% {
+    transform: scale(1.008, 0.992);
+  }
+  60% {
+    transform: scale(0.992, 1.008);
+  }
+  80% {
+    transform: scale(1.005, 0.995);
+  }
+}
+
+/* WCAG 2.3.3 — l'onde et l'écrasement sont du mouvement non essentiel : ils
+   s'effacent pour qui demande moins d'animation. La réfraction, elle, reste :
+   c'est une apparence, pas un mouvement. */
+@media (prefers-reduced-motion: reduce) {
+  .ripple,
+  .squishing {
+    animation: none;
+  }
+}

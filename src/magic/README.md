@@ -1,421 +1,244 @@
-# `src/magic` — react-magic-ui vendoré
+# `src/magic` — les composants d'Opale et leur matériau
 
-## D'où vient ce code
-
-Copie de [`react-magic-ui`](https://github.com/tweeedlex/react-magic-ui) de
-`@tweeedlex`, version 1.0.9, sous licence **MIT, Copyright (c) 2025 tweeedlex**.
-Le texte de licence est celui du dépôt d'origine, recopié dans
-`THIRD-PARTY-NOTICES.md` à la racine ; chaque fichier porte un bandeau de
-provenance.
-
-**Depuis la 2.0, ce dossier EST le point d'entrée racine du paquet.** Il n'y a
-plus de sous-chemin `@thomascaron/opale-ui/magic` : `import { Button } from
+Ce dossier est le **point d'entrée racine du paquet**. `import { Button } from
 '@thomascaron/opale-ui'` sert ce code, et `@thomascaron/opale-ui/opale.css` sert
-`magic.scss` compilée. Le dossier garde son nom parce que c'est lui qui porte la
-provenance MIT — le renommer casserait le chemin sur lequel s'appuient le fichier
-de notices et les bandeaux.
+ses deux feuilles compilées en une.
 
-## Hors du contrat de couleur
+Tout ce qu'il contient est écrit par Opale. C'est une phrase courte, et elle a
+coûté cher : jusqu'à la 3.1, ce dossier était la copie d'une librairie tierce.
+La section « D'où vient ce dossier » plus bas raconte cet héritage, parce qu'il
+explique le nom du dossier, le préfixe des classes et la présence d'un fichier
+de notices à la racine — trois choses qu'on ne devine pas.
 
-**Ce dossier n'emploie aucun jeton `--tc-*` et n'est pas soumis au contrat de
-couleur d'Opale.** Ses couleurs sont celles de tweeedlex : des blancs
-semi-transparents (`rgba(255,255,255,.06)` à `.40`) posés sur un fond sombre,
-plus les neuf couleurs de leur `@theme`. Aucun ratio de contraste n'a été mesuré
-sur ce code et aucun ne le sera : il est gardé fidèle, pas conforme.
+## Ce qu'il y a dedans
 
-Les tests de contrat d'Opale ne lisent que `src/tokens/`, ils ne voient donc pas
-ce dossier. Si l'un d'eux venait à balayer `src/**`, c'est `src/magic/**` qu'il
-faudrait exclure explicitement, pas ce code qu'il faudrait réécrire.
+Deux familles de code, et elles ne se ressemblent pas.
 
-**Ce que ça coûte au consommateur, mesuré.** Onze des quatorze modules peignent
-leur libellé en blanc pur, en dur — `@apply text-white` ou `color: white`, jamais
-un jeton ; les trois autres (`Glass`, `Slider`, `Switch`) n'écrivent pas de texte.
-Sur un fond blanc, du blanc vaut **1,00:1** : invisible. Sur la plaque de
-spécimen d'Opale (`--surface`, `rgb(235,244,246)`), **1,12:1**. Le seuil AA du
-texte courant est 4,5:1. C'est pour ça, et pour rien d'autre, que la vitrine les
-pose sur des scènes sombres (plancher mesuré 13,22:1, voir
-`src/showcase/pages/composants/stage.tsx`).
+**`components/` — huit composants composés, un dossier chacun.** Ce sont les
+pièces qui ont une structure interne, un état, ou les deux : elles ne se
+réduisent pas à un élément natif habillé.
 
-Curiosité de leur code, notée parce qu'elle induit en erreur :
-`Glass.module.scss:9` déclare `--lg-text: #ffffff` sur `:root`, et **aucune règle
-ne la consomme** — vérifié, `grep -rn 'lg-text' src/magic/` ne rend que sa
-déclaration. Surcharger cette variable chez soi ne change donc rien. Le blanc
-vient des `text-white` des modules, un par un.
-
-## Fidélité
-
-Le code est copié **au caractère**. Vérifié fichier par fichier lors de la copie :
-sur les **50 fichiers vendorés** (soit tout `src/magic/` sauf ce README,
-`magic.scss` et `scss.d.ts`), 39 sont strictement identiques à la source ; les 11
-autres ne diffèrent que par l'ajout du mot-clé `type` dans un import, imposé par
-`verbatimModuleSyntax` du `tsconfig` d'Opale. Les seules autres additions sont des
-commentaires : le bandeau de provenance partout, et cinq `eslint-disable`
-documentés (voir plus bas).
-
-> Le compte de fichiers est remesuré ici (`find src/magic -type f` → 53, moins les
-> trois non vendorés) ; la répartition 39 / 11, elle, vient de la comparaison
-> faite au moment de la copie et **n'est pas rejouable dans ce dépôt** — la source
-> n'y est pas présente. Elle est reportée telle quelle.
-
-Corollaire : les défauts de COMPORTEMENT de leur code sont conservés tels quels.
-Ne les corrigez pas ici — remontez-les chez tweeedlex. Ce fichier est là pour
-qu'aucun de ces défauts ne soit une surprise.
-
-**Trois fichiers vendorés font désormais exception**, et la répartition 39 / 11
-ci-dessus ne décrit donc plus l'arbre : elle décrit l'état à la copie. Voir
-« Modifications du code vendoré » juste en dessous.
-
-## Modifications du code vendoré
-
-Distinctes des écarts de `magic.scss` : celles-ci touchent des fichiers de
-composant, c'est-à-dire du code copié au caractère. Chacune corrige une faute
-qui rendait le composant inutilisable **dans une page hôte**, pas un choix
-esthétique de l'amont — et chacune est mesurée.
-
-### `glass/Glass.tsx` et `glass/style/Glass.module.scss` — le matériau commun
-
-La primitive `Glass` reprend maintenant la recette validée dans la vitrine de
-« Verre liquide » pour tous les composants qui la composent : voile à alpha
-0,06, relief radial, saturation à 1,08, blur à 0,75 px, déformation SVG douce
-(échelle 12) et reflet à alpha 0,32. `Button`, `Card`, `Input`, `Select`,
-`Modal`, `Sidebar`, `Tabs`, `Toast`, `Topbar` et les autres composants héritent
-ainsi d'un même matériau sans recopier la recette dans chaque module.
-
-### `glass/style/Glass.module.scss` — le rayon de l'enveloppe
-
-`8px` figé → `var(--lg-radius, 22px)`, et `.glassFilter` passe de `8px` à
-`inherit`.
-
-L'enveloppe porte `overflow: hidden`. Son rayon ne décide donc pas de son seul
-bord : **il rogne tout ce qu'elle contient**. Mesuré au navigateur, `Modal`
-demandait `rounded-3xl` (24 px) sur son contenu et sortait à 8 px ; `Button`
-demandait `rounded-xl` (12 px), même résultat. Aucun composant ne pouvait
-s'arrondir plus que son enveloppe, et `rootClassName` ne le permettait pas
-davantage (c'est le défaut du `Badge`, plus bas, qui est intact).
-
-### `glass/style/Glass.module.scss` — le contexte d'empilement
-
-`z-index: 0` ajouté à `.glassContainer`.
-
-L'enveloppe était en `z-index: auto`, donc les `z-index` 1, 2 et 3 de ses quatre
-couches **s'échappaient dans le contexte d'empilement de la page hôte**. Mesuré
-sur la vitrine : aucun contexte d'empilement entre la glace et la racine,
-`glassContent` sortant à 3 contre 2 pour la barre collante du site — le
-composant se peignait par-dessus l'en-tête au défilement.
-
-`z-index: 0` et non `isolation: isolate`, délibérément : `isolate` crée aussi une
-**racine de fond**, et `.glassFilter` porte un `backdrop-filter: blur(0.75px)` qui
-n'échantillonnerait alors plus que l'intérieur de l'enveloppe — le verre
-cesserait de réfracter la page. Vérifié après correction : `backdrop-filter:
-blur(0.75px) saturate(1.08)` et `filter: url("#lg-dist")` toujours actifs, un seul contexte
-d'empilement, sur l'enveloppe.
-
-### `modal/style/Modal.module.scss` et `modal/Modal.tsx` — la coquille
-
-`Modal` ne passait que `className` à `Glass`, qui l'applique à sa couche de
-CONTENU. Le rayon et l'ombre atterrissaient donc sur un enfant de l'enveloppe
-en `overflow: hidden` : mesuré, le contenu sortait bien à 24 px mais l'enveloppe
-le rognait à 8, et son ombre extérieure de 60 px était rognée par le même
-`overflow`. **La modale n'avait en pratique ni angle arrondi ni ombre.**
-
-Une classe `.modalShell` part donc sur `rootClassName`, c'est-à-dire sur
-l'enveloppe : rayon 34 px, liseré, et les deux ombres.
-
-Le voile passe de `blur(10px)` sur 30 % d'opacité à `blur(3px)` sur 60 %. Et le
-liseré a dû être **presque opaque**, ce qui n'était pas prévu : un premier essai
-à 38 % de blanc mesurait 1,13:1 contre le pourtour, invisible. La cause est
-structurelle — la modale est translucide au-dessus du même voile que la page,
-donc assombrir le voile fait descendre son remplissage avec lui et le rapport ne
-bouge pas (remplissage mesuré 1,24:1 contre pourtour). À 75 % de blanc sur
-1,5 px, l'arête compose `#d9dadc` et mesure **3,86:1** sur les pixels rendus,
-au-dessus du plancher de 3:1 de WCAG 1.4.11. Un filet sombre extérieur de 1 px
-tient l'arête dans l'autre sens, pour une page hôte claire.
-
-## Les six écarts de `magic.scss`
-
-`magic.scss` est le seul fichier volontairement différent de leur
-`src/tailwind.css`. Chaque écart est aussi commenté sur place, et numéroté dans
-la feuille.
-
-1. **`@tailwind base;` absent.** Le Preflight réinitialise `*`, les titres, les
-   marges et les boutons. Mesuré : avec le Preflight, le `<h1>` d'une application
-   consommatrice passe de 32 px à 16 px et sa marge de 21,44 px à 0. Cette feuille
-   étant publiée et importée par des applications tierces, le Preflight les
-   casserait. `corePlugins: { preflight: false }` dans `tailwind.config.ts` rend
-   l'intention exécutable plutôt que conventionnelle.
-2. **Pas d'`@import url("https://fonts.googleapis.com/…")`.** Un import distant
-   dans une feuille publiée impose une requête tierce à tous les consommateurs et
-   échoue hors ligne. La famille est un jeton avec repli : `--magic-font`, défaut
-   `"Nunito", sans-serif`. Le consommateur qui veut vraiment Nunito la charge
-   lui-même.
-3. **Police scopée, pas universelle.** Leur `* { font-family: "Nunito" }`
-   s'appliquerait à toute la page du consommateur. Remplacé par une règle à
-   spécificité nulle limitée à leurs propres classes :
-   `:where([class*='opale-magic-'])`. Le préfixe `opale-magic-` est produit par
-   `css.modules.generateScopedName` dans la configuration de build : **sans ce
-   préfixe, cette règle ne s'applique à rien.**
-4. **Deux déclarations du Preflight remises, scopées.** Les retirer toutes avait
-   cassé du rendu, et les deux ont été mesurées :
-   `button { background-color: transparent }`, sans laquelle un bouton garde le
-   chrome natif du moteur (`rgb(239,239,239)`, `border-top 2px outset`) — ni
-   `.btn`, ni `.input`, ni `.selectButton` ne posent ce fond ; et
-   `*, ::before, ::after { border-style: solid; border-width: 0 }`, sans laquelle
-   **aucune bordure ne se dessine** — Tailwind v3 n'émet jamais `border-style`
-   pour un `@apply border`, il n'émet que `border-width` et compte sur le
-   Preflight. Quatre sites concernés : `Modal.module.scss:51`,
-   `Toast.module.scss:157`, `Select.module.scss:69` et `:104`. Les deux règles
-   sont bornées aux classes de `/magic` et écrites en `:where()`, donc à
-   spécificité nulle : n'importe quelle déclaration de module (0,1,0) les bat, ce
-   qui est exactement ce qu'on veut.
-5. **Leurs neuf couleurs de thème, rendues effectives.** Leur bloc
-   `@theme { --color-danger: … }` est de la syntaxe Tailwind **v4** dans un projet
-   Tailwind **v3.4.18** : v3 ne le traite pas, donc les neuf variables n'étaient
-   définies nulle part, chez eux non plus. Les neuf valeurs sont recopiées au
-   caractère depuis leur `@theme` et posées sur `:where([class*='opale-magic-'])`
-   plutôt que sur `:root`, pour ne pas installer neuf variables très génériques
-   chez le consommateur. Ce n'est pas un écart à leur intention, c'est la faire
-   s'appliquer.
-6. **Un bloc `prefers-reduced-motion: reduce`, que ni cette feuille ni la leur ne
-   portait.** Mesuré : `grep -rn 'prefers-reduced-motion' src/magic/` rendait 0.
-   Il y a pourtant quatre `@keyframes` de 0,8 s dans `Glass.module.scss`, qui se
-   déclenchent au clic sur les treize composants bâtis sur `Glass`, plus la
-   translation du toast. Le filet universel de `tokens.css` les couvrait — **à
-   condition que le consommateur importe `tokens.css`**, ce que la 2.0 lui retire
-   toute raison de faire, puisque les composants n'emploient plus aucun jeton. Le
-   garde est devenu détachable au moment précis où il a cessé d'être implicite. Le
-   bloc restreint la liste des propriétés en transition plutôt que de couper les
-   transitions — moins de mouvement, pas moins de retour d'information — et c'est
-   la seule règle de `/magic` écrite en sélecteur nu et en `!important`, parce que
-   c'est la seule qui doit **gagner** contre les modules. Mesuré sous
-   `chrome-headless-shell` avec `--force-prefers-reduced-motion` :
-   `animationDuration` de `.glassAnimating` passe de `0.8s` à `1e-05s`, et à
-   `0.8s` de nouveau hors préférence.
-
-Leur bloc `@theme` n'est donc **pas** repris comme tel : c'est l'écart 5 qui en
-recopie les valeurs sous une forme que Tailwind v3 applique.
-
-> **Le bandeau en tête de `magic.scss` dit encore « les trois écarts ».** Il est
-> en retard sur son propre fichier, qui en porte six. Corriger un commentaire de
-> `src/magic/**` n'est pas du ressort de ce README ; c'est signalé ici.
-
-## Les cinq `eslint-disable`
-
-Le `eslint.config.js` d'Opale est plus strict que le leur. Cinq fichiers portent
-un `eslint-disable` en tête, ciblé sur les seules règles qui s'y déclenchent,
-parce que les satisfaire voudrait dire réécrire leur code. Deux d'entre eux
-masquent de vrais défauts, et c'est écrit dans le pragma :
-
-| Fichier | Règles | Ce que ça cache |
+| Composant | Ce que c'est | Monte `Glass` |
 | --- | --- | --- |
-| `glass/Glass.tsx` | `no-explicit-any` | ref et événement de clic typés `any` |
-| `slider/Slider.tsx` | `no-unused-vars`, `no-static-element-interactions` | `showValue` sans effet ; piste non atteignable au clavier |
-| `checkbox/Checkbox.tsx` | `click-events-have-key-events`, `no-static-element-interactions` | libellé en `<span onClick>` au lieu d'un `<label>` |
-| `modal/Modal.tsx` | `set-state-in-effect` | `setState` en corps d'effet |
-| `toast/ToastProvider.tsx` | `set-state-in-effect` | `setState` en corps d'effet |
+| `Glass` | le matériau lui-même | — |
+| `Modal` | un dialogue à portail, contrôlé | oui |
+| `SearchBar` | un champ de recherche à suggestions | oui |
+| `Sidebar` | un rail de navigation pliable | oui |
+| `SiteNav` | la navigation de site, à bulle | **non** |
+| `Tabs` | le motif d'onglets ARIA | oui |
+| `ToastProvider` (+ `useToast`) | une file de notifications | oui |
+| `Topbar` | une barre de page composée | oui |
 
-Trois avertissements ESLint subsistent, non masqués — mesuré, `eslint src/magic`
-rend `3 problems (0 errors, 3 warnings)` : deux `exhaustive-deps` (`Slider:97`,
-`ToastProvider:195`) et un `react-refresh/only-export-components`
-(`ToastProvider:241`).
+Compté sur l'arbre : huit dossiers sous `components/`, huit portes dans
+`components/index.ts`. **Six des sept composants non-`Glass` montent le
+matériau** ; `SiteNav` est la seule exception, et c'est délibéré — sa bulle est
+un rendu à elle, écrit dans `liquid-bubble.tsx`, et elle n'a pas besoin des
+trois couches.
 
-## Trois défauts qui atteignent un consommateur
+**`opale.tsx` — le catalogue plat.** Un seul fichier, et c'est un choix
+défendable : ce sont des composants courts — une vingtaine de lignes en moyenne
+sur les 1 923 du fichier —, dont la valeur est d'être **cohérents entre eux**
+plutôt qu'isolables. `OPALE_CATALOG` en
+déclare **77 entrées** (compté sur le tableau), réparties en catégories
+— primitives, champs, données, retour d'information, navigation, disposition,
+modules. Le namespace `OpaleUI` les réexpose sous un second jeu de noms.
 
-Ils sont dans leur code, donc ils ne sont pas corrigés — mais ils se voient à
-l'usage et non à la lecture, alors ils sont écrits ici avec leur mesure.
+La règle qui gouverne ce fichier est écrite en tête, et elle mérite d'être
+répétée ici : **le verre est la peau, le contrôle natif reste le moteur.** Là où
+un composant porte un état — case, interrupteur, curseur, sélecteur —, c'est
+l'élément natif qui garde le focus, le clavier, le nom de formulaire et son
+`ChangeEvent`. La prop `liquidGlass` ne change que la matière, jamais la
+mécanique.
 
-### 1. `Badge` n'est pas une pilule, et son `rootClassName` est inerte
+## Le matériau
 
-`Badge.tsx:51` passe `rootClassName={"rounded-full"}` à `Glass`. Cette classe
-atterrit sur le même `<div>` que `styles.glassContainer` (`Glass.tsx:92-99`), et
-les deux règles se disputent le même `border-radius` **à poids égal** :
+`Glass` est la primitive du dossier, et la seule chose qu'il faut vraiment
+comprendre pour lire le reste.
 
-| règle | spécificité | valeur | position dans `dist/magic/magic.css` |
-| --- | --- | --- | --- |
-| `.rounded-full` | (0,1,0) | `9999px` | ligne 51 (offset 1 578) |
-| `.opale-magic-glassContainer-2XpdN` | (0,1,0) | `var(--lg-radius, 22px)` | ligne 403 (offset 17 011) |
+**Trois couches, et chacune fait une chose.** La **réfraction** échantillonne ce
+qu'il y a derrière — `backdrop-filter: blur(0.75px) saturate(1.08)`, puis un
+déplacement par bruit fractal. Le **lavis** pose la teinte et le bombé ; c'est la
+seule couche colorée. Le **filet spéculaire** dessine l'arête de lumière en
+`inset box-shadow`. Le contenu passe au-dessus des trois, dans son propre plan.
 
-À spécificité égale, c'est l'ordre du document qui tranche, et l'enveloppe passe
-plus tard : **le rayon effectif est celui de l'enveloppe, pas 9999px.** Le badge
-est un rectangle aux coins arrondis. Relevé au navigateur pour confirmation :
-`glassContainer rounded-full` → **22px** ; `glassContainer` + `rootStyle` en
-ligne → **999px**.
+**Aucune bordure n'est peinte.** Le bord vient du seul filet spéculaire. Une
+`border` en plus donnerait deux contours, et c'est le défaut le plus visible d'un
+faux verre.
 
-Le rayon de l'enveloppe valait `8px` en amont ; Opale l'a porté à 22 px et rendu
-réglable par `--lg-radius` (voir « Modifications du code vendoré » plus bas).
-**Cela n'a pas corrigé ce défaut-ci** : seule la valeur a changé, le mécanisme
-est intact, et 22 px sur une pastille de 24 px de haut n'est pas davantage une
-pilule que 8.
+**Le filtre SVG est monté une seule fois pour toute la page.** Un compteur de
+montages au niveau du module pose `#opale-glass-displacement` au premier verre et
+le retire au dernier. C'est une correction, pas un raffinement : la version
+d'avant en montait un **par instance**, tous porteurs du même `id`. Dix champs de
+verre donnaient dix identifiants en double dans le document — un document
+invalide, et un `url(#…)` qui n'en résout qu'un.
 
-Leur `Switch` s'en sort parce qu'il emploie `rootStyle` et non `rootClassName`
-(`Switch.tsx:38`, `rootStyle={{ borderRadius: "999px" }}`) : une déclaration en
-ligne bat toute règle de feuille. C'est le contournement, et il vaut pour un
-consommateur : **passer un `rootStyle` plutôt qu'un `rootClassName` dès qu'il
-s'agit d'une propriété que `glassContainer` déclare aussi.**
+**Les couches sont nommées pour l'hôte.** L'enveloppe porte `data-opale-glass`,
+et chaque couche `data-opale-glass-layer="refraction" | "tint" | "specular" |
+"content"`. Ce sont des attributs **de contrat**, au même titre que les props, et
+la raison est concrète : la classe d'un module CSS est hachée à la compilation,
+donc innommable depuis une feuille d'hôte ou un test. La vitrine visait
+auparavant `[class*='glassFilter']`, faute de mieux ; ce raccourci a cassé net le
+jour où les couches ont changé de nom, **et il l'a fait en silence** — un
+sélecteur sans correspondance ne rougit nulle part.
 
-C'est un trait de l'original — chez eux aussi la couche `@tailwind utilities`
-passe avant les modules — donc ce n'est pas corrigé. Mais un consommateur qui
-passe `rootClassName` croira que ça marche, et rien ne le détrompera.
+Les noms internes ont d'ailleurs tous changé à cette occasion : `glassFilter`,
+`glassOverlay`, `glassSpecular`, `glassContainer` et `glassContent` n'existent
+plus. Si une feuille d'hôte les cite encore, elle ne s'applique à rien.
 
-> Les positions ci-dessus sont relevées sur la feuille produite ; elles se
-> décalent à chaque build. Ce qui ne se décale pas, et qui est le fait : même
-> spécificité, module déclaré après l'utilitaire.
+## Les feuilles
 
-### 2. `Button variant="default"` — l'extracteur ne lit pas les chaînes interpolées
+Neuf modules de style, un par composant rendu : **huit `.module.css` et un seul
+`.module.scss`** (`SearchBar`). Le déséquilibre n'est pas une négligence, c'est
+un vestige — le dossier était intégralement en SCSS, et chaque composant réécrit
+est reparti en CSS simple. `sass` reste une dépendance de développement tant que
+ce module unique existe.
 
-`Button.tsx:47` construit sa classe de variante par interpolation :
+**`magic.scss` ne contient plus qu'une chose** : le filet
+`prefers-reduced-motion`. Tout le reste — `@tailwind components`,
+`@tailwind utilities`, une famille de police universelle, trois classes globales
+`.small` / `.medium` / `.large` — a disparu avec les `@apply` qu'il servait.
+**Tailwind, PostCSS et Autoprefixer sont sortis des dépendances du paquet avec
+eux** ; vérifiable dans `package.json`, qui ne déclare plus que `clsx` en
+dépendance d'exécution.
 
-```tsx
-variant && `bg-${variant}`
-```
+Le filet reste global parce qu'il est le seul réglage qui **doit** l'être : il
+vaut pour toutes les classes émises par les modules de ce dossier, quelle que
+soit leur spécificité, et un composant ne peut pas le poser pour ses voisins. Il
+réduit la liste des propriétés en transition plutôt que de couper les
+transitions — les changements de **couleur** ne sont pas du mouvement, et les
+supprimer rendrait les états brutaux sans rien apporter à qui demande moins
+d'animation.
 
-L'extracteur de Tailwind ne lit pas le JavaScript : il cherche des suites de
-caractères qui *ressemblent* à des classes dans le texte brut du fichier. Dans un
-gabarit, il ne voit que `bg-`, et **aucune des quatre variantes déclarées
-(`"default" | "positive" | "negative" | "warning"`) n'est un littéral**. Mesuré
-sur `dist/magic/magic.css` tel que construit avant correction : `.bg-default`
-**absente**, et le bouton sortait sans aucun fond.
+**`opale.css` porte les jetons `--opale-*`** : palette, typographie, espacement,
+rayons, ombres, et les réglages du verre (`--opale-glass-radius`,
+`--opale-glass-surface`, `--opale-glass-border`, `--opale-glass-highlight`,
+`--opale-glass-shadow`). C'est le vocabulaire que les neuf modules consomment ;
+aucun d'eux n'écrit une couleur en dur pour son texte.
 
-**Corrigé, et voici par quoi.** `tailwind.config.ts` porte désormais
-`safelist: ['bg-default', 'bg-positive', 'bg-negative', 'bg-warning']`. Vérifié sur
-la feuille reconstruite : `.bg-default { background-color: var(--color-default) }`
-est bien émise, ligne 52, et `--color-default` vaut `#FFFFFF22` depuis l'écart 5
-de `magic.scss`. La correction ne vit que dans `dist/` : **une feuille construite
-avant la `safelist` ne la porte pas**, donc `npm run build:magic` est la condition
-pour qu'elle atteigne un consommateur.
+Les deux feuilles sont importées par `index.ts` et non seulement déclarées —
+`barrel-side-effects.structure.test.ts` tient cette paire.
 
-**Pourquoi les quatre et pas seulement `bg-default`.** Cinq `.bg-*` — `positive`,
-`negative`, `warning`, `info`, `neutral` — existaient déjà dans la feuille, et
-elles y existent **deux fois** : une fois comme utilitaire Tailwind
-(`background-color: var(--color-…)`, lignes 52-67 de la feuille produite), parce
-que `Badge.tsx:26-33` les écrit en **littéraux** dans une table de correspondance
-que l'extracteur sait lire ; et une fois comme dégradés dans le bloc `:global` de
-`Badge.module.scss` (lignes 1633-1645), qui passe plus tard et emploie le
-raccourci `background` — donc c'est lui qui peint. `bg-default` manquait parce que
-cette même table associe `default` à la chaîne **vide**.
+## D'où vient ce dossier, et pourquoi il s'appelle encore `magic`
 
-Conséquence : trois variantes de `Button` étaient portées **par un détail
-d'implémentation de `Badge`**. Changez cette table, ou supprimez `Badge`, et
-`Button variant="positive"` redevient inerte sans un mot — le mode de panne exact
-qu'on répare pour `default`. Les quatre entrées de `safelist` sont là pour que le
-bouton se tienne tout seul ; trois sont redondantes aujourd'hui, et sont là pour ne
-pas l'être demain.
+C'est l'information que ce fichier existait pour porter, et elle reste vraie même
+si tout le code a changé.
 
-### 3. Deux collisions de types qui empêchent de brancher un `setState`
+**Jusqu'à la 3.1, ce dossier était la copie d'une librairie tierce** :
+[`react-magic-ui`](https://github.com/tweeedlex/react-magic-ui) de `@tweeedlex`,
+version 1.0.9, sous licence MIT. Quatorze composants recopiés au caractère, leurs
+modules SCSS, et un échafaudage Tailwind pour servir les centaines de `@apply`
+qu'ils contenaient. Le nom du dossier est celui de cette librairie.
 
-`CheckboxProps` et `SidebarProps` intersectent un rappel métier avec un
-gestionnaire d'événement DOM du même nom, hérité de `GlassProps` (qui vaut
-`ComponentPropsWithoutRef<'div'>` par défaut) et, pour `Sidebar`, aussi de
-`ComponentPropsWithoutRef<'aside'>`. Le type résultant est une **intersection de
-fonctions**, donc le paramètre arrive en union.
+Le commit qui l'a introduite (`7a384e8`) ajoutait **5 060 lignes**, dont environ
+**4 270 de code copié** — le reste étant le README de provenance, les notices, la
+feuille d'échafaudage et les déclarations de types, écrits par Opale. Le chiffre
+est donné parce qu'il dit l'ordre de grandeur de ce qui a disparu, pas parce
+qu'il est un inventaire : la répartition exacte n'est pas rejouable, la source
+amont n'étant pas présente dans ce dépôt.
 
-Mesuré au compilateur (`tsc --strict`, TypeScript 6.0) :
+**Il n'en reste rien.** Huit composants — `Badge`, `Button`, `Card`, `Checkbox`,
+`Input`, `Select`, `Slider`, `Switch` — n'étaient plus que des « peaux » posées
+sous la prop `liquidGlass` et ont été **supprimés**, leurs doublons d'Opale
+devenant l'unique composant du nom. Les six autres — `Glass`, `Modal`, `Tabs`,
+`Toast`, `Topbar`, `Sidebar` — ont été **réécrits**. `SearchBar` et `SiteNav`
+étaient déjà les nôtres. `func.ts` et l'échafaudage Tailwind sont partis avec le
+reste.
 
-```
-Type 'Dispatch<SetStateAction<boolean>>' is not assignable to type
-  '((checked: boolean) => void) & ChangeEventHandler<HTMLDivElement, Element>'.
+**Le dossier garde son nom pour une raison mécanique, pas sentimentale.** Le
+préfixe des classes produit par le build est `opale-magic-`
+(`css.modules.generateScopedName` dans la configuration de build), et le
+sélecteur du filet anti-mouvement de `magic.scss` en dépend. Renommer le dossier
+ne casserait pas le build ; cela rendrait cette règle **inerte**, silencieusement.
+C'est exactement le mode de panne contre lequel ce dépôt se bat ailleurs, alors
+autant ne pas l'inviter pour une question d'esthétique de nommage.
 
-Type 'Dispatch<SetStateAction<boolean>>' is not assignable to type
-  'ToggleEventHandler<HTMLElement> & ((collapsed: boolean) => void)
-   & ToggleEventHandler<HTMLDivElement>'.
-```
+**Ce que la réécriture a changé pour un consommateur**, et qui est le vrai gain :
+ce dossier n'est plus hors du système de design. L'ancienne copie peignait ses
+libellés en **blanc pur, en dur**, dans onze de ses quatorze modules : posée sur
+un fond clair, elle donnait du texte invisible (1,00:1 sur blanc), et la vitrine
+devait la présenter sur des scènes sombres pour qu'elle se lise. Les composants
+d'aujourd'hui lisent `--opale-text` et ses voisins comme le reste du paquet.
 
-Autrement dit : `onChange={setChecked}` et `onToggle={setCollapsed}` **ne
-compilent pas**. Il faut resserrer le paramètre au moment de l'employer. Cette
-forme-là compile, vérifiée par `tsc` :
+> **Attribution.** `THIRD-PARTY-NOTICES.md`, à la racine, garde la notice MIT de
+> `react-magic-ui` en **note historique**. Plus aucune ligne de ce code n'est
+> distribuée, donc l'obligation de la clause MIT ne s'applique plus ; la note
+> reste parce que la réécriture s'est faite en regardant l'original et que le
+> dossier porte encore son nom. Le fichier le dit dans ces termes, sans inventer
+> une obligation qui n'existe plus.
 
-```tsx
-const [checked, setChecked] = useState(false);
-const [collapsed, setCollapsed] = useState(false);
+## Ce qui est mesuré
 
-<Checkbox
-  checked={checked}
-  onChange={(next) => {
-    if (typeof next === 'boolean') setChecked(next);
-  }}
-/>
+Ce dépôt en fait un principe : ce qui n'est pas mesuré est nommé comme tel. Voici
+donc les deux listes, dans cet ordre.
 
-<Sidebar
-  collapsed={collapsed}
-  onToggle={(next) => {
-    if (typeof next === 'boolean') setCollapsed(next);
-  }}
-/>
-```
+**La suite de tests.** `npx vitest run src/magic` rend **10 fichiers, 115 tests,
+tous verts**. Sept des huit composants ont un fichier de test à côté d'eux :
 
-Le `typeof next === 'boolean'` n'est pas une précaution défensive : c'est ce qui
-réduit l'union, et sans lui le corps ne compile pas. À l'exécution, `Checkbox`
-n'appelle jamais `onChange` avec autre chose qu'un booléen
-(`Checkbox.tsx:35`) — la branche fausse est donc morte, mais le compilateur
-l'exige.
+| Fichier | Tests |
+| --- | --- |
+| `components/tabs/Tabs.test.tsx` | 24 |
+| `components/toast/ToastProvider.test.tsx` | 14 |
+| `components/modal/Modal.test.tsx` | 13 |
+| `components/sidebar/Sidebar.test.tsx` | 8 |
+| `components/topbar/Topbar.test.tsx` | 6 |
+| `components/site-nav/site-nav.test.tsx` | 5 |
+| `components/search-bar/SearchBar.test.tsx` | 1 |
+| `opale-liquid-glass.test.tsx` | 33 |
+| `opale.test.tsx` | 9 |
+| `barrel-side-effects.structure.test.ts` | 2 |
 
-## Le quatrième point : `Slider` rejoint le verre
+**`Glass` n'a pas de fichier de test dans son dossier**, et c'est à noter
+puisqu'il est la primitive que six composants montent. Il n'est pas pour autant
+sans garde : `opale-liquid-glass.test.tsx` l'exerce à travers ses consommateurs,
+et c'est là que vivent ses 33 assertions. Un test unitaire du matériau
+lui-même — montage et démontage du filtre partagé, compteur d'instances, présence
+des quatre couches — reste à écrire.
 
-`Slider.tsx` monte désormais `Glass`, comme les autres composants de la
-librairie. Il partage donc le `filter: url("#lg-dist")`, le reflet spéculaire et
-la déformation liquide au clic. Sa piste reste volontairement celle de l'amont :
-un `<div>` sans rôle ni clavier. Seule la poignée se déplace après une prise en
-main, en continu à l'écran, y compris lorsque `step` arrondit la valeur émise.
+**Le linter.** `npx eslint src/magic` rend **0 erreur et 6 avertissements**. Plus
+aucun fichier de ce dossier ne porte d'`eslint-disable` en tête : les deux
+derniers, dans `Modal` et `ToastProvider`, masquaient un `setState` en corps
+d'effet que la réécriture a supprimé. Il subsiste deux
+`eslint-disable-next-line` **en ligne et documentés** dans `opale.tsx`, ce qui est
+la forme qu'on veut — un pragma qui nomme sa règle et sa raison, pas un
+interrupteur de fichier.
+
+## Ce qui n'est pas mesuré
+
+- **Aucun audit `axe`** n'a été passé sur ces composants. Ce qu'on sait de leur
+  accessibilité vient de la lecture du code, d'ESLint et des tests écrits à la
+  main.
+- **Aucun test de lecteur d'écran.** Ni VoiceOver, ni NVDA, ni Orca. En
+  particulier, on ne sait pas ce qu'un lecteur annonce à l'apparition d'un toast,
+  ni combien de fois.
+- **Aucun rendu Firefox ni WebKit.** Les mesures citées dans les commentaires de
+  ce dossier ont été faites sous Chromium (`chrome-headless-shell`) ou déduites de
+  la cascade. `filter: url(#…)` et `backdrop-filter` n'ont pas de comportement
+  vérifié hors Chromium, et ce sont précisément les deux déclarations dont le
+  matériau dépend.
+- **Aucun harnais navigateur en CI.** `jsdom` ne peint pas : `getComputedStyle` y
+  rend les valeurs déclarées, aucun pixel n'existe. Les mesures de rendu ont été
+  faites à la main, une fois, et **rien ne les rejoue**.
+- **Aucun ratio de contraste n'est recalculé sur ces composants.** Les tests de
+  contrat ne lisent que `src/tokens/`. Les composants consomment désormais des
+  jetons mesurés, ce qui est une garantie bien meilleure qu'avant — mais c'est la
+  garantie du **jeton**, pas celle de la composition rendue.
 
 ## Reste ouvert
 
-- **Classes globales dans la feuille publiée, et il y en a plus que prévu.**
-  `Badge.module.scss` publie `.bg-positive`, `.bg-negative`, `.bg-warning`,
-  `.bg-info` et `.bg-neutral` via un bloc `:global` ; `Glass.module.scss` publie
-  quatre `--lg-*` sur `:root` (ligne 394 de la feuille produite) ; et les trois
-  utilitaires **`.small`, `.medium` et `.large`** repris de leur `tailwind.css`
-  **sont bien publiés eux aussi**. Vérifié :
-  `grep -c '\.small\|\.medium\|\.large' dist/magic/magic.css` rend `5`, dont
-  trois sont les règles elles-mêmes — `.small{` ligne 70, `.medium{` ligne 78,
-  `.large{` ligne 86, avec leurs `padding` et leur `font-size`. Ils ne sont donc
-  **pas** purgés, contrairement à ce qu'affirmait une version antérieure de ce
-  fichier : le `@layer utilities` de `magic.scss` les déclare en dur, et une règle
-  écrite à la main dans la feuille d'entrée n'est pas soumise à l'extraction. Trois
-  noms aussi génériques que `.small`, `.medium` et `.large`, sans préfixe, dans une
-  feuille que des applications tierces importent : c'est une collision qui attend.
-  Les modules emploient leurs propres versions hachées, donc les retirer de
-  `magic.scss` ne changerait rien au rendu des composants — mais ce serait un écart
-  de plus à leur source, et ce n'est pas tranché.
-- **Les commentaires de `magic.scss` sont publiés.** Ils survivent dans
-  `dist/magic/magic.css` dès sa deuxième ligne ; mesuré, 256 lignes de la feuille
-  produite sont du commentaire. Sans conséquence fonctionnelle, mais si la feuille
-  doit être minifiée, c'est côté configuration de build.
-- **`<filter id="lg-dist">` dupliqué.** `Glass.tsx:73` écrit cet `id` en dur :
-  chaque instance de `Glass` réémet donc le même identifiant dans le document.
-  Deux `id` identiques rendent le document invalide, et seul le premier est
-  référençable — ce qui ne se voit pas ici, les filtres étant identiques. Le
-  nombre d'occurrences dépend de la page.
-- **La taille des paquets.** Ni le poids de `dist/magic/index.js` ni celui de
-  `dist/magic/magic.css` n'ont été comparés à ceux de la 1.x, et le paquet est
-  passé de composants sans état à des composants avec état, hooks et portail.
-
-## Ce qui n'a pas été vérifié
-
-Ce dépôt en fait un principe : ce qui n'est pas mesuré est nommé comme tel.
-
-- **Aucun audit `axe`** n'a été passé sur ces quatorze composants. Les défauts
-  d'accessibilité listés plus haut viennent de la lecture du code et d'ESLint, pas
-  d'un outil de rendu.
-- **Aucun test de lecteur d'écran.** Ni VoiceOver, ni NVDA, ni Orca.
-- **Aucun rendu Firefox ni WebKit.** Les mesures de cette page ont été faites sous
-  Chromium (`chrome-headless-shell`) ou déduites de la cascade. Le
-  `filter: url(#lg-dist)` et le `backdrop-filter` en particulier n'ont pas de
-  comportement vérifié hors Chromium.
-- **Le comportement réel de la région live des toasts n'est pas mesuré.** On ne
-  sait pas ce qu'un lecteur d'écran annonce à l'apparition d'un toast, ni s'il
-  l'annonce, ni combien de fois.
-- **Neuf des quatorze composants n'ont aucun test.** Cinq gardent ceux de leur
-  source : `Badge`, `Button`, `Modal`, `Sidebar`, `Topbar` — **23 tests, verts**
-  sous le `vitest` d'Opale sans adaptation d'environnement (`vitest run src/magic`
-  → `Test Files 5 passed (5) · Tests 23 passed (23)`). Les neuf autres —
-  `Card`, `Checkbox`, `Glass`, `Input`, `Select`, `Slider`, `Switch`, `Tabs`,
-  `ToastProvider` — n'en ont pas, `Glass` compris, qui est pourtant la primitive
-  que douze d'entre eux montent.
-- **La comparaison au caractère avec la source amont n'est pas rejouable ici** :
-  `react-magic-ui` n'est pas installé dans le dépôt. La répartition 39 / 11 des
-  fichiers identiques est reportée de la copie initiale, pas remesurée.
-
-## Les 14 composants
-
-`Badge`, `Button`, `Card`, `Checkbox`, `Glass`, `Input`, `Modal`, `Select`,
-`Sidebar`, `Slider`, `Switch`, `Tabs`, `ToastProvider` (plus le hook `useToast`),
-`Topbar`.
+- **`opale.css` porte un `@import` de Google Fonts en première ligne**
+  (Bricolage Grotesque et Chivo). Cette feuille est **publiée** : l'import impose
+  donc une requête hors origine à tout consommateur, et échoue hors ligne. C'est
+  en contradiction directe avec la règle que le README racine énonce pour le reste
+  du dépôt — piles système, aucune requête tierce. Les deux familles ont un repli
+  système déclaré dans `--opale-font-body` et `--opale-font-title`, donc la page
+  ne casse pas sans elles ; l'import reste à retirer, à charge pour le
+  consommateur de charger les familles s'il les veut.
+- **Un seul module en SCSS.** `SearchBar.module.scss` est le dernier, et il tient
+  `sass` dans les dépendances de développement à lui seul. Le convertir en CSS
+  simple alignerait le dossier et retirerait une dépendance.
+- **Les commentaires sont publiés.** Ils survivent dans `dist/magic/magic.css`. Sans
+  conséquence fonctionnelle, mais si la feuille doit être minifiée, c'est côté
+  configuration de build — jamais en appauvrissant la source.
+- **Le poids du paquet n'a pas été remesuré** après la réécriture. La suppression
+  de Tailwind et de huit composants devrait l'avoir fait baisser nettement ;
+  « devrait » n'est pas une mesure.

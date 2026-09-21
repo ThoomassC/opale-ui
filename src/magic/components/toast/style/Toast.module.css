@@ -1,0 +1,380 @@
+/* =============================================================================
+   LA FILE DE NOTIFICATIONS — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce écrite en directives Tailwind, dont les
+   quatre variantes tenaient dans douze couleurs en dur (`emerald-500/15`,
+   `rose-400/40`, `sky-50`…) et trois ombres également en dur. Les variantes
+   lisent désormais `--opale-success`, `--opale-danger` et `--opale-info`,
+   c'est-à-dire LES MÊMES couleurs sémantiques que le reste d'Opale : un toast
+   d'erreur et un `Opale.Feedback` d'erreur ne sont plus deux rouges qui se
+   ressemblent, mais le même.
+
+   LA TEINTE PASSE PAR `--opale-glass-surface`, ET C'EST CE QUI L'EMPÊCHE DE
+   RUINER LE CONTRASTE. Un lavis coloré posé PAR-DESSUS le verre aurait ajouté
+   une couche de plus entre le fond et l'encre ; ici la variante REMPLACE la
+   teinte du verre par un mélange à 14 % de sa couleur sémantique dans
+   `--opale-surface`, donc le fond reste à 86 % la surface du thème et l'encre
+   du thème s'y lit telle qu'elle est mesurée partout ailleurs.
+   ========================================================================== */
+
+/* LE PLAN DE PORTAIL, TOUJOURS MONTÉ, TOUJOURS TRAVERSANT.
+
+   `pointer-events: none` sur le plan, `auto` sur les cartes : c'est ce couple
+   qui fait qu'un plan plein écran ne vole pas les clics de la page. Sans lui,
+   un toast en haut à droite rendrait tout le quart supérieur inutilisable. */
+.root {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  pointer-events: none;
+}
+
+.stack {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2 * var(--opale-space-lg)));
+}
+
+.topRight {
+  top: var(--opale-space-lg);
+  right: var(--opale-space-lg);
+  align-items: flex-end;
+}
+
+.topLeft {
+  top: var(--opale-space-lg);
+  left: var(--opale-space-lg);
+  align-items: flex-start;
+}
+
+.topCenter {
+  top: var(--opale-space-lg);
+  left: 50%;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.bottomRight {
+  right: var(--opale-space-lg);
+  bottom: var(--opale-space-lg);
+  align-items: flex-end;
+}
+
+.bottomLeft {
+  bottom: var(--opale-space-lg);
+  left: var(--opale-space-lg);
+  align-items: flex-start;
+}
+
+.bottomCenter {
+  bottom: var(--opale-space-lg);
+  left: 50%;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+/* LES DEUX RÉGIONS LIVE D'UNE PILE, ET POURQUOI IL N'Y A PAS D'ESPACE ENTRE
+   ELLES QUAND ELLES SONT VIDES.
+
+   Chaque coin porte deux régions permanentes — une polie, une assertive — qui
+   existent dès le montage du fournisseur, donc AVANT le premier toast. C'est
+   la condition pour qu'une insertion soit annoncée (voir `ToastProvider.tsx`).
+   Elles sont donc dans le DOM en permanence, vides la plupart du temps.
+
+   Une `gap` sur la pile aurait alors réservé un intervalle entre deux boîtes
+   de hauteur nulle, décalant la pile d'une gouttière fantôme. L'espacement
+   vit donc DANS chaque région, et l'intervalle entre les deux n'apparaît que
+   si la seconde a effectivement quelque chose à montrer. */
+.region {
+  display: flex;
+  flex-direction: column;
+  gap: var(--opale-space-sm);
+  width: 100%;
+}
+
+.region + .region:not(:empty) {
+  margin-top: var(--opale-space-sm);
+}
+
+.card {
+  width: 100%;
+  pointer-events: auto;
+  animation-duration: 220ms;
+  animation-timing-function: var(--opale-ease);
+  animation-fill-mode: both;
+}
+
+.surface {
+  width: 100%;
+
+  --opale-glass-radius: var(--opale-radius-md);
+  --opale-glass-surface: color-mix(in srgb, var(--opale-toast-accent) 14%, var(--opale-surface));
+  --opale-glass-highlight: color-mix(in srgb, var(--opale-toast-accent) 34%, transparent);
+
+  /* Le filet intérieur à gauche est le SEUL indice non textuel de la variante,
+     et il est volontairement large : 0,25 rem se voit sans lire la couleur,
+     ce qui compte pour qui distingue mal le vert du rouge. */
+  box-shadow:
+    inset 0.25rem 0 0 var(--opale-toast-accent),
+    0 0 0 1px color-mix(in srgb, var(--opale-toast-accent) 26%, transparent),
+    var(--opale-shadow-3);
+}
+
+.default {
+  --opale-toast-accent: var(--opale-text-secondary);
+}
+
+.success {
+  --opale-toast-accent: var(--opale-success);
+}
+
+.error {
+  --opale-toast-accent: var(--opale-danger);
+}
+
+.info {
+  --opale-toast-accent: var(--opale-info);
+}
+
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--opale-space-md);
+  padding: var(--opale-space-md) var(--opale-space-lg);
+  font-family: var(--opale-font-body);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--opale-space-2xs);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--opale-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.description {
+  margin: 0;
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.close {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-surface) 70%, transparent);
+  color: var(--opale-text);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--opale-motion-fast) var(--opale-ease),
+    border-color var(--opale-motion-fast) var(--opale-ease);
+}
+
+.close:hover {
+  border-color: var(--opale-toast-accent);
+  background: color-mix(in srgb, var(--opale-text) 8%, var(--opale-surface));
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 2px;
+}
+
+/* LES QUATRE ENTRÉES, ET LEURS QUATRE SORTIES.
+
+   Les durées — 220, 220, 240 et 200 ms — sont celles que la page de vitrine
+   documente et que `ToastProvider.tsx` utilise pour minuter le retrait. Les
+   deux doivent rester d'accord : une sortie plus longue que la minuterie
+   ferait disparaître la carte en plein mouvement. */
+.slideFromRight {
+  animation-name: opale-toast-enter-right;
+}
+
+.slideFromLeft {
+  animation-name: opale-toast-enter-left;
+}
+
+.slideFromBottom {
+  animation-name: opale-toast-enter-bottom;
+  animation-duration: 240ms;
+}
+
+.scale {
+  animation-name: opale-toast-enter-scale;
+  animation-duration: 200ms;
+}
+
+.leaving.slideFromRight {
+  animation-name: opale-toast-leave-right;
+}
+
+.leaving.slideFromLeft {
+  animation-name: opale-toast-leave-left;
+}
+
+.leaving.slideFromBottom {
+  animation-name: opale-toast-leave-bottom;
+}
+
+.leaving.scale {
+  animation-name: opale-toast-leave-scale;
+}
+
+@keyframes opale-toast-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes opale-toast-leave-right {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+}
+
+@keyframes opale-toast-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes opale-toast-leave-left {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-1.5rem);
+  }
+}
+
+@keyframes opale-toast-enter-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes opale-toast-leave-bottom {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+@keyframes opale-toast-enter-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes opale-toast-leave-scale {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes opale-toast-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes opale-toast-fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* WCAG 2.3.3 — la glissade et l'échelle sont du mouvement décoratif ; le
+   fondu reste, parce qu'il n'est pas un mouvement et qu'il est le SEUL retour
+   d'information qui signale qu'une carte arrive ou s'en va. La couper aussi
+   ferait apparaître et disparaître les toasts d'un coup, ce que personne n'a
+   demandé en demandant moins d'animation.
+
+   Les sélecteurs sont composés pour peser le même poids que ceux d'au-dessus,
+   et ce bloc passe après : à spécificité égale, c'est l'ordre qui tranche. */
+@media (prefers-reduced-motion: reduce) {
+  .card.slideFromRight,
+  .card.slideFromLeft,
+  .card.slideFromBottom,
+  .card.scale {
+    animation-name: opale-toast-fade-in;
+  }
+
+  .leaving.slideFromRight,
+  .leaving.slideFromLeft,
+  .leaving.slideFromBottom,
+  .leaving.scale {
+    animation-name: opale-toast-fade-out;
+  }
+}

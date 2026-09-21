@@ -1,11 +1,10 @@
 import { Tabs } from '../../../magic';
 import type { DocPage } from '../../doc-model';
-import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { TabsControlledScene } from './scenes';
-import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
+import { MagicPreamble, MagicStage } from './stage';
 
 const USAGE = `import { Tabs } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -39,7 +38,9 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         L’onglet initial en mode non contrôlé. <strong>Facultative</strong> : absente, le{' '}
-        <em>premier déclencheur non désactivé</em> se sélectionne lui-même depuis un effet.
+        <em>premier déclencheur atteignable dans l’ordre du document</em> se sélectionne, et{' '}
+        <code>onValueChange</code> l’annonce. C’est la liste qui tranche, parce qu’elle est la seule
+        à voir ses onglets dans l’ordre.
       </>
     ),
   },
@@ -54,10 +55,9 @@ const PROPS: readonly PropRow[] = [
     defaultValue: "'auto'",
     description: (
       <>
-        <strong>Sans effet observable.</strong> Le mode n’est lu que par une fonction{' '}
-        <code>deactivate</code> que le composant expose dans son contexte et{' '}
-        <strong>n’appelle jamais</strong> : les flèches déplacent le focus sans sélectionner dans
-        les deux modes. Défaut réel, non masqué par un <code>eslint-disable</code>.
+        En <code>&quot;auto&quot;</code>, se déplacer aux flèches <strong>change de panneau</strong>{' '}
+        ; en <code>&quot;manual&quot;</code>, le déplacement ne fait que déplacer et c’est{' '}
+        <kbd>Entrée</kbd> ou <kbd>Espace</kbd> qui confirme.
       </>
     ),
   },
@@ -67,8 +67,9 @@ const PROPS: readonly PropRow[] = [
     defaultValue: "'horizontal'",
     description: (
       <>
-        Pose <code>aria-orientation</code> sur la liste et décide quelles flèches déplacent le focus
-        — gauche/droite en horizontal, haut/bas en vertical.
+        Pose <code>aria-orientation</code> sur la liste, décide quelles flèches déplacent le focus —
+        gauche/droite en horizontal, haut/bas en vertical — et met la liste <em>à côté</em> des
+        panneaux plutôt qu’au-dessus.
       </>
     ),
   },
@@ -78,16 +79,11 @@ const PROPS: readonly PropRow[] = [
     required: true,
     description: (
       <>
-        L’identité de l’onglet. Rend un{' '}
-        {/* La page du bouton VENDORÉ n'existe plus : il n'y a qu'un `Button`
-            désormais, et c'est celui d'Opale — le vendoré est devenu la
-            matière derrière sa prop `liquidGlass`. Le lien suit. */}
-        <a className="tc-doc-link" href={hrefFor('composants/opale-button')}>
-          Button
-        </a>{' '}
-        de la librairie en <code>size=&quot;small&quot;</code>, avec{' '}
-        <code>role=&quot;tab&quot;</code>, <code>aria-selected</code>, <code>aria-controls</code> et
-        un <code>tabIndex</code> roving.
+        L’identité de l’onglet. Rend un <code>&lt;button&gt;</code> natif enveloppé dans le matériau{' '}
+        <code>Glass</code>, porteur de <code>role=&quot;tab&quot;</code>, <code>aria-selected</code>
+        , <code>aria-controls</code>, du <code>tabIndex</code> roulant et d’un{' '}
+        <code>data-value</code> — c’est par lui que le déplacement au clavier retrouve l’onglet
+        visé, sans registre tenu à côté du DOM.
       </>
     ),
   },
@@ -96,8 +92,9 @@ const PROPS: readonly PropRow[] = [
     type: 'boolean',
     description: (
       <>
-        Ne monte le panneau que lorsqu’il est actif. Sans elle, tous les panneaux sont montés et les
-        inactifs portent <code>hidden</code>.
+        Ne monte le panneau qu’à sa <strong>première</strong> ouverture ; ensuite il reste monté et
+        seulement caché. Sans elle, tous les panneaux sont montés dès le départ et les inactifs
+        portent <code>hidden</code>.
       </>
     ),
   },
@@ -110,11 +107,12 @@ export const tabsPage: DocPage = {
   title: 'Tabs',
   lede: (
     <>
-      Le composant le mieux fini de la librairie, et de loin : quatre parties composées —{' '}
-      <code>Tabs</code>, <code>Tabs.List</code>, <code>Tabs.Trigger</code>,{' '}
-      <code>Tabs.Content</code> —, les rôles ARIA du motif tabulaire au complet, les identifiants
-      appariés par <code>useId</code>, un <code>tabIndex</code> roving et la navigation par flèches
-      avec <kbd>Origine</kbd> et <kbd>Fin</kbd>. Contrôlé ou non, au choix.
+      Quatre parties composées — <code>Tabs</code>, <code>Tabs.List</code>,{' '}
+      <code>Tabs.Trigger</code>, <code>Tabs.Content</code> —, les rôles ARIA du motif tabulaire au
+      complet, les identifiants appariés par <code>useId</code>, un seul arrêt de tabulation pour
+      tout le groupe et la navigation par flèches avec <kbd>Origine</kbd> et <kbd>Fin</kbd>.
+      Contrôlé ou non, au choix. <strong>Réécrit par Opale</strong> : c’était le plus gros des
+      composants repris ailleurs, et un motif d’accessibilité ne se recopie pas — il se tient.
     </>
   ),
   render: () => (
@@ -124,14 +122,17 @@ export const tabsPage: DocPage = {
       <UsageBlock label="Import et appels représentatifs de Tabs" code={USAGE} />
 
       <Specimen
-        title="Non contrôlé — et c’est le seul clavier qui marche dans /magic"
+        title="Non contrôlé — et le clavier est le sujet"
         note={
           <>
-            Prenez un onglet à la tabulation, puis les flèches. Le troisième déclencheur est{' '}
-            <code>disabled</code> : il reste dans le DOM et dans l’ordre visuel, mais{' '}
-            <code>getEnabledTriggerValues</code> l’écarte, si bien que les flèches passent de «
-            Carte » à « Étapes » en bouclant. Le panneau « Carte » porte <code>lazyMount</code> — il
-            n’existe pas dans le DOM avant sa première ouverture. <MagicGroundNote />
+            Prenez un onglet à la tabulation : <strong>un seul arrêt</strong> pour les trois, puis
+            les flèches à l’intérieur. Le troisième déclencheur est <code>disabled</code> : il reste
+            dans le DOM et dans l’ordre visuel, mais il n’est pas atteignable, si bien que les
+            flèches passent de « Carte » à « Étapes » en bouclant. Le panneau « Carte » porte{' '}
+            <code>lazyMount</code> — il n’existe pas dans le DOM avant sa première ouverture, et il
+            y reste ensuite. Fond sombre <strong>obligatoire</strong> tant que les cinq jetons{' '}
+            <code>--opale-tabs-*</code> gardent leur valeur par défaut : l’encre est claire, et sur
+            une plaque claire elle disparaîtrait.
           </>
         }
       >
@@ -155,12 +156,14 @@ export const tabsPage: DocPage = {
       </Specimen>
 
       <Specimen
-        title="Contrôlé — et ce que activationMode ne fait pas"
+        title="Contrôlé — et ce que activationMode change"
         note={
           <>
-            <code>activationMode=&quot;manual&quot;</code> est passé ici, et vous ne verrez aucune
-            différence : les flèches déplacent le focus sans changer l’onglet, exactement comme en{' '}
-            <code>&quot;auto&quot;</code>. La prop est inerte.
+            <code>activationMode=&quot;manual&quot;</code> est passé ici, et la différence s’entend
+            : les flèches déplacent le focus <em>sans</em> changer de panneau, il faut{' '}
+            <kbd>Entrée</kbd> ou <kbd>Espace</kbd> pour confirmer. L’arrêt de tabulation suit alors
+            le focus et non la sélection — sortez du groupe au milieu d’un parcours, revenez-y, vous
+            reprenez où vous en étiez. En <code>&quot;auto&quot;</code>, le déplacement suffit.
           </>
         }
       >
@@ -171,8 +174,11 @@ export const tabsPage: DocPage = {
         title="Vertical"
         note={
           <>
-            <code>orientation=&quot;vertical&quot;</code> change les flèches actives et pose{' '}
-            <code>aria-orientation=&quot;vertical&quot;</code>.
+            <code>orientation=&quot;vertical&quot;</code> change les flèches actives, pose{' '}
+            <code>aria-orientation=&quot;vertical&quot;</code> et pose la liste{' '}
+            <strong>à côté</strong> du panneau. La pastille glisse de haut en bas sans une ligne de
+            code dédiée à l’axe : elle est placée en <code>translate3d</code> sur les deux axes à la
+            fois, donc l’orientation ne la regarde pas.
           </>
         }
       >
@@ -199,17 +205,22 @@ export const tabsPage: DocPage = {
             <code>ComponentPropsWithoutRef&lt;&apos;div&apos;&gt;</code> et <code>GlassProps</code>{' '}
             ; les trois sous-composants étendent respectivement <code>&apos;div&apos;</code>,{' '}
             <code>&apos;button&apos;</code> et <code>&apos;div&apos;</code>.{' '}
-            <code>Tabs.useTabs()</code> donne accès au contexte complet depuis un descendant.
+            <code>Tabs.useTabs()</code> donne accès au contexte depuis un descendant — la valeur
+            retenue, de quoi la changer, les deux modes et les deux fabriques d’identifiants.
           </>
         }
         rows={PROPS}
       />
 
       <p className="tc-doc-prose">
-        <strong>Deux réserves, malgré le reste.</strong> L’<code>onFocus</code> du déclencheur
-        cherche son propre élément par <code>getElementById</code> pour lui redonner le focus qu’il
-        a déjà : la boucle est sans effet mais elle est là. Et un <code>exhaustive-deps</code>{' '}
-        subsiste, non masqué, sur l’effet d’auto-sélection du premier onglet.
+        <strong>Deux réserves, et elles sont écrites ici faute de pouvoir être corrigées.</strong>{' '}
+        Chaque déclencheur est enveloppé par le conteneur du matériau, si bien qu’un{' '}
+        <code>&lt;div&gt;</code> sans rôle s’intercale entre <code>role=&quot;tablist&quot;</code>{' '}
+        et ses <code>role=&quot;tab&quot;</code> : les restitutions vocales et les vérificateurs
+        traversent un élément générique, mais la parenté n’est plus directe. La supprimer
+        demanderait de renoncer au verre sur les onglets — c’est pourtant lui qui laisse voir la
+        pastille à travers la capsule. Et l’encre par défaut est claire : posé sur un fond clair
+        sans redéfinir <code>--opale-tabs-ink</code>, le composant est illisible.
       </p>
     </PageBody>
   ),

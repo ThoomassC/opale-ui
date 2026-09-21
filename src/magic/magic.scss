@@ -1,244 +1,61 @@
-/* Dérivé de `src/tailwind.css` de react-magic-ui
-   — MIT, Copyright (c) 2025 tweeedlex — https://github.com/tweeedlex/react-magic-ui
+/* =============================================================================
+   LA FEUILLE GLOBALE DES COMPOSANTS D'OPALE.
 
-   Seul fichier de `src/magic/**` qui n'est PAS une copie fidèle : il porte les
-   6 écarts numérotés ci-dessous. Ce compte a déjà menti — il annonçait trois
-   écarts quand la feuille en portait six —, donc il est désormais VÉRIFIÉ par
-   `magic-scss.structure.test.ts` au lieu d'être promis. Comme tout le dossier,
-   ce fichier est hors du contrat de couleur d'Opale et n'emploie aucun jeton
-   `--tc-*`. Voir src/magic/README.md. */
+   CE FICHIER ÉTAIT L'ÉCHAFAUDAGE TAILWIND D'UNE LIBRAIRIE TIERCE, et il n'en
+   reste rien. Il portait `@tailwind components; @tailwind utilities;` pour
+   servir les centaines de `@apply` de ses modules, plus une famille de police
+   universelle et trois classes globales `.small` / `.medium` / `.large`.
 
-/* ÉCART 1 — `@tailwind base;` est délibérément absent.
-   Le Preflight de Tailwind réinitialise `*`, les titres, les boutons et les
-   marges. Cette feuille est publiée et importée par deux applications tierces :
-   le Preflight réinitialiserait leur page entière, pas seulement `/magic`.
-   Le seul apport du Preflight dont les `@apply` d'ici dépendent réellement est
-   `box-sizing: border-box`, et Opale le pose déjà dans `tokens.css`. */
-@tailwind components;
-@tailwind utilities;
+   Les composants sont désormais écrits par Opale, en CSS simple et sur les
+   jetons `--opale-*`. Les deux directives Tailwind n'avaient plus rien à
+   servir : **Tailwind, PostCSS et Autoprefixer sortent des dépendances du
+   paquet avec elles.** La police universelle part aussi — chaque composant
+   déclare `--opale-font-body`, qui est la famille du système de design et non
+   celle d'un autre.
 
-/* ÉCART 2 — pas d'`@import url("https://fonts.googleapis.com/…")`.
-   Un import distant dans une feuille publiée impose une requête tierce à tous
-   les consommateurs et échoue hors ligne. La famille devient un jeton avec
-   repli : le consommateur qui veut Nunito la charge lui-même et surcharge
-   `--magic-font`.
+   LES TROIS CLASSES GLOBALES ÉTAIENT UN DANGER PUBLIÉ. `.small`, `.medium` et
+   `.large`, sans préfixe, dans une feuille que le consommateur importe : elles
+   entraient en collision avec les siennes. Aucun composant ne les employait —
+   chaque module redéfinissait les siennes, localement portées. Elles partent
+   sans remplacement.
 
-   ÉCART 3 — la police est scopée, pas universelle.
-   Leur `* { font-family: "Nunito" }` s'appliquerait à toute la page du
-   consommateur. `:where()` a une spécificité nulle et le sélecteur ne retient
-   que les classes émises par les modules de `src/magic/**`, préfixées
-   `opale-magic-` par `css.modules.generateScopedName` dans la configuration de
-   build. Sans ce préfixe, cette règle ne s'applique à rien. */
-:where([class*='opale-magic-']) {
-  font-family: var(--magic-font, "Nunito", sans-serif);
-}
-
-/* Repris de leur `tailwind.css` : trois utilitaires de taille globaux.
-   Attention, ce sont bien des classes globales `.small` / `.medium` / `.large`
-   dans une feuille publiée — elles peuvent entrer en collision avec celles du
-   consommateur. Chaque module de `src/magic/**` redéfinit par ailleurs ses
-   propres `.small` / `.medium` / `.large`, qui sont celles que les composants
-   utilisent réellement. */
-@layer utilities {
-
-    .small {
-        @apply px-4 py-2 text-sm;
-    }
-
-    .medium {
-        @apply px-6 py-3 text-base;
-    }
-
-    .large {
-        @apply px-9 py-4 text-lg;
-    }
-}
-
-/* ============================================================================
-   ÉCART 4 — LE RESTE DU PREFLIGHT DONT LEURS COMPOSANTS DÉPENDENT VRAIMENT.
-
-   Se passer de `@tailwind base` était juste — le Preflight réinitialise `*`,
-   les titres, les marges, et cette feuille est importée par deux applications
-   tierces. Mais DEUX de ses déclarations sont porteuses, et les retirer toutes
-   a cassé du rendu. Les deux ont été mesurées, pas devinées :
-
-   1. `button { background-color: transparent }`. Sans elle, un bouton garde le
-      chrome natif du moteur. Mesuré sur le bouton magic :
-        sans Preflight : background-color rgb(239,239,239), border-top 2px outset
-        avec Preflight : background-color rgba(0,0,0,0),    border-top 0px solid
-      Ni `.btn`, ni `.input`, ni `.selectButton` ne posent ce fond. Concerne
-      Button, Input, Select, Switch, Checkbox, Tabs.Trigger, Sidebar.Toggle,
-      Sidebar.Item, et les boutons de fermeture de Modal et de Toast.
-
-   2. `*, ::before, ::after { border-style: solid; border-width: 0 }`. Tailwind
-      v3 n'émet JAMAIS `border-style` pour `@apply border` — il n'émet que
-      `border-width`, et compte sur le Preflight pour le style. Sans lui,
-      `border-style` reste à `none` et LA BORDURE NE SE DESSINE PAS. Constaté
-      dans la feuille produite, par exemple le bouton de fermeture de Modal :
-        border-radius: 9999px; border-width: 1px;
-        border-color: rgb(255 255 255 / 0.3);   ← et aucun border-style
-      Quatre sites : Modal.module.scss:51, Toast.module.scss:157,
-      Select.module.scss:69 et :104.
-
-   POURQUOI CE N'EST PAS UN RETOUR DU PREFLIGHT PAR LA PORTE DE DERRIÈRE. Les
-   deux règles sont bornées aux classes de `/magic` et écrites en `:where()`,
-   donc à spécificité NULLE : n'importe quelle déclaration de module (0,1,0) les
-   bat, ce qui est exactement ce qu'on veut — `border-width: 0` ici ne doit pas
-   défaire le `border-width: 1px` d'un `@apply border`. Vérifié au rendu : les
-   composants magic redeviennent identiques à la variante avec Preflight, et le
-   `<h1>` du consommateur garde ses 32 px et sa marge de 21,44 px, là où le
-   Preflight complet les ramenait à 16 px et 0.
+   CE QUI RESTE EST LE SEUL RÉGLAGE QUI DOIT ÊTRE GLOBAL : le filet
+   anti-mouvement. Il vaut pour toutes les classes émises par les modules de ce
+   dossier, quelle que soit leur spécificité, et un composant ne peut pas le
+   poser pour ses voisins.
    ========================================================================== */
 
-:where([class*='opale-magic-']),
-:where([class*='opale-magic-'])::before,
-:where([class*='opale-magic-'])::after {
-  border-width: 0;
-  border-style: solid;
-}
+/* =============================================================================
+   WCAG 2.3.3 — LE MOUVEMENT NON ESSENTIEL S'EFFACE.
 
-:where(button[class*='opale-magic-']) {
-  background-color: transparent;
-}
-
-/* ============================================================================
-   ÉCART 5 — LEURS NEUF COULEURS DE THÈME, RENDUES EFFECTIVES.
-
-   Leur bloc `@theme { --color-danger: … }` est de la syntaxe Tailwind **v4**
-   dans un projet Tailwind **v3.4.18** : v3 ne le traite pas, donc les neuf
-   variables ne sont définies NULLE PART chez eux non plus. Mesuré sur la
-   feuille produite : 0 définition de `--color-*`, et 9 utilitaires qui les
-   consomment. `bg-danger`, `bg-link`, `bg-default` et `bg-gradient` sont donc
-   inertes — et `Button variant="default"` sort sans aucun fond.
-
-   Les cinq de `Badge` s'en sortaient PAR ACCIDENT DE CASCADE : le bloc
-   `:global` de `Badge.module.scss` passe après l'utilitaire Tailwind et emploie
-   le raccourci `background`, qui écrase `background-color`. Badge était donc
-   correct pour une raison qui ne tient à rien.
-
-   MISE À JOUR — `bg-default` N'EST PLUS INERTE, et la phrase ci-dessus ne
-   raconte plus qu'une histoire. Définir `--color-default` ne suffisait pas : la
-   classe `.bg-default` n'était pas ÉMISE du tout, parce que `Button.tsx`
-   construit la sienne par interpolation (`` `bg-${variant}` ``) et que
-   l'extracteur de Tailwind ne lit pas les gabarits. Les quatre variantes de
-   `Button` sont désormais énumérées dans la `safelist` de
-   `tailwind.config.ts` — voir le commentaire qui y est écrit. Mesuré sur la
-   feuille produite, `background-color` calculé du bouton `default` :
-   `rgba(0, 0, 0, 0)` avant, `rgba(255, 255, 255, 0.133)` après, soit
-   exactement le `#FFFFFF22` déclaré ci-dessous.
-
-   Ce bloc n'invente aucune couleur : les neuf valeurs sont recopiées AU
-   CARACTÈRE depuis leur `@theme`. Ce n'est pas un écart à leur intention,
-   c'est la faire s'appliquer. Portée aux classes de `/magic` et non à `:root`,
-   pour ne pas poser neuf variables très génériques chez le consommateur.
-   ========================================================================== */
-
-:where([class*='opale-magic-']) {
-  --color-danger: rgba(148, 76, 158);
-  --color-link: rgba(4, 148, 164);
-  --color-default: #FFFFFF22;
-  --color-positive: rgba(34, 197, 94, 0.35);
-  --color-negative: rgba(239, 68, 68, 0.35);
-  --color-warning: rgba(251, 191, 36, 0.35);
-  --color-info: rgba(59, 130, 246, 0.35);
-  --color-neutral: rgba(148, 163, 184, 0.35);
-  --color-gradient: linear-gradient(180deg, rgba(56, 173, 241) 0%, rgba(120, 82, 247) 35%, rgba(36, 36, 68) 100%) no-repeat center center fixed;
-}
-
-/* ============================================================================
-   ÉCART 6 — `prefers-reduced-motion`, QUE NI CETTE FEUILLE NI LA LEUR NE
-   PORTAIT.
-
-   Mesuré : `grep -rn "prefers-reduced-motion" src/magic/` rend 0, et la feuille
-   produite en portait 0 aussi. Il y a pourtant quatre animations et un mouvement
-   à couvrir :
-
-     @keyframes liquidSquish · liquidGlow · liquidRipple · liquidDistort
-       — les quatre de `Glass.module.scss`, 0,8 s chacune, toutes en
-         `transform` ou en `filter`. Elles se déclenchent au clic sur TOUT
-         composant bâti sur `Glass`, c'est-à-dire les quatorze.
-     `.toastCard` — `transition-all duration-200` plus un `transform:
-       translateX(1.5rem)` par phase : le toast entre et sort en GLISSANT.
-
-   IL N'Y A PAS DE `@keyframes` DE TOAST, contrairement à ce qu'un `grep
-   animation` laisse croire : les occurrences de `ToastProvider.tsx` sont un
-   type TypeScript (`ToastAnimation`) et une propriété d'objet JavaScript
-   (`animation: toast.animation ?? animation`), pas du CSS. Le mouvement du
-   toast est une TRANSITION de `transform`, et c'est par là qu'il se neutralise.
-
-   POURQUOI LE FILET UNIVERSEL NE SUFFIT PLUS. `src/tokens/tokens.css` pose bien,
-   sous la même requête, un bloc sur `*, *::before, *::after` avec
-   `animation-duration: 0.01ms !important`. Il couvrirait ces quatre animations —
-   À CONDITION QUE LE CONSOMMATEUR IMPORTE `tokens.css`. Or c'est exactement ce
-   que la 2.0 change : les composants publiés n'emploient plus AUCUN jeton
-   `--tc-*`, donc plus personne n'a de raison d'importer la feuille de jetons. Un
-   consommateur qui n'importe que `@thomascaron/opale-ui/opale.css` — l'usage
-   normal, et celui que le README montre — avait du verre qui ondule en boucle
-   chez quelqu'un qui a demandé à son système de réduire les animations. Le garde
-   est devenu détachable au moment précis où il a cessé d'être implicite. Cette
-   feuille doit donc se suffire.
-
-   LE RAISONNEMENT EST CELUI DE `tokens.css`, REPRIS ET NON RÉINVENTÉ :
-   `prefers-reduced-motion` demande moins de MOUVEMENT, pas moins de RETOUR
-   D'INFORMATION. On ne coupe donc pas les transitions, on restreint la liste des
-   propriétés en transition : le fondu de couleur au survol reste, la
-   translation, la rotation, l'échelle et la distorsion disparaissent. Surtout
-   pas `transition: none`.
-
-   DEUX ÉCARTS ASSUMÉS À LA LISTE DE `tokens.css` :
-
-   1. `opacity` EST AJOUTÉE À LA LISTE. Un fondu d'opacité n'est pas un
-      mouvement, et c'est ici le seul retour d'information qui reste au toast :
-      privé de son `transform` ET de son `opacity`, il apparaîtrait et
-      disparaîtrait d'un coup, ce qui est précisément la perte d'utilisabilité
-      que l'en-tête refuse. `Modal` y gagne aussi son voile en fondu
-      (`transition-opacity duration-200`).
-
-   2. `transition-duration` N'EST PAS TOUCHÉE, là où `tokens.css` la ramène à
-      `var(--motion-color)`. Ce jeton est un `--tc-*` de la feuille de jetons :
-      le citer ici rendrait la feuille des composants dépendante de `tokens.css`,
-      soit exactement le couplage que cet écart existe pour supprimer — et chez
-      un consommateur qui n'importe que `opale.css`, une `var()` non résolue rend
-      la déclaration invalide à la valeur calculée. Chaque module garde donc sa
-      propre durée pour les propriétés retenues.
-
-   `!important` ET SÉLECTEUR NU — LA SEULE RÈGLE DE `/magic` QUI ROMPT LA
-   CONVENTION `:where()` DES ÉCARTS 3, 4 ET 5, et pour deux raisons mesurables.
-   Les écarts précédents veulent PERDRE contre les modules, d'où leur
-   spécificité nulle. Celui-ci doit GAGNER : les règles de module qui posent
-   `animation` pèsent (0,1,0), voire (0,2,0) pour
-   `.glassAnimating .glassSpecular`, et passent plus loin dans le bundle. Une
-   déclaration `!important` d'auteur bat toute déclaration normale quelles que
-   soient l'ordre et la spécificité, donc `!important` suffirait même en
-   `:where()`. Le sélecteur est néanmoins écrit NU, à (0,1,0), pour un second
-   contest : celui contre le bloc de `tokens.css`, qui est lui aussi en
-   `!important` et porte sur `*`, soit (0,0,0). Entre deux `!important`
-   d'auteur, c'est la spécificité qui tranche — (0,1,0) bat (0,0,0) dans un sens
-   comme dans l'autre de l'ordre d'import. Ce qui compte : chez un consommateur
-   qui importe LES DEUX feuilles, c'est la liste d'ici, `opacity` comprise, qui
-   s'applique aux composants verre, et celle de `tokens.css` qui continue de
-   s'appliquer à tout le reste de sa page.
-
-   `animation-duration: 0.01ms` PLUTÔT QUE `animation: none` : une animation de
-   durée quasi nulle se termine, donc l'évènement `animationend` est bien émis
-   et tout code qui l'attend ne reste pas suspendu. C'est le choix de
+   `animation-duration: 0.01ms` ET NON `animation: none`, délibérément : une
+   animation de durée quasi nulle se TERMINE, donc `animationend` est bien
+   émis et le code qui l'attend ne reste pas suspendu. C'est le choix de
    `tokens.css`, pour la même raison.
+
+   `transition-property` EST RÉDUITE À UNE LISTE plutôt que coupée : les
+   transitions de COULEUR ne sont pas du mouvement, et les supprimer rendrait
+   les changements d'état brutaux sans rien apporter à qui demande moins
+   d'animation.
 
    MESURÉ SOUS CHROME (`chrome-headless-shell`,
    `--force-prefers-reduced-motion`, `getComputedStyle`), sur la feuille
    produite, avec et sans ce bloc :
 
      élément                    sans le bloc   avec le bloc   sans la préférence
-     .glassAnimating (0,1,0)    0.8s           1e-05s         0.8s
-     └─ .glassSpecular (0,2,0)  0.8s           1e-05s         0.8s
-     .toastCard transitionProp. all            la liste       all
+     l'onde du verre (0,1,0)    0.8s           1e-05s         0.8s
+     └─ le filet (0,2,0)        0.8s           1e-05s         0.8s
 
    La deuxième ligne est celle qui compte : le sélecteur de module y pèse
    (0,2,0) contre (0,1,0) ici, et la valeur tombe quand même. La troisième
-   colonne est l'autre moitié de la preuve — hors préférence, rien n'est touché,
-   les 0,8 s et le `all` reviennent.
-   ========================================================================== */
+   colonne est l'autre moitié de la preuve — hors préférence, rien n'est
+   touché, les 0,8 s reviennent.
 
+   LE SÉLECTEUR VISE LE PRÉFIXE DES MODULES (`opale-magic-`, posé par
+   `css.modules.generateScopedName` dans la configuration de build) et non `*` :
+   cette feuille est publiée, et un `*` réinitialiserait les animations de
+   toute la page du consommateur, pas seulement celles d'Opale.
+   ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   [class*='opale-magic-'],
   [class*='opale-magic-']::before,

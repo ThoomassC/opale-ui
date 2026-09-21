@@ -68,12 +68,12 @@ body {
   overflow: visible !important;
 }
 
-.tc-doc-topbar__glass > [class*='glassFilter'],
-.tc-doc-topbar__glass > [class*='glassOverlay'],
-.tc-doc-topbar__glass > [class*='glassSpecular'],
-.tc-doc-nav__glass > [class*='glassFilter'],
-.tc-doc-nav__glass > [class*='glassOverlay'],
-.tc-doc-nav__glass > [class*='glassSpecular'] {
+.tc-doc-topbar__glass > [data-opale-glass-layer='refraction'],
+.tc-doc-topbar__glass > [data-opale-glass-layer='tint'],
+.tc-doc-topbar__glass > [data-opale-glass-layer='specular'],
+.tc-doc-nav__glass > [data-opale-glass-layer='refraction'],
+.tc-doc-nav__glass > [data-opale-glass-layer='tint'],
+.tc-doc-nav__glass > [data-opale-glass-layer='specular'] {
   display: none;
 }
 
@@ -1150,7 +1150,7 @@ body {
    `--opale-glass-ink` vaut `--opale-text` par défaut dans la librairie — une
    encre sombre, juste sur le blanc d'un consommateur quelconque. Ici la scène
    est une photographie sombre : l'encre y passe au blanc, comme sur la page du
-   matériau, où `Glass` déclare déjà `--lg-text: #ffffff`. */
+   matériau, où `Glass` déclare déjà `--opale-glass-ink: #ffffff`. */
 .tc-doc-opale-preview[data-liquid-glass='true'] .tc-doc-opale-preview__material {
   --opale-glass-ink: #fff;
   --opale-glass-ink-muted: rgba(255, 255, 255, 0.78);

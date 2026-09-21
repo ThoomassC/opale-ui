@@ -1,11 +1,13 @@
 import { Glass } from '../../magic';
 
-/* LE BOUTON DE VERRE EST IMPORTÉ PAR SON CHEMIN DIRECT, et c'est la seule page
-   qui en a le droit. Il n'est plus réexporté par le paquet depuis que
-   `Opale.Button liquidGlass` délègue à lui — mais CETTE page documente le
-   MATÉRIAU, et elle a besoin de ses crochets propres (`rootClassName`,
-   `rootStyle`) que la façade Opale ne transmet pas. */
-import Button from '../../magic/components/button/Button';
+/* CETTE PAGE DOCUMENTE LE MATÉRIAU, donc elle appelle `Glass` directement —
+   c'est la seule qui en ait besoin, pour montrer ses crochets propres
+   (`rootClassName`, `rootStyle`) que la façade d'Opale ne transmet pas.
+
+   LE BOUTON DE DÉMONSTRATION EST CELUI D'OPALE. Il venait d'une librairie
+   tierce, dont ce dépôt n'embarque plus une ligne : un bouton de verre EST
+   désormais `<Glass as="button">` avec les classes d'Opale, ce que la page
+   montre au lieu de le raconter. */
 import type { CSSProperties } from 'react';
 import type { DocPage } from '../doc-model';
 import { UI_VERSION } from '../version';
@@ -17,8 +19,8 @@ const LANDSCAPE_GROUND =
   "linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)), url('/glass-landscape.jpg') center / cover no-repeat";
 
 const TRANSPARENT_MODAL_STYLE = {
-  '--lg-bg-color': 'rgba(255, 255, 255, 0.06)',
-  '--lg-highlight': 'rgba(255, 255, 255, 0.32)',
+  '--opale-glass-tint': 'rgba(255, 255, 255, 0.06)',
+  '--opale-glass-edge': 'rgba(255, 255, 255, 0.32)',
 } as CSSProperties;
 
 const SQUIRE_CIRCLE_STYLE = {
@@ -99,22 +101,29 @@ export const verreLiquidePage: DocPage = {
                 minBlockSize: '108px',
               }}
             >
-              <Button
-                text="Continuer"
+              <Glass
+                as="button"
+                type="button"
                 className="tc-doc-liquid-action-button"
                 rootClassName="tc-doc-liquid-modal"
                 rootStyle={TRANSPARENT_MODAL_STYLE}
-              />
+                enableLiquidAnimation
+              >
+                Continuer
+              </Glass>
             </div>
           </MagicCell>
 
           <MagicCell label="squire-circle">
             <div className="tc-doc-squire-circle__stage">
-              <Button
+              <Glass
+                as="button"
+                type="button"
                 aria-label="squire-circle"
                 className="tc-doc-squire-circle__button"
                 rootClassName="tc-doc-liquid-modal tc-doc-squire-circle__root"
                 rootStyle={SQUIRE_CIRCLE_STYLE}
+                enableLiquidAnimation
               >
                 <svg
                   className="tc-doc-squire-circle__app-icon"
@@ -189,7 +198,7 @@ export const verreLiquidePage: DocPage = {
                     />
                   </g>
                 </svg>
-              </Button>
+              </Glass>
             </div>
           </MagicCell>
         </MagicStage>

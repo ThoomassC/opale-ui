@@ -1,29 +1,88 @@
-/* Vendored from react-magic-ui — MIT, Copyright (c) 2025 tweeedlex.
-   https://github.com/tweeedlex/react-magic-ui
-   Kept byte-faithful on purpose: this file is NOT covered by Opale's colour
-   contract and is not styled with Opale's tokens. See src/magic/README.md. */
-/* eslint-disable react-hooks/set-state-in-effect -- écart assumé au profit de la fidélité.
-   Leur `Modal` pilote son montage, son portail et son animation par des
-   `setState` en corps d'effet. C'est ce que `react-hooks` v7 refuse ; le
-   réécrire changerait la séquence d'animation qu'ils ont réglée. */
-
-import React, {
-  type ComponentPropsWithoutRef,
-  type ReactNode,
+import {
   useCallback,
   useEffect,
   useId,
   useRef,
   useState,
-} from "react";
-import { createPortal } from "react-dom";
-import { cn } from "../../func";
-import { Glass, type GlassProps } from "../glass";
-import styles from "./style/Modal.module.scss";
+  type ComponentPropsWithoutRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from 'react';
+import { createPortal } from 'react-dom';
 
-type ModalSize = "sm" | "md" | "lg";
+import Glass, { type GlassProps } from '../glass/Glass';
 
-export type ModalProps = ComponentPropsWithoutRef<"div"> & {
+import styles from './style/Modal.module.css';
+
+/* =============================================================================
+   LA BOÎTE DE DIALOGUE MODALE, ÉCRITE PAR OPALE.
+
+   POURQUOI CE FICHIER A ÉTÉ RÉÉCRIT. Il était copié d'une librairie tierce et
+   se présentait comme un motif de dialogue sans en tenir les garanties. Un
+   dialogue modal n'est pas un panneau flottant : c'est un contrat avec
+   l'utilisateur au clavier et avec les technologies d'assistance, et ce
+   contrat a une liste. La version copiée en cochait deux points sur six.
+
+   CE QUI MANQUAIT, ET QUI EST ICI. Dans l'ordre où l'utilisateur les rencontre.
+
+     1. LE FOCUS EST PIÉGÉ. L'amont donnait le focus au panneau puis le
+        laissait partir : une tabulation sortait du dialogue et repartait dans
+        la page derrière, qui restait pleinement interactive. On tabulait
+        « dans » un modal pour se retrouver dans le menu du site. Le piège est
+        écrit ici, sur le `keydown` du panneau.
+
+     2. LE FOCUS EST RENDU AU DÉCLENCHEUR. À la fermeture, l'amont laissait le
+        focus sur un nœud détruit — le navigateur le renvoie alors sur
+        `<body>`, et la tabulation suivante repart du HAUT de la page. Pour
+        quelqu'un qui navigue au clavier, fermer un modal faisait perdre sa
+        place. L'élément actif est capturé à l'ouverture et restauré au
+        nettoyage de l'effet, donc aussi bien à la fermeture qu'au démontage.
+
+     3. L'ARRIÈRE-PLAN EST INERTE. `aria-modal="true"` DÉCLARE que le reste de
+        la page est hors-jeu, il ne le FAIT pas : c'est une promesse au lecteur
+        d'écran, sans effet sur le clavier ni sur la souris. Les frères du
+        conteneur de portail, à chaque niveau jusqu'à `<body>`, reçoivent donc
+        `inert` et `aria-hidden` le temps de l'ouverture, et retrouvent
+        exactement leur valeur d'avant au nettoyage.
+
+     4. LE BOUTON DE FERMETURE PARLE FRANÇAIS. Il annonçait « close modal » —
+        en anglais, dans une librairie dont tout le reste est en français,
+        c'est-à-dire dans une langue qui n'est pas celle déclarée par le
+        document. Un lecteur d'écran lit alors l'étiquette avec la mauvaise
+        voix. C'est désormais « Fermer ».
+
+   CE QUI CHANGE ENCORE, ET POURQUOI.
+
+   — PLUS DE `setState` EN CORPS D'EFFET, donc plus d'`eslint-disable`. L'amont
+     attendait DEUX effets avant de rendre quoi que ce soit : un pour un drapeau
+     `mounted`, un pour le conteneur de portail. Ce n'était pas un détail de
+     style — c'est ce qui faisait qu'un `open` à vrai au premier rendu
+     n'affichait RIEN avant le passage des effets. Le conteneur se résout
+     maintenant PENDANT le rendu, ce qu'il a toujours pu faire : `document.body`
+     ne demande pas d'être monté, il demande d'exister.
+
+     CE QUE CETTE RÉSOLUTION IMMÉDIATE COÛTE, et il faut le dire : le garde
+     `typeof document === 'undefined'` reste la seule protection côté serveur.
+     Un modal rendu OUVERT au premier rendu d'une hydratation produira donc son
+     portail côté client sans équivalent côté serveur. C'est le comportement de
+     tous les portails React, et c'est préférable au défaut qu'on retire.
+
+   — LE VERRE EST IMPORTÉ, PAS DÉCRIT. `Glass` porte la matière ; ce fichier ne
+     décrit que la silhouette, et il la pose sur `rootClassName`, c'est-à-dire
+     sur l'enveloppe qui rogne — voir `Modal.module.css`.
+
+   — `{...rest}` PASSE EN PREMIER. Chez l'amont il passait en DERNIER, donc un
+     appelant qui posait `role` ou `tabIndex` écrasait silencieusement ceux du
+     dialogue et cassait le motif entier. Les attributs porteurs du contrat
+     (`role`, `aria-modal`, `tabIndex`) sont désormais inécrasables ; les noms
+     accessibles (`aria-label`, `aria-labelledby`, `aria-describedby`) restent
+     surchargeables, parce que là c'est l'appelant qui sait.
+   ========================================================================== */
+
+type ModalSize = 'sm' | 'md' | 'lg';
+
+export type ModalProps = ComponentPropsWithoutRef<'div'> & {
   open: boolean;
   onClose?: () => void;
   onOpenChange?: (open: boolean) => void;
@@ -38,7 +97,37 @@ export type ModalProps = ComponentPropsWithoutRef<"div"> & {
   portalContainer?: HTMLElement | null;
 } & GlassProps;
 
-const Modal: React.FC<ModalProps> = ({
+const sizeClass: Record<ModalSize, string> = {
+  sm: styles.sm,
+  md: styles.md,
+  lg: styles.lg,
+};
+
+/* LA LISTE DES ÉLÉMENTS FOCUSABLES, ET SES DEUX LIMITES ASSUMÉES.
+
+   Elle ne filtre NI sur la visibilité NI sur `inert`. Le filtre de visibilité
+   demanderait `offsetParent`, qui vaut toujours `null` sous jsdom : le piège
+   de focus deviendrait intestable, et un test qui ne teste rien est pire que
+   pas de test. Un élément caché à l'intérieur d'un dialogue ouvert reste par
+   ailleurs un cas rare ; l'arrière-plan, lui, est traité par `inert`. */
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'area[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'iframe',
+  'audio[controls]',
+  'video[controls]',
+  '[contenteditable]:not([contenteditable="false"])',
+  '[tabindex]:not([tabindex^="-"])',
+].join(',');
+
+const cx = (...values: readonly (string | false | null | undefined)[]) =>
+  values.filter(Boolean).join(' ');
+
+const Modal = ({
   open,
   onClose,
   onOpenChange,
@@ -49,157 +138,258 @@ const Modal: React.FC<ModalProps> = ({
   closeOnOverlay = true,
   closeOnEsc = true,
   lockScroll = true,
-  size = "md",
+  size = 'md',
   enableLiquidAnimation = true,
   className,
+  rootClassName,
   portalContainer,
   onClick,
+  onKeyDown,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
   ...rest
-}) => {
-  const [mounted, setMounted] = useState(false);
-  const [container, setContainer] = useState<HTMLElement | null>(null);
-  const [shouldAnimate, setShouldAnimate] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+}: ModalProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  /* `HTMLDivElement` ET NON `HTMLElement` : `Glass` rend un `<div>` quand on ne
+     lui demande rien d'autre, et sa `ref` est typée d'après l'élément demandé.
+     Un `HTMLElement` y serait refusé — une `ref` est contravariante, donc le
+     type le plus général n'est pas le plus accueillant. Tout ce que le panneau
+     appelle dessus (`focus`, `contains`, `querySelectorAll`) est hérité. */
+  const panelRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
   const descriptionId = useId();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  /* L'ONDE D'OUVERTURE SE DEMANDE UNE IMAGE APRÈS LE MONTAGE, ET ELLE N'A PAS
+     LE CHOIX. `Glass` lit désormais `triggerAnimation` comme un FRONT — elle
+     vient de passer à vrai — et non comme un niveau ; une valeur déjà vraie au
+     montage ne déclenche donc rien. Or le panneau est démonté à chaque
+     fermeture : il n'y a pas d'autre front disponible que celui qu'on fabrique
+     ici.
+
+     Le `setState` vit dans le CALLBACK de `requestAnimationFrame`, pas dans le
+     corps de l'effet : c'est exactement la distinction que fait
+     `react-hooks/set-state-in-effect`, et c'est pour ça que ce fichier n'a plus
+     besoin de la désactiver. Le réarmement, lui, se fait par ajustement d'état
+     PENDANT le rendu — même motif que `Glass`, pour la même raison : `Modal`
+     reste monté quand il est fermé, donc sans cette remise à zéro la deuxième
+     ouverture n'aurait plus de front. */
+  const [openRipple, setOpenRipple] = useState(false);
+  const [wasOpen, setWasOpen] = useState(open);
+
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (!open) setOpenRipple(false);
+  }
 
   useEffect(() => {
-    if (!mounted) {
-      return;
-    }
-
-    if (portalContainer) {
-      setContainer(portalContainer);
-      return;
-    }
-
-    if (typeof document !== "undefined") {
-      setContainer(document.body);
-    }
-  }, [mounted, portalContainer]);
+    if (!open || !enableLiquidAnimation) return undefined;
+    const frame = requestAnimationFrame(() => setOpenRipple(true));
+    return () => cancelAnimationFrame(frame);
+  }, [enableLiquidAnimation, open]);
 
   const handleClose = useCallback(() => {
     onOpenChange?.(false);
     onClose?.();
   }, [onClose, onOpenChange]);
 
+  /* LE VERROU DE DÉFILEMENT RESTAURE LA VALEUR PRÉCÉDENTE, il ne remet pas à
+     zéro. Un hôte qui avait déjà posé son propre `overflow` sur `<body>` le
+     retrouve intact — une remise à `''` le lui aurait volé au passage. */
   useEffect(() => {
-    if (!open || !lockScroll || typeof document === "undefined") {
-      return;
-    }
+    if (!open || !lockScroll || typeof document === 'undefined') return undefined;
 
     const { style } = document.body;
     const previousOverflow = style.overflow;
-    style.overflow = "hidden";
+    style.overflow = 'hidden';
 
     return () => {
       style.overflow = previousOverflow;
     };
   }, [lockScroll, open]);
 
+  /* L'ÉCOUTE D'ÉCHAP EST SUR `window`, et c'est ce que documente la vitrine.
+     Sur le panneau, elle raterait le cas où le focus a été déplacé hors du
+     dialogue par du code de l'appelant. */
   useEffect(() => {
-    if (!open || !closeOnEsc) {
-      return;
-    }
+    if (!open || !closeOnEsc) return undefined;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        handleClose();
-      }
+      if (event.key === 'Escape') handleClose();
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closeOnEsc, handleClose, open]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
+  /* LE FOCUS PART AU PANNEAU ET REVIENT AU DÉCLENCHEUR.
 
-    const element = contentRef.current;
-    if (element) {
-      element.focus({ preventScroll: true });
-    }
+     Le panneau plutôt que le premier bouton : c'est ce que recommande l'APG
+     quand le dialogue porte un texte à lire, et c'est ce qui fait annoncer le
+     titre et la description avant les actions. La restauration vit dans le
+     NETTOYAGE, donc elle couvre les trois sorties — fermeture, démontage du
+     parent, et changement de `open` — sans qu'aucune ait à y penser. */
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const previous = document.activeElement;
+    panelRef.current?.focus({ preventScroll: true });
+
+    return () => {
+      if (previous instanceof HTMLElement && previous.isConnected) {
+        previous.focus({ preventScroll: true });
+      }
+    };
   }, [open]);
 
-  // Trigger liquid animation when modal opens
+  /* L'INERTIE DE L'ARRIÈRE-PLAN.
+
+     On remonte du conteneur de portail jusqu'à `<body>` et, à chaque niveau,
+     on neutralise les FRÈRES. C'est la seule façon correcte : neutraliser
+     `<body>` entier neutraliserait aussi le dialogue, qui vit dedans.
+
+     LES DEUX ATTRIBUTS SONT POSÉS, ET CE N'EST PAS UNE CEINTURE-BRETELLES.
+     `inert` retire du clavier, de la souris ET de l'arbre d'accessibilité,
+     mais il n'est arrivé qu'en 2023 dans Safari ; `aria-hidden` ne fait que
+     l'arbre d'accessibilité, mais il est universel. Les deux ensemble couvrent
+     le parc ; chacun seul laisse un trou.
+
+     LA VALEUR PRÉCÉDENTE EST MÉMORISÉE, attribut par attribut, parce qu'un
+     hôte peut très bien avoir déjà posé `aria-hidden="true"` sur un décor. Le
+     nettoyage RESTAURE au lieu de retirer. */
   useEffect(() => {
-    if (open && enableLiquidAnimation) {
-      // Reset animation state first
-      setShouldAnimate(false);
+    if (!open) return undefined;
 
-      // Trigger animation after a short delay to ensure modal is rendered
-      const timer = setTimeout(() => {
-        setShouldAnimate(true);
-      }, 50);
+    const node = containerRef.current;
+    if (!node) return undefined;
 
-      return () => clearTimeout(timer);
-    } else {
-      setShouldAnimate(false);
+    const restore: Array<[HTMLElement, string | null, string | null]> = [];
+
+    let level: HTMLElement | null = node;
+    while (level && level !== document.body && level.parentElement) {
+      for (const sibling of level.parentElement.children) {
+        if (sibling === level || !(sibling instanceof HTMLElement)) continue;
+        restore.push([sibling, sibling.getAttribute('inert'), sibling.getAttribute('aria-hidden')]);
+        sibling.setAttribute('inert', '');
+        sibling.setAttribute('aria-hidden', 'true');
+      }
+      level = level.parentElement;
     }
-  }, [open, enableLiquidAnimation]);
 
-  if (!open || !mounted || !container) {
-    return null;
-  }
+    return () => {
+      for (const [element, inert, hidden] of restore) {
+        if (inert === null) element.removeAttribute('inert');
+        else element.setAttribute('inert', inert);
 
-  const labelledBy = title ? titleId : undefined;
-  const describedBy = description ? descriptionId : undefined;
+        if (hidden === null) element.removeAttribute('aria-hidden');
+        else element.setAttribute('aria-hidden', hidden);
+      }
+    };
+  }, [open]);
+
+  /* LE PIÈGE DE FOCUS. Il ne déplace le focus que sur les DEUX bords de la
+     liste — début en `Shift+Tab`, fin en `Tab` — et laisse le navigateur faire
+     le reste du chemin. Une implémentation qui intercepterait chaque `Tab`
+     pour recalculer la cible casserait l'ordre de tabulation naturel, y
+     compris celui, non trivial, des contrôles composites.
+
+     Le `keydown` de l'appelant est appelé EN PREMIER, et `defaultPrevented`
+     est respecté : un appelant qui gère lui-même la tabulation garde la main. */
+  const handlePanelKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      onKeyDown?.(event);
+
+      if (event.key !== 'Tab' || event.defaultPrevented) return;
+
+      const panel = panelRef.current;
+      if (!panel) return;
+
+      const focusables = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+
+      /* Un dialogue sans aucun élément focusable — pas de croix, pas de
+         bouton, pas de lien — retient quand même le focus sur son panneau.
+         Sans ce cas, la tabulation s'échapperait vers une page devenue inerte,
+         c'est-à-dire nulle part. */
+      if (focusables.length === 0) {
+        event.preventDefault();
+        panel.focus({ preventScroll: true });
+        return;
+      }
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey ? active === first || active === panel : active === last) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    },
+    [onKeyDown],
+  );
+
+  const handlePanelClick = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      onClick?.(event);
+    },
+    [onClick],
+  );
+
+  /* Le conteneur de portail est résolu PENDANT le rendu — voir l'en-tête. Le
+     garde sur `document` est ce qui garde le composant rendable là où il n'y a
+     pas de DOM. */
+  const container = portalContainer ?? (typeof document === 'undefined' ? null : document.body);
+
+  if (!open || !container) return null;
+
+  const labelledBy = ariaLabelledBy ?? (title ? titleId : undefined);
+  const describedBy = ariaDescribedBy ?? (description ? descriptionId : undefined);
   const showHeader = Boolean(title || description || onClose || onOpenChange);
 
   return createPortal(
-    <div className={styles.modalContainer} data-testid="modal-container">
+    <div ref={containerRef} className={styles.container} data-testid="modal-container">
+      {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
+          porte `aria-hidden` parce que la fermeture qu'il offre à la souris
+          existe déjà au clavier, par Échap et par la croix. En faire un
+          contrôle exposé ajouterait une tabulation vide avant chaque
+          dialogue. La règle jsx-a11y qui réclamerait un rôle sur un `onClick`
+          ne se déclenche pas ici, justement parce que l'élément est retiré de
+          l'arbre d'accessibilité. */}
       <div
         data-testid="modal-overlay"
         aria-hidden="true"
-        className={styles.modalOverlay}
-        onClick={
-          closeOnOverlay
-            ? () => {
-              handleClose();
-            }
-            : undefined
-        }
+        className={styles.overlay}
+        onClick={closeOnOverlay ? handleClose : undefined}
       />
 
       <Glass
-        ref={contentRef}
+        {...rest}
+        ref={panelRef}
         enableLiquidAnimation={false}
-        triggerAnimation={enableLiquidAnimation && shouldAnimate}
-        className={cn(styles.modalContent, styles[size], className)}
-        /* `rootClassName` va sur le conteneur de `Glass`, `className` sur sa
-           couche de contenu. Le rayon et l'ombre de la modale doivent porter
-           sur le CONTENEUR, qui est celui qui rogne — voir Modal.module.scss. */
-        rootClassName={styles.modalShell}
+        triggerAnimation={openRipple}
+        rootClassName={cx(styles.shell, sizeClass[size], rootClassName)}
+        className={cx(styles.panel, className)}
         role="dialog"
         aria-modal="true"
+        aria-label={ariaLabel}
         aria-labelledby={labelledBy}
         aria-describedby={describedBy}
         tabIndex={-1}
-        onClick={(event: React.MouseEvent<HTMLDivElement>) => {
-          event.stopPropagation();
-          onClick?.(event);
-        }}
-        {...rest}
+        onKeyDown={handlePanelKeyDown}
+        onClick={handlePanelClick}
       >
         {showHeader && (
-          <div className={styles.modalHeader}>
-            <div className={styles.modalHeading}>
+          <div className={styles.header}>
+            <div className={styles.heading}>
               {title && (
-                <h2 id={titleId} className={styles.modalTitle}>
+                <h2 id={titleId} className={styles.title}>
                   {title}
                 </h2>
               )}
 
               {description && (
-                <p id={descriptionId} className={styles.modalDescription}>
+                <p id={descriptionId} className={styles.description}>
                   {description}
                 </p>
               )}
@@ -208,19 +398,19 @@ const Modal: React.FC<ModalProps> = ({
             {(onClose || onOpenChange) && (
               <button
                 type="button"
-                className={styles.modalClose}
-                aria-label="close modal"
+                className={styles.close}
+                aria-label="Fermer"
                 onClick={handleClose}
               >
-                <span aria-hidden="true">x</span>
+                <span aria-hidden="true">×</span>
               </button>
             )}
           </div>
         )}
 
-        {children && <div className={styles.modalBody}>{children}</div>}
+        {children && <div className={styles.body}>{children}</div>}
 
-        {footer && <div className={styles.modalFooter}>{footer}</div>}
+        {footer && <div className={styles.footer}>{footer}</div>}
       </Glass>
     </div>,
     container,
@@ -228,5 +418,3 @@ const Modal: React.FC<ModalProps> = ({
 };
 
 export default Modal;
-
-

@@ -367,309 +367,141 @@
 }
 
 /* =============================================================================
-   LE BOUTON DE VERRE AUX MESURES D'OPALE.
+   LE VERRE, HABILLÉ PAR OPALE — ET IL N'Y A PRESQUE PLUS RIEN À ÉCRIRE.
 
-   Le commutateur ne doit changer QUE la matière. Sans cette règle il changeait
-   aussi la taille — 125 × 52 px contre 100 × 44 mesurés à l'écran —, donc la
-   rangée se décalait et l'on comparait deux composants au lieu de deux états
-   d'un seul.
+   CE BLOC FAISAIT TROIS CENTS LIGNES ET VINGT-HUIT `!important`. Il servait à
+   reprendre de force, à un composant tiers, sa géométrie, sa typographie et
+   ses couleurs : son module CSS était injecté APRÈS cette feuille, donc à
+   poids égal il l'emportait. Chacun de ces rattrapages payait un défaut vu à
+   l'écran — un bouton de 125 px au lieu de 100, une carte qui perdait 37 px de
+   hauteur, un texte indicatif blanc sur blanc, un interrupteur vert au milieu
+   d'une interface bleue, un badge qui capitalisait ses libellés.
 
-   `!important` EST NÉCESSAIRE ICI, ET C'EST LA SEULE RAISON QUI LE JUSTIFIE :
-   les mesures adverses viennent d'un module CSS vendoré (`Button.module.scss`),
-   dont les classes générées sont injectées après cette feuille. À poids égal,
-   c'est l'ordre qui tranche, et l'ordre nous est défavorable. Toucher au module
-   vendoré serait une divergence de plus dans un fichier qu'on garde fidèle.
+   TOUT CELA A DISPARU AVEC LA CAUSE. Le verre enveloppe désormais le balisage
+   d'Opale : `<Glass as="button" className="opale-button opale-button--primary">`
+   EST le bouton d'Opale, avec ses classes, donc sa taille, sa silhouette, son
+   encre et sa graisse. Il n'y a plus deux géométries à réconcilier — il n'y en
+   a qu'une. Ne restent que trois choses à dire, et aucune n'a besoin de forcer
+   quoi que ce soit.
 
-   L'ENCRE SUIT LE THÈME AU LIEU D'ÊTRE BLANCHE. Le composant vendoré écrit en
-   blanc parce qu'il a été dessiné pour un fond sombre. Posé à la place du
-   bouton Opale, sur la carte claire, il devenait un libellé blanc sur un voile
-   blanc : « Primaire » disparaissait purement et simplement. `--opale-text`
-   bascule avec le thème — encre sombre en clair, claire en sombre —, donc le
-   libellé reste lisible des deux côtés sans qu'on ait à choisir un camp.
+   UN : LA SILHOUETTE PASSE SUR L'ENVELOPPE. Les trois couches du verre vivent
+   DERRIÈRE le composant, dans le conteneur ; découper le seul contenu
+   laisserait la réfraction et le filet spéculaire dépasser en rectangle.
 
-   La silhouette arrondie du verre, elle, n'est pas touchée : c'est son
-   identité, pas un accident de dimension. */
-/* LA SQUIRCLE, PAS LA PILULE. Le bouton Opale n'a pas de `border-radius` : il
-   est DÉCOUPÉ par `--opale-squircle-clip`, un polygone dont les flancs sont
-   plus droits et les coins plus serrés qu'un arrondi. Le verre, lui, arrive
-   avec la pilule du composant vendoré — d'où des boutons visiblement plus ronds
-   que leurs originaux au moment où le commutateur bascule. Le découpage est
-   posé sur les DEUX couches : le conteneur, qui porte la silhouette visible et
-   l'ombre, et le contenu, qui porte le fond teinté de la variante. */
-.opale-button--glass-root,
-.opale-button--glass {
-  border-radius: 0 !important;
-  clip-path: var(--opale-squircle-clip);
-}
+   DEUX : LE FOND PEINT S'EFFACE. Un composant plein pose un aplat opaque, qui
+   masquerait le verre. Il devient un lavis — assez pour garder son rôle
+   lisible, assez peu pour laisser voir au travers.
 
-/* La teinte du verre, par rôle Opale. Un lavis et non un aplat : le propre du
-   matériau est de laisser voir ce qu'il y a derrière, donc la couleur s'y pose
-   à faible densité. Les rôles sans couleur propre — `tonal`, `ghost`, `text` —
-   n'en reçoivent aucune et gardent le verre nu. */
-.opale-button--glass-primary {
-  background: color-mix(in srgb, var(--opale-primary) 26%, transparent) !important;
-}
-.opale-button--glass-secondary {
-  background: color-mix(in srgb, var(--opale-secondary-dark) 26%, transparent) !important;
-}
-.opale-button--glass-accent {
-  background: color-mix(in srgb, var(--opale-accent) 30%, transparent) !important;
-}
-.opale-button--glass-danger {
-  background: color-mix(in srgb, var(--opale-danger) 26%, transparent) !important;
-}
-
-.opale-button--glass {
-  min-height: 2.75rem !important;
-  padding: 0.375rem 1.25rem !important;
-  color: var(--opale-glass-ink) !important;
-  font: 600 0.875rem/1.75 var(--opale-font-body) !important;
-}
-
-/* =============================================================================
-   LES SIX AUTRES PEAUX DE VERRE, AUX MESURES D'OPALE.
-
-   Même exigence que pour le bouton, et même contrainte de cascade : les
-   mesures adverses viennent de modules CSS vendorés, injectés APRÈS cette
-   feuille. À poids égal l'ordre tranche, et il nous est défavorable — d'où les
-   `!important`, qui n'ont pas d'autre justification ici et n'en demandent pas
-   d'autre.
-
-   DEUX CROCHETS SEULEMENT, ET ILS NE SE VALENT PAS.
-
-   `rootClassName` atteint l'enveloppe `<Glass>` et c'est le bon crochet — mais
-   `Input`, `Select` et `Slider` ne l'exposent pas : ils ne répandent pas leurs
-   props sur `<Glass>`. Pour ces trois-là, LA RÈGLE VISE LA CLASSE DU MODULE PAR
-   SOUS-CHAÎNE — `[class*='glassContainer']`, `[class*='glassContent']` —, qui
-   est la technique déjà employée par la page « Le verre liquide » pour atteindre
-   les couches internes du matériau (`doc.css`, `.tc-doc-liquid-modal`).
-
-   POURQUOI PAS UN SÉLECTEUR STRUCTUREL. Une première version disait `> div` et
-   `> :last-child`. Cela marchait, et cela se serait tu le jour où `Glass`
-   gagnerait une couche : la règle aurait habillé l'élément voisin sans rien
-   faire rougir. La sous-chaîne nomme CE QU'ON VISE. Le nom de la classe est
-   haché à la compilation, mais le préfixe lisible survit au hachage — c'est
-   précisément ce sur quoi la page du matériau s'appuie depuis le début.
-
-   `className` N'EST PAS UN CROCHET, SAUF SUR `Badge`. Les cinq autres ne le
-   déstructurent pas : ils posent le leur puis répandent `{...props}`
-   par-dessus, si bien qu'une classe venue de l'extérieur EFFACE la leur — la
-   case, la piste ou la carte perdent leur dessin d'un coup, sans rien de
-   rouge. `Badge` seul le fusionne.
-
-   `.glassContainer` EST EN `width: fit-content`. Tout champ pleine largeur
-   doit donc forcer `100 %`, sans quoi il rétrécit au basculement — c'est
-   exactement le défaut « pas la même taille » déjà refusé une fois.
+   TROIS : L'ENCRE SUIT LE FOND. `--opale-glass-ink` vaut l'encre de page par
+   défaut, et l'hôte la passe au clair quand il pose le verre sur une image.
    ========================================================================== */
 
-/* Le badge : une pilule, comme l'original. Leur `rootClassName="rounded-full"`
-   est remplacé par le nôtre, donc l'arrondi est à reposer. */
-.opale-badge--glass-root {
-  display: inline-flex !important;
-  border-radius: var(--opale-radius-pill) !important;
-}
-/* `text-transform: none` N'EST PAS UNE PRÉFÉRENCE DE GOÛT. Leur pastille passe
-   son contenu en CAPITALES ; « Stable » devenait « STABLE » au basculement du
-   commutateur. Le commutateur promet de changer la MATIÈRE, et le texte n'en
-   est pas une — un libellé qui change de casse quand on change de surface est
-   une promesse rompue, et il déborde de la largeur mesurée par-dessus le
-   marché. */
-.opale-badge--glass {
-  padding: 0.25rem 0.65rem !important;
-  border-radius: var(--opale-radius-pill) !important;
-  color: var(--opale-glass-ink) !important;
-  font: 600 0.8125rem/1.4 var(--opale-font-body) !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-}
-.opale-badge--glass-primary {
-  background: color-mix(in srgb, var(--opale-primary) 22%, transparent) !important;
-}
-.opale-badge--glass-accent {
-  background: color-mix(in srgb, var(--opale-accent) 34%, transparent) !important;
-}
-.opale-badge--glass-danger {
-  background: color-mix(in srgb, var(--opale-danger) 22%, transparent) !important;
-}
-
-/* La carte : pleine largeur et découpée comme une surface Opale. Le rembourrage
-   se pose sur le CONTENU du verre, qui est son dernier enfant. */
-.opale-card--glass-root {
-  width: 100% !important;
-  border-radius: 0 !important;
+/* La silhouette d'Opale, portée par l'enveloppe du verre. */
+.opale-button--glass-root {
+  border-radius: 0;
   clip-path: var(--opale-squircle-clip);
 }
-/* DEUX CAUSES, TOUTES DEUX MESURÉES, POUR UNE MÊME PERTE DE 37 PIXELS.
-
-   La première : leur carte pose `align-items: flex-start`, donc le contenu se
-   rétractait à sa largeur propre — 264 px au lieu de 511 — et le texte revenait
-   à la ligne plus tôt. `stretch` est la valeur par défaut de `.opale-card`, et
-   il faut la réclamer.
-
-   La seconde, invisible dans une capture et pourtant la plus grave : leur
-   carte impose SA typographie à tout ce qu'elle contient. Relevé au
-   navigateur, `font-size` passait de 16 à 15 px et `line-height` de 25,6 à
-   15 px au basculement — le texte rétrécissait et se serrait. Ce n'était plus
-   un écart de hauteur, c'était la carte d'Opale rendue dans une autre police
-   que celle de la page. Le rembourrage et la gouttière, eux, coïncidaient
-   déjà : 24 px et 16 px des deux côtés. */
-.opale-card--glass-root > [class*='glassContent'] {
-  display: flex !important;
-  width: 100% !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  gap: var(--opale-space-md) !important;
-  padding: var(--opale-space-lg) !important;
-  color: var(--opale-glass-ink) !important;
-  font: 400 1rem/1.6 var(--opale-font-body) !important;
-}
-
-/* LA CASE ET L'INTERRUPTEUR SONT INERTES — ET LE SÉLECTEUR DOIT DESCENDRE.
-
-   `pointer-events: none` posé sur la seule enveloppe NE SUFFISAIT PAS, et le
-   commutateur de verre en est mort au clic. Mesuré au navigateur :
-   `elementFromPoint` au centre de l'interrupteur visible renvoyait leur
-   `<button>`, dont le `pointer-events` calculé valait `auto`. Un descendant
-   peut RÉACTIVER le pointeur qu'un ancêtre a coupé — c'est la règle de la
-   propriété, et leur module s'en sert. Le clic mourait donc sur un bouton sans
-   gestionnaire, au lieu de traverser jusqu'au `<label>` qui bascule.
-
-   POURQUOI AUCUN TEST NE L'AVAIT VU : les miens cliquaient
-   `getByRole('checkbox')`, c'est-à-dire l'`<input>` natif — jamais la surface
-   qu'on voit. Ils vérifiaient que le contrôle répond quand on l'atteint, pas
-   qu'on peut l'atteindre. Le garde ajouté plus bas vise désormais la règle
-   elle-même, faute de pouvoir calculer une cascade en jsdom.
-
-   Le `*` est donc nécessaire, et il est sûr : rien dans ces deux enveloppes
-   n'est censé recevoir un clic, le contrôle réel étant ailleurs. */
-.opale-checkbox--glass,
-.opale-toggle--glass {
+.opale-badge--glass-root {
   display: inline-flex;
+  border-radius: var(--opale-radius-pill);
 }
-.opale-checkbox--glass,
-.opale-checkbox--glass *,
-.opale-toggle--glass,
-.opale-toggle--glass * {
-  pointer-events: none !important;
+.opale-card--glass-root,
+.opale-surface--glass-root,
+.opale-input--glass-root,
+.opale-range--glass-root {
+  width: 100%;
+  border-radius: var(--opale-radius-md);
 }
 .opale-checkbox--glass-root {
-  width: 1.25rem !important;
-  height: 1.25rem !important;
-  border-radius: 0.375rem !important;
+  border-radius: 0.375rem;
 }
 .opale-toggle--glass-root {
-  width: 3.25rem !important;
-  height: 1.75rem !important;
-  border-radius: var(--opale-radius-pill) !important;
+  border-radius: var(--opale-radius-pill);
 }
 
-/* L'ÉTAT ACTIF PORTE LA COULEUR D'OPALE, ET NON CELLE DE L'AUTRE PALETTE.
-
-   Mesuré à l'écran : leur interrupteur actif est peint en `#34d399` à 68 % —
-   un VERT — et leur coche en blanc. Basculés à la place des contrôles d'Opale,
-   qui sont bleu saphir, on obtenait un interrupteur vert au milieu d'une
-   interface bleue : exactement le défaut déjà corrigé sur le bouton
-   secondaire, où le verre empruntait la teinte `positive` d'une palette
-   étrangère. Une couleur codée en dur chez le vendoré ne suit aucune marque.
-
-   L'ÉTAT EST LU SUR UNE ENVELOPPE À NOUS (`data-checked`) et non sur leur
-   classe, dont le nom est haché à la compilation et donc impossible à viser.
-   C'est aussi ce qui garde la règle vraie si leur module change de nom. */
-.opale-toggle--glass[data-checked='true'] .opale-toggle--glass-root > [class*='glassContent'] {
-  background: color-mix(in srgb, var(--opale-primary) 68%, transparent) !important;
+/* Le fond devient un lavis, et l'encre suit le support. `--opale-button-background`
+   est déjà le jeton que lit le `::before` du bouton : le redéfinir suffit, il
+   n'y a rien à surcharger. */
+.opale-button--glass {
+  --opale-button-background: color-mix(in srgb, var(--opale-primary) 26%, transparent);
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-primary) 34%, transparent);
+  color: var(--opale-glass-ink);
 }
-.opale-checkbox--glass[data-checked='true'] .opale-checkbox--glass-root > [class*='glassContent'] {
-  background: color-mix(in srgb, var(--opale-primary) 78%, transparent) !important;
+.opale-button--glass.opale-button--secondary {
+  --opale-button-background: color-mix(in srgb, var(--opale-secondary-dark) 26%, transparent);
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-secondary-dark) 34%, transparent);
+}
+.opale-button--glass.opale-button--accent {
+  --opale-button-background: color-mix(in srgb, var(--opale-accent) 30%, transparent);
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-accent) 38%, transparent);
+}
+.opale-button--glass.opale-button--danger {
+  --opale-button-background: color-mix(in srgb, var(--opale-danger) 26%, transparent);
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-danger) 34%, transparent);
+}
+.opale-button--glass.opale-button--tonal,
+.opale-button--glass.opale-button--ghost,
+.opale-button--glass.opale-button--text {
+  --opale-button-background: transparent;
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
 }
 
-/* Le champ de saisie : la seule substitution complète des sept, le vendoré
-   rendant un vrai `<input>`. Il ne reste qu'à lui rendre la boîte d'Opale. */
-.opale-input--glass {
+.opale-badge--glass {
+  background: color-mix(in srgb, var(--opale-primary) 22%, transparent);
+  color: var(--opale-glass-ink);
+}
+.opale-badge--glass.opale-badge--accent {
+  background: color-mix(in srgb, var(--opale-accent) 34%, transparent);
+}
+.opale-badge--glass.opale-badge--danger {
+  background: color-mix(in srgb, var(--opale-danger) 22%, transparent);
+}
+
+/* Les surfaces et les coquilles laissent voir le verre : ni fond, ni bordure,
+   ni ombre propre — le filet spéculaire du matériau EST leur bord. */
+.opale-card--glass,
+.opale-surface--glass,
+.opale-input-shell--glass,
+.opale-range-shell--glass,
+.opale-checkbox-mark--glass,
+.opale-toggle-track--glass {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--opale-glass-ink);
+}
+
+/* LA COQUILLE DU CURSEUR EXISTE MAINTENANT DANS LES DEUX ÉTATS, sans quoi la
+   piste changerait de boîte au basculement. Sans verre elle ne fait rien
+   d'autre que porter la largeur. */
+.opale-range-shell {
   display: block;
-}
-.opale-input--glass > [class*='glassContainer'] {
-  width: 100% !important;
-  min-height: 3rem !important;
-  border-radius: var(--opale-radius-md) !important;
-}
-.opale-input--glass input {
-  width: 100% !important;
-  min-height: 3rem !important;
-  padding: 0 var(--opale-space-md) !important;
-  color: var(--opale-glass-ink) !important;
-  font: 400 1rem/1.5 var(--opale-font-body) !important;
-}
-/* LE TEXTE INDICATIF ÉTAIT BLANC, DONC INVISIBLE — LE MÊME PIÈGE QUE LE BOUTON.
-
-   Relevé au navigateur : `rgba(255, 255, 255, 0.75)`. Leur champ a été dessiné
-   pour un fond sombre ; posé sur la carte claire d'Opale, l'adresse d'exemple
-   disparaissait purement et simplement, exactement comme le libellé
-   « Primaire » l'avait fait. L'encre saisie, elle, était déjà corrigée par la
-   règle ci-dessus — c'est le propre de ce défaut de n'atteindre que l'état
-   VIDE du champ, celui qu'on ne pense pas à regarder.
-
-   Les valeurs reprises sont celles de `.opale-input::placeholder`, pour que le
-   champ de verre et le champ plein disent la même chose de la même façon. */
-.opale-input--glass input::placeholder {
-  color: var(--opale-glass-ink-muted) !important;
-  opacity: 0.72 !important;
-}
-
-/* LE CONTRÔLE NATIF PAR-DESSUS LA PEAU, ET C'EST TOUT LE MÉCANISME.
-
-   Le natif est transparent mais PRÉSENT : il reçoit le pointeur, le focus et
-   le clavier, tandis que le verre au-dessous peint la valeur. `opacity: 0` et
-   non `visibility: hidden` ni `display: none`, qui le retireraient de la
-   soumission et du parcours de tabulation — c'est-à-dire qui le casseraient.
-
-   `cursor` est repris explicitement : un élément transparent garde le curseur
-   de sa propre boîte, et sans cela on survolerait un curseur de texte au-dessus
-   d'une piste de réglage. */
-/* `flex` ET NON `block`, POUR SUPPRIMER LA LIGNE DE TEXTE FANTÔME. En bloc, le
-   conteneur du verre est un enfant EN LIGNE : le navigateur lui réserve une
-   ligne, avec son jambage descendant, et le champ gagnait 8 px qu'aucune
-   déclaration ne demandait — mesuré, 56 px contre 48 pour le verre lui-même.
-   Un conteneur flex n'ouvre pas de ligne de texte. */
-.opale-select--glass,
-.opale-slider--glass {
-  position: relative;
-  display: flex;
   width: 100%;
 }
-.opale-select--glass > [class*='selectContainer'],
-.opale-slider--glass > [class*='glassContainer'] {
-  width: 100% !important;
-}
-.opale-select--native,
-.opale-range--glass {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-.opale-select--glass [class*='glassContainer'] > [class*='glassContent'] {
-  min-height: 3rem !important;
-  border-radius: var(--opale-radius-md) !important;
-  font: 400 1rem/1.5 var(--opale-font-body) !important;
-}
-/* L'ENCRE DESCEND JUSQU'À LA VALEUR AFFICHÉE, et pas seulement jusqu'au bouton.
 
-   Troisième occurrence du même défaut, après le libellé du bouton et le texte
-   indicatif du champ : leur `selectedValue` est peint en `rgb(255, 255, 255)`
-   — mesuré, contraste 1,00 sur le fond clair, c'est-à-dire rigoureusement
-   invisible. Poser l'encre sur le seul conteneur ne suffisait pas, la valeur
-   portant sa propre couleur. La flèche, elle, suit `currentColor`.
-
-   CE DÉFAUT NE SE VOIT PAS SUR UNE CAPTURE PRISE DE LOIN : on lit un champ
-   vide et on passe. C'est un balayage des contrastes, composant par composant,
-   qui l'a trouvé — pas l'œil. */
-.opale-select--glass [class*='selectContainer'] :is(span, button, svg) {
-  color: var(--opale-glass-ink) !important;
+/* LA COCHE ET LA POIGNÉE SE PEIGNENT DEPUIS L'ÉTAT DU NATIF, sous verre comme
+   sans. Le sélecteur frère direct ne suffit plus quand le verre s'interpose :
+   `+ *` désigne alors l'enveloppe, et la marque est à l'intérieur. Les deux
+   formes sont donc déclarées ensemble, et c'est ce qui permet de supprimer
+   l'état miroir qu'il fallait tenir en JavaScript. */
+.opale-checkbox:checked + .opale-checkbox-mark,
+.opale-checkbox:checked + * .opale-checkbox-mark {
+  background: color-mix(in srgb, var(--opale-primary) 82%, transparent);
+  color: #fff;
+}
+.opale-checkbox:checked + .opale-checkbox-mark::before,
+.opale-checkbox:checked + * .opale-checkbox-mark::before {
+  content: '✓';
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.opale-toggle:checked + .opale-toggle-track,
+.opale-toggle:checked + * .opale-toggle-track {
+  background: color-mix(in srgb, var(--opale-primary) 68%, transparent);
+}
+.opale-toggle:checked + .opale-toggle-track .opale-toggle-thumb,
+.opale-toggle:checked + * .opale-toggle-track .opale-toggle-thumb {
+  transform: translateX(1.5rem);
 }
 
 .opale-button.opale-liquid {

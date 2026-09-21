@@ -1,8 +1,10 @@
-/* Vendored from react-magic-ui — MIT, Copyright (c) 2025 tweeedlex.
-   https://github.com/tweeedlex/react-magic-ui
-   Kept byte-faithful on purpose: this file is NOT covered by Opale's colour
-   contract and is not styled with Opale's tokens. See src/magic/README.md. */
+/* L'ENTRÉE RACINE DU PAQUET.
 
+   Elle servait le code d'une librairie tierce ; elle ne sert plus que celui
+   d'Opale. Les deux feuilles sont importées ICI et non seulement déclarées :
+   `magic.scss` porte le filet anti-mouvement global, `opale.css` les jetons et
+   les composants. Voir `barrel-side-effects.structure.test.ts`, qui tient
+   cette paire contre `src/main.tsx`. */
 import './magic.scss';
 import './opale.css';
 export * from './components';

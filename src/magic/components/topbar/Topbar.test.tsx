@@ -1,8 +1,3 @@
-/* Vendored from react-magic-ui — MIT, Copyright (c) 2025 tweeedlex.
-   https://github.com/tweeedlex/react-magic-ui
-   Kept byte-faithful on purpose: this file is NOT covered by Opale's colour
-   contract and is not styled with Opale's tokens. See src/magic/README.md. */
-
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -63,6 +58,45 @@ describe("Topbar component", () => {
     );
 
     expect(screen.getByText("size:spacious")).toBeInTheDocument();
+  });
+});
+
+/* =============================================================================
+   LES QUATRE CAS CI-DESSUS SONT LE CAHIER DES CHARGES, ET ILS N'ONT PAS BOUGÉ.
+
+   Ils décrivent le comportement hérité, en anglais comme ils ont été écrits.
+   Les deux cas ci-dessous sont nouveaux, donc écrits dans la langue du dépôt.
+   ========================================================================== */
+
+describe('Topbar — ce que la réécriture verrouille', () => {
+  it('devrait rester le point de repère « banner » du document', () => {
+    /* LE DÉFAUT QUE CE CAS EXISTE POUR EMPÊCHER. `TopbarProps` intersectait
+       `GlassProps` en entier, donc exposait le `as` du verre — et `{...rest}`
+       était étalé APRÈS `as="header"`. Un appelant pouvait remplacer l'élément
+       rendu, c'est-à-dire supprimer le repère, par une prop que rien ne
+       documentait. Le type l'interdit désormais ; ce cas tient le rendu. */
+    render(
+      <Topbar>
+        <Topbar.Brand title="Voyages" />
+      </Topbar>,
+    );
+
+    expect(screen.getByRole('banner')).toBeInTheDocument();
+  });
+
+  it('devrait retomber sur title et subtitle quand children vaut false', () => {
+    /* `{condition && <a/>}` rend `false`, pas `undefined` : un `??` aurait
+       laissé la marque VIDE — ni le lien conditionnel, ni le repli. */
+    render(
+      <Topbar>
+        <Topbar.Brand title="Voyages" subtitle="12 étapes">
+          {false}
+        </Topbar.Brand>
+      </Topbar>,
+    );
+
+    expect(screen.getByText('Voyages')).toBeInTheDocument();
+    expect(screen.getByText('12 étapes')).toBeInTheDocument();
   });
 });
 

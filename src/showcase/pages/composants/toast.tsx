@@ -46,7 +46,11 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         Millisecondes avant fermeture automatique. <code>Infinity</code> désarme la minuterie : le
-        toast reste jusqu’à un clic ou un <code>dismissToast</code>.
+        toast reste jusqu’à un clic ou un <code>dismissToast</code>.{' '}
+        <strong>
+          La minuterie se met en pause au survol et dès que le focus entre dans la carte
+        </strong>
+        , puis reprend le temps qui restait — pas la durée entière.
       </>
     ),
   },
@@ -58,6 +62,9 @@ const PROPS: readonly PropRow[] = [
       <>
         Le coin par défaut. Chaque toast peut le surcharger, et les toasts sont regroupés par
         position — six piles possibles, empilées du plus récent en haut ou en bas selon le coin.
+        Chaque pile est elle-même coupée en deux régions live, une polie et une assertive : à
+        l’intérieur d’un coin, les <code>error</code> se groupent donc entre eux plutôt que de
+        s’intercaler par ordre d’arrivée. Voir plus bas.
       </>
     ),
   },
@@ -76,7 +83,13 @@ const PROPS: readonly PropRow[] = [
     name: 'ToastProvider portalContainer',
     type: 'HTMLElement | null',
     defaultValue: 'document.body',
-    description: 'L’hôte du portail, résolu après le montage.',
+    description: (
+      <>
+        L’hôte du portail, <strong>résolu pendant le rendu</strong> et non après un effet. Les
+        régions live y sont montées <em>avec</em> le fournisseur, donc avant le premier toast —
+        c’est la condition pour qu’une insertion soit annoncée.
+      </>
+    ),
   },
   {
     name: 'useToast().showToast',
@@ -86,7 +99,13 @@ const PROPS: readonly PropRow[] = [
         Empile un toast et rend son identifiant. <code>ToastDefinition</code> accepte{' '}
         <code>id</code>, <code>title</code>, <code>description</code>, <code>variant</code>,{' '}
         <code>duration</code>, <code>animation</code>, <code>position</code>,{' '}
-        <code>enableLiquidAnimation</code> et <code>onClose</code>.
+        <code>enableLiquidAnimation</code> et <code>onClose</code>.{' '}
+        <strong>
+          Un <code>id</code> déjà présent dans la file remplace son toast au lieu d’en empiler un
+          second
+        </strong>{' '}
+        — c’est ce qui rend la prop utilisable pour un message qui se met à jour
+        («&nbsp;Enregistrement…&nbsp;» puis «&nbsp;Enregistré&nbsp;»).
       </>
     ),
   },
@@ -165,8 +184,10 @@ export const toastPage: DocPage = {
               Les toasts sont portaillés dans <code>document.body</code> : ils apparaissent en haut
               à droite de la fenêtre, pas dans la scène.
             </strong>{' '}
-            Ils se ferment seuls au bout de 4 s, à la croix, ou avec « Tout fermer ». La scène est
-            sombre pour ses boutons, qui sont ceux de la librairie. <MagicGroundNote />
+            Ils se ferment seuls au bout de 4 s, à la croix, ou avec « Tout fermer » — et{' '}
+            <strong>la minuterie s’arrête tant que le pointeur est dessus</strong>, donc survolez-en
+            un pour le garder le temps de le lire. La scène est sombre pour ses boutons, qui sont
+            ceux de la librairie. <MagicGroundNote />
           </>
         }
       >
@@ -206,15 +227,43 @@ export const toastPage: DocPage = {
       />
 
       <p className="tc-doc-prose">
-        <strong>Ce que sa région live fait, et ce qu’elle ne fait pas.</strong> Chaque carte porte{' '}
-        <code>role=&quot;status&quot;</code> et <code>aria-live=&quot;polite&quot;</code>, donc son
-        contenu est annoncé à l’apparition. Mais l’attribut est posé sur le nœud{' '}
-        <em>qui vient d’apparaître</em> plutôt que sur un conteneur persistant : selon le lecteur
-        d’écran, une région live insérée en même temps que son contenu peut n’être pas annoncée du
-        tout. C’est le seul motif de la librairie où le doute porte sur le comportement d’une
-        technologie d’assistance et non sur le code — et il n’a pas été mesuré ici. Le bouton de
-        fermeture, lui, porte <code>aria-label=&quot;close toast&quot;</code>, en anglais et non
-        surchargeable.
+        <strong>Ses régions live sont permanentes, et c’est tout le changement.</strong> La version
+        d’avant posait <code>role=&quot;status&quot;</code> sur <em>la carte elle-même</em>,
+        c’est-à-dire sur le nœud qui venait d’apparaître. Or une région live insérée en même temps
+        que son contenu peut, selon le lecteur d’écran, n’être pas annoncée du tout : la technologie
+        d’assistance surveille les régions qu’elle connaît déjà, et celle-là naissait avec son texte
+        dedans. Le seul dispositif d’accessibilité du composant avait donc une chance sérieuse de ne
+        rien faire. Chacun des six coins porte désormais{' '}
+        <strong>deux régions vides montées avec le fournisseur</strong>, et les cartes sont insérées
+        dedans.
+      </p>
+
+      <p className="tc-doc-prose">
+        <strong>Deux régions et non une, parce que tout ne se dit pas sur le même ton.</strong> Une
+        erreur de publication était annoncée aussi poliment qu’un brouillon enregistré, c’est-à-dire
+        à la fin de ce que l’utilisateur était en train de lire. <code>default</code>,{' '}
+        <code>success</code> et <code>info</code> vont dans une région{' '}
+        <code>role=&quot;status&quot;</code> polie ; <code>error</code> va dans une région{' '}
+        <code>role=&quot;alert&quot;</code> assertive, qui interrompt.{' '}
+        <strong>Ce que ce découpage coûte</strong> : à l’intérieur d’un coin, les erreurs se
+        groupent entre elles au lieu de s’intercaler par ordre d’arrivée avec le reste. Deux niveaux
+        de politesse ne tiennent pas dans une seule région, et entre un empilement chronologique
+        parfait et une urgence correctement annoncée, c’est l’urgence qui gagne. Les deux régions
+        portent <code>aria-atomic=&quot;false&quot;</code> : <code>role=&quot;status&quot;</code>{' '}
+        implique l’inverse, et sans cette remise à faux toute la pile serait relue à chaque arrivée.
+      </p>
+
+      <p className="tc-doc-prose">
+        <strong>Un message ne s’efface plus avant d’avoir pu être lu — WCAG 2.2.1.</strong> C’était
+        la faute la plus sérieuse de la version d’avant : la minuterie courait quoi qu’il arrive.
+        Quelqu’un qui lit lentement, qui traduit, ou qui vient tout juste d’atteindre la croix au
+        clavier voyait la carte disparaître sous le curseur. La minuterie se met maintenant en pause
+        au survol <em>et</em> dès que le focus entre dans la carte — les deux, parce que la souris
+        et le doigt passent par le pointeur et le clavier par le focus —, puis reprend le temps qui
+        restait plutôt que de rejouer la durée entière, ce qui punirait un survol accidentel.{' '}
+        <code>duration: Infinity</code> reste la façon de la désarmer complètement. Le bouton de
+        fermeture, lui, annonce désormais «&nbsp;Fermer la notification&nbsp;», en français comme le
+        reste de la librairie.
       </p>
 
       <p className="tc-doc-prose">
@@ -224,8 +273,8 @@ export const toastPage: DocPage = {
         La 1.0 publiait un <code>Message</code> posé <em>à côté</em> de ce qui l’avait produit —
         lisible sans limite de temps, retrouvable en relisant la page. Cette file-ci fait l’inverse
         : elle sort la carte du flux pour la porter dans un coin de la fenêtre, et l’efface au bout
-        de quatre secondes. Le composant qui reprend le rôle du message en place est{' '}
-        <code>Opale.Toast</code> — voir{' '}
+        de quatre secondes — sauf pendant qu’on la lit. Le composant qui reprend le rôle du message
+        en place est <code>Opale.Toast</code> — voir{' '}
         <a className="tc-doc-link" href={hrefFor('composants/opale-toast')}>
           Toast
         </a>{' '}

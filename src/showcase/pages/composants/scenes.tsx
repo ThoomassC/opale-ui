@@ -52,22 +52,25 @@ export function SidebarCollapsibleScene() {
 
   return (
     <MagicStage tall>
-      {/* `onToggle` NE PEUT PAS RECEVOIR `setCollapsed` DIRECTEMENT, et ce n'est
-          pas un caprice du compilateur : `SidebarProps` déclare
-          `onToggle?: (collapsed: boolean) => void` puis étend
-          `ComponentPropsWithoutRef<'aside'>`, qui apporte le `onToggle` du DOM
-          (`ToggleEventHandler`, l'événement de `<details>`). TypeScript
-          intersecte les deux, donc le paramètre arrive en
-          `boolean | ToggleEvent<HTMLElement>`. Le `Checkbox` vendoré portait
-          exactement le même motif par `GlassProps` ; sa page a fusionné avec
-          celle d'`Opale.Checkbox`, donc `Sidebar` est le dernier endroit du
-          dépôt où le piège se rencontre encore. Il est décrit dans sa prose. */}
+      {/* `onToggle` REÇOIT `setCollapsed` DIRECTEMENT, ET CE N'EST VRAI QUE
+          DEPUIS LA CORRECTION DE `SidebarProps`.
+
+          Le type étendait `ComponentPropsWithoutRef<'aside'>` EN ENTIER, qui
+          apporte le `onToggle` du DOM — celui de `<details>`,
+          `ToggleEventHandler`. TypeScript intersectait les deux signatures et
+          le paramètre arrivait en `boolean | ToggleEvent<HTMLElement>` : il
+          fallait le resserrer par un `typeof next === 'boolean'` avant de
+          pouvoir brancher le `setState`, et cette garde n'était pas
+          défensive — sans elle le corps ne compilait pas.
+
+          `SidebarProps` retire désormais le `onToggle` du DOM
+          (`Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle'>`) et déclare le
+          sien, `(collapsed: boolean) => void`. La garde est donc morte, et
+          l'appel s'écrit comme il aurait toujours dû s'écrire. */}
       <Sidebar
         collapsible
         collapsed={collapsed}
-        onToggle={(next) => {
-          if (typeof next === 'boolean') setCollapsed(next);
-        }}
+        onToggle={setCollapsed}
         activeItemId={active}
         onSelectItem={setActive}
       >
@@ -82,11 +85,13 @@ export function SidebarCollapsibleScene() {
           </Sidebar.Item>
           {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
               `<button>` : un `Opale.Badge` sans verre y tiendrait (c'est un
-              `<span>`), mais le même sous `liquidGlass` délègue au vendoré, qui
-              passe par `Glass` et enveloppe toujours son contenu dans un
-              `<div>` — un bloc dans un bouton, c'est-à-dire du HTML invalide,
-              que ni TypeScript ni React ne signalent. Le `<span>` écrit ici ne
-              dépend d'aucune prop. Écrit dans la prose de la page. */}
+              `<span>`), mais le même sous `liquidGlass` passe par `Glass`, et
+              `Glass` — le nôtre — enveloppe TOUJOURS son contenu dans un
+              `<div>`, quel que soit le `as` demandé : l'enveloppe qui porte les
+              trois couches est un bloc, seul le contenu suit `as`. Un bloc dans
+              un bouton, c'est du HTML invalide, que ni TypeScript ni React ne
+              signalent. Le `<span>` écrit ici ne dépend d'aucune prop. Écrit
+              dans la prose de la page. */}
           <Sidebar.Item itemId="carte" badge={<span>3</span>}>
             Carte
           </Sidebar.Item>

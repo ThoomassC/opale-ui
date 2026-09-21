@@ -1,8 +1,3 @@
-/* Vendored from react-magic-ui — MIT, Copyright (c) 2025 tweeedlex.
-   https://github.com/tweeedlex/react-magic-ui
-   Kept byte-faithful on purpose: this file is NOT covered by Opale's colour
-   contract and is not styled with Opale's tokens. See src/magic/README.md. */
-
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -82,6 +77,113 @@ describe("Sidebar component", () => {
     );
 
     expect(handleToggle).toHaveBeenCalledWith(true);
+  });
+});
+
+/* =============================================================================
+   LES QUATRE CAS CI-DESSUS SONT LE CAHIER DES CHARGES, ET ILS N'ONT PAS BOUGÉ.
+
+   Ils décrivent le comportement hérité, en anglais comme ils ont été écrits ;
+   les reformuler aurait fait mentir le diff sur ce qui a réellement été
+   revérifié. Les cas ci-dessous sont NOUVEAUX et portent sur ce que la
+   réécriture corrige : ils sont donc écrits dans la langue du dépôt.
+
+   POURQUOI CES CAS-LÀ ET PAS D'AUTRES. Les quatre défauts corrigés sont des
+   défauts d'ACCESSIBILITÉ : aucun ne se voit à l'écran, aucun ne casse un
+   rendu, aucun ne fait rougir un type. Un rail qui perd le nom de ses entrées
+   en se repliant se peint exactement comme un rail qui les garde. C'est
+   précisément la catégorie de régression qu'on ne rattrape pas à la relecture,
+   donc la catégorie qui doit être tenue par un test.
+   ========================================================================== */
+
+describe('Sidebar — ce que la réécriture corrige', () => {
+  it('devrait garder le nom d’une entrée repliée, même si son libellé n’est pas une chaîne', () => {
+    /* LE DÉFAUT QUE CE CAS EXISTE POUR EMPÊCHER. Le libellé était retiré du DOM
+       au repli, et le nom rattrapé par un `aria-label` calculé — mais seulement
+       `typeof children === 'string'`. Un libellé passé par un élément donnait
+       donc un bouton ANONYME dès qu'on repliait le rail. */
+    render(
+      <Sidebar collapsible collapsed>
+        <Sidebar.Items>
+          <Sidebar.Item itemId="etapes" icon={<span>◆</span>}>
+            <span>Étapes</span>
+          </Sidebar.Item>
+        </Sidebar.Items>
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Étapes' })).toBeInTheDocument();
+  });
+
+  it('devrait annoncer l’entrée retenue par aria-current', () => {
+    render(
+      <Sidebar activeItemId="carte">
+        <Sidebar.Items>
+          <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
+          <Sidebar.Item itemId="carte">Carte</Sidebar.Item>
+        </Sidebar.Items>
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Carte' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Étapes' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('devrait nommer le point de repère de navigation, et laisser l’appelant le renommer', () => {
+    const { unmount } = render(
+      <Sidebar>
+        <Sidebar.Items>
+          <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
+        </Sidebar.Items>
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('navigation', { name: 'Sidebar' })).toBeInTheDocument();
+    unmount();
+
+    render(
+      <Sidebar>
+        <Sidebar.Items aria-label="Sommaire">
+          <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
+        </Sidebar.Items>
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('navigation', { name: 'Sommaire' })).toBeInTheDocument();
+  });
+
+  it('devrait dire l’état du pli sur la bascule, et désigner ce qu’elle commande', () => {
+    /* `aria-expanded` répond à « où en suis-je ? » posé à froid, ce que le seul
+       nom du bouton — qui dit l'ACTION — ne fait pas. */
+    const { unmount } = render(
+      <Sidebar collapsible collapsed={false}>
+        <Sidebar.Header>
+          <Sidebar.Toggle />
+        </Sidebar.Header>
+      </Sidebar>,
+    );
+
+    const expanded = screen.getByRole('button', { name: 'collapse sidebar' });
+    expect(expanded).toHaveAttribute('aria-expanded', 'true');
+
+    const controls = expanded.getAttribute('aria-controls');
+    expect(controls).toBeTruthy();
+    expect(document.getElementById(controls ?? '')?.tagName).toBe('ASIDE');
+
+    unmount();
+
+    render(
+      <Sidebar collapsible collapsed>
+        <Sidebar.Header>
+          <Sidebar.Toggle />
+        </Sidebar.Header>
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('button', { name: 'expand sidebar' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
   });
 });
 

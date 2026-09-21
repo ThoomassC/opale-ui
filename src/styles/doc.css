@@ -149,12 +149,14 @@ body {
    LA COQUILLE EST SOMBRE DANS LES DEUX THÈMES, ET CE N'EST PAS UN GOÛT.
 
    La barre du haut est un `Topbar` et le sommaire un `Sidebar` : deux
-   composants de `src/magic/**`, dont les feuilles posent tous les deux
-   `@apply text-white` sur leur élément racine (`Sidebar.module.scss:7`,
-   `Topbar.module.scss:7`). Le sol clair de la vitrine est BLANC
+   composants de `src/magic/**`. Leurs feuilles posaient toutes deux une encre
+   BLANCHE en dur sur leur élément racine ; réécrites par Opale, elles n'en
+   imposent plus aucune et héritent. La règle ci-dessous reste néanmoins utile —
+   elle pose l'encre de la vitrine plutôt que de compter sur l'héritage d'un
+   composant tiers. Le sol clair de la vitrine est BLANC
    (`--doc-ground`), donc du blanc sur du blanc : 1,00:1, invisible. Et le
-   matériau lui-même disparaît avec l'encre — `.glassOverlay` peint du blanc à
-   0,10 et `.glassSpecular` des reflets blancs à 0,25 : posé sur du blanc, le
+   matériau lui-même disparaît avec l'encre — la couche de lavis peint du blanc
+   à 0,10 et le filet spéculaire des reflets blancs à 0,25 : posé sur du blanc, le
    verre EST le pixel du blanc (mesuré ailleurs dans cette feuille : ΔE OKLab
    0,00 contre le sol).
 
@@ -278,7 +280,7 @@ body {
 
   /* L'arrondi demandé. Le conteneur porte déjà 24 px de coussin, donc le plan
      flotte et ses angles se lisent. */
-  --lg-radius: 22px;
+  --opale-glass-radius: 22px;
 }
 
 /* LA SURFACE VISIBLE DE LA COQUILLE. `background` sur l'enveloppe la place
@@ -292,12 +294,15 @@ body {
   border: 1px solid var(--doc-shell-edge);
 }
 
-/* LES DEUX COMPOSANTS POSENT `text-white`, ET IL FAUT LE REPRENDRE.
-   `Sidebar.module.scss:7` et `Topbar.module.scss:7` déclarent tous deux
-   `@apply text-white`. Sur la surface blanche, ce blanc mesure **1,00:1** :
-   invisible. Le sélecteur pèse (0,2,0) contre le (0,1,0) du module, donc il
-   gagne quel que soit l'ordre d'émission des feuilles — dépendre de l'ordre
-   est exactement ce qui a fait échouer le pli du sommaire. */
+/* L'ENCRE EST POSÉE ICI, ET CE N'EST PLUS UN RATTRAPAGE.
+   Les deux composants déclaraient une encre blanche en dur : sur la surface
+   blanche de la vitrine, elle mesurait **1,00:1** — invisible. Réécrits par
+   Opale, ils n'imposent plus de couleur et héritent de leur hôte. Cette règle
+   n'est donc plus une contre-mesure mais la DÉCLARATION de l'encre de la
+   coquille, ce qu'elle aurait toujours dû être. Le poids (0,2,0) est conservé :
+   il rend le résultat indépendant de l'ordre d'émission des feuilles, et
+   dépendre de cet ordre est exactement ce qui a fait échouer le pli du
+   sommaire. */
 .tc-doc-topbar .tc-doc-topbar__bar,
 .tc-doc-nav .tc-doc-nav__panel {
   color: var(--text-body); /* 8,12:1 */
@@ -1666,13 +1671,15 @@ body {
    VEUT. Le sélecteur exclut l'état replié, si bien que la largeur du composant
    reprend la main dès que le rail se plie : le pli est celui de la librairie.
 
-   `[class*='glassContainer']` VISE UNE CLASSE HACHÉE, et c'est le seul crochet
-   disponible — le nom émis est `opale-magic-glassContainer-<hash>`, dont le
-   préfixe est fixé par `generateScopedName` dans les deux configs Vite. Il
-   casserait si ce gabarit changeait ; c'est le prix d'un composant qui n'expose
-   pas sa largeur. */
-.tc-doc-topbar > [class*='glassContainer'],
-.tc-doc-nav > [class*='glassContainer'] {
+   `[data-opale-glass]` EST UN CONTRAT, ET CE N'EST PLUS UNE DEVINETTE. Cette
+   règle visait `[class*='glassContainer']` : une classe hachée à la
+   compilation, qu'on attrapait par le préfixe de son gabarit. Elle a cassé net
+   le jour où le matériau a été réécrit et où la couche a changé de nom — et
+   elle l'a fait EN SILENCE, un sélecteur sans correspondance ne rougissant
+   nulle part. L'attribut, lui, est posé exprès pour l'hôte et documenté comme
+   tel dans `Glass.tsx`. */
+.tc-doc-topbar > [data-opale-glass],
+.tc-doc-nav > [data-opale-glass] {
   inline-size: 100%;
 }
 
@@ -1931,7 +1938,7 @@ body {
       padding var(--motion-move) var(--motion-ease);
   }
 
-  .tc-doc-nav > [class*='glassContainer'] {
+  .tc-doc-nav > [data-opale-glass] {
     inline-size: 100%;
   }
 
@@ -2063,7 +2070,7 @@ body {
     border-block-end: 0;
   }
 
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [class*='glassContainer'] {
+  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
     inline-size: 100%;
   }
 
@@ -2101,7 +2108,7 @@ body {
     flex: 0 0 calc(100% - 3rem - var(--space-2) - var(--space-4));
   }
 
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [class*='glassContainer'] {
+  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
     overflow: visible;
   }
 
@@ -2112,14 +2119,14 @@ body {
   /* En mode fermé, les couches du verre s'arrêtent au bouton : aucune petite
      plaque ne reste autour de lui. */
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassFilter'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='refraction'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassOverlay'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='tint'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassSpecular'] {
+    > [data-opale-glass]
+    > [data-opale-glass-layer='specular'] {
     display: none;
   }
 
@@ -2155,27 +2162,27 @@ body {
   pointer-events: none;
 }
 
-.tc-doc-liquid-modal > [class*='glassFilter'] {
+.tc-doc-liquid-modal > [data-opale-glass-layer='refraction'] {
   backdrop-filter: blur(0.75px) saturate(1.08);
   -webkit-backdrop-filter: blur(0.75px) saturate(1.08);
   filter: url('#tc-doc-liquid-modal-dist');
   transform: scale(1.018);
 }
 
-.tc-doc-liquid-modal > [class*='glassOverlay'] {
+.tc-doc-liquid-modal > [data-opale-glass-layer='tint'] {
   overflow: hidden;
   background:
     radial-gradient(88% 125% at 8% 0%, rgba(255, 255, 255, 0.2), transparent 52%),
     radial-gradient(80% 120% at 100% 100%, rgba(5, 35, 48, 0.16), transparent 58%),
-    var(--lg-bg-color);
+    var(--opale-glass-tint);
 }
 
 /* Le relief reste diffus : les gradients donnent le bombé sans dessiner
    d'arc circulaire. Le seul contour visible vient du calque spéculaire natif
    de `Glass`, afin que la modale et le bouton n'aient qu'une bordure. */
 
-.tc-doc-liquid-modal > [class*='glassContent'].tc-doc-liquid-action-button:hover,
-.tc-doc-liquid-modal > [class*='glassContent'].tc-doc-squire-circle__button:hover {
+.tc-doc-liquid-modal > [data-opale-glass-layer='content'].tc-doc-liquid-action-button:hover,
+.tc-doc-liquid-modal > [data-opale-glass-layer='content'].tc-doc-squire-circle__button:hover {
   background: rgba(255, 255, 255, 0.12);
 }
 
@@ -3372,9 +3379,9 @@ body {
 .tc-doc-nav__glass {
   --doc-shell-ground: var(--surface);
   --doc-shell-edge: var(--rule);
-  --lg-bg-color: var(--panel-surface);
-  --lg-highlight: var(--border-subtle);
-  --lg-text: var(--text-body);
+  --opale-glass-tint: var(--panel-surface);
+  --opale-glass-edge: var(--border-subtle);
+  --opale-glass-ink: var(--text-body);
   background: var(--doc-shell-ground);
   border-color: var(--doc-shell-edge);
 }
@@ -3384,9 +3391,9 @@ body {
      laisse le décor vivre derrière lui au lieu de poser un aplat opaque. */
   --doc-shell-ground: transparent;
   --doc-shell-edge: transparent;
-  --lg-bg-color: color-mix(in srgb, var(--tc-white) 6%, transparent);
-  --lg-highlight: color-mix(in srgb, var(--tc-white) 32%, transparent);
-  --lg-radius: 0;
+  --opale-glass-tint: color-mix(in srgb, var(--tc-white) 6%, transparent);
+  --opale-glass-edge: color-mix(in srgb, var(--tc-white) 32%, transparent);
+  --opale-glass-radius: 0;
   background: transparent;
   border-radius: 0;
   border-color: transparent;
@@ -3396,9 +3403,9 @@ body {
 .tc-doc-nav__glass {
   --doc-shell-ground: transparent;
   --doc-shell-edge: transparent;
-  --lg-bg-color: color-mix(in srgb, var(--tc-white) 6%, transparent);
-  --lg-highlight: color-mix(in srgb, var(--tc-white) 32%, transparent);
-  --lg-radius: var(--radius-lg);
+  --opale-glass-tint: color-mix(in srgb, var(--tc-white) 6%, transparent);
+  --opale-glass-edge: color-mix(in srgb, var(--tc-white) 32%, transparent);
+  --opale-glass-radius: var(--radius-lg);
   background: transparent;
   border-color: transparent;
 }
@@ -3591,28 +3598,28 @@ body {
     transition: padding-inline var(--motion-move) var(--motion-ease);
   }
 
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [class*='glassContainer'] {
+  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
     inline-size: 100%;
     padding-block: var(--space-2);
     background: transparent;
     border: 0;
     border-radius: 0;
-    --lg-bg-color: transparent;
-    --lg-highlight: transparent;
+    --opale-glass-tint: transparent;
+    --opale-glass-edge: transparent;
   }
 
   /* En mode plié, le verre appartient au contrôle et non à un rail qui
      l'entoure. Les couches de l'enveloppe sont désactivées pour qu'il ne
      reste aucune mini-modale visible autour de la flèche. */
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassFilter'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='refraction'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassOverlay'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='tint'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassSpecular'] {
+    > [data-opale-glass]
+    > [data-opale-glass-layer='specular'] {
     display: none;
   }
 

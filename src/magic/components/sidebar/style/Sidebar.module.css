@@ -1,0 +1,325 @@
+/* =============================================================================
+   LE RAIL LATÉRAL — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce écrite en directives Tailwind, dont l'entrée
+   de navigation à elle seule en empilait six et onze variantes d'état. Tailwind
+   n'était une dépendance de ce paquet que pour ce genre de fichier, et il est
+   retiré — une directive oubliée ici casserait le build.
+
+   LES QUATRE LARGEURS SONT CELLES DE L'ORIGINAL — 200, 260, 320 et 88 px pour
+   le rail replié —, converties en `rem` pour suivre la taille de texte de
+   l'utilisateur. Un rail figé en pixels ne grandit pas quand quelqu'un
+   agrandit sa police, et ses libellés finissent tronqués dans une boîte qui,
+   elle, n'a pas bougé.
+
+   AUCUNE COULEUR N'EST ÉCRITE, ET C'EST LE MÊME RAISONNEMENT QUE POUR LA BARRE
+   DU HAUT. Le verre est transparent : son encre se lit sur ce qu'il y a
+   derrière. La version tierce posait `text-white` sur le rail et bâtissait
+   TOUS ses états sur `bg-white/15`, `/20`, `/25` — un survol qui n'existe que
+   sur fond sombre, et qui sur une carte claire éclaircit du clair. Ici chaque
+   voile dérive de `currentColor` : il suit l'encre, donc il suit le fond.
+
+   LES CIBLES DE POINTEUR FONT 2,75 rem (44 px) DE HAUT. L'original laissait
+   l'entrée à 44 px par accident — trois quarts de rem de coussin autour d'une
+   ligne de texte — et le bouton de repli à 36 px, sous le seuil. Les deux sont
+   désormais posés explicitement : c'est une mesure, pas un reste de calcul.
+   ========================================================================== */
+
+/* L'ENVELOPPE DU VERRE PORTE LA LARGEUR, comme sur la barre du haut, et pour la
+   même raison : `Glass` la met en `fit-content`. Cette règle l'emporte par
+   l'ORDRE des feuilles — `Sidebar.tsx` importe `Glass` avant son propre module
+   —, ce qui laisse un hôte la reprendre avec une simple classe. */
+.sidebarRoot {
+  transition: width var(--opale-motion) var(--opale-ease);
+}
+
+.small {
+  width: 12.5rem;
+}
+
+.medium {
+  width: 16.25rem;
+}
+
+.large {
+  width: 20rem;
+}
+
+.collapsed {
+  width: 5.5rem;
+}
+
+.sidebar {
+  display: flex;
+  min-height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--opale-space-md);
+  padding-block: var(--opale-space-lg);
+  padding-inline: var(--opale-space-md);
+  font-family: var(--opale-font-body);
+  transition: padding var(--opale-motion) var(--opale-ease);
+}
+
+.sidebarCollapsed {
+  padding-inline: var(--opale-space-sm);
+}
+
+/* --- L'en-tête et le pied ------------------------------------------------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--opale-space-xs);
+  padding-bottom: var(--opale-space-xs);
+}
+
+.headerCollapsed {
+  justify-content: center;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--opale-space-xs);
+}
+
+/* --- La liste ------------------------------------------------------------- */
+
+.items {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--opale-space-2xs);
+}
+
+/* --- Une entrée -----------------------------------------------------------
+   `font: inherit` N'EST PAS DÉCORATIF : un `<button>` ne descend ni la famille
+   ni la taille de son parent, il prend celles du navigateur. Sans cette ligne,
+   le rail écrit ses libellés dans une police système de 13 px au milieu d'une
+   interface qui a choisi la sienne. */
+
+.item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+  align-items: center;
+  border: 0;
+  border-radius: var(--opale-radius-sm);
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+  gap: var(--opale-space-sm);
+  text-align: left;
+  transition:
+    background var(--opale-motion) var(--opale-ease),
+    color var(--opale-motion) var(--opale-ease);
+}
+
+.itemCollapsed {
+  justify-content: center;
+  padding-inline: var(--opale-space-2xs);
+}
+
+.item:hover:not(:disabled) {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.item:active:not(:disabled) {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+/* L'ANNEAU DE FOCUS EST DOUBLE, ET C'EST LE VERRE QUI L'EXIGE.
+
+   `--opale-focus` est un bleu réglé pour les fonds clairs d'Opale. Un rail de
+   verre, lui, peut être posé sur n'importe quoi — une photographie, une nuit,
+   du papier —, et un anneau d'une seule couleur finit forcément par tomber sur
+   un fond qui l'avale. Le halo extérieur dérive de `currentColor`, c'est-à-dire
+   de l'encre que l'hôte a choisie parce qu'elle contraste avec SON fond : les
+   deux anneaux ne peuvent pas disparaître ensemble. WCAG 2.4.11.
+
+   `outline` plutôt qu'une bordure : elle ne prend pas de place dans la boîte,
+   donc l'entrée ne se décale pas d'un pixel au moment où on l'atteint. */
+.item:focus-visible,
+.toggle:focus-visible {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
+}
+
+.item:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* L'ENTRÉE RETENUE SE DIT DE TROIS FAÇONS, ET PAS SEULEMENT PAR UNE COULEUR.
+
+   Un voile plus dense, une graisse plus forte et un témoin vertical à gauche.
+   La couleur seule ne suffit pas (WCAG 1.4.1), et surtout elle ne suffit pas
+   ICI : le voile dérive de `currentColor`, donc son contraste avec le repos
+   dépend du fond sur lequel le verre est posé — sur un fond très clair l'écart
+   entre 10 % et 18 % est ténu. La graisse et le témoin, eux, se voient partout.
+
+   Le témoin est un pseudo-élément et non une bordure : une bordure changerait
+   la boîte, donc décalerait le libellé de trois pixels au moment où l'entrée
+   devient active. */
+.itemActive {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  font-weight: 600;
+}
+
+.itemActive::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0.1875rem;
+  height: 1.25rem;
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-primary);
+  content: '';
+  transform: translateY(-50%);
+}
+
+.itemIcon {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--opale-radius-sm);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.itemContent {
+  display: flex;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--opale-space-xs);
+}
+
+.itemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemBadge {
+  display: inline-flex;
+  min-width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--opale-radius-pill);
+  padding: 0.0625rem var(--opale-space-xs);
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* LE LIBELLÉ D'UNE ENTRÉE REPLIÉE EST MASQUÉ À L'ŒIL, PAS AUX OUTILS.
+
+   C'est la correction la plus importante de ce fichier. La version tierce
+   RETIRAIT le libellé du DOM dès que le rail se repliait, et rattrapait le nom
+   manquant par un `aria-label` calculé depuis les enfants — mais seulement
+   s'ils étaient une chaîne de caractères. Une entrée écrite
+   `<Item icon={…}><Trans id="steps" /></Item>` perdait donc purement et
+   simplement son nom accessible en se repliant : un bouton anonyme, annoncé
+   « bouton » et rien d'autre, que ni TypeScript ni React ne signalent.
+
+   La recette est celle de `.opale-visually-hidden` (`opale.css`) : sortie du
+   flux, réduite à un pixel, rognée — ni `display: none` ni
+   `visibility: hidden`, qui l'ôteraient aussi de l'arbre d'accessibilité. Le
+   nom du bouton ne dépend donc plus du TYPE de ses enfants, et il est le MÊME
+   déplié et replié.
+
+   LE BADGE EST MASQUÉ AVEC LE LIBELLÉ, parce qu'il est dans la même boîte. Il
+   ne disparaît pas d'un lecteur d'écran en se repliant : il en était déjà
+   absent, étant `aria-hidden` dans les deux états — voir `Sidebar.tsx`. */
+.itemContentHidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  margin: -1px;
+  padding: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* La lettre de repli, quand l'entrée n'a pas d'icône : il faut bien peindre
+   QUELQUE CHOSE dans un rail de 88 px dont les libellés sont masqués. Elle est
+   `aria-hidden` — c'est une vignette, pas un nom. */
+.itemFallback {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--opale-radius-sm);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* --- Le bouton de repli --------------------------------------------------- */
+
+.toggle {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--opale-radius-pill);
+  padding: 0;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  transition: background var(--opale-motion) var(--opale-ease);
+}
+
+.toggle:hover {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.toggle:active {
+  background: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+/* Le chevron tourne au lieu d'être remplacé par un autre glyphe : c'est le
+   même objet qui change d'orientation, ce qui se lit comme un mouvement et non
+   comme une substitution. */
+.toggleIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform var(--opale-motion) var(--opale-ease);
+}
+
+.toggleIconCollapsed {
+  transform: rotate(180deg);
+}
+
+/* WCAG 2.3.3 — le pli, le coussin et la rotation du chevron sont du mouvement
+   de confort. Qui demande moins d'animation obtient le même état, tout de
+   suite. Les changements de fond restent : ce sont des couleurs, pas du
+   déplacement. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebarRoot,
+  .sidebar,
+  .toggleIcon {
+    transition: none;
+  }
+}

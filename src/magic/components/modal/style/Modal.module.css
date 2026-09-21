@@ -1,0 +1,246 @@
+/* =============================================================================
+   LA BOÎTE DE DIALOGUE MODALE — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce écrite en directives Tailwind, où trente-deux
+   déclarations sur trente-cinq venaient d'utilitaires et où les seules
+   couleurs étaient `text-white`, `bg-slate-950/60` et six `white/xx`. Aucune
+   n'était un jeton ; le composant était donc, seul de la librairie, hors du
+   contrat de couleur d'Opale.
+
+   CE QUE LE PASSAGE AUX JETONS CHANGE VRAIMENT, ET CE N'EST PAS COSMÉTIQUE.
+   L'ancien panneau était TRANSLUCIDE avec une encre blanche en dur. Sur le
+   voile sombre ça tenait ; sur un thème clair, ou dès qu'un appelant posait
+   son propre `portalContainer` sur un fond pâle, le texte blanc se perdait.
+   Le panneau est désormais rempli à 88 % de `--opale-surface` et écrit avec
+   `--opale-text` : le couple encre/fond redevient celui que le contrat de
+   couleur mesure déjà partout ailleurs, dans les deux thèmes.
+
+   CE QUI SE PERD : le panneau laisse beaucoup moins passer le décor derrière
+   lui. C'était l'effet recherché par l'amont — un verre très transparent —,
+   mais un dialogue modal a d'abord à se lire, et la réfraction de `Glass`
+   reste visible sur l'arête et dans les angles.
+   ========================================================================== */
+
+.container {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--opale-space-2xl) var(--opale-space-md);
+}
+
+/* LE VOILE, ET POURQUOI IL N'EST PAS UN NOIR PUR ÉCRIT EN DUR.
+
+   Un voile doit être sombre dans LES DEUX thèmes : c'est lui qui dit « la page
+   est derrière ». Aucun jeton d'Opale n'est sombre dans les deux — `--opale-
+   text` l'est en clair et pâle en sombre, `--opale-background` fait l'inverse.
+   Le voile prend donc son propre réglage, `--opale-modal-scrim`, avec pour
+   valeur par défaut le fond sombre d'Opale (`#0c0f0d`, la valeur de
+   `--opale-background` du thème sombre) à 62 %. Un hôte qui veut un autre
+   voile pose la variable sur n'importe quel ancêtre ; c'est la même mécanique
+   que `--opale-glass-radius` chez `Glass`.
+
+   LE FLOU EST FAIBLE À DESSEIN — 3 px, pas 10. Mesuré sur la version amont :
+   à 10 px la page derrière devenait une bouillie sans que la modale s'en
+   détache davantage, le flou emportant justement les arêtes qui servaient de
+   repère. C'est l'OPACITÉ qui sépare, pas le flou. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--opale-modal-scrim, rgb(12 15 13 / 0.62));
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: opale-modal-veil var(--opale-motion) var(--opale-ease) both;
+}
+
+/* LA COQUILLE — POSÉE SUR `rootClassName`, ET C'EST LE POINT.
+
+   `Glass` applique `className` à sa couche de CONTENU, qui est un enfant de
+   l'enveloppe, laquelle porte `overflow: hidden`. Le rayon et l'ombre écrits
+   sur le contenu atterrissaient donc sur un élément rogné par son parent : la
+   version amont n'avait en pratique ni angle arrondi ni ombre, sa seule
+   démarcation étant le voile. Tout ce qui dessine la SILHOUETTE vit ici.
+
+   Les trois jetons de verre sont redéfinis sur cette règle, donc hérités par
+   les couches internes de `Glass` sans que `Glass` ait à connaître la modale :
+   c'est le seul point de couplage entre les deux fichiers, et il passe par des
+   variables publiques. */
+.shell {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-height: 100%;
+
+  --opale-glass-radius: var(--opale-radius-lg);
+  --opale-glass-surface: color-mix(in srgb, var(--opale-surface) 88%, transparent);
+  --opale-glass-highlight: var(--opale-glass-border);
+
+  /* Deux ombres et une seule intention : détacher la coquille du voile. Le
+     filet de 1 px reprend l'arête de verre du thème, l'ombre portée creuse la
+     distance. Les deux sont sur l'ENVELOPPE — posées sur le contenu, l'`overflow:
+     hidden` de l'enveloppe les rognerait, ce qui est exactement le défaut
+     décrit plus haut. */
+  box-shadow:
+    0 0 0 1px var(--opale-glass-border),
+    var(--opale-shadow-4);
+  animation: opale-modal-rise var(--opale-motion) var(--opale-ease) both;
+}
+
+/* Les trois crans. Ils gardent les largeurs de l'amont — 28, 36 et 42 rem,
+   c'est-à-dire ses `max-w-md`, `max-w-xl` et `max-w-2xl` — parce que la page
+   de vitrine les documente comme « la largeur maximale » et que rien ne
+   justifiait de les bouger en même temps que le reste. */
+.sm {
+  max-width: 28rem;
+}
+
+.md {
+  max-width: 36rem;
+}
+
+.lg {
+  max-width: 42rem;
+}
+
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  /* `min-height: 0` est ce qui autorise le corps à défiler : sans lui, un
+     enfant flex refuse de descendre sous sa hauteur de contenu et c'est la
+     coquille entière qui déborde de l'écran. */
+  min-height: 0;
+  padding: var(--opale-space-xl);
+  border-radius: inherit;
+  color: var(--opale-text);
+  font-family: var(--opale-font-body);
+}
+
+/* LE PANNEAU REÇOIT LE FOCUS À L'OUVERTURE, DONC IL NE DOIT PAS CLIGNOTER.
+   `:focus` est muet — c'est un focus PROGRAMMÉ, personne ne l'a demandé au
+   clavier —, mais `:focus-visible` reste dessiné : si l'utilisateur revient
+   sur le panneau au clavier, il doit voir où il est. Supprimer les deux serait
+   le raccourci facile, et une infraction à WCAG 2.4.7. */
+.panel:focus {
+  outline: none;
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: -4px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--opale-space-lg);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--opale-space-xs);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--opale-text);
+  font-family: var(--opale-font-title);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.description {
+  margin: 0;
+  color: var(--opale-text-secondary);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.close {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-surface) 70%, transparent);
+  color: var(--opale-text);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--opale-motion-fast) var(--opale-ease),
+    border-color var(--opale-motion-fast) var(--opale-ease);
+}
+
+.close:hover {
+  border-color: var(--opale-text-secondary);
+  background: color-mix(in srgb, var(--opale-text) 8%, var(--opale-surface));
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 2px;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--opale-space-lg);
+  overflow-y: auto;
+  padding-right: var(--opale-space-2xs);
+  color: var(--opale-text);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--opale-space-sm);
+  margin-top: var(--opale-space-xl);
+}
+
+@keyframes opale-modal-veil {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes opale-modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* WCAG 2.3.3 — la montée du panneau est du mouvement décoratif. Le fondu
+   reste : il n'est pas un mouvement, et c'est lui qui évite l'apparition
+   brutale que la réduction d'animation n'a jamais demandée. */
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    animation-name: opale-modal-veil;
+  }
+}

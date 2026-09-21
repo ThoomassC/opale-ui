@@ -24,11 +24,14 @@ import { describe, expect, it } from 'vitest';
 
    2. LE BALAYAGE INCLUT LES NOMS DE FICHIERS. Le mot vivait aussi dans six
       d'entre eux ; un garde qui ne lit que le contenu laisserait revenir un
-      `canop-quelque-chose.tsx` sans broncher.
+      fichier qui le porte dans son nom sans broncher.
 
-   Le dossier `src/magic/components` est VENDORÉ depuis react-magic-ui et reste
-   fidèle à sa source — il n'a jamais porté ce nom-là, et le balayage le couvre
-   comme le reste.
+   CE FICHIER NE S'EXCLUT PAS DE SON PROPRE BALAYAGE, et c'est la conséquence
+   directe du point 1. Une première version se félicitait, ici même, d'éviter
+   « la liste d'exceptions par laquelle ce genre de garde meurt » — tout en
+   écrivant le mot en toutes lettres dans un exemple deux lignes plus haut, et
+   en se retirant du balayage pour survivre. Le garde se contredisait sur les
+   deux points qu'il revendiquait. L'exemple est parti, l'exception avec.
    ========================================================================== */
 
 /** Le mot interdit, recomposé pour que ce fichier ne se dénonce pas lui-même. */
@@ -52,7 +55,6 @@ describe('le nom de la librairie amont', () => {
 
   it('n’apparaît dans le contenu d’aucun fichier', () => {
     const guilty = Object.entries(SOURCES)
-      .filter(([path]) => !path.endsWith('upstream-name.structure.test.ts'))
       .filter(([, source]) => source.toLowerCase().includes(FORBIDDEN))
       .map(([path]) => path);
 

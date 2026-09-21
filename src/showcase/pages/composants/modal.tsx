@@ -54,7 +54,9 @@ const PROPS: readonly PropRow[] = [
         Rendus dans un <code>&lt;h2&gt;</code> et un <code>&lt;p&gt;</code>, et{' '}
         <strong>c’est leur présence qui câble le nom accessible</strong> :{' '}
         <code>aria-labelledby</code> et <code>aria-describedby</code> ne sont posés que si la prop
-        correspondante existe. Un modal sans <code>title</code> est un{' '}
+        correspondante existe. Un modal sans <code>title</code> reste nommable à la main — un{' '}
+        <code>aria-label</code> ou un <code>aria-labelledby</code> passé au composant l’emporte sur
+        le câblage automatique. Sans ni l’un ni l’autre, c’est un{' '}
         <code>role=&quot;dialog&quot;</code> anonyme.
       </>
     ),
@@ -104,8 +106,10 @@ const PROPS: readonly PropRow[] = [
     defaultValue: 'document.body',
     description: (
       <>
-        L’hôte du portail. Le composant attend d’être monté avant de le résoudre, pour rester
-        rendable côté serveur.
+        L’hôte du portail, <strong>résolu pendant le rendu</strong> et non après un effet :{' '}
+        <code>document.body</code> ne demande pas d’être monté, il demande d’exister. Un{' '}
+        <code>open</code> à <code>true</code> au premier rendu peint donc le modal tout de suite. Là
+        où il n’y a pas de DOM du tout, le composant rend <code>null</code>.
       </>
     ),
   },
@@ -122,7 +126,8 @@ export const modalPage: DocPage = {
       le plus outillé de la librairie après <code>Tabs</code> : <code>role=&quot;dialog&quot;</code>
       , <code>aria-modal</code>, identifiants par <code>useId</code>, verrou de défilement qui
       restaure la valeur précédente, fermeture par <kbd>Échap</kbd> et par le voile, focus donné au
-      panneau à l’ouverture.
+      panneau à l’ouverture, <strong>piégé le temps de l’ouverture</strong> et{' '}
+      <strong>rendu au déclencheur à la fermeture</strong>, arrière-plan rendu inerte.
     </>
   ),
   render: () => (
@@ -172,38 +177,55 @@ export const modalPage: DocPage = {
         note={
           <>
             <code>ComponentPropsWithoutRef&lt;&apos;div&apos;&gt;</code> plus onze props propres,
-            plus <code>GlassProps</code>. Le composant intercepte <code>onClick</code> pour arrêter
-            la propagation sur le panneau, puis rappelle le vôtre.
+            plus <code>GlassProps</code>. Le composant intercepte <code>onClick</code> et{' '}
+            <code>onKeyDown</code> — le premier pour arrêter la propagation sur le panneau, le
+            second pour le piège de focus — puis rappelle les vôtres.{' '}
+            <strong>Les attributs qui portent le contrat de dialogue sont inécrasables :</strong>{' '}
+            <code>role</code>, <code>aria-modal</code> et <code>tabIndex</code> sont appliqués{' '}
+            <em>après</em> vos props et ne se surchargent plus — les poser cassait le motif entier
+            en silence. Le nom accessible, lui, reste à vous.
           </>
         }
         rows={PROPS}
       />
 
       <p className="tc-doc-prose">
-        <strong>Le piège du montage, et il est réel.</strong> Le composant attend deux effets avant
-        de rendre quoi que ce soit — un pour <code>mounted</code>, un pour le conteneur de portail —
-        donc <code>open</code> à <code>true</code> au premier rendu n’affiche <em>rien</em> avant le
-        premier passage des effets. Sous un test qui rend puis assère aussitôt sans laisser tourner
-        les effets, le modal est absent. Les deux <code>setState</code> en corps d’effet sont
-        d’ailleurs ce que masque le seul <code>eslint-disable</code> de ce fichier.
+        <strong>Le piège du montage a disparu, et c’est ce qui a motivé la réécriture.</strong> La
+        version d’avant attendait <em>deux</em> effets avant de rendre quoi que ce soit — un pour un
+        drapeau <code>mounted</code>, un pour le conteneur de portail —, donc <code>open</code> à{' '}
+        <code>true</code> au premier rendu n’affichait rien avant le premier passage des effets. Ce
+        n’était pas un détail de cycle de vie : sous un test qui rendait puis assérait aussitôt, le
+        modal était simplement absent. Le conteneur se résout désormais pendant le rendu, et les
+        deux <code>setState</code> en corps d’effet — avec l’<code>eslint-disable</code> qui les
+        couvrait — n’existent plus.
       </p>
 
       <p className="tc-doc-prose">
-        <strong>Ce qui manque au motif de dialogue.</strong> Le focus est donné au panneau à
-        l’ouverture, mais il n’y est pas <em>piégé</em> : la tabulation sort du modal et repart dans
-        la page derrière, qui n’est ni <code>inert</code> ni <code>aria-hidden</code>. Et le focus
-        n’est pas rendu au déclencheur à la fermeture. Un <code>&lt;dialog&gt;</code> natif avec{' '}
-        <code>showModal()</code> donnerait les deux ; ici, c’est à l’appelant.
+        <strong>Le motif de dialogue est maintenant complet, et voici ce que ça recouvre.</strong>{' '}
+        Le focus part au panneau à l’ouverture, il y est <em>piégé</em> — <kbd>Tab</kbd> depuis le
+        dernier élément revient au premier, <kbd>Maj+Tab</kbd> depuis le premier repart au dernier —
+        et il est <strong>rendu au déclencheur</strong> à la fermeture comme au démontage. Un
+        dialogue qui ne le rend pas renvoie le focus sur <code>&lt;body&gt;</code> : la tabulation
+        suivante repart du haut de la page, et qui navigue au clavier perd sa place à chaque
+        fermeture. Enfin, <code>aria-modal</code> <em>déclare</em> que le reste de la page est
+        hors-jeu sans le <em>faire</em> : les frères du conteneur de portail, à chaque niveau
+        jusqu’à <code>&lt;body&gt;</code>, reçoivent donc <code>inert</code> et{' '}
+        <code>aria-hidden</code> le temps de l’ouverture, et retrouvent exactement leur valeur
+        précédente ensuite.
       </p>
 
       <p className="tc-doc-prose">
         <strong>
-          Ce modal est le seul de la librairie, et il n’est pas un <code>&lt;dialog&gt;</code>.
+          Ce n’est toujours pas un <code>&lt;dialog&gt;</code> natif, et il faut dire ce qui reste
+          en moins.
         </strong>{' '}
-        La 1.0 ne publiait pas de dialogue non plus — son <code>Backdrop</code> était un décor, pas
-        une couche modale — mais elle ne prétendait rien. Ici le composant s’annonce comme un modal
-        sans en donner les deux garanties du natif : le piège de focus et la restitution du focus au
-        déclencheur restent à la charge de l’appelant, comme dit ci-dessus.
+        <code>showModal()</code> donne gratuitement la couche supérieure du navigateur — un modal
+        s’y peint au-dessus de tout, quels que soient les <code>z-index</code> et les contextes
+        d’empilement de l’hôte —, l’annulation par <kbd>Échap</kbd> gérée par la plateforme, et une
+        inertie que rien dans la page ne peut contourner. Ici tout cela est reconstruit en
+        JavaScript, donc tout cela peut être défait par l’hôte : un ancêtre transformé déplace le
+        portail, un <code>z-index</code> plus haut passe devant. Le motif d’accessibilité, lui,
+        n’est plus à la charge de l’appelant.
       </p>
     </PageBody>
   ),
