@@ -26,12 +26,14 @@ import { CatalogPreview } from './catalog-preview';
    arrivés avec la suppression des doublons : leur homologue vendoré avait sa
    propre page, et il est devenu la matière de ce commutateur. */
 const FORWARDS_LIQUID_GLASS: readonly string[] = [
+  'Autocomplete',
   'Badge',
   'Button',
   'Card',
   'CardGrid',
   'Checkbox',
   'Input',
+  'MultiSelect',
   'Select',
   'Slider',
   'StatCard',

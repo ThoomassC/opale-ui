@@ -178,6 +178,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'MultiSelect':
       preview = (
         <Opale.MultiSelect
+          liquidGlass={liquidGlass}
           label="Domaines"
           values={multiSelected}
           options={OPTIONS}
@@ -203,6 +204,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'Autocomplete':
       preview = (
         <Opale.Autocomplete
+          liquidGlass={liquidGlass}
           label="Composant"
           placeholder="Commencez à saisir…"
           options={['Button', 'Card', 'Modal', 'Select']}

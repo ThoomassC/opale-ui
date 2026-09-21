@@ -6,6 +6,7 @@ import opaleComponentsSource from './opale-components.tsx?raw';
 import catalogPreviewSource from './catalog-preview.tsx?raw';
 import { OPALE_CATALOG, Opale } from '../../magic';
 import { catalogComponentLabel } from '../doc-model';
+import opaleMagicSource from '../../magic/opale.tsx?raw';
 import { CatalogPreview } from './catalog-preview';
 import { opaleComponentPages } from './opale-components';
 
@@ -273,5 +274,51 @@ describe('le catalogue interactif V3', () => {
     rerender(<CatalogPreview name="Game" liquidGlass={false} />);
     await user.click(screen.getByRole('button', { name: 'Marquer un point' }));
     expect(screen.getByText('13')).toBeInTheDocument();
+  });
+});
+
+/* =============================================================================
+   LA VITRINE NE DOIT PAS MONTRER UN COMMUTATEUR QUI NE FAIT RIEN.
+
+   LE DÉFAUT OBSERVÉ. La page de chaque composant affiche « Liquid Glass pour
+   X ». Pour l'autocomplétion et la liste multiple, la démonstration ne
+   transmettait pas la prop : le commutateur basculait, et rien ne changeait.
+   Le composant, lui, la gère parfaitement — c'est l'exemple qui l'oubliait.
+
+   CE QUE CE GARDE COUVRE, ET CE QU'IL LAISSE DE CÔTÉ. Il ne vise que les
+   composants qui ACCEPTENT la prop : à eux, l'exemple doit la passer. Les
+   composants qui n'ont pas de rendu de verre du tout relèvent d'une autre
+   question — faut-il leur afficher ce commutateur ? —, qui se traite dans la
+   page et non ici.
+   ========================================================================== */
+describe('les exemples du catalogue', () => {
+  it('transmet le matériau à tout composant qui sait le porter', () => {
+    /** Les interfaces de props qui portent `liquidGlass`, héritage compris. */
+    const declares = (name: string, depth = 0): boolean => {
+      if (depth > 4) return false;
+
+      const match = new RegExp(
+        `export interface ${name}Props extends ([\\w]+)[^{]*\\{([\\s\\S]*?)\\n\\}`,
+      ).exec(opaleMagicSource);
+
+      if (!match) return false;
+      if (match[2].includes('liquidGlass')) return true;
+
+      /* L'héritage : `AutocompleteProps extends FieldProps` ne cite pas la
+         prop, il la reçoit. Le parent est nommé « …Props », on remonte. */
+      return match[1].endsWith('Props')
+        ? declares(match[1].slice(0, -'Props'.length), depth + 1)
+        : false;
+    };
+
+    const manquants = [...catalogPreviewSource.matchAll(/case '(\w+)':([\s\S]*?)\n {6}break;/g)]
+      .filter(([, name, body]) => declares(name) && !body.includes('liquidGlass'))
+      .map(([, name]) => name);
+
+    expect(
+      manquants,
+      'Ces exemples affichent le commutateur « Liquid Glass » sans transmettre ' +
+        `la prop : il bascule et rien ne change — ${manquants.join(', ')}.`,
+    ).toEqual([]);
   });
 });

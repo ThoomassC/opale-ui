@@ -1108,6 +1108,39 @@
 .opale-toggle:checked + .opale-toggle-track .opale-toggle-thumb {
   transform: translateX(1.5rem);
 }
+
+/* =============================================================================
+   L'INTERRUPTEUR SOUS VERRE : DEUX DÉFAUTS, ET LA MÊME CAUSE DEUX FOIS.
+
+   LE SECOND BORD. Le verre montrait deux arêtes au bas de la pilule, à trois
+   pixels et demi l'une de l'autre. La piste est `inline-flex` : dans
+   l'enveloppe, qui est un bloc, elle forme une LIGNE, et une ligne réserve la
+   place des jambages sous elle. Mesuré : enveloppe 31,59 px pour une piste de
+   28. Le filet spéculaire du matériau dessinait donc son arête tout en bas de
+   l'enveloppe, pendant que le fond de la piste dessinait la sienne trois
+   pixels plus haut. `flex` — de niveau bloc — supprime la ligne et donc
+   l'écart. Aucune autre coquille de verre n'était touchée : la mesure a été
+   refaite sur la case, la pastille, le champ et la liste.
+
+   LE FOND OPAQUE. `.opale-toggle-track--glass` posait bien `background:
+   transparent`, mais depuis le bloc commun des peaux, écrit AVANT
+   `.opale-toggle-track`. Les deux pèsent (0,1,0) : à égalité, c'est l'ordre
+   qui tranche, et la piste colorée gagnait. Le verre était donc recouvert
+   d'un lavis bleu-gris sur toute sa surface — on voyait une pilule plate, pas
+   du verre. Les deux règles sont reprises ici, après, où elles l'emportent.
+
+   L'ÉTAT ACTIF RESTE VISIBLE, et il doit l'être : la position de la poignée
+   ne suffit pas à elle seule. Le lavis primaire y est simplement assez
+   transparent pour que la matière continue de réfracter. */
+.opale-toggle-track--glass {
+  display: flex;
+  background: transparent;
+}
+
+.opale-toggle:checked + .opale-toggle-track--glass,
+.opale-toggle:checked + * .opale-toggle-track--glass {
+  background: color-mix(in srgb, var(--opale-primary) 52%, transparent);
+}
 .opale-range {
   width: 100%;
   accent-color: var(--opale-primary);

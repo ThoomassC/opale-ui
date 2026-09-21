@@ -1000,6 +1000,105 @@ describe('le curseur sous verre', () => {
   });
 });
 
+/* =============================================================================
+   L'ENVELOPPE DOIT COLLER À LA PEAU QU'ELLE HABILLE.
+
+   LE DÉFAUT OBSERVÉ. L'interrupteur montrait deux arêtes au bas de sa pilule.
+   Sa piste est `inline-flex` : dans l'enveloppe, qui est un bloc, elle forme
+   une LIGNE, et une ligne réserve sous elle la place des jambages. Mesuré au
+   navigateur : enveloppe 31,59 px pour une piste de 28. Le filet spéculaire
+   du matériau traçait son arête en bas de l'enveloppe, le fond de la piste la
+   sienne trois pixels et demi plus haut.
+
+   POURQUOI CE TEST LIT LA FEUILLE ET NON LA PAGE. jsdom ne met rien en page :
+   il rend toutes les hauteurs nulles, donc l'écart est invisible pour lui. Ce
+   qui se vérifie ici est la CAUSE — une coquille de verre ne doit pas être de
+   niveau ligne — et elle se vérifie pour toutes les coquilles à la fois, pas
+   seulement pour celle qui a fauté.
+   ========================================================================== */
+describe('les coquilles de verre', () => {
+  const opaleSheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /** Les peaux posées DANS une enveloppe de verre, et leur `display` final. */
+  const SKINS = [
+    'opale-toggle-track--glass',
+    'opale-checkbox-mark--glass',
+    'opale-input-shell--glass',
+    'opale-range-shell--glass',
+    'opale-badge--glass',
+  ];
+
+  it('ne pose aucune peau de niveau ligne dans une enveloppe', () => {
+    for (const skin of SKINS) {
+      /* La DERNIÈRE déclaration gagne à spécificité égale, et toutes ces
+         règles pèsent (0,1,0) : c'est donc la dernière qu'il faut lire. */
+      const displays = [
+        ...opaleSheet.matchAll(new RegExp(`\\.${skin}(?![\\w-])[^,{]*\\{([^}]*)\\}`, 'g')),
+      ]
+        .flatMap((match) => [...match[1].matchAll(/display:\s*([\w-]+)/g)])
+        .map((match) => match[1]);
+
+      const display = displays.at(-1);
+
+      if (display === undefined) continue;
+
+      expect(
+        display,
+        `« .${skin} » est en « ${display} » : de niveau ligne, elle forme une ` +
+          'ligne dans son enveloppe, qui réserve sous elle la place des ' +
+          'jambages. L’enveloppe devient plus haute que la peau et le matériau ' +
+          'trace une seconde arête en dessous.',
+      ).not.toMatch(/^inline/);
+    }
+  });
+
+  /* LE PIÈGE DE CASCADE QUI A MASQUÉ LE VERRE. `.opale-toggle-track--glass`
+     posait `background: transparent` depuis le bloc commun des peaux, écrit
+     AVANT `.opale-toggle-track`. Les deux pèsent (0,1,0) : à égalité c'est
+     l'ordre qui tranche, et la piste colorée gagnait. On voyait une pilule
+     plate là où on attendait du verre — et rien ne rougissait. */
+  it('laisse la peau de verre gagner sur la peau pleine', () => {
+    /* La position de la DERNIÈRE règle dont un sélecteur est EXACTEMENT cette
+       classe, et qui peint un fond.
+
+       « exactement » n'est pas un détail : une première version se contentait
+       de chercher la classe quelque part dans le sélecteur, si bien que
+       « .opale-toggle:checked + * .opale-toggle-track--glass » la satisfaisait
+       — et le garde restait vert alors que la règle nue avait disparu. Le
+       test de mutation l'a montré. */
+    const lastBareRule = (className: string): number => {
+      let found = -1;
+
+      for (const rule of opaleSheet.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+        const selectors = rule[1].split(',').map((one) => one.trim());
+
+        if (!selectors.includes(`.${className}`)) continue;
+        if (!/background:/.test(rule[2])) continue;
+
+        found = rule.index ?? found;
+      }
+
+      return found;
+    };
+
+    for (const [plein, verre] of [['opale-toggle-track', 'opale-toggle-track--glass']]) {
+      const positionPleine = lastBareRule(plein);
+      const positionVerre = lastBareRule(verre);
+
+      expect(positionPleine, `« .${plein} » ne peint aucun fond.`).toBeGreaterThan(-1);
+      expect(
+        positionVerre,
+        `« .${verre} » ne reprend aucun fond pour son propre compte.`,
+      ).toBeGreaterThan(-1);
+      expect(
+        positionVerre,
+        `« .${verre} » est déclarée AVANT « .${plein} ». À spécificité égale, ` +
+          'c’est la dernière qui gagne : le fond plein recouvrirait le verre.',
+      ).toBeGreaterThan(positionPleine);
+    }
+  });
+});
+
 describe('les seuils de lisibilité du verre', () => {
   /** L'opacité plancher d'une encre blanche, mesurée : en dessous, AA tombe. */
   const PLANCHER = 0.85;
