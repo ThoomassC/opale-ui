@@ -767,6 +767,185 @@ describe('le périmètre du rebond', () => {
   });
 });
 
+/* =============================================================================
+   LE CURSEUR SOUS VERRE : LA PISTE EST LE MATÉRIAU, LA BULLE EST PEINTE.
+
+   CE QUI A CHANGÉ, ET POURQUOI IL FAUT LE GARDER. Le curseur laissait l'agent
+   utilisateur peindre sa propre piste dans la boîte de verre : un rail opaque
+   qui touchait les bords du matériau et le débordait. La piste est désormais
+   l'enveloppe elle-même, et deux décorations — la part mouillée, la bulle —
+   sont peintes par Opale depuis une variable CSS.
+
+   CE QUE CES TESTS SURVEILLENT EN PRIORITÉ, ce n'est pas l'apparence : c'est
+   que le remplacement n'a rien pris à l'utilisateur. Un contrôle natif rendu
+   invisible est la manière la plus courante de casser un curseur sans que
+   rien ne se voie — il suffit de le cacher un peu trop bien.
+   ========================================================================== */
+describe('le curseur sous verre', () => {
+  const opaleSheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /** La coquille, qui porte les variables lues par les deux décorations. */
+  const shellOf = (container: HTMLElement) =>
+    container.querySelector('.opale-range-shell') as HTMLElement;
+
+  it('écrit la position dans le DOM au lieu de re-rendre le composant', () => {
+    const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={40} />);
+    const shell = shellOf(container);
+
+    expect(
+      shell.style.getPropertyValue('--opale-range-progress'),
+      'La position doit être posée dès le montage, sans attendre un geste.',
+    ).toBe('0.4');
+
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '75' } });
+
+    expect(shell.style.getPropertyValue('--opale-range-progress')).toBe('0.75');
+  });
+
+  it('respecte min et max plutôt que de supposer 0–100', () => {
+    const { container } = render(
+      <Opale.Slider liquidGlass label="Température" min={10} max={30} defaultValue={25} />,
+    );
+
+    expect(
+      shellOf(container).style.getPropertyValue('--opale-range-progress'),
+      '25 sur l’échelle 10–30 vaut les trois quarts de la course, pas le quart.',
+    ).toBe('0.75');
+  });
+
+  /* LA DÉFORMATION EST BORNÉE, ET LA BORNE SE VÉRIFIE SUR LE CAS QUI LA
+     SOLLICITE : un clic à l'autre bout de la piste envoie toute la course en
+     un seul événement. Sans écrêtage, la bulle deviendrait un trait. */
+  it('borne l’allongement de la bulle, même sur un saut d’un bout à l’autre', () => {
+    const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={0} />);
+    const shell = shellOf(container);
+
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } });
+
+    const stretch = Number(shell.style.getPropertyValue('--opale-range-stretch'));
+
+    expect(stretch, 'Aucun allongement n’a été posé.').toBeGreaterThan(0);
+    expect(stretch, `Allongement de ${stretch} : la goutte devient un trait.`).toBeLessThanOrEqual(
+      0.22,
+    );
+  });
+
+  it('laisse la goutte se reposer quand le geste s’arrête', () => {
+    vi.useFakeTimers();
+
+    try {
+      const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={10} />);
+      const shell = shellOf(container);
+
+      fireEvent.change(screen.getByRole('slider'), { target: { value: '60' } });
+      expect(Number(shell.style.getPropertyValue('--opale-range-stretch'))).toBeGreaterThan(0);
+
+      vi.advanceTimersByTime(200);
+
+      expect(
+        shell.style.getPropertyValue('--opale-range-stretch'),
+        'Sans retour au repos, la bulle resterait étirée indéfiniment.',
+      ).toBe('0');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  /* WCAG 2.3.3. L'allongement est écrit en JavaScript : un style en ligne
+     l'emporte sur toute règle de la feuille, donc `@media
+     (prefers-reduced-motion)` ne pourrait pas le retirer. La préférence doit
+     être lue à la source, et c'est exactement ce que ce test vérifie. */
+  it('n’étire rien quand on demande moins d’animation', () => {
+    const matchMedia = vi.fn((query: string) => ({
+      matches: query.includes('prefers-reduced-motion'),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    const previous = window.matchMedia;
+    Object.defineProperty(window, 'matchMedia', { value: matchMedia, configurable: true });
+
+    try {
+      const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={0} />);
+
+      fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } });
+
+      expect(
+        shellOf(container).style.getPropertyValue('--opale-range-stretch'),
+        'La déformation doit être décidée en JavaScript : la feuille ne peut ' +
+          'pas défaire un style en ligne.',
+      ).toBe('');
+      expect(
+        shellOf(container).style.getPropertyValue('--opale-range-progress'),
+        'La position, elle, n’est pas du mouvement : elle reste posée.',
+      ).toBe('1');
+    } finally {
+      Object.defineProperty(window, 'matchMedia', { value: previous, configurable: true });
+    }
+  });
+
+  it('ne peint ses décorations que sous verre', () => {
+    const { container, rerender } = render(<Opale.Slider label="Volume" defaultValue={40} />);
+
+    expect(container.querySelector('.opale-range-bubble')).toBeNull();
+    expect(container.querySelector('.opale-range-wet')).toBeNull();
+
+    rerender(<Opale.Slider liquidGlass label="Volume" defaultValue={40} />);
+
+    for (const selector of ['.opale-range-bubble', '.opale-range-wet']) {
+      const decoration = container.querySelector(selector);
+
+      expect(decoration, `${selector} manque sous verre.`).not.toBeNull();
+      expect(
+        decoration,
+        `${selector} est un dessin : annoncé, il doublerait le curseur natif.`,
+      ).toHaveAttribute('aria-hidden', 'true');
+    }
+
+    expect(screen.getAllByRole('slider')).toHaveLength(1);
+  });
+
+  /* LE PIÈGE DE CE COMPOSANT : le natif doit DISPARAÎTRE à l'œil sans
+     disparaître de l'ordre de tabulation ni de l'arbre d'accessibilité.
+     `display: none` et `visibility: hidden` font les deux ; l'opacité nulle ne
+     fait que la première. Le test lit la feuille, faute de mise en page en
+     jsdom, et il vise la faute précise qu'on pourrait commettre en voulant
+     « mieux » cacher le contrôle. */
+  it('cache le contrôle natif sans le retirer du clavier', () => {
+    /* Le sélecteur apparaît dans PLUSIEURS blocs — il termine aussi une liste
+       partagée avec les champs, qui n'y pose qu'une couleur. Les réunir évite
+       de lire le premier venu et de conclure sur le mauvais. */
+    const rule = [
+      ...opaleSheet.matchAll(/\.opale-range-shell--glass \.opale-range[^,{]*\{([^}]*)\}/g),
+    ]
+      .map((match) => match[1])
+      .join('\n');
+
+    expect(rule, 'La règle qui cache le natif est introuvable.').not.toBe('');
+    expect(rule, 'Le natif doit être effacé par l’opacité.').toMatch(/opacity:\s*0/);
+    expect(rule, '`display: none` retirerait le curseur du clavier.').not.toMatch(
+      /display:\s*none/,
+    );
+    expect(rule, '`visibility: hidden` le retirerait aussi.').not.toMatch(/visibility:\s*hidden/);
+  });
+
+  /* LA BULLE SE PLACE SUR LA COURSE UTILE, PAS SUR LA LARGEUR DE LA PISTE.
+     Sinon elle sort d'un demi-diamètre aux deux extrémités — c'est-à-dire
+     exactement le défaut qu'on vient de corriger sur la piste native, reporté
+     sur la poignée. */
+  it('garde la bulle dans la piste aux deux extrémités', () => {
+    const rule = /\.opale-range-bubble \{([^}]*)\}/.exec(opaleSheet)?.[1] ?? '';
+    const offset = /inset-inline-start:\s*calc\(([^;]*)\);/.exec(rule)?.[1] ?? '';
+
+    expect(rule, 'La bulle est introuvable.').not.toBe('');
+    expect(
+      offset,
+      'La bulle se place sur 100 % de la piste : elle déborde d’un demi-' +
+        'diamètre à gauche comme à droite. Sa course utile est `100% - sa largeur`.',
+    ).toMatch(/100%\s*-\s*[\d.]+rem/);
+  });
+});
+
 describe('les seuils de lisibilité du verre', () => {
   /** L'opacité plancher d'une encre blanche, mesurée : en dessous, AA tombe. */
   const PLANCHER = 0.85;

@@ -202,12 +202,21 @@
      réel de chaque ombre à chaque distance (étalement, puis gaussienne
      d'écart-type flou/2) :
 
-       fond                        pire rapport
-       photo voilée, pire pixel    4,08:1
-       blanc pur                   ≥ 4,08:1
-       fond sombre #0c0f0d         ≥ 4,08:1
+       densité de la lueur    meilleur réglage possible
+       100 %                  4,08:1
+        85 %                  3,17:1   ← retenu
+        75 %                  2,65:1
+        65 %                  2,21:1
 
-     Le plancher de 1.4.11 est 3:1. Le même réglage tient dans les DEUX
+     LA LUEUR A ÉTÉ ADOUCIE À LA DEMANDE, ET C'EST ELLE QUI PORTE TOUT SUR LES
+     FONDS SOMBRES : sa densité est donc le réglage le plus contraint du lot.
+     85 % est le dernier palier qui passe le plancher de 3:1 de 1.4.11 — la
+     marge tombe de 36 % à 6 %, ce qui est dit plutôt que caché. En dessous,
+     aucun réglage de l'ombre ne rattrape : 75 % plafonne à 2,65:1.
+
+     L'ÉTALEMENT DE LA LUEUR NE PEUT PAS DESCENDRE À 1 px, quoique ce fût
+     l'autre façon d'en montrer moins : mesuré, 2,96:1 même à pleine densité.
+     C'est l'étalement qui fait exister la lueur, pas son opacité seule. Le même réglage tient dans les DEUX
      thèmes, d'où un seul jeton : une reprise en thème sombre n'apporterait
      rien et donnerait deux valeurs à garder cohérentes.
 
@@ -215,7 +224,7 @@
      qui distingue une ombre d'un anneau, et c'est l'identité du traitement
      retenu. */
   --opale-glass-focus-halo:
-    0 0 4px 2px rgba(255, 255, 255, 1), 0 0 12px 8px rgba(7, 28, 43, 0.9);
+    0 0 4px 2px rgba(255, 255, 255, 0.85), 0 0 16px 7px rgba(7, 28, 43, 0.9);
 }
 
 :root[data-theme='dark'] {
@@ -521,10 +530,21 @@
 }
 .opale-card--glass-root,
 .opale-surface--glass-root,
-.opale-input--glass-root,
-.opale-range--glass-root {
+.opale-input--glass-root {
   --opale-glass-width: 100%;
   --opale-glass-radius: var(--opale-radius-md);
+}
+
+/* LE CURSEUR N'EST PAS UNE BOÎTE QUI CONTIENT UNE PISTE : IL EST LA PISTE.
+
+   CE QUI N'ALLAIT PAS. L'enveloppe prenait le rayon moyen et laissait l'agent
+   utilisateur peindre sa propre piste dedans, à `accent-color` et sur toute la
+   largeur. Un rail opaque touchait donc les bords du verre et le débordait par
+   endroits. Le rayon en pilule et la hauteur de piste font du matériau la
+   piste elle-même ; le reste est peint par Opale. */
+.opale-range--glass-root {
+  --opale-glass-width: 100%;
+  --opale-glass-radius: var(--opale-radius-pill);
 }
 .opale-checkbox--glass-root {
   --opale-glass-radius: 0.375rem;
@@ -1091,6 +1111,147 @@
 .opale-range {
   width: 100%;
   accent-color: var(--opale-primary);
+}
+
+/* =============================================================================
+   LE CURSEUR SOUS VERRE : UNE PISTE DE MATIÈRE, UNE BULLE QUI GLISSE DESSUS.
+
+   TROIS PIÈCES, ET UNE SEULE COMMANDE. La piste est l'enveloppe de verre avec
+   ses trois couches. Le remplissage (`__wet`) et la bulle (`__bubble`) sont
+   des décorations, marquées `aria-hidden`. L'`<input type="range">` natif les
+   recouvre entièrement, invisible : c'est lui qui reçoit le geste, les
+   flèches, le `name` et le rôle `slider`. Aucune des trois pièces n'est
+   annoncée deux fois, et rien du contrat natif n'est réimplémenté.
+
+   POURQUOI LE NATIF EST EN OPACITÉ NULLE ET NON CACHÉ. `visibility: hidden`
+   ou `display: none` le retireraient de l'ordre de tabulation et de l'arbre
+   d'accessibilité : le curseur deviendrait décoratif et inutilisable au
+   clavier. L'opacité nulle ne retire rien — elle ne fait que laisser voir le
+   verre en dessous.
+   ========================================================================== */
+.opale-range-shell--glass {
+  position: relative;
+  display: block;
+  /* La hauteur de la piste. Elle porte aussi la zone de préhension : le natif
+     l'occupe en entier, donc c'est elle qui donne la cible du pointeur. */
+  min-block-size: 2rem;
+  border-radius: var(--opale-radius-pill);
+}
+
+.opale-range-shell--glass .opale-range {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: grab;
+}
+
+.opale-range-shell--glass .opale-range:active {
+  cursor: grabbing;
+}
+
+/* LA PART MOUILLÉE. Elle s'arrête en pilule des deux côtés plutôt qu'en
+   biseau : une masse d'eau retenue a des bords ronds, et la bulle vient s'y
+   poser comme une goutte au bout. */
+.opale-range-wet {
+  position: absolute;
+  z-index: 1;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: calc(var(--opale-range-progress, 0) * 100%);
+  border-radius: var(--opale-radius-pill);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.26));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  transition: inline-size 90ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* LA BULLE.
+
+   SA POSITION EST CALCULÉE SUR LA COURSE UTILE, `100% - sa propre largeur`,
+   et non sur la largeur de la piste : sans cela elle sortirait de la moitié
+   de son diamètre aux deux extrémités — le défaut exact qu'on vient de
+   corriger sur la piste native.
+
+   `scale` PORTE À LUI SEUL LES DEUX EFFETS, et c'est délibéré : une
+   animation par images se battrait avec la transition, et l'une des deux
+   gagnerait selon le moment du geste. `--opale-range-grab` est la prise,
+   `--opale-range-stretch` l'allongement du glissement ; leur produit est
+   toujours continu, donc la transition les lisse toutes les deux.
+
+   L'AXE VERTICAL SE CREUSE DE 65 % DE CE QUE L'AXE HORIZONTAL GAGNE. Une
+   goutte qui s'étire conserve son volume : l'étirer sans l'aplatir donnerait
+   une pastille qui grossit, pas une goutte qui file. */
+.opale-range-bubble {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: calc(50% - 0.8125rem);
+  inset-inline-start: calc(var(--opale-range-progress, 0) * (100% - 1.625rem));
+  inline-size: 1.625rem;
+  block-size: 1.625rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    120% 120% at 32% 26%,
+    rgba(255, 255, 255, 0.88),
+    rgba(255, 255, 255, 0.22) 44%,
+    rgba(255, 255, 255, 0.08) 72%
+  );
+  backdrop-filter: blur(1px) saturate(1.35);
+  -webkit-backdrop-filter: blur(1px) saturate(1.35);
+  /* LE BORD FAIT LE TOUR, et ce n'est pas cosmétique. Le filet spéculaire du
+     matériau n'éclaire que le quart haut-gauche — c'est ce qui donne à une
+     surface de verre son air d'être éclairée d'en haut. Sur la bulle, cela
+     laissait sa moitié basse se fondre dans la part mouillée, qui est claire
+     elle aussi : la POSITION du curseur, donc l'état du composant, devenait
+     difficile à lire. Le liseré complet et l'ombre portée en dessous donnent
+     au contour les deux tons qu'il faut pour se détacher des deux côtés. */
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.75),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 8px rgba(255, 255, 255, 0.45),
+    0 3px 10px rgba(7, 28, 43, 0.5);
+  pointer-events: none;
+  scale: calc(var(--opale-range-grab, 1) * (1 + var(--opale-range-stretch, 0)))
+    calc(var(--opale-range-grab, 1) * (1 - var(--opale-range-stretch, 0) * 0.65));
+  transition:
+    inset-inline-start 90ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale 170ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* LA PRISE. Le dépassement de la courbe au-delà de 1 est ce qui fait le
+   rebond de la goutte quand on l'attrape — il est dans la transition, pas
+   dans une animation, donc il ne se rejoue pas tout seul.
+
+   `:focus-visible` GROSSIT LA BULLE AUSSI, et ce n'est pas un doublon du halo
+   : le halo cerne la piste entière, qui fait toute la largeur du champ. Sur
+   une piste longue, savoir QUE le curseur a le focus ne dit pas encore OÙ est
+   la poignée. */
+.opale-range:active ~ .opale-range-bubble,
+.opale-range:focus-visible ~ .opale-range-bubble {
+  --opale-range-grab: 1.16;
+}
+
+.opale-range:active ~ .opale-range-bubble {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 1px 1px 0 rgba(255, 255, 255, 1),
+    inset 0 0 10px rgba(255, 255, 255, 0.6),
+    0 5px 16px rgba(7, 28, 43, 0.55);
+}
+
+/* WCAG 2.3.3. L'allongement lui-même est écrit en JavaScript, qui lit la
+   préférence à la source : un style en ligne l'emporterait sur toute règle
+   posée ici. Ce bloc ne coupe donc que ce qui appartient à la feuille — le
+   glissement et le rebond. La bulle et le remplissage vont alors directement
+   à leur place, ce qui reste parfaitement utilisable. */
+@media (prefers-reduced-motion: reduce) {
+  .opale-range-wet,
+  .opale-range-bubble {
+    transition: none;
+  }
 }
 
 /* La pastille de sélection est un élément à part (`__indicator`) qui GLISSE

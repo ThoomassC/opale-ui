@@ -7,6 +7,7 @@ import {
   useState,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
+  type ChangeEvent,
   type CSSProperties,
   type FormHTMLAttributes,
   type HTMLAttributes,
@@ -455,6 +456,36 @@ export interface SliderProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   liquidGlass?: boolean;
 }
 
+/* =============================================================================
+   LA BULLE DU CURSEUR, ET CE QUI LA FAIT GLISSER.
+
+   `STRETCH_MAX` BORNE LA DÉFORMATION. Au-delà d'un cinquième, la bulle cesse
+   de ressembler à une goutte et devient un trait : l'effet se retourne contre
+   lui-même. `STRETCH_GAIN` convertit une fraction de course parcourue depuis
+   le dernier événement en allongement — un glissement continu envoie des pas
+   de l'ordre du pour-cent, un clic à l'autre bout envoie tout d'un coup et se
+   trouve écrêté.
+
+   `STRETCH_RELAX_MS` EST CE QUI REND LA GOUTTE VIVANTE. Sans lui, la
+   déformation resterait figée à la dernière valeur reçue : la bulle
+   s'allongerait et n'en reviendrait jamais. Le délai est plus court que la
+   cadence d'un glissement (un pointeur émet toutes les 8 à 16 ms), donc il ne
+   se déclenche qu'à l'arrêt réel.
+   ========================================================================== */
+const STRETCH_MAX = 0.22;
+const STRETCH_GAIN = 2.6;
+const STRETCH_RELAX_MS = 140;
+
+/** La fraction parcourue, bornée à [0, 1]. */
+function rangeProgress(input: HTMLInputElement): number {
+  const min = Number(input.min === '' ? 0 : input.min);
+  const max = Number(input.max === '' ? 100 : input.max);
+
+  if (!(max > min)) return 0;
+
+  return Math.min(Math.max((Number(input.value) - min) / (max - min), 0), 1);
+}
+
 export function Slider({
   label,
   valueLabel,
@@ -463,17 +494,81 @@ export function Slider({
   onChange,
   ...props
 }: SliderProps) {
-  /* LA SUPERPOSITION A DISPARU, ET C'ÉTAIT UNE BÉQUILLE.
+  /* SOUS VERRE, LA PISTE EST LE MATÉRIAU LUI-MÊME.
 
-     Le curseur tiers était une piste en `<div>` sans rôle, sans `tabindex` et
-     sans clavier. Pour ne pas perdre l'accessibilité en basculant la matière,
-     il fallait le poser SOUS un `<input type="range">` rendu transparent : le
-     natif recevait le geste, le verre peignait la valeur, et un état miroir
-     tenait les deux d'accord. Trois pièces pour un seul curseur.
+     CE QUI N'ALLAIT PAS. Le curseur se contentait d'un `<input type="range">`
+     natif posé dans une boîte de verre : sa piste était peinte par l'agent
+     utilisateur, à `accent-color`, sur toute la largeur. Elle touchait donc
+     les bords du verre et le débordait par endroits — un rail opaque au
+     milieu d'un matériau transparent, qui ne ressemblait ni à du verre ni à
+     un curseur d'Opale.
 
-     Le verre enveloppant maintenant notre propre piste, il n'y a plus qu'un
-     élément : l'`<input type="range">`, visible, avec ses flèches et son
-     `ChangeEvent`. */
+     CE QUI EST FAIT MAINTENANT. L'enveloppe de verre EST la piste : une pilule
+     pleine largeur, avec ses trois couches. Le remplissage et la bulle sont
+     deux DÉCORATIONS peintes par-dessus, et le natif — invisible, étendu sur
+     toute la piste — reste la seule commande : son clavier, son `name`, son
+     `ChangeEvent` et son rôle `slider` ne changent pas. C'est exactement le
+     partage déjà en place pour la case à cocher.
+
+     LA POSITION EST ÉCRITE DANS LE DOM, PAS DANS UN ÉTAT REACT. Un état
+     miroir avait été supprimé de ce composant, et il ne revient pas : deux
+     décorations n'ont pas besoin d'un rendu React pour bouger, elles ont
+     besoin d'une variable CSS. L'écrire directement évite de re-rendre le
+     composant à chaque pixel d'un glissement, et — surtout — évite de rendre
+     contrôlé un curseur que l'appelant avait laissé libre. */
+  const inputRef = useRef<HTMLInputElement>(null);
+  const previous = useRef<number | null>(null);
+  const relax = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  /* La position se repose après CHAQUE rendu, sans condition. C'est ce qui
+     couvre les cas qu'un gestionnaire d'événement ne voit pas : un curseur
+     contrôlé dont le parent change la valeur, un `min`/`max` qui bouge, le
+     premier montage. La déformation, elle, n'y est pas touchée — elle
+     appartient au geste, et un rendu n'est pas un geste. */
+  useEffect(() => {
+    const input = inputRef.current;
+    const shell = input?.parentElement;
+
+    if (!input || !shell) return;
+
+    const progress = rangeProgress(input);
+    shell.style.setProperty('--opale-range-progress', String(progress));
+    previous.current = progress;
+  });
+
+  useEffect(() => () => clearTimeout(relax.current), []);
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const shell = input.parentElement;
+
+    if (shell) {
+      const progress = rangeProgress(input);
+      shell.style.setProperty('--opale-range-progress', String(progress));
+
+      /* WCAG 2.3.3 — la déformation est du mouvement non essentiel, et elle
+         est pilotée depuis JavaScript : une règle CSS ne pourrait pas la
+         retirer, un style en ligne l'emportant sur elle. La préférence se lit
+         donc ici, à la source. */
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+      if (!reduced) {
+        const delta = Math.abs(progress - (previous.current ?? progress));
+        const stretch = Math.min(delta * STRETCH_GAIN, STRETCH_MAX);
+
+        shell.style.setProperty('--opale-range-stretch', String(stretch));
+        clearTimeout(relax.current);
+        relax.current = setTimeout(() => {
+          shell.style.setProperty('--opale-range-stretch', '0');
+        }, STRETCH_RELAX_MS);
+      }
+
+      previous.current = progress;
+    }
+
+    onChange?.(event);
+  };
+
   return (
     <label className={cx('opale-field', className)}>
       {(label || valueLabel) && (
@@ -487,7 +582,22 @@ export function Slider({
         className={cx('opale-range-shell', liquidGlass && 'opale-range-shell--glass')}
         rootClassName="opale-range--glass-root"
       >
-        <input type="range" className="opale-range" onChange={onChange} {...props} />
+        {/* LE NATIF EST ÉCRIT EN PREMIER, et l'ordre est un contrat : les deux
+            décorations se peignent depuis son état par le sélecteur frère
+            `~`, qui ne regarde que ce qui SUIT. */}
+        <input
+          ref={inputRef}
+          type="range"
+          className="opale-range"
+          onChange={handleChange}
+          {...props}
+        />
+        {liquidGlass && (
+          <>
+            <span className="opale-range-wet" aria-hidden="true" />
+            <span className="opale-range-bubble" aria-hidden="true" />
+          </>
+        )}
       </FieldShell>
     </label>
   );
