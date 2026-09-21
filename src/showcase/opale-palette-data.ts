@@ -78,6 +78,11 @@ export const OPALE_PLATES: readonly Plate[] = [
           { token: '--opale-secondary', hex: '#5990b0', against: 'variante secondaire' },
           { token: '--opale-secondary-dark', hex: '#3a6b8a', against: 'fond du bouton secondaire' },
           { token: '--opale-accent', hex: '#f4ad15', against: 'accent éditorial' },
+          {
+            token: '--opale-accent-dark',
+            hex: '#7a5200',
+            against: 'ambre qui porte du blanc : pastille, lavis sur image',
+          },
         ],
       },
       {
@@ -131,6 +136,11 @@ export const OPALE_PLATES: readonly Plate[] = [
           { token: '--opale-secondary', hex: '#8fb5cd', against: 'variante secondaire' },
           { token: '--opale-secondary-dark', hex: '#6f9cba', against: 'fond du bouton secondaire' },
           { token: '--opale-accent', hex: '#f4ad15', against: 'accent — identique au clair' },
+          {
+            token: '--opale-accent-dark',
+            hex: '#7a5200',
+            against: 'ambre sombre — hérité du clair',
+          },
         ],
       },
       {

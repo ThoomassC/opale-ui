@@ -23,6 +23,14 @@
   --opale-secondary: #5990b0;
   --opale-secondary-dark: #3a6b8a;
   --opale-accent: #f4ad15;
+  /* L'AMBRE A BESOIN D'UNE VERSION SOMBRE, comme le saphir et le bleu d'acier
+     ont la leur. `--opale-accent` est un jaune vif : il porte une encre sombre
+     sur une grande surface, et rien du tout sur une petite. Partout où l'ambre
+     doit porter du BLANC — une pastille, un lavis sur photographie — c'est
+     cette valeur qui sert. Elle traînait en trois exemplaires littéraux dans
+     la feuille avant d'être nommée, plus une quatrième variante à un chiffre
+     près (`#785200`), ce qui est exactement ainsi qu'une marque se délite. */
+  --opale-accent-dark: #7a5200;
   --opale-danger: #b3261e;
   --opale-info: #1a4f8b;
   --opale-success: #2e7d32;
@@ -505,10 +513,56 @@
   color: var(--opale-glass-ink);
 }
 [data-opale-glass] .opale-badge--accent {
-  background: color-mix(in srgb, #7a5200 72%, transparent);
+  background: color-mix(in srgb, var(--opale-accent-dark) 90%, transparent);
 }
 [data-opale-glass] .opale-badge--danger {
   background: color-mix(in srgb, var(--opale-danger) 72%, transparent);
+}
+
+/* LE FOCUS D'UN CONTRÔLE POSÉ À CÔTÉ DU VERRE, ET NON DEDANS.
+
+   La case à cocher et l'interrupteur gardent leur `<input>` natif comme moteur,
+   et le verre n'est que leur peau : dans le balisage, les deux sont FRÈRES à
+   l'intérieur du `<label>`. Le `:focus-within` du matériau ne peut donc jamais
+   s'y déclencher — mesuré, la page ne changeait pas d'un seul pixel quand la
+   case recevait le focus au clavier. Un contrôle sans indicateur de focus est
+   un échec de 2.4.7, et celui-là était total.
+
+   Le sélecteur frère `+` répare exactement ce cas, et il est posé ICI et non
+   dans le matériau : `Glass` ne peut pas deviner qu'on l'a mis à côté d'un
+   contrôle plutôt qu'autour. `:focus-visible` et non `:focus` — un clic de
+   souris n'a pas besoin d'anneau. */
+.opale-checkbox:focus-visible + [data-opale-glass],
+.opale-toggle:focus-visible + [data-opale-glass] {
+  --opale-glass-edge: rgba(255, 255, 255, 0.98);
+  --opale-glass-tint: rgba(7, 28, 43, 0.42);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.96),
+    inset 0 0 0 4px rgba(7, 28, 43, 0.55);
+}
+
+/* LE CHAMP DE SAISIE MÉRITE UN LAVIS PLUS DENSE, ET C'EST MESURÉ.
+
+   Un texte indicatif doit se distinguer d'une valeur saisie, sinon on croit le
+   champ rempli — d'où son atténuation. Mais l'audit a mesuré ce que cette
+   atténuation coûte VRAIMENT, glyphe par glyphe sur les pixels réellement
+   recouverts : 2,50:1 au pire pixel, 3,10 au cinquième centile. Très en
+   dessous du seuil.
+
+   MA JUSTIFICATION PRÉCÉDENTE ÉTAIT FAUSSE, et il faut le dire : j'avais écrit
+   qu'un texte indicatif relevait d'un « seuil de 3:1 des textes non
+   essentiels ». Ce seuil N'EXISTE PAS dans WCAG. Les seules exemptions de
+   1.4.3 sont le texte purement décoratif, les composants DÉSACTIVÉS et les
+   logos. Un placeholder dans un champ actif est du texte : 4,5:1.
+
+   PLUTÔT QUE DE RENONCER À L'ATTÉNUATION, ON DENSIFIE LE SUPPORT. Le champ est
+   une surface qui PORTE du texte, contrairement à une carte décorative : il a
+   donc le droit d'être moins transparent que le reste du verre. Le lavis passe
+   à 42 % de bleu nuit, ce qui donne au blanc atténué une base sombre et stable
+   au lieu d'une photographie. Le champ se lit encore comme du verre — il
+   réfracte toujours —, il est simplement moins bavard. */
+.opale-input--glass-root {
+  --opale-glass-tint: rgba(7, 28, 43, 0.42);
 }
 
 /* L'ENCRE DESCEND JUSQU'AU CHAMP ET JUSQU'À SON TEXTE INDICATIF.
@@ -569,15 +623,28 @@
   --opale-button-hover-background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
 }
 
+/* UNE PASTILLE EST PETITE, DONC SON LAVIS DOIT ÊTRE DENSE.
+
+   Ces trois lavis étaient à 22–34 % : assez pour teinter une grande surface,
+   pas assez pour porter un libellé de 13 px. Mesuré sur le pire pixel du cliché
+   voilé, encre blanche comprise : « Stable » 4,49:1, « Nouveau » **3,85:1** —
+   la pastille ambre était la moins lisible des trois, l'ambre étant la plus
+   claire des teintes d'Opale.
+
+   LE RAISONNEMENT VAUT AU-DELÀ DU CAS : plus une surface teintée est petite,
+   moins on peut compter sur ce qu'il y a derrière, parce que le texte en occupe
+   presque toute la hauteur. Une carte peut être translucide, une pastille non.
+   Les trois montent donc au-dessus de 6:1, et l'ambre à 90 % — elle part de
+   plus loin. */
 .opale-badge--glass {
-  background: color-mix(in srgb, var(--opale-primary) 22%, transparent);
+  background: color-mix(in srgb, var(--opale-primary) 68%, transparent);
   color: var(--opale-glass-ink);
 }
 .opale-badge--glass.opale-badge--accent {
-  background: color-mix(in srgb, var(--opale-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--opale-accent-dark) 90%, transparent);
 }
 .opale-badge--glass.opale-badge--danger {
-  background: color-mix(in srgb, var(--opale-danger) 22%, transparent);
+  background: color-mix(in srgb, var(--opale-danger) 72%, transparent);
 }
 
 /* Les surfaces et les coquilles laissent voir le verre : ni fond, ni bordure,
@@ -1032,7 +1099,7 @@
 }
 .opale-badge--accent {
   background: color-mix(in srgb, var(--opale-accent) 34%, transparent);
-  color: #785200;
+  color: var(--opale-accent-dark);
 }
 .opale-badge--danger {
   background: color-mix(in srgb, var(--opale-danger) 14%, transparent);

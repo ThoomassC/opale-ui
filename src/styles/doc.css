@@ -372,7 +372,13 @@ body {
   position: absolute;
   inset-block-start: var(--space-2);
   inset-inline-start: var(--space-2);
-  z-index: 3;
+  /* 100 ET NON 3 : mesuré, le lien d'évitement était calculé VISIBLE au focus
+     (rect 8,8 — 159 × 44, fond opaque) et n'était pas peint — la barre du haut
+     pèse `z-index: 20` et passait devant. La toute première tabulation de
+     chaque page ne produisait donc aucun retour visuel, ce qui est le pire
+     endroit possible pour un indicateur manquant : c'est le geste par lequel
+     un utilisateur au clavier découvre la page. */
+  z-index: 100;
   display: inline-flex;
   align-items: center;
   min-block-size: var(--target-min);
@@ -3380,7 +3386,7 @@ body {
   color: var(--tc-white);
 }
 .tc-doc-magicstage .opale-badge--accent {
-  background: color-mix(in srgb, #7a5200 72%, transparent);
+  background: color-mix(in srgb, var(--opale-accent-dark) 90%, transparent);
 }
 .tc-doc-magicstage .opale-badge--danger {
   background: color-mix(in srgb, var(--opale-danger) 72%, transparent);

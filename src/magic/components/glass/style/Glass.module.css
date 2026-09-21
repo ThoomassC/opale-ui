@@ -132,10 +132,37 @@
    Le défaut d'un composant doit être la valeur SÛRE, pas celle de l'agent
    utilisateur. Un composant qui pose sa propre encre l'emporte de toute façon
    sur ce repli. */
+/* LE CONTENU NEUTRALISE LE CHROME DU NAVIGATEUR, ET C'EST UNE RÉGRESSION
+   RÉPARÉE.
+
+   `<Glass as="button">` rendait un `<button>` avec ses valeurs par défaut :
+   `appearance: auto`, `background: rgb(239, 239, 239)` — le gris « buttonface »
+   — et une bordure `outset`. Le contenu était donc OPAQUE : il recouvrait
+   intégralement les trois couches, et le verre ne se voyait pas du tout.
+   Mesuré, l'encre blanche sur ce gris : **1,15:1**.
+
+   D'OÙ CELA VENAIT : Tailwind était une dépendance du paquet, et son Preflight
+   remettait `background: transparent` sur les boutons. En le retirant, on a
+   retiré ce reset sans le remplacer. Le matériau doit le poser lui-même, sinon
+   `as="button"` est un piège pour tout consommateur — et il l'a été pour deux
+   boutons de la vitrine.
+
+   `font: inherit` EST DU MÊME ORDRE : un bouton natif n'hérite pas de la
+   police du document, il prend celle du système. */
 .content {
   position: relative;
   z-index: 3;
   color: var(--opale-glass-ink, #fff);
+}
+
+.content:where(button, input, select, textarea) {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+.content:where(button) {
+  cursor: pointer;
 }
 
 .squishing {
@@ -202,18 +229,38 @@
    mesure pas contre l'extérieur. Il est BLANC et non bleu — sur le voile
    mesuré, le blanc tient 5,56:1, très au-dessus du seuil.
 
-   L'OUTLINE VA SUR L'ENVELOPPE, et c'est vérifié : un élément n'est jamais rogné
-   par son PROPRE `overflow: hidden` — seul celui d'un ancêtre rognerait, et il
-   n'y en a aucun ici. Posé sur le contenu, il aurait disparu sous le découpage
-   de l'enveloppe.
+   L'ANNEAU EST INTÉRIEUR, ET C'EST LA CORRECTION D'UNE ERREUR DE DIAGNOSTIC.
 
-   `:focus-within` ET NON `:focus` : le contrôle réel est à l'intérieur du
-   verre, jamais l'enveloppe elle-même. */
-.glass:focus-within {
-  --opale-glass-edge: rgba(255, 255, 255, 0.95);
-  --opale-glass-tint: rgba(255, 255, 255, 0.16);
-  outline: 2px solid rgba(255, 255, 255, 0.92);
-  outline-offset: 2px;
+   Une première version posait un `outline` sur l'enveloppe, avec cette
+   justification : « un élément n'est jamais rogné par son propre
+   `overflow: hidden` ». C'est exact, et c'est le mauvais piège. Le bouton porte
+   aussi un `clip-path` — la silhouette en squircle —, et un `clip-path`, LUI,
+   rogne l'outline de son propre élément. Mesuré sur le bord d'un bouton
+   focalisé : **0 % du périmètre** au-dessus de 3:1, médiane 1,13:1. L'anneau
+   n'était tout simplement pas peint. Sur le champ de saisie, qui n'a pas de
+   `clip-path`, le même anneau tenait 12,43:1 — d'où l'illusion qu'il
+   fonctionnait.
+
+   Un `box-shadow: inset` est peint À L'INTÉRIEUR de la boîte, donc le découpage
+   ne l'atteint pas. Il est doublé d'un liseré sombre : un anneau clair sur une
+   photographie claire ne tiendrait pas 3:1 partout, et 2.4.11 exige ce plancher
+   contre CE QUI ENTOURE l'indicateur.
+
+   LE LAVIS S'ASSOMBRIT AU LIEU DE S'ÉCLAIRCIR. Il passait de 6 à 16 % de blanc,
+   soit un écart de luminance de 1,25:1 entre focalisé et non focalisé —
+   invisible. Assombrir contraste bien mieux sur un fond déjà clair par endroits.
+
+   `:focus-within` NE SUFFIT PAS, et c'est le second défaut de la version
+   précédente : pour la case à cocher et l'interrupteur, le contrôle natif est
+   posé À CÔTÉ du verre, pas dedans. L'attribut `data-opale-glass-focus`, qu'une
+   règle voisine pose depuis le contrôle, couvre ce cas. */
+.glass:focus-within,
+.glass[data-opale-glass-focus='true'] {
+  --opale-glass-edge: rgba(255, 255, 255, 0.98);
+  --opale-glass-tint: rgba(7, 28, 43, 0.42);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.96),
+    inset 0 0 0 4px rgba(7, 28, 43, 0.55);
 }
 
 /* =============================================================================

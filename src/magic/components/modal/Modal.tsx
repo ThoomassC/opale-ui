@@ -222,26 +222,6 @@ const Modal = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closeOnEsc, handleClose, open]);
 
-  /* LE FOCUS PART AU PANNEAU ET REVIENT AU DÉCLENCHEUR.
-
-     Le panneau plutôt que le premier bouton : c'est ce que recommande l'APG
-     quand le dialogue porte un texte à lire, et c'est ce qui fait annoncer le
-     titre et la description avant les actions. La restauration vit dans le
-     NETTOYAGE, donc elle couvre les trois sorties — fermeture, démontage du
-     parent, et changement de `open` — sans qu'aucune ait à y penser. */
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const previous = document.activeElement;
-    panelRef.current?.focus({ preventScroll: true });
-
-    return () => {
-      if (previous instanceof HTMLElement && previous.isConnected) {
-        previous.focus({ preventScroll: true });
-      }
-    };
-  }, [open]);
-
   /* L'INERTIE DE L'ARRIÈRE-PLAN.
 
      On remonte du conteneur de portail jusqu'à `<body>` et, à chaque niveau,
@@ -283,6 +263,36 @@ const Modal = ({
 
         if (hidden === null) element.removeAttribute('aria-hidden');
         else element.setAttribute('aria-hidden', hidden);
+      }
+    };
+  }, [open]);
+
+  /* CET EFFET EST DÉCLARÉ APRÈS CELUI DE L'INERTIE, ET L'ORDRE EST LE CORRECTIF.
+
+     React exécute les nettoyages dans l'ORDRE DE DÉCLARATION des effets.
+     Déclaré avant, celui-ci rendait le focus au déclencheur pendant que
+     l'arrière-plan portait encore `inert` — et `focus()` sur un élément inerte
+     ne fait rien, sans lever d'erreur. Mesuré sur les trois sorties (Échap,
+     bouton Fermer, clic sur la toile de fond) : le focus retombait sur
+     `<body>`, donc l'utilisateur au clavier repartait du début de la page.
+
+     Le défaut ne se voyait pas : le code était juste, le commentaire annonçait
+     le bon comportement, et seul l'ordre de deux blocs le contredisait.
+
+     Le panneau plutôt que le premier bouton : c'est ce que recommande l'APG
+     quand le dialogue porte un texte à lire, et c'est ce qui fait annoncer le
+     titre et la description avant les actions. La restauration vit dans le
+     NETTOYAGE, donc elle couvre les trois sorties — fermeture, démontage du
+     parent, et changement de `open` — sans qu'aucune ait à y penser. */
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const previous = document.activeElement;
+    panelRef.current?.focus({ preventScroll: true });
+
+    return () => {
+      if (previous instanceof HTMLElement && previous.isConnected) {
+        previous.focus({ preventScroll: true });
       }
     };
   }, [open]);

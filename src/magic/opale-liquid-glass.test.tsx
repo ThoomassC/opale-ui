@@ -442,24 +442,66 @@ describe('la technique de sélection des couches', () => {
 describe('l’accessibilité du matériau', () => {
   const glassSheet = glassSource.replace(/\/\*[\s\S]*?\*\//g, '');
 
+  /* CE GARDE EXIGEAIT UN `outline`, ET C'ÉTAIT LUI QUI AVAIT TORT.
+
+     Il vérifiait la présence d'un `outline: 2px solid` et passait au vert — sur
+     un anneau qui n'était pas peint. Le bouton de verre porte un `clip-path`
+     pour sa silhouette en squircle, et un `clip-path` rogne l'outline de son
+     propre élément : mesuré, 0 % du périmètre au-dessus de 3:1, médiane 1,13:1.
+     Le garde épinglait donc la DÉCLARATION sans rien savoir du rendu.
+
+     Il vise désormais un `box-shadow: inset`, peint à l'intérieur de la boîte,
+     que le découpage n'atteint pas. La leçon vaut d'être écrite : un garde de
+     feuille de style ne prouve jamais qu'une règle est PEINTE. */
   it('rend le focus visible sans rétablir le rectangle refusé', () => {
-    const rule = /\.glass:focus-within\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
+    const rule = /\.glass:focus-within[^{]*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
 
     expect(
       rule,
       'Le matériau ne marque plus le focus. Les jetons d’anneau de la vitrine ' +
         'valent `transparent` : sans cette règle, un champ de verre n’a AUCUN ' +
         'indicateur au clavier (WCAG 2.4.7).',
-    ).toMatch(/outline:\s*\d+px\s+solid/);
+    ).toMatch(/box-shadow:[^;]*inset/);
 
-    /* L'anneau doit contraster avec ce qui l'entoure (2.4.11). Blanc sur le
-       voile mesuré : 5,56:1. Un anneau qui emprunterait `--opale-focus` serait
-       transparent dans la vitrine — c'est exactement le piège. */
+    expect(
+      rule,
+      'Un `outline` est rogné par le `clip-path` des composants qui en portent un. ' +
+        'L’indicateur doit être intérieur.',
+    ).not.toMatch(/outline:\s*\d/);
     expect(rule).not.toMatch(/--opale-focus/);
     expect(
       rule,
       'L’arête du verre doit s’allumer : c’est l’indicateur porté par la matière.',
     ).toMatch(/--opale-glass-edge/);
+  });
+
+  /* LE CONTRÔLE POSÉ À CÔTÉ DU VERRE DOIT L'ALLUMER AUSSI. La case et
+     l'interrupteur gardent leur `<input>` natif comme FRÈRE du matériau :
+     `:focus-within` ne s'y déclenche jamais, et la page ne changeait pas d'un
+     seul pixel au focus clavier. */
+  it('allume le verre depuis un contrôle qui lui est frère', () => {
+    for (const control of ['opale-checkbox', 'opale-toggle']) {
+      expect(
+        opaleSource,
+        `« .${control} » ne marque pas le focus sur le verre voisin : son ` +
+          '`<input>` est frère du matériau, donc `:focus-within` ne peut pas le voir.',
+      ).toMatch(new RegExp(`\\.${control}:focus-visible \\+ \\[data-opale-glass\\]`));
+    }
+  });
+
+  /* LE CHROME DU NAVIGATEUR DOIT ÊTRE NEUTRALISÉ. Un `<Glass as="button">` nu
+     rendait un bouton au fond `rgb(239, 239, 239)` — opaque, masquant les trois
+     couches, encre blanche à 1,15:1. Tailwind posait ce reset ; en le retirant
+     on l'a perdu sans le remplacer. */
+  it('neutralise le chrome de l’agent utilisateur sur son contenu', () => {
+    const reset =
+      /\.content:where\(button, input, select, textarea\)\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ??
+      '';
+
+    expect(reset, 'Sans `appearance: none`, un bouton natif garde son fond gris.').toMatch(
+      /appearance:\s*none/,
+    );
+    expect(reset).toMatch(/background:\s*transparent/);
   });
 
   it('borne le rebond pour qu’il réponde sans fatiguer', () => {

@@ -1,3 +1,4 @@
+import modalSource from './Modal.tsx?raw';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -219,5 +220,38 @@ describe('Modal', () => {
 
     const dialog = screen.getByRole('dialog', { name: 'Dialogue nommé par l’appelant' });
     expect(dialog).toHaveAttribute('aria-modal', 'true');
+  });
+});
+
+/* =============================================================================
+   L'ORDRE DES DEUX EFFETS EST LE CORRECTIF, ET AUCUN TEST DE RENDU NE PEUT LE
+   VOIR.
+
+   Le focus n'était jamais rendu au déclencheur : React exécute les nettoyages
+   dans l'ORDRE DE DÉCLARATION, et celui du focus passait avant celui de
+   l'inertie — `focus()` sur un élément encore `inert` ne fait rien, sans lever
+   d'erreur. Mesuré au navigateur sur les trois sorties : le focus retombait
+   sur `<body>`.
+
+   POURQUOI CE GARDE LIT LA SOURCE PLUTÔT QUE DE RENDRE. jsdom N'IMPLÉMENTE PAS
+   `inert` : le `focus()` y réussit, donc le test de restitution qui existe
+   au-dessus passait AU VERT pendant tout le temps où le défaut était livré.
+   Un test de comportement ne peut pas attraper ce bug ici ; seule la position
+   relative des deux blocs le décide.
+   ========================================================================== */
+describe('l’ordre des effets de Modal', () => {
+  it('déclare la restitution du focus APRÈS la levée de l’inertie', () => {
+    const inertie = modalSource.indexOf("L'INERTIE DE L'ARRIÈRE-PLAN");
+    const focus = modalSource.indexOf("CET EFFET EST DÉCLARÉ APRÈS CELUI DE L'INERTIE");
+
+    expect(inertie, 'Le commentaire de l’effet d’inertie est introuvable.').toBeGreaterThan(-1);
+    expect(focus, 'Le commentaire de l’effet de focus est introuvable.').toBeGreaterThan(-1);
+    expect(
+      focus,
+      'L’effet de focus est déclaré AVANT celui de l’inertie. Son nettoyage ' +
+        'rendra donc le focus au déclencheur pendant que l’arrière-plan porte ' +
+        'encore `inert`, et l’appel sera sans effet — silencieusement. jsdom ne ' +
+        'voit pas ce défaut : il n’implémente pas `inert`.',
+    ).toBeGreaterThan(inertie);
   });
 });
