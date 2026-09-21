@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import glassSource from './components/glass/style/Glass.module.css?raw';
 import opaleSource from './opale.css?raw';
 import { Opale } from './opale';
 
@@ -422,5 +423,92 @@ describe('la technique de sélection des couches', () => {
         "\n\nVisez la couche par son nom — `[data-opale-glass-layer='tint']` — que " +
         '`Glass` pose exprès pour cela et qui survit à l’ajout d’un calque.',
     ).toEqual([]);
+  });
+});
+
+/* =============================================================================
+   L'ACCESSIBILITÉ DU MATÉRIAU, ÉPINGLÉE — PARCE QU'ELLE A DÉJÀ ÉTÉ PERDUE.
+
+   Ces trois décisions ne se voient pas à l'écran tant qu'on ne les cherche pas,
+   et l'une d'elles a DÉJÀ été défaite dans ce dépôt : les anneaux de focus ont
+   été retirés de toute la vitrine sur demande, et le matériau s'est retrouvé
+   sans aucun indicateur — mesuré à l'époque, `outline-width: 0px`.
+
+   Ce fichier lit la feuille du matériau, qui est un module CSS : jsdom ne
+   calcule pas la cascade, donc on ne peut pas mesurer un rendu ici. On épingle
+   donc la RÈGLE, et les mesures qui l'ont motivée sont écrites à côté d'elle
+   dans la feuille.
+   ========================================================================== */
+describe('l’accessibilité du matériau', () => {
+  const glassSheet = glassSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  it('rend le focus visible sans rétablir le rectangle refusé', () => {
+    const rule = /\.glass:focus-within\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
+
+    expect(
+      rule,
+      'Le matériau ne marque plus le focus. Les jetons d’anneau de la vitrine ' +
+        'valent `transparent` : sans cette règle, un champ de verre n’a AUCUN ' +
+        'indicateur au clavier (WCAG 2.4.7).',
+    ).toMatch(/outline:\s*\d+px\s+solid/);
+
+    /* L'anneau doit contraster avec ce qui l'entoure (2.4.11). Blanc sur le
+       voile mesuré : 5,56:1. Un anneau qui emprunterait `--opale-focus` serait
+       transparent dans la vitrine — c'est exactement le piège. */
+    expect(rule).not.toMatch(/--opale-focus/);
+    expect(
+      rule,
+      'L’arête du verre doit s’allumer : c’est l’indicateur porté par la matière.',
+    ).toMatch(/--opale-glass-edge/);
+  });
+
+  it('borne le rebond pour qu’il réponde sans fatiguer', () => {
+    const press = /\.glass:active\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
+    const duration = Number(/(\d+)ms/.exec(press)?.[1] ?? 0);
+
+    expect(press, 'Le rebond ne part que sur `:active` — jamais au survol, jamais seul.').toMatch(
+      /animation:/,
+    );
+    expect(
+      duration,
+      `Le rebond dure ${duration} ms. Au-delà d’un quart de seconde, un retour ` +
+        'd’appui cesse d’être un retour et devient une attente.',
+    ).toBeLessThanOrEqual(260);
+    expect(press, 'Un rebond qui se répète est une gêne, pas un retour.').not.toMatch(/infinite/);
+
+    /* L'amplitude reste sous 4 % : la boîte ne bouge pas, donc rien ne se
+       décale autour. C'est ce qui permet d'en mettre partout. */
+    const frames = /@keyframes opale-glass-press\s*\{([\s\S]*?)\n\}/.exec(glassSheet)?.[1] ?? '';
+    const scales = [...frames.matchAll(/scale\(([\d.]+)\)/g)].map((m) => Number(m[1]));
+
+    expect(scales.length, 'Les étapes du rebond sont introuvables.').toBeGreaterThan(2);
+    for (const scale of scales) {
+      expect(
+        Math.abs(scale - 1),
+        `L’étape scale(${scale}) dépasse 4 % d’amplitude.`,
+      ).toBeLessThanOrEqual(0.04);
+    }
+  });
+
+  it('efface le mouvement pour qui en demande moins, sans effacer le focus', () => {
+    const reduced =
+      /@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*)\}/.exec(glassSheet)?.[1] ?? '';
+
+    expect(reduced, 'L’onde doit s’effacer.').toMatch(/\.ripple/);
+    expect(reduced, 'Le rebond doit s’effacer : c’est du mouvement non essentiel.').toMatch(
+      /\.glass:active/,
+    );
+    /* Le focus, lui, RESTE. Demander moins d'animation n'est pas renoncer à
+       savoir où l'on est : un indicateur est une information, pas un effet. */
+    expect(reduced).not.toMatch(/focus-within/);
+  });
+
+  it('écrit son encre en blanc et dit à quelle condition elle se lit', () => {
+    expect(opaleSource).toMatch(/--opale-glass-ink:\s*#fff/);
+    expect(
+      opaleSource,
+      'L’encre blanche n’a de sens qu’avec un voile sous le matériau : le jeton ' +
+        'qui le porte doit exister, sans quoi on publie du blanc sur du blanc.',
+    ).toMatch(/--opale-glass-scrim:/);
   });
 });

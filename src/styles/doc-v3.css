@@ -1142,19 +1142,17 @@ body {
    matière change, plus la scène qui permet de la voir. */
 .tc-doc-opale-preview[data-liquid-glass='true'] .tc-doc-opale-preview__material {
   background:
-    linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)),
+    linear-gradient(0deg, var(--opale-glass-scrim), var(--opale-glass-scrim)),
     url('/glass-landscape.jpg') center / cover no-repeat;
 }
 
-/* L'ENCRE PASSE AU CLAIR SUR LE PAYSAGE, et c'est le jeton prévu pour cela.
-   `--opale-glass-ink` vaut `--opale-text` par défaut dans la librairie — une
-   encre sombre, juste sur le blanc d'un consommateur quelconque. Ici la scène
-   est une photographie sombre : l'encre y passe au blanc, comme sur la page du
-   matériau, où `Glass` déclare déjà `--opale-glass-ink: #ffffff`. */
-.tc-doc-opale-preview[data-liquid-glass='true'] .tc-doc-opale-preview__material {
-  --opale-glass-ink: #fff;
-  --opale-glass-ink-muted: rgba(255, 255, 255, 0.78);
-}
+/* L'ENCRE N'EST PLUS SURCHARGÉE ICI, ET C'EST UN RETRAIT VOLONTAIRE.
+   Cette règle repeignait l'encre du verre en blanc pour la seule vitrine,
+   parce que la librairie la donnait sombre par défaut. La librairie la donne
+   désormais blanche — c'est la couleur d'un matériau fait pour être posé sur
+   une image —, et deux déclarations pour une même valeur finissent toujours
+   par diverger. Voir `--opale-glass-ink` dans `opale.css`, où la condition de
+   lisibilité est chiffrée. */
 
 /* LE LIBELLÉ N'EST PAS DANS LE VERRE, MAIS IL EST SUR LE PAYSAGE.
 

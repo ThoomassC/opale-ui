@@ -16,7 +16,7 @@ import { PageBody, UsageBlock } from './api';
 import { MagicCell, MagicStage } from './composants/stage';
 
 const LANDSCAPE_GROUND =
-  "linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)), url('/glass-landscape.jpg') center / cover no-repeat";
+  "linear-gradient(0deg, rgba(7, 28, 43, 0.65), rgba(7, 28, 43, 0.65)), url('/glass-landscape.jpg') center / cover no-repeat";
 
 const TRANSPARENT_MODAL_STYLE = {
   '--opale-glass-tint': 'rgba(255, 255, 255, 0.06)',

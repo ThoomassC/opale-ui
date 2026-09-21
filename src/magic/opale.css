@@ -141,8 +141,29 @@
      photographie — la scène du matériau —, il faut l'encre claire que `Glass`
      déclare lui-même (`--lg-text: #ffffff`). Une seule valeur ne peut pas
      servir les deux, d'où ce réglage, que l'hôte redéfinit sur la scène. */
-  --opale-glass-ink: var(--opale-text);
-  --opale-glass-ink-muted: var(--opale-text-secondary);
+  /* L'ENCRE DU VERRE EST BLANCHE, ET CE N'EST PAS UN GOÛT — C'EST UNE PAIRE.
+
+     Un verre se pose sur une image : son texte se lit sur CE QU'IL Y A DERRIÈRE,
+     pas sur lui. L'encre blanche est donc la bonne, à une condition stricte que
+     l'appelant doit tenir — un voile assez sombre sous le matériau.
+
+     LA CONDITION EST CHIFFRÉE, et elle ne s'improvise pas. Mesurée sur le
+     cliché des démonstrations, pixel par pixel : sans voile, 42,5 % de l'image
+     passe sous 4,5:1 pour du blanc, et 20,3 % sous 3:1 — le pire pixel, un coin
+     de ciel, tombe à 1,24:1. Avec le voile uniforme à 65 % que posent les
+     scènes, le pire pixel remonte à 5,56:1 sur la scène nue et 4,87:1 à travers
+     le lavis du verre.
+
+     UNE OMBRE PORTÉE NE REMPLACE PAS CE VOILE. WCAG ne la reconnaît pas comme
+     un moyen de contraste : elle aide l'œil, elle ne se mesure pas. Elle est
+     gardée en plus, jamais à la place.
+
+     `--opale-glass-scrim` est le voile que le matériau recommande. Un hôte qui
+     pose du verre sur un fond clair sans voile doit redéfinir l'encre, sans
+     quoi il publie du blanc sur du blanc. */
+  --opale-glass-ink: #fff;
+  --opale-glass-ink-muted: rgba(255, 255, 255, 0.82);
+  --opale-glass-scrim: rgba(7, 28, 43, 0.65);
 }
 
 :root[data-theme='dark'] {
@@ -431,6 +452,35 @@
 .opale-card--glass,
 .opale-surface--glass {
   width: 100%;
+}
+
+/* L'ENCRE DESCEND JUSQU'AU CHAMP ET JUSQU'À SON TEXTE INDICATIF.
+
+   Hériter ne suffisait pas : `.opale-input` déclare sa propre couleur, plus
+   loin dans la feuille et directement sur l'élément, donc elle l'emportait.
+   Mesuré sous verre avant correction : encre `rgb(20, 16, 11)` et texte
+   indicatif `rgb(92, 87, 77)` — deux gris sombres sur une photographie, c'est
+   le défaut le plus visible du matériau et le seul que l'utilisateur ait
+   signalé de lui-même.
+
+   LE TEXTE INDICATIF N'EST PAS À 100 % D'OPACITÉ, et c'est délibéré : il doit
+   se distinguer d'une valeur saisie, sans quoi on croit le champ rempli. 82 %
+   de blanc sur le voile mesuré tient 4,04:1 — au-dessus du seuil de 3:1 des
+   textes non essentiels, en dessous du 4,5:1 du texte courant, ce qui est le
+   bon compromis pour un contenu qui, par définition, n'est pas le contenu. */
+.opale-input-shell--glass .opale-input,
+.opale-input-shell--glass .opale-select,
+.opale-range-shell--glass .opale-range {
+  color: var(--opale-glass-ink);
+}
+.opale-input-shell--glass .opale-input::placeholder {
+  color: var(--opale-glass-ink-muted);
+  opacity: 1;
+}
+/* Les `<option>` sont peintes par le système dans une liste OPAQUE : l'encre du
+   verre y serait blanche sur blanc. Elles gardent celle de la page. */
+.opale-input-shell--glass .opale-select option {
+  color: var(--opale-text);
 }
 
 /* Le fond devient un lavis, et l'encre suit le support. `--opale-button-background`

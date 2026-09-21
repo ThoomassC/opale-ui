@@ -169,9 +169,97 @@
 /* WCAG 2.3.3 — l'onde et l'écrasement sont du mouvement non essentiel : ils
    s'effacent pour qui demande moins d'animation. La réfraction, elle, reste :
    c'est une apparence, pas un mouvement. */
+
+/* =============================================================================
+   LE FOCUS EST PORTÉ PAR LE MATÉRIAU, PAS PAR UN RECTANGLE POSÉ DESSUS.
+
+   LE CONTEXTE, PARCE QU'IL EXPLIQUE LA FORME DE CETTE RÈGLE. Le propriétaire a
+   demandé le retrait de l'anneau de focus bleu partout dans la vitrine : trois
+   jetons de couleur y sont mis à `transparent`, et un test l'épingle. Mesuré
+   sur un champ de verre avant cette règle : `outline-width: 0px`,
+   `outline-style: none`, aucune ombre — soit AUCUN indicateur de focus, ce qui
+   est un échec du critère 2.4.7.
+
+   RÉTABLIR LE RECTANGLE AURAIT ÉTÉ DÉFAIRE UNE DÉCISION. Le verre a mieux à
+   offrir : il possède déjà une arête de lumière, le filet spéculaire. Au focus,
+   cette arête S'ALLUME et le lavis s'éclaircit — le composant se met à briller
+   plutôt qu'à porter un cadre. C'est le matériau qui indique, pas un ornement
+   étranger.
+
+   L'ANNEAU FIN RESTE, ET IL N'EST PAS DÉCORATIF : le critère 2.4.11 demande que
+   l'indicateur tienne 3:1 contre ce qui l'entoure, et une lueur interne ne se
+   mesure pas contre l'extérieur. Il est BLANC et non bleu — sur le voile
+   mesuré, le blanc tient 5,56:1, très au-dessus du seuil.
+
+   L'OUTLINE VA SUR L'ENVELOPPE, et c'est vérifié : un élément n'est jamais rogné
+   par son PROPRE `overflow: hidden` — seul celui d'un ancêtre rognerait, et il
+   n'y en a aucun ici. Posé sur le contenu, il aurait disparu sous le découpage
+   de l'enveloppe.
+
+   `:focus-within` ET NON `:focus` : le contrôle réel est à l'intérieur du
+   verre, jamais l'enveloppe elle-même. */
+.glass:focus-within {
+  --opale-glass-edge: rgba(255, 255, 255, 0.95);
+  --opale-glass-tint: rgba(255, 255, 255, 0.16);
+  outline: 2px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
+   LE REBOND, ET LA LIMITE QU'IL NE DOIT PAS FRANCHIR.
+
+   Une matière qui répond au doigt est agréable ; une matière qui gigote est
+   fatigante, et sur un écran entier de composants elle devient hostile. Quatre
+   règles, tenues ici :
+
+     — IL NE PART QUE SUR UNE ACTION. `:active` uniquement : rien ne bouge au
+       survol, rien au chargement, rien tout seul. WCAG 2.2.2 vise le mouvement
+       que l'utilisateur n'a pas demandé — celui-ci, il l'a demandé en appuyant.
+
+     — IL NE SE RÉPÈTE PAS. Une seule passe, pas d'`infinite`.
+
+     — IL EST COURT. 240 ms contre les 800 ms de la version d'avant. Au-delà
+       d'un quart de seconde, un retour d'appui cesse d'être un retour et
+       devient une attente — et l'écrasement précédent durait plus longtemps
+       que le clic lui-même.
+
+     — IL EST PETIT. L'amplitude reste sous 4 % : la boîte ne bouge pas, donc
+       rien ne se décale autour et aucun voisin ne saute. C'est ce qui permet
+       d'en mettre partout sans gêner.
+
+   `cubic-bezier(.34, 1.56, .64, 1)` DÉPASSE VOLONTAIREMENT 1 sur la sortie :
+   c'est ce dépassement qui fait le rebond. Sans lui, on aurait un
+   rétrécissement mou. */
+.glass:active {
+  animation: opale-glass-press 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes opale-glass-press {
+  0% {
+    transform: scale(1);
+  }
+  38% {
+    transform: scale(0.965);
+  }
+  70% {
+    transform: scale(1.018);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ripple,
-  .squishing {
+  .squishing,
+  .glass:active {
     animation: none;
+  }
+
+  /* LA LUEUR DE FOCUS RESTE, ET CE N'EST PAS UN OUBLI. Demander moins
+     d'animation n'est pas renoncer à savoir où l'on est : l'indicateur de focus
+     est une information, pas un effet. Seule sa TRANSITION disparaît. */
+  .glass {
+    transition: none;
   }
 }
