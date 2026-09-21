@@ -12,10 +12,30 @@
    le défaut le plus visible d'un faux verre.
    ========================================================================== */
 
+/* LA GÉOMÉTRIE SE RÈGLE PAR VARIABLES, ET C'EST LA SEULE FAÇON QUI MARCHE.
+
+   Cette feuille est un MODULE CSS : le bundler l'injecte APRÈS `opale.css`. À
+   poids de sélecteur égal, c'est l'ordre qui tranche, et il donne raison à ce
+   fichier. Une règle d'habillage écrite ailleurs — `.opale-button--glass-root
+   { border-radius: 0 }` — perdait donc en silence.
+
+   Ce que cela donnait à l'écran, mesuré : le bouton gardait un rayon de 22 px
+   qui ROGNAIT sa silhouette en squircle (l'enveloppe porte `overflow: hidden`,
+   donc son rayon découpe tout ce qu'elle contient) ; la case à cocher de 20 px
+   devenait un CERCLE au lieu d'un carré à coins de 6 px ; et le champ de
+   saisie tombait de 561 à 218 px, `fit-content` l'emportant sur le `width:
+   100%` demandé.
+
+   Les trois valeurs passent donc par des variables que CE fichier lit. Une
+   variable posée sur l'élément par une autre feuille est simplement LUE ici :
+   il n'y a plus de conflit de cascade à arbitrer, donc plus un seul
+   `!important` à écrire. C'est l'appelant qui décide de sa forme, ce qui est
+   la bonne répartition — le matériau ne connaît pas la silhouette de ce qu'il
+   habille. */
 .glass {
   position: relative;
   z-index: 0;
-  width: fit-content;
+  width: var(--opale-glass-width, fit-content);
   overflow: hidden;
   border-radius: var(--opale-glass-radius, var(--opale-radius-md, 1.375rem));
 }

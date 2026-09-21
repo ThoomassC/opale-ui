@@ -67,25 +67,30 @@ import { UI_VERSION } from '../../version';
  * spécimen d'Opale (`--surface`, rgb(235,244,246)) vaut 1,12:1, et blanc sur le
  * sol blanc de la vitrine vaut 1,00:1.
  *
- * L'ORDRE DES TEINTES EST LE LEUR — bleu, violet, nuit —, repris de leur propre
- * `--color-gradient` (`magic.scss`, écart nº 5). La LUMINOSITÉ, elle, est
- * abaissée, et c'est mesuré : leurs arrêts d'origine sont `#38adf1` et
- * `#7852f7`, sur lesquels le blanc ne tient que 2,50:1 et 4,83:1 — leur propre
- * dégradé ne porterait pas leur propre libellé. Les trois arrêts ci-dessous
- * donnent, contre `#ffffff` :
+ * LA SCÈNE EST UNE PHOTOGRAPHIE, ET C'EST LE MATÉRIAU QUI L'EXIGE.
  *
- *   #17314f → 13,22:1     #2a2350 → 14,44:1     #101a2c → 17,41:1
+ * Elle était un dégradé sombre, choisi pour porter une encre blanche que ces
+ * composants imposaient alors en dur. Ils ne l'imposent plus — ils sont écrits
+ * par Opale et héritent de leur hôte —, donc cette raison est tombée.
  *
- * Le dégradé interpole entre les arrêts, donc 13,22:1 est le plancher de la
- * scène entière. Le seuil AA du texte courant est 4,5:1.
+ * LA RAISON QUI RESTE EST PLUS FORTE : un verre posé sur un APLAT ne réfracte
+ * rien. Les trois couches du matériau travaillent sur ce qu'il y a derrière —
+ * un flou d'arrière-plan, un déplacement par bruit, un filet spéculaire. Sur un
+ * dégradé lisse, flouter donne le même dégradé et déformer ne déplace aucun
+ * détail : on voyait un rectangle à peine teinté, et l'on pouvait croire le
+ * composant cassé alors qu'il fonctionnait.
  *
- * ÉCRIT ICI ET NON DANS `doc.css`, comme les plaques de la page palette : la
- * feuille de la vitrine garde sa règle « aucune couleur littérale », et une
- * scène qui documente le thème d'un AUTRE projet ne doit pas suivre celui du
- * lecteur. Aucun jeton `--tc-*` n'est employé : ce dossier est hors du contrat de
- * couleur d'Opale, et le peindre avec un jeton publié affirmerait le contraire.
+ * C'EST LA MÊME PHOTOGRAPHIE QUE PARTOUT AILLEURS — celle de la page « Le verre
+ * liquide » et celle des démonstrations du catalogue. Une seule image pour tout
+ * le site : le lecteur qui compare deux pages compare bien deux composants, et
+ * non deux décors.
+ *
+ * LA SURCOUCHE BLEUTÉE N'EST PAS DÉCORATIVE. Le cliché a un ciel clair et une
+ * eau brillante ; sans elle, l'encre claire des légendes tomberait dessus. Les
+ * deux arrêts sont ceux de la page du matériau, à l'identique.
  */
-export const MAGIC_STAGE_GROUND = 'linear-gradient(150deg, #17314f 0%, #2a2350 42%, #101a2c 100%)';
+export const MAGIC_STAGE_GROUND =
+  "linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)), url('/glass-landscape.jpg') center / cover no-repeat";
 
 export interface MagicStageProps {
   /** Empile les enfants au lieu de les aligner — pour un composant pleine largeur. */

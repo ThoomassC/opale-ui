@@ -396,27 +396,41 @@
    défaut, et l'hôte la passe au clair quand il pose le verre sur une image.
    ========================================================================== */
 
-/* La silhouette d'Opale, portée par l'enveloppe du verre. */
+/* LA SILHOUETTE EST DEMANDÉE PAR VARIABLE, pas imposée par une règle.
+
+   Le matériau est un module CSS, injecté après cette feuille : une déclaration
+   écrite ici perdrait la cascade en silence. Les variables, elles, sont lues
+   par le module quel que soit l'ordre — voir l'en-tête de `Glass.module.css`,
+   qui détaille les trois défauts que ce détour a corrigés. */
 .opale-button--glass-root {
-  border-radius: 0;
+  --opale-glass-radius: 0;
   clip-path: var(--opale-squircle-clip);
 }
 .opale-badge--glass-root {
+  --opale-glass-radius: var(--opale-radius-pill);
   display: inline-flex;
-  border-radius: var(--opale-radius-pill);
 }
 .opale-card--glass-root,
 .opale-surface--glass-root,
 .opale-input--glass-root,
 .opale-range--glass-root {
-  width: 100%;
-  border-radius: var(--opale-radius-md);
+  --opale-glass-width: 100%;
+  --opale-glass-radius: var(--opale-radius-md);
 }
 .opale-checkbox--glass-root {
-  border-radius: 0.375rem;
+  --opale-glass-radius: 0.375rem;
 }
 .opale-toggle--glass-root {
-  border-radius: var(--opale-radius-pill);
+  --opale-glass-radius: var(--opale-radius-pill);
+}
+
+/* LE CONTENU S'ÉTIRE AVEC SON ENVELOPPE. Élargir la seule enveloppe laissait la
+   coquille du champ à sa largeur propre au milieu d'un verre pleine largeur. */
+.opale-input-shell--glass,
+.opale-range-shell--glass,
+.opale-card--glass,
+.opale-surface--glass {
+  width: 100%;
 }
 
 /* Le fond devient un lavis, et l'encre suit le support. `--opale-button-background`

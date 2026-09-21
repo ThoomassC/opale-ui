@@ -3326,6 +3326,20 @@ body {
    vendoré. C'est Opale qui l'écrit, donc c'est un jeton d'Opale qui le peint.
    -------------------------------------------------------------------------- */
 
+/* L'OMBRE PORTÉE N'EST PAS UN EFFET, C'EST CE QUI REND LE TEXTE LISIBLE.
+
+   La scène était un dégradé sombre, dont le point le plus clair tenait
+   13,22:1 avec le blanc : une encre blanche y était sûre partout, sans
+   artifice. Elle est devenue une PHOTOGRAPHIE — le matériau a besoin d'un
+   arrière-plan détaillé pour réfracter quelque chose —, et un cliché n'a pas
+   de plancher de contraste : le ciel et les reflets de l'eau y sont presque
+   blancs.
+
+   Un contraste ne se calcule pas contre une image, donc on ne peut pas se
+   contenter d'en mesurer un et de le déclarer. L'ombre porte le texte sur
+   TOUTES les zones du cliché, y compris les plus claires, en ajoutant un bord
+   sombre sous chaque glyphe. C'est la même technique que sous les
+   démonstrations de verre du catalogue, et pour la même raison. */
 .tc-doc-magicstage {
   display: flex;
   flex-wrap: wrap;
@@ -3334,6 +3348,7 @@ body {
   padding: var(--space-6);
   border-radius: var(--radius-md);
   color: var(--tc-white);
+  text-shadow: 0 1px 3px rgba(7, 28, 43, 0.55);
 }
 
 /* Les scènes d'un composant qui prend toute la largeur — `Topbar`, `Tabs`,
