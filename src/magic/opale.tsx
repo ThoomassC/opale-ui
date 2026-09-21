@@ -569,6 +569,15 @@ export function Slider({
     onChange?.(event);
   };
 
+  /* LE NATIF EST ÉCRIT UNE FOIS ET POSÉ DANS LES DEUX BRANCHES. Les deux
+     rendus n'ont pas la même charpente — sous verre il faut une piste fine et
+     une bulle qui la dépasse —, mais le CONTRÔLE, lui, doit rester le même
+     élément aux mêmes propriétés. L'extraire est ce qui empêche les deux
+     branches de diverger sans qu'on le voie. */
+  const control = (
+    <input ref={inputRef} type="range" className="opale-range" onChange={handleChange} {...props} />
+  );
+
   return (
     <label className={cx('opale-field', className)}>
       {(label || valueLabel) && (
@@ -577,28 +586,36 @@ export function Slider({
           <span>{valueLabel ?? props.value}</span>
         </span>
       )}
-      <FieldShell
-        liquidGlass={liquidGlass}
-        className={cx('opale-range-shell', liquidGlass && 'opale-range-shell--glass')}
-        rootClassName="opale-range--glass-root"
-      >
-        {/* LE NATIF EST ÉCRIT EN PREMIER, et l'ordre est un contrat : les deux
-            décorations se peignent depuis son état par le sélecteur frère
-            `~`, qui ne regarde que ce qui SUIT. */}
-        <input
-          ref={inputRef}
-          type="range"
-          className="opale-range"
-          onChange={handleChange}
-          {...props}
-        />
-        {liquidGlass && (
-          <>
+      {liquidGlass ? (
+        /* LA BULLE VIT HORS DU VERRE, ET C'EST LA PISTE FINE QUI L'IMPOSE.
+
+           La piste ne fait plus que douze pixels de haut. Le matériau clôt sa
+           boîte (`overflow: hidden`, sans quoi ses trois couches déborderaient
+           de la silhouette), donc une bulle de vingt-six pixels posée dedans
+           serait rognée aux deux tiers. Elle sort ; la part mouillée, qui est
+           l'eau DANS la piste, reste dedans.
+
+           LE NATIF SORT AUSSI, et pour la même raison retournée : il couvre
+           trente-six pixels de haut pour offrir une cible de pointeur
+           confortable, quand la piste n'en montre que douze. Enfermé dans le
+           verre, sa zone sensible aurait été rognée à la hauteur visible. */
+        <span className="opale-range-field">
+          <FieldShell
+            liquidGlass
+            className="opale-range-shell opale-range-shell--glass"
+            rootClassName="opale-range--glass-root"
+          >
             <span className="opale-range-wet" aria-hidden="true" />
-            <span className="opale-range-bubble" aria-hidden="true" />
-          </>
-        )}
-      </FieldShell>
+          </FieldShell>
+          {control}
+          {/* APRÈS le natif : les deux états de la bulle — la prise et le
+              focus clavier — se peignent par le sélecteur frère `~`, qui ne
+              regarde que ce qui suit. */}
+          <span className="opale-range-bubble" aria-hidden="true" />
+        </span>
+      ) : (
+        <span className="opale-range-shell">{control}</span>
+      )}
     </label>
   );
 }

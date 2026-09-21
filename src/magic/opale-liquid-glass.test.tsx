@@ -460,7 +460,7 @@ describe('l’accessibilité du matériau', () => {
      fait le test suivant, qui interdit au découpage et au halo de coexister
      sur la même boîte. */
   it('marque le focus par une ombre extérieure, sans rétablir le rectangle refusé', () => {
-    const rule = /\.glass:focus-within[^{]*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
+    const rule = /\.glass:has\(:focus-visible\)[^{]*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
 
     expect(
       rule,
@@ -784,9 +784,11 @@ describe('le périmètre du rebond', () => {
 describe('le curseur sous verre', () => {
   const opaleSheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
 
-  /** La coquille, qui porte les variables lues par les deux décorations. */
+  /** Le conteneur du curseur, qui porte les variables lues par les décorations.
+      C'est le parent du natif : la part mouillée vit dans le verre, la bulle
+      dehors, et seul un ancêtre commun peut les servir toutes les deux. */
   const shellOf = (container: HTMLElement) =>
-    container.querySelector('.opale-range-shell') as HTMLElement;
+    container.querySelector('.opale-range-field') as HTMLElement;
 
   it('écrit la position dans le DOM au lieu de re-rendre le composant', () => {
     const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={40} />);
@@ -915,9 +917,7 @@ describe('le curseur sous verre', () => {
     /* Le sélecteur apparaît dans PLUSIEURS blocs — il termine aussi une liste
        partagée avec les champs, qui n'y pose qu'une couleur. Les réunir évite
        de lire le premier venu et de conclure sur le mauvais. */
-    const rule = [
-      ...opaleSheet.matchAll(/\.opale-range-shell--glass \.opale-range[^,{]*\{([^}]*)\}/g),
-    ]
+    const rule = [...opaleSheet.matchAll(/\.opale-range-field \.opale-range[^,{]*\{([^}]*)\}/g)]
       .map((match) => match[1])
       .join('\n');
 
@@ -927,6 +927,60 @@ describe('le curseur sous verre', () => {
       /display:\s*none/,
     );
     expect(rule, '`visibility: hidden` le retirerait aussi.').not.toMatch(/visibility:\s*hidden/);
+  });
+
+  /* L'INDICATEUR DE FOCUS DOIT DISPARAÎTRE QUAND ON LÂCHE LA GOUTTE.
+
+     `:focus-within` et `:focus` s'allument sur n'importe quelle prise de
+     focus, clic de souris compris : après un glissement, le natif garde le
+     focus et le halo restait affiché jusqu'au prochain clic ailleurs. Un
+     curseur n'attend pas de saisie textuelle, donc les navigateurs ne lui
+     accordent `:focus-visible` qu'au clavier — c'est la seule des trois
+     pseudo-classes qui produise le comportement voulu.
+
+     CE QUE CE TEST NE PEUT PAS FAIRE : rejouer un glissement et constater
+     l'extinction. jsdom ne décide pas de `:focus-visible`, qui est une
+     heuristique du navigateur. Il vérifie donc la pseudo-classe employée,
+     c'est-à-dire la cause. */
+  it('éteint le focus de la bulle dès qu’on lâche la souris', () => {
+    const rules = [...opaleSheet.matchAll(/([^{}]*\.opale-range-bubble[^{}]*)\{([^}]*)\}/g)];
+    const focusRules = rules.filter(([, selector]) => /:focus/.test(selector));
+
+    expect(focusRules.length, 'Aucune règle de focus sur la bulle.').toBeGreaterThan(0);
+
+    for (const [, selector] of focusRules) {
+      expect(
+        selector,
+        `« ${selector.trim()} » garde le halo allumé après un clic de souris.`,
+      ).not.toMatch(/:focus(?!-visible)/);
+    }
+
+    /* Et le halo doit bien être celui du matériau, pas un anneau réinventé. */
+    expect(
+      focusRules.map(([, , body]) => body).join('\n'),
+      'La bulle doit porter le halo du verre, comme tout le reste.',
+    ).toMatch(/var\(--opale-glass-focus-halo\)/);
+  });
+
+  /* LE NIVEAU D'EAU SUIT LE CENTRE DE LA BULLE, PAS LA FRACTION BRUTE.
+
+     La bulle court sur `100% - sa largeur`, donc son centre n'est pas à
+     `fraction × 100%`. Remplir jusqu'à cette fraction laissait l'eau en
+     retrait de la poignée d'un écart proportionnel à la largeur de la bulle —
+     visible dès qu'on l'a élargie. Les deux doivent partager le même terme de
+     course. */
+  it('arrête la part mouillée au centre de la bulle', () => {
+    const wet = /\.opale-range-wet \{([^}]*)\}/.exec(opaleSheet)?.[1] ?? '';
+    const width = /inline-size:\s*calc\(([\s\S]*?)\);/.exec(wet)?.[1] ?? '';
+
+    expect(wet, 'La part mouillée est introuvable.').not.toBe('');
+    expect(
+      width.replace(/\s+/g, ' '),
+      'La part mouillée doit partir d’une demi-largeur de bulle et suivre la ' +
+        'même course qu’elle, sans quoi le niveau d’eau est décalé de la poignée.',
+    ).toMatch(
+      /var\(--opale-range-bubble-width\) \/ 2 \+ var\(--opale-range-progress, 0\) \* \( ?100% - var\(--opale-range-bubble-width\) ?\)/,
+    );
   });
 
   /* LA BULLE SE PLACE SUR LA COURSE UTILE, PAS SUR LA LARGEUR DE LA PISTE.
@@ -940,9 +994,9 @@ describe('le curseur sous verre', () => {
     expect(rule, 'La bulle est introuvable.').not.toBe('');
     expect(
       offset,
-      'La bulle se place sur 100 % de la piste : elle déborde d’un demi-' +
-        'diamètre à gauche comme à droite. Sa course utile est `100% - sa largeur`.',
-    ).toMatch(/100%\s*-\s*[\d.]+rem/);
+      'La bulle se place sur 100 % de la piste : elle déborde d’une demi-' +
+        'largeur à gauche comme à droite. Sa course utile est `100% - sa largeur`.',
+    ).toMatch(/100%\s*-\s*(?:[\d.]+rem|var\(--opale-range-bubble-width\))/);
   });
 });
 

@@ -268,11 +268,30 @@
    seule couleur qui espère tomber sur le bon fond. Les valeurs viennent de la
    mesure consignée dans `opale-liquid-glass.test.tsx`.
 
-   `:focus-within` NE SUFFIT PAS : pour la case à cocher et l'interrupteur, le
+   `:has(:focus-visible)` ET NON `:focus-within`, ET C'EST UNE CORRECTION.
+   `:focus-within` s'allume sur n'importe quelle prise de focus, CLIC DE
+   SOURIS COMPRIS : l'indicateur restait donc affiché après qu'on avait lâché
+   le bouton ou la poignée du curseur, jusqu'au prochain clic ailleurs. C'est
+   la gêne que `:focus-visible` a été inventé pour supprimer — le navigateur
+   ne l'accorde qu'au clavier, sauf pour ce qui attend une saisie textuelle,
+   où il l'accorde aussi à la souris. Un champ garde donc son halo au clic,
+   un bouton non, et c'est exactement le comportement attendu des deux.
+
+   `:has()` ET NON `:focus-visible` SEUL : la pseudo-classe doit être évaluée
+   sur le CONTENU, qui est un enfant de l'enveloppe. L'enveloppe, elle, n'est
+   pas focalisable.
+
+   CE QUI RESTE OUVERT. Un verre CONTENEUR — une modale, un rail — s'allume
+   aussi quand l'un de ses descendants reçoit le focus au clavier. Le halo
+   cerne alors tout le panneau au lieu du contrôle. Le défaut précède cette
+   correction et n'est pas traité ici : le distinguer demande de marquer les
+   verres qui sont des surfaces, ce que le matériau ne sait pas encore.
+
+   NI L'UN NI L'AUTRE NE SUFFIT pour la case à cocher et l'interrupteur : leur
    contrôle natif est posé À CÔTÉ du verre, pas dedans. L'attribut
    `data-opale-glass-focus`, qu'une règle voisine pose depuis le contrôle,
    couvre ce cas. */
-.glass:focus-within,
+.glass:has(:focus-visible),
 .glass[data-opale-glass-focus='true'] {
   --opale-glass-edge: rgba(255, 255, 255, 0.98);
   --opale-glass-tint: rgba(7, 28, 43, 0.5);

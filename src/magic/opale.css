@@ -1114,14 +1114,21 @@
 }
 
 /* =============================================================================
-   LE CURSEUR SOUS VERRE : UNE PISTE DE MATIÈRE, UNE BULLE QUI GLISSE DESSUS.
+   LE CURSEUR SOUS VERRE : UNE PISTE FINE, UNE BULLE LARGE QUI GLISSE DESSUS.
 
-   TROIS PIÈCES, ET UNE SEULE COMMANDE. La piste est l'enveloppe de verre avec
-   ses trois couches. Le remplissage (`__wet`) et la bulle (`__bubble`) sont
-   des décorations, marquées `aria-hidden`. L'`<input type="range">` natif les
-   recouvre entièrement, invisible : c'est lui qui reçoit le geste, les
-   flèches, le `name` et le rôle `slider`. Aucune des trois pièces n'est
-   annoncée deux fois, et rien du contrat natif n'est réimplémenté.
+   QUATRE PIÈCES, ET UNE SEULE COMMANDE. La piste est une enveloppe de verre
+   fine, avec ses trois couches. La part mouillée (`__wet`) est l'eau retenue
+   DANS la piste. La bulle (`__bubble`) est la poignée : elle vit HORS du
+   verre, parce qu'elle est deux fois plus haute que la piste et que le
+   matériau clôt sa boîte. L'`<input type="range">` natif couvre le tout,
+   invisible : c'est lui qui reçoit le geste, les flèches, le `name` et le
+   rôle `slider`.
+
+   LA ZONE SENSIBLE EST PLUS HAUTE QUE LA PISTE, ET C'EST VOULU. Douze pixels
+   de rail seraient une cible de pointeur hostile ; le natif en couvre
+   trente-six. C'est aussi la raison pour laquelle il est posé hors du verre —
+   enfermé dedans, `overflow: hidden` aurait rogné sa zone sensible à la
+   hauteur visible de la piste.
 
    POURQUOI LE NATIF EST EN OPACITÉ NULLE ET NON CACHÉ. `visibility: hidden`
    ou `display: none` le retireraient de l'ordre de tabulation et de l'arbre
@@ -1129,16 +1136,32 @@
    clavier. L'opacité nulle ne retire rien — elle ne fait que laisser voir le
    verre en dessous.
    ========================================================================== */
-.opale-range-shell--glass {
+
+/** Les mesures du curseur, déclarées une fois : trois règles en dépendent. */
+.opale-range-field {
+  --opale-range-bubble-width: 2.25rem;
+  --opale-range-bubble-height: 1.625rem;
   position: relative;
-  display: block;
-  /* La hauteur de la piste. Elle porte aussi la zone de préhension : le natif
-     l'occupe en entier, donc c'est elle qui donne la cible du pointeur. */
-  min-block-size: 2rem;
-  border-radius: var(--opale-radius-pill);
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  /* La cible du pointeur, et non la hauteur du rail. */
+  min-block-size: 2.25rem;
 }
 
-.opale-range-shell--glass .opale-range {
+.opale-range-shell--glass {
+  /* La part mouillée s'y accroche : sans bloc conteneur nommé ici, elle
+     retomberait sur l'enveloppe du matériau — même boîte aujourd'hui, mais
+     par accident et non par contrat. */
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  /* LE RAIL EST FIN. Le matériau n'a plus à contenir la poignée, seulement
+     l'eau : c'est ce qui permet de le ramener à l'épaisseur d'une piste. */
+  min-block-size: 0.75rem;
+}
+
+.opale-range-field .opale-range {
   position: absolute;
   z-index: 3;
   inset: 0;
@@ -1149,21 +1172,29 @@
   cursor: grab;
 }
 
-.opale-range-shell--glass .opale-range:active {
+.opale-range-field .opale-range:active {
   cursor: grabbing;
 }
 
-/* LA PART MOUILLÉE. Elle s'arrête en pilule des deux côtés plutôt qu'en
-   biseau : une masse d'eau retenue a des bords ronds, et la bulle vient s'y
-   poser comme une goutte au bout. */
+/* LA PART MOUILLÉE S'ARRÊTE AU CENTRE DE LA BULLE, PAS À LA FRACTION BRUTE.
+
+   La bulle court sur `100% - sa largeur` — sans quoi elle sortirait d'une
+   demi-largeur aux deux bouts —, si bien que son centre n'est PAS à
+   `fraction × 100%`. Remplir jusqu'à cette fraction laissait donc le niveau
+   d'eau en retrait de la poignée, d'un écart qui grandit avec la largeur de
+   la bulle : au quart de la course, huit bons pixels de décalage visible.
+   La part mouillée suit maintenant exactement le centre de la bulle. */
 .opale-range-wet {
   position: absolute;
   z-index: 1;
   inset-block: 0;
   inset-inline-start: 0;
-  inline-size: calc(var(--opale-range-progress, 0) * 100%);
+  inline-size: calc(
+    var(--opale-range-bubble-width) / 2 + var(--opale-range-progress, 0) *
+      (100% - var(--opale-range-bubble-width))
+  );
   border-radius: var(--opale-radius-pill);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.26));
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.3));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
   pointer-events: none;
   transition: inline-size 90ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -1171,14 +1202,14 @@
 
 /* LA BULLE.
 
-   SA POSITION EST CALCULÉE SUR LA COURSE UTILE, `100% - sa propre largeur`,
-   et non sur la largeur de la piste : sans cela elle sortirait de la moitié
-   de son diamètre aux deux extrémités — le défaut exact qu'on vient de
-   corriger sur la piste native.
+   ELLE EST PLUS LARGE QUE HAUTE, en capsule : c'est ce qui la fait lire comme
+   une goutte posée sur un rail plutôt que comme une pastille de curseur, et
+   c'est la forme demandée. Le rayon reste celui d'Opale et non 50 % — un
+   cercle sur une piste fine redevient une pastille.
 
-   `scale` PORTE À LUI SEUL LES DEUX EFFETS, et c'est délibéré : une
-   animation par images se battrait avec la transition, et l'une des deux
-   gagnerait selon le moment du geste. `--opale-range-grab` est la prise,
+   `scale` PORTE À LUI SEUL LES DEUX EFFETS, et c'est délibéré : une animation
+   par images se battrait avec la transition, et l'une des deux gagnerait selon
+   le moment du geste. `--opale-range-grab` est la prise,
    `--opale-range-stretch` l'allongement du glissement ; leur produit est
    toujours continu, donc la transition les lisse toutes les deux.
 
@@ -1188,16 +1219,24 @@
 .opale-range-bubble {
   position: absolute;
   z-index: 2;
-  inset-block-start: calc(50% - 0.8125rem);
-  inset-inline-start: calc(var(--opale-range-progress, 0) * (100% - 1.625rem));
-  inline-size: 1.625rem;
-  block-size: 1.625rem;
-  border-radius: 50%;
+  inset-inline-start: calc(
+    var(--opale-range-progress, 0) * (100% - var(--opale-range-bubble-width))
+  );
+  /* Centrée à la main plutôt que par l'alignement du conteneur : la position
+     statique d'un élément absolu dans une boîte flexible dépend de
+     `align-items`, ce qui marche et se casse à la première reprise de la
+     charpente. `translate` et `scale` sont deux propriétés distinctes, donc
+     le centrage ne gêne pas la déformation de la goutte. */
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  inline-size: var(--opale-range-bubble-width);
+  block-size: var(--opale-range-bubble-height);
+  border-radius: var(--opale-radius-sm);
   background: radial-gradient(
     120% 120% at 32% 26%,
-    rgba(255, 255, 255, 0.88),
-    rgba(255, 255, 255, 0.22) 44%,
-    rgba(255, 255, 255, 0.08) 72%
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.24) 46%,
+    rgba(255, 255, 255, 0.1) 74%
   );
   backdrop-filter: blur(1px) saturate(1.35);
   -webkit-backdrop-filter: blur(1px) saturate(1.35);
@@ -1218,20 +1257,16 @@
     calc(var(--opale-range-grab, 1) * (1 - var(--opale-range-stretch, 0) * 0.65));
   transition:
     inset-inline-start 90ms cubic-bezier(0.22, 1, 0.36, 1),
-    scale 170ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    scale 170ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 130ms ease;
 }
 
-/* LA PRISE. Le dépassement de la courbe au-delà de 1 est ce qui fait le
-   rebond de la goutte quand on l'attrape — il est dans la transition, pas
-   dans une animation, donc il ne se rejoue pas tout seul.
-
-   `:focus-visible` GROSSIT LA BULLE AUSSI, et ce n'est pas un doublon du halo
-   : le halo cerne la piste entière, qui fait toute la largeur du champ. Sur
-   une piste longue, savoir QUE le curseur a le focus ne dit pas encore OÙ est
-   la poignée. */
+/* LA PRISE. Le dépassement de la courbe au-delà de 1 fait le rebond de la
+   goutte quand on l'attrape — il est dans la transition, pas dans une
+   animation, donc il ne se rejoue pas tout seul. */
 .opale-range:active ~ .opale-range-bubble,
 .opale-range:focus-visible ~ .opale-range-bubble {
-  --opale-range-grab: 1.16;
+  --opale-range-grab: 1.12;
 }
 
 .opale-range:active ~ .opale-range-bubble {
@@ -1242,11 +1277,32 @@
     0 5px 16px rgba(7, 28, 43, 0.55);
 }
 
+/* LE FOCUS SE POSE SUR LA POIGNÉE, PAS SUR LE RAIL.
+
+   Le halo du matériau cerne la boîte de verre. Sur une piste de douze pixels
+   pour toute la largeur du champ, cela donnait un nuage démesuré autour d'un
+   trait — et surtout, savoir QUE le curseur a le focus ne dit pas encore OÙ
+   est la poignée. Le halo se pose donc sur la bulle, qui est l'objet qu'on
+   déplace.
+
+   `:focus-visible` ET NON `:focus` : un glissement à la souris laisse le
+   focus au natif, et l'indicateur resterait allumé après qu'on a lâché la
+   goutte. Un curseur ne demande pas de saisie textuelle, donc les navigateurs
+   ne lui accordent `:focus-visible` qu'au clavier — exactement la règle
+   voulue. */
+.opale-range:focus-visible ~ .opale-range-bubble {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 1px 1px 0 rgba(255, 255, 255, 1),
+    inset 0 0 10px rgba(255, 255, 255, 0.6),
+    var(--opale-glass-focus-halo);
+}
+
 /* WCAG 2.3.3. L'allongement lui-même est écrit en JavaScript, qui lit la
    préférence à la source : un style en ligne l'emporterait sur toute règle
    posée ici. Ce bloc ne coupe donc que ce qui appartient à la feuille — le
-   glissement et le rebond. La bulle et le remplissage vont alors directement
-   à leur place, ce qui reste parfaitement utilisable. */
+   glissement et le rebond. La bulle et la part mouillée vont alors
+   directement à leur place, ce qui reste parfaitement utilisable. */
 @media (prefers-reduced-motion: reduce) {
   .opale-range-wet,
   .opale-range-bubble {
