@@ -80,17 +80,31 @@ function FieldShell({
   liquidGlass,
   className,
   rootClassName,
+  pressFeedback,
   children,
 }: {
   liquidGlass: boolean;
   className?: string;
   rootClassName?: string;
+  /**
+   * Le rebond d'appui. `Glass` le déduit de la balise rendue, et cette
+   * coquille est toujours un `<span>` : la déduction dit donc « surface » pour
+   * la case à cocher comme pour le champ de saisie. C'est juste pour le champ
+   * — on ne presse pas un champ, on y écrit — et faux pour la case, qu'on
+   * presse bel et bien. D'où ce réglage, posé au cas par cas.
+   */
+  pressFeedback?: boolean;
   children: ReactNode;
 }) {
   if (!liquidGlass) return <span className={className}>{children}</span>;
 
   return (
-    <Glass as="span" className={className} rootClassName={rootClassName}>
+    <Glass
+      as="span"
+      className={className}
+      rootClassName={rootClassName}
+      pressFeedback={pressFeedback}
+    >
       {children}
     </Glass>
   );
@@ -400,6 +414,7 @@ export function Checkbox({
         liquidGlass={liquidGlass}
         className={cx('opale-checkbox-mark', liquidGlass && 'opale-checkbox-mark--glass')}
         rootClassName="opale-checkbox--glass-root"
+        pressFeedback
       >
         {null}
       </FieldShell>
@@ -425,6 +440,7 @@ export function Toggle({ label, liquidGlass = false, className, onChange, ...pro
         liquidGlass={liquidGlass}
         className={cx('opale-toggle-track', liquidGlass && 'opale-toggle-track--glass')}
         rootClassName="opale-toggle--glass-root"
+        pressFeedback
       >
         <span className="opale-toggle-thumb" />
       </FieldShell>

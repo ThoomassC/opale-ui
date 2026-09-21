@@ -505,7 +505,8 @@ describe('l’accessibilité du matériau', () => {
   });
 
   it('borne le rebond pour qu’il réponde sans fatiguer', () => {
-    const press = /\.glass:active\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
+    const press =
+      /\.glass\[data-opale-glass-press='true'\]:active\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
     const duration = Number(/(\d+)ms/.exec(press)?.[1] ?? 0);
 
     expect(press, 'Le rebond ne part que sur `:active` — jamais au survol, jamais seul.').toMatch(
@@ -538,7 +539,7 @@ describe('l’accessibilité du matériau', () => {
 
     expect(reduced, 'L’onde doit s’effacer.').toMatch(/\.ripple/);
     expect(reduced, 'Le rebond doit s’effacer : c’est du mouvement non essentiel.').toMatch(
-      /\.glass:active/,
+      /\.glass\[data-opale-glass-press='true'\]:active/,
     );
     /* Le focus, lui, RESTE. Demander moins d'animation n'est pas renoncer à
        savoir où l'on est : un indicateur est une information, pas un effet. */
@@ -570,6 +571,99 @@ describe('l’accessibilité du matériau', () => {
    épinglé ici, ce sont les CONSTANTES dont ce résultat dépend : les voir
    changer sans qu'on refasse la mesure est le vrai risque.
    ========================================================================== */
+/* =============================================================================
+   LE REBOND APPARTIENT À CE QU'ON PRESSE, PAS À CE QUI L'ENTOURE.
+
+   LE DÉFAUT. `:active` ne désigne pas seulement l'élément touché : la
+   spécification l'applique aussi à TOUS SES ANCÊTRES. Une règle `.glass:active`
+   faisait donc rebondir le conteneur de verre dès qu'on cliquait n'importe quoi
+   dedans — une entrée du sommaire faisait sauter le sommaire entier, un bouton
+   dans une modale faisait sauter la modale.
+
+   POURQUOI AUCUN TEST NE L'A VU. Celui qui gardait le rebond lisait la FEUILLE
+   et vérifiait sa durée, son amplitude et son absence de répétition. Trois
+   bonnes questions, et pas la quatrième : SUR QUOI il part. Un contrôle de
+   valeurs ne dit jamais rien du périmètre d'un sélecteur.
+
+   CE QUI EST VÉRIFIÉ ICI est donc le périmètre, sur le DOM rendu et non sur la
+   feuille : l'attribut que la règle exige est présent sur les activables et
+   absent des surfaces. jsdom ne peignant aucune animation, l'attribut est le
+   seul témoin observable — et c'est justement celui que la feuille lit.
+   ========================================================================== */
+describe('le périmètre du rebond', () => {
+  /** L'enveloppe de verre la plus externe du rendu. */
+  const envelope = (container: HTMLElement) =>
+    container.querySelector('[data-opale-glass]') as HTMLElement | null;
+
+  const PRESSABLE = [
+    { name: 'Button', render: () => <Opale.Button liquidGlass>Continuer</Opale.Button> },
+    /* La case et l'interrupteur gardent leur `<input>` À CÔTÉ du verre : la
+       coquille est un `<span>`, que rien ne distingue d'une surface. C'est le
+       cas que la déduction par balise ne peut pas voir, et le réglage explicite
+       est là pour lui. */
+    { name: 'Checkbox', render: () => <Opale.Checkbox liquidGlass label="Oui" /> },
+    { name: 'Toggle', render: () => <Opale.Toggle liquidGlass label="Actif" /> },
+  ];
+
+  const SURFACES = [
+    {
+      name: 'Card',
+      render: () => (
+        <Opale.Card liquidGlass title="Titre">
+          Corps
+        </Opale.Card>
+      ),
+    },
+    { name: 'Input', render: () => <Opale.Input liquidGlass label="Nom" /> },
+    { name: 'Select', render: () => <Opale.Select liquidGlass label="Choix" options={[]} /> },
+    { name: 'Badge', render: () => <Opale.Badge liquidGlass>Neuf</Opale.Badge> },
+  ];
+
+  for (const { name, render: renderOne } of PRESSABLE) {
+    it(`fait rebondir ${name}, qu'on presse`, () => {
+      const { container } = render(renderOne());
+
+      expect(
+        envelope(container),
+        `${name} est une cible d'activation : son verre doit répondre à l'appui.`,
+      ).toHaveAttribute('data-opale-glass-press', 'true');
+    });
+  }
+
+  for (const { name, render: renderOne } of SURFACES) {
+    it(`laisse ${name} immobile, qu'on ne presse pas`, () => {
+      const { container } = render(renderOne());
+
+      expect(
+        envelope(container),
+        `${name} est une surface. Marquée pressable, elle rebondirait à chaque ` +
+          "clic sur ce qu'elle contient, `:active` remontant aux ancêtres.",
+      ).not.toHaveAttribute('data-opale-glass-press');
+    });
+  }
+
+  /* Le cas complet : un bouton de verre DANS une carte de verre. Le seul qui
+     reproduise la panne — deux enveloppes, une seule doit répondre. */
+  it('ne fait rebondir que le bouton, pas la carte qui le porte', () => {
+    const { container } = render(
+      <Opale.Card liquidGlass title="Titre">
+        <Opale.Button liquidGlass>Continuer</Opale.Button>
+      </Opale.Card>,
+    );
+
+    const envelopes = [...container.querySelectorAll('[data-opale-glass]')];
+    const pressing = envelopes.filter((node) => node.hasAttribute('data-opale-glass-press'));
+
+    expect(envelopes.length, 'Les deux matériaux doivent bien être rendus.').toBe(2);
+    expect(
+      pressing,
+      'Une seule enveloppe doit rebondir : celle du bouton. Si la carte la ' +
+        "rejoint, tout clic à l'intérieur fait sauter la carte entière.",
+    ).toHaveLength(1);
+    expect(pressing[0]?.querySelector('button')).not.toBeNull();
+  });
+});
+
 describe('les seuils de lisibilité du verre', () => {
   /** L'opacité plancher d'une encre blanche, mesurée : en dessous, AA tombe. */
   const PLANCHER = 0.85;

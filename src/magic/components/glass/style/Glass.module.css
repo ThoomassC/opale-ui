@@ -285,10 +285,17 @@
        rien ne se décale autour et aucun voisin ne saute. C'est ce qui permet
        d'en mettre partout sans gêner.
 
+     — IL NE PART QUE SUR CE QU'ON PRESSE. C'est la cinquième règle, et elle
+       manquait. `:active` ne vise pas que l'élément touché : il remonte à tous
+       ses ANCÊTRES. Écrit `.glass:active`, le rebond partait donc sur le
+       conteneur autant que sur le bouton — cliquer une entrée du sommaire
+       faisait sauter le sommaire entier. L'attribut, posé par `Glass` sur les
+       seuls verres activables, est la condition qui manquait.
+
    `cubic-bezier(.34, 1.56, .64, 1)` DÉPASSE VOLONTAIREMENT 1 sur la sortie :
    c'est ce dépassement qui fait le rebond. Sans lui, on aurait un
    rétrécissement mou. */
-.glass:active {
+.glass[data-opale-glass-press='true']:active {
   animation: opale-glass-press 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -310,7 +317,7 @@
 @media (prefers-reduced-motion: reduce) {
   .ripple,
   .squishing,
-  .glass:active {
+  .glass[data-opale-glass-press='true']:active {
     animation: none;
   }
 

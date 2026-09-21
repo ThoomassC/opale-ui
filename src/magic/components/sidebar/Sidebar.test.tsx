@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import Sidebar, { type SidebarProps } from "./Sidebar";
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import Sidebar, { type SidebarProps } from './Sidebar';
 
 const renderSidebar = (props?: Partial<SidebarProps>) => {
   return render(
@@ -22,32 +22,25 @@ const renderSidebar = (props?: Partial<SidebarProps>) => {
   );
 };
 
-describe("Sidebar component", () => {
-  it("renders provided items", () => {
+describe('Sidebar component', () => {
+  it('renders provided items', () => {
     renderSidebar();
 
-    expect(
-      screen.getByRole("button", { name: "Dashboard" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Analytics" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Analytics' })).toBeInTheDocument();
   });
 
-  it("fires onSelectItem with item data", () => {
+  it('fires onSelectItem with item data', () => {
     const handleSelect = vi.fn();
     renderSidebar({ onSelectItem: handleSelect });
 
-    fireEvent.click(screen.getByRole("button", { name: "Analytics" }));
+    fireEvent.click(screen.getByRole('button', { name: 'Analytics' }));
 
     expect(handleSelect).toHaveBeenCalledTimes(1);
-    expect(handleSelect).toHaveBeenCalledWith(
-      "analytics",
-      expect.any(Object),
-    );
+    expect(handleSelect).toHaveBeenCalledWith('analytics', expect.any(Object));
   });
 
-  it("does not trigger selection for disabled items", () => {
+  it('does not trigger selection for disabled items', () => {
     const handleSelect = vi.fn();
 
     render(
@@ -61,20 +54,18 @@ describe("Sidebar component", () => {
       </Sidebar>,
     );
 
-    const blocked = screen.getByRole("button", { name: "Blocked" });
+    const blocked = screen.getByRole('button', { name: 'Blocked' });
 
     expect(blocked).toBeDisabled();
     fireEvent.click(blocked);
     expect(handleSelect).not.toHaveBeenCalled();
   });
 
-  it("calls onToggle when collapsible header toggle clicked", () => {
+  it('calls onToggle when collapsible header toggle clicked', () => {
     const handleToggle = vi.fn();
     renderSidebar({ collapsed: false, onToggle: handleToggle });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "collapse sidebar" }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'collapse sidebar' }));
 
     expect(handleToggle).toHaveBeenCalledWith(true);
   });
@@ -185,5 +176,30 @@ describe('Sidebar — ce que la réécriture corrige', () => {
       'false',
     );
   });
-});
 
+  /* =========================================================================
+     LE SOMMAIRE NE REBONDIT PAS QUAND ON CLIQUE UNE ENTRÉE.
+
+     LE DÉFAUT OBSERVÉ. Le rail est un `Glass`, et le rebond du matériau était
+     écrit `.glass:active`. Or `:active` remonte aux ANCÊTRES de l'élément
+     pressé : sélectionner une entrée faisait donc sauter le rail entier —
+     mesuré à 1 408 px de haut sur la vitrine. L'onde avait déjà été coupée ici
+     pour cette raison exacte (voir `enableLiquidAnimation={false}` dans le
+     composant) ; le rebond, lui, n'était pas coupable au même endroit, puisque
+     rien ne le rendait optionnel.
+
+     CE QUE CE TEST PEUT DIRE. jsdom ne peint pas : il ne verra jamais une
+     échelle. Ce qui est observable, c'est l'attribut dont la règle dépend —
+     `.glass[data-opale-glass-press='true']:active`. Son absence sur le rail
+     est donc exactement l'assertion utile, et elle rougit si quelqu'un remet
+     le rebond sur toutes les surfaces.
+     ====================================================================== */
+  it('ne rebondit pas : le rail est une surface, pas une cible d’appui', () => {
+    const { container } = renderSidebar();
+    const material = container.querySelector('[data-opale-glass]');
+
+    expect(material).not.toBeNull();
+    expect(material?.querySelector('aside')).not.toBeNull();
+    expect(material).not.toHaveAttribute('data-opale-glass-press');
+  });
+});
