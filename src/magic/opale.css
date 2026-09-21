@@ -162,7 +162,7 @@
      pose du verre sur un fond clair sans voile doit redéfinir l'encre, sans
      quoi il publie du blanc sur du blanc. */
   --opale-glass-ink: #fff;
-  --opale-glass-ink-muted: rgba(255, 255, 255, 0.82);
+  --opale-glass-ink-muted: rgba(255, 255, 255, 0.86);
   --opale-glass-scrim: rgba(7, 28, 43, 0.65);
 }
 
@@ -454,6 +454,49 @@
   width: 100%;
 }
 
+/* TOUT CE QUI POSE SA PROPRE ENCRE DOIT LA REPRENDRE SOUS VERRE.
+
+   Le contenu du verre déclare l'encre du matériau, et l'héritage fait le reste
+   — pour le texte ordinaire. Mais plusieurs pièces d'Opale déclarent la leur :
+   le titre et le sous-titre d'une carte, les trois lignes d'une statistique, le
+   libellé d'une pastille. Elles la déclarent pour la carte BLANCHE, qui est
+   leur contexte normal ; sur une image, ces gris sombres deviennent illisibles.
+
+   MESURÉ SOUS VERRE, AVANT CORRECTION, sur le pixel le plus clair du cliché
+   voilé : le libellé d'une statistique à **1,29:1**, sa valeur à 3,41:1, son
+   évolution à 1,20:1, et le libellé d'une pastille à **1,20:1**. Aucune de ces
+   pièces n'est fautive en soi — c'est leur contexte qui a changé, et aucune
+   n'avait moyen de le savoir.
+
+   LA PASTILLE GARDE UNE TEINTE, mais épaissie : son lavis à 13 % laissait voir
+   la photographie au travers, si bien que le blanc se serait retrouvé sur le
+   cliché plutôt que sur la pastille. À 62 %, elle redevient une surface. */
+[data-opale-glass] .opale-card__title,
+[data-opale-glass] .opale-card__subtitle,
+[data-opale-glass] .opale-stat-card__label,
+[data-opale-glass] .opale-stat-card__value,
+[data-opale-glass] .opale-stat-card__delta,
+[data-opale-glass] .opale-field__label,
+[data-opale-glass] .opale-field__helper {
+  color: var(--opale-glass-ink);
+}
+[data-opale-glass] .opale-card__subtitle,
+[data-opale-glass] .opale-stat-card__label,
+[data-opale-glass] .opale-stat-card__delta,
+[data-opale-glass] .opale-field__helper {
+  color: var(--opale-glass-ink-muted);
+}
+[data-opale-glass] .opale-badge {
+  background: color-mix(in srgb, var(--opale-primary) 62%, transparent);
+  color: var(--opale-glass-ink);
+}
+[data-opale-glass] .opale-badge--accent {
+  background: color-mix(in srgb, #7a5200 72%, transparent);
+}
+[data-opale-glass] .opale-badge--danger {
+  background: color-mix(in srgb, var(--opale-danger) 72%, transparent);
+}
+
 /* L'ENCRE DESCEND JUSQU'AU CHAMP ET JUSQU'À SON TEXTE INDICATIF.
 
    Hériter ne suffisait pas : `.opale-input` déclare sa propre couleur, plus
@@ -463,11 +506,13 @@
    le défaut le plus visible du matériau et le seul que l'utilisateur ait
    signalé de lui-même.
 
-   LE TEXTE INDICATIF N'EST PAS À 100 % D'OPACITÉ, et c'est délibéré : il doit
-   se distinguer d'une valeur saisie, sans quoi on croit le champ rempli. 82 %
-   de blanc sur le voile mesuré tient 4,04:1 — au-dessus du seuil de 3:1 des
-   textes non essentiels, en dessous du 4,5:1 du texte courant, ce qui est le
-   bon compromis pour un contenu qui, par définition, n'est pas le contenu. */
+   LE TEXTE INDICATIF N'EST PAS À 100 % D'OPACITÉ, et son opacité est MESURÉE.
+   Il doit se distinguer d'une valeur saisie, sans quoi on croit le champ
+   rempli — mais l'atténuation mange du contraste. Sur le pixel le plus clair du
+   cliché, voile compris, le premier palier qui tient 4,5:1 est 85 % de blanc.
+   86 % laisse une marge d'un point tout en restant visiblement plus doux que
+   l'encre pleine. Un texte indicatif n'est pas un texte décoratif : il porte
+   souvent le format attendu, donc il relève bien du seuil du texte courant. */
 .opale-input-shell--glass .opale-input,
 .opale-input-shell--glass .opale-select,
 .opale-range-shell--glass .opale-range {

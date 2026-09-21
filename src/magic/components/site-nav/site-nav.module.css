@@ -8,7 +8,11 @@
 .bar {
   --site-nav-accent: var(--accent-active, #005d6f);
   --site-nav-ink: var(--text-on-accent, #ffffff);
-  --site-nav-quiet-ink: color-mix(in srgb, var(--site-nav-ink) 80%, transparent);
+  /* 86 % ET NON 80 % : mesuré sur le pixel le plus clair du cliché des scènes,
+     voile compris, le blanc à 80 % tombe à 4,24:1 — juste sous le seuil AA. Le
+     premier palier conforme est 85 %. L'écart avec l'encre pleine reste
+     perceptible, donc la hiérarchie tient. */
+  --site-nav-quiet-ink: color-mix(in srgb, var(--site-nav-ink) 86%, transparent);
   --site-nav-space-2: var(--space-2, 0.5rem);
   --site-nav-space-3: var(--space-3, 0.75rem);
   --site-nav-space-4: var(--space-4, 1rem);

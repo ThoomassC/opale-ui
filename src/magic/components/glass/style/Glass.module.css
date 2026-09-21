@@ -122,9 +122,20 @@
   animation: opale-glass-ripple 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* LE CONTENU HÉRITE DE L'ENCRE DU MATÉRIAU, ET C'EST UN FILET DE SÉCURITÉ.
+
+   Sans cette ligne, un `<Glass>` nu — sans classe de composant — prend le NOIR
+   par défaut du navigateur. Posé sur une image sombre, son libellé disparaît.
+   Ce n'est pas une hypothèse : deux boutons de démonstration sont tombés dans
+   ce trou en passant au matériau d'Opale, mesurés à 3,78:1.
+
+   Le défaut d'un composant doit être la valeur SÛRE, pas celle de l'agent
+   utilisateur. Un composant qui pose sa propre encre l'emporte de toute façon
+   sur ce repli. */
 .content {
   position: relative;
   z-index: 3;
+  color: var(--opale-glass-ink, #fff);
 }
 
 .squishing {

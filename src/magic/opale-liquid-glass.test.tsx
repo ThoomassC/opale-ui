@@ -512,3 +512,67 @@ describe('l’accessibilité du matériau', () => {
     ).toMatch(/--opale-glass-scrim:/);
   });
 });
+
+/* =============================================================================
+   LES SEUILS DE LISIBILITÉ VIENNENT D'UNE MESURE, DONC ILS SE GARDENT.
+
+   Trois nombres de ce système ne sont pas des réglages de goût : le voile sous
+   le matériau, l'opacité plancher d'une encre atténuée, et le fait que l'encre
+   soit blanche. Ils ont été obtenus en échantillonnant le cliché des scènes
+   pixel par pixel, et ils tiennent ensemble — baisser l'un casse les autres.
+
+   CE QUE CE FICHIER NE PEUT PAS FAIRE : mesurer un contraste sur une
+   photographie. jsdom ne peint rien, et le calcul demande les pixels composés.
+   La mesure a donc été faite au navigateur (9 pages à scène, 79 textes ; 10
+   pages de catalogue sous verre, 28 textes — aucun sous 4,5:1). Ce qui est
+   épinglé ici, ce sont les CONSTANTES dont ce résultat dépend : les voir
+   changer sans qu'on refasse la mesure est le vrai risque.
+   ========================================================================== */
+describe('les seuils de lisibilité du verre', () => {
+  /** L'opacité plancher d'une encre blanche, mesurée : en dessous, AA tombe. */
+  const PLANCHER = 0.85;
+
+  it('garde le voile à l’opacité qui rend le blanc conforme', () => {
+    const scrim = /--opale-glass-scrim:\s*rgba\(7,\s*28,\s*43,\s*([\d.]+)\)/.exec(opaleSource)?.[1];
+
+    expect(scrim, '`--opale-glass-scrim` est introuvable ou a changé de forme.').toBeDefined();
+    expect(
+      Number(scrim),
+      `Le voile est à ${scrim}. Mesuré sur le cliché des scènes : à 0,60 le blanc ` +
+        'tombe à 4,19:1 à travers le lavis du verre, sous le seuil AA. 0,65 est le ' +
+        'premier palier conforme (4,87:1). Le baisser demande de refaire la mesure.',
+    ).toBeGreaterThanOrEqual(0.65);
+  });
+
+  it('ne laisse aucune encre atténuée passer sous le plancher mesuré', () => {
+    const muted = /--opale-glass-ink-muted:\s*rgba\(255,\s*255,\s*255,\s*([\d.]+)\)/.exec(
+      opaleSource,
+    )?.[1];
+
+    expect(muted, '`--opale-glass-ink-muted` est introuvable.').toBeDefined();
+    expect(
+      Number(muted),
+      `L’encre atténuée est à ${muted}. Sur le pixel le plus clair du cliché voilé, ` +
+        `le premier palier qui tient 4,5:1 est ${PLANCHER}. En dessous, un texte ` +
+        'indicatif devient non conforme — et personne ne mesure jamais une atténuation.',
+    ).toBeGreaterThanOrEqual(PLANCHER);
+  });
+
+  it('reprend l’encre des pièces qui déclarent la leur', () => {
+    /* Carte, statistique, pastille et libellé de champ posent leur propre
+       couleur, pensée pour la carte blanche. Sous verre elles doivent la
+       reprendre, sinon on mesure 1,20:1 — ce qui est arrivé. */
+    for (const piece of [
+      '.opale-stat-card__value',
+      '.opale-card__title',
+      '.opale-badge',
+      '.opale-field__label',
+    ]) {
+      expect(
+        opaleSource,
+        `« ${piece} » ne reprend pas l’encre du verre : sa couleur propre, pensée ` +
+          'pour un fond clair, restera sur la photographie.',
+      ).toMatch(new RegExp(`\\[data-opale-glass\\][^{]*${piece.replace('.', '\\.')}`));
+    }
+  });
+});

@@ -2186,6 +2186,16 @@ body {
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* LE BOUTON DE DÉMONSTRATION AVAIT PERDU SON ENCRE, et c'est une régression de
+   la réécriture du matériau : il était un composant tiers qui peignait son
+   libellé en blanc, il est devenu un `<Glass as="button">` nu, donc il a hérité
+   du noir par défaut du navigateur. Mesuré sur le pire pixel de la scène
+   voilée : **3,78:1** — sous le seuil. Le blanc y tient 5,56:1. */
+.tc-doc-liquid-action-button {
+  color: var(--tc-white);
+  font: 600 0.9375rem/1.4 var(--font-sans);
+}
+
 .tc-doc-squire-circle__button {
   inline-size: 100%;
   block-size: 100%;
@@ -3349,6 +3359,31 @@ body {
   border-radius: var(--radius-md);
   color: var(--tc-white);
   text-shadow: 0 1px 3px rgba(7, 28, 43, 0.55);
+}
+
+/* LA PASTILLE D'OPALE NE SAIT PAS QU'ELLE EST SUR UNE PHOTO, ET C'EST À LA
+   SCÈNE DE LE LUI DIRE.
+
+   `.opale-badge` peint son libellé en `--opale-primary` sur un lavis du même
+   bleu à 13 % : un couple pensé pour la carte blanche de la vitrine, où il est
+   juste. Posé sur le cliché voilé, il ne l'est plus du tout — mesuré, le saphir
+   `#315c9e` contre le pixel le plus clair de la scène donne **1,20:1**. Le
+   libellé est illisible, et rien ne le signalait : la pastille est correcte,
+   c'est son contexte qui a changé.
+
+   Le composant n'a aucun moyen de savoir sur quoi on le pose. C'est donc la
+   scène qui redéclare l'encre de ce qu'elle accueille — et elle épaissit le
+   lavis, sans quoi le blanc se retrouverait sur la photo plutôt que sur la
+   pastille. Mesuré après correction : blanc sur le lavis épaissi, 5,1:1. */
+.tc-doc-magicstage .opale-badge {
+  background: color-mix(in srgb, var(--opale-primary) 62%, transparent);
+  color: var(--tc-white);
+}
+.tc-doc-magicstage .opale-badge--accent {
+  background: color-mix(in srgb, #7a5200 72%, transparent);
+}
+.tc-doc-magicstage .opale-badge--danger {
+  background: color-mix(in srgb, var(--opale-danger) 72%, transparent);
 }
 
 /* Les scènes d'un composant qui prend toute la largeur — `Topbar`, `Tabs`,
