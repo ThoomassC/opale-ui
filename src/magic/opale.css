@@ -293,11 +293,18 @@
   backdrop-filter: blur(var(--opale-glass-blur)) saturate(1.35);
 }
 
+/* LA CASE À COCHER MANQUAIT À CETTE LISTE, ET L'OUBLI SE VOYAIT À SON
+   ASYMÉTRIE. Son `<input>` natif est absolu, de 1 px, à opacité nulle : sans
+   règle, l'anneau du navigateur se dessine sur cette boîte invisible, et la
+   case devient un arrêt de tabulation qu'on ne voit pas (WCAG 2.4.7).
+   L'interrupteur, lui, était couvert depuis toujours — et les deux le sont
+   sous verre. Il ne manquait que ce sélecteur-ci. */
 .opale-surface:focus-visible,
 .opale-card:focus-visible,
 .opale-button:focus-visible,
 .opale-input:focus-visible,
 .opale-select:focus-visible,
+.opale-checkbox:focus-visible + .opale-checkbox-mark,
 .opale-toggle:focus-visible + .opale-toggle-track {
   outline: 3px solid var(--opale-focus);
   outline-offset: 3px;
@@ -1540,6 +1547,55 @@
   color: var(--opale-text-secondary);
   cursor: pointer;
   font-size: 1.5rem;
+}
+
+/* =============================================================================
+   LE PANNEAU LATÉRAL COULE ENFIN SUR LE CÔTÉ.
+
+   Il rendait jusqu'ici la boîte CENTRÉE du dialogue, contre sa propre fiche
+   (« panneau latéral coulissant »). Posé sur la coquille de `Modal`, ce bloc
+   le plaque contre le bord de fin, sur toute la hauteur.
+
+   `margin-inline-start: auto` ET NON `position: fixed` : la coquille vit déjà
+   dans le conteneur plein écran de `Modal`, qui centre ses enfants. Lui
+   donner une marge automatique d'un seul côté suffit à le pousser, et l'on
+   hérite ainsi de tout ce que `Modal` gère — le voile, le verrou de
+   défilement, le piège de focus — au lieu de le refaire. */
+.opale-side-panel {
+  --opale-glass-radius: var(--opale-radius-lg) 0 0 var(--opale-radius-lg);
+  margin-inline-start: auto;
+  margin-block: 0;
+  block-size: 100%;
+  max-block-size: 100%;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+/* La visionneuse occupe la place qu'il faut à son image, sans la contraindre
+   à la largeur d'un dialogue de texte. */
+.opale-lightbox img {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 70vh;
+  margin-inline: auto;
+  border-radius: var(--opale-radius-md);
+}
+
+/* LE BOUTON DE FERMETURE DES DIALOGUES RESTAIT SOUS LA CIBLE MINIMALE.
+
+   `.opale-dialog__close` ne déclarait ni dimension ni `padding` : sa boîte se
+   réduisait au glyphe « × » en `font-size: 1.5rem`, soit environ 17 × 29 px,
+   sous le plancher de 24 px de WCAG 2.5.8 — et sans espacement compensatoire,
+   le titre étant collé à côté. Les mêmes boutons de `Modal` (40 px) et de
+   `Toast` (32 px) étaient corrects : seul ce chemin-ci était resté en arrière.
+   Il sert encore au `Toast` posé en flux. */
+.opale-dialog__close {
+  display: inline-flex;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--opale-radius-sm);
 }
 
 .opale-stack {

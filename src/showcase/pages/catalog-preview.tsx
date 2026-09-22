@@ -542,7 +542,12 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = (
         <>
           <Opale.Button onClick={() => setPaletteOpen(true)}>Ouvrir la palette</Opale.Button>
-          <Opale.CommandPalette open={paletteOpen} value={text} onChange={setText}>
+          <Opale.CommandPalette
+            open={paletteOpen}
+            value={text}
+            onChange={setText}
+            onClose={() => setPaletteOpen(false)}
+          >
             <Opale.Button variant="text" onClick={() => setPaletteOpen(false)}>
               Fermer
             </Opale.Button>

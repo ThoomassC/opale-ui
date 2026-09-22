@@ -18,6 +18,20 @@ import {
 } from 'react';
 
 import Glass from './components/glass/Glass';
+/* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
+
+   `ConfirmDialog`, `SidePanel`, `CommandPalette` et `Lightbox` peignaient
+   chacun leur propre voile et leur propre boîte. Aucun n'avait de piège de
+   focus, de fermeture par Échap, de restitution du focus au déclencheur ni de
+   verrou de défilement — et `ConfirmDialog` annonçait pourtant
+   `aria-modal="true"`, ce qui est un mensonge coûteux : le lecteur d'écran
+   croit l'arrière-plan neutralisé quand la tabulation y circule encore. Sur
+   une confirmation de suppression, on pouvait actionner les boutons DERRIÈRE
+   la demande de confirmation.
+
+   `Modal` fait tout cela, et il est déjà testé pour. Les quatre deviennent
+   donc ce qu'ils auraient toujours dû être : des PRÉRÉGLAGES. */
+import { Modal } from './components/modal';
 
 /* =============================================================================
    LE VERRE EST LA PEAU, LE CONTRÔLE NATIF RESTE LE MOTEUR.
@@ -1284,37 +1298,25 @@ export function ConfirmDialog({
   onConfirm?: () => void;
   onCancel?: () => void;
 }) {
-  if (!open) return null;
+  /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
+     faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
+     confirmations coexistaient. `Modal` le dérive d'un `useId`. */
   return (
-    <div className="opale-dialog-backdrop">
-      <div
-        className="opale-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="opale-confirm-title"
-      >
-        <div className="opale-dialog__header">
-          <h2 id="opale-confirm-title" className="opale-card__title">
-            {title}
-          </h2>
-          <button
-            className="opale-dialog__close"
-            type="button"
-            onClick={onCancel}
-            aria-label="Fermer"
-          >
-            ×
-          </button>
-        </div>
-        <div className="opale-dialog__body">{children}</div>
-        <div className="opale-dialog__footer">
+    <Modal
+      open={open}
+      onClose={onCancel}
+      title={title}
+      footer={
+        <>
           <Button variant="text" onClick={onCancel}>
             Annuler
           </Button>
           <Button onClick={onConfirm}>Confirmer</Button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      {children}
+    </Modal>
   );
 }
 
@@ -1423,24 +1425,14 @@ export function SidePanel({
   children?: ReactNode;
   onClose?: () => void;
 }) {
-  if (!open) return null;
+  /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
+     coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
+     même position. La coquille le plaque désormais contre le bord de fin sur
+     toute la hauteur ; voir `.opale-side-panel` dans `opale.css`. */
   return (
-    <div className="opale-dialog-backdrop">
-      <aside className="opale-dialog" aria-label={typeof title === 'string' ? title : undefined}>
-        <div className="opale-dialog__header">
-          <h2 className="opale-card__title">{title}</h2>
-          <button
-            className="opale-dialog__close"
-            type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-          >
-            ×
-          </button>
-        </div>
-        {children}
-      </aside>
-    </div>
+    <Modal open={open} onClose={onClose} title={title} rootClassName="opale-side-panel">
+      {children}
+    </Modal>
   );
 }
 
@@ -1461,25 +1453,33 @@ export function CommandPalette({
   open = false,
   value = '',
   onChange,
+  onClose,
   children,
 }: {
   open?: boolean;
   value?: string;
   onChange?: (value: string) => void;
+  onClose?: () => void;
   children?: ReactNode;
 }) {
-  return open ? (
-    <div className="opale-dialog-backdrop">
-      <div className="opale-dialog">
-        <Input
-          value={value}
-          onChange={(event) => onChange?.(event.currentTarget.value)}
-          placeholder="Rechercher une commande"
-        />
-        {children}
-      </div>
-    </div>
-  ) : null;
+  /* LE CHAMP A UNE ÉTIQUETTE, ET PLUS SEULEMENT UN TEXTE INDICATIF. Un
+     placeholder disparaît à la première frappe, ne survit pas à la
+     reconnaissance vocale et n'est pas une étiquette (WCAG 3.3.2) : il était
+     pourtant le seul nom accessible du champ. Sur le composant dont la
+     vocation EST le clavier, l'ironie méritait d'être corrigée.
+
+     `onClose` EST UNE PROP NOUVELLE, et elle est la condition du reste : un
+     dialogue qu'on ne peut pas fermer n'en est pas un. */
+  return (
+    <Modal open={open} onClose={onClose} aria-label="Palette de commandes">
+      <Input
+        label="Rechercher une commande"
+        value={value}
+        onChange={(event) => onChange?.(event.currentTarget.value)}
+      />
+      {children}
+    </Modal>
+  );
 }
 
 export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
@@ -1625,7 +1625,12 @@ export function BulletList({ items = [] }: { items?: readonly ReactNode[] }) {
 }
 export function Rating({ value = 0, max = 5 }: { value?: number; max?: number }) {
   return (
-    <span className="opale-rating" aria-label={`${value} sur ${max}`}>
+    /* `role="img"` EST OBLIGATOIRE ICI. Un `aria-label` posé sur un élément
+       sans rôle — un `<span>` a le rôle `generic` — est ignoré par les API
+       d'accessibilité, et les étoiles enfants sont toutes `aria-hidden` : la
+       note ne s'annonçait donc PAS DU TOUT (WCAG 1.1.1). `Icon`, quelques
+       lignes plus haut, prend déjà cette précaution. */
+    <span className="opale-rating" role="img" aria-label={`${value} sur ${max}`}>
       {Array.from({ length: max }, (_, index) => (
         <span key={index} aria-hidden="true">
           {index + 1 <= value ? '★' : '☆'}
@@ -1759,9 +1764,17 @@ export function Dropzone({
 }) {
   return (
     <label className="opale-dropzone">
+      {/* `opale-visually-hidden` ET NON `hidden`, ET C'EST LA DIFFÉRENCE ENTRE
+          UN COMPOSANT ET UN CUL-DE-SAC. L'attribut `hidden` vaut
+          `display: none` : le champ sortait de l'ordre de tabulation, et le
+          `<label>` qui l'enveloppe n'est pas focalisable. On tabulait donc
+          jusqu'ici et l'on ne rencontrait RIEN — envoyer un fichier au clavier
+          était impossible (WCAG 2.1.1). La classe, elle, masque par découpage
+          sans déclasser : le champ garde son arrêt de tabulation, son anneau
+          de focus et son annonce. */}
       <input
         type="file"
-        hidden
+        className="opale-visually-hidden"
         multiple
         onChange={(event) => event.currentTarget.files && onFiles?.(event.currentTarget.files)}
       />
@@ -1775,23 +1788,36 @@ export function FileUploader({ onFiles }: { onFiles?: (files: FileList) => void 
 }
 export function Lightbox({
   src,
-  alt = '',
+  alt,
   open = false,
   onClose,
 }: {
   src?: string;
-  alt?: string;
+  /* `alt` EST OBLIGATOIRE, ET IL NE PEUT PAS EN ÊTRE AUTREMENT. Sa valeur par
+     défaut était la chaîne vide, c'est-à-dire « cette image est décorative » —
+     déclaré sur la seule chose que la visionneuse existe pour montrer. Un
+     appelant distrait produisait une lightbox vide pour qui ne voit pas, sans
+     le moindre signal. Une prop obligatoire dit « décris-moi » ; un défaut
+     vide dit « ce n'est pas grave ». Rupture d'API assumée. */
+  alt: string;
   open?: boolean;
   onClose?: () => void;
 }) {
-  return open && src ? (
-    <div className="opale-lightbox" role="dialog" aria-label="Aperçu">
-      <img src={src} alt={alt} />
-      <Button variant="ghost" onClick={onClose}>
-        Fermer
-      </Button>
-    </div>
-  ) : null;
+  return (
+    <Modal
+      open={open && Boolean(src)}
+      onClose={onClose}
+      aria-label="Aperçu"
+      rootClassName="opale-lightbox"
+      footer={
+        <Button variant="ghost" onClick={onClose}>
+          Fermer
+        </Button>
+      }
+    >
+      {src && <img src={src} alt={alt} />}
+    </Modal>
+  );
 }
 export function Map({ children = 'Carte interactive' }: { children?: ReactNode }) {
   return (

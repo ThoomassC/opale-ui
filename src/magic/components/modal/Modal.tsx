@@ -82,7 +82,15 @@ import styles from './style/Modal.module.css';
 
 type ModalSize = 'sm' | 'md' | 'lg';
 
-export type ModalProps = ComponentPropsWithoutRef<'div'> & {
+/* `Omit<…, 'title'>` N'EST PAS UNE COQUETTERIE DE TYPAGE.
+
+   `ComponentPropsWithoutRef<'div'>` apporte l'attribut HTML `title`, qui est
+   une CHAÎNE. L'intersecter avec `title?: ReactNode` donnait
+   `string & ReactNode`, c'est-à-dire une chaîne : la prop annonçait accepter
+   un nœud et refusait tout ce qui n'en était pas un. Le type mentait, et
+   personne ne s'en apercevait tant qu'aucun appelant n'essayait — le premier
+   à passer un titre composé a échoué à la compilation. */
+export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   open: boolean;
   onClose?: () => void;
   onOpenChange?: (open: boolean) => void;
@@ -95,7 +103,9 @@ export type ModalProps = ComponentPropsWithoutRef<'div'> & {
   size?: ModalSize;
   enableLiquidAnimation?: boolean;
   portalContainer?: HTMLElement | null;
-} & GlassProps;
+  /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
+     côtés, sans quoi l'intersection le ramène à une chaîne. */
+} & Omit<GlassProps, 'title'>;
 
 const sizeClass: Record<ModalSize, string> = {
   sm: styles.sm,
