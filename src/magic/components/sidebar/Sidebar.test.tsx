@@ -65,7 +65,7 @@ describe('Sidebar component', () => {
     const handleToggle = vi.fn();
     renderSidebar({ collapsed: false, onToggle: handleToggle });
 
-    fireEvent.click(screen.getByRole('button', { name: 'collapse sidebar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Replier le rail' }));
 
     expect(handleToggle).toHaveBeenCalledWith(true);
   });
@@ -154,7 +154,7 @@ describe('Sidebar — ce que la réécriture corrige', () => {
       </Sidebar>,
     );
 
-    const expanded = screen.getByRole('button', { name: 'collapse sidebar' });
+    const expanded = screen.getByRole('button', { name: 'Replier le rail' });
     expect(expanded).toHaveAttribute('aria-expanded', 'true');
 
     const controls = expanded.getAttribute('aria-controls');
@@ -171,7 +171,7 @@ describe('Sidebar — ce que la réécriture corrige', () => {
       </Sidebar>,
     );
 
-    expect(screen.getByRole('button', { name: 'expand sidebar' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Déplier le rail' })).toHaveAttribute(
       'aria-expanded',
       'false',
     );
@@ -201,5 +201,24 @@ describe('Sidebar — ce que la réécriture corrige', () => {
     expect(material).not.toBeNull();
     expect(material?.querySelector('aside')).not.toBeNull();
     expect(material).not.toHaveAttribute('data-opale-glass-press');
+  });
+
+  /* LE REPLI NE DOIT PAS ÉCRASER UN LIBELLÉ VISIBLE.
+
+     `aria-label` était posé inconditionnellement : un appelant qui donnait un
+     texte à la bascule obtenait quand même « collapse sidebar » comme nom
+     accessible. La commande vocale « clique Replier » échouait alors, le nom
+     et le libellé visible n'ayant plus un mot en commun (WCAG 2.5.3). */
+  it('laisse un libellé visible nommer la bascule', () => {
+    render(
+      <Sidebar collapsible>
+        <Sidebar.Header>
+          <Sidebar.Toggle>Replier</Sidebar.Toggle>
+        </Sidebar.Header>
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Replier' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Replier le rail' })).toBeNull();
   });
 });

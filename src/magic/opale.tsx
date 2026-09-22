@@ -230,7 +230,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
        puisqu'il n'y a plus qu'un seul balisage. */
     const content = (
       <>
-        {loading ? <span className="opale-spinner" aria-hidden="true" /> : startIcon}
+        {/* L'ICÔNE EST DÉCORATIVE, ET ELLE DOIT LE DIRE. Rendue nue, la
+            glyphe entrait dans le nom du bouton : « × Supprimer », « ✎
+            Modifier », « ✓ Approuver ». La commande vocale ne retrouvait plus
+            « Supprimer », et le lecteur d'écran lisait un caractère avant
+            chaque libellé (WCAG 2.5.3). Un bouton SANS texte, lui, passe par
+            `aria-label` — voir `IconActionButton`. */}
+        {loading ? (
+          <span className="opale-spinner" aria-hidden="true" />
+        ) : (
+          startIcon && <span aria-hidden="true">{startIcon}</span>
+        )}
         <span>{children}</span>
         {!loading && endIcon}
       </>
@@ -363,9 +373,30 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
   ({ label, helperText, error, icon, liquidGlass = false, className, id, ...props }, ref) => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
+    const messageId = `${inputId}-message`;
+    const message = error || helperText;
+
+    /* LE MESSAGE SORT DU `<label>`, ET C'EST TOUT L'OBJET DE CE REMANIEMENT.
+
+       L'ensemble du champ était enveloppé dans un `<label>` : le texte d'aide
+       et le message d'erreur se retrouvaient donc DANS le nom accessible.
+       « E-mail » devenait « E-mail Adresse invalide » — ce qui casse la
+       commande vocale, qui ne retrouve plus « E-mail », et noie l'erreur dans
+       l'étiquette au lieu d'en faire une description.
+
+       Pire : rien ne l'ANNONÇAIT. Ni `aria-describedby`, ni `aria-invalid`,
+       ni région live. On validait, le message apparaissait, et il ne se
+       passait rien d'audible (WCAG 4.1.3 et 3.3.1).
+
+       Le libellé redevient donc un `<label htmlFor>` — le clic dessus focalise
+       toujours le champ —, et le message devient une description annoncée. */
     return (
-      <label className={cx('opale-field', className)} htmlFor={inputId}>
-        {label && <span className="opale-field__label">{label}</span>}
+      <div className={cx('opale-field', className)}>
+        {label && (
+          <label className="opale-field__label" htmlFor={inputId}>
+            {label}
+          </label>
+        )}
         {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
 
             Ce qui porte du TEXTE reste hors du verre — le libellé, le texte
@@ -382,16 +413,28 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
           rootClassName="opale-input--glass-root"
         >
           {icon}
-          <input ref={ref} id={inputId} className="opale-input" {...props} />
+          <input
+            ref={ref}
+            id={inputId}
+            className="opale-input"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={message ? messageId : undefined}
+            {...props}
+          />
         </FieldShell>
-        {(error || helperText) && (
+        {message && (
           <span
+            id={messageId}
+            /* `role="alert"` SUR LA SEULE ERREUR. Un texte d'aide est là dès
+               le départ : l'annoncer d'autorité couperait la parole au reste
+               de la page pour redire ce que la description dit déjà. */
+            role={error ? 'alert' : undefined}
             className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
           >
-            {error || helperText}
+            {message}
           </span>
         )}
-      </label>
+      </div>
     );
   },
 );
@@ -1225,6 +1268,23 @@ export function Icon({
   );
 }
 
+/**
+ * L'encart de retour en flux.
+ *
+ * CE QUE CE COMPOSANT NE PEUT PAS GARANTIR, ET QUI REVIENT À L'APPELANT. Une
+ * région live doit exister AVANT que son contenu n'arrive, sans quoi l'annonce
+ * se perd. Ici la région naît avec le message, puisque c'est l'appelant qui
+ * monte l'encart au moment de le montrer — le composant n'a aucun moyen de se
+ * monter à l'avance. `role="alert"` est le plus souvent rattrapé à
+ * l'insertion, `role="status"` beaucoup moins.
+ *
+ * Pour un message qui doit être entendu à coup sûr, montez l'encart dès le
+ * départ et ne changez que son contenu, ou passez par `ToastProvider`, dont
+ * les régions sont permanentes par construction.
+ *
+ * Ce comportement dépend du couple navigateur/lecteur d'écran et n'a pas été
+ * vérifié ici faute de lecteur d'écran.
+ */
 export function Feedback({
   severity = 'info',
   title,
@@ -1258,19 +1318,45 @@ export function Toast({
   onClose?: () => void;
   className?: string;
 }) {
-  if (!open) return null;
+  /* LA RÉGION EST MONTÉE EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
+
+     Le composant entier — `role="status"` compris — était rendu au moment où
+     le message arrivait. Une région live insérée EN MÊME TEMPS que son
+     contenu n'est pas surveillée par la technologie d'assistance à l'instant
+     de l'insertion : l'annonce se perd (WCAG 4.1.3). C'est exactement ce que
+     l'en-tête de `ToastProvider` décrit et corrige pour la file ; la
+     correction n'avait pas été reportée ici.
+
+     La région extérieure ne porte aucun style : vide, elle n'occupe rien. */
   return (
-    <div className={cx('opale-surface', 'opale-panel', className)} role="status">
-      <span>{message}</span>
-      {onClose && (
-        <button className="opale-dialog__close" type="button" onClick={onClose} aria-label="Fermer">
-          ×
-        </button>
+    <div role="status">
+      {open && (
+        <div className={cx('opale-surface', 'opale-panel', className)}>
+          <span>{message}</span>
+          {onClose && (
+            <button
+              className="opale-dialog__close"
+              type="button"
+              onClick={onClose}
+              aria-label="Fermer"
+            >
+              ×
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
 }
 
+/**
+ * L'indicateur d'attente.
+ *
+ * Même réserve que `Feedback` : sa région `status` naît avec lui, donc
+ * l'apparition du témoin n'est pas garantie d'être annoncée. Pour un chargement
+ * dont l'issue doit être entendue, gardez une région montée et n'y changez que
+ * le texte.
+ */
 export function Spinner({
   label = 'Chargement',
   className,
@@ -1295,12 +1381,22 @@ export function ProgressBar({
   label?: string;
   className?: string;
 }) {
+  const labelId = useId();
+
   return (
     <div className={cx('opale-field', className)}>
-      {label && <span className="opale-field__label">{label}</span>}
+      {/* LE LIBELLÉ ÉTAIT FRÈRE DE LA BARRE, RELIÉ À RIEN. Trois progressions
+          sur une page s'annonçaient « barre de progression, 40 % » trois fois,
+          sans jamais dire de quoi (WCAG 1.3.1). */}
+      {label && (
+        <span className="opale-field__label" id={labelId}>
+          {label}
+        </span>
+      )}
       <div
         className="opale-progress"
         role="progressbar"
+        aria-labelledby={label ? labelId : undefined}
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={100}
@@ -1513,13 +1609,25 @@ export function CommandPalette({
 
 export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
   return (
+    /* UNE LISTE ORDONNÉE, ET UN MAILLON COURANT. Le fil était une suite de
+       `<span>` : rien n'annonçait « liste de quatre éléments, élément deux »,
+       et aucun `aria-current` ne disait où l'on se trouve — sur le composant
+       dont c'est l'unique fonction (WCAG 1.3.1). */
     <nav className="opale-breadcrumb" aria-label="Fil d'Ariane">
-      {items.map((item, index) => (
-        <span key={item.id}>
-          {index > 0 && <span aria-hidden="true">/</span>}
-          {item.href ? <a href={item.href}>{item.label}</a> : item.label}
-        </span>
-      ))}
+      <ol>
+        {items.map((item, index) => (
+          <li key={item.id}>
+            {index > 0 && <span aria-hidden="true">/</span>}
+            {item.href ? (
+              <a href={item.href} aria-current={index === items.length - 1 ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ) : (
+              item.label
+            )}
+          </li>
+        ))}
+      </ol>
     </nav>
   );
 }
@@ -1557,7 +1665,11 @@ export function SelectionBar({
 }) {
   return (
     <div className="opale-surface opale-selection-bar opale-panel">
-      <span>
+      {/* LE COMPTE CHANGEAIT SANS UN MOT. On cochait des lignes et le total
+          n'était jamais annoncé (WCAG 4.1.3). La région est montée en
+          permanence avec la barre, donc elle est surveillée avant que le
+          nombre ne bouge — c'est la condition pour qu'une annonce parte. */}
+      <span aria-live="polite">
         {selectedCount} sélectionné{selectedCount > 1 ? 's' : ''}
       </span>
       {children}
@@ -1653,11 +1765,15 @@ export function DescriptionList({
 }) {
   return (
     <dl className="opale-description-list">
+      {/* `<div>` ET NON `<span>` : le modèle de contenu d'un `<dl>` n'admet
+          que `<dt>`/`<dd>` ou un groupe `<div>`. Un `<span>` intercalé casse
+          la relation terme/définition dans l'arbre d'accessibilité, ARIA
+          exigeant que la liste POSSÈDE ses termes (WCAG 1.3.1). */}
       {items.map((item, index) => (
-        <span key={index}>
+        <div key={index}>
           <dt>{item.term}</dt>
           <dd>{item.description}</dd>
-        </span>
+        </div>
       ))}
     </dl>
   );
@@ -1801,7 +1917,9 @@ export function FileCard({
       aria-pressed={selected}
       onClick={onClick}
     >
-      <span className="opale-file-card__icon">⌁</span>
+      <span className="opale-file-card__icon" aria-hidden="true">
+        ⌁
+      </span>
       <span>
         <strong>{name}</strong>
         {size && <small className="opale-field__helper">{size}</small>}
@@ -1871,8 +1989,14 @@ export function Lightbox({
   );
 }
 export function Map({ children = 'Carte interactive' }: { children?: ReactNode }) {
+  /* `role="group"` ET NON `role="img"`. Une image rend tous ses descendants
+     PRÉSENTATIONNELS : ils disparaissent de l'arbre d'accessibilité. Or ce
+     composant reçoit ses marqueurs en `children`, et sa fiche promet des
+     bulles et un clic — des marqueurs cliquables restaient focalisables tout
+     en devenant anonymes et sans rôle, le pire des deux mondes (WCAG 1.3.1).
+     Le groupe garde son nom et laisse voir ce qu'il contient. */
   return (
-    <div className="opale-map" role="img" aria-label="Carte">
+    <div className="opale-map" role="group" aria-label="Carte">
       {children}
     </div>
   );
@@ -1910,9 +2034,13 @@ export function Countdown({ seconds = 60 }: { seconds?: number }) {
     return () => window.clearInterval(timer);
   }, []);
   return (
-    <span className="opale-countdown" aria-live="polite">
-      {remaining}s
-    </span>
+    /* PAS DE RÉGION LIVE ICI, ET C'EST LE CONTRAIRE DU DÉFAUT VOISIN. La
+       valeur change CHAQUE SECONDE : le lecteur d'écran énonçait « 59 s,
+       58 s, 57 s… » sans discontinuer et couvrait tout le reste de la page.
+       Aucun critère WCAG ne l'interdit — c'est une question de qualité, pas
+       de conformité —, mais un composant qui monopolise la parole est
+       inutilisable. Le décompte reste lisible ; il cesse d'être criée. */
+    <span className="opale-countdown">{remaining}s</span>
   );
 }
 export function Game({ score = 0 }: { score?: number }) {
@@ -1941,8 +2069,11 @@ export function Clipboard({ value, children = 'Copier' }: { value: string; child
 }
 export function SvgMap({ children }: { children?: ReactNode }) {
   return (
-    <svg className="opale-svg-map" viewBox="0 0 400 180" role="img" aria-label="Carte SVG">
+    /* Même raison que pour `Map` : le tracé décoratif est marqué comme tel,
+       et le conteneur devient un groupe pour ne pas effacer ses marqueurs. */
+    <svg className="opale-svg-map" viewBox="0 0 400 180" role="group" aria-label="Carte SVG">
       <path
+        aria-hidden="true"
         d="M20 135 C80 35 135 165 205 75 S325 35 380 125"
         fill="none"
         stroke="currentColor"

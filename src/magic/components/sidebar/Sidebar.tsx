@@ -258,7 +258,9 @@ SidebarHeader.displayName = 'Sidebar.Header';
 export type SidebarFooterProps = ComponentPropsWithoutRef<'div'>;
 
 const SidebarFooter = forwardRef<HTMLDivElement, SidebarFooterProps>(
-  ({ className, ...rest }, ref) => <div ref={ref} className={clsx(styles.footer, className)} {...rest} />,
+  ({ className, ...rest }, ref) => (
+    <div ref={ref} className={clsx(styles.footer, className)} {...rest} />
+  ),
 );
 
 SidebarFooter.displayName = 'Sidebar.Footer';
@@ -290,7 +292,12 @@ const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ..
   /* `aria-label` EST POSÉ AVANT `{...rest}`, donc l'appelant l'emporte — y
      compris pour l'effacer avec `aria-label={undefined}` s'il préfère un
      `aria-labelledby`. */
-  <nav ref={ref} aria-label={DEFAULT_ITEMS_LABEL} className={clsx(styles.items, className)} {...rest} />
+  <nav
+    ref={ref}
+    aria-label={DEFAULT_ITEMS_LABEL}
+    className={clsx(styles.items, className)}
+    {...rest}
+  />
 ));
 
 SidebarItems.displayName = 'Sidebar.Items';
@@ -323,7 +330,10 @@ const getCollapsedFallback = (collapsedFallback: ReactNode | undefined, children
 };
 
 const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
-  ({ itemId, icon, badge, collapsedFallback, disabled, className, children, onClick, ...rest }, ref) => {
+  (
+    { itemId, icon, badge, collapsedFallback, disabled, className, children, onClick, ...rest },
+    ref,
+  ) => {
     const { collapsed, handleItemSelect, activeItemId } = useSidebarContext('Sidebar.Item');
 
     const isActive = activeItemId === itemId;
@@ -453,7 +463,17 @@ const SidebarToggle = forwardRef<HTMLButtonElement, SidebarToggleProps>(
            nécessaires. Le nom seul ne répond qu'à « que va-t-il se passer si
            j'appuie ? » ; il ne répond pas à « où en suis-je ? » posé à froid,
            par exemple en arrivant sur la page au clavier. */
-        aria-label={collapsed ? 'expand sidebar' : 'collapse sidebar'}
+        /* LE REPLI NE S'APPLIQUE QUE S'IL N'Y A PAS DE LIBELLÉ VISIBLE, et il
+           est en français comme le reste de la bibliothèque.
+
+           Il était posé INCONDITIONNELLEMENT : un appelant qui écrivait
+           `<Sidebar.Toggle>Replier</Sidebar.Toggle>` obtenait un bouton dont
+           le nom accessible était « collapse sidebar ». La commande vocale
+           « clique Replier » échouait alors, le nom et le libellé visible
+           n'ayant plus un mot en commun (WCAG 2.5.3). Et ces libellés anglais
+           étaient lus avec la voix du document — le défaut que `Modal` déclare
+           avoir corrigé chez lui. */
+        aria-label={children ? undefined : collapsed ? 'Déplier le rail' : 'Replier le rail'}
         aria-expanded={!collapsed}
         aria-controls={sidebarId}
         onClick={handleClick}

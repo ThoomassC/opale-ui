@@ -5,7 +5,16 @@ import opaleSheet from './opale.css?raw';
 import {
   BackgroundSurface,
   Badge,
+  Breadcrumb,
   Button,
+  Countdown,
+  DeleteButton,
+  DescriptionList,
+  Input,
+  Map,
+  ProgressBar,
+  SelectionBar,
+  Toast,
   CommandPalette,
   ConfirmDialog,
   Dropzone,
@@ -302,5 +311,199 @@ describe('les doublons du catalogue', () => {
 
     expect(badges[1]?.className).toContain('opale-badge--danger');
     expect(badges[0]?.className).not.toContain('opale-badge--');
+  });
+});
+
+/* =============================================================================
+   LES CONSTATS « SÉRIEUX » ET « MINEURS » DE L'AUDIT.
+
+   Aucun ne rendait un composant inutilisable — ils le rendaient MUET, ou
+   bavard, ou menteur sur son état. Ce qui se vérifie ici est donc ce qu'une
+   technologie d'assistance PERÇOIT, pas ce que le balisage déclare.
+   ========================================================================== */
+describe('les constats sérieux de l’audit', () => {
+  const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /* LE MESSAGE D'ERREUR ÉTAIT DANS LE NOM DU CHAMP. Tout le champ était
+     enveloppé dans un `<label>` : « E-mail » devenait « E-mail Adresse
+     invalide », ce qui casse la commande vocale et noie l'erreur dans
+     l'étiquette. Et rien ne l'annonçait. */
+  it('sort l’erreur du nom du champ et la fait annoncer', () => {
+    render(<Input label="E-mail" error="Adresse invalide" />);
+
+    const champ = screen.getByRole('textbox', { name: 'E-mail' });
+
+    expect(champ, 'Le champ doit s’appeler « E-mail », et rien de plus.').toBeInTheDocument();
+    expect(champ).toHaveAttribute('aria-invalid', 'true');
+    expect(champ).toHaveAccessibleDescription('Adresse invalide');
+    expect(
+      screen.getByRole('alert'),
+      'Une erreur qui apparaît sans être annoncée laisse l’utilisateur devant ' +
+        'un formulaire refusé en silence.',
+    ).toHaveTextContent('Adresse invalide');
+  });
+
+  it('n’annonce pas un simple texte d’aide comme une alerte', () => {
+    render(<Input label="E-mail" helperText="Format : nom@domaine.fr" />);
+
+    expect(screen.getByRole('textbox', { name: 'E-mail' })).toHaveAccessibleDescription(
+      'Format : nom@domaine.fr',
+    );
+    expect(screen.queryByRole('alert'), 'Un texte d’aide n’a pas à couper la parole.').toBeNull();
+  });
+
+  /* TROIS BARRES SUR UNE PAGE S'ANNONÇAIENT « barre de progression, 40 % »
+     trois fois, sans jamais dire de quoi : le libellé était frère de la
+     barre, relié à rien. */
+  it('donne son nom à la barre de progression', () => {
+    render(<ProgressBar label="Téléversement" value={40} />);
+
+    expect(screen.getByRole('progressbar', { name: 'Téléversement' })).toHaveAttribute(
+      'aria-valuenow',
+      '40',
+    );
+  });
+
+  /* `role="img"` REND TOUS LES DESCENDANTS PRÉSENTATIONNELS. Les marqueurs
+     passés en `children` restaient focalisables tout en devenant anonymes. */
+  it('laisse voir ce qu’une carte contient', () => {
+    const { container } = render(
+      <Map>
+        <button type="button">Paris</button>
+      </Map>,
+    );
+
+    /* CE QUI SE VÉRIFIE EST LE RÔLE, PAS LA REQUÊTE.
+
+       Une première version cherchait le bouton avec `getByRole` et passait
+       AVEC `role="img"` remis : le test de mutation l'a montré. Testing
+       Library interroge le DOM et n'applique pas la règle ARIA des enfants
+       PRÉSENTATIONNELS — un vrai lecteur d'écran, si. Le test aurait donc
+       certifié comme accessible un balisage qui efface ses propres marqueurs.
+
+       C'est la cause qu'on épingle : `img` élague ses descendants, `group`
+       les garde. */
+    const carte = container.querySelector('.opale-map') as HTMLElement;
+
+    expect(carte.getAttribute('role')).not.toBe('img');
+    expect(
+      carte,
+      'Un conteneur qui reçoit des marqueurs en `children` ne peut pas se ' +
+        'déclarer image : le rôle rendrait tous ses descendants présentationnels.',
+    ).toHaveAttribute('role', 'group');
+    expect(carte).toHaveAccessibleName('Carte');
+  });
+
+  /* L'ICÔNE DÉCORATIVE ENTRAIT DANS LE NOM DU BOUTON : « × Supprimer ». */
+  it('garde l’icône d’un bouton hors de son nom', () => {
+    render(<DeleteButton />);
+
+    expect(screen.getByRole('button', { name: 'Supprimer' })).toBeInTheDocument();
+  });
+
+  /* UNE RÉGION LIVE INSÉRÉE EN MÊME TEMPS QUE SON CONTENU n'est pas
+     surveillée au moment de l'insertion : l'annonce se perd. */
+  it('monte la région du toast avant son message', () => {
+    const { rerender } = render(<Toast message="Enregistré" open={false} />);
+
+    const region = screen.getByRole('status');
+
+    expect(region, 'La région doit exister avant le message.').toBeEmptyDOMElement();
+
+    rerender(<Toast message="Enregistré" open />);
+
+    expect(
+      screen.getByRole('status'),
+      'Et rester la MÊME région : c’est elle qui est surveillée.',
+    ).toHaveTextContent('Enregistré');
+  });
+
+  /* LE COMPTE CHANGEAIT SANS UN MOT ; LE DÉCOMPTE, LUI, PARLAIT CHAQUE
+     SECONDE ET COUVRAIT LA PAGE. Les deux défauts sont symétriques. */
+  it('annonce le compte de la sélection sans faire crier le décompte', () => {
+    const { container, unmount } = render(<SelectionBar selectedCount={3} />);
+
+    expect(container.querySelector('[aria-live]')).not.toBeNull();
+    unmount();
+
+    const { container: chrono } = render(<Countdown seconds={60} />);
+
+    expect(
+      chrono.querySelector('[aria-live]'),
+      'Une valeur qui change chaque seconde monopolise la parole.',
+    ).toBeNull();
+  });
+
+  it('structure la liste de définitions et le fil d’Ariane', () => {
+    const { container } = render(
+      <DescriptionList items={[{ term: 'Version', description: '3.1.1' }]} />,
+    );
+
+    expect(
+      container.querySelector('dl > span'),
+      'Le modèle de contenu d’un `<dl>` n’admet pas de `<span>` intercalé.',
+    ).toBeNull();
+
+    cleanup();
+    render(
+      <Breadcrumb
+        items={[
+          { id: 'a', label: 'Accueil', href: '#a' },
+          { id: 'b', label: 'Composants', href: '#b' },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(
+      screen.getByRole('link', { current: 'page' }),
+      'Le dernier maillon doit dire où l’on se trouve.',
+    ).toHaveTextContent('Composants');
+  });
+
+  /* LA PAGE COURANTE NE SE DISTINGUAIT QUE PAR LA COULEUR, et partageait sa
+     déclaration avec `:hover`. jsdom ne peint rien : on lit la feuille. */
+  it('marque la page courante autrement que par la couleur', () => {
+    /* LA RÈGLE PROPRE, ET NON CELLE PARTAGÉE AVEC `:hover`. Le sélecteur
+       apparaît dans les deux ; ne lire que le premier bloc venu reviendrait à
+       interroger précisément la règle qu'on reproche. */
+    const rule =
+      [...sheet.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+        .filter((match) =>
+          match[1]
+            .split(',')
+            .map((one) => one.trim())
+            .includes('\u002e' + "opale-nav__item[aria-current='page']"),
+        )
+        .map((match) => match[2])
+        .join('\n') ?? '';
+
+    expect(rule, 'Aucune règle propre à la page courante.').not.toBe('');
+    expect(
+      rule,
+      'Fond et couleur sont partagés avec `:hover` : il faut une marque qui ' +
+        'survive aux niveaux de gris.',
+    ).toMatch(/font-weight/);
+    expect(sheet).toMatch(/\.opale-nav__item\[aria-current='page'\]::before/);
+  });
+
+  /* RAMENER LA SEULE DURÉE À 0,01 ms N'ARRÊTE PAS UNE ANIMATION `infinite` :
+     elle se rejoue indéfiniment, et l'anneau saute d'un angle arbitraire à
+     chaque image — l'inverse de ce qu'on demande. */
+  it('borne aussi les animations en boucle quand on demande moins de mouvement', () => {
+    /* LA FEUILLE EN COMPTE PLUSIEURS — le curseur a le sien. On retient celui
+       qui borne les animations, puisque c'est de lui qu'il s'agit. */
+    const bloc =
+      [...sheet.matchAll(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/g)]
+        .map((match) => match[1])
+        .find((body) => /animation-duration/.test(body)) ?? '';
+
+    expect(bloc, 'Le filet anti-mouvement est introuvable.').not.toBe('');
+    expect(bloc).toMatch(/animation-duration:\s*0\.01ms/);
+    expect(
+      bloc,
+      'Sans plafond d’itérations, une animation `infinite` se rejoue une fois ' +
+        'par centième de milliseconde au lieu de s’arrêter.',
+    ).toMatch(/animation-iteration-count:\s*1/);
   });
 });

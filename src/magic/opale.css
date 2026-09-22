@@ -1503,6 +1503,31 @@
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
   color: var(--opale-primary);
 }
+
+/* LA PAGE COURANTE NE SE DISTINGUE PLUS PAR LA SEULE COULEUR.
+
+   Elle partageait sa déclaration avec `:hover` : en vision des couleurs
+   réduite, en niveaux de gris ou sous la souris, rien ne séparait « je suis
+   ici » de « je survole ceci » (WCAG 1.4.1). Le côté programmatique était
+   pourtant juste — `aria-current` est bien posé —, c'est le rendu qui ne
+   suivait pas.
+
+   La graisse et le témoin sont deux marques NON colorimétriques, et le rail
+   du sommaire les emploie déjà pour le même état : la solution existait dans
+   la maison. */
+.opale-nav__item[aria-current='page'] {
+  position: relative;
+  font-weight: 700;
+}
+.opale-nav__item[aria-current='page']::before {
+  position: absolute;
+  inset-block: 0.35rem;
+  inset-inline-start: 0;
+  inline-size: 0.1875rem;
+  border-radius: var(--opale-radius-pill);
+  content: '';
+  background: currentcolor;
+}
 .opale-breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -1903,10 +1928,22 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* `animation-iteration-count` MANQUAIT, ET IL CHANGE TOUT POUR CE QUI
+     TOURNE EN BOUCLE. Ramener la seule DURÉE à 0,01 ms sur une animation
+     `infinite` — le témoin d'attente en est une — ne l'arrête pas : elle se
+     rejoue indéfiniment, une passe complète par centième de milliseconde.
+     L'anneau ne tourne plus, il saute d'un angle arbitraire à chaque image.
+     C'est l'inverse de ce qu'on demande quand on demande moins de mouvement.
+
+     La durée reste quasi nulle plutôt que `none` : une animation de durée
+     infime SE TERMINE, donc `animationend` est bien émis et le code qui
+     l'attend ne reste pas suspendu. C'est le même choix que `magic.scss`,
+     dont ce bloc n'avait pas repris la seconde ligne. */
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }

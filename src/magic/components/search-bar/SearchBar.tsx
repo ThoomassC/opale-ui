@@ -42,7 +42,13 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         type="search"
         disabled={disabled}
         {...props}
-        aria-label={ariaLabel ?? 'Rechercher'}
+        /* LE REPLI NE JOUE QUE S'IL N'Y A AUCUN AUTRE NOM. Posé toujours, il
+           écrasait une étiquette visible : un appelant qui associait un
+           `<label for>` « Filtrer les destinations » obtenait un champ nommé
+           « Rechercher », sans un mot en commun avec ce qu'on lit à l'écran
+           (WCAG 2.5.3). Un `id` compte aussi, puisqu'un `<label for>` peut
+           s'y accrocher depuis l'extérieur du composant. */
+        aria-label={ariaLabel ?? (props['aria-labelledby'] || props.id ? undefined : 'Rechercher')}
         className={clsx(styles.input, styles[size], disabled && styles.disabled, className)}
       />
     </Glass>
