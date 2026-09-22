@@ -5,8 +5,8 @@ import { ICON_GROUPS, ICON_KEYWORDS, ICON_NAMES, OPALE_ICONS, isOpaleIconName } 
 /* =============================================================================
    LE JEU D'ICÔNES SE TIENT LUI-MÊME.
 
-   Un jeu de cette taille ne se relit pas à l'œil : cent quatorze dessins, et
-   une faute de frappe dans une commande SVG ne produit AUCUNE erreur — le
+   Un jeu de cette taille ne se relit pas à l'œil : plus de cent vingt dessins,
+   et une faute de frappe dans une commande SVG ne produit AUCUNE erreur — le
    navigateur abandonne le chemin en silence et affiche un carré vide. Les
    gardes ci-dessous attrapent ce que la relecture laisse passer.
    ========================================================================== */

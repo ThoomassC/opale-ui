@@ -2296,7 +2296,7 @@ body {
 /* =============================================================================
    LA GALERIE D'ICÔNES.
 
-   LA GRILLE EST AUTO-AJUSTÉE ET NON À NOMBRE DE COLONNES FIXE : cent quatorze
+   LA GRILLE EST AUTO-AJUSTÉE ET NON À NOMBRE DE COLONNES FIXE : cent vingt-cinq
    cellules sur un écran de téléphone en trois colonnes forcées donneraient des
    noms tronqués, et sur un grand écran huit colonnes laisseraient la moitié de
    la largeur vide. `auto-fill` avec une largeur minimale règle les deux d'un
@@ -2359,7 +2359,7 @@ body {
 }
 
 /* LE DESSIN PREND L'ENCRE DU TEXTE ET NON LE BLEU DU PRIMAIRE. Sur une planche
-   de cent quatorze icônes, le bleu se lit comme « tout est un lien » ; et la
+   de cent vingt-cinq icônes, le bleu se lit comme « tout est un lien » ; et la
    page montre justement que l'icône suit `currentColor`. */
 .tc-doc-icon-cell .opale-icon {
   min-width: 0;

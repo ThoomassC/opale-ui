@@ -18,7 +18,7 @@ import { PageBody, UsageBlock } from './api';
    qu'une grille ne dit pas : quand une icône se suffit, et quand elle doit
    être accompagnée d'un nom accessible.
 
-   LE FILTRE EST UN CHAMP, PAS UN ONGLET PAR FAMILLE. Avec cent quatorze
+   LE FILTRE EST UN CHAMP, PAS UN ONGLET PAR FAMILLE. Avec plus de cent vingt
    dessins, ce qu'on cherche est « quelque chose comme une valise » : on tape
    trois lettres. Les familles restent visibles pour parcourir sans idée
    précise. Le champ NE VIDE PAS LA PAGE quand rien ne correspond — il le dit,
