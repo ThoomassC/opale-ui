@@ -194,7 +194,13 @@
 
 .brandSubtitle {
   overflow: hidden;
-  color: color-mix(in srgb, currentColor 72%, transparent);
+  /* 86 % ET NON 72 %, ET LE CHIFFRE EST MESURÉ. Un texte secondaire s'atténue
+     pour se distinguer du titre — mais l'atténuation mange du contraste, et
+     personne ne la mesure jamais. Sur le pixel le plus clair du cliché des
+     scènes, voile compris, le blanc à 72 % tombe à 3,78:1 : sous le seuil AA du
+     texte courant. Le premier palier qui tient 4,5:1 est 85 % ; 86 % laisse une
+     marge d'un point. La hiérarchie visuelle survit très bien à cet écart. */
+  color: color-mix(in srgb, currentColor 86%, transparent);
   font-size: 0.875rem;
   font-weight: 400;
   text-overflow: ellipsis;
@@ -230,4 +236,21 @@
 
 .dividerSpacious {
   height: 2.5rem;
+}
+
+/* =============================================================================
+   LA VERSION ORIGINALE.
+
+   La barre ne savait rendre que du verre : sans matériau, elle n'avait ni
+   fond, ni bord, ni encre propres — elle empruntait tout au verre, donc elle
+   disparaissait dès qu'on le retirait. Ce bloc lui donne la surface pleine
+   d'Opale, avec le filet du bas qui la sépare du contenu.
+
+   IL NE REPREND AUCUNE GÉOMÉTRIE : la hauteur, l'espacement et l'alignement
+   restent ceux de `.topbar` et de ses trois tailles.
+   ========================================================================== */
+.plain {
+  border-block-end: 1px solid var(--opale-divider);
+  background: var(--opale-surface);
+  color: var(--opale-text);
 }

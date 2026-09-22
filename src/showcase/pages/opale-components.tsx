@@ -25,16 +25,66 @@ import { CatalogPreview } from './catalog-preview';
    LES QUATRE DERNIERS VENUS — `Badge`, `Checkbox`, `Select`, `Slider` — sont
    arrivés avec la suppression des doublons : leur homologue vendoré avait sa
    propre page, et il est devenu la matière de ce commutateur. */
+/* LA LISTE DES COMPOSANTS QUI PORTENT VRAIMENT LE MATÉRIAU.
+
+   ELLE COMMANDE DEUX CHOSES, et c'est nouveau : l'extrait de code affiché —
+   qui ajoute ` liquidGlass` aux balises — ET la présence du commutateur
+   lui-même.
+
+   LE DÉFAUT QU'ON CORRIGE. La page montrait « Liquid Glass pour X » sur les
+   quatre-vingt-cinq composants du catalogue. Onze rendent le matériau. Pour
+   les autres, basculer l'interrupteur posait la photographie et le voile sous
+   un composant qui ne changeait pas : une quarantaine se retrouvaient avec
+   leur encre sombre sur un cliché sombre — la barre de progression, le
+   tableau, le fil d'Ariane, l'état vide. Le commutateur ne mentait pas
+   seulement, il ABÎMAIT la démonstration.
+
+   POURQUOI CACHER PLUTÔT QUE GRISER. Un interrupteur désactivé pose la
+   question « pourquoi ne puis-je pas ? » à quatre-vingts reprises. Son
+   absence ne pose aucune question : le matériau est une option de certains
+   composants, pas une propriété du catalogue. */
+/* LES COMPOSANTS QUI PEIGNENT UNE SURFACE, ET DONC QUI PORTENT LE MATÉRIAU.
+
+   Cette liste a triplé avec l'audit d'utilité : le matériau est une propriété
+   des SURFACES, et tout ce qui en peint une — une carte, un panneau, une
+   piste, un rail, un encart — doit pouvoir la rendre en verre. Ce qui n'en
+   peint pas n'y est pas, et la raison est dans `material-default.test.tsx` :
+   `Heading` rend un `<h2>`, `Divider` un `<hr>`, `Stack` une boîte sans
+   peinture. Leur donner la prop obligerait à inventer une plaque que personne
+   n'a demandée, ou à ne rien faire — c'est-à-dire à mentir. */
 const FORWARDS_LIQUID_GLASS: readonly string[] = [
+  'Autocomplete',
   'Badge',
   'Button',
   'Card',
   'CardGrid',
   'Checkbox',
+  'Clipboard',
+  'CommandPalette',
+  'ConfirmDialog',
+  'CookieBanner',
+  'DataTable',
+  'Dropzone',
+  'EmptyState',
+  'Feedback',
+  'FileCard',
+  'IconActionButton',
+  'InlineInput',
   'Input',
+  'Lightbox',
+  'Menu',
+  'MultiSelect',
+  'Navbar',
+  'Pressable',
+  'ProgressBar',
+  'SegmentedControl',
   'Select',
+  'SelectionBar',
+  'SidePanel',
   'Slider',
   'StatCard',
+  'SvgMap',
+  'Toast',
   'Toggle',
 ];
 
@@ -115,8 +165,26 @@ function exampleCode(name: string, liquidGlass = false): string {
       return decorate(`<Opale.Feedback severity="success" title="En production">
   La dernière version est disponible.
 </Opale.Feedback>`);
+    case 'Rating':
+      /* L'EXTRAIT PAR DÉFAUT — `<Opale.Rating />` — NE MONTRAIT AUCUNE PROP.
+         On y lisait un composant sans réglage, alors que la note et le barème
+         sont exactement ce qu'on vient y régler : la page ne disait nulle part
+         OÙ le développeur pose son nombre d'étoiles. */
+      return decorate(`// value : la note, au quart près — 0,25 / 0,5 / 0,75 / 1 par étoile.
+// max   : le nombre d'étoiles (5 par défaut).
+<Opale.Rating value={4.75} max={5} />`);
     case 'Toast':
-      return decorate('<Opale.Toast message="Modifications enregistrées" />');
+      return decorate(`// Le ton choisit la couleur, la place choisit le coin de l'ÉCRAN.
+// tone     : 'neutral' | 'success' | 'warning' | 'error' | 'info'
+// position : 'top-left'    | 'top-center'    | 'top-right'
+//            'bottom-left' | 'bottom-center' | 'bottom-right'
+<Opale.Toast
+  open={open}
+  tone="success"
+  position="bottom-right"
+  message="Étape publiée sur le carnet"
+  onClose={() => setOpen(false)}
+/>`);
     case 'ProgressBar':
       return decorate('<Opale.ProgressBar label="Progression" value={72} />');
     case 'Link':
@@ -132,6 +200,7 @@ function exampleCode(name: string, liquidGlass = false): string {
 
 function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
+  const supportsLiquidGlass = FORWARDS_LIQUID_GLASS.includes(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
   const code = exampleCode(entry.name, liquidGlass);
 
@@ -153,17 +222,19 @@ function ComponentPage({ entry }: { entry: CatalogEntry }) {
           </div>
           <Opale.Badge tone="accent">V3</Opale.Badge>
         </div>
-        <div className="tc-doc-opale-material-toggle">
-          <div className="tc-doc-opale-material-toggle__text">
-            <strong>Rendu Liquid Glass</strong>
-            <span>Appliquer le matériau uniquement à ce composant.</span>
+        {supportsLiquidGlass && (
+          <div className="tc-doc-opale-material-toggle">
+            <div className="tc-doc-opale-material-toggle__text">
+              <strong>Rendu Liquid Glass</strong>
+              <span>Appliquer le matériau uniquement à ce composant.</span>
+            </div>
+            <Opale.Toggle
+              label={`Liquid Glass pour ${displayName}`}
+              checked={liquidGlass}
+              onChange={(event) => setLiquidGlass(event.currentTarget.checked)}
+            />
           </div>
-          <Opale.Toggle
-            label={`Liquid Glass pour ${displayName}`}
-            checked={liquidGlass}
-            onChange={(event) => setLiquidGlass(event.currentTarget.checked)}
-          />
-        </div>
+        )}
         {/* LE SUPPORT S'ASSOMBRIT AVEC LE MATÉRIAU, et ce n'est pas un effet de
             mise en scène : un verre RÉFRACTE ce qui est derrière lui. Posé sur
             la carte blanche, il n'avait rien à réfracter — on voyait un
@@ -197,5 +268,13 @@ export const opaleComponentPages: readonly DocPage[] = OPALE_CATALOG.map((entry)
   label: catalogComponentLabel(entry.name),
   group: 'composants',
   title: catalogComponentLabel(entry.name),
-  render: () => <ComponentPage entry={entry} />,
+  /* LA CLÉ REMET LE COMMUTATEUR À ZÉRO EN CHANGEANT DE COMPOSANT.
+
+     Toutes les pages de composants rendent le MÊME élément `ComponentPage` :
+     React les réconcilie au lieu de les remonter, si bien que l'état du
+     commutateur suivait d'une page à l'autre. On activait le verre sur
+     `FileCard`, on cliquait « Feedback » dans le sommaire, et l'encart
+     arrivait déjà en verre — alors que le commutateur dit « uniquement à ce
+     composant ». La clé force un nouveau montage, donc un état neuf. */
+  render: () => <ComponentPage key={entry.name} entry={entry} />,
 }));

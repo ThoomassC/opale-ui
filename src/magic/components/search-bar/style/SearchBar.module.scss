@@ -77,3 +77,37 @@
   cursor: not-allowed;
   opacity: 0.5;
 }
+
+/* =============================================================================
+   LA VERSION ORIGINALE.
+
+   Tout ce qui précède est réglé pour le verre : encre blanche, liseré blanc,
+   fond transparent. C'est juste POSÉ SUR UNE PHOTOGRAPHIE, et illisible
+   ailleurs — or ce composant ne savait rendre que cela.
+
+   Ce bloc reprend les jetons d'Opale, qui sont ceux de toutes les surfaces
+   pleines du catalogue : le fond de surface, le filet du diviseur, l'encre de
+   la page. Il ne double aucune géométrie — la boîte, l'espacement et la cible
+   de 44 px restent ceux de `.searchBar`.
+   ========================================================================== */
+.plain {
+  border-color: var(--opale-divider);
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+}
+
+.plain:focus-within {
+  border-color: var(--opale-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--opale-primary) 18%, transparent);
+}
+
+.plain .input::placeholder {
+  color: var(--opale-text-secondary);
+}
+
+/* La croix d'effacement du navigateur était inversée en blanc pour le verre ;
+   sur un fond clair, elle disparaissait. */
+.plain .input::-webkit-search-cancel-button {
+  filter: none;
+}

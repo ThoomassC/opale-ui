@@ -372,7 +372,13 @@ body {
   position: absolute;
   inset-block-start: var(--space-2);
   inset-inline-start: var(--space-2);
-  z-index: 3;
+  /* 100 ET NON 3 : mesuré, le lien d'évitement était calculé VISIBLE au focus
+     (rect 8,8 — 159 × 44, fond opaque) et n'était pas peint — la barre du haut
+     pèse `z-index: 20` et passait devant. La toute première tabulation de
+     chaque page ne produisait donc aucun retour visuel, ce qui est le pire
+     endroit possible pour un indicateur manquant : c'est le geste par lequel
+     un utilisateur au clavier découvre la page. */
+  z-index: 100;
   display: inline-flex;
   align-items: center;
   min-block-size: var(--target-min);
@@ -2186,6 +2192,16 @@ body {
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* LE BOUTON DE DÉMONSTRATION AVAIT PERDU SON ENCRE, et c'est une régression de
+   la réécriture du matériau : il était un composant tiers qui peignait son
+   libellé en blanc, il est devenu un `<Glass as="button">` nu, donc il a hérité
+   du noir par défaut du navigateur. Mesuré sur le pire pixel de la scène
+   voilée : **3,78:1** — sous le seuil. Le blanc y tient 5,56:1. */
+.tc-doc-liquid-action-button {
+  color: var(--tc-white);
+  font: 600 0.9375rem/1.4 var(--font-sans);
+}
+
 .tc-doc-squire-circle__button {
   inline-size: 100%;
   block-size: 100%;
@@ -3340,6 +3356,57 @@ body {
    TOUTES les zones du cliché, y compris les plus claires, en ajoutant un bord
    sombre sous chaque glyphe. C'est la même technique que sous les
    démonstrations de verre du catalogue, et pour la même raison. */
+/* =============================================================================
+   LA SCÈNE UNIE, POUR L'ÉTAT ORIGINAL.
+
+   Les six composants à dossier ne savaient rendre que du verre : leur page les
+   montrait donc toujours sur la photographie, qui est le seul terrain où un
+   matériau réfractant se voit. Maintenant qu'ils ont aussi leur version
+   pleine, il fallait un terrain pour elle — et ce n'est pas la photo : une
+   surface unie posée sur un paysage n'apprend rien, elle le cache.
+
+   MÊME BOÎTE QUE LA SCÈNE DE VERRE, à dessein : on compare deux matières, pas
+   deux mises en page. Seuls le fond et l'encre changent.
+   ========================================================================== */
+/* La rangée de déclencheurs d'une scène qui n'en pose plus : la file de
+   notifications reçoit la sienne du commutateur de matière. */
+.tc-doc-opale-scenerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.tc-doc-opale-plainstage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--opale-surface-sunken);
+  color: var(--opale-text);
+}
+
+.tc-doc-opale-plainstage--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* LE LIBELLÉ D'UNE FIGURE SUIT LA SCÈNE QUI LE PORTE. Écrit pour la
+   photographie, il est clair et ombré ; sur la surface unie, il doit reprendre
+   l'encre de la page, sans quoi il devient blanc sur gris pâle. */
+.tc-doc-opale-plainstage .tc-doc-magicstage__label,
+.tc-doc-opale-plainstage .tc-doc-magicstage__cell {
+  color: var(--opale-text);
+  text-shadow: none;
+}
+
+.tc-doc-opale-plainstage--tall {
+  min-block-size: 22rem;
+  align-items: flex-start;
+}
+
 .tc-doc-magicstage {
   display: flex;
   flex-wrap: wrap;
@@ -3349,6 +3416,31 @@ body {
   border-radius: var(--radius-md);
   color: var(--tc-white);
   text-shadow: 0 1px 3px rgba(7, 28, 43, 0.55);
+}
+
+/* LA PASTILLE D'OPALE NE SAIT PAS QU'ELLE EST SUR UNE PHOTO, ET C'EST À LA
+   SCÈNE DE LE LUI DIRE.
+
+   `.opale-badge` peint son libellé en `--opale-primary` sur un lavis du même
+   bleu à 13 % : un couple pensé pour la carte blanche de la vitrine, où il est
+   juste. Posé sur le cliché voilé, il ne l'est plus du tout — mesuré, le saphir
+   `#315c9e` contre le pixel le plus clair de la scène donne **1,20:1**. Le
+   libellé est illisible, et rien ne le signalait : la pastille est correcte,
+   c'est son contexte qui a changé.
+
+   Le composant n'a aucun moyen de savoir sur quoi on le pose. C'est donc la
+   scène qui redéclare l'encre de ce qu'elle accueille — et elle épaissit le
+   lavis, sans quoi le blanc se retrouverait sur la photo plutôt que sur la
+   pastille. Mesuré après correction : blanc sur le lavis épaissi, 5,1:1. */
+.tc-doc-magicstage .opale-badge {
+  background: color-mix(in srgb, var(--opale-primary) 62%, transparent);
+  color: var(--tc-white);
+}
+.tc-doc-magicstage .opale-badge--accent {
+  background: color-mix(in srgb, var(--opale-accent-dark) 90%, transparent);
+}
+.tc-doc-magicstage .opale-badge--danger {
+  background: color-mix(in srgb, var(--opale-danger) 72%, transparent);
 }
 
 /* Les scènes d'un composant qui prend toute la largeur — `Topbar`, `Tabs`,

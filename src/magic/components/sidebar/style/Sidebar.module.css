@@ -323,3 +323,20 @@
     transition: none;
   }
 }
+
+/* =============================================================================
+   LA VERSION ORIGINALE.
+
+   Le rail ne savait rendre que du verre : sans matériau il n'avait ni fond, ni
+   bord, ni encre — il empruntait tout au verre et disparaissait dès qu'on le
+   retirait. Ce bloc lui donne la surface pleine d'Opale et le filet qui le
+   sépare du contenu de la page.
+
+   AUCUNE GÉOMÉTRIE N'EST REPRISE : la largeur, le pli et l'espacement restent
+   ceux de `.sidebarRoot`, `.collapsed` et des trois tailles.
+   ========================================================================== */
+.plain {
+  border-inline-end: 1px solid var(--opale-divider);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+}

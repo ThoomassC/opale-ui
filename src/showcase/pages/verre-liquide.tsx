@@ -1,8 +1,13 @@
-import { Glass } from '../../magic';
+import Glass from '../../magic/components/glass/Glass';
 
 /* CETTE PAGE DOCUMENTE LE MATÉRIAU, donc elle appelle `Glass` directement —
    c'est la seule qui en ait besoin, pour montrer ses crochets propres
    (`rootClassName`, `rootStyle`) que la façade d'Opale ne transmet pas.
+
+   ELLE L'IMPORTE PAR CHEMIN, ET PLUS PAR LE BARRIL. `Glass` n'est plus un
+   composant publié : c'est le matériau, atteint partout ailleurs par la prop
+   `liquidGlass`. La page du matériau reste la seule à ouvrir le capot, et elle
+   le fait par la porte de service — celle qu'`opale.tsx` emprunte déjà.
 
    LE BOUTON DE DÉMONSTRATION EST CELUI D'OPALE. Il venait d'une librairie
    tierce, dont ce dépôt n'embarque plus une ligne : un bouton de verre EST
@@ -16,7 +21,7 @@ import { PageBody, UsageBlock } from './api';
 import { MagicCell, MagicStage } from './composants/stage';
 
 const LANDSCAPE_GROUND =
-  "linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)), url('/glass-landscape.jpg') center / cover no-repeat";
+  "linear-gradient(0deg, rgba(7, 28, 43, 0.65), rgba(7, 28, 43, 0.65)), url('/glass-landscape.jpg') center / cover no-repeat";
 
 const TRANSPARENT_MODAL_STYLE = {
   '--opale-glass-tint': 'rgba(255, 255, 255, 0.06)',
@@ -56,10 +61,10 @@ function LiquidGlassFilter() {
 
 const USAGE = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"
 
-import { Glass, Opale } from '@thomascaron/opale-ui';
+import { Opale } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
-<Glass enableLiquidAnimation>Modale</Glass>
+<Opale.Card liquidGlass title="Liquid Glass" />
 <Opale.Button liquidGlass>Continuer</Opale.Button>`;
 
 export const verreLiquidePage: DocPage = {
@@ -204,7 +209,7 @@ export const verreLiquidePage: DocPage = {
         </MagicStage>
       </Specimen>
 
-      <UsageBlock label="Installation et import de Glass" code={USAGE} />
+      <UsageBlock label="Installation et activation du matériau" code={USAGE} />
     </PageBody>
   ),
 };

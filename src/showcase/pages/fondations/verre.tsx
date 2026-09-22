@@ -306,11 +306,11 @@ export const verrePage: DocPage = {
       </div>
 
       <p className="tc-doc-prose tc-doc-aside">
-        Le verre des quatorze composants publiés n’a <strong>rien à voir</strong> avec celui-ci : il
-        est écrit dans <code>src/magic/**</code>, n’emploie aucun de ces jetons, et n’est couvert
-        par aucun contrat — voir{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/glass')}>
-          Glass
+        Le verre des composants publiés n’a <strong>rien à voir</strong> avec celui-ci : il est
+        écrit dans <code>src/magic/**</code>, n’emploie aucun de ces jetons, et n’est couvert par
+        aucun contrat — voir{' '}
+        <a className="tc-doc-link" href={hrefFor('verre-liquide')}>
+          Le verre liquide
         </a>
         . Deux matériaux du même nom, mesuré pour l’un, pas pour l’autre.
       </p>

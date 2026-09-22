@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
 import { Opale } from '../../magic';
+import type { ToastPlacement, ToastTone } from '../../magic';
 
 const OPTIONS = [
   { value: 'design', label: 'Design system' },
@@ -16,6 +17,29 @@ const NAV_ITEMS = [
 
 const PREVIEW_IMAGE =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23dce7fb%22/%3E%3Ccircle cx=%22180%22 cy=%22155%22 r=%2275%22 fill=%22%233d66aa%22/%3E%3Cpath d=%22M40 320 245 120l95 105 80-70 180 165Z%22 fill=%22%23f8b31a%22 opacity=%22.85%22/%3E%3C/svg%3E';
+
+/* LES SIX PLACES ET LES CINQ TONS SONT RECOPIÉS ICI EN VALEURS, et un garde de
+   `opale.test.tsx` vérifie qu'ils correspondent aux types du composant : une
+   place ajoutée au composant et oubliée dans l'aperçu serait publiée sans
+   jamais pouvoir être essayée. */
+const TOAST_TONES = ['neutral', 'success', 'warning', 'error', 'info'] as const;
+
+const TOAST_PLACEMENTS = [
+  'top-left',
+  'top-center',
+  'top-right',
+  'bottom-left',
+  'bottom-center',
+  'bottom-right',
+] as const;
+
+const TOAST_MESSAGES: Record<ToastTone, string> = {
+  neutral: 'Modifications enregistrées',
+  success: 'Étape publiée sur le carnet',
+  warning: 'La carte n’a pas été régénérée',
+  error: 'Publication refusée : titre manquant',
+  info: 'Une nouvelle version est disponible',
+};
 
 function Row({ children }: { children: ReactNode }) {
   return <div className="tc-doc-opale-preview__row">{children}</div>;
@@ -87,9 +111,9 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [selected, setSelected] = useState('design');
   const [multiSelected, setMultiSelected] = useState<string[]>(['design', 'docs']);
   const [slider, setSlider] = useState(64);
-  const [language, setLanguage] = useState('FR');
-  const [dark, setDark] = useState(false);
   const [toastOpen, setToastOpen] = useState(true);
+  const [toastTone, setToastTone] = useState<ToastTone>('success');
+  const [toastPlacement, setToastPlacement] = useState<ToastPlacement>('bottom-right');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -97,9 +121,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('overview');
   const [selectedFile, setSelectedFile] = useState(false);
-  const [allowed, setAllowed] = useState(true);
-  const [valid, setValid] = useState(true);
-  const [score, setScore] = useState(12);
   const progress = useDemoProgress(name === 'ProgressBar');
 
   let preview: ReactNode;
@@ -123,7 +144,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'Pressable':
       preview = (
-        <Opale.Pressable onClick={() => setMessage('Surface activée')}>
+        <Opale.Pressable liquidGlass={liquidGlass} onClick={() => setMessage('Surface activée')}>
           Surface pressable · {message}
         </Opale.Pressable>
       );
@@ -131,6 +152,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'InlineInput':
       preview = (
         <Opale.InlineInput
+          liquidGlass={liquidGlass}
           label="Nom du projet"
           value={text}
           onChange={(event) => setText(event.currentTarget.value)}
@@ -178,6 +200,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'MultiSelect':
       preview = (
         <Opale.MultiSelect
+          liquidGlass={liquidGlass}
           label="Domaines"
           values={multiSelected}
           options={OPTIONS}
@@ -203,6 +226,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'Autocomplete':
       preview = (
         <Opale.Autocomplete
+          liquidGlass={liquidGlass}
           label="Composant"
           placeholder="Commencez à saisir…"
           options={['Button', 'Card', 'Modal', 'Select']}
@@ -223,69 +247,25 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Form>
       );
       break;
-    case 'LanguageSelector':
-      preview = (
-        <Row>
-          <Opale.LanguageSelector
-            value={language}
-            onChange={(event) => setLanguage(event.currentTarget.value)}
-          />
-          <Opale.Badge>{language}</Opale.Badge>
-        </Row>
-      );
-      break;
     case 'SegmentedControl':
       preview = (
-        <Opale.SegmentedControl options={OPTIONS} value={selected} onChange={setSelected} />
-      );
-      break;
-    case 'ThemeToggle':
-      preview = (
-        <Row>
-          <Opale.ThemeToggle dark={dark} onChange={setDark} />
-          <span role="status">Thème {dark ? 'sombre' : 'clair'}</span>
-        </Row>
-      );
-      break;
-    case 'AddButton':
-      preview = (
-        <DemoFrame>
-          <Opale.AddButton onClick={() => setMessage('Élément ajouté')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
-      );
-      break;
-    case 'SaveButton':
-      preview = <Opale.SaveButton onSaved={() => setMessage('Modification enregistrée')} />;
-      break;
-    case 'ApproveButton':
-      preview = (
-        <DemoFrame>
-          <Opale.ApproveButton onClick={() => setMessage('Demande validée')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
-      );
-      break;
-    case 'EditButton':
-      preview = (
-        <DemoFrame>
-          <Opale.EditButton onClick={() => setMessage('Mode édition')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
-      );
-      break;
-    case 'DeleteButton':
-      preview = (
-        <DemoFrame>
-          <Opale.DeleteButton onClick={() => setMessage('Élément supprimé')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
+        <Opale.SegmentedControl
+          liquidGlass={liquidGlass}
+          options={OPTIONS}
+          value={selected}
+          onChange={setSelected}
+        />
       );
       break;
     case 'IconActionButton':
       preview = (
         <DemoFrame>
-          <Opale.IconActionButton label="Partager" onClick={() => setMessage('Lien partagé')} />
+          <Opale.IconActionButton
+            liquidGlass={liquidGlass}
+            icon="share"
+            label="Partager"
+            onClick={() => setMessage('Lien partagé')}
+          />
           <span role="status">{message}</span>
         </DemoFrame>
       );
@@ -320,18 +300,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.CardGrid>
       );
       break;
-    case 'Carousel':
-      preview = (
-        <Opale.Carousel className="tc-doc-opale-demo__carousel">
-          <Opale.Card title="Carte 1">Découvrir</Opale.Card>
-          <Opale.Card title="Carte 2">Comparer</Opale.Card>
-          <Opale.Card title="Carte 3">Adopter</Opale.Card>
-        </Opale.Carousel>
-      );
-      break;
     case 'DataTable':
       preview = (
         <Opale.DataTable
+          liquidGlass={liquidGlass}
           columns={[
             { key: 'name', label: 'Nom' },
             { key: 'status', label: 'Statut' },
@@ -361,14 +333,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'StatusChip':
-      preview = (
-        <Row>
-          <Opale.StatusChip status="En production" />
-          <Opale.StatusChip status="En révision" />
-        </Row>
-      );
-      break;
     case 'Badge':
       preview = (
         <Row>
@@ -383,7 +347,11 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'Rating':
-      preview = <Opale.Rating value={4} max={5} />;
+      /* UN SEUL EXEMPLE, ET IL PORTE UN QUART. Avec `value={4}` on ne voyait
+         pas que le remplissage est fractionnaire — c'est pourtant tout
+         l'intérêt du composant ; avec trois rangées on ne savait plus laquelle
+         l'extrait de code montrait. Une rangée, la même que le code. */
+      preview = <Opale.Rating value={4.75} max={5} />;
       break;
     case 'StatCard':
       preview = (
@@ -408,11 +376,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'Legend':
-      preview = (
-        <Opale.Legend items={[{ label: 'Stable' }, { label: 'En cours' }, { label: 'Déprécié' }]} />
-      );
-      break;
     case 'Heading':
       preview = (
         <DemoFrame>
@@ -431,30 +394,86 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'Icon':
+      /* LES NOMS SONT CEUX DU JEU D'OPALE, plus le glyphe libre en dernier —
+         l'aperçu montre les DEUX formes que la prop accepte. Le catalogue
+         complet est sur la page « Icônes ». */
       preview = (
         <Row>
+          <Opale.Icon name="compass" label="Boussole" />
+          <Opale.Icon name="map-pin" label="Point sur la carte" />
+          <Opale.Icon name="luggage" label="Bagage" />
+          <Opale.Icon name="bell" label="Notifications" />
           <Opale.Icon name="✦" label="Étincelle" />
-          <Opale.Icon name="⌘" label="Commande" />
-          <Opale.Icon name="✓" label="Validé" />
         </Row>
       );
       break;
     case 'Feedback':
       preview = (
-        <Opale.Feedback severity="success" title="En production">
+        <Opale.Feedback liquidGlass={liquidGlass} severity="success" title="En production">
           La dernière version est disponible.
         </Opale.Feedback>
       );
       break;
     case 'Toast':
+      /* LA DÉMONSTRATION EST PILOTABLE, ET LA LIGNE DE CODE SUIT LES RÉGLAGES.
+
+         L'aperçu affichait une surface grise au milieu du cadre, sans ton ni
+         place : on ne pouvait ni voir qu'il y en avait, ni vérifier où le
+         message atterrit. Les deux sélecteurs ci-dessous écrivent l'appel
+         exact sous eux ; cliquer « Afficher le toast » le pose EXACTEMENT là
+         où cette ligne le dit, c'est-à-dire dans le coin de la fenêtre et non
+         dans le cadre — un toast est posé sur l'écran, pas dans le flux. */
       preview = (
         <DemoFrame>
+          <div className="tc-doc-opale-preview__row">
+            <Opale.Select
+              label="Ton"
+              value={toastTone}
+              onChange={(event) => setToastTone(event.currentTarget.value as ToastTone)}
+              options={TOAST_TONES.map((value) => ({ value, label: value }))}
+            />
+            <Opale.Select
+              label="Place à l’écran"
+              value={toastPlacement}
+              onChange={(event) =>
+                setToastPlacement(event.currentTarget.value as ToastPlacement)
+              }
+              options={TOAST_PLACEMENTS.map((value) => ({ value, label: value }))}
+            />
+          </div>
+
+          <code className="tc-doc-inline-code">
+            {`<Opale.Toast tone="${toastTone}" position="${toastPlacement}" message="…" />`}
+          </code>
+
           <Opale.Button size="small" onClick={() => setToastOpen(true)}>
             Afficher le toast
           </Opale.Button>
+
+          <p className="tc-doc-prose">
+            Six places : <code>top-left</code>, <code>top-center</code>, <code>top-right</code>,{' '}
+            <code>bottom-left</code>, <code>bottom-center</code>, <code>bottom-right</code>. Elles
+            sont relatives à la <strong>fenêtre</strong> et non au bloc qui appelle le composant :
+            le message est rendu dans un portail, donc il sort de ce cadre et va se poser dans le
+            coin demandé. Cinq tons : <code>neutral</code> (sans couleur), <code>success</code>,{' '}
+            <code>warning</code>, <code>error</code> et <code>info</code> ; <code>error</code> et{' '}
+            <code>warning</code> sont annoncés de façon assertive, les autres poliment, et chacun
+            porte une icône pour que la couleur ne soit pas le seul signal.
+          </p>
+
+          <p className="tc-doc-prose">
+            <strong>Un seul message à la fois.</strong> Deux <code>Opale.Toast</code> ouverts à la
+            même place se recouvrent : empiler, minuter et congédier une file est le travail de{' '}
+            <code>ToastProvider</code>. Et l’ordre de tabulation suit le DOM, pas l’écran — la croix
+            d’un message posé en haut est le dernier arrêt clavier de la page.
+          </p>
+
           <Opale.Toast
             open={toastOpen}
-            message="Modifications enregistrées"
+            liquidGlass={liquidGlass}
+            tone={toastTone}
+            position={toastPlacement}
+            message={TOAST_MESSAGES[toastTone]}
             onClose={() => setToastOpen(false)}
           />
         </DemoFrame>
@@ -464,7 +483,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = <Opale.Spinner label="Chargement des composants" />;
       break;
     case 'ProgressBar':
-      preview = <Opale.ProgressBar label="Progression" value={progress} />;
+      preview = <Opale.ProgressBar liquidGlass={liquidGlass} label="Progression" value={progress} />;
       break;
     case 'ConfirmDialog':
       preview = (
@@ -472,6 +491,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           <Opale.Button onClick={() => setDialogOpen(true)}>Supprimer le fichier</Opale.Button>
           <Opale.ConfirmDialog
             open={dialogOpen}
+            liquidGlass={liquidGlass}
             title="Supprimer le fichier ?"
             onCancel={() => setDialogOpen(false)}
             onConfirm={() => {
@@ -487,18 +507,25 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'EmptyState':
       preview = (
         <Opale.EmptyState
+          liquidGlass={liquidGlass}
           title="Aucun projet"
           description="Créez votre premier projet Opale."
-          action={<Opale.AddButton />}
+          action={<Opale.Button>Créer un projet</Opale.Button>}
         />
       );
       break;
     case 'Navbar':
-      preview = <Opale.Navbar items={NAV_ITEMS} activeId={activeNav} onSelect={setActiveNav} />;
+      preview = <Opale.Navbar
+          liquidGlass={liquidGlass}
+          items={NAV_ITEMS}
+          activeId={activeNav}
+          onSelect={setActiveNav}
+        />;
       break;
     case 'Menu':
       preview = (
         <Opale.Menu
+          liquidGlass={liquidGlass}
           label="Actions"
           items={[
             { id: 'duplicate', label: 'Dupliquer' },
@@ -514,28 +541,28 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = (
         <>
           <Opale.Button onClick={() => setPanelOpen(true)}>Ouvrir le panneau</Opale.Button>
-          <Opale.SidePanel open={panelOpen} title="Réglages" onClose={() => setPanelOpen(false)}>
+          <Opale.SidePanel
+            open={panelOpen}
+            liquidGlass={liquidGlass}
+            title="Réglages"
+            onClose={() => setPanelOpen(false)}
+          >
             <Opale.Toggle label="Notifications" defaultChecked />
           </Opale.SidePanel>
         </>
-      );
-      break;
-    case 'SettingsMenu':
-      preview = (
-        <Opale.SettingsMenu>
-          <Opale.ThemeToggle dark={dark} onChange={setDark} />
-          <Opale.LanguageSelector
-            value={language}
-            onChange={(event) => setLanguage(event.currentTarget.value)}
-          />
-        </Opale.SettingsMenu>
       );
       break;
     case 'CommandPalette':
       preview = (
         <>
           <Opale.Button onClick={() => setPaletteOpen(true)}>Ouvrir la palette</Opale.Button>
-          <Opale.CommandPalette open={paletteOpen} value={text} onChange={setText}>
+          <Opale.CommandPalette
+            open={paletteOpen}
+            liquidGlass={liquidGlass}
+            value={text}
+            onChange={setText}
+            onClose={() => setPaletteOpen(false)}
+          >
             <Opale.Button variant="text" onClick={() => setPaletteOpen(false)}>
               Fermer
             </Opale.Button>
@@ -554,36 +581,23 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'Toolbar':
-      preview = (
-        <Opale.Toolbar>
-          <Opale.Input aria-label="Rechercher" placeholder="Rechercher" />
-          <Opale.Button size="small">Filtrer</Opale.Button>
-        </Opale.Toolbar>
-      );
-      break;
     case 'CookieBanner':
       preview = (
         <DemoFrame>
           <Opale.Button size="small" onClick={() => setCookieOpen(true)}>
             Réafficher
           </Opale.Button>
-          <Opale.CookieBanner open={cookieOpen} onAccept={() => setCookieOpen(false)} />
+          <Opale.CookieBanner
+            open={cookieOpen}
+            liquidGlass={liquidGlass}
+            onAccept={() => setCookieOpen(false)}
+          />
         </DemoFrame>
-      );
-      break;
-    case 'Scrollbar':
-      preview = (
-        <Opale.Scrollbar className="tc-doc-opale-demo__scroll">
-          {Array.from({ length: 8 }, (_, index) => (
-            <p key={index}>Ligne de contenu {index + 1}</p>
-          ))}
-        </Opale.Scrollbar>
       );
       break;
     case 'SelectionBar':
       preview = (
-        <Opale.SelectionBar selectedCount={3}>
+        <Opale.SelectionBar liquidGlass={liquidGlass} selectedCount={3}>
           <Opale.Button size="small" variant="danger">
             Supprimer
           </Opale.Button>
@@ -610,27 +624,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Layout>
       );
       break;
-    case 'PageScaffold':
-      preview = (
-        <Opale.PageScaffold className="tc-doc-opale-demo__page">
-          <Opale.Toolbar>
-            <strong>Opale</strong>
-            <Opale.Badge>V3</Opale.Badge>
-          </Opale.Toolbar>
-          <Opale.PageContent>
-            <Opale.Heading level={3}>Page complète</Opale.Heading>
-          </Opale.PageContent>
-        </Opale.PageScaffold>
-      );
-      break;
-    case 'PageContent':
-      preview = (
-        <Opale.PageContent>
-          <Opale.Heading level={3}>Contenu centré</Opale.Heading>
-          <Opale.Text>La largeur de lecture reste maîtrisée.</Opale.Text>
-        </Opale.PageContent>
-      );
-      break;
     case 'Divider':
       preview = (
         <DemoFrame>
@@ -640,17 +633,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </DemoFrame>
       );
       break;
-    case 'Separator':
-      preview = (
-        <Row>
-          <span>Stable</span>
-          <Opale.Separator />
-          <span>React 19</span>
-          <Opale.Separator />
-          <span>TypeScript</span>
-        </Row>
-      );
-      break;
     case 'BackgroundSurface':
       preview = (
         <Opale.BackgroundSurface className="tc-doc-opale-demo__background">
@@ -658,38 +640,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.BackgroundSurface>
       );
       break;
-    case 'ShapeBackground':
-      preview = (
-        <Opale.ShapeBackground className="tc-doc-opale-demo__background">
-          <Opale.Card title="Formes organiques">Décor non interactif</Opale.Card>
-        </Opale.ShapeBackground>
-      );
-      break;
-    case 'SlidingIndicator':
-      preview = (
-        <Opale.SlidingIndicator>
-          <Opale.Button size="small" variant="tonal">
-            Actifs
-          </Opale.Button>
-          <Opale.Button size="small" variant="text">
-            Archivés
-          </Opale.Button>
-        </Opale.SlidingIndicator>
-      );
-      break;
-    case 'FileUploader':
-      preview = (
-        <DemoFrame>
-          <Opale.FileUploader
-            onFiles={(files) => setMessage(`${files.length} fichier(s) sélectionné(s)`)}
-          />
-          <span role="status">{message}</span>
-        </DemoFrame>
-      );
-      break;
     case 'FileCard':
       preview = (
         <Opale.FileCard
+          liquidGlass={liquidGlass}
           name="design-system.fig"
           size="2,4 Mo"
           selected={selectedFile}
@@ -699,7 +653,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'Dropzone':
       preview = (
-        <Opale.Dropzone onFiles={(files) => setMessage(`${files.length} fichier(s) déposé(s)`)}>
+        <Opale.Dropzone
+          liquidGlass={liquidGlass}
+          onFiles={(files) => setMessage(`${files.length} fichier(s) déposé(s)`)}
+        >
           Déposez les maquettes ici
         </Opale.Dropzone>
       );
@@ -709,6 +666,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         <>
           <Opale.Button onClick={() => setLightboxOpen(true)}>Voir l’image</Opale.Button>
           <Opale.Lightbox
+            liquidGlass={liquidGlass}
             src={PREVIEW_IMAGE}
             alt="Aperçu abstrait Opale"
             open={lightboxOpen}
@@ -717,121 +675,16 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </>
       );
       break;
-    case 'Map':
-      preview = (
-        <Opale.Map>
-          <Row>
-            <Opale.Badge>Paris</Opale.Badge>
-            <Opale.Badge tone="accent">Lyon</Opale.Badge>
-          </Row>
-        </Opale.Map>
-      );
-      break;
-    case 'RouteGuard':
-      preview = (
-        <DemoFrame>
-          <Opale.Toggle
-            label="Accès autorisé"
-            checked={allowed}
-            onChange={(event) => setAllowed(event.currentTarget.checked)}
-          />
-          <Opale.RouteGuard allowed={allowed} fallback="Accès administrateur requis">
-            <Opale.Feedback severity="success">Contenu protégé visible</Opale.Feedback>
-          </Opale.RouteGuard>
-        </DemoFrame>
-      );
-      break;
-    case 'I18n':
-      preview = (
-        <Opale.I18n>
-          <Row>
-            <Opale.LanguageSelector
-              value={language}
-              onChange={(event) => setLanguage(event.currentTarget.value)}
-            />
-            <span role="status">
-              Message actif : {language === 'FR' ? 'Bonjour' : language === 'EN' ? 'Hello' : 'Hola'}
-            </span>
-          </Row>
-        </Opale.I18n>
-      );
-      break;
-    case 'Http':
-      preview = (
-        <DemoFrame>
-          <Opale.Http status={message === 'Chargement' ? 'Chargement…' : 'API prête · 200'} />
-          <Opale.Button
-            size="small"
-            onClick={() => {
-              setMessage('Chargement');
-              window.setTimeout(() => setMessage('Prêt'), 250);
-            }}
-          >
-            Relancer
-          </Opale.Button>
-        </DemoFrame>
-      );
-      break;
-    case 'Validation':
-      preview = (
-        <DemoFrame>
-          <Opale.Input
-            label="Identifiant"
-            value={text}
-            onChange={(event) => {
-              setText(event.currentTarget.value);
-              setValid(event.currentTarget.value.length >= 3);
-            }}
-          />
-          <Opale.Validation valid={valid} />
-        </DemoFrame>
-      );
-      break;
-    case 'Sound':
-      preview = <Opale.Sound enabled />;
-      break;
-    case 'LocalStore':
-      preview = (
-        <Opale.LocalStore>
-          <DemoFrame>
-            <Opale.Input
-              label="Valeur locale"
-              value={text}
-              onChange={(event) => setText(event.currentTarget.value)}
-            />
-            <Opale.Badge>{text || 'Vide'}</Opale.Badge>
-          </DemoFrame>
-        </Opale.LocalStore>
-      );
-      break;
-    case 'Countdown':
-      preview = (
-        <Row>
-          <span>Départ dans</span>
-          <Opale.Countdown seconds={15} />
-        </Row>
-      );
-      break;
-    case 'Game':
-      preview = (
-        <DemoFrame>
-          <Opale.Game score={score} />
-          <Opale.Button size="small" onClick={() => setScore((value) => value + 1)}>
-            Marquer un point
-          </Opale.Button>
-        </DemoFrame>
-      );
-      break;
     case 'Clipboard':
       preview = (
-        <Opale.Clipboard value="npm install @thomascaron/opale-ui">
+        <Opale.Clipboard liquidGlass={liquidGlass} value="npm install @thomascaron/opale-ui">
           Copier la commande
         </Opale.Clipboard>
       );
       break;
     case 'SvgMap':
       preview = (
-        <Opale.SvgMap>
+        <Opale.SvgMap liquidGlass={liquidGlass}>
           <circle cx="205" cy="75" r="12" fill="currentColor">
             <title>Étape active</title>
           </circle>

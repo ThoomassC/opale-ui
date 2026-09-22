@@ -62,6 +62,28 @@ import styles from './style/Glass.module.css';
      la valeur par défaut suit le rayon moyen d'Opale au lieu d'un `22px` figé.
    ========================================================================== */
 
+/* =============================================================================
+   LES BALISES QUI RÉPONDENT À UN APPUI.
+
+   LE DÉFAUT QUI A MOTIVÉ CETTE LISTE. Le rebond était posé sur `.glass:active`,
+   sans condition. Or `:active` ne vise pas que l'élément pressé : il remonte à
+   TOUS SES ANCÊTRES. Cliquer une entrée du sommaire faisait donc rebondir le
+   sommaire ENTIER — 1 408 px de panneau —, et il en allait de même de la barre
+   du haut, de la modale, de la carte et du bandeau d'onglets : tout conteneur
+   de verre sautait dès qu'on touchait quoi que ce soit à l'intérieur.
+
+   CE QUI DÉCIDE MAINTENANT, C'EST LE RÔLE DE L'ÉLÉMENT RENDU, pas la matière.
+   Un bouton, un lien, un `<summary>` sont des cibles d'activation : le rebond y
+   est la réponse au geste. Un `<div>`, un `<aside>`, une `<section>` sont des
+   SURFACES : elles n'ont rien à répondre, on ne les presse pas.
+
+   `pressFeedback` reste là pour le cas que cette règle ne peut pas voir : la
+   case à cocher et l'interrupteur, dont le contrôle natif est posé À CÔTÉ du
+   verre — la coquille y est un `<span>`, alors que le geste, lui, est bien une
+   activation.
+   ========================================================================== */
+const PRESSABLE_TAGS = new Set(['button', 'a', 'summary']);
+
 /** L'identifiant du filtre de déplacement, cité par la feuille. */
 const FILTER_ID = 'opale-glass-displacement';
 
@@ -110,6 +132,11 @@ export type GlassProps<T extends ElementType = 'div'> = {
   readonly enableLiquidAnimation?: boolean;
   /** Déclenche la même onde sans clic, depuis le centre. */
   readonly triggerAnimation?: boolean;
+  /**
+   * Le rebond d'appui. Par défaut, il ne part que sur un élément activable —
+   * voir `PRESSABLE_TAGS`. À forcer quand le contrôle est frère du verre.
+   */
+  readonly pressFeedback?: boolean;
 } & Omit<ComponentPropsWithoutRef<T>, 'as' | 'children'>;
 
 const RIPPLE_MS = 800;
@@ -123,12 +150,15 @@ function GlassInner<T extends ElementType = 'div'>(
     rootStyle,
     enableLiquidAnimation = false,
     triggerAnimation = false,
+    pressFeedback,
     onClick,
     ...props
   }: GlassProps<T>,
   ref: ForwardedRef<Element>,
 ) {
   const Component = (as ?? 'div') as ElementType;
+  const pressable =
+    pressFeedback ?? (typeof Component === 'string' && PRESSABLE_TAGS.has(Component));
   const container = useRef<HTMLDivElement>(null);
   /* LA CLÉ EST UN COMPTEUR, PAS UN HORODATAGE. `Date.now()` est impur : appelé
      pendant le rendu, il rend le composant non idempotent — deux rendus du même
@@ -191,6 +221,10 @@ function GlassInner<T extends ElementType = 'div'>(
          — c'est ce que vérifient les gardes, et ce qu'un hôte peut cibler pour
          adapter la scène autour du matériau. */
       data-opale-glass=""
+      /* L'ABSENCE VAUT « NE REBONDIT PAS ». L'attribut n'est posé que sur les
+         verres pressables, si bien qu'un conteneur ne peut pas hériter du
+         rebond par accident : la feuille exige sa présence. */
+      data-opale-glass-press={pressable ? 'true' : undefined}
       className={[styles.glass, ripple && styles.squishing, rootClassName]
         .filter(Boolean)
         .join(' ')}

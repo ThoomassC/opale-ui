@@ -8,10 +8,13 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
+  type Ref,
 } from 'react';
 import { createPortal } from 'react-dom';
 
 import Glass, { type GlassProps } from '../glass/Glass';
+
+import { IconGlyph } from '../icon';
 
 import styles from './style/Modal.module.css';
 
@@ -82,7 +85,15 @@ import styles from './style/Modal.module.css';
 
 type ModalSize = 'sm' | 'md' | 'lg';
 
-export type ModalProps = ComponentPropsWithoutRef<'div'> & {
+/* `Omit<…, 'title'>` N'EST PAS UNE COQUETTERIE DE TYPAGE.
+
+   `ComponentPropsWithoutRef<'div'>` apporte l'attribut HTML `title`, qui est
+   une CHAÎNE. L'intersecter avec `title?: ReactNode` donnait
+   `string & ReactNode`, c'est-à-dire une chaîne : la prop annonçait accepter
+   un nœud et refusait tout ce qui n'en était pas un. Le type mentait, et
+   personne ne s'en apercevait tant qu'aucun appelant n'essayait — le premier
+   à passer un titre composé a échoué à la compilation. */
+export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   open: boolean;
   onClose?: () => void;
   onOpenChange?: (open: boolean) => void;
@@ -95,7 +106,17 @@ export type ModalProps = ComponentPropsWithoutRef<'div'> & {
   size?: ModalSize;
   enableLiquidAnimation?: boolean;
   portalContainer?: HTMLElement | null;
-} & GlassProps;
+  /**
+   * Rend le panneau dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT IL EST ORIGINAL. Ce composant ne savait rendre que du verre :
+   * le matériau est une OPTION de chaque composant d'Opale, jamais son seul
+   * état.
+   */
+  liquidGlass?: boolean;
+  /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
+     côtés, sans quoi l'intersection le ramène à une chaîne. */
+} & Omit<GlassProps, 'title'>;
 
 const sizeClass: Record<ModalSize, string> = {
   sm: styles.sm,
@@ -127,6 +148,54 @@ const FOCUSABLE_SELECTOR = [
 const cx = (...values: readonly (string | false | null | undefined)[]) =>
   values.filter(Boolean).join(' ');
 
+/* =============================================================================
+   LE PANNEAU DU DIALOGUE, DANS LES DEUX MATIÈRES.
+
+   `Glass` distingue l'ENVELOPPE — qui porte la silhouette, la taille et
+   l'ombre — du CONTENU, qui porte le remplissage et l'encre. Une boîte pleine
+   n'a pas besoin de cette séparation : les deux classes se posent sur le même
+   `<div>`. Extraire ce choix ici évite d'écrire deux fois les huit attributs
+   du dialogue, qui sont son contrat d'accessibilité.
+   ========================================================================== */
+type PanneauProps = Omit<GlassProps<'div'>, 'title'> & {
+  liquidGlass: boolean;
+  /* `ref` EST UNE PROP ORDINAIRE, et ce fichier n'importe pas `forwardRef`.
+     React 19 l'a rendu inutile sur un composant de fonction ; l'envelopper
+     ici n'apporterait qu'un import de plus. */
+  ref?: Ref<HTMLDivElement>;
+};
+
+function Panneau({
+  liquidGlass,
+  ref,
+  rootClassName,
+  className,
+  triggerAnimation,
+  children,
+  ...rest
+}: PanneauProps) {
+  if (liquidGlass) {
+    return (
+      <Glass
+        {...rest}
+        ref={ref}
+        enableLiquidAnimation={false}
+        triggerAnimation={triggerAnimation}
+        rootClassName={rootClassName}
+        className={className}
+      >
+        {children}
+      </Glass>
+    );
+  }
+
+  return (
+    <div {...rest} ref={ref} className={cx(rootClassName, className, styles.plain)}>
+      {children}
+    </div>
+  );
+}
+
 const Modal = ({
   open,
   onClose,
@@ -140,6 +209,7 @@ const Modal = ({
   lockScroll = true,
   size = 'md',
   enableLiquidAnimation = true,
+  liquidGlass = false,
   className,
   rootClassName,
   portalContainer,
@@ -222,26 +292,6 @@ const Modal = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closeOnEsc, handleClose, open]);
 
-  /* LE FOCUS PART AU PANNEAU ET REVIENT AU DÉCLENCHEUR.
-
-     Le panneau plutôt que le premier bouton : c'est ce que recommande l'APG
-     quand le dialogue porte un texte à lire, et c'est ce qui fait annoncer le
-     titre et la description avant les actions. La restauration vit dans le
-     NETTOYAGE, donc elle couvre les trois sorties — fermeture, démontage du
-     parent, et changement de `open` — sans qu'aucune ait à y penser. */
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const previous = document.activeElement;
-    panelRef.current?.focus({ preventScroll: true });
-
-    return () => {
-      if (previous instanceof HTMLElement && previous.isConnected) {
-        previous.focus({ preventScroll: true });
-      }
-    };
-  }, [open]);
-
   /* L'INERTIE DE L'ARRIÈRE-PLAN.
 
      On remonte du conteneur de portail jusqu'à `<body>` et, à chaque niveau,
@@ -283,6 +333,36 @@ const Modal = ({
 
         if (hidden === null) element.removeAttribute('aria-hidden');
         else element.setAttribute('aria-hidden', hidden);
+      }
+    };
+  }, [open]);
+
+  /* CET EFFET EST DÉCLARÉ APRÈS CELUI DE L'INERTIE, ET L'ORDRE EST LE CORRECTIF.
+
+     React exécute les nettoyages dans l'ORDRE DE DÉCLARATION des effets.
+     Déclaré avant, celui-ci rendait le focus au déclencheur pendant que
+     l'arrière-plan portait encore `inert` — et `focus()` sur un élément inerte
+     ne fait rien, sans lever d'erreur. Mesuré sur les trois sorties (Échap,
+     bouton Fermer, clic sur la toile de fond) : le focus retombait sur
+     `<body>`, donc l'utilisateur au clavier repartait du début de la page.
+
+     Le défaut ne se voyait pas : le code était juste, le commentaire annonçait
+     le bon comportement, et seul l'ordre de deux blocs le contredisait.
+
+     Le panneau plutôt que le premier bouton : c'est ce que recommande l'APG
+     quand le dialogue porte un texte à lire, et c'est ce qui fait annoncer le
+     titre et la description avant les actions. La restauration vit dans le
+     NETTOYAGE, donc elle couvre les trois sorties — fermeture, démontage du
+     parent, et changement de `open` — sans qu'aucune ait à y penser. */
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const previous = document.activeElement;
+    panelRef.current?.focus({ preventScroll: true });
+
+    return () => {
+      if (previous instanceof HTMLElement && previous.isConnected) {
+        previous.focus({ preventScroll: true });
       }
     };
   }, [open]);
@@ -363,10 +443,16 @@ const Modal = ({
         onClick={closeOnOverlay ? handleClose : undefined}
       />
 
-      <Glass
+      {/* LE PANNEAU, DANS L'UNE OU L'AUTRE MATIÈRE.
+
+          Les attributs du dialogue — rôle, `aria-modal`, nom, description,
+          `tabIndex` et les deux gestionnaires — sont écrits UNE FOIS et posés
+          sur les deux rendus : c'est tout le contrat d'accessibilité du
+          composant, et il ne doit pas dépendre d'une apparence. */}
+      <Panneau
         {...rest}
         ref={panelRef}
-        enableLiquidAnimation={false}
+        liquidGlass={liquidGlass}
         triggerAnimation={openRipple}
         rootClassName={cx(styles.shell, sizeClass[size], rootClassName)}
         className={cx(styles.panel, className)}
@@ -381,19 +467,27 @@ const Modal = ({
       >
         {showHeader && (
           <div className={styles.header}>
-            <div className={styles.heading}>
-              {title && (
-                <h2 id={titleId} className={styles.title}>
-                  {title}
-                </h2>
-              )}
+            {/* LE BLOC DE TITRE N'EXISTE QUE S'IL A QUELQUE CHOSE DEDANS.
+                `showHeader` est vrai dès qu'il y a un `onClose`, donc un
+                dialogue sans titre ni description — une visionneuse d'image,
+                par exemple — posait une boîte vide à côté de sa croix, et le
+                filet de séparation tirait une ligne pleine largeur sous un
+                bouton isolé. La feuille s'accroche à la présence de ce bloc. */}
+            {(title || description) && (
+              <div className={styles.heading}>
+                {title && (
+                  <h2 id={titleId} className={styles.title}>
+                    {title}
+                  </h2>
+                )}
 
-              {description && (
-                <p id={descriptionId} className={styles.description}>
-                  {description}
-                </p>
-              )}
-            </div>
+                {description && (
+                  <p id={descriptionId} className={styles.description}>
+                    {description}
+                  </p>
+                )}
+              </div>
+            )}
 
             {(onClose || onOpenChange) && (
               <button
@@ -402,7 +496,14 @@ const Modal = ({
                 aria-label="Fermer"
                 onClick={handleClose}
               >
-                <span aria-hidden="true">×</span>
+                {/* LA CROIX EST UN TRACÉ, PLUS UN CARACTÈRE. « × » est le signe
+                    MULTIPLIER : sa barre est plus fine que le reste de
+                    l'interface, sa taille dépend de la police installée, et il
+                    n'est pas centré dans sa boîte — d'où une croix qui flottait
+                    un peu haut et un peu à gauche dans son cercle. Le tracé du
+                    jeu d'Opale a l'épaisseur de trait de toutes les autres
+                    icônes et se centre sur sa grille. */}
+                <IconGlyph name="close" className={styles.closeGlyph} />
               </button>
             )}
           </div>
@@ -411,7 +512,7 @@ const Modal = ({
         {children && <div className={styles.body}>{children}</div>}
 
         {footer && <div className={styles.footer}>{footer}</div>}
-      </Glass>
+      </Panneau>
     </div>,
     container,
   );

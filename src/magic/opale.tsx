@@ -7,6 +7,7 @@ import {
   useState,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
+  type ChangeEvent,
   type CSSProperties,
   type FormHTMLAttributes,
   type HTMLAttributes,
@@ -15,8 +16,24 @@ import {
   type ReactNode,
   type SelectHTMLAttributes,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import Glass from './components/glass/Glass';
+import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './components/icon';
+/* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
+
+   `ConfirmDialog`, `SidePanel`, `CommandPalette` et `Lightbox` peignaient
+   chacun leur propre voile et leur propre boîte. Aucun n'avait de piège de
+   focus, de fermeture par Échap, de restitution du focus au déclencheur ni de
+   verrou de défilement — et `ConfirmDialog` annonçait pourtant
+   `aria-modal="true"`, ce qui est un mensonge coûteux : le lecteur d'écran
+   croit l'arrière-plan neutralisé quand la tabulation y circule encore. Sur
+   une confirmation de suppression, on pouvait actionner les boutons DERRIÈRE
+   la demande de confirmation.
+
+   `Modal` fait tout cela, et il est déjà testé pour. Les quatre deviennent
+   donc ce qu'ils auraient toujours dû être : des PRÉRÉGLAGES. */
+import { Modal } from './components/modal';
 
 /* =============================================================================
    LE VERRE EST LA PEAU, LE CONTRÔLE NATIF RESTE LE MOTEUR.
@@ -80,17 +97,31 @@ function FieldShell({
   liquidGlass,
   className,
   rootClassName,
+  pressFeedback,
   children,
 }: {
   liquidGlass: boolean;
   className?: string;
   rootClassName?: string;
+  /**
+   * Le rebond d'appui. `Glass` le déduit de la balise rendue, et cette
+   * coquille est toujours un `<span>` : la déduction dit donc « surface » pour
+   * la case à cocher comme pour le champ de saisie. C'est juste pour le champ
+   * — on ne presse pas un champ, on y écrit — et faux pour la case, qu'on
+   * presse bel et bien. D'où ce réglage, posé au cas par cas.
+   */
+  pressFeedback?: boolean;
   children: ReactNode;
 }) {
   if (!liquidGlass) return <span className={className}>{children}</span>;
 
   return (
-    <Glass as="span" className={className} rootClassName={rootClassName}>
+    <Glass
+      as="span"
+      className={className}
+      rootClassName={rootClassName}
+      pressFeedback={pressFeedback}
+    >
       {children}
     </Glass>
   );
@@ -201,7 +232,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
        puisqu'il n'y a plus qu'un seul balisage. */
     const content = (
       <>
-        {loading ? <span className="opale-spinner" aria-hidden="true" /> : startIcon}
+        {/* L'ICÔNE EST DÉCORATIVE, ET ELLE DOIT LE DIRE. Rendue nue, la
+            glyphe entrait dans le nom du bouton : « × Supprimer », « ✎
+            Modifier », « ✓ Approuver ». La commande vocale ne retrouvait plus
+            « Supprimer », et le lecteur d'écran lisait un caractère avant
+            chaque libellé (WCAG 2.5.3). Un bouton SANS texte, lui, passe par
+            `aria-label` — voir `IconActionButton`. */}
+        {loading ? (
+          <span className="opale-spinner" aria-hidden="true" />
+        ) : (
+          startIcon && <span aria-hidden="true">{startIcon}</span>
+        )}
         <span>{children}</span>
         {!loading && endIcon}
       </>
@@ -334,9 +375,30 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
   ({ label, helperText, error, icon, liquidGlass = false, className, id, ...props }, ref) => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
+    const messageId = `${inputId}-message`;
+    const message = error || helperText;
+
+    /* LE MESSAGE SORT DU `<label>`, ET C'EST TOUT L'OBJET DE CE REMANIEMENT.
+
+       L'ensemble du champ était enveloppé dans un `<label>` : le texte d'aide
+       et le message d'erreur se retrouvaient donc DANS le nom accessible.
+       « E-mail » devenait « E-mail Adresse invalide » — ce qui casse la
+       commande vocale, qui ne retrouve plus « E-mail », et noie l'erreur dans
+       l'étiquette au lieu d'en faire une description.
+
+       Pire : rien ne l'ANNONÇAIT. Ni `aria-describedby`, ni `aria-invalid`,
+       ni région live. On validait, le message apparaissait, et il ne se
+       passait rien d'audible (WCAG 4.1.3 et 3.3.1).
+
+       Le libellé redevient donc un `<label htmlFor>` — le clic dessus focalise
+       toujours le champ —, et le message devient une description annoncée. */
     return (
-      <label className={cx('opale-field', className)} htmlFor={inputId}>
-        {label && <span className="opale-field__label">{label}</span>}
+      <div className={cx('opale-field', className)}>
+        {label && (
+          <label className="opale-field__label" htmlFor={inputId}>
+            {label}
+          </label>
+        )}
         {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
 
             Ce qui porte du TEXTE reste hors du verre — le libellé, le texte
@@ -353,16 +415,28 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
           rootClassName="opale-input--glass-root"
         >
           {icon}
-          <input ref={ref} id={inputId} className="opale-input" {...props} />
+          <input
+            ref={ref}
+            id={inputId}
+            className="opale-input"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={message ? messageId : undefined}
+            {...props}
+          />
         </FieldShell>
-        {(error || helperText) && (
+        {message && (
           <span
+            id={messageId}
+            /* `role="alert"` SUR LA SEULE ERREUR. Un texte d'aide est là dès
+               le départ : l'annoncer d'autorité couperait la parole au reste
+               de la page pour redire ce que la description dit déjà. */
+            role={error ? 'alert' : undefined}
             className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
           >
-            {error || helperText}
+            {message}
           </span>
         )}
-      </label>
+      </div>
     );
   },
 );
@@ -382,6 +456,9 @@ export function Checkbox({
   onChange,
   ...props
 }: CheckboxProps) {
+  const labelId = useId();
+  const descriptionId = useId();
+
   /* L'ÉTAT N'A PLUS BESOIN D'ÊTRE RECOPIÉ EN JAVASCRIPT.
 
      La version précédente tenait un état miroir (`useMirrorState`) pour dire à
@@ -392,7 +469,24 @@ export function Checkbox({
      simple passe-plat. */
   return (
     <label className={cx('opale-checkbox-row', className)}>
-      <input type="checkbox" className="opale-checkbox" onChange={onChange} {...props} />
+      {/* LA DESCRIPTION EST DÉCRITE, PLUS NOMMÉE. Rendue dans le `<label>`,
+          elle entrait dans le nom de la case : « Recevoir les notifications
+          Les nouveautés du design system ». Le nom d'une case doit être ce
+          qu'on coche, et le reste une description (WCAG 1.3.1). */}
+      <input
+        type="checkbox"
+        className="opale-checkbox"
+        /* `aria-labelledby` DÉSIGNE LE SEUL LIBELLÉ, et il faut cette précision.
+           Ajouter `aria-describedby` ne suffisait pas : la rangée EST un
+           `<label>`, donc tout ce qu'elle contient — description comprise —
+           entre dans le nom calculé. Nommer explicitement le prend de vitesse,
+           et la rangée reste cliquable sur toute sa surface, ce qui est le
+           point de la construire ainsi. */
+        aria-labelledby={labelId}
+        aria-describedby={label && description ? descriptionId : undefined}
+        onChange={onChange}
+        {...props}
+      />
       {/* LA COCHE EST UNE DÉCORATION, sous verre comme sans. La vraie case est
           l'`<input>` natif, invisible et posé sur toute la rangée ; c'est le
           `<label>` qui reçoit le clic. */}
@@ -400,11 +494,16 @@ export function Checkbox({
         liquidGlass={liquidGlass}
         className={cx('opale-checkbox-mark', liquidGlass && 'opale-checkbox-mark--glass')}
         rootClassName="opale-checkbox--glass-root"
+        pressFeedback
       >
         {null}
       </FieldShell>
-      <span>{label ?? description}</span>
-      {label && description && <small className="opale-field__helper">{description}</small>}
+      <span id={labelId}>{label ?? description}</span>
+      {label && description && (
+        <small id={descriptionId} className="opale-field__helper">
+          {description}
+        </small>
+      )}
     </label>
   );
 }
@@ -425,6 +524,7 @@ export function Toggle({ label, liquidGlass = false, className, onChange, ...pro
         liquidGlass={liquidGlass}
         className={cx('opale-toggle-track', liquidGlass && 'opale-toggle-track--glass')}
         rootClassName="opale-toggle--glass-root"
+        pressFeedback
       >
         <span className="opale-toggle-thumb" />
       </FieldShell>
@@ -439,6 +539,36 @@ export interface SliderProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   liquidGlass?: boolean;
 }
 
+/* =============================================================================
+   LA BULLE DU CURSEUR, ET CE QUI LA FAIT GLISSER.
+
+   `STRETCH_MAX` BORNE LA DÉFORMATION. Au-delà d'un cinquième, la bulle cesse
+   de ressembler à une goutte et devient un trait : l'effet se retourne contre
+   lui-même. `STRETCH_GAIN` convertit une fraction de course parcourue depuis
+   le dernier événement en allongement — un glissement continu envoie des pas
+   de l'ordre du pour-cent, un clic à l'autre bout envoie tout d'un coup et se
+   trouve écrêté.
+
+   `STRETCH_RELAX_MS` EST CE QUI REND LA GOUTTE VIVANTE. Sans lui, la
+   déformation resterait figée à la dernière valeur reçue : la bulle
+   s'allongerait et n'en reviendrait jamais. Le délai est plus court que la
+   cadence d'un glissement (un pointeur émet toutes les 8 à 16 ms), donc il ne
+   se déclenche qu'à l'arrêt réel.
+   ========================================================================== */
+const STRETCH_MAX = 0.22;
+const STRETCH_GAIN = 2.6;
+const STRETCH_RELAX_MS = 140;
+
+/** La fraction parcourue, bornée à [0, 1]. */
+function rangeProgress(input: HTMLInputElement): number {
+  const min = Number(input.min === '' ? 0 : input.min);
+  const max = Number(input.max === '' ? 100 : input.max);
+
+  if (!(max > min)) return 0;
+
+  return Math.min(Math.max((Number(input.value) - min) / (max - min), 0), 1);
+}
+
 export function Slider({
   label,
   valueLabel,
@@ -447,33 +577,151 @@ export function Slider({
   onChange,
   ...props
 }: SliderProps) {
-  /* LA SUPERPOSITION A DISPARU, ET C'ÉTAIT UNE BÉQUILLE.
+  const generatedSliderId = useId();
+  const sliderId = props.id ?? generatedSliderId;
+  /* SOUS VERRE, LA PISTE EST LE MATÉRIAU LUI-MÊME.
 
-     Le curseur tiers était une piste en `<div>` sans rôle, sans `tabindex` et
-     sans clavier. Pour ne pas perdre l'accessibilité en basculant la matière,
-     il fallait le poser SOUS un `<input type="range">` rendu transparent : le
-     natif recevait le geste, le verre peignait la valeur, et un état miroir
-     tenait les deux d'accord. Trois pièces pour un seul curseur.
+     CE QUI N'ALLAIT PAS. Le curseur se contentait d'un `<input type="range">`
+     natif posé dans une boîte de verre : sa piste était peinte par l'agent
+     utilisateur, à `accent-color`, sur toute la largeur. Elle touchait donc
+     les bords du verre et le débordait par endroits — un rail opaque au
+     milieu d'un matériau transparent, qui ne ressemblait ni à du verre ni à
+     un curseur d'Opale.
 
-     Le verre enveloppant maintenant notre propre piste, il n'y a plus qu'un
-     élément : l'`<input type="range">`, visible, avec ses flèches et son
-     `ChangeEvent`. */
+     CE QUI EST FAIT MAINTENANT. L'enveloppe de verre EST la piste : une pilule
+     pleine largeur, avec ses trois couches. Le remplissage et la bulle sont
+     deux DÉCORATIONS peintes par-dessus, et le natif — invisible, étendu sur
+     toute la piste — reste la seule commande : son clavier, son `name`, son
+     `ChangeEvent` et son rôle `slider` ne changent pas. C'est exactement le
+     partage déjà en place pour la case à cocher.
+
+     LA POSITION EST ÉCRITE DANS LE DOM, PAS DANS UN ÉTAT REACT. Un état
+     miroir avait été supprimé de ce composant, et il ne revient pas : deux
+     décorations n'ont pas besoin d'un rendu React pour bouger, elles ont
+     besoin d'une variable CSS. L'écrire directement évite de re-rendre le
+     composant à chaque pixel d'un glissement, et — surtout — évite de rendre
+     contrôlé un curseur que l'appelant avait laissé libre. */
+  const inputRef = useRef<HTMLInputElement>(null);
+  const previous = useRef<number | null>(null);
+  const relax = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  /* La position se repose après CHAQUE rendu, sans condition. C'est ce qui
+     couvre les cas qu'un gestionnaire d'événement ne voit pas : un curseur
+     contrôlé dont le parent change la valeur, un `min`/`max` qui bouge, le
+     premier montage. La déformation, elle, n'y est pas touchée — elle
+     appartient au geste, et un rendu n'est pas un geste. */
+  useEffect(() => {
+    const input = inputRef.current;
+    const shell = input?.parentElement;
+
+    if (!input || !shell) return;
+
+    const progress = rangeProgress(input);
+    shell.style.setProperty('--opale-range-progress', String(progress));
+    previous.current = progress;
+  });
+
+  useEffect(() => () => clearTimeout(relax.current), []);
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const shell = input.parentElement;
+
+    if (shell) {
+      const progress = rangeProgress(input);
+      shell.style.setProperty('--opale-range-progress', String(progress));
+
+      /* WCAG 2.3.3 — la déformation est du mouvement non essentiel, et elle
+         est pilotée depuis JavaScript : une règle CSS ne pourrait pas la
+         retirer, un style en ligne l'emportant sur elle. La préférence se lit
+         donc ici, à la source. */
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+      if (!reduced) {
+        const delta = Math.abs(progress - (previous.current ?? progress));
+        const stretch = Math.min(delta * STRETCH_GAIN, STRETCH_MAX);
+
+        shell.style.setProperty('--opale-range-stretch', String(stretch));
+        clearTimeout(relax.current);
+        relax.current = setTimeout(() => {
+          shell.style.setProperty('--opale-range-stretch', '0');
+        }, STRETCH_RELAX_MS);
+      }
+
+      previous.current = progress;
+    }
+
+    onChange?.(event);
+  };
+
+  /* LE NATIF EST ÉCRIT UNE FOIS ET POSÉ DANS LES DEUX BRANCHES. Les deux
+     rendus n'ont pas la même charpente — sous verre il faut une piste fine et
+     une bulle qui la dépasse —, mais le CONTRÔLE, lui, doit rester le même
+     élément aux mêmes propriétés. L'extraire est ce qui empêche les deux
+     branches de diverger sans qu'on le voie. */
+  const control = (
+    <input
+      ref={inputRef}
+      id={sliderId}
+      type="range"
+      className="opale-range"
+      onChange={handleChange}
+      {...props}
+    />
+  );
+
   return (
-    <label className={cx('opale-field', className)}>
+    <div className={cx('opale-field', className)}>
+      {/* LE NOM DU CURSEUR CHANGEAIT À CHAQUE CRAN, et c'est le plus gênant des
+          trois défauts de cette famille. Le `<label>` enveloppait la valeur
+          autant que le libellé : le nom accessible devenait « Volume 42 »,
+          puis « Volume 43 »… Toute commande vocale visant « Volume » échouait,
+          et un lecteur d'écran réannonçait le nom du contrôle à chaque flèche.
+          Le libellé nomme, la valeur décrit — et le curseur natif annonce déjà
+          sa valeur par `aria-valuenow`. */}
       {(label || valueLabel) && (
         <span className="opale-card__header">
-          <span className="opale-field__label">{label}</span>
+          <label className="opale-field__label" htmlFor={sliderId}>
+            {label}
+          </label>
+          {/* PAS D'`aria-hidden` ICI. La valeur n'est plus dans le `<label>`,
+              donc elle n'entre plus dans le nom du curseur : la cacher ne
+              servirait qu'à la retirer aussi de la lecture ordinaire de la
+              page, alors qu'elle est l'information qu'on affiche. */}
           <span>{valueLabel ?? props.value}</span>
         </span>
       )}
-      <FieldShell
-        liquidGlass={liquidGlass}
-        className={cx('opale-range-shell', liquidGlass && 'opale-range-shell--glass')}
-        rootClassName="opale-range--glass-root"
-      >
-        <input type="range" className="opale-range" onChange={onChange} {...props} />
-      </FieldShell>
-    </label>
+      {liquidGlass ? (
+        /* LA BULLE VIT HORS DU VERRE, ET C'EST LA PISTE FINE QUI L'IMPOSE.
+
+           La piste ne fait plus que douze pixels de haut. Le matériau clôt sa
+           boîte (`overflow: hidden`, sans quoi ses trois couches déborderaient
+           de la silhouette), donc une bulle de vingt-six pixels posée dedans
+           serait rognée aux deux tiers. Elle sort ; la part mouillée, qui est
+           l'eau DANS la piste, reste dedans.
+
+           LE NATIF SORT AUSSI, et pour la même raison retournée : il couvre
+           trente-six pixels de haut pour offrir une cible de pointeur
+           confortable, quand la piste n'en montre que douze. Enfermé dans le
+           verre, sa zone sensible aurait été rognée à la hauteur visible. */
+        <span className="opale-range-field">
+          <FieldShell
+            liquidGlass
+            className="opale-range-shell opale-range-shell--glass"
+            rootClassName="opale-range--glass-root"
+          >
+            <span className="opale-range-wet" aria-hidden="true" />
+          </FieldShell>
+          {control}
+          {/* APRÈS le natif : les deux états de la bulle — la prise et le
+              focus clavier — se peignent par le sélecteur frère `~`, qui ne
+              regarde que ce qui suit. */}
+          <span className="opale-range-bubble" aria-hidden="true" />
+        </span>
+      ) : (
+        <span className="opale-range-shell">{control}</span>
+      )}
+    </div>
   );
 }
 
@@ -511,15 +759,32 @@ export function Select({
      Tout cela tombe : le verre enveloppe le `<select>` natif d'Opale. Les
      libellés redeviennent des `ReactNode` sans condition, et `children`
      fonctionne sous verre comme sans. */
+  /* LE TEXTE D'AIDE SORT DU `<label>`, COMME DANS `Input`. Enveloppé avec le
+     champ, il entrait dans son NOM : « Pays Choisissez votre pays de
+     résidence » au lieu de « Pays » décrit par une aide — ce qui casse la
+     commande vocale visant « Pays » (WCAG 1.3.1). La correction avait été
+     appliquée au champ de saisie et pas à ses trois voisins. */
+  const helperId = `${selectId}-helper`;
+
   return (
-    <label className={cx('opale-field', className)} htmlFor={selectId}>
-      {label && <span className="opale-field__label">{label}</span>}
+    <div className={cx('opale-field', className)}>
+      {label && (
+        <label className="opale-field__label" htmlFor={selectId}>
+          {label}
+        </label>
+      )}
       <FieldShell
         liquidGlass={liquidGlass}
         className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
         rootClassName="opale-input--glass-root"
       >
-        <select id={selectId} className="opale-select" onChange={onChange} {...props}>
+        <select
+          id={selectId}
+          className="opale-select"
+          aria-describedby={helperText ? helperId : undefined}
+          onChange={onChange}
+          {...props}
+        >
           {options?.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -528,8 +793,12 @@ export function Select({
           {children}
         </select>
       </FieldShell>
-      {helperText && <span className="opale-field__helper">{helperText}</span>}
-    </label>
+      {helperText && (
+        <span id={helperId} className="opale-field__helper">
+          {helperText}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -669,20 +938,37 @@ export function MultiSelect({
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- la
           `listbox` EST la commande : c'est le motif ARIA de la sélection
           multiple, et les `option` en sont les enfants exigés. */}
-      <div
-        className={cx('opale-multiselect', liquidGlass && 'opale-liquid')}
-        role="listbox"
-        aria-multiselectable="true"
-        aria-labelledby={label ? labelId : undefined}
-        aria-activedescendant={`${fieldId}-option-${activeIndex}`}
-        tabIndex={0}
-        onKeyDown={onKeyDown}
-      >
-        {options.map((option, index) => {
-          const isSelected = selected.has(option.value);
+      {/* LE MATÉRIAU EST CELUI DE TOUT LE MONDE, ENFIN.
 
-          return (
-            /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
+          Cette liste posait `.opale-liquid`, l'ancienne imitation en lavis
+          laiteux d'avant la réécriture du verre : sur une même page, une liste
+          multiple et un select rendaient deux verres différents. `FieldShell`
+          est la coquille des champs ; elle bascule sur `Glass` quand on le
+          demande et rend un simple `<span>` sinon, donc le balisage et les
+          attributs ARIA de la liste ne changent pas d'un état à l'autre. */}
+      <FieldShell
+        liquidGlass={liquidGlass}
+        className={cx('opale-multiselect', liquidGlass && 'opale-multiselect--glass')}
+        rootClassName="opale-multiselect--glass-root"
+      >
+        <div
+          className="opale-multiselect__list"
+          role="listbox"
+          aria-multiselectable="true"
+          aria-labelledby={label ? labelId : undefined}
+          /* `aria-activedescendant` NE DOIT PAS DÉSIGNER UN ÉLÉMENT ABSENT :
+             sans option, la référence ne résout rien et la liste annonce un
+             descendant actif qui n'existe pas. */
+          aria-activedescendant={options.length ? `${fieldId}-option-${activeIndex}` : undefined}
+          aria-describedby={helperText ? `${fieldId}-helper` : undefined}
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+        >
+          {options.map((option, index) => {
+            const isSelected = selected.has(option.value);
+
+            return (
+              /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
                LES DEUX RÈGLES SE TROMPENT ICI, ET POUR LA MÊME RAISON. Elles
                réclament un écouteur clavier et un `tabIndex` sur l'option. Or
                le motif `listbox` + `aria-activedescendant` veut exactement
@@ -693,27 +979,32 @@ export function MultiSelect({
                `onKeyDown` serait du code mort, l'élément ne pouvant jamais
                recevoir d'événement clavier. Même arbitrage que le combobox de
                la recherche de la vitrine. */
-            <div
-              key={option.value}
-              id={`${fieldId}-option-${index}`}
-              className="opale-multiselect__option"
-              role="option"
-              aria-selected={isSelected}
-              data-active={index === activeIndex ? 'true' : undefined}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => {
-                setActiveIndex(index);
-                toggle(option.value);
-              }}
-            >
-              <span className="opale-multiselect__mark" aria-hidden="true" />
-              <span className="opale-multiselect__label">{option.label}</span>
-            </div>
-          );
-        })}
-      </div>
+              <div
+                key={option.value}
+                id={`${fieldId}-option-${index}`}
+                className="opale-multiselect__option"
+                role="option"
+                aria-selected={isSelected}
+                data-active={index === activeIndex ? 'true' : undefined}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  setActiveIndex(index);
+                  toggle(option.value);
+                }}
+              >
+                <span className="opale-multiselect__mark" aria-hidden="true" />
+                <span className="opale-multiselect__label">{option.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </FieldShell>
 
-      {helperText && <span className="opale-field__helper">{helperText}</span>}
+      {helperText && (
+        <span id={`${fieldId}-helper`} className="opale-field__helper">
+          {helperText}
+        </span>
+      )}
     </div>
   );
 }
@@ -745,6 +1036,7 @@ export interface SegmentedControlProps {
   value?: string;
   onChange?: (value: string) => void;
   className?: string;
+  liquidGlass?: boolean;
 }
 
 /**
@@ -767,7 +1059,13 @@ export interface SegmentedControlProps {
  * en `flex-wrap: wrap`, donc les options passent à la ligne dès que la place
  * manque et l'indicateur doit descendre avec elles.
  */
-export function SegmentedControl({ options, value, onChange, className }: SegmentedControlProps) {
+export function SegmentedControl({
+  options,
+  value,
+  onChange,
+  className,
+  liquidGlass = false,
+}: SegmentedControlProps) {
   const groupRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const hasPlacedRef = useRef(false);
@@ -825,8 +1123,23 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
     };
   }, [options, value]);
 
+  /* LA MESURE SE FAIT SUR LE MÊME NŒUD DANS LES DEUX MATIÈRES. `Glass`
+     transmet sa `ref` à sa couche de CONTENU, celle qui porte `className` :
+     le groupe mesuré par `getBoundingClientRect` est donc exactement celui
+     qui contient les boutons, verre ou pas. Mesurer l'enveloppe donnerait un
+     indicateur décalé de l'épaisseur du matériau. */
+  const Track = liquidGlass ? Glass : 'div';
+  const trackProps = liquidGlass
+    ? ({ rootClassName: 'opale-segmented--glass-root' } as const)
+    : {};
+
   return (
-    <div ref={groupRef} className={cx('opale-segmented', className)} role="group">
+    <Track
+      {...trackProps}
+      ref={groupRef}
+      className={cx('opale-segmented', liquidGlass && 'opale-segmented--glass', className)}
+      role="group"
+    >
       <span ref={indicatorRef} aria-hidden="true" className="opale-segmented__indicator" />
       {options.map((option) => (
         <button
@@ -839,7 +1152,7 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
           {option.label}
         </button>
       ))}
-    </div>
+    </Track>
   );
 }
 
@@ -847,104 +1160,21 @@ export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement
   return <form className={cx('opale-stack', 'opale-stack--column', className)} {...props} />;
 }
 
-export function LanguageSelector({
-  value = 'FR',
-  onChange,
-  className,
-  ariaLabel = 'Langue',
-}: {
-  value?: string;
-  onChange?: SelectHTMLAttributes<HTMLSelectElement>['onChange'];
-  className?: string;
-  ariaLabel?: string;
-}) {
-  return (
-    <Select
-      className={className}
-      aria-label={ariaLabel}
-      value={value}
-      onChange={onChange}
-      options={[
-        { value: 'FR', label: 'Français' },
-        { value: 'EN', label: 'English' },
-        { value: 'ES', label: 'Español' },
-      ]}
-    />
-  );
-}
 
-export function ThemeToggle({
-  dark = false,
-  onChange,
-  className,
-}: {
-  dark?: boolean;
-  onChange?: (dark: boolean) => void;
-  className?: string;
-}) {
-  return (
-    <Toggle
-      className={className}
-      aria-label="Thème"
-      checked={dark}
-      onChange={(event) => onChange?.(event.currentTarget.checked)}
-    />
-  );
-}
 
-export function AddButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} startIcon="+">
-      Ajouter
-    </Button>
-  );
-}
-export function SaveButton({
-  onSaved,
-  ...props
-}: Omit<ButtonProps, 'children'> & { onSaved?: () => void }) {
-  const [saved, setSaved] = useState(false);
-  return (
-    <Button
-      {...props}
-      onClick={(event) => {
-        setSaved(true);
-        onSaved?.();
-        props.onClick?.(event);
-      }}
-    >
-      {saved ? 'Enregistré' : 'Enregistrer'}
-    </Button>
-  );
-}
-export function ApproveButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} variant="primary" startIcon="✓">
-      Valider
-    </Button>
-  );
-}
-export function EditButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} variant="tonal" startIcon="✎">
-      Modifier
-    </Button>
-  );
-}
-export function DeleteButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} variant="danger" startIcon="×">
-      Supprimer
-    </Button>
-  );
-}
 export function IconActionButton({
+  icon = 'more-horizontal',
   label = 'Action',
   ...props
-}: Omit<ButtonProps, 'children'> & { label?: string }) {
+}: Omit<ButtonProps, 'children'> & { icon?: OpaleIconName; label?: string }) {
+  /* IL RENDAIT LA PREMIÈRE LETTRE DU LIBELLÉ. `label.slice(0, 1)` : un bouton
+     « Partager » affichait « P ». Ce n'était pas une icône, c'était l'aveu
+     qu'il n'y en avait pas — le jeu d'Opale n'existait pas encore. Il en
+     prend une vraie, par son nom ; le libellé reste le nom accessible, et
+     seulement lui. */
   return (
     <Button {...props} aria-label={label} variant="ghost">
-      {label.slice(0, 1)}
+      <IconGlyph name={icon} className="opale-icon__glyph" />
     </Button>
   );
 }
@@ -984,15 +1214,6 @@ export function Badge({
   return <span className={classes}>{children}</span>;
 }
 
-export function StatusChip({
-  status = 'En production',
-  className,
-}: {
-  status?: string;
-  className?: string;
-}) {
-  return <Badge className={className}>{status}</Badge>;
-}
 
 export function Heading({
   level = 2,
@@ -1020,11 +1241,20 @@ export function Text({
 }
 
 export function Icon({
-  name = '✦',
+  name = 'sparkle',
   label,
   className,
 }: {
-  name?: ReactNode;
+  /**
+   * Le nom d'une icône du jeu d'Opale — voir `ICON_NAMES` et la page « Icônes »
+   * — ou n'importe quel nœud à rendre tel quel.
+   *
+   * LES DEUX FORMES COEXISTENT À DESSEIN. Le composant ne savait rendre qu'un
+   * CARACTÈRE, et des appels existants passent « ✦ » ou « ⌘ » ; les casser
+   * n'aurait rien apporté. Un nom connu dessine le tracé d'Opale, tout le
+   * reste passe au travers inchangé.
+   */
+  name?: OpaleIconName | ReactNode;
   label?: string;
   className?: string;
 }) {
@@ -1034,57 +1264,273 @@ export function Icon({
       aria-label={label}
       role={label ? 'img' : undefined}
     >
-      {name}
+      {isOpaleIconName(name) ? <IconGlyph name={name} className="opale-icon__glyph" /> : name}
     </span>
   );
 }
 
+/**
+ * L'encart de retour en flux.
+ *
+ * CE QUE CE COMPOSANT NE PEUT PAS GARANTIR, ET QUI REVIENT À L'APPELANT. Une
+ * région live doit exister AVANT que son contenu n'arrive, sans quoi l'annonce
+ * se perd. Ici la région naît avec le message, puisque c'est l'appelant qui
+ * monte l'encart au moment de le montrer — le composant n'a aucun moyen de se
+ * monter à l'avance. `role="alert"` est le plus souvent rattrapé à
+ * l'insertion, `role="status"` beaucoup moins.
+ *
+ * Pour un message qui doit être entendu à coup sûr, montez l'encart dès le
+ * départ et ne changez que son contenu, ou passez par `ToastProvider`, dont
+ * les régions sont permanentes par construction.
+ *
+ * Ce comportement dépend du couple navigateur/lecteur d'écran et n'a pas été
+ * vérifié ici faute de lecteur d'écran.
+ */
 export function Feedback({
   severity = 'info',
   title,
   children,
   className,
+  liquidGlass = false,
 }: {
   severity?: 'success' | 'info' | 'warning' | 'error';
   title?: ReactNode;
   children: ReactNode;
   className?: string;
+  liquidGlass?: boolean;
 }) {
-  return (
-    <div
-      className={cx('opale-feedback', `opale-feedback--${severity}`, className)}
-      role={severity === 'error' ? 'alert' : 'status'}
-    >
+  const classes = cx(
+    'opale-feedback',
+    `opale-feedback--${severity}`,
+    liquidGlass && 'opale-feedback--glass',
+    className,
+  );
+  const role = severity === 'error' ? 'alert' : 'status';
+  const content = (
+    <>
       <strong>{title ?? severity}</strong>
       <span>{children}</span>
+    </>
+  );
+
+  /* LE RÔLE EST POSÉ SUR LE MÊME NŒUD DANS LES DEUX MATIÈRES, et c'est le
+     contrat à ne pas laisser dépendre d'une apparence : `Glass` rend le rôle
+     sur sa couche de CONTENU, celle qui porte `className`, donc la région
+     live reste là où elle était. */
+  if (liquidGlass) {
+    return (
+      <Glass className={classes} rootClassName="opale-feedback--glass-root" role={role}>
+        {content}
+      </Glass>
+    );
+  }
+
+  return (
+    <div className={classes} role={role}>
+      {content}
     </div>
   );
 }
+
+/* =============================================================================
+   LE MESSAGE POSÉ À L'ÉCRAN.
+
+   DEUX COMPOSANTS PORTENT LE MOT « TOAST » ET CE N'EST PAS UN DOUBLON.
+   `ToastProvider` est une FILE : on lui demande d'afficher un message depuis
+   n'importe où dans l'arbre, il l'empile, le minute et le congédie. `Toast`,
+   ci-dessous, est un message UNIQUE dont l'appelant tient l'état ouvert/fermé.
+   Le second sert quand il n'y a qu'une chose à dire et qu'on veut la contrôler
+   directement ; prendre la file pour ça obligerait à envelopper l'arbre.
+
+   CE QU'IL LUI MANQUAIT, ET QUE LA FILE AVAIT DÉJÀ. Il rendait une surface
+   grise, au milieu du flux, sans ton ni place : « Modifications enregistrées »
+   et « Publication refusée » s'affichaient à l'identique, là où le composant
+   se trouvait dans la page. Il prend désormais les deux mêmes réglages que la
+   file — un TON et une PLACE — et se rend dans un portail, donc à l'endroit de
+   l'écran qu'on lui indique et non à l'endroit du code.
+
+   DEUX LIMITES ASSUMÉES, ET ELLES DÉCOULENT TOUTES DEUX DU CHOIX CI-DESSUS.
+
+   1. UN SEUL MESSAGE À LA FOIS. Chaque instance monte sa propre ancre plein
+      écran : deux `Opale.Toast` ouverts à la même place se recouvrent au
+      pixel près, le second cachant le premier et sa croix. Ce n'est pas un
+      oubli, c'est la frontière entre les deux composants — empiler, minuter,
+      dédoublonner et congédier est le travail de `ToastProvider`, qui existe
+      pour ça. Celui-ci sert quand il n'y a qu'UNE chose à dire et qu'on veut
+      en tenir l'état soi-même.
+
+   2. L'ORDRE DE TABULATION NE SUIT PAS LA PLACE À L'ÉCRAN. Le portail écrit
+      en fin de `<body>`, donc la croix d'un message posé en haut est le
+      DERNIER arrêt clavier de la page — mesuré, 106ᵉ sur 106. Elle reste
+      atteignable, mais après toute la page. Le maquiller avec un `tabindex`
+      positif ferait bien pire : ce serait déplacer l'ordre de toute la page
+      pour un message passager. Pour un message qu'on s'attend à fermer au
+      clavier, préférez les places basses.
+   ========================================================================== */
+
+/** Les six places possibles à l'écran. Mêmes valeurs que `ToastProvider`. */
+export type ToastPlacement =
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right';
+
+/** Les tons, et leur couleur. `neutral` n'en porte aucune. */
+export type ToastTone = 'neutral' | 'success' | 'warning' | 'error' | 'info';
+
+/**
+ * Les tons qui doivent INTERROMPRE la lecture.
+ *
+ * Une erreur annoncée poliment arrive à la fin de ce que l'utilisateur est en
+ * train de lire, c'est-à-dire trop tard pour un échec ; un enregistrement
+ * annoncé de façon assertive coupe la parole pour rien. Le découpage est le
+ * même que celui de `ToastProvider`, et il tient à la même raison.
+ */
+const ASSERTIVE_TONES = new Set<ToastTone>(['error', 'warning']);
+
+/**
+ * L'icône de chaque ton.
+ *
+ * LA COULEUR NE PEUT PAS ÊTRE LE SEUL SIGNAL (WCAG 1.4.1), et elle l'était :
+ * relevé dans le DOM, le balisage des cinq tons ne différait que par une
+ * variable de couleur — pas d'icône, pas de titre, même encre. « La carte n'a
+ * pas été régénérée » et « Étape publiée » étaient le même objet pour qui
+ * distingue mal le vert du rouge, en contrastes forcés ou sur un écran
+ * monochrome. La distinction `status`/`alert` sauvait le lecteur d'écran, pas
+ * l'utilisateur voyant.
+ *
+ * `neutral` N'EN A PAS, et c'est cohérent : il n'a pas de couleur non plus. Il
+ * n'y a rien à doubler.
+ */
+const TONE_ICON: Record<ToastTone, OpaleIconName | null> = {
+  neutral: null,
+  success: 'check-circle',
+  warning: 'alert-triangle',
+  error: 'x-circle',
+  info: 'info',
+};
 
 export function Toast({
   message,
   open = true,
   onClose,
+  tone = 'neutral',
+  position = 'bottom-right',
+  liquidGlass = false,
   className,
 }: {
   message: ReactNode;
   open?: boolean;
   onClose?: () => void;
+  /** Rend la carte dans le matériau « verre liquide ». Originale par défaut. */
+  liquidGlass?: boolean;
+  /** Le ton, qui choisit la couleur du filet et de l'icône. */
+  tone?: ToastTone;
+  /** La place à l'écran. Le message est rendu dans un portail, pas en flux. */
+  position?: ToastPlacement;
   className?: string;
 }) {
-  if (!open) return null;
-  return (
-    <div className={cx('opale-surface', 'opale-panel', className)} role="status">
-      <span>{message}</span>
+  /* LES DEUX RÉGIONS SONT MONTÉES EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
+
+     Le composant entier — `role="status"` compris — était rendu au moment où
+     le message arrivait. Une région live insérée EN MÊME TEMPS que son
+     contenu n'est pas surveillée par la technologie d'assistance à l'instant
+     de l'insertion : l'annonce se perd (WCAG 4.1.3). C'est exactement ce que
+     l'en-tête de `ToastProvider` décrit et corrige pour la file ; la
+     correction n'avait pas été reportée ici.
+
+     IL EN FAUT DEUX ET NON UNE, pour la même raison que dans la file : le
+     rôle d'une région ne peut pas changer en cours de route sans la remonter,
+     ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
+     posées d'avance, vides, et le message entre dans celle de son ton. */
+  const assertive = ASSERTIVE_TONES.has(tone);
+  const classes = cx(
+    'opale-toast',
+    tone !== 'neutral' && `opale-toast--${tone}`,
+    liquidGlass && 'opale-toast--glass',
+    className,
+  );
+  /* SOUS VERRE, LE TON PASSE DU REMPLISSAGE AU LAVIS. Une carte de verre
+     remplie d'un vert opaque n'est plus du verre : elle ne réfracte plus
+     rien. La feuille compose donc `--opale-glass-surface` — le jeton que
+     `Glass` lit pour son voile — à partir du ton, et l'encre redevient celle
+     du matériau. */
+  const Shell = liquidGlass ? Glass : 'div';
+  const shellProps = liquidGlass ? ({ rootClassName: 'opale-toast--glass-root' } as const) : {};
+  const card = open ? (
+    <Shell {...shellProps} className={classes} data-opale-toast-tone={tone}>
+      {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
+
+          Le ton n'était qu'un filet de 4 px en ombre intérieure, rogné à ses
+          deux extrémités par le rayon de la carte : il occupait environ un
+          pour cent de la surface, et c'est la SURFACE qui manquait, pas la
+          saturation.
+
+          L'ICÔNE EST MASQUÉE AUX TECHNOLOGIES D'ASSISTANCE, et ce n'est pas
+          une contradiction avec ce qui précède : l'urgence leur est déjà dite
+          par la région — polie ou assertive — dans laquelle le message entre.
+          Lui donner en plus un nom ferait annoncer « attention » avant chaque
+          avertissement, c'est-à-dire répéter ce que le ton de l'annonce porte
+          déjà. Le doublage manquait à l'ŒIL, pas à l'oreille.
+
+          `neutral` N'A PAS D'ICÔNE puisqu'il n'a pas de ton : sa carte reste
+          la surface d'Opale sous l'encre d'Opale, et il n'y a rien à
+          doubler. */}
+      {TONE_ICON[tone] && <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />}
+      <span className="opale-toast__message">{message}</span>
       {onClose && (
-        <button className="opale-dialog__close" type="button" onClick={onClose} aria-label="Fermer">
-          ×
+        <button
+          className="opale-toast__close"
+          type="button"
+          onClick={onClose}
+          aria-label="Fermer la notification"
+        >
+          <Icon name="close" />
         </button>
       )}
+    </Shell>
+  ) : null;
+
+  const content = (
+    /* L'ANCRE NE CAPTE PAS LE POINTEUR quand elle est vide, sinon une bande
+       invisible en haut ou en bas de l'écran avalerait les clics de la page
+       en permanence — y compris quand aucun message n'est affiché. */
+    <div className={`opale-toast-anchor opale-toast-anchor--${position}`}>
+      <div role="status">{assertive ? null : card}</div>
+      <div role="alert">{assertive ? card : null}</div>
     </div>
   );
+
+  /* LE PORTAIL EST RÉSOLU PENDANT LE RENDU et non dans un effet : les régions
+     doivent exister au premier rendu, pas au suivant.
+
+     SANS `document`, LE COMPOSANT NE REND RIEN — c'est ce que fait `Modal`, et
+     les deux composants à portail du dépôt doivent tenir le même contrat. Le
+     repli tentant est de rendre l'ancre EN PLACE dans l'arbre ; il est pire
+     que rien. L'ancre est `position: fixed`, donc un ancêtre qui porte
+     `backdrop-filter`, `transform` ou `filter` — c'est-à-dire tout verre de ce
+     dépôt — en devient le bloc conteneur : le message s'afficherait à
+     l'intérieur de la carte, voire rogné par elle, puis serait détruit et
+     reconstruit ailleurs à l'hydratation. Un message mal placé pendant une
+     seconde est un défaut visible ; son absence pendant la même seconde ne
+     l'est pas. */
+  const container = typeof document === 'undefined' ? null : document.body;
+
+  if (!container) return null;
+
+  return createPortal(content, container);
 }
 
+/**
+ * L'indicateur d'attente.
+ *
+ * Même réserve que `Feedback` : sa région `status` naît avec lui, donc
+ * l'apparition du témoin n'est pas garantie d'être annoncée. Pour un chargement
+ * dont l'issue doit être entendue, gardez une région montée et n'y changez que
+ * le texte.
+ */
 export function Spinner({
   label = 'Chargement',
   className,
@@ -1104,17 +1550,37 @@ export function ProgressBar({
   value = 0,
   label,
   className,
+  liquidGlass = false,
 }: {
   value?: number;
   label?: string;
   className?: string;
+  liquidGlass?: boolean;
 }) {
+  const labelId = useId();
+  /* LA PISTE EST CE QUI CHANGE DE MATIÈRE, PAS LA VALEUR. Le remplissage
+     reste opaque sous verre : une progression translucide sur un paysage ne
+     se lirait plus, et c'est la seule chose que la barre a à dire. */
+  const Track = liquidGlass ? Glass : 'div';
+  const trackProps = liquidGlass
+    ? ({ rootClassName: 'opale-progress--glass-root' } as const)
+    : {};
+
   return (
     <div className={cx('opale-field', className)}>
-      {label && <span className="opale-field__label">{label}</span>}
-      <div
-        className="opale-progress"
+      {/* LE LIBELLÉ ÉTAIT FRÈRE DE LA BARRE, RELIÉ À RIEN. Trois progressions
+          sur une page s'annonçaient « barre de progression, 40 % » trois fois,
+          sans jamais dire de quoi (WCAG 1.3.1). */}
+      {label && (
+        <span className="opale-field__label" id={labelId}>
+          {label}
+        </span>
+      )}
+      <Track
+        {...trackProps}
+        className={cx('opale-progress', liquidGlass && 'opale-progress--glass')}
         role="progressbar"
+        aria-labelledby={label ? labelId : undefined}
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={100}
@@ -1123,7 +1589,7 @@ export function ProgressBar({
           className="opale-progress__value"
           style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
         />
-      </div>
+      </Track>
     </div>
   );
 }
@@ -1134,44 +1600,44 @@ export function ConfirmDialog({
   children,
   onConfirm,
   onCancel,
+  liquidGlass = false,
 }: {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
   onConfirm?: () => void;
   onCancel?: () => void;
+  liquidGlass?: boolean;
 }) {
-  if (!open) return null;
+  /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
+     faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
+     confirmations coexistaient. `Modal` le dérive d'un `useId`.
+
+     LE CORPS DEVIENT LA DESCRIPTION DU DIALOGUE, et ce n'est pas un
+     déplacement cosmétique. Relevé sur le dialogue ouvert, `aria-describedby`
+     valait `null` : « Cette action est irréversible » n'appartenait ni au nom
+     ni à la description du dialogue. La plupart des lecteurs d'écran lisent le
+     contenu quand le panneau prend le focus, donc ce n'était pas bloquant —
+     mais sur une confirmation DESTRUCTRICE, la conséquence est précisément ce
+     qui doit être annoncé avec la question, pas après elle. `Modal` sait poser
+     `aria-describedby` depuis sa prop `description` ; `ConfirmDialog` ne la
+     lui passait simplement pas. */
   return (
-    <div className="opale-dialog-backdrop">
-      <div
-        className="opale-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="opale-confirm-title"
-      >
-        <div className="opale-dialog__header">
-          <h2 id="opale-confirm-title" className="opale-card__title">
-            {title}
-          </h2>
-          <button
-            className="opale-dialog__close"
-            type="button"
-            onClick={onCancel}
-            aria-label="Fermer"
-          >
-            ×
-          </button>
-        </div>
-        <div className="opale-dialog__body">{children}</div>
-        <div className="opale-dialog__footer">
+    <Modal
+      open={open}
+      onClose={onCancel}
+      liquidGlass={liquidGlass}
+      title={title}
+      description={children}
+      footer={
+        <>
           <Button variant="text" onClick={onCancel}>
             Annuler
           </Button>
           <Button onClick={onConfirm}>Confirmer</Button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
 
@@ -1179,14 +1645,22 @@ export function EmptyState({
   title = 'Aucun résultat',
   description,
   action,
+  liquidGlass = false,
 }: {
   title?: ReactNode;
   description?: ReactNode;
   action?: ReactNode;
+  liquidGlass?: boolean;
 }) {
   return (
-    <Card className="opale-empty-state" title={title} subtitle={description} actions={action}>
-      <Icon name="⌁" />
+    <Card
+      className="opale-empty-state"
+      title={title}
+      subtitle={description}
+      actions={action}
+      liquidGlass={liquidGlass}
+    >
+      <Icon name="search" />
     </Card>
   );
 }
@@ -1202,14 +1676,28 @@ export function Navbar({
   activeId,
   onSelect,
   className,
+  liquidGlass = false,
 }: {
   items?: readonly NavItem[];
   activeId?: string;
   onSelect?: (id: string) => void;
   className?: string;
+  liquidGlass?: boolean;
 }) {
+  const Rail = liquidGlass ? Glass : 'nav';
+  const railProps = liquidGlass
+    ? ({ as: 'nav', rootClassName: 'opale-surface--glass-root' } as const)
+    : {};
+
   return (
-    <nav className={cx('opale-surface', 'opale-nav', className)} aria-label="Navigation">
+    /* LE RAIL CHANGE DE MATIÈRE, PAS DE BALISE. `Glass` rend l'élément demandé
+       pour son CONTENU : le `<nav>` et son nom accessible restent le même nœud
+       dans les deux rendus, donc la navigation garde son rôle sous verre. */
+    <Rail
+      {...railProps}
+      className={cx('opale-surface', liquidGlass && 'opale-surface--glass', 'opale-nav', className)}
+      aria-label="Navigation"
+    >
       {items.map((item) =>
         item.href ? (
           <a
@@ -1234,7 +1722,7 @@ export function Navbar({
           </button>
         ),
       )}
-    </nav>
+    </Rail>
   );
 }
 
@@ -1243,18 +1731,36 @@ export function Menu({
   items = [],
   className,
   children,
+  liquidGlass = false,
 }: {
   label?: ReactNode;
   items?: readonly NavItem[];
   className?: string;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
-  return (
-    <details className={cx('opale-surface', 'opale-panel', className)}>
-      <summary>{label}</summary>
-      {items.length > 0 ? <Navbar items={items} /> : children}
-    </details>
+  const classes = cx(
+    'opale-surface',
+    liquidGlass && 'opale-surface--glass',
+    'opale-panel',
+    className,
   );
+  const content = (
+    <>
+      <summary>{label}</summary>
+      {items.length > 0 ? <Navbar items={items} liquidGlass={liquidGlass} /> : children}
+    </>
+  );
+
+  if (liquidGlass) {
+    return (
+      <Glass as="details" className={classes} rootClassName="opale-surface--glass-root">
+        {content}
+      </Glass>
+    );
+  }
+
+  return <details className={classes}>{content}</details>;
 }
 
 export function Link({
@@ -1274,103 +1780,111 @@ export function SidePanel({
   title = 'Panneau',
   children,
   onClose,
+  liquidGlass = false,
 }: {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
   onClose?: () => void;
+  liquidGlass?: boolean;
 }) {
-  if (!open) return null;
+  /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
+     coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
+     même position. La coquille le plaque désormais contre le bord de fin sur
+     toute la hauteur ; voir `.opale-side-panel` dans `opale.css`. */
   return (
-    <div className="opale-dialog-backdrop">
-      <aside className="opale-dialog" aria-label={typeof title === 'string' ? title : undefined}>
-        <div className="opale-dialog__header">
-          <h2 className="opale-card__title">{title}</h2>
-          <button
-            className="opale-dialog__close"
-            type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-          >
-            ×
-          </button>
-        </div>
-        {children}
-      </aside>
-    </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      liquidGlass={liquidGlass}
+      title={title}
+      rootClassName="opale-side-panel"
+    >
+      {children}
+    </Modal>
   );
 }
 
-export function SettingsMenu({
-  children,
-  className,
-}: {
-  children?: ReactNode;
-  className?: string;
-}) {
-  return (
-    <Menu className={className} label="Réglages" items={[]}>
-      <div className="opale-stack opale-stack--column">{children}</div>
-    </Menu>
-  );
-}
 export function CommandPalette({
   open = false,
   value = '',
   onChange,
+  onClose,
   children,
+  liquidGlass = false,
 }: {
   open?: boolean;
   value?: string;
   onChange?: (value: string) => void;
+  onClose?: () => void;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
-  return open ? (
-    <div className="opale-dialog-backdrop">
-      <div className="opale-dialog">
-        <Input
-          value={value}
-          onChange={(event) => onChange?.(event.currentTarget.value)}
-          placeholder="Rechercher une commande"
-        />
-        {children}
-      </div>
-    </div>
-  ) : null;
+  /* LE CHAMP A UNE ÉTIQUETTE, ET PLUS SEULEMENT UN TEXTE INDICATIF. Un
+     placeholder disparaît à la première frappe, ne survit pas à la
+     reconnaissance vocale et n'est pas une étiquette (WCAG 3.3.2) : il était
+     pourtant le seul nom accessible du champ. Sur le composant dont la
+     vocation EST le clavier, l'ironie méritait d'être corrigée.
+
+     `onClose` EST UNE PROP NOUVELLE, et elle est la condition du reste : un
+     dialogue qu'on ne peut pas fermer n'en est pas un. */
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      liquidGlass={liquidGlass}
+      aria-label="Palette de commandes"
+    >
+      <Input
+        label="Rechercher une commande"
+        liquidGlass={liquidGlass}
+        value={value}
+        onChange={(event) => onChange?.(event.currentTarget.value)}
+      />
+      {children}
+    </Modal>
+  );
 }
 
 export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
   return (
+    /* UNE LISTE ORDONNÉE, ET UN MAILLON COURANT. Le fil était une suite de
+       `<span>` : rien n'annonçait « liste de quatre éléments, élément deux »,
+       et aucun `aria-current` ne disait où l'on se trouve — sur le composant
+       dont c'est l'unique fonction (WCAG 1.3.1). */
     <nav className="opale-breadcrumb" aria-label="Fil d'Ariane">
-      {items.map((item, index) => (
-        <span key={item.id}>
-          {index > 0 && <span aria-hidden="true">/</span>}
-          {item.href ? <a href={item.href}>{item.label}</a> : item.label}
-        </span>
-      ))}
+      <ol>
+        {items.map((item, index) => (
+          <li key={item.id}>
+            {index > 0 && <span aria-hidden="true">/</span>}
+            {item.href ? (
+              <a href={item.href} aria-current={index === items.length - 1 ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ) : (
+              item.label
+            )}
+          </li>
+        ))}
+      </ol>
     </nav>
-  );
-}
-export function Toolbar({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cx('opale-surface', 'opale-toolbar', 'opale-panel', className)} {...props}>
-      {children}
-    </div>
   );
 }
 export function CookieBanner({
   open = true,
   children = 'Nous utilisons des cookies pour améliorer votre expérience.',
   onAccept,
+  liquidGlass = false,
 }: {
   open?: boolean;
   children?: ReactNode;
   onAccept?: () => void;
+  liquidGlass?: boolean;
 }) {
   return open ? (
-    <Feedback severity="info" title="Cookies">
+    <Feedback severity="info" title="Cookies" liquidGlass={liquidGlass}>
       {children}
-      <Button size="small" onClick={onAccept}>
+      <Button size="small" liquidGlass={liquidGlass} onClick={onAccept}>
         Accepter
       </Button>
     </Feedback>
@@ -1379,21 +1893,24 @@ export function CookieBanner({
 export function SelectionBar({
   selectedCount = 0,
   children,
+  liquidGlass = false,
 }: {
   selectedCount?: number;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
   return (
-    <div className="opale-surface opale-selection-bar opale-panel">
-      <span>
+    <Surface liquidGlass={liquidGlass} className="opale-selection-bar opale-panel">
+      {/* LE COMPTE CHANGEAIT SANS UN MOT. On cochait des lignes et le total
+          n'était jamais annoncé (WCAG 4.1.3). La région est montée en
+          permanence avec la barre, donc elle est surveillée avant que le
+          nombre ne bouge — c'est la condition pour qu'une annonce parte. */}
+      <span aria-live="polite">
         {selectedCount} sélectionné{selectedCount > 1 ? 's' : ''}
       </span>
       {children}
-    </div>
+    </Surface>
   );
-}
-export function Scrollbar({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-scrollbar', className)}>{children}</div>;
 }
 
 export function Stack({
@@ -1433,26 +1950,36 @@ export function Layout({
     </div>
   );
 }
-export function PageScaffold({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-page-scaffold', className)}>{children}</div>;
-}
-export function PageContent({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <section className={cx('opale-page-content', className)}>{children}</section>;
-}
 export function Divider({ className }: { className?: string }) {
   return <hr className={cx('opale-divider', className)} />;
 }
-export function Separator({ className }: { className?: string }) {
-  return <span className={cx('opale-separator', className)} aria-hidden="true" />;
-}
-export function BackgroundSurface({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-opaley-background', className)}>{children}</div>;
-}
-export function ShapeBackground({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-shape-background', className)}>{children}</div>;
-}
-export function SlidingIndicator({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-sliding-indicator', className)}>{children}</div>;
+/**
+ * Le fond décoratif du catalogue.
+ *
+ * `shape` REMPLACE L'ANCIEN `ShapeBackground`, qui était ce composant plus un
+ * `::after`. Les deux classes déclaraient la même boîte — mêmes `position`,
+ * `overflow` et `background` — et PARTAGEAIENT déjà le même `::before` dans un
+ * sélecteur groupé : seule la forme organique les distinguait. Deux composants
+ * pour un pseudo-élément, c'était un de trop.
+ */
+export function BackgroundSurface({
+  shape = false,
+  children,
+  className,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { shape?: boolean }) {
+  return (
+    <div
+      className={cx(
+        'opale-opaley-background',
+        shape && 'opale-opaley-background--shape',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function DescriptionList({
@@ -1462,11 +1989,15 @@ export function DescriptionList({
 }) {
   return (
     <dl className="opale-description-list">
+      {/* `<div>` ET NON `<span>` : le modèle de contenu d'un `<dl>` n'admet
+          que `<dt>`/`<dd>` ou un groupe `<div>`. Un `<span>` intercalé casse
+          la relation terme/définition dans l'arbre d'accessibilité, ARIA
+          exigeant que la liste POSSÈDE ses termes (WCAG 1.3.1). */}
       {items.map((item, index) => (
-        <span key={index}>
+        <div key={index}>
           <dt>{item.term}</dt>
           <dd>{item.description}</dd>
-        </span>
+        </div>
       ))}
     </dl>
   );
@@ -1480,17 +2011,177 @@ export function BulletList({ items = [] }: { items?: readonly ReactNode[] }) {
     </ul>
   );
 }
-export function Rating({ value = 0, max = 5 }: { value?: number; max?: number }) {
+/** Le pas de la note. Une étoile se remplit au quart, au demi, aux trois quarts. */
+const RATING_STEP = 0.25;
+
+/** Le barème par défaut, et le plafond au-delà duquel une rangée ne se lit plus. */
+const RATING_DEFAULT_MAX = 5;
+const RATING_MAX_STARS = 20;
+
+/**
+ * Ramène le barème à un entier utilisable.
+ *
+ * `max` TRAVERSAIT SANS CONTRÔLE, et il en faut autant que pour la note : il
+ * sert de plafond au clamp, de compte à `Array.from({ length: max })` et de
+ * second terme au nom accessible. Trois pannes mesurées, toutes atteignables
+ * depuis une valeur calculée — `total / n` avec `n` à zéro, un barème lu dans
+ * une API :
+ *
+ * - `NaN` faisait annoncer « NaN sur NaN » et rendait l'attribut invalide ;
+ * - `4.5` faisait dessiner quatre étoiles pour un barème annoncé « 4.5 », avec
+ *   un POINT là où la note met une virgule — le mélange même que
+ *   `formatRating` existe pour éviter ;
+ * - `Infinity` faisait boucler `Array.from` sur 2⁵³−1 : l'onglet gèle.
+ */
+function snapMax(max: number): number {
+  if (!Number.isFinite(max)) return RATING_DEFAULT_MAX;
+
+  return Math.min(Math.max(Math.round(max), 1), RATING_MAX_STARS);
+}
+
+/**
+ * Ramène une note sur le pas du quart, puis dans l'intervalle `[0, max]`.
+ *
+ * L'ARRONDI EST FAIT ICI ET PAS AU RENDU, pour que le nom accessible et le
+ * dessin disent la même chose. Annoncer « 3,7 sur 5 » en dessinant trois
+ * étoiles et trois quarts, c'est deux notes différentes selon qu'on voit ou
+ * qu'on écoute.
+ */
+function snapRating(value: number, max: number): number {
+  if (!Number.isFinite(value)) return 0;
+
+  return Math.min(Math.max(Math.round(value / RATING_STEP) * RATING_STEP, 0), max);
+}
+
+/** `3.75` → `« 3,75 »`. Le composant parle français, comme ses libellés. */
+function formatRating(value: number): string {
+  return String(Number(value.toFixed(2))).replace('.', ',');
+}
+
+/** Le tracé de l'étoile, emprunté au jeu d'icônes. Une seule silhouette dans le dépôt. */
+const RATING_STAR = OPALE_ICONS.star[0];
+
+/**
+ * Où couper la largeur de l'étoile pour en peindre la fraction demandée.
+ *
+ * CE QU'ON LIT D'UNE ÉTOILE EST UNE AIRE, PAS UNE LARGEUR, et une étoile n'a
+ * pas son encre répartie uniformément : ses pointes latérales sont fines, son
+ * corps est au centre. Couper à 25 % de la largeur ne peint donc pas un quart
+ * de l'étoile. Mesuré en rastérisant CE tracé-ci — remplissage et contour
+ * compris — sur 480 px de côté, puis en comptant les pixels d'encre colonne
+ * par colonne :
+ *
+ * | coupe en largeur | encre réellement peinte |
+ * |---|---|
+ * | 25 % | 14,1 % |
+ * | 50 % | 50,6 % |
+ * | 75 % | 86,8 % |
+ *
+ * Autrement dit 3,75 se lisait « quatre » et 1,25 se lisait « une » : le
+ * dessin contredisait le nom accessible. La même mesure, inversée, donne les
+ * coupes qui peignent un quart, une moitié et trois quarts d'encre — ce sont
+ * les valeurs ci-dessous. Seul le demi tombait déjà juste, et c'est logique :
+ * l'étoile est symétrique.
+ *
+ * LA TABLE EST INDEXÉE SUR LES CINQ ÉTATS DU PAS, qui sont les seuls que
+ * `snapRating` laisse passer ; l'interpolation n'existe que pour qu'une valeur
+ * intermédiaire ne tombe pas dans un trou. Toucher au tracé de l'étoile oblige
+ * à reprendre cette mesure — le garde de `opale.test.tsx` le rappelle.
+ */
+const RATING_INK_CUTS = [0, 0.336, 0.5, 0.664, 1] as const;
+
+function inkCut(fill: number): number {
+  const position = fill * (RATING_INK_CUTS.length - 1);
+  const bas = Math.floor(position);
+  const haut = Math.min(bas + 1, RATING_INK_CUTS.length - 1);
+
   return (
-    <span className="opale-rating" aria-label={`${value} sur ${max}`}>
-      {Array.from({ length: max }, (_, index) => (
-        <span key={index} aria-hidden="true">
-          {index + 1 <= value ? '★' : '☆'}
-        </span>
-      ))}
+    RATING_INK_CUTS[bas] + (RATING_INK_CUTS[haut] - RATING_INK_CUTS[bas]) * (position - bas)
+  );
+}
+
+export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: { value?: number; max?: number }) {
+  /* LE REMPLISSAGE EST FRACTIONNAIRE, ET C'EST TOUT LE COMPOSANT.
+
+     Il comparait `index + 1 <= value` : une note de 3,75 dessinait donc
+     exactement les mêmes trois étoiles que 3,0, et les trois quarts se
+     perdaient en silence.
+
+     L'ÉTOILE EST UN TRACÉ ET NON UN CARACTÈRE, pour deux raisons mesurées.
+
+     1. LE QUART N'EXISTAIT PAS À L'ŒIL. La première correction rognait le
+        glyphe « ★ » à un pourcentage de sa LARGEUR D'AVANCE, qui comprend les
+        approches latérales. Compté sur les pixels d'encre : une coupe demandée
+        à 25 % n'en peignait que **8,5 %**, et une coupe à 75 % en peignait
+        **91,9 %**. Autrement dit 3,75 se lisait « quatre » et 1,25 se lisait
+        « une » — le dessin contredisait le nom accessible, ce que tout le
+        reste de ce composant cherche à éviter. Le dégradé ci-dessous coupe la
+        BOÎTE D'ENCRE du tracé (`objectBoundingBox` est le repère par défaut
+        d'un `linearGradient`), donc la fraction demandée est la fraction
+        peinte.
+
+     2. LE GLYPHE DÉPENDAIT DE LA POLICE INSTALLÉE. « ★ » n'a ni la même
+        silhouette ni la même chasse d'une machine à l'autre, et manque
+        purement et simplement sur certaines. Le tracé est celui du jeu
+        d'Opale, donc le même partout.
+
+     LE CONTOUR EST TOUJOURS PEINT, sur le même chemin que le remplissage :
+     c'est lui qui donne la référence sans laquelle une fraction ne veut rien
+     dire — on ne voit « un quart » que si l'on voit aussi le tout. */
+  const bareme = snapMax(max);
+  const note = snapRating(value, bareme);
+  const gradientId = useId();
+
+  return (
+    /* `role="img"` EST OBLIGATOIRE ICI. Un `aria-label` posé sur un élément
+       sans rôle — un `<span>` a le rôle `generic` — est ignoré par les API
+       d'accessibilité, et les étoiles enfants sont toutes `aria-hidden` : la
+       note ne s'annonçait donc PAS DU TOUT (WCAG 1.1.1). `Icon`, quelques
+       lignes plus haut, prend déjà cette précaution. */
+    <span
+      className="opale-rating"
+      role="img"
+      aria-label={`${formatRating(note)} sur ${bareme}`}
+      data-opale-rating={note}
+    >
+      {Array.from({ length: bareme }, (_, index) => {
+        const fill = Math.min(Math.max(note - index, 0), 1);
+        const stopAt = `${(inkCut(fill) * 100).toFixed(2)}%`;
+        const id = `${gradientId}-${index}`;
+
+        return (
+          <svg
+            className="opale-rating__star"
+            data-opale-rating-fill={fill}
+            key={index}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <defs>
+              {/* DEUX ARRÊTS AU MÊME DÉCALAGE font une coupe NETTE. Un dégradé
+                  dont les arrêts s'écartent donnerait un fondu, c'est-à-dire
+                  une fraction floue : on ne saurait plus dire où l'étoile
+                  s'arrête, ce qui est exactement l'information à lire. */}
+              <linearGradient id={id} x1="0" x2="1" y1="0" y2="0">
+                <stop offset={stopAt} stopColor="currentColor" />
+                <stop offset={stopAt} stopColor="currentColor" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <path
+              d={RATING_STAR}
+              fill={`url(#${id})`}
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinejoin="round"
+            />
+          </svg>
+        );
+      })}
     </span>
   );
 }
+
 export function StatCard({
   label,
   value,
@@ -1521,30 +2212,15 @@ export function Donut({ value = 60, label = `${value}%` }: { value?: number; lab
     />
   );
 }
-export function Legend({
-  items = [],
-}: {
-  items?: readonly { label: ReactNode; color?: string }[];
-}) {
-  return (
-    <div className="opale-stack opale-stack--wrap">
-      {items.map((item, index) => (
-        <span key={index} className="opale-stack">
-          <Separator />
-          {item.label}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 export interface DataTableProps {
   columns?: readonly { key: string; label: ReactNode }[];
   rows?: readonly Record<string, ReactNode>[];
+  liquidGlass?: boolean;
 }
-export function DataTable({ columns = [], rows = [] }: DataTableProps) {
+export function DataTable({ columns = [], rows = [], liquidGlass = false }: DataTableProps) {
   return (
-    <div className="opale-surface opale-panel">
+    <Surface liquidGlass={liquidGlass} className="opale-panel">
       <table className="opale-table">
         <thead>
           <tr>
@@ -1563,13 +2239,10 @@ export function DataTable({ columns = [], rows = [] }: DataTableProps) {
           ))}
         </tbody>
       </table>
-    </div>
+    </Surface>
   );
 }
 
-export function Carousel({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-card-grid', className)}>{children}</div>;
-}
 export function LegalLinks({ links = [] }: { links?: readonly NavItem[] }) {
   return (
     <nav className="opale-legal-links" aria-label="Liens légaux">
@@ -1587,129 +2260,165 @@ export function FileCard({
   size,
   selected = false,
   onClick,
+  liquidGlass = false,
 }: {
   name: string;
   size?: string;
   selected?: boolean;
   onClick?: () => void;
+  liquidGlass?: boolean;
 }) {
   return (
-    <button
-      type="button"
-      className={cx('opale-surface', 'opale-file-card', selected && 'opale-liquid')}
+    /* `aria-pressed` ET UNE CLASSE PROPRE, À LA PLACE DU LAVIS.
+
+       La sélection n'était signalée que par `.opale-liquid` — l'ancienne
+       imitation du verre, détournée en surbrillance. Deux défauts pour le
+       prix d'un : un lecteur d'écran ne pouvait pas dire quelles cartes
+       étaient choisies (WCAG 4.1.2), et l'information n'existait que par la
+       couleur (1.4.1). La classe dédiée porte un liseré et une coche ; l'état
+       est désormais annoncé. */
+    <FileCardShell
+      liquidGlass={liquidGlass}
+      className={cx(
+        'opale-surface',
+        liquidGlass && 'opale-surface--glass',
+        'opale-file-card',
+        selected && 'opale-file-card--selected',
+      )}
+      aria-pressed={selected}
       onClick={onClick}
     >
-      <span className="opale-file-card__icon">⌁</span>
-      <span>
+      <IconGlyph name="file" className="opale-file-card__icon" />
+      <span className="opale-file-card__text">
         <strong>{name}</strong>
         {size && <small className="opale-field__helper">{size}</small>}
       </span>
+    </FileCardShell>
+  );
+}
+
+/**
+ * La coquille de la carte de fichier, dans l'une ou l'autre matière.
+ *
+ * `Glass as="button"` REND LE BOUTON SUR SA COUCHE DE CONTENU : `aria-pressed`
+ * et le gestionnaire de clic restent donc sur le MÊME nœud que dans le rendu
+ * original. C'est la règle de tout ce fichier — le contrat d'accessibilité ne
+ * dépend pas de l'apparence.
+ */
+function FileCardShell({
+  liquidGlass,
+  children,
+  ...props
+}: {
+  liquidGlass: boolean;
+  className: string;
+  'aria-pressed': boolean;
+  onClick?: () => void;
+  children: ReactNode;
+}) {
+  if (liquidGlass) {
+    return (
+      <Glass as="button" type="button" rootClassName="opale-file-card--glass-root" {...props}>
+        {children}
+      </Glass>
+    );
+  }
+
+  return (
+    <button type="button" {...props}>
+      {children}
     </button>
   );
 }
 export function Dropzone({
   onFiles,
   children = 'Déposez vos fichiers ici',
+  liquidGlass = false,
 }: {
   onFiles?: (files: FileList) => void;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
+  const Zone = liquidGlass ? Glass : 'label';
+  const zoneProps = liquidGlass
+    ? ({ as: 'label', rootClassName: 'opale-dropzone--glass-root' } as const)
+    : {};
+
   return (
-    <label className="opale-dropzone">
+    <Zone
+      {...zoneProps}
+      className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass')}
+    >
+      {/* `opale-visually-hidden` ET NON `hidden`, ET C'EST LA DIFFÉRENCE ENTRE
+          UN COMPOSANT ET UN CUL-DE-SAC. L'attribut `hidden` vaut
+          `display: none` : le champ sortait de l'ordre de tabulation, et le
+          `<label>` qui l'enveloppe n'est pas focalisable. On tabulait donc
+          jusqu'ici et l'on ne rencontrait RIEN — envoyer un fichier au clavier
+          était impossible (WCAG 2.1.1). La classe, elle, masque par découpage
+          sans déclasser : le champ garde son arrêt de tabulation, son anneau
+          de focus et son annonce. */}
       <input
         type="file"
-        hidden
+        className="opale-visually-hidden"
         multiple
         onChange={(event) => event.currentTarget.files && onFiles?.(event.currentTarget.files)}
       />
       <strong>{children}</strong>
       <span>Sélectionner des fichiers</span>
-    </label>
+    </Zone>
   );
-}
-export function FileUploader({ onFiles }: { onFiles?: (files: FileList) => void }) {
-  return <Dropzone onFiles={onFiles} />;
 }
 export function Lightbox({
   src,
-  alt = '',
+  alt,
   open = false,
   onClose,
+  liquidGlass = false,
 }: {
   src?: string;
-  alt?: string;
+  /* `alt` EST OBLIGATOIRE, ET IL NE PEUT PAS EN ÊTRE AUTREMENT. Sa valeur par
+     défaut était la chaîne vide, c'est-à-dire « cette image est décorative » —
+     déclaré sur la seule chose que la visionneuse existe pour montrer. Un
+     appelant distrait produisait une lightbox vide pour qui ne voit pas, sans
+     le moindre signal. Une prop obligatoire dit « décris-moi » ; un défaut
+     vide dit « ce n'est pas grave ». Rupture d'API assumée. */
+  alt: string;
   open?: boolean;
   onClose?: () => void;
+  liquidGlass?: boolean;
 }) {
-  return open && src ? (
-    <div className="opale-lightbox" role="dialog" aria-label="Aperçu">
-      <img src={src} alt={alt} />
-      <Button variant="ghost" onClick={onClose}>
-        Fermer
-      </Button>
-    </div>
-  ) : null;
-}
-export function Map({ children = 'Carte interactive' }: { children?: ReactNode }) {
   return (
-    <div className="opale-map" role="img" aria-label="Carte">
-      {children}
-    </div>
+    <Modal
+      open={open && Boolean(src)}
+      onClose={onClose}
+      liquidGlass={liquidGlass}
+      aria-label="Aperçu"
+      rootClassName="opale-lightbox"
+      footer={
+        <Button variant="ghost" liquidGlass={liquidGlass} onClick={onClose}>
+          Fermer
+        </Button>
+      }
+    >
+      {src && <img src={src} alt={alt} />}
+    </Modal>
   );
 }
-export function RouteGuard({
-  allowed = true,
-  fallback = 'Accès refusé',
-  children,
+export function Clipboard({
+  value,
+  liquidGlass = false,
+  children = 'Copier',
 }: {
-  allowed?: boolean;
-  fallback?: ReactNode;
+  value: string;
+  liquidGlass?: boolean;
   children?: ReactNode;
 }) {
-  return allowed ? <>{children}</> : <Feedback severity="error">{fallback}</Feedback>;
-}
-export function I18n({ children }: { children?: ReactNode }) {
-  return <>{children}</>;
-}
-export function Http({ status = 'API prête' }: { status?: ReactNode }) {
-  return <StatusChip status={String(status)} />;
-}
-export function Validation({ valid = true }: { valid?: boolean }) {
-  return <StatusChip status={valid ? 'Valide' : 'À corriger'} />;
-}
-export function Sound({ enabled = true }: { enabled?: boolean }) {
-  return <Toggle label="Sons" defaultChecked={enabled} />;
-}
-export function LocalStore({ children }: { children?: ReactNode }) {
-  return <>{children}</>;
-}
-export function Countdown({ seconds = 60 }: { seconds?: number }) {
-  const [remaining, setRemaining] = useState(seconds);
-  useEffect(() => {
-    const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return (
-    <span className="opale-countdown" aria-live="polite">
-      {remaining}s
-    </span>
-  );
-}
-export function Game({ score = 0 }: { score?: number }) {
-  return (
-    <div className="opale-surface opale-game">
-      <Heading level={3}>Partie</Heading>
-      <strong className="opale-stat-card__value">{score}</strong>
-      <Button size="small">Continuer</Button>
-    </div>
-  );
-}
-export function Clipboard({ value, children = 'Copier' }: { value: string; children?: ReactNode }) {
   const [copied, setCopied] = useState(false);
   return (
     <Button
       size="small"
       variant="tonal"
+      liquidGlass={liquidGlass}
       onClick={() => {
         void navigator.clipboard?.writeText(value);
         setCopied(true);
@@ -1719,10 +2428,24 @@ export function Clipboard({ value, children = 'Copier' }: { value: string; child
     </Button>
   );
 }
-export function SvgMap({ children }: { children?: ReactNode }) {
-  return (
-    <svg className="opale-svg-map" viewBox="0 0 400 180" role="img" aria-label="Carte SVG">
+export function SvgMap({
+  children,
+  liquidGlass = false,
+}: {
+  children?: ReactNode;
+  liquidGlass?: boolean;
+}) {
+  /* LE VERRE EST LA PLAQUE, PAS LE TRACÉ. Un `<svg>` ne peut pas être la
+     couche de contenu de `Glass`, qui empile des `<div>` : la carte est donc
+     POSÉE sur une surface de verre. C'est d'ailleurs ce qu'on veut voir — un
+     tracé qui flotte au-dessus du paysage, et non un paysage rogné en forme
+     de tracé. */
+  const carte = (
+    /* Le tracé décoratif est marqué comme tel, et le conteneur est un groupe
+       pour ne pas effacer les marqueurs qu'il reçoit en `children`. */
+    <svg className="opale-svg-map" viewBox="0 0 400 180" role="group" aria-label="Carte SVG">
       <path
+        aria-hidden="true"
         d="M20 135 C80 35 135 165 205 75 S325 35 380 125"
         fill="none"
         stroke="currentColor"
@@ -1731,6 +2454,14 @@ export function SvgMap({ children }: { children?: ReactNode }) {
       />
       {children}
     </svg>
+  );
+
+  return liquidGlass ? (
+    <Surface liquidGlass className="opale-svg-map__plate">
+      {carte}
+    </Surface>
+  ) : (
+    carte
   );
 }
 
@@ -1752,28 +2483,18 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['Select', 'Inputs', 'Sélecteur mono-valeur avec libellé accessible et options illustrées.'],
   ['Autocomplete', 'Inputs', 'Champ à suggestions avec filtrage et présélection.'],
   ['Form', 'Inputs', 'Formulaire orchestré par les primitives contrôlées.'],
-  ['LanguageSelector', 'Inputs', "Sélecteur de langue branché sur l'i18n."],
   ['SegmentedControl', 'Inputs', 'Sélecteur segmenté animé pour choisir une option.'],
-  ['ThemeToggle', 'Inputs', 'Bascule de thème clair ou sombre, avec matériau local.'],
-  ['AddButton', 'Boutons spécialisés', "Bouton d'ajout avec icône plus intégrée."],
-  ['SaveButton', 'Boutons spécialisés', "Bouton d'enregistrement unique, avec confirmation."],
-  ['ApproveButton', 'Boutons spécialisés', 'Bouton de validation avec icône check.'],
-  ['EditButton', 'Boutons spécialisés', "Bouton d'édition avec icône crayon."],
-  ['DeleteButton', 'Boutons spécialisés', 'Bouton de suppression avec confirmation intégrée.'],
   ['IconActionButton', 'Boutons spécialisés', "Bouton d'action carré à icône."],
   ['Card', 'Affichage de données', 'Carte avec titre, sous-titre, actions et élévations.'],
   ['CardGrid', 'Affichage de données', 'Grille responsive auto-adaptative pour cartes.'],
-  ['Carousel', 'Affichage de données', 'Carrousel de cartes avec navigation.'],
   ['DataTable', 'Affichage de données', 'Table riche avec tri, sélection et clavier.'],
   ['DescriptionList', 'Affichage de données', 'Liste de paires libellé / valeur.'],
   ['BulletList', 'Affichage de données', 'Liste à puces avec icônes personnalisables.'],
-  ['StatusChip', 'Affichage de données', 'Pastille de statut en plusieurs tonalités.'],
   ['Badge', 'Affichage de données', 'Pastille de compteur ou point de notification.'],
   ['Rating', 'Affichage de données', 'Note moyenne en étoiles, remplissage fractionnaire.'],
   ['StatCard', 'Affichage de données', 'Carte de métrique avec valeur, variation et icône.'],
   ['Donut', 'Affichage de données', 'Graphique en anneau segmenté avec contenu central.'],
   ['LegalLinks', 'Affichage de données', 'Pied de page légal et mentions.'],
-  ['Legend', 'Affichage de données', 'Légende de statuts pour tableaux et graphiques.'],
   ['Heading', 'Affichage de données', 'Titres hiérarchisés avec échelle typographique.'],
   ['Text', 'Affichage de données', 'Corps de texte, labels, légendes et métriques.'],
   ['Icon', 'Affichage de données', 'Icônes Opale en plusieurs tailles.'],
@@ -1787,35 +2508,17 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['Menu', 'Navigation', 'Menu contextuel positionnable avec items.'],
   ['Link', 'Navigation', 'Lien stylé compatible avec les routeurs externes.'],
   ['SidePanel', 'Navigation', 'Panneau latéral coulissant avec titre et footer.'],
-  ['SettingsMenu', 'Navigation', 'Menu de réglages : thème, langue et session.'],
   ['CommandPalette', 'Navigation', 'Palette de commandes avec recherche clavier.'],
   ['Breadcrumb', 'Navigation', "Fil d'Ariane avec repli automatique."],
-  ['Toolbar', 'Navigation', 'Barre d’outils : recherche, tri et actions.'],
   ['CookieBanner', 'Navigation', 'Bandeau de consentement avec mémorisation.'],
-  ['Scrollbar', 'Navigation', 'Barre de défilement appliquée par le thème.'],
   ['SelectionBar', 'Navigation', "Barre d'actions groupées sur sélection multiple."],
   ['Stack', 'Mise en page', 'Empilement flexbox avec gaps issus des tokens.'],
   ['Layout', 'Mise en page', 'Gabarit de page avec navigation et contenu.'],
-  ['PageScaffold', 'Mise en page', 'Squelette complet : navigation, contenu et footer.'],
-  ['PageContent', 'Mise en page', 'Conteneur de contenu avec en-tête et footer.'],
   ['Divider', 'Mise en page', 'Séparateur horizontal ou vertical.'],
-  ['Separator', 'Mise en page', 'Séparateur décoratif léger.'],
   ['BackgroundSurface', 'Mise en page', 'Fond animé par thème.'],
-  ['ShapeBackground', 'Mise en page', 'Arrière-plan décoratif à formes organiques.'],
-  ['SlidingIndicator', 'Mise en page', 'Indicateur coulissant partagé entre éléments.'],
-  ['FileUploader', 'Modules', 'Upload de fichiers par chunks.'],
   ['FileCard', 'Modules', 'Carte de fichier ou dossier avec aperçu et sélection.'],
   ['Dropzone', 'Modules', 'Zone de dépôt par glisser-déposer ou sélection.'],
   ['Lightbox', 'Modules', "Visionneuse plein écran d'images et documents."],
-  ['Map', 'Modules', 'Carte avec marqueurs, bulles et clic.'],
-  ['RouteGuard', 'Modules', 'Garde de routes et redirections.'],
-  ['I18n', 'Modules', 'Provider d’internationalisation et messages.'],
-  ['Http', 'Modules', 'Client API avec gestion d’erreurs normalisée.'],
-  ['Validation', 'Modules', 'Règles de validation réutilisables.'],
-  ['Sound', 'Modules', 'Sons sémantiques, coupure et volume.'],
-  ['LocalStore', 'Modules', 'État local typé, versionné et synchronisé.'],
-  ['Countdown', 'Modules', 'Compte à rebours calé sur une échéance absolue.'],
-  ['Game', 'Modules', 'Pièces de partie, série et grille partageable.'],
   ['Clipboard', 'Modules', 'Copie dans le presse-papier avec état fugace.'],
   ['SvgMap', 'Modules', 'Carte SVG gestuelle et accessible au clavier.'],
 ].map(([name, category, description]) => ({ name, category, description }));
@@ -1834,26 +2537,16 @@ export const OpaleUI = {
   MultiSelect: MultiSelect,
   Autocomplete: Autocomplete,
   Form: Form,
-  LanguageSelector: LanguageSelector,
   SegmentedControl: SegmentedControl,
-  ThemeToggle: ThemeToggle,
-  AddButton: AddButton,
-  SaveButton: SaveButton,
-  ApproveButton: ApproveButton,
-  EditButton: EditButton,
-  DeleteButton: DeleteButton,
   IconActionButton: IconActionButton,
-  Carousel: Carousel,
   DataTable: DataTable,
   DescriptionList: DescriptionList,
   BulletList: BulletList,
-  StatusChip: StatusChip,
   Badge: Badge,
   Rating: Rating,
   StatCard: StatCard,
   Donut: Donut,
   LegalLinks: LegalLinks,
-  Legend: Legend,
   Heading: Heading,
   Text: Text,
   Icon: Icon,
@@ -1867,35 +2560,17 @@ export const OpaleUI = {
   Menu: Menu,
   Link: Link,
   SidePanel: SidePanel,
-  SettingsMenu: SettingsMenu,
   CommandPalette: CommandPalette,
   Breadcrumb: Breadcrumb,
-  Toolbar: Toolbar,
   CookieBanner: CookieBanner,
-  Scrollbar: Scrollbar,
   SelectionBar: SelectionBar,
   Stack: Stack,
   Layout: Layout,
-  PageScaffold: PageScaffold,
-  PageContent: PageContent,
   Divider: Divider,
-  Separator: Separator,
   BackgroundSurface: BackgroundSurface,
-  ShapeBackground: ShapeBackground,
-  SlidingIndicator: SlidingIndicator,
-  FileUploader: FileUploader,
   FileCard: FileCard,
   Dropzone: Dropzone,
   Lightbox: Lightbox,
-  Map: Map,
-  RouteGuard: RouteGuard,
-  I18n: I18n,
-  Http: Http,
-  Validation: Validation,
-  Sound: Sound,
-  LocalStore: LocalStore,
-  Countdown: Countdown,
-  Game: Game,
   Clipboard: Clipboard,
   SvgMap: SvgMap,
 } as const;

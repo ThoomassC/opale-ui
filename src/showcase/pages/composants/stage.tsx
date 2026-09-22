@@ -85,12 +85,34 @@ import { UI_VERSION } from '../../version';
  * le site : le lecteur qui compare deux pages compare bien deux composants, et
  * non deux décors.
  *
- * LA SURCOUCHE BLEUTÉE N'EST PAS DÉCORATIVE. Le cliché a un ciel clair et une
- * eau brillante ; sans elle, l'encre claire des légendes tomberait dessus. Les
- * deux arrêts sont ceux de la page du matériau, à l'identique.
+ * LE VOILE EST UNIFORME ET IL EST MESURÉ — deux corrections d'un coup.
+ *
+ * Il était un DÉGRADÉ, de 8 % en haut à 22 % en bas. C'était l'exact inverse de
+ * ce qu'il fallait : sur ce cliché le ciel est EN HAUT, donc la zone la plus
+ * claire recevait le voile le plus faible. Le dégradé assombrissait l'eau, qui
+ * n'en avait pas besoin, et épargnait le ciel, qui en avait besoin.
+ *
+ * L'OPACITÉ VIENT D'UNE MESURE, pas d'un réglage à l'œil. Le cliché a été
+ * échantillonné pixel par pixel, voile compris, et le pire ratio du blanc
+ * relevé à chaque palier :
+ *
+ *   voile     scène nue    à travers le verre
+ *   22 %      1,65:1       1,60:1     ← l'ancien réglage : blanc illisible
+ *   50 %      3,45:1       3,15:1
+ *   60 %      4,71:1       4,19:1     ← la scène passe, le verre non
+ *   65 %      5,56:1       4,87:1     ← les deux passent AA (4,5:1)
+ *
+ * 65 % est donc le premier palier où le texte blanc tient PARTOUT, y compris
+ * sur le coin de ciel le plus clair, et y compris vu à travers le lavis du
+ * verre qui éclaircit encore un peu.
+ *
+ * ASSOMBRIR NE DÉTRUIT PAS LE MATÉRIAU, et c'est ce qui rend ce réglage
+ * possible : la réfraction travaille sur le DÉTAIL — des arêtes, un relief —,
+ * pas sur la luminosité. Un paysage de crépuscule réfracte aussi bien qu'un
+ * paysage de midi.
  */
 export const MAGIC_STAGE_GROUND =
-  "linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)), url('/glass-landscape.jpg') center / cover no-repeat";
+  "linear-gradient(0deg, rgba(7, 28, 43, 0.65), rgba(7, 28, 43, 0.65)), url('/glass-landscape.jpg') center / cover no-repeat";
 
 export interface MagicStageProps {
   /** Empile les enfants au lieu de les aligner — pour un composant pleine largeur. */

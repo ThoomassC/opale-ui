@@ -4,7 +4,8 @@ import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { TabsControlledScene } from './scenes';
-import { MagicPreamble, MagicStage } from './stage';
+import { MaterialSwitch, PlainStage } from './material-switch';
+import { MagicPreamble } from './stage';
 
 const USAGE = `import { Tabs } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -136,23 +137,25 @@ export const tabsPage: DocPage = {
           </>
         }
       >
-        <MagicStage stack>
-          <Tabs defaultValue="etapes">
-            <Tabs.List>
-              <Tabs.Trigger value="etapes">Étapes</Tabs.Trigger>
-              <Tabs.Trigger value="carte">Carte</Tabs.Trigger>
-              <Tabs.Trigger value="brouillon" disabled>
-                Brouillon
-              </Tabs.Trigger>
-            </Tabs.List>
+        <MaterialSwitch name="Tabs">
+          {(liquidGlass) => (
+            <Tabs liquidGlass={liquidGlass} defaultValue="etapes">
+              <Tabs.List>
+                <Tabs.Trigger value="etapes">Étapes</Tabs.Trigger>
+                <Tabs.Trigger value="carte">Carte</Tabs.Trigger>
+                <Tabs.Trigger value="brouillon" disabled>
+                  Brouillon
+                </Tabs.Trigger>
+              </Tabs.List>
 
-            <Tabs.Content value="etapes">Les étapes du voyage, dans l’ordre.</Tabs.Content>
-            <Tabs.Content value="carte" lazyMount>
-              La carte, rendue côté serveur.
-            </Tabs.Content>
-            <Tabs.Content value="brouillon">Inatteignable.</Tabs.Content>
-          </Tabs>
-        </MagicStage>
+              <Tabs.Content value="etapes">Les étapes du voyage, dans l’ordre.</Tabs.Content>
+              <Tabs.Content value="carte" lazyMount>
+                La carte, rendue côté serveur.
+              </Tabs.Content>
+              <Tabs.Content value="brouillon">Inatteignable.</Tabs.Content>
+            </Tabs>
+          )}
+        </MaterialSwitch>
       </Specimen>
 
       <Specimen
@@ -182,7 +185,7 @@ export const tabsPage: DocPage = {
           </>
         }
       >
-        <MagicStage stack>
+        <PlainStage stack>
           <Tabs defaultValue="carte" orientation="vertical">
             <Tabs.List>
               <Tabs.Trigger value="etapes">Étapes</Tabs.Trigger>
@@ -194,7 +197,7 @@ export const tabsPage: DocPage = {
             <Tabs.Content value="carte">La carte.</Tabs.Content>
             <Tabs.Content value="photos">Les photos.</Tabs.Content>
           </Tabs>
-        </MagicStage>
+        </PlainStage>
       </Specimen>
 
       <PropsTable

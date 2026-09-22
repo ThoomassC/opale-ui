@@ -2,7 +2,8 @@ import type { DocPage } from '../doc-model';
 
 import { introductionPage } from './introduction';
 import { installationPage } from './installation';
-import { iconesPage, themingPage, utilisationPage } from './guide-pages';
+import { themingPage, utilisationPage } from './guide-pages';
+import { iconesPage } from './icones';
 import { verreLiquidePage } from './verre-liquide';
 import { notesVersionsPage } from './notes-de-versions';
 
@@ -13,7 +14,6 @@ import { palettePage } from './fondations/palette';
 import { typographiePage } from './fondations/typographie';
 import { verrePage } from './fondations/verre';
 
-import { glassPage } from './composants/glass';
 import { modalPage } from './composants/modal';
 import { searchBarPage } from './composants/search-bar';
 import { sidebarPage } from './composants/sidebar';
@@ -95,7 +95,6 @@ export const PAGES: readonly DocPage[] = [
      portaillée dans `document.body`. Ce n'était donc pas un doublon
      d'`Opale.Toast` mais une homonymie de sommaire, réglée en nommant la page
      d'après ce qu'elle documente. */
-  glassPage,
   modalPage,
   searchBarPage,
   sidebarPage,

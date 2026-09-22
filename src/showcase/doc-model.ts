@@ -153,9 +153,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Select', 'Select'),
       opaleEntry('Autocomplete', 'Autocomplete'),
       opaleEntry('Form', 'Form'),
-      opaleEntry('LanguageSelector', 'LanguageSelector'),
       opaleEntry('SegmentedControl', 'SegmentedControl'),
-      opaleEntry('ThemeToggle', 'ThemeToggle'),
       /* SIX ENTRÉES VENDORÉES ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
          `Checkbox`, `Slider`, `Select` et `Switch`. Chacune doublonnait la
          `opaleEntry` qui la précède : le rail affichait « Input » puis
@@ -178,11 +176,6 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     id: 'boutons-specialises',
     label: 'BOUTONS SPÉCIALISÉS',
     entries: [
-      opaleEntry('AddButton', 'AddButton'),
-      opaleEntry('SaveButton', 'SaveButton'),
-      opaleEntry('ApproveButton', 'ApproveButton'),
-      opaleEntry('EditButton', 'EditButton'),
-      opaleEntry('DeleteButton', 'DeleteButton'),
       opaleEntry('IconActionButton', 'IconActionButton'),
     ],
   },
@@ -192,25 +185,22 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     entries: [
       opaleEntry('Card', 'Card'),
       opaleEntry('CardGrid', 'CardGrid'),
-      opaleEntry('Carousel', 'Carousel'),
       opaleEntry('DataTable', 'DataTable'),
       opaleEntry('DescriptionList', 'DescriptionList'),
       opaleEntry('BulletList', 'BulletList'),
-      opaleEntry('StatusChip', 'StatusChip'),
       opaleEntry('Badge', 'Badge'),
       opaleEntry('Rating', 'Rating'),
       opaleEntry('StatCard', 'StatCard'),
       opaleEntry('Donut', 'Donut'),
       opaleEntry('LegalLinks', 'LegalLinks'),
-      opaleEntry('Legend', 'Legend'),
       opaleEntry('Heading', 'Heading'),
       opaleEntry('Text', 'Text'),
       opaleEntry('Icon', 'Icon'),
       /* `Badge` et `Card` vendorés sont partis pour la même raison que les six
          d'INPUTS : ils doublonnaient `opaleEntry('Badge')` et
-         `opaleEntry('Card')` juste au-dessus. `Glass` reste — c'est le
-         matériau lui-même, et rien côté Opale ne le documente. */
-      { label: 'Glass', slug: 'composants/glass' },
+         `opaleEntry('Card')` juste au-dessus. `Glass` est parti à son tour :
+         ce n'est pas un composant mais le matériau des autres, et la page
+         « Le verre liquide » le documente en tant que tel. */
     ],
   },
   {
@@ -241,12 +231,9 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Menu', 'Menu'),
       opaleEntry('Link', 'Link'),
       opaleEntry('SidePanel', 'SidePanel'),
-      opaleEntry('SettingsMenu', 'SettingsMenu'),
       opaleEntry('CommandPalette', 'CommandPalette'),
       opaleEntry('Breadcrumb', 'Breadcrumb'),
-      opaleEntry('Toolbar', 'Toolbar'),
       opaleEntry('CookieBanner', 'CookieBanner'),
-      opaleEntry('Scrollbar', 'Scrollbar'),
       opaleEntry('SelectionBar', 'SelectionBar'),
       { label: 'Tabs', slug: 'composants/tabs' },
       { label: 'Sidebar', slug: 'composants/sidebar' },
@@ -260,32 +247,17 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     entries: [
       opaleEntry('Stack', 'Stack'),
       opaleEntry('Layout', 'Layout'),
-      opaleEntry('PageScaffold', 'PageScaffold'),
-      opaleEntry('PageContent', 'PageContent'),
       opaleEntry('Divider', 'Divider'),
-      opaleEntry('Separator', 'Separator'),
       opaleEntry('BackgroundSurface', 'Background'),
-      opaleEntry('ShapeBackground', 'ShapeBackground'),
-      opaleEntry('SlidingIndicator', 'SlidingIndicator'),
     ],
   },
   {
     id: 'modules',
     label: 'MODULES',
     entries: [
-      opaleEntry('FileUploader', 'Upload'),
       opaleEntry('FileCard', 'FileCard'),
       opaleEntry('Dropzone', 'Dropzone'),
       opaleEntry('Lightbox', 'Lightbox'),
-      opaleEntry('Map', 'Map'),
-      opaleEntry('RouteGuard', 'Auth'),
-      opaleEntry('I18n', 'i18n'),
-      opaleEntry('Http', 'HTTP'),
-      opaleEntry('Validation', 'Validation'),
-      opaleEntry('Sound', 'Sound'),
-      opaleEntry('LocalStore', 'Local store'),
-      opaleEntry('Countdown', 'Countdown'),
-      opaleEntry('Game', 'Game'),
       opaleEntry('Clipboard', 'Clipboard'),
       opaleEntry('SvgMap', 'SVG map'),
     ],

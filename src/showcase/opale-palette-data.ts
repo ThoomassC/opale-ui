@@ -78,6 +78,21 @@ export const OPALE_PLATES: readonly Plate[] = [
           { token: '--opale-secondary', hex: '#5990b0', against: 'variante secondaire' },
           { token: '--opale-secondary-dark', hex: '#3a6b8a', against: 'fond du bouton secondaire' },
           { token: '--opale-accent', hex: '#f4ad15', against: 'accent éditorial' },
+          {
+            token: '--opale-accent-dark',
+            hex: '#7a5200',
+            against: 'ambre qui porte du blanc : pastille, lavis sur image',
+          },
+          {
+            token: '--opale-accent-ink',
+            hex: '#7a5200',
+            against: 'encre qui se lit SUR l’ambre',
+          },
+          {
+            token: '--opale-accent-graphic',
+            hex: '#8e6000',
+            against: 'ambre qui dessine — étoiles, icônes',
+          },
         ],
       },
       {
@@ -131,6 +146,21 @@ export const OPALE_PLATES: readonly Plate[] = [
           { token: '--opale-secondary', hex: '#8fb5cd', against: 'variante secondaire' },
           { token: '--opale-secondary-dark', hex: '#6f9cba', against: 'fond du bouton secondaire' },
           { token: '--opale-accent', hex: '#f4ad15', against: 'accent — identique au clair' },
+          {
+            token: '--opale-accent-dark',
+            hex: '#7a5200',
+            against: 'ambre sombre — hérité du clair',
+          },
+          {
+            token: '--opale-accent-ink',
+            hex: '#ffd98a',
+            against: 'encre sur l’ambre — éclaircie, 1,01:1 sinon',
+          },
+          {
+            token: '--opale-accent-graphic',
+            hex: '#f4ad15',
+            against: 'ambre qui dessine — l’ambre d’origine suffit en sombre',
+          },
         ],
       },
       {

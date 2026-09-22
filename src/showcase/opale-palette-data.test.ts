@@ -73,6 +73,24 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
   '--opale-glass-surface':
     'lavis du matériau Liquid Glass — documenté par la page « Verre », qui montre la pile composée plutôt que la couche seule',
   '--opale-glass-border': 'liseré du matériau Liquid Glass — même raison',
+  /* CES TROIS-LÀ NE DÉCRIVENT PAS LA MARQUE, MAIS LA LISIBILITÉ SUR UNE IMAGE.
+
+     Une plaque de palette montre une couleur SUR UN SOL, et c'est ce qui la
+     rend lisible : on voit la teinte et on la compare à ses voisines. Ces
+     trois-ci n'ont de sens que posées sur une PHOTOGRAPHIE quelconque —
+     l'encre du verre, son atténuation, et le voile qui garantit que la
+     première se lise. Plaqués, on montrerait un carré blanc, un carré blanc
+     un peu transparent et un carré bleu nuit : trois pastilles qui
+     n'apprendraient rien.
+
+     Ce qu'il faut savoir d'eux est CHIFFRÉ à leur déclaration dans
+     `opale.css`, et c'est une mesure sur le cliché, pas une valeur de
+     palette. */
+  '--opale-glass-ink':
+    'encre du matériau — blanche par construction, voir la mesure à sa déclaration',
+  '--opale-glass-ink-muted': 'texte indicatif sous verre — même raison',
+  '--opale-glass-scrim':
+    'voile de lisibilité sous le matériau — un réglage de contraste, pas une couleur de marque',
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {

@@ -6,6 +6,7 @@ import opaleComponentsSource from './opale-components.tsx?raw';
 import catalogPreviewSource from './catalog-preview.tsx?raw';
 import { OPALE_CATALOG, Opale } from '../../magic';
 import { catalogComponentLabel } from '../doc-model';
+import opaleMagicSource from '../../magic/opale.tsx?raw';
 import { CatalogPreview } from './catalog-preview';
 import { opaleComponentPages } from './opale-components';
 
@@ -117,15 +118,6 @@ describe('le catalogue interactif V3', () => {
     ).toEqual(wired);
   });
 
-  it('fait réellement basculer ThemeToggle', async () => {
-    const user = userEvent.setup();
-    render(<CatalogPreview name="ThemeToggle" liquidGlass={false} />);
-
-    expect(screen.getByRole('status')).toHaveTextContent('Thème clair');
-    await user.click(screen.getByRole('checkbox', { name: 'Thème' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Thème sombre');
-  });
-
   it('rend SegmentedControl contrôlable', async () => {
     const user = userEvent.setup();
     render(<CatalogPreview name="SegmentedControl" liquidGlass={false} />);
@@ -154,12 +146,12 @@ describe('le catalogue interactif V3', () => {
     const user = userEvent.setup();
     render(<CatalogPreview name="Toast" liquidGlass={false} />);
 
-    expect(screen.getByText('Modifications enregistrées')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Fermer' }));
-    expect(screen.queryByText('Modifications enregistrées')).not.toBeInTheDocument();
+    expect(screen.getByText('Étape publiée sur le carnet')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Fermer la notification' }));
+    expect(screen.queryByText('Étape publiée sur le carnet')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Afficher le toast' }));
-    expect(screen.getByText('Modifications enregistrées')).toBeInTheDocument();
+    expect(screen.getByText('Étape publiée sur le carnet')).toBeInTheDocument();
   });
 
   it('soumet Form et affiche son résultat', async () => {
@@ -170,13 +162,8 @@ describe('le catalogue interactif V3', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Formulaire envoyé');
   });
 
-  it('rend LanguageSelector et MultiSelect contrôlables', async () => {
+  it('rend MultiSelect contrôlable', async () => {
     const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="LanguageSelector" liquidGlass={false} />);
-
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Langue' }), 'ES');
-    expect(screen.getByRole('combobox', { name: 'Langue' })).toHaveValue('ES');
-    expect(screen.getByText('ES')).toBeInTheDocument();
 
     /* LA SÉLECTION MULTIPLE N'EST PLUS UN `<select multiple>` VISIBLE, et ce
        test a changé avec elle — pas pour s'adoucir, pour suivre.
@@ -198,7 +185,7 @@ describe('le catalogue interactif V3', () => {
        le vérifie, car c'est lui qui garantit que `onChange` continue de rendre
        `currentTarget.selectedOptions` aux consommateurs existants. C'est le
        contrat qui ne devait PAS bouger. */
-    rerender(<CatalogPreview name="MultiSelect" liquidGlass={false} />);
+    render(<CatalogPreview name="MultiSelect" liquidGlass={false} />);
 
     const liste = screen.getByRole('listbox', { name: 'Domaines' });
     const optionsDe = () =>
@@ -217,18 +204,6 @@ describe('le catalogue interactif V3', () => {
     /* Le `<select>` masqué porte la même vérité : c'est lui que reçoit le
        `onChange` du consommateur. */
     expect(document.querySelector('select[multiple]')).toHaveValue(['code', 'docs']);
-  });
-
-  it('confirme les actions des boutons spécialisés', async () => {
-    const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="AddButton" liquidGlass={false} />);
-
-    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
-    expect(screen.getByRole('status')).toHaveTextContent('Élément ajouté');
-
-    rerender(<CatalogPreview name="SaveButton" liquidGlass={false} />);
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
-    expect(screen.getByRole('button', { name: 'Enregistré' })).toBeInTheDocument();
   });
 
   it('met à jour la page active de Navbar', async () => {
@@ -250,28 +225,138 @@ describe('le catalogue interactif V3', () => {
     expect(screen.queryByText(/Nous utilisons des cookies/)).not.toBeInTheDocument();
   });
 
-  it('sélectionne FileCard et bloque RouteGuard', async () => {
+  it('sélectionne FileCard', async () => {
     const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="FileCard" liquidGlass={false} />);
+    render(<CatalogPreview name="FileCard" liquidGlass={false} />);
 
     const file = screen.getByRole('button', { name: /design-system\.fig/ });
-    await user.click(file);
-    expect(file).toHaveClass('opale-liquid');
 
-    rerender(<CatalogPreview name="RouteGuard" liquidGlass={false} />);
-    await user.click(screen.getByRole('checkbox', { name: 'Accès autorisé' }));
-    expect(screen.getByRole('alert')).toHaveTextContent('Accès administrateur requis');
+    /* L'ÉTAT SE LIT SUR `aria-pressed`, PLUS SUR UNE CLASSE DE STYLE. La
+       sélection était signalée par `.opale-liquid` — l'ancienne imitation du
+       verre détournée en surbrillance : rien ne l'annonçait, et l'information
+       n'existait que par la couleur. Ce test visait la classe ; il vise
+       maintenant ce qu'un lecteur d'écran entend. */
+    expect(file).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(file);
+
+    expect(file).toHaveAttribute('aria-pressed', 'true');
+    expect(file).toHaveClass('opale-file-card--selected');
   });
 
-  it('réagit à la validation et au score de Game', async () => {
-    const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="Validation" liquidGlass={false} />);
+});
 
-    await user.clear(screen.getByRole('textbox', { name: 'Identifiant' }));
-    expect(screen.getByText('À corriger')).toBeInTheDocument();
+/* =============================================================================
+   LA VITRINE NE DOIT PAS MONTRER UN COMMUTATEUR QUI NE FAIT RIEN.
 
-    rerender(<CatalogPreview name="Game" liquidGlass={false} />);
-    await user.click(screen.getByRole('button', { name: 'Marquer un point' }));
-    expect(screen.getByText('13')).toBeInTheDocument();
+   LE DÉFAUT OBSERVÉ. La page de chaque composant affiche « Liquid Glass pour
+   X ». Pour l'autocomplétion et la liste multiple, la démonstration ne
+   transmettait pas la prop : le commutateur basculait, et rien ne changeait.
+   Le composant, lui, la gère parfaitement — c'est l'exemple qui l'oubliait.
+
+   CE QUE CE GARDE COUVRE, ET CE QU'IL LAISSE DE CÔTÉ. Il ne vise que les
+   composants qui ACCEPTENT la prop : à eux, l'exemple doit la passer. Les
+   composants qui n'ont pas de rendu de verre du tout relèvent d'une autre
+   question — faut-il leur afficher ce commutateur ? —, qui se traite dans la
+   page et non ici.
+   ========================================================================== */
+describe('les exemples du catalogue', () => {
+  it('transmet le matériau à tout composant qui sait le porter', () => {
+    /* « SAIT LE PORTER » SE LIT DANS LE RENDU, PAS DANS LE TYPE.
+
+       Une première version interrogeait les interfaces de props : un
+       composant qui déclare `liquidGlass` devait recevoir la prop. C'était
+       trop large. `MultiSelect` hérite de `SelectProps`, donc il DÉCLARE la
+       prop — et il ne rend pas le matériau, il pose l'ancienne classe
+       d'imitation. Le garde réclamait un exemple qui aurait promis du verre
+       pour montrer autre chose.
+
+       Ce qui compte est donc ce que le corps du composant REND : `FieldShell`
+       (la coquille des champs, qui bascule sur `Glass`) ou `Glass` lui-même. */
+    const rendersMaterial = (name: string): boolean => {
+      const start = new RegExp(
+        `export (?:function ${name}\\(|const ${name} = (?:forwardRef|function))`,
+      ).exec(opaleMagicSource)?.index;
+
+      if (start === undefined) return false;
+
+      const next = /\nexport (?:function|const|interface) /.exec(
+        opaleMagicSource.slice(start + 10),
+      );
+      const body = opaleMagicSource.slice(start, next ? start + 10 + next.index : undefined);
+
+      /* LA DÉLÉGATION N'EST PAS COMPTÉE ICI, ET C'EST UNE LIMITE ASSUMÉE.
+         Une vingtaine de composants rendent un `Button` ou un `Input` et
+         hériteraient donc du matériau si on leur transmettait la prop —
+         `Pressable`, `InlineInput`, les six boutons d'action, `ThemeToggle`…
+         Faut-il le faire ? C'est une décision de catalogue, pas un défaut
+         constaté : tant qu'elle n'est pas prise, ce garde n'a pas à la forcer.
+         Le garde voisin, qui compare la liste des extraits aux aperçus
+         câblés, couvre les régressions sur ceux qui sont déjà branchés. */
+      return /<FieldShell|<Glass/.test(body);
+    };
+
+    const manquants = [...catalogPreviewSource.matchAll(/case '(\w+)':([\s\S]*?)\n {6}break;/g)]
+      .filter(([, name, body]) => rendersMaterial(name) && !body.includes('liquidGlass'))
+      .map(([, name]) => name);
+
+    expect(
+      manquants,
+      'Ces exemples affichent le commutateur « Liquid Glass » sans transmettre ' +
+        `la prop : il bascule et rien ne change — ${manquants.join(', ')}.`,
+    ).toEqual([]);
+  });
+});
+
+/* =============================================================================
+   LE COMMUTATEUR DE MATIÈRE NE S'AFFICHE QUE LÀ OÙ IL AGIT.
+
+   LE DÉFAUT. La page posait « Liquid Glass pour X » sur les quatre-vingt-cinq
+   composants du catalogue. Onze rendent le matériau. Pour les autres,
+   basculer l'interrupteur posait la photographie et le voile sous un composant
+   qui ne changeait pas : une quarantaine se retrouvaient avec leur encre
+   sombre sur un cliché sombre. Le commutateur ne mentait pas seulement, il
+   abîmait la démonstration qu'il était censé enrichir.
+
+   CE TEST PARCOURT TOUT LE CATALOGUE plutôt que deux cas représentatifs :
+   c'est la seule façon de constater qu'aucune page n'a été oubliée, et le
+   défaut corrigé était précisément un oubli à grande échelle.
+   ========================================================================== */
+describe('le commutateur de matière', () => {
+  const declared = new Set(
+    (
+      /const FORWARDS_LIQUID_GLASS: readonly string\[\] = \[([\s\S]*?)\];/.exec(
+        opaleComponentsSource,
+      )?.[1] ?? ''
+    )
+      .match(/'([A-Z][A-Za-z0-9]+)'/g)
+      ?.map((quoted) => quoted.replaceAll("'", '')) ?? [],
+  );
+
+  it.each(OPALE_CATALOG)('$name ne montre le commutateur que s’il agit', (entry) => {
+    const page = opaleComponentPages.find(
+      (candidate) => candidate.label === catalogComponentLabel(entry.name),
+    );
+
+    if (!page) throw new Error(`Page introuvable pour ${entry.name}.`);
+
+    const { container } = render(<>{page.render()}</>);
+    const toggle = within(container).queryByRole('checkbox', {
+      name: new RegExp(`^Liquid Glass pour `),
+    });
+
+    if (declared.has(entry.name)) {
+      expect(
+        toggle,
+        `${entry.name} rend le matériau : son commutateur doit être proposé.`,
+      ).not.toBeNull();
+    } else {
+      expect(
+        toggle,
+        `${entry.name} ne rend pas le matériau. Le commutateur poserait la ` +
+          'photographie sous un composant inchangé — encre sombre sur cliché ' +
+          'sombre —, ce qui abîme la démonstration au lieu de l’enrichir.',
+      ).toBeNull();
+    }
   });
 });

@@ -110,14 +110,14 @@ body {
   white-space: nowrap;
 }
 .tc-doc-topbar__brand:hover {
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
 }
 .tc-doc-topbar__brand-name {
   display: inline-flex;
   min-width: 0;
 }
 .tc-doc-topbar__brand-name--accent {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 .tc-doc-topbar__version {
   border-radius: var(--opale-radius-sm);
@@ -137,7 +137,7 @@ body {
   gap: 0.17rem;
   place-content: center;
   border-radius: 0.55rem;
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 .tc-doc-topbar__glyph span {
   display: block;
@@ -228,7 +228,7 @@ body {
 .tc-doc-topbar__tab:hover,
 .tc-doc-topbar__tab[aria-current='page'] {
   --tc-doc-control-fill: color-mix(in srgb, var(--opale-primary) 12%, transparent);
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
 }
 .tc-doc-topbar__tab[aria-current='page'] {
   font-weight: 600;
@@ -372,7 +372,7 @@ body {
 }
 .tc-doc-mobile-nav-toggle:hover {
   --tc-doc-control-fill: color-mix(in srgb, var(--opale-primary) 10%, transparent);
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
 }
 
 .tc-doc-themetoggle {
@@ -409,16 +409,16 @@ body {
 }
 .tc-doc-themetoggle:hover {
   --tc-doc-control-border: var(--opale-primary);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 .tc-doc-themetoggle__glyph {
   font-size: 1.15rem;
 }
 .tc-doc-themetoggle__glyph--moon {
-  color: var(--opale-primary-light);
+  color: var(--opale-primary-on-surface);
 }
 .tc-doc-themetoggle__glyph--sun {
-  color: var(--opale-accent);
+  color: var(--opale-accent-graphic);
 }
 
 /* =============================================================================
@@ -506,7 +506,7 @@ body {
   transform: translateY(0.1rem) rotate(-135deg);
 }
 .tc-doc-language__trigger:hover .tc-doc-language__caret {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 
 /* `[hidden]` EST REDÉCLARÉ PARCE QUE `display: grid` L'ÉCRASE. La feuille de
@@ -658,7 +658,7 @@ body {
   border-radius: 0.4rem;
   padding: 0.12rem 0.35rem;
   background: color-mix(in srgb, var(--opale-primary) 9%, transparent);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-family: var(--opale-font-mono);
 }
 
@@ -756,7 +756,7 @@ body {
   display: none !important;
 }
 .tc-doc-nav__eyebrow {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font: 600 0.75rem var(--opale-font-body);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -790,7 +790,7 @@ body {
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   cursor: pointer;
   font-size: 0;
 }
@@ -951,7 +951,7 @@ body {
 .tc-doc-nav__link:hover,
 .tc-doc-nav__link[aria-current='page'] {
   --tc-doc-control-fill: color-mix(in srgb, var(--opale-primary) 12%, transparent);
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
   font-weight: 600;
 }
 .tc-doc-nav__link[aria-current='page'] {
@@ -961,8 +961,25 @@ body {
   display: none;
 }
 
+/* LA PLAQUE DE PALETTE EST SORTIE DE CETTE LISTE, ET C'ÉTAIT UN CONTRESENS.
+
+   Ce groupe repeint les blocs de la vitrine aux jetons d'Opale, `!important`
+   compris — ce qui est juste pour un spécimen ou un encart. La plaque de la
+   page « La palette », elle, EXISTE pour montrer un sol : elle reçoit son
+   fond, son encre et son filet en style inline, calculés à partir du thème
+   qu'elle démontre.
+
+   Le fond était donc écrasé et l'encre, elle, survivait — un style inline ne
+   perd que contre un `!important`. Chaque plaque affichait ainsi l'encre d'un
+   thème sur le sol d'un autre. Mesuré au navigateur en thème sombre :
+   1,16:1 sur les jetons, 1,33:1 sur les titres, 1,76:1 sur les notes — la
+   page entière était illisible. En thème clair le même défaut existait,
+   simplement moins visible : de l'encre sombre sur du blanc au lieu du sol
+   qu'on voulait montrer.
+
+   La plaque garde donc le liseré, le rayon et l'ombre du groupe, et reprend
+   son propre fond. */
 .tc-doc-specimen,
-.tc-doc-plate,
 .tc-doc-aside,
 .tc-doc-bar,
 .tc-doc-release,
@@ -972,13 +989,35 @@ body {
   background: var(--opale-surface) !important;
   box-shadow: var(--opale-shadow-1) !important;
 }
+
+/* LA PLAQUE REÇOIT LA MÊME BOÎTE, SANS LE `!important` SUR LE FOND.
+
+   Une première correction essayait de RENDRE le fond à la plaque avec
+   `background: none !important` : c'était une faute de raisonnement. Un
+   `!important` de feuille bat toujours une déclaration inline ordinaire —
+   celle de la plaque y compris. La plaque devenait transparente au lieu de
+   reprendre son sol. Il n'y a pas d'autre issue que de la SORTIR du groupe. */
+.tc-doc-plate {
+  border-radius: var(--opale-radius-md);
+  box-shadow: var(--opale-shadow-1);
+}
 .tc-doc-specimen {
   padding: clamp(1rem, 3vw, 2rem) !important;
 }
+/* LE TITRE DE PLAQUE HÉRITE DE SA PLAQUE, pour la même raison que la plaque
+   garde son fond : il est posé SUR le sol qu'elle démontre, pas sur la surface
+   du site. Forcé à `--opale-text`, il donnait l'encre du thème courant sur le
+   sol de l'autre — 1,03:1 en sombre sur la plaque claire, 1,02:1 en clair sur
+   la plaque sombre. Il prend la typographie du groupe, pas sa couleur. */
+.tc-doc-plate__title {
+  font-family: var(--opale-font-display) !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.035em;
+}
+
 .tc-doc-specimen__title,
 .tc-doc-specimen__header h2,
-.tc-doc-release__title,
-.tc-doc-plate__title {
+.tc-doc-release__title {
   color: var(--opale-text) !important;
   font-family: var(--opale-font-display) !important;
   font-weight: 400 !important;
@@ -1006,9 +1045,15 @@ body {
 .tc-doc strong {
   font-weight: 600;
 }
+/* L'ÉTIQUETTE DE SPÉCIMEN PREND L'ENCRE QUI SE LIT SUR LA SURFACE.
+
+   Elle reprenait `--opale-primary`, qui est le bleu des ACTIONS : il est réglé
+   pour porter une encre claire, pas pour en être une. Sur la surface sombre —
+   mesuré au navigateur sur soixante pages — il tombe à 3,94:1, juste sous le
+   seuil. Le primaire CLAIR, lui, y tient 8,21:1 et reste le même bleu. */
 .tc-doc-specimen__eyebrow,
 .tc-doc-release-callout__eyebrow {
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
   font: 600 0.75rem var(--opale-font-body) !important;
   letter-spacing: 0.12em;
 }
@@ -1020,8 +1065,15 @@ body {
   color: var(--opale-text) !important;
   font-family: var(--opale-font-mono) !important;
 }
+/* L'ENCRE DES LIENS, DES PASTILLES ET DU CODE EN LIGNE SUIT LE MÊME JETON.
+
+   Toutes reprenaient `--opale-primary`, qui est le bleu des ACTIONS : réglé
+   pour porter une encre claire, pas pour en être une. Mesuré en thème sombre
+   sur la surface du site : 3,94:1 pour un lien, 3,51:1 pour du code en ligne,
+   3,11:1 pour l'état de version. `--opale-primary-on-surface` est le même
+   bleu en thème clair et sa reprise claire en sombre. */
 .tc-doc-link {
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
 }
 .tc-doc-release__actions {
   gap: var(--opale-space-xs);
@@ -1037,7 +1089,7 @@ body {
   color: #fbfaf9 !important;
 }
 .tc-doc-release__source.opale-button--tonal {
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
 }
 :root[data-theme='dark'] .tc-doc-release__action.opale-button--primary {
   color: #0c0f0d !important;
@@ -1142,19 +1194,17 @@ body {
    matière change, plus la scène qui permet de la voir. */
 .tc-doc-opale-preview[data-liquid-glass='true'] .tc-doc-opale-preview__material {
   background:
-    linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)),
+    linear-gradient(0deg, var(--opale-glass-scrim), var(--opale-glass-scrim)),
     url('/glass-landscape.jpg') center / cover no-repeat;
 }
 
-/* L'ENCRE PASSE AU CLAIR SUR LE PAYSAGE, et c'est le jeton prévu pour cela.
-   `--opale-glass-ink` vaut `--opale-text` par défaut dans la librairie — une
-   encre sombre, juste sur le blanc d'un consommateur quelconque. Ici la scène
-   est une photographie sombre : l'encre y passe au blanc, comme sur la page du
-   matériau, où `Glass` déclare déjà `--opale-glass-ink: #ffffff`. */
-.tc-doc-opale-preview[data-liquid-glass='true'] .tc-doc-opale-preview__material {
-  --opale-glass-ink: #fff;
-  --opale-glass-ink-muted: rgba(255, 255, 255, 0.78);
-}
+/* L'ENCRE N'EST PLUS SURCHARGÉE ICI, ET C'EST UN RETRAIT VOLONTAIRE.
+   Cette règle repeignait l'encre du verre en blanc pour la seule vitrine,
+   parce que la librairie la donnait sombre par défaut. La librairie la donne
+   désormais blanche — c'est la couleur d'un matériau fait pour être posé sur
+   une image —, et deux déclarations pour une même valeur finissent toujours
+   par diverger. Voir `--opale-glass-ink` dans `opale.css`, où la condition de
+   lisibilité est chiffrée. */
 
 /* LE LIBELLÉ N'EST PAS DANS LE VERRE, MAIS IL EST SUR LE PAYSAGE.
 
@@ -1574,7 +1624,7 @@ body {
 
 .tc-doc-topbar__menu-toggle:hover {
   --tc-doc-control-border: var(--opale-primary);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 
 .tc-doc-topbar__menu[open] .tc-doc-topbar__menu-toggle > span {
@@ -1959,7 +2009,7 @@ body {
   border-radius: var(--opale-radius-sm);
   padding: 0.28rem 0.7rem;
   background: color-mix(in srgb, var(--opale-primary) 16%, var(--opale-surface));
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -2035,7 +2085,7 @@ body {
 
 .tc-doc-home__action--secondary:hover,
 .tc-doc-home__action--secondary:focus-visible {
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
 }
 
 .tc-doc-home__stats {
@@ -2055,7 +2105,7 @@ body {
 }
 
 .tc-doc-home__stats dt {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font: 600 clamp(1.4rem, 2.5vw, 2rem)/1.08 var(--opale-font-title);
   font-variation-settings: 'opsz' 72;
   letter-spacing: -0.03em;
@@ -2097,7 +2147,7 @@ body {
 }
 
 .tc-doc-home__release-eyebrow {
-  color: var(--opale-accent);
+  color: var(--opale-accent-ink);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -2108,7 +2158,7 @@ body {
   border-radius: var(--opale-radius-sm);
   padding: 0.25rem 0.65rem;
   background: color-mix(in srgb, var(--opale-primary) 18%, var(--opale-surface));
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -2138,7 +2188,7 @@ body {
 
 .tc-doc-home__release li::before {
   margin-inline-end: 0.7rem;
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   content: '›';
   font-weight: 600;
 }
@@ -2148,7 +2198,7 @@ body {
   width: fit-content;
   align-items: center;
   gap: 0.6rem;
-  color: var(--opale-primary) !important;
+  color: var(--opale-primary-on-surface) !important;
   font-weight: 600;
   text-decoration: none;
 }
@@ -2182,7 +2232,7 @@ body {
 .tc-doc-home__feature-icon {
   display: block;
   margin-block-end: 1.15rem;
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-size: 2.1rem;
   font-weight: 600;
   line-height: 1;
@@ -2241,4 +2291,93 @@ body {
   .tc-doc-home__release li {
     white-space: normal;
   }
+}
+
+/* =============================================================================
+   LA GALERIE D'ICÔNES.
+
+   LA GRILLE EST AUTO-AJUSTÉE ET NON À NOMBRE DE COLONNES FIXE : cent vingt-cinq
+   cellules sur un écran de téléphone en trois colonnes forcées donneraient des
+   noms tronqués, et sur un grand écran huit colonnes laisseraient la moitié de
+   la largeur vide. `auto-fill` avec une largeur minimale règle les deux d'un
+   coup.
+
+   LE NOM EST SOUS LE DESSIN, PAS EN INFOBULLE. Une infobulle demande un survol
+   — inaccessible au clavier sans travail supplémentaire, et invisible au
+   toucher —, alors que ce qu'on vient chercher sur cette page EST le nom à
+   recopier dans le code.
+   ========================================================================== */
+.tc-doc-icon-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-block-end: 1.5rem;
+}
+
+.tc-doc-icon-filter > :first-child {
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+}
+
+.tc-doc-icon-filter__count {
+  margin: 0 0 0.6rem;
+  color: var(--opale-text-secondary);
+  font-size: 0.85rem;
+}
+
+.tc-doc-icon-family + .tc-doc-icon-family {
+  margin-block-start: 2rem;
+}
+
+.tc-doc-icon-family__title {
+  margin: 0 0 0.9rem;
+  color: var(--opale-text-secondary);
+  font: 600 0.75rem var(--opale-font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tc-doc-icon-grid {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  list-style: none;
+}
+
+.tc-doc-icon-cell {
+  display: grid;
+  padding: 0.9rem 0.5rem 0.75rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  gap: 0.5rem;
+  justify-items: center;
+  text-align: center;
+}
+
+/* LE DESSIN PREND L'ENCRE DU TEXTE ET NON LE BLEU DU PRIMAIRE. Sur une planche
+   de cent vingt-cinq icônes, le bleu se lit comme « tout est un lien » ; et la
+   page montre justement que l'icône suit `currentColor`. */
+.tc-doc-icon-cell .opale-icon {
+  min-width: 0;
+  min-height: 0;
+  color: var(--opale-text);
+  font-size: 1.5rem;
+}
+
+/* LE NOM PASSE À LA LIGNE, IL NE SE TRONQUE PLUS. `chevrons-right`,
+   `more-horizontal` et `alert-triangle` étaient coupés à l'ellipse dès 100 %
+   de zoom — et le nom à recopier est exactement ce que cette page existe pour
+   donner. Il n'y a ni infobulle ni `title` pour rattraper : couper le texte,
+   c'était retirer l'information. `overflow-wrap: anywhere` casse au tiret
+   plutôt que de déborder. */
+.tc-doc-icon-cell__name {
+  max-inline-size: 100%;
+  color: var(--opale-text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }

@@ -3,6 +3,7 @@ import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
 import { MagicGroundNote, MagicPreamble } from './stage';
 
@@ -156,7 +157,7 @@ export const toastPage: DocPage = {
       <strong>fournisseur plus un hook</strong>. <code>ToastProvider</code> enveloppe l’arbre et
       porte la file, <code>useToast()</code> donne <code>showToast</code>, <code>dismissToast</code>{' '}
       et <code>clearToasts</code>, et les toasts se peignent dans un portail sur{' '}
-      <code>document.body</code>. Quatre variantes, six positions, quatre animations.
+      <code>document.body</code>. Cinq variantes, six positions, quatre animations.
     </>
   ),
   render: () => (
@@ -177,7 +178,7 @@ export const toastPage: DocPage = {
       </p>
 
       <Specimen
-        title="Les quatre variantes — déclenchez-les"
+        title="Les cinq variantes — déclenchez-les"
         note={
           <>
             <strong>
@@ -191,7 +192,9 @@ export const toastPage: DocPage = {
           </>
         }
       >
-        <ToastVariantScene />
+        <MaterialSwitch name="ToastProvider">
+          {(liquidGlass) => <ToastVariantScene liquidGlass={liquidGlass} />}
+        </MaterialSwitch>
       </Specimen>
 
       <Specimen
@@ -243,10 +246,10 @@ export const toastPage: DocPage = {
         erreur de publication était annoncée aussi poliment qu’un brouillon enregistré, c’est-à-dire
         à la fin de ce que l’utilisateur était en train de lire. <code>default</code>,{' '}
         <code>success</code> et <code>info</code> vont dans une région{' '}
-        <code>role=&quot;status&quot;</code> polie ; <code>error</code> va dans une région{' '}
-        <code>role=&quot;alert&quot;</code> assertive, qui interrompt.{' '}
-        <strong>Ce que ce découpage coûte</strong> : à l’intérieur d’un coin, les erreurs se
-        groupent entre elles au lieu de s’intercaler par ordre d’arrivée avec le reste. Deux niveaux
+        <code>role=&quot;status&quot;</code> polie ; <code>warning</code> et <code>error</code> vont
+        dans une région <code>role=&quot;alert&quot;</code> assertive, qui interrompt.{' '}
+        <strong>Ce que ce découpage coûte</strong> : à l’intérieur d’un coin, les messages urgents
+        se groupent entre eux au lieu de s’intercaler par ordre d’arrivée avec le reste. Deux niveaux
         de politesse ne tiennent pas dans une seule région, et entre un empilement chronologique
         parfait et une urgence correctement annoncée, c’est l’urgence qui gagne. Les deux régions
         portent <code>aria-atomic=&quot;false&quot;</code> : <code>role=&quot;status&quot;</code>{' '}

@@ -2,6 +2,8 @@
 
 import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from 'react';
 import { NavBubble } from './nav-bubble';
+import Glass from '../glass/Glass';
+
 import styles from './site-nav.module.css';
 
 export type SiteNavItem = {
@@ -35,6 +37,16 @@ export type SiteNavProps = Omit<ComponentPropsWithoutRef<'header'>, 'children'> 
    * the clicked bubble visible and delegates routing to the consumer.
    */
   readonly onNavigate?: (item: SiteNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
+  /**
+   * Rend la barre dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT ELLE EST ORIGINALE, comme tout composant d'Opale : la barre
+   * garde son aplat d'accent, qui est opaque et ne dépend d'aucun
+   * arrière-plan. Le matériau est une OPTION — et ici elle n'a de sens que
+   * posée sur quelque chose : un verre n'a rien à réfracter au-dessus d'une
+   * page unie.
+   */
+  readonly liquidGlass?: boolean;
 };
 
 /**
@@ -49,11 +61,15 @@ export function SiteNav({
   activeItem,
   navLabel = 'Navigation principale',
   onNavigate,
+  liquidGlass = false,
   className,
   ...headerProps
 }: SiteNavProps) {
-  return (
-    <header className={[styles.bar, className].filter(Boolean).join(' ')} {...headerProps}>
+  const classes = [styles.bar, liquidGlass ? styles.glass : '', className]
+    .filter(Boolean)
+    .join(' ');
+  const content = (
+    <>
       {brand && <div className={styles.brandZone}>{brand}</div>}
 
       <div className={styles.inner}>
@@ -61,6 +77,24 @@ export function SiteNav({
           <NavBubble items={items} activeKey={activeItem} onNavigate={onNavigate} />
         </nav>
       </div>
+    </>
+  );
+
+  /* LE `<header>` RESTE LE MÊME NŒUD DANS LES DEUX MATIÈRES. `Glass` rend la
+     balise demandée pour sa couche de CONTENU : le repère de page et les
+     attributs que l'appelant lui passe ne se déplacent pas sur une enveloppe
+     décorative quand on active le matériau. */
+  if (liquidGlass) {
+    return (
+      <Glass as="header" className={classes} rootClassName={styles.glassRoot} {...headerProps}>
+        {content}
+      </Glass>
+    );
+  }
+
+  return (
+    <header className={classes} {...headerProps}>
+      {content}
     </header>
   );
 }

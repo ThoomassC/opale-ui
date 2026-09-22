@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import glassSource from './components/glass/style/Glass.module.css?raw';
 import opaleSource from './opale.css?raw';
 import { Opale } from './opale';
 
@@ -422,5 +423,776 @@ describe('la technique de sélection des couches', () => {
         "\n\nVisez la couche par son nom — `[data-opale-glass-layer='tint']` — que " +
         '`Glass` pose exprès pour cela et qui survit à l’ajout d’un calque.',
     ).toEqual([]);
+  });
+});
+
+/* =============================================================================
+   L'ACCESSIBILITÉ DU MATÉRIAU, ÉPINGLÉE — PARCE QU'ELLE A DÉJÀ ÉTÉ PERDUE.
+
+   Ces trois décisions ne se voient pas à l'écran tant qu'on ne les cherche pas,
+   et l'une d'elles a DÉJÀ été défaite dans ce dépôt : les anneaux de focus ont
+   été retirés de toute la vitrine sur demande, et le matériau s'est retrouvé
+   sans aucun indicateur — mesuré à l'époque, `outline-width: 0px`.
+
+   Ce fichier lit la feuille du matériau, qui est un module CSS : jsdom ne
+   calcule pas la cascade, donc on ne peut pas mesurer un rendu ici. On épingle
+   donc la RÈGLE, et les mesures qui l'ont motivée sont écrites à côté d'elle
+   dans la feuille.
+   ========================================================================== */
+describe('l’accessibilité du matériau', () => {
+  const glassSheet = glassSource.replace(/\/\*[\s\S]*?\*\//g, '');
+  const opaleSheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /* CE GARDE A DÉJÀ EU TORT DEUX FOIS, ET LES DEUX FOIS DE LA MÊME FAÇON.
+
+     Première version : il exigeait un `outline: 2px solid` et passait au vert
+     — sur un anneau qui n'était pas peint. Le bouton porte un `clip-path` pour
+     sa silhouette en squircle, et un `clip-path` rogne l'`outline` de son
+     propre élément. Mesuré alors : 0 % du périmètre au-dessus de 3:1.
+
+     Deuxième version : il exigeait un `box-shadow: inset`, peint à l'intérieur
+     de la boîte, donc hors d'atteinte du découpage. Correct, et devenu faux le
+     jour où le traitement choisi est passé à une ombre EXTÉRIEURE.
+
+     LA LEÇON, ÉCRITE UNE FOIS POUR TOUTES : un garde de feuille de style ne
+     prouve jamais qu'une règle est PEINTE. Il ne peut vérifier que la
+     cohérence entre la déclaration et ce que la boîte autorise — c'est ce que
+     fait le test suivant, qui interdit au découpage et au halo de coexister
+     sur la même boîte. */
+  it('marque le focus par une ombre extérieure, sans rétablir le rectangle refusé', () => {
+    const rule = /\.glass:has\(:focus-visible\)[^{]*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
+
+    expect(
+      rule,
+      'Le matériau ne marque plus le focus. Les jetons d’anneau de la vitrine ' +
+        'valent `transparent` : sans cette règle, un champ de verre n’a AUCUN ' +
+        'indicateur au clavier (WCAG 2.4.7).',
+    ).toMatch(/box-shadow:\s*var\(\s*--opale-glass-focus-halo/);
+
+    expect(
+      rule,
+      'Le traitement retenu est une ombre AUTOUR de la silhouette. Une ombre ' +
+        '`inset` est peinte dedans : ce serait un autre traitement.',
+    ).not.toMatch(/box-shadow:[^;]*inset/);
+
+    expect(
+      rule,
+      'Un `outline` est rogné par le `clip-path` des composants qui en portent un.',
+    ).not.toMatch(/outline:\s*\d/);
+    expect(rule).not.toMatch(/--opale-focus/);
+    expect(
+      rule,
+      'L’arête du verre doit s’allumer avec le halo : une ombre sombre seule ne ' +
+        'se distingue pas d’un fond sombre.',
+    ).toMatch(/--opale-glass-edge/);
+  });
+
+  /* UN HALO EXTÉRIEUR ET UN DÉCOUPAGE NE PEUVENT PAS COEXISTER SUR UNE BOÎTE.
+
+     C'est la règle que les deux pannes précédentes avaient en commun, et le
+     seul garde qui les aurait vues. Le bouton porte donc sa silhouette sur ses
+     COUCHES : même forme à l'écran, enveloppe libre de peindre autour d'elle.
+
+     CE QUE CE TEST NE PEUT PAS FAIRE : constater que le halo est peint. jsdom
+     ne compose rien. Ce qu'il constate est plus étroit et suffisant — la boîte
+     qui le porte n'a rien qui puisse l'effacer. */
+  it('ne découpe pas l’enveloppe qui porte le halo', () => {
+    const root = /\.opale-button--glass-root\s*\{([^}]*)\}/.exec(opaleSheet)?.[1] ?? '';
+
+    expect(root, '`.opale-button--glass-root` est introuvable.').not.toBe('');
+    expect(
+      root,
+      'L’enveloppe du bouton se découpe elle-même : son `box-shadow` extérieur ' +
+        'est donc rogné, et le focus n’est pas peint. La silhouette doit ' +
+        'descendre sur les couches.',
+    ).not.toMatch(/clip-path/);
+
+    expect(
+      opaleSheet,
+      'La silhouette en squircle a disparu du bouton : elle doit être portée ' +
+        'par les enfants de l’enveloppe.',
+    ).toMatch(/\.opale-button--glass-root > \*\s*\{[^}]*clip-path/);
+  });
+
+  /* LE HALO PORTE DEUX TONS, ET CE N'EST PAS UN GOÛT.
+
+     MESURÉ, sur les pixels du cliché des scènes ramenés à leurs quantiles de
+     luminance et sur les surfaces plates des deux thèmes, en composant l'alpha
+     réel de chaque ombre à chaque distance du bord :
+
+       une ombre marine seule ....... 1,05:1 au pire fond
+       une ombre noire seule ........ 1,10:1
+       les deux tons, réglés ........ 4,08:1
+
+     Le verre se pose aussi bien sur une carte blanche que sur une
+     photographie voilée à 65 %, qui est sombre : aucune teinte unique ne
+     contraste contre les deux. Le plancher de 1.4.11 est 3:1.
+
+     CE QUE CE TEST GARDE, c'est la CONSTRUCTION dont ce résultat dépend —
+     deux tons, aucun bord net —, pas les chiffres eux-mêmes, qu'aucun test en
+     jsdom ne peut recalculer : il faudrait composer des pixels. Voir le
+     premier réglage essayé, qui avait la bonne construction et tombait
+     pourtant à 2,01:1 : la construction est nécessaire, pas suffisante. Ce
+     garde attrape la régression grossière, la mesure attrape le réglage. */
+  it('garde deux tons flous, seule construction qui tienne sur les deux fonds', () => {
+    const halos = [...opaleSheet.matchAll(/--opale-glass-focus-halo:\s*([^;]+);/g)].map((match) =>
+      match[1].replace(/\s+/g, ' ').trim(),
+    );
+
+    expect(halos.length, 'Le halo du focus n’est plus défini nulle part.').toBeGreaterThan(0);
+
+    for (const halo of halos) {
+      expect(
+        halo,
+        `Pas de lueur claire dans « ${halo} » : sur un fond sombre, l’ombre disparaît.`,
+      ).toMatch(/rgba\(255, 255, 255/);
+      expect(
+        halo,
+        `Pas d’ombre sombre dans « ${halo} » : sur un fond clair, la lueur disparaît.`,
+      ).toMatch(/rgba\((?:7, 28, 43|0, 0, 0)/);
+
+      /* Le traitement choisi est une OMBRE, pas un anneau : aucun de ses
+         rayons n'a le droit d'avoir un bord net, ce qu'un flou nul donnerait. */
+      const blurs = [...halo.matchAll(/0 0 (\d+)px/g)].map((match) => Number(match[1]));
+
+      expect(blurs.length, `Les rayons de « ${halo} » sont illisibles.`).toBe(2);
+      for (const blur of blurs) {
+        expect(
+          blur,
+          `Un rayon flouté à ${blur} px dessine un trait, pas une ombre.`,
+        ).toBeGreaterThanOrEqual(4);
+      }
+
+      /* Les deux tons se recouvrent au ras de la boîte, là où chacun est le
+         plus dense, et la lueur DÉLAVE l'ombre. Les écarter dans l'espace est
+         ce qui a fait passer le réglage de 2,01:1 à 4,08:1 — l'étalement de
+         l'ombre sombre doit rester nettement supérieur à celui de la lueur. */
+      const spreads = [...halo.matchAll(/0 0 \d+px (\d+)px/g)].map((match) => Number(match[1]));
+
+      expect(spreads.length, `Les étalements de « ${halo} » sont illisibles.`).toBe(2);
+      expect(
+        spreads[1] - spreads[0],
+        'L’ombre sombre doit s’étaler bien au-delà de la lueur, sans quoi les ' +
+          'deux se recouvrent et se délavent l’une l’autre.',
+      ).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  /* LE CONTRÔLE POSÉ À CÔTÉ DU VERRE DOIT L'ALLUMER AUSSI. La case et
+     l'interrupteur gardent leur `<input>` natif comme FRÈRE du matériau :
+     `:focus-within` ne s'y déclenche jamais, et la page ne changeait pas d'un
+     seul pixel au focus clavier. */
+  it('allume le verre depuis un contrôle qui lui est frère', () => {
+    for (const control of ['opale-checkbox', 'opale-toggle']) {
+      expect(
+        opaleSource,
+        `« .${control} » ne marque pas le focus sur le verre voisin : son ` +
+          '`<input>` est frère du matériau, donc `:focus-within` ne peut pas le voir.',
+      ).toMatch(new RegExp(`\\.${control}:focus-visible \\+ \\[data-opale-glass\\]`));
+    }
+  });
+
+  /* LE CHROME DU NAVIGATEUR DOIT ÊTRE NEUTRALISÉ. Un `<Glass as="button">` nu
+     rendait un bouton au fond `rgb(239, 239, 239)` — opaque, masquant les trois
+     couches, encre blanche à 1,15:1. Tailwind posait ce reset ; en le retirant
+     on l'a perdu sans le remplacer. */
+  it('neutralise le chrome de l’agent utilisateur sur son contenu', () => {
+    const reset =
+      /\.content:where\(button, input, select, textarea\)\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ??
+      '';
+
+    expect(reset, 'Sans `appearance: none`, un bouton natif garde son fond gris.').toMatch(
+      /appearance:\s*none/,
+    );
+    expect(reset).toMatch(/background:\s*transparent/);
+  });
+
+  it('borne le rebond pour qu’il réponde sans fatiguer', () => {
+    const press =
+      /\.glass\[data-opale-glass-press='true'\]:active\s*\{([^}]*)\}/.exec(glassSheet)?.[1] ?? '';
+    const duration = Number(/(\d+)ms/.exec(press)?.[1] ?? 0);
+
+    expect(press, 'Le rebond ne part que sur `:active` — jamais au survol, jamais seul.').toMatch(
+      /animation:/,
+    );
+    expect(
+      duration,
+      `Le rebond dure ${duration} ms. Au-delà d’un quart de seconde, un retour ` +
+        'd’appui cesse d’être un retour et devient une attente.',
+    ).toBeLessThanOrEqual(260);
+    expect(press, 'Un rebond qui se répète est une gêne, pas un retour.').not.toMatch(/infinite/);
+
+    /* L'amplitude reste sous 4 % : la boîte ne bouge pas, donc rien ne se
+       décale autour. C'est ce qui permet d'en mettre partout. */
+    const frames = /@keyframes opale-glass-press\s*\{([\s\S]*?)\n\}/.exec(glassSheet)?.[1] ?? '';
+    const scales = [...frames.matchAll(/scale\(([\d.]+)\)/g)].map((m) => Number(m[1]));
+
+    expect(scales.length, 'Les étapes du rebond sont introuvables.').toBeGreaterThan(2);
+    for (const scale of scales) {
+      expect(
+        Math.abs(scale - 1),
+        `L’étape scale(${scale}) dépasse 4 % d’amplitude.`,
+      ).toBeLessThanOrEqual(0.04);
+    }
+  });
+
+  it('efface le mouvement pour qui en demande moins, sans effacer le focus', () => {
+    const reduced =
+      /@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*)\}/.exec(glassSheet)?.[1] ?? '';
+
+    expect(reduced, 'L’onde doit s’effacer.').toMatch(/\.ripple/);
+    expect(reduced, 'Le rebond doit s’effacer : c’est du mouvement non essentiel.').toMatch(
+      /\.glass\[data-opale-glass-press='true'\]:active/,
+    );
+    /* Le focus, lui, RESTE. Demander moins d'animation n'est pas renoncer à
+       savoir où l'on est : un indicateur est une information, pas un effet. */
+    expect(reduced).not.toMatch(/focus-within/);
+  });
+
+  it('écrit son encre en blanc et dit à quelle condition elle se lit', () => {
+    expect(opaleSource).toMatch(/--opale-glass-ink:\s*#fff/);
+    expect(
+      opaleSource,
+      'L’encre blanche n’a de sens qu’avec un voile sous le matériau : le jeton ' +
+        'qui le porte doit exister, sans quoi on publie du blanc sur du blanc.',
+    ).toMatch(/--opale-glass-scrim:/);
+  });
+});
+
+/* =============================================================================
+   LES SEUILS DE LISIBILITÉ VIENNENT D'UNE MESURE, DONC ILS SE GARDENT.
+
+   Trois nombres de ce système ne sont pas des réglages de goût : le voile sous
+   le matériau, l'opacité plancher d'une encre atténuée, et le fait que l'encre
+   soit blanche. Ils ont été obtenus en échantillonnant le cliché des scènes
+   pixel par pixel, et ils tiennent ensemble — baisser l'un casse les autres.
+
+   CE QUE CE FICHIER NE PEUT PAS FAIRE : mesurer un contraste sur une
+   photographie. jsdom ne peint rien, et le calcul demande les pixels composés.
+   La mesure a donc été faite au navigateur (9 pages à scène, 79 textes ; 10
+   pages de catalogue sous verre, 28 textes — aucun sous 4,5:1). Ce qui est
+   épinglé ici, ce sont les CONSTANTES dont ce résultat dépend : les voir
+   changer sans qu'on refasse la mesure est le vrai risque.
+   ========================================================================== */
+/* =============================================================================
+   LE REBOND APPARTIENT À CE QU'ON PRESSE, PAS À CE QUI L'ENTOURE.
+
+   LE DÉFAUT. `:active` ne désigne pas seulement l'élément touché : la
+   spécification l'applique aussi à TOUS SES ANCÊTRES. Une règle `.glass:active`
+   faisait donc rebondir le conteneur de verre dès qu'on cliquait n'importe quoi
+   dedans — une entrée du sommaire faisait sauter le sommaire entier, un bouton
+   dans une modale faisait sauter la modale.
+
+   POURQUOI AUCUN TEST NE L'A VU. Celui qui gardait le rebond lisait la FEUILLE
+   et vérifiait sa durée, son amplitude et son absence de répétition. Trois
+   bonnes questions, et pas la quatrième : SUR QUOI il part. Un contrôle de
+   valeurs ne dit jamais rien du périmètre d'un sélecteur.
+
+   CE QUI EST VÉRIFIÉ ICI est donc le périmètre, sur le DOM rendu et non sur la
+   feuille : l'attribut que la règle exige est présent sur les activables et
+   absent des surfaces. jsdom ne peignant aucune animation, l'attribut est le
+   seul témoin observable — et c'est justement celui que la feuille lit.
+   ========================================================================== */
+describe('le périmètre du rebond', () => {
+  /** L'enveloppe de verre la plus externe du rendu. */
+  const envelope = (container: HTMLElement) =>
+    container.querySelector('[data-opale-glass]') as HTMLElement | null;
+
+  const PRESSABLE = [
+    { name: 'Button', render: () => <Opale.Button liquidGlass>Continuer</Opale.Button> },
+    /* La case et l'interrupteur gardent leur `<input>` À CÔTÉ du verre : la
+       coquille est un `<span>`, que rien ne distingue d'une surface. C'est le
+       cas que la déduction par balise ne peut pas voir, et le réglage explicite
+       est là pour lui. */
+    { name: 'Checkbox', render: () => <Opale.Checkbox liquidGlass label="Oui" /> },
+    { name: 'Toggle', render: () => <Opale.Toggle liquidGlass label="Actif" /> },
+  ];
+
+  const SURFACES = [
+    {
+      name: 'Card',
+      render: () => (
+        <Opale.Card liquidGlass title="Titre">
+          Corps
+        </Opale.Card>
+      ),
+    },
+    { name: 'Input', render: () => <Opale.Input liquidGlass label="Nom" /> },
+    { name: 'Select', render: () => <Opale.Select liquidGlass label="Choix" options={[]} /> },
+    { name: 'Badge', render: () => <Opale.Badge liquidGlass>Neuf</Opale.Badge> },
+  ];
+
+  for (const { name, render: renderOne } of PRESSABLE) {
+    it(`fait rebondir ${name}, qu'on presse`, () => {
+      const { container } = render(renderOne());
+
+      expect(
+        envelope(container),
+        `${name} est une cible d'activation : son verre doit répondre à l'appui.`,
+      ).toHaveAttribute('data-opale-glass-press', 'true');
+    });
+  }
+
+  for (const { name, render: renderOne } of SURFACES) {
+    it(`laisse ${name} immobile, qu'on ne presse pas`, () => {
+      const { container } = render(renderOne());
+
+      expect(
+        envelope(container),
+        `${name} est une surface. Marquée pressable, elle rebondirait à chaque ` +
+          "clic sur ce qu'elle contient, `:active` remontant aux ancêtres.",
+      ).not.toHaveAttribute('data-opale-glass-press');
+    });
+  }
+
+  /* Le cas complet : un bouton de verre DANS une carte de verre. Le seul qui
+     reproduise la panne — deux enveloppes, une seule doit répondre. */
+  it('ne fait rebondir que le bouton, pas la carte qui le porte', () => {
+    const { container } = render(
+      <Opale.Card liquidGlass title="Titre">
+        <Opale.Button liquidGlass>Continuer</Opale.Button>
+      </Opale.Card>,
+    );
+
+    const envelopes = [...container.querySelectorAll('[data-opale-glass]')];
+    const pressing = envelopes.filter((node) => node.hasAttribute('data-opale-glass-press'));
+
+    expect(envelopes.length, 'Les deux matériaux doivent bien être rendus.').toBe(2);
+    expect(
+      pressing,
+      'Une seule enveloppe doit rebondir : celle du bouton. Si la carte la ' +
+        "rejoint, tout clic à l'intérieur fait sauter la carte entière.",
+    ).toHaveLength(1);
+    expect(pressing[0]?.querySelector('button')).not.toBeNull();
+  });
+});
+
+/* =============================================================================
+   LE CURSEUR SOUS VERRE : LA PISTE EST LE MATÉRIAU, LA BULLE EST PEINTE.
+
+   CE QUI A CHANGÉ, ET POURQUOI IL FAUT LE GARDER. Le curseur laissait l'agent
+   utilisateur peindre sa propre piste dans la boîte de verre : un rail opaque
+   qui touchait les bords du matériau et le débordait. La piste est désormais
+   l'enveloppe elle-même, et deux décorations — la part mouillée, la bulle —
+   sont peintes par Opale depuis une variable CSS.
+
+   CE QUE CES TESTS SURVEILLENT EN PRIORITÉ, ce n'est pas l'apparence : c'est
+   que le remplacement n'a rien pris à l'utilisateur. Un contrôle natif rendu
+   invisible est la manière la plus courante de casser un curseur sans que
+   rien ne se voie — il suffit de le cacher un peu trop bien.
+   ========================================================================== */
+describe('le curseur sous verre', () => {
+  const opaleSheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /** Le conteneur du curseur, qui porte les variables lues par les décorations.
+      C'est le parent du natif : la part mouillée vit dans le verre, la bulle
+      dehors, et seul un ancêtre commun peut les servir toutes les deux. */
+  const shellOf = (container: HTMLElement) =>
+    container.querySelector('.opale-range-field') as HTMLElement;
+
+  it('écrit la position dans le DOM au lieu de re-rendre le composant', () => {
+    const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={40} />);
+    const shell = shellOf(container);
+
+    expect(
+      shell.style.getPropertyValue('--opale-range-progress'),
+      'La position doit être posée dès le montage, sans attendre un geste.',
+    ).toBe('0.4');
+
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '75' } });
+
+    expect(shell.style.getPropertyValue('--opale-range-progress')).toBe('0.75');
+  });
+
+  it('respecte min et max plutôt que de supposer 0–100', () => {
+    const { container } = render(
+      <Opale.Slider liquidGlass label="Température" min={10} max={30} defaultValue={25} />,
+    );
+
+    expect(
+      shellOf(container).style.getPropertyValue('--opale-range-progress'),
+      '25 sur l’échelle 10–30 vaut les trois quarts de la course, pas le quart.',
+    ).toBe('0.75');
+  });
+
+  /* LA DÉFORMATION EST BORNÉE, ET LA BORNE SE VÉRIFIE SUR LE CAS QUI LA
+     SOLLICITE : un clic à l'autre bout de la piste envoie toute la course en
+     un seul événement. Sans écrêtage, la bulle deviendrait un trait. */
+  it('borne l’allongement de la bulle, même sur un saut d’un bout à l’autre', () => {
+    const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={0} />);
+    const shell = shellOf(container);
+
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } });
+
+    const stretch = Number(shell.style.getPropertyValue('--opale-range-stretch'));
+
+    expect(stretch, 'Aucun allongement n’a été posé.').toBeGreaterThan(0);
+    expect(stretch, `Allongement de ${stretch} : la goutte devient un trait.`).toBeLessThanOrEqual(
+      0.22,
+    );
+  });
+
+  it('laisse la goutte se reposer quand le geste s’arrête', () => {
+    vi.useFakeTimers();
+
+    try {
+      const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={10} />);
+      const shell = shellOf(container);
+
+      fireEvent.change(screen.getByRole('slider'), { target: { value: '60' } });
+      expect(Number(shell.style.getPropertyValue('--opale-range-stretch'))).toBeGreaterThan(0);
+
+      vi.advanceTimersByTime(200);
+
+      expect(
+        shell.style.getPropertyValue('--opale-range-stretch'),
+        'Sans retour au repos, la bulle resterait étirée indéfiniment.',
+      ).toBe('0');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  /* WCAG 2.3.3. L'allongement est écrit en JavaScript : un style en ligne
+     l'emporte sur toute règle de la feuille, donc `@media
+     (prefers-reduced-motion)` ne pourrait pas le retirer. La préférence doit
+     être lue à la source, et c'est exactement ce que ce test vérifie. */
+  it('n’étire rien quand on demande moins d’animation', () => {
+    const matchMedia = vi.fn((query: string) => ({
+      matches: query.includes('prefers-reduced-motion'),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    const previous = window.matchMedia;
+    Object.defineProperty(window, 'matchMedia', { value: matchMedia, configurable: true });
+
+    try {
+      const { container } = render(<Opale.Slider liquidGlass label="Volume" defaultValue={0} />);
+
+      fireEvent.change(screen.getByRole('slider'), { target: { value: '100' } });
+
+      expect(
+        shellOf(container).style.getPropertyValue('--opale-range-stretch'),
+        'La déformation doit être décidée en JavaScript : la feuille ne peut ' +
+          'pas défaire un style en ligne.',
+      ).toBe('');
+      expect(
+        shellOf(container).style.getPropertyValue('--opale-range-progress'),
+        'La position, elle, n’est pas du mouvement : elle reste posée.',
+      ).toBe('1');
+    } finally {
+      Object.defineProperty(window, 'matchMedia', { value: previous, configurable: true });
+    }
+  });
+
+  it('ne peint ses décorations que sous verre', () => {
+    const { container, rerender } = render(<Opale.Slider label="Volume" defaultValue={40} />);
+
+    expect(container.querySelector('.opale-range-bubble')).toBeNull();
+    expect(container.querySelector('.opale-range-wet')).toBeNull();
+
+    rerender(<Opale.Slider liquidGlass label="Volume" defaultValue={40} />);
+
+    for (const selector of ['.opale-range-bubble', '.opale-range-wet']) {
+      const decoration = container.querySelector(selector);
+
+      expect(decoration, `${selector} manque sous verre.`).not.toBeNull();
+      expect(
+        decoration,
+        `${selector} est un dessin : annoncé, il doublerait le curseur natif.`,
+      ).toHaveAttribute('aria-hidden', 'true');
+    }
+
+    expect(screen.getAllByRole('slider')).toHaveLength(1);
+  });
+
+  /* LE PIÈGE DE CE COMPOSANT : le natif doit DISPARAÎTRE à l'œil sans
+     disparaître de l'ordre de tabulation ni de l'arbre d'accessibilité.
+     `display: none` et `visibility: hidden` font les deux ; l'opacité nulle ne
+     fait que la première. Le test lit la feuille, faute de mise en page en
+     jsdom, et il vise la faute précise qu'on pourrait commettre en voulant
+     « mieux » cacher le contrôle. */
+  it('cache le contrôle natif sans le retirer du clavier', () => {
+    /* Le sélecteur apparaît dans PLUSIEURS blocs — il termine aussi une liste
+       partagée avec les champs, qui n'y pose qu'une couleur. Les réunir évite
+       de lire le premier venu et de conclure sur le mauvais. */
+    const rule = [...opaleSheet.matchAll(/\.opale-range-field \.opale-range[^,{]*\{([^}]*)\}/g)]
+      .map((match) => match[1])
+      .join('\n');
+
+    expect(rule, 'La règle qui cache le natif est introuvable.').not.toBe('');
+    expect(rule, 'Le natif doit être effacé par l’opacité.').toMatch(/opacity:\s*0/);
+    expect(rule, '`display: none` retirerait le curseur du clavier.').not.toMatch(
+      /display:\s*none/,
+    );
+    expect(rule, '`visibility: hidden` le retirerait aussi.').not.toMatch(/visibility:\s*hidden/);
+  });
+
+  /* L'INDICATEUR DE FOCUS DOIT DISPARAÎTRE QUAND ON LÂCHE LA GOUTTE.
+
+     `:focus-within` et `:focus` s'allument sur n'importe quelle prise de
+     focus, clic de souris compris : après un glissement, le natif garde le
+     focus et le halo restait affiché jusqu'au prochain clic ailleurs. Un
+     curseur n'attend pas de saisie textuelle, donc les navigateurs ne lui
+     accordent `:focus-visible` qu'au clavier — c'est la seule des trois
+     pseudo-classes qui produise le comportement voulu.
+
+     CE QUE CE TEST NE PEUT PAS FAIRE : rejouer un glissement et constater
+     l'extinction. jsdom ne décide pas de `:focus-visible`, qui est une
+     heuristique du navigateur. Il vérifie donc la pseudo-classe employée,
+     c'est-à-dire la cause. */
+  it('éteint le focus de la bulle dès qu’on lâche la souris', () => {
+    const rules = [...opaleSheet.matchAll(/([^{}]*\.opale-range-bubble[^{}]*)\{([^}]*)\}/g)];
+    const focusRules = rules.filter(([, selector]) => /:focus/.test(selector));
+
+    expect(focusRules.length, 'Aucune règle de focus sur la bulle.').toBeGreaterThan(0);
+
+    for (const [, selector] of focusRules) {
+      expect(
+        selector,
+        `« ${selector.trim()} » garde le halo allumé après un clic de souris.`,
+      ).not.toMatch(/:focus(?!-visible)/);
+    }
+
+    /* Et le halo doit bien être celui du matériau, pas un anneau réinventé. */
+    expect(
+      focusRules.map(([, , body]) => body).join('\n'),
+      'La bulle doit porter le halo du verre, comme tout le reste.',
+    ).toMatch(/var\(--opale-glass-focus-halo\)/);
+  });
+
+  /* LE NIVEAU D'EAU SUIT LE CENTRE DE LA BULLE, PAS LA FRACTION BRUTE.
+
+     La bulle court sur `100% - sa largeur`, donc son centre n'est pas à
+     `fraction × 100%`. Remplir jusqu'à cette fraction laissait l'eau en
+     retrait de la poignée d'un écart proportionnel à la largeur de la bulle —
+     visible dès qu'on l'a élargie. Les deux doivent partager le même terme de
+     course. */
+  it('arrête la part mouillée au centre de la bulle', () => {
+    const wet = /\.opale-range-wet \{([^}]*)\}/.exec(opaleSheet)?.[1] ?? '';
+    const width = /inline-size:\s*calc\(([\s\S]*?)\);/.exec(wet)?.[1] ?? '';
+
+    expect(wet, 'La part mouillée est introuvable.').not.toBe('');
+    expect(
+      width.replace(/\s+/g, ' '),
+      'La part mouillée doit partir d’une demi-largeur de bulle et suivre la ' +
+        'même course qu’elle, sans quoi le niveau d’eau est décalé de la poignée.',
+    ).toMatch(
+      /var\(--opale-range-bubble-width\) \/ 2 \+ var\(--opale-range-progress, 0\) \* \( ?100% - var\(--opale-range-bubble-width\) ?\)/,
+    );
+  });
+
+  /* LA BULLE SE PLACE SUR LA COURSE UTILE, PAS SUR LA LARGEUR DE LA PISTE.
+     Sinon elle sort d'un demi-diamètre aux deux extrémités — c'est-à-dire
+     exactement le défaut qu'on vient de corriger sur la piste native, reporté
+     sur la poignée. */
+  it('garde la bulle dans la piste aux deux extrémités', () => {
+    const rule = /\.opale-range-bubble \{([^}]*)\}/.exec(opaleSheet)?.[1] ?? '';
+    const offset = /inset-inline-start:\s*calc\(([^;]*)\);/.exec(rule)?.[1] ?? '';
+
+    expect(rule, 'La bulle est introuvable.').not.toBe('');
+    expect(
+      offset,
+      'La bulle se place sur 100 % de la piste : elle déborde d’une demi-' +
+        'largeur à gauche comme à droite. Sa course utile est `100% - sa largeur`.',
+    ).toMatch(/100%\s*-\s*(?:[\d.]+rem|var\(--opale-range-bubble-width\))/);
+  });
+});
+
+/* =============================================================================
+   L'ENVELOPPE DOIT COLLER À LA PEAU QU'ELLE HABILLE.
+
+   LE DÉFAUT OBSERVÉ. L'interrupteur montrait deux arêtes au bas de sa pilule.
+   Sa piste est `inline-flex` : dans l'enveloppe, qui est un bloc, elle forme
+   une LIGNE, et une ligne réserve sous elle la place des jambages. Mesuré au
+   navigateur : enveloppe 31,59 px pour une piste de 28. Le filet spéculaire
+   du matériau traçait son arête en bas de l'enveloppe, le fond de la piste la
+   sienne trois pixels et demi plus haut.
+
+   POURQUOI CE TEST LIT LA FEUILLE ET NON LA PAGE. jsdom ne met rien en page :
+   il rend toutes les hauteurs nulles, donc l'écart est invisible pour lui. Ce
+   qui se vérifie ici est la CAUSE — une coquille de verre ne doit pas être de
+   niveau ligne — et elle se vérifie pour toutes les coquilles à la fois, pas
+   seulement pour celle qui a fauté.
+   ========================================================================== */
+describe('les coquilles de verre', () => {
+  const opaleSheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /** Les peaux posées DANS une enveloppe de verre, et leur `display` final. */
+  const SKINS = [
+    'opale-toggle-track--glass',
+    'opale-checkbox-mark--glass',
+    'opale-input-shell--glass',
+    'opale-range-shell--glass',
+    'opale-badge--glass',
+  ];
+
+  it('ne pose aucune peau de niveau ligne dans une enveloppe', () => {
+    for (const skin of SKINS) {
+      /* La DERNIÈRE déclaration gagne à spécificité égale, et toutes ces
+         règles pèsent (0,1,0) : c'est donc la dernière qu'il faut lire. */
+      const displays = [
+        ...opaleSheet.matchAll(new RegExp(`\\.${skin}(?![\\w-])[^,{]*\\{([^}]*)\\}`, 'g')),
+      ]
+        .flatMap((match) => [...match[1].matchAll(/display:\s*([\w-]+)/g)])
+        .map((match) => match[1]);
+
+      const display = displays.at(-1);
+
+      if (display === undefined) continue;
+
+      expect(
+        display,
+        `« .${skin} » est en « ${display} » : de niveau ligne, elle forme une ` +
+          'ligne dans son enveloppe, qui réserve sous elle la place des ' +
+          'jambages. L’enveloppe devient plus haute que la peau et le matériau ' +
+          'trace une seconde arête en dessous.',
+      ).not.toMatch(/^inline/);
+    }
+  });
+
+  /* LE PIÈGE DE CASCADE QUI A MASQUÉ LE VERRE. `.opale-toggle-track--glass`
+     posait `background: transparent` depuis le bloc commun des peaux, écrit
+     AVANT `.opale-toggle-track`. Les deux pèsent (0,1,0) : à égalité c'est
+     l'ordre qui tranche, et la piste colorée gagnait. On voyait une pilule
+     plate là où on attendait du verre — et rien ne rougissait. */
+  it('laisse la peau de verre gagner sur la peau pleine', () => {
+    /* La position de la DERNIÈRE règle dont un sélecteur est EXACTEMENT cette
+       classe, et qui peint un fond.
+
+       « exactement » n'est pas un détail : une première version se contentait
+       de chercher la classe quelque part dans le sélecteur, si bien que
+       « .opale-toggle:checked + * .opale-toggle-track--glass » la satisfaisait
+       — et le garde restait vert alors que la règle nue avait disparu. Le
+       test de mutation l'a montré. */
+    const lastBareRule = (className: string): number => {
+      let found = -1;
+
+      for (const rule of opaleSheet.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+        const selectors = rule[1].split(',').map((one) => one.trim());
+
+        if (!selectors.includes(`.${className}`)) continue;
+        if (!/background:/.test(rule[2])) continue;
+
+        found = rule.index ?? found;
+      }
+
+      return found;
+    };
+
+    for (const [plein, verre] of [['opale-toggle-track', 'opale-toggle-track--glass']]) {
+      const positionPleine = lastBareRule(plein);
+      const positionVerre = lastBareRule(verre);
+
+      expect(positionPleine, `« .${plein} » ne peint aucun fond.`).toBeGreaterThan(-1);
+      expect(
+        positionVerre,
+        `« .${verre} » ne reprend aucun fond pour son propre compte.`,
+      ).toBeGreaterThan(-1);
+      expect(
+        positionVerre,
+        `« .${verre} » est déclarée AVANT « .${plein} ». À spécificité égale, ` +
+          'c’est la dernière qui gagne : le fond plein recouvrirait le verre.',
+      ).toBeGreaterThan(positionPleine);
+    }
+  });
+});
+
+/* =============================================================================
+   IL N'Y A PLUS QU'UN SEUL VERRE.
+
+   `.opale-liquid` ÉTAIT L'IMITATION D'AVANT LA RÉÉCRITURE : deux dégradés
+   radiaux, un `backdrop-filter` et le lavis laiteux `--opale-glass-surface`.
+   Elle a survécu à la bascule sur deux composants — la liste multiple et la
+   carte de fichier —, si bien qu'une même page pouvait afficher deux verres
+   différents côte à côte, l'un réfractant la photographie et l'autre non.
+
+   Le nom, lui, ne dit pas qu'il s'agit d'une imitation : rien n'empêchait
+   qu'on le reprenne de bonne foi. D'où ce garde, qui interdit son retour et
+   dit où aller à la place.
+   ========================================================================== */
+describe('le matériau unique', () => {
+  it('ne laisse pas revenir l’imitation en lavis', () => {
+    const sheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    expect(
+      sheet,
+      '`.opale-liquid` est l’ancienne imitation du verre. Le matériau se ' +
+        'demande par la prop `liquidGlass`, qui passe par `Glass` : une classe ' +
+        'de lavis donnerait un second verre, plus pâle et sans réfraction.',
+    ).not.toMatch(/\.opale-liquid(?![\w-])/);
+  });
+
+  it('rend la liste multiple avec le matériau et rien d’autre', () => {
+    const { container, rerender } = render(
+      <Opale.MultiSelect label="Domaines" options={[{ value: 'a', label: 'A' }]} />,
+    );
+
+    expect(container.querySelector('[data-opale-glass]')).toBeNull();
+
+    rerender(
+      <Opale.MultiSelect liquidGlass label="Domaines" options={[{ value: 'a', label: 'A' }]} />,
+    );
+
+    const envelope = container.querySelector('[data-opale-glass]');
+
+    expect(
+      envelope,
+      'La liste multiple doit porter le matériau comme les autres champs.',
+    ).not.toBeNull();
+    /* Et le contrôle reste le même des deux côtés : c'est la règle de toutes
+       les fusions de ce fichier. */
+    expect(screen.getAllByRole('listbox')).toHaveLength(1);
+    expect(screen.getByRole('option', { name: 'A' })).toBeInTheDocument();
+  });
+});
+
+describe('les seuils de lisibilité du verre', () => {
+  /** L'opacité plancher d'une encre blanche, mesurée : en dessous, AA tombe. */
+  const PLANCHER = 0.85;
+
+  it('garde le voile à l’opacité qui rend le blanc conforme', () => {
+    const scrim = /--opale-glass-scrim:\s*rgba\(7,\s*28,\s*43,\s*([\d.]+)\)/.exec(opaleSource)?.[1];
+
+    expect(scrim, '`--opale-glass-scrim` est introuvable ou a changé de forme.').toBeDefined();
+    expect(
+      Number(scrim),
+      `Le voile est à ${scrim}. Mesuré sur le cliché des scènes : à 0,60 le blanc ` +
+        'tombe à 4,19:1 à travers le lavis du verre, sous le seuil AA. 0,65 est le ' +
+        'premier palier conforme (4,87:1). Le baisser demande de refaire la mesure.',
+    ).toBeGreaterThanOrEqual(0.65);
+  });
+
+  it('ne laisse aucune encre atténuée passer sous le plancher mesuré', () => {
+    const muted = /--opale-glass-ink-muted:\s*rgba\(255,\s*255,\s*255,\s*([\d.]+)\)/.exec(
+      opaleSource,
+    )?.[1];
+
+    expect(muted, '`--opale-glass-ink-muted` est introuvable.').toBeDefined();
+    expect(
+      Number(muted),
+      `L’encre atténuée est à ${muted}. Sur le pixel le plus clair du cliché voilé, ` +
+        `le premier palier qui tient 4,5:1 est ${PLANCHER}. En dessous, un texte ` +
+        'indicatif devient non conforme — et personne ne mesure jamais une atténuation.',
+    ).toBeGreaterThanOrEqual(PLANCHER);
+  });
+
+  it('reprend l’encre des pièces qui déclarent la leur', () => {
+    /* Carte, statistique, pastille et libellé de champ posent leur propre
+       couleur, pensée pour la carte blanche. Sous verre elles doivent la
+       reprendre, sinon on mesure 1,20:1 — ce qui est arrivé. */
+    for (const piece of [
+      '.opale-stat-card__value',
+      '.opale-card__title',
+      '.opale-badge',
+      '.opale-field__label',
+    ]) {
+      expect(
+        opaleSource,
+        `« ${piece} » ne reprend pas l’encre du verre : sa couleur propre, pensée ` +
+          'pour un fond clair, restera sur la photographie.',
+      ).toMatch(new RegExp(`\\[data-opale-glass\\][^{]*${piece.replace('.', '\\.')}`));
+    }
   });
 });

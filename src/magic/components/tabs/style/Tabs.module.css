@@ -24,8 +24,23 @@
   /* L'encre et les voiles du matériau. Cinq réglages, et le seul endroit de
      cette feuille où une couleur est écrite. */
   --opale-tabs-ink: rgba(255, 255, 255, 0.94);
-  --opale-tabs-surface: rgba(255, 255, 255, 0.1);
-  --opale-tabs-indicator: rgba(255, 255, 255, 0.28);
+  /* LE VOILE DE LA CAPSULE ASSOMBRIT, LUI AUSSI. C'est lui, et non seulement
+     l'indicateur, qui se trouve sous les libellés : blanc à 10 %, il éclaircit
+     la photographie exactement là où le texte blanc doit se lire. Le bleu nuit
+     à 48 % donne la même séparation visuelle en poussant dans le bon sens. */
+  --opale-tabs-surface: rgba(7, 28, 43, 0.48);
+  /* LA PASTILLE ASSOMBRIT AU LIEU D'ÉCLAIRCIR, ET C'EST UNE CORRECTION MESURÉE.
+
+     Elle était un voile BLANC à 28 %, posé exactement sous le libellé de
+     l'onglet sélectionné — c'est-à-dire sous le texte le plus important de la
+     barre. Le libellé étant blanc lui aussi, il se retrouvait sur un fond
+     éclairci : **2,37:1** au pire pixel, 2,78 en médiane. L'onglet actif était
+     le moins lisible des trois.
+
+     Un voile sombre remplit la même fonction — distinguer l'onglet retenu —
+     sans lutter contre son propre libellé. Il donne au passage une lecture
+     d'enfoncement, qui est la métaphore juste pour une sélection. */
+  --opale-tabs-indicator: rgba(7, 28, 43, 0.55);
   --opale-tabs-highlight: var(--opale-glass-highlight, rgba(255, 255, 255, 0.35));
   /* L'ANNEAU DE FOCUS SUIT L'ENCRE, PAS `--opale-focus`. Le saphir d'Opale est
      fait pour le fond crème de la vitrine ; posé sur la scène sombre où ce
@@ -194,4 +209,73 @@
   .tabsIndicator[data-animated='true'] {
     transition: none;
   }
+}
+
+/* =============================================================================
+   LA VERSION ORIGINALE.
+
+   Les onglets ne savaient rendre que du verre : sans matériau, ni le bandeau
+   ni ses déclencheurs n'avaient de fond, de bord ou d'encre propres. Ce bloc
+   leur donne la surface pleine d'Opale.
+
+   LE DÉCLENCHEUR REÇOIT LES DEUX CLASSES DE GÉOMÉTRIE — celle de l'enveloppe
+   et celle du contenu — sur un seul `<button>` : sans matériau, il n'y a plus
+   d'enveloppe à habiller. Rien d'autre n'est repris : l'espacement, la taille
+   de cible et l'état sélectionné restent ceux des règles au-dessus.
+   ========================================================================== */
+.plain {
+  /* LES JETONS DU BANDEAU SONT BLANCS, PARCE QU'ILS ONT ÉTÉ ÉCRITS POUR LE
+     VERRE. Sur la surface pleine, l'encre était bien reprise par
+     `.plainTrigger` — mais pas L'ANNEAU DE FOCUS, qui dérive du même jeton :
+     il se dessinait donc en blanc à 94 % sur un fond blanc, c'est-à-dire nulle
+     part (WCAG 2.4.7). Redéfinir les jetons À LA RACINE du bandeau les corrige
+     tous les deux d'un coup, et couvre aussi le panneau de contenu, qui est
+     focalisable et tire du même endroit. */
+  --opale-tabs-ink: var(--opale-text);
+  --opale-tabs-focus: var(--opale-focus);
+  /* LES TROIS AUTRES JETONS DE VERRE, QUE LA PREMIÈRE REPRISE AVAIT LAISSÉS.
+
+     `--opale-tabs-indicator` est le voile SOMBRE qui glisse sous l'onglet
+     retenu : réglé pour une photographie, il devenait une plaque ardoise au
+     milieu d'une carte blanche, sous un libellé peint en primaire. Mesuré,
+     #315c9e sur rgb(110,126,141) : 1,59:1 en thème clair — l'onglet actif,
+     c'est-à-dire la seule information de la barre, était illisible pendant que
+     ses voisins au repos tenaient 7,18:1.
+
+     `--opale-tabs-surface` faisait la même chose au panneau de contenu, dont
+     l'anneau de focus tombait à 2,10:1 : au clavier, on ne voyait pas qu'on
+     venait d'y entrer.
+
+     La pastille devient donc le lavis primaire du reste d'Opale — celui de
+     `.opale-segmented__indicator`, qui est le même motif —, et le panneau
+     redevient transparent sur la carte qui le porte. */
+  --opale-tabs-indicator: color-mix(in srgb, var(--opale-primary) 12%, transparent);
+  --opale-tabs-highlight: transparent;
+  --opale-tabs-surface: transparent;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+}
+
+.plainTrigger {
+  border: 0;
+  background: transparent;
+  color: var(--opale-text-secondary);
+  cursor: pointer;
+}
+
+/* L'ONGLET RETENU NE PEINT PLUS SON PROPRE FOND : c'est la pastille qui le
+   fait, et elle GLISSE d'un onglet à l'autre. Deux fonds superposés ne se
+   déplacent pas, ils sautent — le raisonnement est écrit en toutes lettres sur
+   `SegmentedControl`, qui a le même motif. */
+.plainTrigger[aria-selected='true'] {
+  color: var(--opale-primary-on-surface);
+  font-weight: 600;
+}
+
+.plainTrigger:disabled {
+  color: var(--opale-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.55;
 }

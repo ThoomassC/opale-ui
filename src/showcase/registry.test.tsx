@@ -146,13 +146,52 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
    ils n'ont simplement plus de nom public, donc plus de page à exiger.
 
-   IL NE RESTE QUE HUIT EXPORTS NON PRÉFIXÉS `Opale` : `Glass`, `Modal`,
-   `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` et `Topbar`.
-   Ce sont exactement les huit vendorés sans jumeau Opale, et exactement les
-   huit pages qui subsistent dans `src/showcase/pages/composants/`. Si ce
+   IL NE RESTE QUE SEPT EXPORTS NON PRÉFIXÉS `Opale` : `Modal`, `SearchBar`,
+   `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` et `Topbar`. Ce sont
+   exactement les sept vendorés sans jumeau Opale, et exactement les sept
+   pages qui subsistent dans `src/showcase/pages/composants/`. `Glass` a
+   quitté la liste : le matériau n'est pas un composant, et `liquidGlass`
+   l'atteint sur chacun des autres. Si ce
    chiffre bouge sans qu'un composant ait été ajouté ou retiré, c'est le barril
    qu'il faut relire. */
-const PUBLISHED_COMPONENT_COUNT = 85;
+/* 85 AVANT LE RETRAIT DE QUATRE PASSE-PLATS.
+
+   `Carousel` rendait `<div className="opale-card-grid">` — la classe de
+   `CardGrid` — sans défilement ni navigation ; `FileUploader` rendait
+   `<Dropzone/>` en perdant ses `children` ; `SlidingIndicator` rendait la
+   piste de `SegmentedControl` sans l'indicateur qui glisse ; et
+   `ShapeBackground` était `BackgroundSurface` plus un `::after`, désormais sa
+   prop `shape`. Aucun des quatre n'avait d'usage hors de sa propre
+   démonstration. Rupture d'API assumée, à consigner dans les notes de
+   version. */
+/* 80 AVANT L'AUDIT D'UTILITÉ, ET VOICI LE CRITÈRE QUI A RETIRÉ LES
+   VINGT-QUATRE : un composant mérite sa place s'il porte quelque chose qu'un
+   consommateur n'obtient pas en écrivant UNE ligne de JSX avec les pièces
+   d'Opale déjà publiées — un comportement, un contrat d'accessibilité, ou une
+   peinture non triviale. Quatre familles y ont échoué :
+
+   — LES PASSE-PLATS. `I18n` et `LocalStore` rendaient `<>{children}</>` : zéro
+     balisage, zéro comportement. Un fournisseur qui ne fournit rien.
+   — LES ALIAS À LIBELLÉ EN DUR. `Http` et `Validation` rendaient un
+     `StatusChip` — lequel rendait un `Badge` —, `Sound` un `Toggle` étiqueté
+     « Sons », `ThemeToggle` un `Toggle` étiqueté « Thème » qui ne changeait
+     aucun thème, `LanguageSelector` un `Select` de trois langues écrites dans
+     la librairie, `SettingsMenu` un `Menu` étiqueté « Réglages », et les cinq
+     boutons spécialisés un `Button` dont le mot français était figé — donc
+     inutilisables hors du français.
+   — LES DIV À CLASSE. `Scrollbar`, `PageScaffold`, `PageContent`, `Separator`
+     et `Toolbar` : un élément, une classe, rien d'autre. `Toolbar` était en
+     outre un faux ami, sans `role="toolbar"` ni navigation au clavier.
+   — LES PROMESSES NON TENUES. `Map` annonçait « marqueurs, bulles et clic » et
+     rendait un `<div>` vide — `SvgMap`, à côté, est la vraie carte ; `Legend`
+     ignorait la couleur de ses entrées, dans un composant dont c'est le seul
+     objet ; `RouteGuard` était de la logique de routage, et un garde qui ne
+     fait que cacher de l'interface n'a pas sa place dans une librairie d'UI ;
+     `Game` était une démonstration ; `Countdown` dérivait et ignorait
+     l'échéance absolue que sa fiche promettait.
+
+   Rupture d'API assumée, à consigner dans les notes de version. */
+const PUBLISHED_COMPONENT_COUNT = 56;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {
