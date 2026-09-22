@@ -3356,6 +3356,57 @@ body {
    TOUTES les zones du cliché, y compris les plus claires, en ajoutant un bord
    sombre sous chaque glyphe. C'est la même technique que sous les
    démonstrations de verre du catalogue, et pour la même raison. */
+/* =============================================================================
+   LA SCÈNE UNIE, POUR L'ÉTAT ORIGINAL.
+
+   Les six composants à dossier ne savaient rendre que du verre : leur page les
+   montrait donc toujours sur la photographie, qui est le seul terrain où un
+   matériau réfractant se voit. Maintenant qu'ils ont aussi leur version
+   pleine, il fallait un terrain pour elle — et ce n'est pas la photo : une
+   surface unie posée sur un paysage n'apprend rien, elle le cache.
+
+   MÊME BOÎTE QUE LA SCÈNE DE VERRE, à dessein : on compare deux matières, pas
+   deux mises en page. Seuls le fond et l'encre changent.
+   ========================================================================== */
+/* La rangée de déclencheurs d'une scène qui n'en pose plus : la file de
+   notifications reçoit la sienne du commutateur de matière. */
+.tc-doc-opale-scenerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.tc-doc-opale-plainstage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--opale-surface-sunken);
+  color: var(--opale-text);
+}
+
+.tc-doc-opale-plainstage--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* LE LIBELLÉ D'UNE FIGURE SUIT LA SCÈNE QUI LE PORTE. Écrit pour la
+   photographie, il est clair et ombré ; sur la surface unie, il doit reprendre
+   l'encre de la page, sans quoi il devient blanc sur gris pâle. */
+.tc-doc-opale-plainstage .tc-doc-magicstage__label,
+.tc-doc-opale-plainstage .tc-doc-magicstage__cell {
+  color: var(--opale-text);
+  text-shadow: none;
+}
+
+.tc-doc-opale-plainstage--tall {
+  min-block-size: 22rem;
+  align-items: flex-start;
+}
+
 .tc-doc-magicstage {
   display: flex;
   flex-wrap: wrap;

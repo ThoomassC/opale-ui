@@ -3,7 +3,8 @@ import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { ModalScene } from './scenes';
-import { MagicGroundNote, MagicPreamble, MagicStage } from './stage';
+import { MaterialSwitch, PlainStage } from './material-switch';
+import { MagicGroundNote, MagicPreamble } from './stage';
 
 const USAGE = `import { Modal } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -150,11 +151,15 @@ export const modalPage: DocPage = {
           </>
         }
       >
-        <MagicStage>
-          <ModalScene size="sm" label="Ouvrir — sm" />
-          <ModalScene size="md" label="Ouvrir — md" />
-          <ModalScene size="lg" label="Ouvrir — lg" />
-        </MagicStage>
+        <MaterialSwitch name="Modal">
+          {(liquidGlass) => (
+            <>
+              <ModalScene liquidGlass={liquidGlass} size="sm" label="Ouvrir — sm" />
+              <ModalScene liquidGlass={liquidGlass} size="md" label="Ouvrir — md" />
+              <ModalScene liquidGlass={liquidGlass} size="lg" label="Ouvrir — lg" />
+            </>
+          )}
+        </MaterialSwitch>
       </Specimen>
 
       <Specimen
@@ -167,9 +172,9 @@ export const modalPage: DocPage = {
           </>
         }
       >
-        <MagicStage>
+        <PlainStage>
           <ModalScene closeOnEsc={false} closeOnOverlay={false} label="Ouvrir — croix seule" />
-        </MagicStage>
+        </PlainStage>
       </Specimen>
 
       <PropsTable

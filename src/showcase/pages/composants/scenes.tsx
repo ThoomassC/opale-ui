@@ -5,7 +5,7 @@ import { UI_VERSION } from '../../version';
 import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../magic';
 import type { ToastDefinition } from '../../../magic';
 
-import { MagicStage } from './stage';
+import { PlainStage } from './material-switch';
 
 /* =============================================================================
    LES SCÈNES QUI ONT UN ÉTAT.
@@ -51,7 +51,7 @@ export function SidebarCollapsibleScene() {
   const [active, setActive] = useState('etapes');
 
   return (
-    <MagicStage tall>
+    <PlainStage tall>
       {/* `onToggle` REÇOIT `setCollapsed` DIRECTEMENT, ET CE N'EST VRAI QUE
           DEPUIS LA CORRECTION DE `SidebarProps`.
 
@@ -107,7 +107,7 @@ export function SidebarCollapsibleScene() {
       <p className="tc-doc-magicstage__label">
         Repliée : <code>{String(collapsed)}</code> — entrée retenue : <code>{active}</code>
       </p>
-    </MagicStage>
+    </PlainStage>
   );
 }
 
@@ -116,7 +116,7 @@ export function TabsControlledScene() {
   const [value, setValue] = useState('carte');
 
   return (
-    <MagicStage stack>
+    <PlainStage stack>
       <p className="tc-doc-magicstage__label">
         Onglet retenu par l’appelant : <code>{value}</code>
       </p>
@@ -131,12 +131,14 @@ export function TabsControlledScene() {
         <Tabs.Content value="carte">La carte, rendue côté serveur.</Tabs.Content>
         <Tabs.Content value="photos">Les photos, une par étape.</Tabs.Content>
       </Tabs>
-    </MagicStage>
+    </PlainStage>
   );
 }
 
 export interface ModalSceneProps {
   readonly size?: 'sm' | 'md' | 'lg';
+  /** La matière du panneau. Originale par défaut, comme partout ailleurs. */
+  readonly liquidGlass?: boolean;
   readonly closeOnOverlay?: boolean;
   readonly closeOnEsc?: boolean;
   /** Le libellé du déclencheur — c'est lui qu'on voit sur la scène. */
@@ -153,6 +155,7 @@ export interface ModalSceneProps {
  */
 export function ModalScene({
   size,
+  liquidGlass = false,
   closeOnOverlay = true,
   closeOnEsc = true,
   label,
@@ -166,6 +169,7 @@ export function ModalScene({
       <Modal
         open={open}
         onClose={() => setOpen(false)}
+        liquidGlass={liquidGlass}
         size={size}
         closeOnOverlay={closeOnOverlay}
         closeOnEsc={closeOnEsc}
@@ -227,10 +231,13 @@ function ToastClear() {
 }
 
 /** Les quatre variantes de toast, dans le coin par défaut. */
-export function ToastVariantScene() {
+export function ToastVariantScene({ liquidGlass = false }: { liquidGlass?: boolean }) {
   return (
-    <ToastProvider duration={4000}>
-      <MagicStage>
+    /* PAS DE SCÈNE ICI : `MaterialSwitch` pose la sienne, et elle change avec
+       la matière — le paysage sous le verre, la surface unie sous l'original.
+       En garder une seconde à l'intérieur les emboîtait l'une dans l'autre. */
+    <ToastProvider duration={4000} liquidGlass={liquidGlass}>
+      <div className="tc-doc-opale-scenerow">
         <ToastTrigger
           label="default"
           toast={{ title: 'Brouillon enregistré', description: 'Il y a un instant.' }}
@@ -248,7 +255,7 @@ export function ToastVariantScene() {
           toast={{ variant: 'info', title: 'Carte régénérée', description: '12 étapes.' }}
         />
         <ToastClear />
-      </MagicStage>
+      </div>
     </ToastProvider>
   );
 }
@@ -257,7 +264,7 @@ export function ToastVariantScene() {
 export function ToastPositionScene() {
   return (
     <ToastProvider duration={Infinity} position="bottom-center" animation="slide-from-bottom">
-      <MagicStage>
+      <PlainStage>
         <ToastTrigger
           label="bottom-center (défaut de cette scène)"
           toast={{ title: 'bottom-center', description: 'duration: Infinity' }}
@@ -281,7 +288,7 @@ export function ToastPositionScene() {
           }}
         />
         <ToastClear />
-      </MagicStage>
+      </PlainStage>
     </ToastProvider>
   );
 }

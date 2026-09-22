@@ -4,7 +4,8 @@ import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
-import { MagicPreamble, MagicStage } from './stage';
+import { MaterialSwitch, PlainStage } from './material-switch';
+import { MagicPreamble } from './stage';
 
 const USAGE = `import { Opale, Topbar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -120,29 +121,31 @@ export const topbarPage: DocPage = {
           </>
         }
       >
-        <MagicStage stack>
-          <Topbar>
-            <Topbar.Brand
-              icon={<span aria-hidden="true">◈</span>}
-              title="Voyages"
-              subtitle="12 étapes"
-            />
-            <Topbar.Divider />
-            <Topbar.Section grow>
-              {/* `Opale.Badge` ET NON LE `Badge` VENDORÉ, qui n'est plus une
+        <MaterialSwitch name="Topbar">
+          {(liquidGlass) => (
+            <Topbar liquidGlass={liquidGlass}>
+              <Topbar.Brand
+                icon={<span aria-hidden="true">◈</span>}
+                title="Voyages"
+                subtitle="12 étapes"
+              />
+              <Topbar.Divider />
+              <Topbar.Section grow>
+                {/* `Opale.Badge` ET NON LE `Badge` VENDORÉ, qui n'est plus une
                   porte publique : il est la matière derrière
                   `Opale.Badge liquidGlass`. Le ton par défaut remplace son
                   `variant="info"`, qui n'a pas d'équivalent — Opale en expose
                   trois (`primary`, `accent`, `danger`) là où le vendoré en
                   proposait six. Un `accent` aurait dit « attention » sur une
                   pastille qui ne fait qu'étiqueter un brouillon. */}
-              <Opale.Badge>brouillon</Opale.Badge>
-            </Topbar.Section>
-            <Topbar.Actions>
-              <Opale.Button size="small">Publier</Opale.Button>
-            </Topbar.Actions>
-          </Topbar>
-        </MagicStage>
+                <Opale.Badge>brouillon</Opale.Badge>
+              </Topbar.Section>
+              <Topbar.Actions>
+                <Opale.Button size="small">Publier</Opale.Button>
+              </Topbar.Actions>
+            </Topbar>
+          )}
+        </MaterialSwitch>
       </Specimen>
 
       <Specimen
@@ -155,7 +158,7 @@ export const topbarPage: DocPage = {
           </>
         }
       >
-        <MagicStage stack>
+        <PlainStage stack>
           {(['compact', 'comfortable', 'spacious'] as const).map((size) => (
             <Topbar key={size} size={size}>
               <Topbar.Brand icon={<span aria-hidden="true">◈</span>} title={size} />
@@ -173,7 +176,7 @@ export const topbarPage: DocPage = {
               <span>elevated={'{false}'}</span>
             </Topbar.Section>
           </Topbar>
-        </MagicStage>
+        </PlainStage>
       </Specimen>
 
       <PropsTable
@@ -188,8 +191,8 @@ export const topbarPage: DocPage = {
             cela exposait le <code>as</code> du verre, avec lequel un appelant pouvait remplacer le{' '}
             <code>&lt;header&gt;</code> — donc faire disparaître le point de repère{' '}
             <code>banner</code> — en passant une prop qu’aucune documentation ne mentionnait.{' '}
-            <code>Topbar.useTopbar()</code> ne rend que <code>{'{ size }'}</code> — c’est tout ce que
-            le contexte porte.
+            <code>Topbar.useTopbar()</code> ne rend que <code>{'{ size }'}</code> — c’est tout ce
+            que le contexte porte.
           </>
         }
         rows={PROPS}
@@ -208,11 +211,11 @@ export const topbarPage: DocPage = {
       <p className="tc-doc-prose">
         <strong>La barre n’impose plus son encre, et c’est ce qui change le plus à l’usage.</strong>{' '}
         La version d’où ce composant vient écrivait <code>text-white</code> sur la barre et sur la
-        marque. Un verre est transparent : son texte se lit sur ce qu’il y a derrière, donc une encre
-        blanche en dur est juste au-dessus d’une photographie et invisible au-dessus d’une carte
-        blanche — <strong>1,00:1</strong>, mesuré sur le sol clair de cette vitrine. La barre hérite
-        désormais la couleur de son contexte, et les deux nuances dont elle a besoin — le sous-titre,
-        le fond de la pastille de marque — se dérivent de <code>currentColor</code> par{' '}
+        marque. Un verre est transparent : son texte se lit sur ce qu’il y a derrière, donc une
+        encre blanche en dur est juste au-dessus d’une photographie et invisible au-dessus d’une
+        carte blanche — <strong>1,00:1</strong>, mesuré sur le sol clair de cette vitrine. La barre
+        hérite désormais la couleur de son contexte, et les deux nuances dont elle a besoin — le
+        sous-titre, le fond de la pastille de marque — se dérivent de <code>currentColor</code> par{' '}
         <code>color-mix</code> : elles suivent l’encre, donc elles suivent le fond. Aucune couleur
         n’est écrite dans sa feuille ; les rayons, les coussins, l’ombre et le filet viennent des
         jetons <code>--opale-*</code>.

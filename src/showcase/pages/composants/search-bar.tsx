@@ -3,7 +3,8 @@ import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
-import { MagicPreamble, MagicStage } from './stage';
+import { MaterialSwitch } from './material-switch';
+import { MagicPreamble } from './stage';
 
 const USAGE = `import { SearchBar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -35,18 +36,24 @@ export const searchBarPage: DocPage = {
   label: 'SearchBar',
   group: 'composants',
   title: 'SearchBar',
-  lede: 'Une barre de recherche liquid glass autonome, extraite de SiteNav.',
+  lede: 'Une barre de recherche autonome, extraite de SiteNav, en surface pleine ou en verre.',
   render: () => (
     <PageBody>
       <MagicPreamble />
       <UsageBlock label="Import et appel de SearchBar" code={USAGE} />
 
       <Specimen title="Barre de recherche">
-        <MagicStage>
-          <div style={{ width: '100%', maxWidth: '36rem' }}>
-            <SearchBar placeholder="Un voyage, un lieu, un pays…" aria-label="Rechercher" />
-          </div>
-        </MagicStage>
+        <MaterialSwitch name="SearchBar">
+          {(liquidGlass) => (
+            <div style={{ width: '100%', maxWidth: '36rem' }}>
+              <SearchBar
+                liquidGlass={liquidGlass}
+                placeholder="Un voyage, un lieu, un pays…"
+                aria-label="Rechercher"
+              />
+            </div>
+          )}
+        </MaterialSwitch>
       </Specimen>
 
       <PropsTable id="magic-search-bar" rows={PROPS} />

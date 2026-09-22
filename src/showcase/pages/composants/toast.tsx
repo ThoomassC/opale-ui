@@ -3,6 +3,7 @@ import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
 import { MagicGroundNote, MagicPreamble } from './stage';
 
@@ -191,7 +192,9 @@ export const toastPage: DocPage = {
           </>
         }
       >
-        <ToastVariantScene />
+        <MaterialSwitch name="ToastProvider">
+          {(liquidGlass) => <ToastVariantScene liquidGlass={liquidGlass} />}
+        </MaterialSwitch>
       </Specimen>
 
       <Specimen
