@@ -18,7 +18,7 @@ import tabsSheet from './components/tabs/style/Tabs.module.css?raw';
 import toastSheet from './components/toast/style/Toast.module.css?raw';
 import topbarSheet from './components/topbar/style/Topbar.module.css?raw';
 import opaleSource from './opale.tsx?raw';
-import { Opale } from './opale';
+import { OPALE_CATALOG, Opale } from './opale';
 
 afterEach(cleanup);
 
@@ -408,4 +408,92 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
       ).toEqual([]);
     },
   );
+});
+
+/* =============================================================================
+   L'INVENTAIRE : QUI PORTE LE MATÉRIAU, ET QUI NE LE PORTE PAS.
+
+   Le garde de couverture, plus haut, attrape un composant qui BRANCHE sur
+   `liquidGlass` sans être tenu par la règle. Il ne peut pas attraper
+   l'inverse — un composant qui peint une surface et n'a jamais reçu la prop —,
+   parce qu'aucune lecture de la source ne sait ce qu'est « peindre une
+   surface ».
+
+   D'OÙ CETTE LISTE ÉCRITE À LA MAIN, ET SA RAISON PAR ENTRÉE. Elle ne prouve
+   pas qu'une exclusion est juste ; elle prouve qu'elle est DÉLIBÉRÉE. Un
+   composant ajouté au paquet sans matériau et sans raison fait rougir ce
+   test, ce qui oblige à trancher plutôt qu'à oublier.
+   ========================================================================== */
+describe('l’inventaire du matériau', () => {
+  /**
+   * Les composants publiés qui n'ont PAS de rendu en verre, et pourquoi.
+   *
+   * Le matériau est une propriété des SURFACES. Ceux-ci n'en peignent aucune :
+   * ils rendent du texte, une sémantique ou une boîte de mise en page. Leur
+   * donner la prop obligerait soit à inventer une plaque que personne n'a
+   * demandée, soit à ne rien faire — c'est-à-dire à mentir sur l'API.
+   */
+  const SANS_MATIERE = new Map([
+    ['BackgroundSurface', 'c’est le SOL : un verre posé dessus n’a rien derrière lui à réfracter'],
+    ['Breadcrumb', 'une liste de liens, sans fond ni bord'],
+    ['BulletList', 'une liste à puces, sans fond ni bord'],
+    ['DescriptionList', 'des paires libellé/valeur, sans fond ni bord'],
+    ['Divider', 'un `<hr>` : une ligne, pas une surface'],
+    ['Donut', 'le fond EST le graphique — le rendre translucide effacerait la donnée'],
+    ['Form', 'un `<form>` empilé : sémantique et mise en page, aucune peinture'],
+    ['Heading', 'un titre : du texte'],
+    ['Icon', 'un tracé qui prend `currentColor`'],
+    ['Layout', 'un gabarit de page : deux boîtes, aucune peinture'],
+    ['LegalLinks', 'une liste de liens, sans fond ni bord'],
+    ['Link', 'un `<a>` : du texte souligné, sans boîte peinte'],
+    ['Rating', 'des étoiles : un graphique, pas une surface'],
+    ['Spinner', 'un anneau qui tourne, sans surface'],
+    ['Stack', 'un empilement flex : de la mise en page'],
+    ['Text', 'du texte : corps, légende ou métrique, sans boîte peinte'],
+  ]);
+
+  it('devrait ranger chaque composant publié d’un côté ou de l’autre', () => {
+    const publies = OPALE_CATALOG.map((entree) => entree.name);
+    const porteurs = new Set<string>([
+      ...PORTEURS.map((porteur) => porteur.nom),
+      /* Les quatre qui reçoivent la prop par diffusion plutôt qu'en la
+         nommant : leur corps ne contient pas le mot, mais l'appel la
+         transmet au composant sous-jacent. */
+      'Pressable',
+      'Autocomplete',
+      'InlineInput',
+      'CardGrid',
+      /* La file de notifications a ses propres cas, plus haut : ses cartes
+         n'existent qu'après un appel. */
+      'ToastProvider',
+    ]);
+
+    const orphelins = publies.filter(
+      (nom) => !porteurs.has(nom) && !SANS_MATIERE.has(nom),
+    );
+
+    expect(
+      orphelins,
+      'Ces composants publiés ne portent pas le matériau et ne disent pas ' +
+        `pourquoi — ${orphelins.join(', ')}. Donnez-leur \`liquidGlass\` et ` +
+        'une entrée dans PORTEURS, ou inscrivez-les dans SANS_MATIERE avec ' +
+        'la raison.',
+    ).toEqual([]);
+  });
+
+  /* UNE RAISON VIDE N'EST PAS UNE RAISON. */
+  it('devrait motiver chaque exclusion', () => {
+    const muettes = [...SANS_MATIERE].filter(([, raison]) => raison.trim().length < 12);
+
+    expect(muettes.map(([nom]) => nom)).toEqual([]);
+  });
+
+  /* UNE EXCLUSION QUI NE DÉSIGNE PLUS RIEN est un reste : le composant a été
+     retiré du paquet et sa ligne est restée. */
+  it('ne devrait exclure que des composants qui existent', () => {
+    const publies = new Set(OPALE_CATALOG.map((entree) => entree.name));
+    const fantomes = [...SANS_MATIERE.keys()].filter((nom) => !publies.has(nom));
+
+    expect(fantomes).toEqual([]);
+  });
 });

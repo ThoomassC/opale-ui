@@ -268,5 +268,13 @@ export const opaleComponentPages: readonly DocPage[] = OPALE_CATALOG.map((entry)
   label: catalogComponentLabel(entry.name),
   group: 'composants',
   title: catalogComponentLabel(entry.name),
-  render: () => <ComponentPage entry={entry} />,
+  /* LA CLÉ REMET LE COMMUTATEUR À ZÉRO EN CHANGEANT DE COMPOSANT.
+
+     Toutes les pages de composants rendent le MÊME élément `ComponentPage` :
+     React les réconcilie au lieu de les remonter, si bien que l'état du
+     commutateur suivait d'une page à l'autre. On activait le verre sur
+     `FileCard`, on cliquait « Feedback » dans le sommaire, et l'encart
+     arrivait déjà en verre — alors que le commutateur dit « uniquement à ce
+     composant ». La clé force un nouveau montage, donc un état neuf. */
+  render: () => <ComponentPage key={entry.name} entry={entry} />,
 }));
