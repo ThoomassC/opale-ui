@@ -39,18 +39,21 @@ afterEach(cleanup);
 /** Le marqueur du matériau, posé par `Glass` sur son enveloppe. */
 const material = (container: HTMLElement) => container.querySelector('[data-opale-glass]');
 
+/* `Declencheur` VIT HORS DU RENDU DE SON HÔTE. Déclaré à l'intérieur, React
+   en recevait un type NEUF à chaque rendu et démontait l'arbre au lieu de le
+   mettre à jour — le toast disparaissait entre deux assertions. */
+function Declencheur() {
+  const { showToast } = useToast();
+
+  return (
+    <button type="button" onClick={() => showToast({ title: 'Enregistré' })}>
+      Notifier
+    </button>
+  );
+}
+
 /** Rend le portail du fournisseur de notifications avec un toast déjà posé. */
 function ToastHarness({ liquidGlass }: { liquidGlass?: boolean }) {
-  function Declencheur() {
-    const { showToast } = useToast();
-
-    return (
-      <button type="button" onClick={() => showToast({ title: 'Enregistré' })}>
-        Notifier
-      </button>
-    );
-  }
-
   return (
     <ToastProvider liquidGlass={liquidGlass}>
       <Declencheur />

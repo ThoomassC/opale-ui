@@ -31,6 +31,61 @@
      la feuille avant d'être nommée, plus une quatrième variante à un chiffre
      près (`#785200`), ce qui est exactement ainsi qu'une marque se délite. */
   --opale-accent-dark: #7a5200;
+
+  /* L'ENCRE QUI SE LIT SUR L'AMBRE, ET POURQUOI ELLE A SON PROPRE JETON.
+
+     `--opale-accent-dark` servait deux rôles : le FOND ambré sombre du badge
+     sous verre, et l'ENCRE du badge plein. Les deux ne peuvent pas suivre le
+     thème dans le même sens — en sombre, le fond doit rester sombre et l'encre
+     doit s'éclaircir. Le jeton n'étant redéfini nulle part, l'encre restait
+     #7a5200 sur un lavis ambré à 34 % posé sur la surface sombre : mesuré au
+     navigateur, **1,01:1**. La pastille « V3 » était rigoureusement invisible
+     sur toutes les pages du catalogue en thème sombre.
+
+     Un jeton par rôle, donc. Celui-ci est l'encre ; l'autre reste le fond. */
+  --opale-accent-ink: #7a5200;
+
+  /* L'AMBRE QUAND ELLE DESSINE PLUTÔT QU'ELLE N'ÉCRIT.
+
+     Troisième rôle du même ambre, et troisième jeton : une étoile de notation
+     ou le soleil du sélecteur de thème ne sont pas du texte — le critère qui
+     s'y applique est 1.4.11, soit 3:1, et non 4,5:1. `--opale-accent` à
+     #f4ad15 ne tient que **1,94:1** sur la surface claire : la rangée
+     d'étoiles y était une suggestion plus qu'un dessin. Mais lui appliquer
+     l'encre (#7a5200, 6,92:1) donnait un brun, pas de l'or.
+
+     Cet ambre-ci est le compromis mesuré : 3,91:1 sur la surface blanche et
+     3,29:1 sur la surface creusée — le pire des trois fonds clairs — donc
+     conforme partout, en gardant la teinte. En sombre l'ambre d'origine passe déjà
+     largement — le jeton y reste donc `--opale-accent`. */
+  --opale-accent-graphic: #ad7600;
+
+  /* L'ENCRE DU PRIMAIRE QUAND ELLE SE LIT *SUR* UNE SURFACE.
+
+     `--opale-primary` a deux rôles que rien ne distinguait : il est le FOND
+     des boutons pleins, sous une encre claire, et l'ENCRE de tout ce qui est
+     posé sur une surface — pastilles, boutons à lavis, liens, écarts de
+     statistique. En thème clair les deux coïncident. En sombre, non : le
+     primaire y est un bleu MOYEN, assez clair pour qu'une encre blanche peine
+     dessus, assez sombre pour peiner lui-même sur la surface. Mesuré :
+     2,13:1 sur un bouton à lavis, 3,28:1 sur une pastille, 3,94:1 sur une
+     étiquette.
+
+     Un jeton par rôle. Celui-ci est l'encre ; `--opale-primary` reste le fond.
+     En clair les deux valent la même chose, donc rien ne bouge. */
+  --opale-tonal-mix: 26%;
+  --opale-primary-on-surface: var(--opale-primary);
+
+  /* MÊME PARTAGE POUR LES ÉTATS. `--opale-success`, `--opale-info` et
+     `--opale-warning` sont des encres de SIGNAL, réglées pour un sol clair.
+     En thème sombre elles restent telles quelles : mesuré, l'encart
+     d'information tombe à 2,57:1 et le bandeau de cookies à 1,66:1. Les
+     reprises claires sont déclarées dans le bloc du thème sombre ; en clair,
+     les deux jetons coïncident. */
+  --opale-success-on-surface: var(--opale-success);
+  --opale-info-on-surface: var(--opale-info);
+  --opale-warning-on-surface: var(--opale-warning);
+  --opale-danger-on-surface: var(--opale-danger);
   --opale-danger: #b3261e;
   --opale-info: #1a4f8b;
   --opale-success: #2e7d32;
@@ -254,9 +309,34 @@
   --opale-shadow-2: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.3), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.38);
   --opale-shadow-3: 0 0.375rem 1rem rgba(0, 0, 0, 0.4);
   --opale-shadow-4: 0 0.75rem 1.75rem rgba(0, 0, 0, 0.48);
+  /* L'AMBRE S'ÉCLAIRCIT, LE FOND AMBRÉ NON. Mesuré sur le lavis du badge —
+     l'ambre à 34 % sur la surface sombre, soit rgb(108, 88, 33) : cette encre
+     y tient 5,03:1, contre 1,01:1 pour celle du thème clair. */
+  --opale-accent-ink: #ffd98a;
+  --opale-accent-graphic: #f4ad15;
+
   --opale-glass-surface: rgba(38, 44, 39, 0.7);
   --opale-glass-border: rgba(169, 199, 244, 0.28);
   --opale-glass-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.34);
+
+  /* LE PRIMAIRE CLAIR DEVIENT L'ENCRE DES SURFACES.
+
+     `--opale-button-background` d'un bouton `tonal` mélange 26 % de
+     `--opale-primary-light` à la surface ; son encre est `--opale-primary`.
+     En sombre, cela donne #5d87cb sur rgb(72, 84, 92) : **2,13:1**, mesuré au
+     navigateur sur les boutons « Afficher le code » et « Copier », qui sont
+     les plus répétés du site.
+
+     Deux corrections, et il faut les deux : l'encre passe au primaire CLAIR,
+     et le lavis s'allège de 26 à 14 % pour ne pas remonter à sa rencontre.
+     Résultat calculé sur rgb(56, 65, 68) : 6,17:1. Les variantes `ghost` et
+     `text` n'ont pas de lavis mais la même encre, et le même défaut. */
+  --opale-tonal-mix: 14%;
+  --opale-primary-on-surface: var(--opale-primary-light);
+  --opale-success-on-surface: #7bd18a;
+  --opale-info-on-surface: #8fbdf0;
+  --opale-warning-on-surface: #f0b366;
+  --opale-danger-on-surface: #f09a94;
 }
 
 .opale-surface,
@@ -362,7 +442,20 @@
   --opale-button-hover-background: var(--opale-primary-dark);
 }
 
+/* LES TROIS BOUTONS PLEINS, ET NON LE SEUL PRIMAIRE.
+
+   La règle ne visait que `--primary`. Or les trois fonds pleins du thème
+   sombre sont des tons MOYENS, et l'encre claire y échoue de la même façon :
+   mesuré sur les jetons, l'encre #fbfaf9 donne 3,48:1 sur le primaire,
+   2,09:1 sur le secondaire et 2,94:1 sur le danger. L'encre sombre, elle,
+   donne 5,23 / 8,71 / 6,18:1 — sans toucher à une seule couleur de fond.
+
+   C'est ce que fait déjà le bouton `accent` dans les deux thèmes : de l'encre
+   sombre sur de l'ambre. L'incohérence n'était pas le principe, c'était sa
+   portée. */
 :root[data-theme='dark'] .opale-button--primary,
+:root[data-theme='dark'] .opale-button--secondary,
+:root[data-theme='dark'] .opale-button--danger,
 :root[data-theme='dark'] .opale-checkbox:checked + .opale-checkbox-mark {
   color: #0c0f0d;
 }
@@ -400,21 +493,21 @@
 .opale-button--tonal {
   --opale-button-background: color-mix(
     in srgb,
-    var(--opale-primary-light) 26%,
+    var(--opale-primary-light) var(--opale-tonal-mix),
     var(--opale-surface)
   );
   --opale-button-hover-background: color-mix(
     in srgb,
-    var(--opale-primary-light) 40%,
+    var(--opale-primary-light) calc(var(--opale-tonal-mix) + 14%),
     var(--opale-surface)
   );
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 
 .opale-button--ghost {
   --opale-button-background: transparent;
   --opale-button-hover-background: color-mix(in srgb, var(--opale-primary) 8%, transparent);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 
 .opale-button--ghost::after {
@@ -433,7 +526,7 @@
 .opale-button--text {
   --opale-button-background: transparent;
   --opale-button-hover-background: color-mix(in srgb, var(--opale-primary) 8%, transparent);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 
 .opale-button--small {
@@ -859,11 +952,11 @@
   min-width: 2.5rem;
   min-height: 2.5rem;
   place-items: center;
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-size: 1.5rem;
 }
 .opale-link {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-weight: 600;
   text-underline-offset: 0.2em;
 }
@@ -1417,7 +1510,7 @@
   transition: color var(--opale-motion) var(--opale-ease);
 }
 .opale-segmented__item[aria-pressed='true'] {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 .opale-chip,
 .opale-badge {
@@ -1428,17 +1521,17 @@
   border-radius: var(--opale-radius-pill);
   padding: 0.25rem 0.65rem;
   background: color-mix(in srgb, var(--opale-primary) 13%, transparent);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-size: 0.8125rem;
   font-weight: 600;
 }
 .opale-badge--accent {
   background: color-mix(in srgb, var(--opale-accent) 34%, transparent);
-  color: var(--opale-accent-dark);
+  color: var(--opale-accent-ink);
 }
 .opale-badge--danger {
   background: color-mix(in srgb, var(--opale-danger) 14%, transparent);
-  color: var(--opale-danger);
+  color: var(--opale-danger-on-surface);
 }
 
 .opale-feedback {
@@ -1450,19 +1543,19 @@
   border: 1px solid currentColor;
 }
 .opale-feedback--success {
-  color: var(--opale-success);
+  color: var(--opale-success-on-surface);
   background: color-mix(in srgb, var(--opale-success) 9%, var(--opale-surface));
 }
 .opale-feedback--info {
-  color: var(--opale-info);
+  color: var(--opale-info-on-surface);
   background: color-mix(in srgb, var(--opale-info) 9%, var(--opale-surface));
 }
 .opale-feedback--warning {
-  color: var(--opale-warning);
+  color: var(--opale-warning-on-surface);
   background: color-mix(in srgb, var(--opale-warning) 9%, var(--opale-surface));
 }
 .opale-feedback--error {
-  color: var(--opale-danger);
+  color: var(--opale-danger-on-surface);
   background: color-mix(in srgb, var(--opale-danger) 9%, var(--opale-surface));
 }
 .opale-spinner {
@@ -1509,7 +1602,7 @@
 .opale-nav__item:hover,
 .opale-nav__item[aria-current='page'] {
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 
 /* LA PAGE COURANTE NE SE DISTINGUE PLUS PAR LA SEULE COULEUR.
@@ -1549,7 +1642,7 @@
    des couleurs réduite, rien ne dit qu'un maillon est cliquable (WCAG 1.4.1).
    Le soulignement est la marque que la technique G183 attend. */
 .opale-breadcrumb a {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -1740,7 +1833,7 @@
   font-size: 2.369rem;
 }
 .opale-stat-card__delta {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-weight: 600;
 }
 .opale-description-list {
@@ -1766,7 +1859,7 @@
 .opale-rating {
   display: inline-flex;
   gap: 0.15rem;
-  color: var(--opale-accent);
+  color: var(--opale-accent-graphic);
 }
 .opale-donut {
   display: grid;
@@ -1845,7 +1938,7 @@
   place-items: center;
   border-radius: var(--opale-radius-sm);
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 /* LA ZONE DE DÉPÔT MONTRE LE FOCUS DE SON CHAMP.
 
@@ -1890,7 +1983,7 @@
   align-items: baseline;
   gap: var(--opale-space-xs);
   font-family: var(--opale-font-display);
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
 }
 .opale-map {
   display: grid;

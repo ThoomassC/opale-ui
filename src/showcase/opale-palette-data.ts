@@ -83,6 +83,16 @@ export const OPALE_PLATES: readonly Plate[] = [
             hex: '#7a5200',
             against: 'ambre qui porte du blanc : pastille, lavis sur image',
           },
+          {
+            token: '--opale-accent-ink',
+            hex: '#7a5200',
+            against: 'encre qui se lit SUR l’ambre',
+          },
+          {
+            token: '--opale-accent-graphic',
+            hex: '#ad7600',
+            against: 'ambre qui dessine — étoiles, icônes (3:1)',
+          },
         ],
       },
       {
@@ -140,6 +150,16 @@ export const OPALE_PLATES: readonly Plate[] = [
             token: '--opale-accent-dark',
             hex: '#7a5200',
             against: 'ambre sombre — hérité du clair',
+          },
+          {
+            token: '--opale-accent-ink',
+            hex: '#ffd98a',
+            against: 'encre sur l’ambre — éclaircie, 1,01:1 sinon',
+          },
+          {
+            token: '--opale-accent-graphic',
+            hex: '#f4ad15',
+            against: 'ambre qui dessine — l’ambre d’origine suffit en sombre',
           },
         ],
       },

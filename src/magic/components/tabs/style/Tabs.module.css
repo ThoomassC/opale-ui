@@ -270,7 +270,7 @@
    déplacent pas, ils sautent — le raisonnement est écrit en toutes lettres sur
    `SegmentedControl`, qui a le même motif. */
 .plainTrigger[aria-selected='true'] {
-  color: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
   font-weight: 600;
 }
 
