@@ -1877,25 +1877,14 @@
   line-height: 1;
 }
 
-/* CHAQUE ÉTOILE EST DEUX GLYPHES EMPILÉS. Le contour tient la place, le plein
-   est posé par-dessus et ROGNÉ à la fraction voulue. `overflow: hidden` sur
-   une largeur en pourcentage suffit : le glyphe garde sa taille et son
-   alignement, seule la fenêtre qui le montre rétrécit. `white-space: nowrap`
-   empêche le caractère de se recentrer dans la boîte rognée — sans lui, un
-   quart d'étoile affichait le MILIEU du glyphe au lieu de son début. */
+/* L'ÉTOILE SUIT LA TAILLE DU TEXTE, comme le glyphe qu'elle remplace : un
+   appelant qui réglait sa taille par `font-size` n'a rien à réécrire. */
 .opale-rating__star {
-  position: relative;
-  display: inline-block;
+  display: block;
+  inline-size: 1.15em;
+  block-size: 1.15em;
 }
 
-.opale-rating__fill {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  overflow: hidden;
-  inline-size: var(--opale-rating-fill, 0%);
-  white-space: nowrap;
-}
 .opale-donut {
   display: grid;
   width: 9rem;

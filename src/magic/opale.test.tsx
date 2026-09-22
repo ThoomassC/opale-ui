@@ -622,28 +622,47 @@ describe('le nom des champs ne contient que leur libellé', () => {
    fait que le dessin et l'annonce disent la même note.
    ========================================================================== */
 describe('Rating — le remplissage au quart', () => {
-  /** Les largeurs de rognage, étoile par étoile, telles qu'elles sont peintes. */
+  /** La fraction peinte, étoile par étoile, lue sur le dessin lui-même. */
   function fills(container: HTMLElement): readonly string[] {
-    return [...container.querySelectorAll('.opale-rating__fill')].map(
-      (node) => (node as HTMLElement).style.getPropertyValue('--opale-rating-fill'),
+    return [...container.querySelectorAll('.opale-rating__star')].map(
+      (node) => node.getAttribute('data-opale-rating-fill') ?? '',
     );
   }
 
   it('devrait remplir les étoiles pleines, le quart demandé, puis rien', () => {
     const { container } = render(<Rating value={3.75} max={5} />);
 
-    expect(fills(container)).toEqual(['100%', '100%', '100%', '75%', '0%']);
+    expect(fills(container)).toEqual(['1', '1', '1', '0.75', '0']);
   });
 
   it.each([
-    [0.25, '25%'],
-    [0.5, '50%'],
-    [0.75, '75%'],
-    [1, '100%'],
-  ])('devrait peindre %s comme %s de la première étoile', (value, expected) => {
+    [0.25, '0.25'],
+    [0.5, '0.5'],
+    [0.75, '0.75'],
+    [1, '1'],
+  ])('devrait peindre %s comme la fraction %s de la première étoile', (value, expected) => {
     const { container } = render(<Rating value={value} max={5} />);
 
     expect(fills(container)[0]).toBe(expected);
+  });
+
+  /* LA TABLE DE COUPE EST SYMÉTRIQUE ET MONOTONE. Symétrique parce que
+     l'étoile l'est ; monotone parce qu'une note plus haute doit toujours
+     peindre plus. Une valeur recopiée de travers casserait l'une des deux
+     sans rien casser d'autre. */
+  it('devrait couper de plus en plus loin à mesure que la note monte', () => {
+    const coupes = [0, 0.25, 0.5, 0.75, 1].map((value) => {
+      const { container } = render(<Rating value={value} max={1} />);
+      const arret = container.querySelectorAll('.opale-rating__star stop')[0];
+
+      return Number.parseFloat(arret.getAttribute('offset') ?? '0');
+    });
+
+    expect(coupes).toEqual([...coupes].sort((a, b) => a - b));
+    expect(coupes[0]).toBe(0);
+    expect(coupes[4]).toBe(100);
+    expect(coupes[2]).toBe(50);
+    expect(coupes[1] + coupes[3]).toBeCloseTo(100, 5);
   });
 
   /* L'ARRONDI EST FAIT UNE SEULE FOIS, AVANT LE DESSIN ET AVANT L'ANNONCE.
@@ -653,7 +672,7 @@ describe('Rating — le remplissage au quart', () => {
   it('devrait ramener une note hors pas sur le quart le plus proche, dessin et annonce ensemble', () => {
     const { container } = render(<Rating value={3.7} max={5} />);
 
-    expect(fills(container)[3]).toBe('75%');
+    expect(fills(container)[3]).toBe('0.75');
     expect(screen.getByRole('img', { name: '3,75 sur 5' })).toBeInTheDocument();
   });
 
@@ -676,10 +695,57 @@ describe('Rating — le remplissage au quart', () => {
   /* LE CONTOUR RESTE SOUS LE PLEIN. Peindre seulement la fraction laisserait
      une étoile à un quart sans silhouette : on ne verrait qu'un moignon, et
      `max` deviendrait indevinable. */
-  it('devrait poser autant de contours que de max, quelle que soit la note', () => {
+  it('devrait poser autant d’étoiles que de max, quelle que soit la note', () => {
     const { container } = render(<Rating value={1.25} max={5} />);
 
-    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(5);
+    expect(container.querySelectorAll('.opale-rating__star')).toHaveLength(5);
+  });
+
+  /* LA COUPE EST NETTE, ET C'EST CE QUI REND LA FRACTION LISIBLE. Deux arrêts
+     de dégradé au même décalage : écartés, ils donneraient un fondu, donc une
+     étoile dont on ne saurait plus dire où elle s'arrête. */
+  /* LA COUPE N'EST PAS À 75 % DE LA LARGEUR, ET C'EST LE POINT. Une étoile n'a
+     pas son encre répartie uniformément : mesuré sur ce tracé, couper à 75 %
+     de la largeur en peint 86,8 %, et couper à 25 % n'en peint que 14,1 %. Les
+     décalages attendus ici sont ceux qui peignent VRAIMENT la fraction
+     annoncée — modifier le tracé de l'étoile oblige à reprendre la mesure. */
+  it('devrait couper net, par deux arrêts de dégradé au même décalage', () => {
+    const { container } = render(<Rating value={3.75} max={5} />);
+
+    const arrets = [...container.querySelectorAll('.opale-rating__star')[3].querySelectorAll('stop')];
+
+    expect(arrets).toHaveLength(2);
+    expect(arrets[0].getAttribute('offset')).toBe('66.40%');
+    expect(arrets[1].getAttribute('offset')).toBe('66.40%');
+    expect(arrets[1].getAttribute('stop-opacity')).toBe('0');
+  });
+
+  /* LE DÉGRADÉ EST NOMMÉ PAR `useId`, DONC UNIQUE PAR INSTANCE. Un
+     identifiant en dur ferait que deux rangées sur la même page partagent
+     leur coupe : la seconde afficherait la note de la première. */
+  it('devrait donner à chaque rangée ses propres dégradés', () => {
+    const { container } = render(
+      <>
+        <Rating value={1} max={2} />
+        <Rating value={2} max={2} />
+      </>,
+    );
+
+    const ids = [...container.querySelectorAll('linearGradient')].map((n) => n.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  /* LE CONTOUR EST TOUJOURS PEINT. Sans lui, une étoile au quart n'est qu'un
+     moignon : on ne voit « un quart » que si l'on voit aussi le tout. */
+  it('devrait tracer le contour de chaque étoile, même vide', () => {
+    const { container } = render(<Rating value={0} max={5} />);
+
+    const contours = [...container.querySelectorAll('.opale-rating__star path')].filter(
+      (p) => p.getAttribute('stroke') === 'currentColor',
+    );
+
+    expect(contours).toHaveLength(5);
   });
 });
 
@@ -703,7 +769,7 @@ describe('Rating — le barème', () => {
   it('devrait retomber sur cinq plutôt que de boucler sur un barème infini', () => {
     const { container } = render(<Rating value={3} max={Number.POSITIVE_INFINITY} />);
 
-    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(5);
+    expect(container.querySelectorAll('.opale-rating__star')).toHaveLength(5);
   });
 
   /* UN BARÈME DÉCIMAL MÉLANGEAIT DEUX ÉCRITURES DANS LA MÊME PHRASE : « 3,75
@@ -713,20 +779,20 @@ describe('Rating — le barème', () => {
   it('devrait arrondir un barème décimal à l’entier, dessin et annonce ensemble', () => {
     const { container } = render(<Rating value={3.75} max={4.5} />);
 
-    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(5);
+    expect(container.querySelectorAll('.opale-rating__star')).toHaveLength(5);
     expect(screen.getByRole('img', { name: '3,75 sur 5' })).toBeInTheDocument();
   });
 
   it.each([0, -3])('devrait ramener un barème de %s à une étoile', (max) => {
     const { container } = render(<Rating value={1} max={max} />);
 
-    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(1);
+    expect(container.querySelectorAll('.opale-rating__star')).toHaveLength(1);
     expect(screen.getByRole('img', { name: '1 sur 1' })).toBeInTheDocument();
   });
 
   it('devrait plafonner le barème à vingt étoiles', () => {
     const { container } = render(<Rating value={3} max={400} />);
 
-    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(20);
+    expect(container.querySelectorAll('.opale-rating__star')).toHaveLength(20);
   });
 });

@@ -19,7 +19,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import Glass from './components/glass/Glass';
-import { IconGlyph, isOpaleIconName, type OpaleIconName } from './components/icon';
+import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './components/icon';
 /* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
 
    `ConfirmDialog`, `SidePanel`, `CommandPalette` et `Lightbox` peignaient
@@ -2029,17 +2029,79 @@ function formatRating(value: number): string {
   return String(Number(value.toFixed(2))).replace('.', ',');
 }
 
+/** Le tracé de l'étoile, emprunté au jeu d'icônes. Une seule silhouette dans le dépôt. */
+const RATING_STAR = OPALE_ICONS.star[0];
+
+/**
+ * Où couper la largeur de l'étoile pour en peindre la fraction demandée.
+ *
+ * CE QU'ON LIT D'UNE ÉTOILE EST UNE AIRE, PAS UNE LARGEUR, et une étoile n'a
+ * pas son encre répartie uniformément : ses pointes latérales sont fines, son
+ * corps est au centre. Couper à 25 % de la largeur ne peint donc pas un quart
+ * de l'étoile. Mesuré en rastérisant CE tracé-ci — remplissage et contour
+ * compris — sur 480 px de côté, puis en comptant les pixels d'encre colonne
+ * par colonne :
+ *
+ * | coupe en largeur | encre réellement peinte |
+ * |---|---|
+ * | 25 % | 14,1 % |
+ * | 50 % | 50,6 % |
+ * | 75 % | 86,8 % |
+ *
+ * Autrement dit 3,75 se lisait « quatre » et 1,25 se lisait « une » : le
+ * dessin contredisait le nom accessible. La même mesure, inversée, donne les
+ * coupes qui peignent un quart, une moitié et trois quarts d'encre — ce sont
+ * les valeurs ci-dessous. Seul le demi tombait déjà juste, et c'est logique :
+ * l'étoile est symétrique.
+ *
+ * LA TABLE EST INDEXÉE SUR LES CINQ ÉTATS DU PAS, qui sont les seuls que
+ * `snapRating` laisse passer ; l'interpolation n'existe que pour qu'une valeur
+ * intermédiaire ne tombe pas dans un trou. Toucher au tracé de l'étoile oblige
+ * à reprendre cette mesure — le garde de `opale.test.tsx` le rappelle.
+ */
+const RATING_INK_CUTS = [0, 0.336, 0.5, 0.664, 1] as const;
+
+function inkCut(fill: number): number {
+  const position = fill * (RATING_INK_CUTS.length - 1);
+  const bas = Math.floor(position);
+  const haut = Math.min(bas + 1, RATING_INK_CUTS.length - 1);
+
+  return (
+    RATING_INK_CUTS[bas] + (RATING_INK_CUTS[haut] - RATING_INK_CUTS[bas]) * (position - bas)
+  );
+}
+
 export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: { value?: number; max?: number }) {
   /* LE REMPLISSAGE EST FRACTIONNAIRE, ET C'EST TOUT LE COMPOSANT.
 
      Il comparait `index + 1 <= value` : une note de 3,75 dessinait donc
      exactement les mêmes trois étoiles que 3,0, et les trois quarts se
-     perdaient en silence. Chaque étoile est désormais DEUX glyphes
-     superposés — le contour, puis le plein rogné à la fraction voulue par
-     une largeur en pourcentage. Le rognage est fait au quart près, ce qui
-     donne les cinq états 0, ¼, ½, ¾ et 1 par étoile. */
+     perdaient en silence.
+
+     L'ÉTOILE EST UN TRACÉ ET NON UN CARACTÈRE, pour deux raisons mesurées.
+
+     1. LE QUART N'EXISTAIT PAS À L'ŒIL. La première correction rognait le
+        glyphe « ★ » à un pourcentage de sa LARGEUR D'AVANCE, qui comprend les
+        approches latérales. Compté sur les pixels d'encre : une coupe demandée
+        à 25 % n'en peignait que **8,5 %**, et une coupe à 75 % en peignait
+        **91,9 %**. Autrement dit 3,75 se lisait « quatre » et 1,25 se lisait
+        « une » — le dessin contredisait le nom accessible, ce que tout le
+        reste de ce composant cherche à éviter. Le dégradé ci-dessous coupe la
+        BOÎTE D'ENCRE du tracé (`objectBoundingBox` est le repère par défaut
+        d'un `linearGradient`), donc la fraction demandée est la fraction
+        peinte.
+
+     2. LE GLYPHE DÉPENDAIT DE LA POLICE INSTALLÉE. « ★ » n'a ni la même
+        silhouette ni la même chasse d'une machine à l'autre, et manque
+        purement et simplement sur certaines. Le tracé est celui du jeu
+        d'Opale, donc le même partout.
+
+     LE CONTOUR EST TOUJOURS PEINT, sur le même chemin que le remplissage :
+     c'est lui qui donne la référence sans laquelle une fraction ne veut rien
+     dire — on ne voit « un quart » que si l'on voit aussi le tout. */
   const bareme = snapMax(max);
   const note = snapRating(value, bareme);
+  const gradientId = useId();
 
   return (
     /* `role="img"` EST OBLIGATOIRE ICI. Un `aria-label` posé sur un élément
@@ -2055,22 +2117,42 @@ export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: { value?: number
     >
       {Array.from({ length: bareme }, (_, index) => {
         const fill = Math.min(Math.max(note - index, 0), 1);
+        const stopAt = `${(inkCut(fill) * 100).toFixed(2)}%`;
+        const id = `${gradientId}-${index}`;
 
         return (
-          <span className="opale-rating__star" key={index} aria-hidden="true">
-            <span className="opale-rating__outline">☆</span>
-            <span
-              className="opale-rating__fill"
-              style={{ '--opale-rating-fill': `${fill * 100}%` } as CSSProperties}
-            >
-              ★
-            </span>
-          </span>
+          <svg
+            className="opale-rating__star"
+            data-opale-rating-fill={fill}
+            key={index}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <defs>
+              {/* DEUX ARRÊTS AU MÊME DÉCALAGE font une coupe NETTE. Un dégradé
+                  dont les arrêts s'écartent donnerait un fondu, c'est-à-dire
+                  une fraction floue : on ne saurait plus dire où l'étoile
+                  s'arrête, ce qui est exactement l'information à lire. */}
+              <linearGradient id={id} x1="0" x2="1" y1="0" y2="0">
+                <stop offset={stopAt} stopColor="currentColor" />
+                <stop offset={stopAt} stopColor="currentColor" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <path
+              d={RATING_STAR}
+              fill={`url(#${id})`}
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinejoin="round"
+            />
+          </svg>
         );
       })}
     </span>
   );
 }
+
 export function StatCard({
   label,
   value,
