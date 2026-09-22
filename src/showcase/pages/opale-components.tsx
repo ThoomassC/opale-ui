@@ -43,6 +43,15 @@ import { CatalogPreview } from './catalog-preview';
    question « pourquoi ne puis-je pas ? » à quatre-vingts reprises. Son
    absence ne pose aucune question : le matériau est une option de certains
    composants, pas une propriété du catalogue. */
+/* LES COMPOSANTS QUI PEIGNENT UNE SURFACE, ET DONC QUI PORTENT LE MATÉRIAU.
+
+   Cette liste a triplé avec l'audit d'utilité : le matériau est une propriété
+   des SURFACES, et tout ce qui en peint une — une carte, un panneau, une
+   piste, un rail, un encart — doit pouvoir la rendre en verre. Ce qui n'en
+   peint pas n'y est pas, et la raison est dans `material-default.test.tsx` :
+   `Heading` rend un `<h2>`, `Divider` un `<hr>`, `Stack` une boîte sans
+   peinture. Leur donner la prop obligerait à inventer une plaque que personne
+   n'a demandée, ou à ne rien faire — c'est-à-dire à mentir. */
 const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Autocomplete',
   'Badge',
@@ -50,13 +59,32 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Card',
   'CardGrid',
   'Checkbox',
+  'Clipboard',
+  'CommandPalette',
+  'ConfirmDialog',
+  'CookieBanner',
+  'DataTable',
+  'Dropzone',
+  'EmptyState',
+  'Feedback',
+  'FileCard',
+  'IconActionButton',
   'InlineInput',
   'Input',
+  'Lightbox',
+  'Menu',
   'MultiSelect',
+  'Navbar',
   'Pressable',
+  'ProgressBar',
+  'SegmentedControl',
   'Select',
+  'SelectionBar',
+  'SidePanel',
   'Slider',
   'StatCard',
+  'SvgMap',
+  'Toast',
   'Toggle',
 ];
 

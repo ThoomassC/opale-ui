@@ -249,13 +249,23 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'SegmentedControl':
       preview = (
-        <Opale.SegmentedControl options={OPTIONS} value={selected} onChange={setSelected} />
+        <Opale.SegmentedControl
+          liquidGlass={liquidGlass}
+          options={OPTIONS}
+          value={selected}
+          onChange={setSelected}
+        />
       );
       break;
     case 'IconActionButton':
       preview = (
         <DemoFrame>
-          <Opale.IconActionButton label="Partager" onClick={() => setMessage('Lien partagé')} />
+          <Opale.IconActionButton
+            liquidGlass={liquidGlass}
+            icon="share"
+            label="Partager"
+            onClick={() => setMessage('Lien partagé')}
+          />
           <span role="status">{message}</span>
         </DemoFrame>
       );
@@ -293,6 +303,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'DataTable':
       preview = (
         <Opale.DataTable
+          liquidGlass={liquidGlass}
           columns={[
             { key: 'name', label: 'Nom' },
             { key: 'status', label: 'Statut' },
@@ -398,7 +409,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'Feedback':
       preview = (
-        <Opale.Feedback severity="success" title="En production">
+        <Opale.Feedback liquidGlass={liquidGlass} severity="success" title="En production">
           La dernière version est disponible.
         </Opale.Feedback>
       );
@@ -459,6 +470,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
 
           <Opale.Toast
             open={toastOpen}
+            liquidGlass={liquidGlass}
             tone={toastTone}
             position={toastPlacement}
             message={TOAST_MESSAGES[toastTone]}
@@ -471,7 +483,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = <Opale.Spinner label="Chargement des composants" />;
       break;
     case 'ProgressBar':
-      preview = <Opale.ProgressBar label="Progression" value={progress} />;
+      preview = <Opale.ProgressBar liquidGlass={liquidGlass} label="Progression" value={progress} />;
       break;
     case 'ConfirmDialog':
       preview = (
@@ -479,6 +491,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           <Opale.Button onClick={() => setDialogOpen(true)}>Supprimer le fichier</Opale.Button>
           <Opale.ConfirmDialog
             open={dialogOpen}
+            liquidGlass={liquidGlass}
             title="Supprimer le fichier ?"
             onCancel={() => setDialogOpen(false)}
             onConfirm={() => {
@@ -494,6 +507,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'EmptyState':
       preview = (
         <Opale.EmptyState
+          liquidGlass={liquidGlass}
           title="Aucun projet"
           description="Créez votre premier projet Opale."
           action={<Opale.Button>Créer un projet</Opale.Button>}
@@ -501,11 +515,17 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'Navbar':
-      preview = <Opale.Navbar items={NAV_ITEMS} activeId={activeNav} onSelect={setActiveNav} />;
+      preview = <Opale.Navbar
+          liquidGlass={liquidGlass}
+          items={NAV_ITEMS}
+          activeId={activeNav}
+          onSelect={setActiveNav}
+        />;
       break;
     case 'Menu':
       preview = (
         <Opale.Menu
+          liquidGlass={liquidGlass}
           label="Actions"
           items={[
             { id: 'duplicate', label: 'Dupliquer' },
@@ -521,7 +541,12 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = (
         <>
           <Opale.Button onClick={() => setPanelOpen(true)}>Ouvrir le panneau</Opale.Button>
-          <Opale.SidePanel open={panelOpen} title="Réglages" onClose={() => setPanelOpen(false)}>
+          <Opale.SidePanel
+            open={panelOpen}
+            liquidGlass={liquidGlass}
+            title="Réglages"
+            onClose={() => setPanelOpen(false)}
+          >
             <Opale.Toggle label="Notifications" defaultChecked />
           </Opale.SidePanel>
         </>
@@ -533,6 +558,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           <Opale.Button onClick={() => setPaletteOpen(true)}>Ouvrir la palette</Opale.Button>
           <Opale.CommandPalette
             open={paletteOpen}
+            liquidGlass={liquidGlass}
             value={text}
             onChange={setText}
             onClose={() => setPaletteOpen(false)}
@@ -561,13 +587,17 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           <Opale.Button size="small" onClick={() => setCookieOpen(true)}>
             Réafficher
           </Opale.Button>
-          <Opale.CookieBanner open={cookieOpen} onAccept={() => setCookieOpen(false)} />
+          <Opale.CookieBanner
+            open={cookieOpen}
+            liquidGlass={liquidGlass}
+            onAccept={() => setCookieOpen(false)}
+          />
         </DemoFrame>
       );
       break;
     case 'SelectionBar':
       preview = (
-        <Opale.SelectionBar selectedCount={3}>
+        <Opale.SelectionBar liquidGlass={liquidGlass} selectedCount={3}>
           <Opale.Button size="small" variant="danger">
             Supprimer
           </Opale.Button>
@@ -613,6 +643,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'FileCard':
       preview = (
         <Opale.FileCard
+          liquidGlass={liquidGlass}
           name="design-system.fig"
           size="2,4 Mo"
           selected={selectedFile}
@@ -622,7 +653,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'Dropzone':
       preview = (
-        <Opale.Dropzone onFiles={(files) => setMessage(`${files.length} fichier(s) déposé(s)`)}>
+        <Opale.Dropzone
+          liquidGlass={liquidGlass}
+          onFiles={(files) => setMessage(`${files.length} fichier(s) déposé(s)`)}
+        >
           Déposez les maquettes ici
         </Opale.Dropzone>
       );
@@ -632,6 +666,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         <>
           <Opale.Button onClick={() => setLightboxOpen(true)}>Voir l’image</Opale.Button>
           <Opale.Lightbox
+            liquidGlass={liquidGlass}
             src={PREVIEW_IMAGE}
             alt="Aperçu abstrait Opale"
             open={lightboxOpen}
@@ -642,14 +677,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'Clipboard':
       preview = (
-        <Opale.Clipboard value="npm install @thomascaron/opale-ui">
+        <Opale.Clipboard liquidGlass={liquidGlass} value="npm install @thomascaron/opale-ui">
           Copier la commande
         </Opale.Clipboard>
       );
       break;
     case 'SvgMap':
       preview = (
-        <Opale.SvgMap>
+        <Opale.SvgMap liquidGlass={liquidGlass}>
           <circle cx="205" cy="75" r="12" fill="currentColor">
             <title>Étape active</title>
           </circle>

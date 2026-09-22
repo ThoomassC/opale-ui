@@ -267,3 +267,34 @@
     padding-inline: calc(var(--site-nav-space-2) + 2px);
   }
 }
+
+/* =============================================================================
+   LA BARRE EN VERRE LIQUIDE.
+
+   L'APLAT D'ACCENT DOIT PARTIR, sinon il n'y a pas de verre : `--site-nav-accent`
+   est un fond OPAQUE, et un matériau posé derrière un fond opaque ne réfracte
+   rien du tout. La barre devient donc transparente et laisse le voile, la
+   distorsion et le liseré de `Glass` faire la surface.
+
+   L'ENCRE NE BOUGE PAS. Elle était déjà claire — c'est celle qui se lit sur
+   l'accent — et le voile du matériau est sombre : les deux contextes demandent
+   la même encre, ce qui est une chance et non un hasard. `--site-nav-quiet-ink`
+   garde son 86 %, mesuré contre le pixel le plus clair du cliché.
+
+   LA BARRE RESTE COLLANTE, donc le verre se déplace sur la page pendant qu'on
+   défile : c'est exactement la situation où le matériau a quelque chose à
+   montrer, et la seule où il vaut son coût.
+   ========================================================================== */
+.glass {
+  background: transparent;
+}
+
+.glassRoot {
+  --opale-glass-width: 100%;
+  --opale-glass-radius: 0;
+
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 20;
+  inline-size: 100%;
+}

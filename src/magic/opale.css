@@ -615,9 +615,30 @@
 }
 .opale-card--glass-root,
 .opale-surface--glass-root,
-.opale-input--glass-root {
+.opale-input--glass-root,
+.opale-feedback--glass-root,
+.opale-toast--glass-root,
+.opale-file-card--glass-root,
+.opale-dropzone--glass-root {
   --opale-glass-width: 100%;
   --opale-glass-radius: var(--opale-radius-md);
+}
+
+/* LES DEUX PISTES PRENNENT LE RAYON DE LA PILULE, pas celui des cartes. Une
+   enveloppe de verre à 1,375 rem autour d'une piste de 0,5 rem de haut
+   déborderait de part et d'autre : le rayon doit suivre la silhouette de ce
+   qu'il enveloppe, pas une valeur moyenne. */
+.opale-progress--glass-root,
+.opale-segmented--glass-root {
+  --opale-glass-width: 100%;
+  --opale-glass-radius: var(--opale-radius-pill);
+}
+
+/* LA CARTE DU TOAST NE SE LAISSE PAS ÉTIRER. Les autres enveloppes prennent
+   toute la largeur de leur parent ; celle-ci est posée dans une ancre qui
+   occupe l'écran entier, donc `100%` la ferait traverser la fenêtre. */
+.opale-toast--glass-root {
+  --opale-glass-width: auto;
 }
 
 /* LE CURSEUR N'EST PAS UNE BOÎTE QUI CONTIENT UNE PISTE : IL EST LA PISTE.
@@ -665,6 +686,10 @@
    la photographie au travers, si bien que le blanc se serait retrouvé sur le
    cliché plutôt que sur la pastille. À 62 %, elle redevient une surface. */
 [data-opale-glass] .opale-card__title,
+[data-opale-glass] .opale-toast__message,
+[data-opale-glass] .opale-toast__close,
+[data-opale-glass] .opale-file-card strong,
+[data-opale-glass] .opale-file-card__icon,
 [data-opale-glass] .opale-card__subtitle,
 [data-opale-glass] .opale-stat-card__label,
 [data-opale-glass] .opale-stat-card__value,
@@ -818,16 +843,72 @@
 
 /* Les surfaces et les coquilles laissent voir le verre : ni fond, ni bordure,
    ni ombre propre — le filet spéculaire du matériau EST leur bord. */
+/* TOUT CE QUI PASSE SOUS VERRE REND SA PROPRE PEINTURE.
+
+   C'est la règle du matériau, et elle n'a pas d'exception : un fond opaque
+   posé DANS le verre le remplit, donc il n'y a plus rien à réfracter — le
+   composant redevient un rectangle plat qui a seulement coûté trois couches.
+   Chaque classe ci-dessous rend son fond, son bord et son ombre à
+   l'enveloppe, et reprend l'encre du matériau. */
 .opale-card--glass,
 .opale-surface--glass,
 .opale-input-shell--glass,
 .opale-range-shell--glass,
 .opale-checkbox-mark--glass,
-.opale-toggle-track--glass {
+.opale-toggle-track--glass,
+.opale-feedback--glass,
+.opale-toast--glass,
+.opale-progress--glass,
+.opale-segmented--glass,
+.opale-dropzone--glass {
   border-color: transparent;
   background: transparent;
   box-shadow: none;
   color: var(--opale-glass-ink);
+}
+
+/* LE TON DU TOAST PASSE DU REMPLISSAGE AU VOILE. Sur la surface pleine, le
+   ton EST le fond de la carte ; sous verre, le fond appartient au matériau.
+   Le ton devient donc la teinte du voile — `--opale-glass-surface` est le
+   jeton que `Glass` lit —, à 38 % pour rester une couleur reconnaissable sans
+   boucher la réfraction. L'encre redevient celle du matériau, qui est claire :
+   c'est ce que `.opale-toast--glass` rétablit juste au-dessus. */
+.opale-toast--glass-root {
+  --opale-glass-surface: color-mix(
+    in srgb,
+    var(--opale-toast-fill, transparent) 38%,
+    rgba(7, 28, 43, 0.5)
+  );
+}
+
+/* LA PISTE DE PROGRESSION GARDE SA VALEUR OPAQUE. C'est la seule chose que la
+   barre a à dire, et une progression translucide posée sur un paysage ne se
+   lit plus. Le verre est la rainure ; le remplissage reste peint. */
+[data-opale-glass] .opale-progress__value {
+  background: var(--opale-glass-ink);
+}
+
+/* L'INDICATEUR DU SEGMENTÉ SUIT LA MÊME LOGIQUE : c'est lui qui dit quelle
+   option est choisie, donc il reste une surface pleine. */
+[data-opale-glass] .opale-segmented__indicator {
+  background: color-mix(in srgb, var(--opale-glass-ink) 26%, transparent);
+}
+[data-opale-glass] .opale-segmented__item[aria-pressed='true'] {
+  color: var(--opale-glass-ink);
+}
+
+/* LE FILET D'UNE ZONE DE DÉPÔT EST SA SEULE AFFORDANCE : tirets, et rien
+   d'autre. Sous verre, le liseré du matériau ne suffit pas à dire « déposez
+   ici » — il dit la même chose que sur toutes les autres surfaces. Le tiret
+   revient donc, en encre de matériau. */
+.opale-dropzone--glass {
+  border: 1px dashed var(--opale-glass-ink);
+}
+
+/* LA CARTE SVG EST POSÉE SUR UNE PLAQUE, PAS DÉCOUPÉE DEDANS. */
+.opale-svg-map__plate {
+  display: block;
+  padding: var(--opale-space-md);
 }
 
 /* LA COQUILLE DU CURSEUR EXISTE MAINTENANT DANS LES DEUX ÉTATS, sans quoi la
@@ -885,7 +966,6 @@
 
 .opale-card__header,
 .opale-card__footer,
-.opale-toolbar,
 .opale-selection-bar,
 .opale-dialog__header,
 .opale-dialog__footer {
@@ -1936,15 +2016,34 @@
   font-size: 0.75rem;
   line-height: 1;
 }
+/* LA VIGNETTE EST UN TRACÉ, PLUS UN GLYPHE. Elle affichait « ⌁ » — le signe
+   du courant alternatif —, faute de jeu d'icônes à l'époque. Un `<svg>` n'a
+   pas de chasse : sa taille est écrite ici, et le carré teinté est posé par
+   un `padding` plutôt que par une boîte de 2,75 rem dans laquelle il aurait
+   flotté. */
 .opale-file-card__icon {
-  display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
-  place-items: center;
+  display: block;
+  box-sizing: content-box;
+  inline-size: 1.375rem;
+  block-size: 1.375rem;
+  flex: 0 0 auto;
+  padding: 0.6875rem;
   border-radius: var(--opale-radius-sm);
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
   color: var(--opale-primary-on-surface);
 }
+/* LE NOM ET LA TAILLE S'EMPILENT. Ils étaient deux éléments en ligne dans le
+   même `<span>` : « design-system.fig » et « 2,4 Mo » se touchaient, sans
+   même une espace entre eux. */
+.opale-file-card__text {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  text-align: start;
+}
+
 /* LA ZONE DE DÉPÔT MONTRE LE FOCUS DE SON CHAMP.
 
    Le champ de fichier est masqué par `.opale-visually-hidden`, qui le réduit à

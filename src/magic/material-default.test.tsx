@@ -1,7 +1,16 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Modal, SearchBar, Sidebar, Tabs, Topbar, ToastProvider, useToast } from './components';
+import {
+  Modal,
+  SearchBar,
+  Sidebar,
+  SiteNav,
+  Tabs,
+  Topbar,
+  ToastProvider,
+  useToast,
+} from './components';
 import searchBarSheet from './components/search-bar/style/SearchBar.module.scss?raw';
 import modalSheet from './components/modal/style/Modal.module.css?raw';
 import sidebarSheet from './components/sidebar/style/Sidebar.module.css?raw';
@@ -124,6 +133,94 @@ const PORTEURS = [
       </Modal>
     ),
   },
+  { nom: 'SiteNav', rendre: (g?: boolean) => <SiteNav liquidGlass={g} /> },
+
+  /* LES PORTEURS AJOUTÉS PAR L'AUDIT D'UTILITÉ. Ils peignent tous une
+     surface — une carte, un panneau, une piste, un rail —, donc le matériau
+     a quelque chose à y faire. Ceux qui n'en peignent pas sont nommés plus
+     bas, avec leur raison. */
+  {
+    nom: 'Feedback',
+    rendre: (g?: boolean) => (
+      <Opale.Feedback liquidGlass={g} severity="info" title="Note">
+        Message
+      </Opale.Feedback>
+    ),
+  },
+  { nom: 'Toast', rendre: (g?: boolean) => <Opale.Toast liquidGlass={g} message="Publié" /> },
+  {
+    nom: 'ProgressBar',
+    rendre: (g?: boolean) => <Opale.ProgressBar liquidGlass={g} label="Envoi" value={40} />,
+  },
+  {
+    nom: 'SegmentedControl',
+    rendre: (g?: boolean) => (
+      <Opale.SegmentedControl
+        liquidGlass={g}
+        value="a"
+        options={[{ value: 'a', label: 'A' }]}
+      />
+    ),
+  },
+  {
+    nom: 'ConfirmDialog',
+    rendre: (g?: boolean) => (
+      <Opale.ConfirmDialog open liquidGlass={g} title="Confirmer ?">
+        Irréversible.
+      </Opale.ConfirmDialog>
+    ),
+  },
+  { nom: 'EmptyState', rendre: (g?: boolean) => <Opale.EmptyState liquidGlass={g} /> },
+  {
+    nom: 'Navbar',
+    rendre: (g?: boolean) => (
+      <Opale.Navbar liquidGlass={g} items={[{ id: 'a', label: 'Accueil' }]} />
+    ),
+  },
+  { nom: 'Menu', rendre: (g?: boolean) => <Opale.Menu liquidGlass={g}>Contenu</Opale.Menu> },
+  {
+    nom: 'SidePanel',
+    rendre: (g?: boolean) => (
+      <Opale.SidePanel open liquidGlass={g}>
+        Corps
+      </Opale.SidePanel>
+    ),
+  },
+  {
+    nom: 'CommandPalette',
+    rendre: (g?: boolean) => <Opale.CommandPalette open liquidGlass={g} />,
+  },
+  { nom: 'CookieBanner', rendre: (g?: boolean) => <Opale.CookieBanner liquidGlass={g} /> },
+  {
+    nom: 'SelectionBar',
+    rendre: (g?: boolean) => <Opale.SelectionBar liquidGlass={g} selectedCount={2} />,
+  },
+  {
+    nom: 'DataTable',
+    rendre: (g?: boolean) => (
+      <Opale.DataTable
+        liquidGlass={g}
+        columns={[{ key: 'n', label: 'Nom' }]}
+        rows={[{ n: 'Opale' }]}
+      />
+    ),
+  },
+  { nom: 'FileCard', rendre: (g?: boolean) => <Opale.FileCard liquidGlass={g} name="plan.fig" /> },
+  { nom: 'Dropzone', rendre: (g?: boolean) => <Opale.Dropzone liquidGlass={g} /> },
+  {
+    nom: 'Lightbox',
+    rendre: (g?: boolean) => (
+      <Opale.Lightbox open liquidGlass={g} src="/x.jpg" alt="Une photographie" />
+    ),
+  },
+  { nom: 'Clipboard', rendre: (g?: boolean) => <Opale.Clipboard liquidGlass={g} value="npm i" /> },
+  {
+    nom: 'IconActionButton',
+    rendre: (g?: boolean) => (
+      <Opale.IconActionButton liquidGlass={g} icon="trash" label="Supprimer" />
+    ),
+  },
+  { nom: 'SvgMap', rendre: (g?: boolean) => <Opale.SvgMap liquidGlass={g} /> },
 ] as const;
 
 describe('la matière est une option, jamais le rendu par défaut', () => {
@@ -190,6 +287,15 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
     const exclus = new Map([
       ['FieldShell', 'coquille interne, jamais exportée : elle sert les champs ci-dessus'],
       ['Surface', 'primitive interne, jamais exportée : Card et StatCard la portent'],
+      ['FileCardShell', 'coquille interne de FileCard, jamais exportée'],
+      /* CES QUATRE-LÀ NE SONT PAS DES COMPOSANTS mais des VARIABLES LOCALES :
+         `const Track = liquidGlass ? Glass : 'div'`. Elles portent une
+         majuscule parce que JSX l'exige d'un type d'élément, et c'est à cela
+         seul que le découpage les confond avec des composants. */
+      ['Track', 'variable locale : le type d’élément de la piste, choisi par la matière'],
+      ['Shell', 'variable locale : le type d’élément de la carte du toast'],
+      ['Rail', 'variable locale : le type d’élément du rail de navigation'],
+      ['Zone', 'variable locale : le type d’élément de la zone de dépôt'],
     ]);
 
     const tenus = new Set<string>(PORTEURS.map((porteur) => porteur.nom));

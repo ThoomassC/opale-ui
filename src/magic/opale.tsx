@@ -1036,6 +1036,7 @@ export interface SegmentedControlProps {
   value?: string;
   onChange?: (value: string) => void;
   className?: string;
+  liquidGlass?: boolean;
 }
 
 /**
@@ -1058,7 +1059,13 @@ export interface SegmentedControlProps {
  * en `flex-wrap: wrap`, donc les options passent à la ligne dès que la place
  * manque et l'indicateur doit descendre avec elles.
  */
-export function SegmentedControl({ options, value, onChange, className }: SegmentedControlProps) {
+export function SegmentedControl({
+  options,
+  value,
+  onChange,
+  className,
+  liquidGlass = false,
+}: SegmentedControlProps) {
   const groupRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const hasPlacedRef = useRef(false);
@@ -1116,8 +1123,23 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
     };
   }, [options, value]);
 
+  /* LA MESURE SE FAIT SUR LE MÊME NŒUD DANS LES DEUX MATIÈRES. `Glass`
+     transmet sa `ref` à sa couche de CONTENU, celle qui porte `className` :
+     le groupe mesuré par `getBoundingClientRect` est donc exactement celui
+     qui contient les boutons, verre ou pas. Mesurer l'enveloppe donnerait un
+     indicateur décalé de l'épaisseur du matériau. */
+  const Track = liquidGlass ? Glass : 'div';
+  const trackProps = liquidGlass
+    ? ({ rootClassName: 'opale-segmented--glass-root' } as const)
+    : {};
+
   return (
-    <div ref={groupRef} className={cx('opale-segmented', className)} role="group">
+    <Track
+      {...trackProps}
+      ref={groupRef}
+      className={cx('opale-segmented', liquidGlass && 'opale-segmented--glass', className)}
+      role="group"
+    >
       <span ref={indicatorRef} aria-hidden="true" className="opale-segmented__indicator" />
       {options.map((option) => (
         <button
@@ -1130,7 +1152,7 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
           {option.label}
         </button>
       ))}
-    </div>
+    </Track>
   );
 }
 
@@ -1141,12 +1163,18 @@ export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement
 
 
 export function IconActionButton({
+  icon = 'more-horizontal',
   label = 'Action',
   ...props
-}: Omit<ButtonProps, 'children'> & { label?: string }) {
+}: Omit<ButtonProps, 'children'> & { icon?: OpaleIconName; label?: string }) {
+  /* IL RENDAIT LA PREMIÈRE LETTRE DU LIBELLÉ. `label.slice(0, 1)` : un bouton
+     « Partager » affichait « P ». Ce n'était pas une icône, c'était l'aveu
+     qu'il n'y en avait pas — le jeu d'Opale n'existait pas encore. Il en
+     prend une vraie, par son nom ; le libellé reste le nom accessible, et
+     seulement lui. */
   return (
     <Button {...props} aria-label={label} variant="ghost">
-      {label.slice(0, 1)}
+      <IconGlyph name={icon} className="opale-icon__glyph" />
     </Button>
   );
 }
@@ -1263,19 +1291,43 @@ export function Feedback({
   title,
   children,
   className,
+  liquidGlass = false,
 }: {
   severity?: 'success' | 'info' | 'warning' | 'error';
   title?: ReactNode;
   children: ReactNode;
   className?: string;
+  liquidGlass?: boolean;
 }) {
-  return (
-    <div
-      className={cx('opale-feedback', `opale-feedback--${severity}`, className)}
-      role={severity === 'error' ? 'alert' : 'status'}
-    >
+  const classes = cx(
+    'opale-feedback',
+    `opale-feedback--${severity}`,
+    liquidGlass && 'opale-feedback--glass',
+    className,
+  );
+  const role = severity === 'error' ? 'alert' : 'status';
+  const content = (
+    <>
       <strong>{title ?? severity}</strong>
       <span>{children}</span>
+    </>
+  );
+
+  /* LE RÔLE EST POSÉ SUR LE MÊME NŒUD DANS LES DEUX MATIÈRES, et c'est le
+     contrat à ne pas laisser dépendre d'une apparence : `Glass` rend le rôle
+     sur sa couche de CONTENU, celle qui porte `className`, donc la région
+     live reste là où elle était. */
+  if (liquidGlass) {
+    return (
+      <Glass className={classes} rootClassName="opale-feedback--glass-root" role={role}>
+        {content}
+      </Glass>
+    );
+  }
+
+  return (
+    <div className={classes} role={role}>
+      {content}
     </div>
   );
 }
@@ -1366,11 +1418,14 @@ export function Toast({
   onClose,
   tone = 'neutral',
   position = 'bottom-right',
+  liquidGlass = false,
   className,
 }: {
   message: ReactNode;
   open?: boolean;
   onClose?: () => void;
+  /** Rend la carte dans le matériau « verre liquide ». Originale par défaut. */
+  liquidGlass?: boolean;
   /** Le ton, qui choisit la couleur du filet et de l'icône. */
   tone?: ToastTone;
   /** La place à l'écran. Le message est rendu dans un portail, pas en flux. */
@@ -1391,11 +1446,21 @@ export function Toast({
      ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
      posées d'avance, vides, et le message entre dans celle de son ton. */
   const assertive = ASSERTIVE_TONES.has(tone);
+  const classes = cx(
+    'opale-toast',
+    tone !== 'neutral' && `opale-toast--${tone}`,
+    liquidGlass && 'opale-toast--glass',
+    className,
+  );
+  /* SOUS VERRE, LE TON PASSE DU REMPLISSAGE AU LAVIS. Une carte de verre
+     remplie d'un vert opaque n'est plus du verre : elle ne réfracte plus
+     rien. La feuille compose donc `--opale-glass-surface` — le jeton que
+     `Glass` lit pour son voile — à partir du ton, et l'encre redevient celle
+     du matériau. */
+  const Shell = liquidGlass ? Glass : 'div';
+  const shellProps = liquidGlass ? ({ rootClassName: 'opale-toast--glass-root' } as const) : {};
   const card = open ? (
-    <div
-      className={cx('opale-toast', tone !== 'neutral' && `opale-toast--${tone}`, className)}
-      data-opale-toast-tone={tone}
-    >
+    <Shell {...shellProps} className={classes} data-opale-toast-tone={tone}>
       {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
 
           Le ton n'était qu'un filet de 4 px en ombre intérieure, rogné à ses
@@ -1425,7 +1490,7 @@ export function Toast({
           <Icon name="close" />
         </button>
       )}
-    </div>
+    </Shell>
   ) : null;
 
   const content = (
@@ -1485,12 +1550,21 @@ export function ProgressBar({
   value = 0,
   label,
   className,
+  liquidGlass = false,
 }: {
   value?: number;
   label?: string;
   className?: string;
+  liquidGlass?: boolean;
 }) {
   const labelId = useId();
+  /* LA PISTE EST CE QUI CHANGE DE MATIÈRE, PAS LA VALEUR. Le remplissage
+     reste opaque sous verre : une progression translucide sur un paysage ne
+     se lirait plus, et c'est la seule chose que la barre a à dire. */
+  const Track = liquidGlass ? Glass : 'div';
+  const trackProps = liquidGlass
+    ? ({ rootClassName: 'opale-progress--glass-root' } as const)
+    : {};
 
   return (
     <div className={cx('opale-field', className)}>
@@ -1502,8 +1576,9 @@ export function ProgressBar({
           {label}
         </span>
       )}
-      <div
-        className="opale-progress"
+      <Track
+        {...trackProps}
+        className={cx('opale-progress', liquidGlass && 'opale-progress--glass')}
         role="progressbar"
         aria-labelledby={label ? labelId : undefined}
         aria-valuenow={value}
@@ -1514,7 +1589,7 @@ export function ProgressBar({
           className="opale-progress__value"
           style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
         />
-      </div>
+      </Track>
     </div>
   );
 }
@@ -1525,12 +1600,14 @@ export function ConfirmDialog({
   children,
   onConfirm,
   onCancel,
+  liquidGlass = false,
 }: {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
   onConfirm?: () => void;
   onCancel?: () => void;
+  liquidGlass?: boolean;
 }) {
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
      faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
@@ -1549,6 +1626,7 @@ export function ConfirmDialog({
     <Modal
       open={open}
       onClose={onCancel}
+      liquidGlass={liquidGlass}
       title={title}
       description={children}
       footer={
@@ -1567,13 +1645,21 @@ export function EmptyState({
   title = 'Aucun résultat',
   description,
   action,
+  liquidGlass = false,
 }: {
   title?: ReactNode;
   description?: ReactNode;
   action?: ReactNode;
+  liquidGlass?: boolean;
 }) {
   return (
-    <Card className="opale-empty-state" title={title} subtitle={description} actions={action}>
+    <Card
+      className="opale-empty-state"
+      title={title}
+      subtitle={description}
+      actions={action}
+      liquidGlass={liquidGlass}
+    >
       <Icon name="search" />
     </Card>
   );
@@ -1590,14 +1676,28 @@ export function Navbar({
   activeId,
   onSelect,
   className,
+  liquidGlass = false,
 }: {
   items?: readonly NavItem[];
   activeId?: string;
   onSelect?: (id: string) => void;
   className?: string;
+  liquidGlass?: boolean;
 }) {
+  const Rail = liquidGlass ? Glass : 'nav';
+  const railProps = liquidGlass
+    ? ({ as: 'nav', rootClassName: 'opale-surface--glass-root' } as const)
+    : {};
+
   return (
-    <nav className={cx('opale-surface', 'opale-nav', className)} aria-label="Navigation">
+    /* LE RAIL CHANGE DE MATIÈRE, PAS DE BALISE. `Glass` rend l'élément demandé
+       pour son CONTENU : le `<nav>` et son nom accessible restent le même nœud
+       dans les deux rendus, donc la navigation garde son rôle sous verre. */
+    <Rail
+      {...railProps}
+      className={cx('opale-surface', liquidGlass && 'opale-surface--glass', 'opale-nav', className)}
+      aria-label="Navigation"
+    >
       {items.map((item) =>
         item.href ? (
           <a
@@ -1622,7 +1722,7 @@ export function Navbar({
           </button>
         ),
       )}
-    </nav>
+    </Rail>
   );
 }
 
@@ -1631,18 +1731,36 @@ export function Menu({
   items = [],
   className,
   children,
+  liquidGlass = false,
 }: {
   label?: ReactNode;
   items?: readonly NavItem[];
   className?: string;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
-  return (
-    <details className={cx('opale-surface', 'opale-panel', className)}>
-      <summary>{label}</summary>
-      {items.length > 0 ? <Navbar items={items} /> : children}
-    </details>
+  const classes = cx(
+    'opale-surface',
+    liquidGlass && 'opale-surface--glass',
+    'opale-panel',
+    className,
   );
+  const content = (
+    <>
+      <summary>{label}</summary>
+      {items.length > 0 ? <Navbar items={items} liquidGlass={liquidGlass} /> : children}
+    </>
+  );
+
+  if (liquidGlass) {
+    return (
+      <Glass as="details" className={classes} rootClassName="opale-surface--glass-root">
+        {content}
+      </Glass>
+    );
+  }
+
+  return <details className={classes}>{content}</details>;
 }
 
 export function Link({
@@ -1662,18 +1780,26 @@ export function SidePanel({
   title = 'Panneau',
   children,
   onClose,
+  liquidGlass = false,
 }: {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
   onClose?: () => void;
+  liquidGlass?: boolean;
 }) {
   /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
      coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
      même position. La coquille le plaque désormais contre le bord de fin sur
      toute la hauteur ; voir `.opale-side-panel` dans `opale.css`. */
   return (
-    <Modal open={open} onClose={onClose} title={title} rootClassName="opale-side-panel">
+    <Modal
+      open={open}
+      onClose={onClose}
+      liquidGlass={liquidGlass}
+      title={title}
+      rootClassName="opale-side-panel"
+    >
       {children}
     </Modal>
   );
@@ -1685,12 +1811,14 @@ export function CommandPalette({
   onChange,
   onClose,
   children,
+  liquidGlass = false,
 }: {
   open?: boolean;
   value?: string;
   onChange?: (value: string) => void;
   onClose?: () => void;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
   /* LE CHAMP A UNE ÉTIQUETTE, ET PLUS SEULEMENT UN TEXTE INDICATIF. Un
      placeholder disparaît à la première frappe, ne survit pas à la
@@ -1701,9 +1829,15 @@ export function CommandPalette({
      `onClose` EST UNE PROP NOUVELLE, et elle est la condition du reste : un
      dialogue qu'on ne peut pas fermer n'en est pas un. */
   return (
-    <Modal open={open} onClose={onClose} aria-label="Palette de commandes">
+    <Modal
+      open={open}
+      onClose={onClose}
+      liquidGlass={liquidGlass}
+      aria-label="Palette de commandes"
+    >
       <Input
         label="Rechercher une commande"
+        liquidGlass={liquidGlass}
         value={value}
         onChange={(event) => onChange?.(event.currentTarget.value)}
       />
@@ -1740,15 +1874,17 @@ export function CookieBanner({
   open = true,
   children = 'Nous utilisons des cookies pour améliorer votre expérience.',
   onAccept,
+  liquidGlass = false,
 }: {
   open?: boolean;
   children?: ReactNode;
   onAccept?: () => void;
+  liquidGlass?: boolean;
 }) {
   return open ? (
-    <Feedback severity="info" title="Cookies">
+    <Feedback severity="info" title="Cookies" liquidGlass={liquidGlass}>
       {children}
-      <Button size="small" onClick={onAccept}>
+      <Button size="small" liquidGlass={liquidGlass} onClick={onAccept}>
         Accepter
       </Button>
     </Feedback>
@@ -1757,12 +1893,14 @@ export function CookieBanner({
 export function SelectionBar({
   selectedCount = 0,
   children,
+  liquidGlass = false,
 }: {
   selectedCount?: number;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
   return (
-    <div className="opale-surface opale-selection-bar opale-panel">
+    <Surface liquidGlass={liquidGlass} className="opale-selection-bar opale-panel">
       {/* LE COMPTE CHANGEAIT SANS UN MOT. On cochait des lignes et le total
           n'était jamais annoncé (WCAG 4.1.3). La région est montée en
           permanence avec la barre, donc elle est surveillée avant que le
@@ -1771,7 +1909,7 @@ export function SelectionBar({
         {selectedCount} sélectionné{selectedCount > 1 ? 's' : ''}
       </span>
       {children}
-    </div>
+    </Surface>
   );
 }
 
@@ -2078,10 +2216,11 @@ export function Donut({ value = 60, label = `${value}%` }: { value?: number; lab
 export interface DataTableProps {
   columns?: readonly { key: string; label: ReactNode }[];
   rows?: readonly Record<string, ReactNode>[];
+  liquidGlass?: boolean;
 }
-export function DataTable({ columns = [], rows = [] }: DataTableProps) {
+export function DataTable({ columns = [], rows = [], liquidGlass = false }: DataTableProps) {
   return (
-    <div className="opale-surface opale-panel">
+    <Surface liquidGlass={liquidGlass} className="opale-panel">
       <table className="opale-table">
         <thead>
           <tr>
@@ -2100,7 +2239,7 @@ export function DataTable({ columns = [], rows = [] }: DataTableProps) {
           ))}
         </tbody>
       </table>
-    </div>
+    </Surface>
   );
 }
 
@@ -2121,11 +2260,13 @@ export function FileCard({
   size,
   selected = false,
   onClick,
+  liquidGlass = false,
 }: {
   name: string;
   size?: string;
   selected?: boolean;
   onClick?: () => void;
+  liquidGlass?: boolean;
 }) {
   return (
     /* `aria-pressed` ET UNE CLASSE PROPRE, À LA PLACE DU LAVIS.
@@ -2136,31 +2277,78 @@ export function FileCard({
        étaient choisies (WCAG 4.1.2), et l'information n'existait que par la
        couleur (1.4.1). La classe dédiée porte un liseré et une coche ; l'état
        est désormais annoncé. */
-    <button
-      type="button"
-      className={cx('opale-surface', 'opale-file-card', selected && 'opale-file-card--selected')}
+    <FileCardShell
+      liquidGlass={liquidGlass}
+      className={cx(
+        'opale-surface',
+        liquidGlass && 'opale-surface--glass',
+        'opale-file-card',
+        selected && 'opale-file-card--selected',
+      )}
       aria-pressed={selected}
       onClick={onClick}
     >
-      <span className="opale-file-card__icon" aria-hidden="true">
-        ⌁
-      </span>
-      <span>
+      <IconGlyph name="file" className="opale-file-card__icon" />
+      <span className="opale-file-card__text">
         <strong>{name}</strong>
         {size && <small className="opale-field__helper">{size}</small>}
       </span>
+    </FileCardShell>
+  );
+}
+
+/**
+ * La coquille de la carte de fichier, dans l'une ou l'autre matière.
+ *
+ * `Glass as="button"` REND LE BOUTON SUR SA COUCHE DE CONTENU : `aria-pressed`
+ * et le gestionnaire de clic restent donc sur le MÊME nœud que dans le rendu
+ * original. C'est la règle de tout ce fichier — le contrat d'accessibilité ne
+ * dépend pas de l'apparence.
+ */
+function FileCardShell({
+  liquidGlass,
+  children,
+  ...props
+}: {
+  liquidGlass: boolean;
+  className: string;
+  'aria-pressed': boolean;
+  onClick?: () => void;
+  children: ReactNode;
+}) {
+  if (liquidGlass) {
+    return (
+      <Glass as="button" type="button" rootClassName="opale-file-card--glass-root" {...props}>
+        {children}
+      </Glass>
+    );
+  }
+
+  return (
+    <button type="button" {...props}>
+      {children}
     </button>
   );
 }
 export function Dropzone({
   onFiles,
   children = 'Déposez vos fichiers ici',
+  liquidGlass = false,
 }: {
   onFiles?: (files: FileList) => void;
   children?: ReactNode;
+  liquidGlass?: boolean;
 }) {
+  const Zone = liquidGlass ? Glass : 'label';
+  const zoneProps = liquidGlass
+    ? ({ as: 'label', rootClassName: 'opale-dropzone--glass-root' } as const)
+    : {};
+
   return (
-    <label className="opale-dropzone">
+    <Zone
+      {...zoneProps}
+      className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass')}
+    >
       {/* `opale-visually-hidden` ET NON `hidden`, ET C'EST LA DIFFÉRENCE ENTRE
           UN COMPOSANT ET UN CUL-DE-SAC. L'attribut `hidden` vaut
           `display: none` : le champ sortait de l'ordre de tabulation, et le
@@ -2177,7 +2365,7 @@ export function Dropzone({
       />
       <strong>{children}</strong>
       <span>Sélectionner des fichiers</span>
-    </label>
+    </Zone>
   );
 }
 export function Lightbox({
@@ -2185,6 +2373,7 @@ export function Lightbox({
   alt,
   open = false,
   onClose,
+  liquidGlass = false,
 }: {
   src?: string;
   /* `alt` EST OBLIGATOIRE, ET IL NE PEUT PAS EN ÊTRE AUTREMENT. Sa valeur par
@@ -2196,15 +2385,17 @@ export function Lightbox({
   alt: string;
   open?: boolean;
   onClose?: () => void;
+  liquidGlass?: boolean;
 }) {
   return (
     <Modal
       open={open && Boolean(src)}
       onClose={onClose}
+      liquidGlass={liquidGlass}
       aria-label="Aperçu"
       rootClassName="opale-lightbox"
       footer={
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" liquidGlass={liquidGlass} onClick={onClose}>
           Fermer
         </Button>
       }
@@ -2213,12 +2404,21 @@ export function Lightbox({
     </Modal>
   );
 }
-export function Clipboard({ value, children = 'Copier' }: { value: string; children?: ReactNode }) {
+export function Clipboard({
+  value,
+  liquidGlass = false,
+  children = 'Copier',
+}: {
+  value: string;
+  liquidGlass?: boolean;
+  children?: ReactNode;
+}) {
   const [copied, setCopied] = useState(false);
   return (
     <Button
       size="small"
       variant="tonal"
+      liquidGlass={liquidGlass}
       onClick={() => {
         void navigator.clipboard?.writeText(value);
         setCopied(true);
@@ -2228,10 +2428,21 @@ export function Clipboard({ value, children = 'Copier' }: { value: string; child
     </Button>
   );
 }
-export function SvgMap({ children }: { children?: ReactNode }) {
-  return (
-    /* Même raison que pour `Map` : le tracé décoratif est marqué comme tel,
-       et le conteneur devient un groupe pour ne pas effacer ses marqueurs. */
+export function SvgMap({
+  children,
+  liquidGlass = false,
+}: {
+  children?: ReactNode;
+  liquidGlass?: boolean;
+}) {
+  /* LE VERRE EST LA PLAQUE, PAS LE TRACÉ. Un `<svg>` ne peut pas être la
+     couche de contenu de `Glass`, qui empile des `<div>` : la carte est donc
+     POSÉE sur une surface de verre. C'est d'ailleurs ce qu'on veut voir — un
+     tracé qui flotte au-dessus du paysage, et non un paysage rogné en forme
+     de tracé. */
+  const carte = (
+    /* Le tracé décoratif est marqué comme tel, et le conteneur est un groupe
+       pour ne pas effacer les marqueurs qu'il reçoit en `children`. */
     <svg className="opale-svg-map" viewBox="0 0 400 180" role="group" aria-label="Carte SVG">
       <path
         aria-hidden="true"
@@ -2243,6 +2454,14 @@ export function SvgMap({ children }: { children?: ReactNode }) {
       />
       {children}
     </svg>
+  );
+
+  return liquidGlass ? (
+    <Surface liquidGlass className="opale-svg-map__plate">
+      {carte}
+    </Surface>
+  ) : (
+    carte
   );
 }
 
