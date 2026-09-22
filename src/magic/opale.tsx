@@ -454,6 +454,9 @@ export function Checkbox({
   onChange,
   ...props
 }: CheckboxProps) {
+  const labelId = useId();
+  const descriptionId = useId();
+
   /* L'ÉTAT N'A PLUS BESOIN D'ÊTRE RECOPIÉ EN JAVASCRIPT.
 
      La version précédente tenait un état miroir (`useMirrorState`) pour dire à
@@ -464,7 +467,24 @@ export function Checkbox({
      simple passe-plat. */
   return (
     <label className={cx('opale-checkbox-row', className)}>
-      <input type="checkbox" className="opale-checkbox" onChange={onChange} {...props} />
+      {/* LA DESCRIPTION EST DÉCRITE, PLUS NOMMÉE. Rendue dans le `<label>`,
+          elle entrait dans le nom de la case : « Recevoir les notifications
+          Les nouveautés du design system ». Le nom d'une case doit être ce
+          qu'on coche, et le reste une description (WCAG 1.3.1). */}
+      <input
+        type="checkbox"
+        className="opale-checkbox"
+        /* `aria-labelledby` DÉSIGNE LE SEUL LIBELLÉ, et il faut cette précision.
+           Ajouter `aria-describedby` ne suffisait pas : la rangée EST un
+           `<label>`, donc tout ce qu'elle contient — description comprise —
+           entre dans le nom calculé. Nommer explicitement le prend de vitesse,
+           et la rangée reste cliquable sur toute sa surface, ce qui est le
+           point de la construire ainsi. */
+        aria-labelledby={labelId}
+        aria-describedby={label && description ? descriptionId : undefined}
+        onChange={onChange}
+        {...props}
+      />
       {/* LA COCHE EST UNE DÉCORATION, sous verre comme sans. La vraie case est
           l'`<input>` natif, invisible et posé sur toute la rangée ; c'est le
           `<label>` qui reçoit le clic. */}
@@ -476,8 +496,12 @@ export function Checkbox({
       >
         {null}
       </FieldShell>
-      <span>{label ?? description}</span>
-      {label && description && <small className="opale-field__helper">{description}</small>}
+      <span id={labelId}>{label ?? description}</span>
+      {label && description && (
+        <small id={descriptionId} className="opale-field__helper">
+          {description}
+        </small>
+      )}
     </label>
   );
 }
@@ -551,6 +575,8 @@ export function Slider({
   onChange,
   ...props
 }: SliderProps) {
+  const generatedSliderId = useId();
+  const sliderId = props.id ?? generatedSliderId;
   /* SOUS VERRE, LA PISTE EST LE MATÉRIAU LUI-MÊME.
 
      CE QUI N'ALLAIT PAS. Le curseur se contentait d'un `<input type="range">`
@@ -632,14 +658,34 @@ export function Slider({
      élément aux mêmes propriétés. L'extraire est ce qui empêche les deux
      branches de diverger sans qu'on le voie. */
   const control = (
-    <input ref={inputRef} type="range" className="opale-range" onChange={handleChange} {...props} />
+    <input
+      ref={inputRef}
+      id={sliderId}
+      type="range"
+      className="opale-range"
+      onChange={handleChange}
+      {...props}
+    />
   );
 
   return (
-    <label className={cx('opale-field', className)}>
+    <div className={cx('opale-field', className)}>
+      {/* LE NOM DU CURSEUR CHANGEAIT À CHAQUE CRAN, et c'est le plus gênant des
+          trois défauts de cette famille. Le `<label>` enveloppait la valeur
+          autant que le libellé : le nom accessible devenait « Volume 42 »,
+          puis « Volume 43 »… Toute commande vocale visant « Volume » échouait,
+          et un lecteur d'écran réannonçait le nom du contrôle à chaque flèche.
+          Le libellé nomme, la valeur décrit — et le curseur natif annonce déjà
+          sa valeur par `aria-valuenow`. */}
       {(label || valueLabel) && (
         <span className="opale-card__header">
-          <span className="opale-field__label">{label}</span>
+          <label className="opale-field__label" htmlFor={sliderId}>
+            {label}
+          </label>
+          {/* PAS D'`aria-hidden` ICI. La valeur n'est plus dans le `<label>`,
+              donc elle n'entre plus dans le nom du curseur : la cacher ne
+              servirait qu'à la retirer aussi de la lecture ordinaire de la
+              page, alors qu'elle est l'information qu'on affiche. */}
           <span>{valueLabel ?? props.value}</span>
         </span>
       )}
@@ -673,7 +719,7 @@ export function Slider({
       ) : (
         <span className="opale-range-shell">{control}</span>
       )}
-    </label>
+    </div>
   );
 }
 
@@ -711,15 +757,32 @@ export function Select({
      Tout cela tombe : le verre enveloppe le `<select>` natif d'Opale. Les
      libellés redeviennent des `ReactNode` sans condition, et `children`
      fonctionne sous verre comme sans. */
+  /* LE TEXTE D'AIDE SORT DU `<label>`, COMME DANS `Input`. Enveloppé avec le
+     champ, il entrait dans son NOM : « Pays Choisissez votre pays de
+     résidence » au lieu de « Pays » décrit par une aide — ce qui casse la
+     commande vocale visant « Pays » (WCAG 1.3.1). La correction avait été
+     appliquée au champ de saisie et pas à ses trois voisins. */
+  const helperId = `${selectId}-helper`;
+
   return (
-    <label className={cx('opale-field', className)} htmlFor={selectId}>
-      {label && <span className="opale-field__label">{label}</span>}
+    <div className={cx('opale-field', className)}>
+      {label && (
+        <label className="opale-field__label" htmlFor={selectId}>
+          {label}
+        </label>
+      )}
       <FieldShell
         liquidGlass={liquidGlass}
         className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
         rootClassName="opale-input--glass-root"
       >
-        <select id={selectId} className="opale-select" onChange={onChange} {...props}>
+        <select
+          id={selectId}
+          className="opale-select"
+          aria-describedby={helperText ? helperId : undefined}
+          onChange={onChange}
+          {...props}
+        >
           {options?.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -728,8 +791,12 @@ export function Select({
           {children}
         </select>
       </FieldShell>
-      {helperText && <span className="opale-field__helper">{helperText}</span>}
-    </label>
+      {helperText && (
+        <span id={helperId} className="opale-field__helper">
+          {helperText}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -887,7 +954,11 @@ export function MultiSelect({
           role="listbox"
           aria-multiselectable="true"
           aria-labelledby={label ? labelId : undefined}
-          aria-activedescendant={`${fieldId}-option-${activeIndex}`}
+          /* `aria-activedescendant` NE DOIT PAS DÉSIGNER UN ÉLÉMENT ABSENT :
+             sans option, la référence ne résout rien et la liste annonce un
+             descendant actif qui n'existe pas. */
+          aria-activedescendant={options.length ? `${fieldId}-option-${activeIndex}` : undefined}
+          aria-describedby={helperText ? `${fieldId}-helper` : undefined}
           tabIndex={0}
           onKeyDown={onKeyDown}
         >
@@ -927,7 +998,11 @@ export function MultiSelect({
         </div>
       </FieldShell>
 
-      {helperText && <span className="opale-field__helper">{helperText}</span>}
+      {helperText && (
+        <span id={`${fieldId}-helper`} className="opale-field__helper">
+          {helperText}
+        </span>
+      )}
     </div>
   );
 }

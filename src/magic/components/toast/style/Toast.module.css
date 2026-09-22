@@ -393,5 +393,13 @@
   border: 1px solid var(--opale-divider);
   background: var(--opale-surface);
   color: var(--opale-text);
-  box-shadow: var(--opale-shadow-3);
+  /* LE LISERÉ D'ACCENT SURVIT, ET IL LE FAUT. `.surface` le porte dans sa
+     propre `box-shadow` ; en rendu plein les deux classes atterrissent sur le
+     MÊME élément, et celle-ci, écrite plus bas, remplaçait l'ombre en entier.
+     Le bandeau latéral disparaissait donc — avec lui la seule marque non
+     colorée de la variante, celle qui compte pour qui distingue mal le vert du
+     rouge (WCAG 1.4.1). Les quatre variantes devenaient identiques au pixel. */
+  box-shadow:
+    inset 0.25rem 0 0 var(--opale-toast-accent),
+    var(--opale-shadow-3);
 }

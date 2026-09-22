@@ -313,7 +313,11 @@ export type SidebarItemsProps = ComponentPropsWithoutRef<'nav'>;
  * DÈS QU'IL Y A DEUX RAILS DANS UNE PAGE, IL FAUT LE REMPLACER : deux repères
  * de même nom ne se distinguent pas davantage que deux repères sans nom.
  */
-const DEFAULT_ITEMS_LABEL = 'Sidebar';
+/* EN FRANÇAIS, COMME LE RESTE DE LA BIBLIOTHÈQUE. C'était le dernier texte
+   d'interface anglais : lu avec la voix française du document, « Sidebar »
+   devient inintelligible (WCAG 3.1.2). `Modal` dit « Fermer », `SearchBar`
+   « Rechercher », et la bascule de ce même rail « Replier le rail ». */
+const DEFAULT_ITEMS_LABEL = 'Navigation latérale';
 
 const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ...rest }, ref) => (
   /* `aria-label` EST POSÉ AVANT `{...rest}`, donc l'appelant l'emporte — y

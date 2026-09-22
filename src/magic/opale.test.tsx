@@ -10,14 +10,18 @@ import {
   Countdown,
   DeleteButton,
   DescriptionList,
+  Checkbox,
+  Dropzone,
   Input,
   Map,
+  MultiSelect,
   ProgressBar,
+  Select,
   SelectionBar,
+  Slider,
   Toast,
   CommandPalette,
   ConfirmDialog,
-  Dropzone,
   Lightbox,
   Rating,
   SegmentedControl,
@@ -505,5 +509,105 @@ describe('les constats sérieux de l’audit', () => {
       'Sans plafond d’itérations, une animation `infinite` se rejoue une fois ' +
         'par centième de milliseconde au lieu de s’arrêter.',
     ).toMatch(/animation-iteration-count:\s*1/);
+  });
+});
+
+/* =============================================================================
+   LE SECOND AUDIT : CE QUE LA PREMIÈRE CORRECTION AVAIT LAISSÉ AUX VOISINS.
+
+   `Input` avait sorti son message du `<label>`, et le commentaire expliquait
+   pourquoi : enveloppé avec le champ, un texte d'aide entre dans son NOM. Ses
+   trois voisins — le sélecteur, la case, le curseur — n'avaient pas suivi.
+   Le pire des trois est le curseur : sa valeur étant DANS le libellé, son nom
+   accessible changeait à chaque cran.
+   ========================================================================== */
+describe('le nom des champs ne contient que leur libellé', () => {
+  it('Select décrit son aide au lieu de la nommer', () => {
+    render(<Select label="Pays" helperText="Choisissez votre pays de résidence" />);
+
+    const champ = screen.getByRole('combobox', { name: 'Pays' });
+
+    expect(champ).toBeInTheDocument();
+    expect(champ).toHaveAccessibleDescription('Choisissez votre pays de résidence');
+  });
+
+  it('Checkbox décrit sa description au lieu de la nommer', () => {
+    render(<Checkbox label="Recevoir les notifications" description="Les nouveautés du system." />);
+
+    const case_ = screen.getByRole('checkbox', { name: 'Recevoir les notifications' });
+
+    expect(case_).toBeInTheDocument();
+    expect(case_).toHaveAccessibleDescription('Les nouveautés du system.');
+  });
+
+  /* LE NOM D'UN CURSEUR NE DOIT PAS BOUGER QUAND SA VALEUR BOUGE : une
+     commande vocale visant « Volume » échouerait dès le premier cran, et un
+     lecteur d'écran réannoncerait le contrôle à chaque flèche. */
+  it('Slider garde le même nom quand sa valeur change', () => {
+    const { rerender } = render(<Slider label="Volume" value={42} valueLabel="42 %" readOnly />);
+
+    expect(screen.getByRole('slider', { name: 'Volume' })).toBeInTheDocument();
+
+    rerender(<Slider label="Volume" value={43} valueLabel="43 %" readOnly />);
+
+    expect(
+      screen.getByRole('slider', { name: 'Volume' }),
+      'Le nom du curseur a suivi sa valeur : toute commande vocale le perd.',
+    ).toBeInTheDocument();
+  });
+
+  it('MultiSelect relie son aide et ne désigne pas une option absente', () => {
+    const { container, rerender } = render(
+      <MultiSelect label="Domaines" helperText="Deux au plus." />,
+    );
+
+    const liste = screen.getByRole('listbox');
+
+    expect(liste).toHaveAccessibleDescription('Deux au plus.');
+    expect(
+      liste.getAttribute('aria-activedescendant'),
+      'Sans option, la référence ne résout rien.',
+    ).toBeNull();
+
+    rerender(
+      <MultiSelect
+        label="Domaines"
+        options={[{ value: 'a', label: 'A' }]}
+        helperText="Deux au plus."
+      />,
+    );
+
+    const actif = screen.getByRole('listbox').getAttribute('aria-activedescendant');
+
+    expect(actif).not.toBeNull();
+    expect(container.querySelector(`#${CSS.escape(actif ?? '')}`)).not.toBeNull();
+  });
+
+  /* LA ZONE DE DÉPÔT MONTRE LE FOCUS DE SON CHAMP. Le natif est masqué par
+     découpage, et un `clip-path` rogne l'anneau du navigateur : il fallait le
+     dessiner sur la zone, qui est ce que l'on voit. jsdom ne peint pas, donc
+     c'est la feuille qu'on lit. */
+  it('dessine le focus de la zone de dépôt sur la zone', () => {
+    render(<Dropzone />);
+
+    const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    expect(
+      sheet,
+      'Le champ est masqué par découpage : son anneau est rogné. Sans règle ' +
+        'sur la zone, tabuler dedans ne change pas un pixel (WCAG 2.4.7).',
+    ).toMatch(/\.opale-dropzone:focus-within\s*\{[^}]*outline:/);
+  });
+
+  it('souligne les liens du fil d’Ariane', () => {
+    const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+    const rule = /\.opale-breadcrumb a\s*\{([^}]*)\}/.exec(sheet)?.[1] ?? '';
+
+    expect(rule, 'La règle des liens du fil est introuvable.').not.toBe('');
+    expect(
+      rule,
+      'Contre le gris qui l’entoure, le primaire ne donne que 1,08:1 : sans ' +
+        'soulignement, rien ne dit qu’un maillon est cliquable (WCAG 1.4.1).',
+    ).toMatch(/text-decoration:\s*underline/);
   });
 });

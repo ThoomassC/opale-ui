@@ -941,11 +941,19 @@
    retirer du formulaire : ni `display: none` ni `visibility: hidden`, qui
    l'excluraient de la soumission et de la validation.
    ========================================================================== */
+/* LA RECETTE COMPLÈTE, ET NON LES CINQ SIXIÈMES. Sans `border`, `padding` et
+   la marge négative, la bordure et le remplissage par défaut de l'agent
+   utilisateur survivent au découpage : sur le `<select multiple>` caché de la
+   liste multiple, quelques pixels restaient visibles. La copie qui vit dans
+   `Sidebar.module.css` portait déjà les trois. */
 .opale-visually-hidden {
   position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
+  border: 0;
+  margin: -1px;
+  padding: 0;
   clip-path: inset(50%);
   white-space: nowrap;
 }
@@ -1536,9 +1544,14 @@
   color: var(--opale-text-secondary);
   font-size: 0.875rem;
 }
+/* LE LIEN NE SE DISTINGUE PLUS PAR LA SEULE COULEUR. Contre le texte gris qui
+   l'entoure, le primaire ne donne que 1,08:1 : en niveaux de gris ou en vision
+   des couleurs réduite, rien ne dit qu'un maillon est cliquable (WCAG 1.4.1).
+   Le soulignement est la marque que la technique G183 attend. */
 .opale-breadcrumb a {
   color: var(--opale-primary);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 .opale-panel {
   padding: var(--opale-space-lg);
@@ -1834,6 +1847,18 @@
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
   color: var(--opale-primary);
 }
+/* LA ZONE DE DÉPÔT MONTRE LE FOCUS DE SON CHAMP.
+
+   Le champ de fichier est masqué par `.opale-visually-hidden`, qui le réduit à
+   un pixel et le découpe : l'anneau du navigateur s'y dessine donc sur rien —
+   un `clip-path` rogne aussi l'`outline`, comme sur le bouton de verre. On
+   tabulait jusqu'ici sans qu'un pixel ne bouge (WCAG 2.4.7), et l'on ouvrait
+   le sélecteur de fichiers sans avoir su qu'on y était. L'anneau se dessine
+   donc sur la ZONE, qui est ce que l'on voit. */
+.opale-dropzone:focus-within {
+  outline: 3px solid var(--opale-focus);
+  outline-offset: 3px;
+}
 .opale-dropzone {
   display: grid;
   min-height: 9rem;
@@ -1846,21 +1871,16 @@
   color: var(--opale-text-secondary);
   text-align: center;
 }
-.opale-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: grid;
-  place-items: center;
-  padding: 2rem;
-  background: rgba(12, 15, 13, 0.86);
-}
-.opale-lightbox img {
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: var(--opale-radius-md);
-  box-shadow: var(--opale-shadow-4);
-}
+/* LES RÈGLES DE L'ANCIENNE VISIONNEUSE ONT ÉTÉ RETIRÉES D'ICI.
+
+   `Lightbox` peignait son propre voile plein écran ; elle passe désormais par
+   `Modal`, et sa classe atterrit sur le PANNEAU. Ces déclarations — `position:
+   fixed`, `inset: 0`, un fond noir à 86 % — s'appliquaient donc au panneau
+   lui-même. Elles ne gagnaient pas, la feuille du module étant injectée après
+   la nôtre, mais elles pesaient la même spécificité : il ne manquait qu'un
+   changement d'ordre au bundler pour que le dialogue devienne un plan noir
+   portant de l'encre presque noire. Le second `.opale-lightbox img` écrasait
+   d'ailleurs déjà la hauteur voulue par la règle qui reste plus haut. */
 .opale-upload-list {
   display: grid;
   gap: var(--opale-space-xs);

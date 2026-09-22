@@ -129,7 +129,7 @@ describe('Sidebar — ce que la réécriture corrige', () => {
       </Sidebar>,
     );
 
-    expect(screen.getByRole('navigation', { name: 'Sidebar' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Navigation latérale' })).toBeInTheDocument();
     unmount();
 
     render(

@@ -265,41 +265,37 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
       if (!plain) return;
 
       /* Les jetons dont la valeur est un blanc — littéral ou `rgba(255,…)`. */
-      const blancs = [
-        ...sansCommentaires.matchAll(/(--[\w-]+):\s*(#fff\w*|rgba?\(\s*255,\s*255,\s*255[^)]*\))/g),
+      /* LES JETONS RÉGLÉS POUR LE VERRE : un blanc, ou le marine du voile.
+
+         Une première version ne retenait que les blancs consommés par une
+         règle de focus. Trop étroit : le bandeau d'onglets gardait ainsi deux
+         jetons MARINE — la pastille de sélection et le fond du panneau — qui
+         devenaient des plaques ardoise au milieu d'une carte blanche, et
+         l'onglet retenu, seule information de la barre, y tombait à 1,59:1.
+
+         Seules les valeurs LITTÉRALES comptent : un jeton dérivé par
+         `color-mix` d'une couleur de thème suit déjà le thème. */
+      const teintesDeVerre = [
+        ...sansCommentaires.matchAll(
+          /(--[\w-]+):\s*(#fff\w*|rgba?\(\s*255,\s*255,\s*255[^)]*\)|rgba?\(\s*7,\s*28,\s*43[^)]*\))/g,
+        ),
       ].map((match) => match[1]);
 
-      /* Les jetons qu'une règle de focus consomme, directement ou par un alias
-       (`--a: var(--b)` puis `outline: var(--a)`). */
-      const alias = new Map(
-        [...sansCommentaires.matchAll(/(--[\w-]+):\s*var\((--[\w-]+)\)/g)].map((match) => [
-          match[1],
-          match[2],
-        ]),
+      /* UN JETON EST EN CAUSE dès qu'une règle QUELCONQUE de la feuille le
+         consomme — pas seulement une règle de focus : la pastille de
+         sélection et le fond du panneau sont peints par des règles
+         ordinaires. */
+      const coupables = teintesDeVerre.filter(
+        (jeton) =>
+          new RegExp(`var\\(${jeton}[,)]`).test(sansCommentaires) &&
+          !new RegExp(`${jeton}:`).test(plain),
       );
-      const reglesFocus = [...sansCommentaires.matchAll(/:focus-visible[^{]*\{([^}]*)\}/g)]
-        .map((match) => match[1])
-        .join('\n');
-
-      const coupables = blancs.filter((jeton) => {
-        const cites = [
-          jeton,
-          ...[...alias.entries()]
-            .filter(([, cible]) => cible === jeton)
-            .map(([nomAlias]) => nomAlias),
-        ];
-
-        return (
-          cites.some((cite) => reglesFocus.includes(`var(${cite})`)) &&
-          !new RegExp(`${jeton}:`).test(plain)
-        );
-      });
 
       expect(
         coupables,
-        `${nom} : ${coupables.join(', ')} vaut du blanc et pilote l’anneau de ` +
-          'focus. Sur la surface pleine, l’anneau se dessine donc en blanc sur ' +
-          'blanc. Redéfinissez le jeton dans le bloc `.plain`.',
+        `${nom} : ${coupables.join(', ')} garde une valeur réglée pour le ` +
+          'verre — un blanc ou le marine du voile — alors que le rendu plein ' +
+          'la consomme. Redéfinissez le jeton dans le bloc `.plain`.',
       ).toEqual([]);
     },
   );
