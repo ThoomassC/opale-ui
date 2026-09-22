@@ -2115,7 +2115,15 @@
    ========================================================================== */
 .opale-toast-anchor {
   position: fixed;
-  z-index: 60;
+
+  /* 1100, ET C'EST LE MÊME RANG QUE LA FILE. À 60 le message passait SOUS le
+     dialogue, qui monte à 1000 : les trois sont portaillés dans `body`, donc
+     empilés dans le même contexte racine, et le plus grand gagne quel que soit
+     l'ordre de montage. Une erreur signalée pendant qu'une modale est ouverte
+     — le cas le plus fréquent — était peinte derrière le voile, illisible, et
+     sa croix inatteignable : le clic tombait sur le voile, qui fermait le
+     dialogue. `ToastProvider` avait déjà choisi 1100 pour cette raison. */
+  z-index: 1100;
   display: flex;
   padding: calc(1rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px))
     calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));

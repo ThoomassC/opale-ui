@@ -28,8 +28,14 @@ export function IconGlyph({ name, className }: { name: OpaleIconName; className?
       aria-hidden="true"
       focusable="false"
     >
-      {OPALE_ICONS[name].map((d) => (
-        <path d={d} key={d} />
+      {/* LA CLÉ EST L'INDICE ET NON LE TRACÉ. Deux tracés identiques dans une
+          même icône — deux points posés par `dot()`, ce que les aides du jeu
+          rendent facile — donneraient deux clés égales : React avertit et
+          perd un des deux au rendu. La liste est figée et jamais réordonnée,
+          donc l'indice est ici une clé stable. */}
+      {OPALE_ICONS[name].map((d, index) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <path d={d} key={index} />
       ))}
     </svg>
   );

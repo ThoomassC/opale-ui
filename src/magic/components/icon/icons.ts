@@ -210,9 +210,20 @@ export type OpaleIconName = keyof typeof OPALE_ICONS;
 /** Les noms, dans l'ordre du catalogue. */
 export const ICON_NAMES = Object.keys(OPALE_ICONS) as readonly OpaleIconName[];
 
-/** Le nom est-il celui d'une icône du jeu ? */
+/**
+ * Le nom est-il celui d'une icône du jeu ?
+ *
+ * `Object.hasOwn` ET NON `in` : `in` remonte la chaîne de prototypes, donc
+ * `'constructor' in OPALE_ICONS` vaut `true`. Le prédicat mentait alors sur un
+ * type — `value is OpaleIconName` — et `IconGlyph` allait chercher
+ * `OPALE_ICONS['constructor'].map`, qui n'est pas une fonction : `TypeError`
+ * non rattrapé, donc démontage de tout le sous-arbre React. Ce n'est pas
+ * théorique : cette fonction est exportée par le barril, donc offerte comme
+ * validateur d'un nom venant d'ailleurs — d'un CMS, d'une API —, et un
+ * validateur qui accepte `__proto__` est un défaut de frontière.
+ */
 export function isOpaleIconName(value: unknown): value is OpaleIconName {
-  return typeof value === 'string' && value in OPALE_ICONS;
+  return typeof value === 'string' && Object.hasOwn(OPALE_ICONS, value);
 }
 
 /* =============================================================================

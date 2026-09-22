@@ -1494,12 +1494,23 @@ export function Toast({
   );
 
   /* LE PORTAIL EST RÉSOLU PENDANT LE RENDU et non dans un effet : les régions
-     doivent exister au premier rendu, pas au suivant. Sans `document` — rendu
-     serveur, test de nœud — le composant retombe sur un rendu en flux, qui
-     n'est pas placé mais reste lisible. */
+     doivent exister au premier rendu, pas au suivant.
+
+     SANS `document`, LE COMPOSANT NE REND RIEN — c'est ce que fait `Modal`, et
+     les deux composants à portail du dépôt doivent tenir le même contrat. Le
+     repli tentant est de rendre l'ancre EN PLACE dans l'arbre ; il est pire
+     que rien. L'ancre est `position: fixed`, donc un ancêtre qui porte
+     `backdrop-filter`, `transform` ou `filter` — c'est-à-dire tout verre de ce
+     dépôt — en devient le bloc conteneur : le message s'afficherait à
+     l'intérieur de la carte, voire rogné par elle, puis serait détruit et
+     reconstruit ailleurs à l'hydratation. Un message mal placé pendant une
+     seconde est un défaut visible ; son absence pendant la même seconde ne
+     l'est pas. */
   const container = typeof document === 'undefined' ? null : document.body;
 
-  return container ? createPortal(content, container) : content;
+  if (!container) return null;
+
+  return createPortal(content, container);
 }
 
 /**
@@ -1943,6 +1954,31 @@ export function BulletList({ items = [] }: { items?: readonly ReactNode[] }) {
 /** Le pas de la note. Une étoile se remplit au quart, au demi, aux trois quarts. */
 const RATING_STEP = 0.25;
 
+/** Le barème par défaut, et le plafond au-delà duquel une rangée ne se lit plus. */
+const RATING_DEFAULT_MAX = 5;
+const RATING_MAX_STARS = 20;
+
+/**
+ * Ramène le barème à un entier utilisable.
+ *
+ * `max` TRAVERSAIT SANS CONTRÔLE, et il en faut autant que pour la note : il
+ * sert de plafond au clamp, de compte à `Array.from({ length: max })` et de
+ * second terme au nom accessible. Trois pannes mesurées, toutes atteignables
+ * depuis une valeur calculée — `total / n` avec `n` à zéro, un barème lu dans
+ * une API :
+ *
+ * - `NaN` faisait annoncer « NaN sur NaN » et rendait l'attribut invalide ;
+ * - `4.5` faisait dessiner quatre étoiles pour un barème annoncé « 4.5 », avec
+ *   un POINT là où la note met une virgule — le mélange même que
+ *   `formatRating` existe pour éviter ;
+ * - `Infinity` faisait boucler `Array.from` sur 2⁵³−1 : l'onglet gèle.
+ */
+function snapMax(max: number): number {
+  if (!Number.isFinite(max)) return RATING_DEFAULT_MAX;
+
+  return Math.min(Math.max(Math.round(max), 1), RATING_MAX_STARS);
+}
+
 /**
  * Ramène une note sur le pas du quart, puis dans l'intervalle `[0, max]`.
  *
@@ -1962,7 +1998,7 @@ function formatRating(value: number): string {
   return String(Number(value.toFixed(2))).replace('.', ',');
 }
 
-export function Rating({ value = 0, max = 5 }: { value?: number; max?: number }) {
+export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: { value?: number; max?: number }) {
   /* LE REMPLISSAGE EST FRACTIONNAIRE, ET C'EST TOUT LE COMPOSANT.
 
      Il comparait `index + 1 <= value` : une note de 3,75 dessinait donc
@@ -1971,7 +2007,8 @@ export function Rating({ value = 0, max = 5 }: { value?: number; max?: number })
      superposés — le contour, puis le plein rogné à la fraction voulue par
      une largeur en pourcentage. Le rognage est fait au quart près, ce qui
      donne les cinq états 0, ¼, ½, ¾ et 1 par étoile. */
-  const note = snapRating(value, max);
+  const bareme = snapMax(max);
+  const note = snapRating(value, bareme);
 
   return (
     /* `role="img"` EST OBLIGATOIRE ICI. Un `aria-label` posé sur un élément
@@ -1982,10 +2019,10 @@ export function Rating({ value = 0, max = 5 }: { value?: number; max?: number })
     <span
       className="opale-rating"
       role="img"
-      aria-label={`${formatRating(note)} sur ${max}`}
+      aria-label={`${formatRating(note)} sur ${bareme}`}
       data-opale-rating={note}
     >
-      {Array.from({ length: max }, (_, index) => {
+      {Array.from({ length: bareme }, (_, index) => {
         const fill = Math.min(Math.max(note - index, 0), 1);
 
         return (

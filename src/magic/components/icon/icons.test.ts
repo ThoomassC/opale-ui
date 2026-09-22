@@ -47,6 +47,19 @@ describe('le catalogue', () => {
     expect(mal).toEqual([]);
   });
 
+  /* DEUX TRACÉS IDENTIQUES DANS UNE MÊME ICÔNE sont toujours une faute : soit
+     l'un des deux est en trop, soit une coordonnée n'a pas été modifiée après
+     un copier-coller — ce que les aides `dot()` et `circle()` rendent facile.
+     Le rendu les dessine l'un sur l'autre, donc rien ne se voit. */
+  it('devrait ne jamais répéter un tracé dans une même icône', () => {
+    const doublons = ICON_NAMES.filter((name) => {
+      const traces = OPALE_ICONS[name] as readonly string[];
+      return new Set(traces).size !== traces.length;
+    });
+
+    expect(doublons).toEqual([]);
+  });
+
   it('devrait commencer chaque tracé par un déplacement absolu', () => {
     const mal = ICON_NAMES.flatMap((name) =>
       OPALE_ICONS[name].filter((d) => !d.startsWith('M')).map(() => name),
@@ -109,4 +122,17 @@ describe('isOpaleIconName', () => {
     expect(isOpaleIconName(null)).toBe(false);
     expect(isOpaleIconName(42)).toBe(false);
   });
+
+  /* LA CHAÎNE DE PROTOTYPES N'EST PAS LE CATALOGUE. Écrit avec `in`, le
+     prédicat répondait `true` pour `constructor`, `toString` et `__proto__` :
+     il mentait donc sur un type, et `IconGlyph` allait chercher un `.map` qui
+     n'existe pas — `TypeError` non rattrapé, sous-arbre React démonté. La
+     fonction est exportée par le barril, donc utilisée pour valider un nom
+     venant d'ailleurs : c'est une frontière de confiance, pas une coquetterie. */
+  it.each(['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf'])(
+    'devrait rejeter la clé de prototype %s',
+    (value) => {
+      expect(isOpaleIconName(value)).toBe(false);
+    },
+  );
 });

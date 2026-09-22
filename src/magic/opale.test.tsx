@@ -682,3 +682,51 @@ describe('Rating — le remplissage au quart', () => {
     expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(5);
   });
 });
+
+/* =============================================================================
+   LE BARÈME DU `Rating` EST UNE ENTRÉE COMME UNE AUTRE.
+
+   `value` était borné, `max` ne l'était pas — alors qu'il sert de plafond au
+   clamp, de compte à `Array.from` et de second terme au nom accessible. Les
+   trois valeurs ci-dessous viennent toutes d'un calcul plausible : une moyenne
+   sur zéro élément, un barème lu dans une API, un barème décimal.
+   ========================================================================== */
+describe('Rating — le barème', () => {
+  it('devrait retomber sur cinq quand le barème n’est pas un nombre', () => {
+    render(<Rating value={3} max={Number.NaN} />);
+
+    expect(screen.getByRole('img', { name: '3 sur 5' })).toBeInTheDocument();
+  });
+
+  /* `Array.from({ length: Infinity })` boucle sur 2⁵³−1 : l'onglet gèle. Ce
+     cas ne se voit pas en relecture — il ressemble à un rendu lent. */
+  it('devrait retomber sur cinq plutôt que de boucler sur un barème infini', () => {
+    const { container } = render(<Rating value={3} max={Number.POSITIVE_INFINITY} />);
+
+    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(5);
+  });
+
+  /* UN BARÈME DÉCIMAL MÉLANGEAIT DEUX ÉCRITURES DANS LA MÊME PHRASE : « 3,75
+     sur 4.5 », virgule pour la note et point pour le barème — exactement ce
+     que `formatRating` existe pour éviter —, avec quatre étoiles dessinées
+     pour un barème annoncé de quatre et demi. */
+  it('devrait arrondir un barème décimal à l’entier, dessin et annonce ensemble', () => {
+    const { container } = render(<Rating value={3.75} max={4.5} />);
+
+    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(5);
+    expect(screen.getByRole('img', { name: '3,75 sur 5' })).toBeInTheDocument();
+  });
+
+  it.each([0, -3])('devrait ramener un barème de %s à une étoile', (max) => {
+    const { container } = render(<Rating value={1} max={max} />);
+
+    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(1);
+    expect(screen.getByRole('img', { name: '1 sur 1' })).toBeInTheDocument();
+  });
+
+  it('devrait plafonner le barème à vingt étoiles', () => {
+    const { container } = render(<Rating value={3} max={400} />);
+
+    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(20);
+  });
+});
