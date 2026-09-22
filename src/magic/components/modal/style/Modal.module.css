@@ -144,7 +144,13 @@
   align-items: flex-start;
   justify-content: space-between;
   padding-bottom: var(--opale-space-lg);
-  box-shadow: inset 0 -1px 0 var(--opale-divider);
+
+  /* LE FILET EST TIRÉ DE L'ENCRE, PAS DE `--opale-divider`. Mesuré, ce dernier
+     tient 1,30:1 contre la surface claire et 1,09:1 contre la sombre : en
+     thème sombre le trait était rigoureusement invisible, donc l'articulation
+     qu'il apporte n'existait que la moitié du temps. Un mélange d'encre suit
+     la polarité du thème tout seul. */
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--opale-text) 16%, transparent);
   gap: var(--opale-space-lg);
 }
 
@@ -242,7 +248,7 @@
   align-items: center;
   justify-content: flex-end;
   padding-top: var(--opale-space-lg);
-  box-shadow: inset 0 1px 0 var(--opale-divider);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--opale-text) 16%, transparent);
   gap: var(--opale-space-sm);
   margin-top: var(--opale-space-lg);
 }

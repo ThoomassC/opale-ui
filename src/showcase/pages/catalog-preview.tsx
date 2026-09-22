@@ -516,6 +516,16 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
             Afficher le toast
           </Opale.Button>
 
+          <p className="tc-doc-prose">
+            Six places : <code>top-left</code>, <code>top-center</code>, <code>top-right</code>,{' '}
+            <code>bottom-left</code>, <code>bottom-center</code>, <code>bottom-right</code>. Elles
+            sont relatives à la <strong>fenêtre</strong> et non au bloc qui appelle le composant :
+            le message est rendu dans un portail, donc il sort de ce cadre et va se poser dans le
+            coin demandé. Cinq tons : <code>neutral</code> (sans couleur), <code>success</code>,{' '}
+            <code>warning</code>, <code>error</code> et <code>info</code> ; <code>error</code> et{' '}
+            <code>warning</code> sont annoncés de façon assertive, les autres poliment.
+          </p>
+
           <Opale.Toast
             open={toastOpen}
             tone={toastTone}
