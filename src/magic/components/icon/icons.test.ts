@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ICON_GROUPS, ICON_NAMES, OPALE_ICONS, isOpaleIconName } from './icons';
+import { ICON_GROUPS, ICON_KEYWORDS, ICON_NAMES, OPALE_ICONS, isOpaleIconName } from './icons';
 
 /* =============================================================================
    LE JEU D'ICÔNES SE TIENT LUI-MÊME.
@@ -135,4 +135,49 @@ describe('isOpaleIconName', () => {
       expect(isOpaleIconName(value)).toBe(false);
     },
   );
+});
+
+/* =============================================================================
+   LES MOTS FRANÇAIS.
+
+   Le champ de la page « Icônes » ne cherchait que dans les noms, qui sont
+   anglais, pendant que la page soufflait « valise, carte, flèche » dans son
+   propre texte indicatif : trois mots introuvables. Les cas ci-dessous tiennent
+   la table de traduction contre le catalogue, et vérifient que les exemples
+   affichés trouvent réellement quelque chose.
+   ========================================================================== */
+describe('les mots de recherche', () => {
+  it('devrait donner des mots à chaque icône, et à elles seules', () => {
+    expect(Object.keys(ICON_KEYWORDS).sort()).toEqual([...ICON_NAMES].sort());
+  });
+
+  it('devrait donner au moins deux mots par icône', () => {
+    const maigres = ICON_NAMES.filter((name) => ICON_KEYWORDS[name].trim().split(/\s+/).length < 2);
+
+    expect(maigres).toEqual([]);
+  });
+
+  /* CE SONT LES MOTS QUE LA PAGE PROPOSE DANS SON CHAMP. S'ils ne trouvent
+     rien, le premier geste de l'utilisateur échoue — c'est exactement le
+     défaut qu'on corrige, et rien d'autre ne l'attraperait. */
+  it.each([
+    ['valise', 'luggage'],
+    ['carte', 'map'],
+    ['flèche', 'arrow-up'],
+    ['poubelle', 'trash'],
+    ['supprimer', 'trash'],
+    ['courrier', 'mail'],
+    ['succès', 'check-circle'],
+    ['cadenas', 'lock'],
+  ])('devrait faire trouver « %s » par %s', (mot, attendu) => {
+    const fold = (value: string) =>
+      value
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '');
+
+    const trouves = ICON_NAMES.filter((name) => fold(ICON_KEYWORDS[name]).includes(fold(mot)));
+
+    expect(trouves).toContain(attendu);
+  });
 });

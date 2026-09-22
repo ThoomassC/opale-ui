@@ -314,3 +314,48 @@ describe('la croix de fermeture', () => {
     expect(svg).toHaveAttribute('focusable', 'false');
   });
 });
+
+describe('l’en-tête sans titre', () => {
+  /* `showHeader` EST VRAI DÈS QU'IL Y A UN `onClose` : une visionneuse
+     d'image, un dialogue tout en contenu, posaient donc un bloc de titre VIDE
+     à côté de leur croix — et depuis que l'en-tête tire un filet, une ligne
+     pleine largeur sous un bouton isolé. */
+  it('ne devrait pas poser de bloc de titre vide', () => {
+    const { baseElement } = render(
+      <Modal open onClose={() => {}}>
+        <img alt="Une photographie" src="/x.jpg" />
+      </Modal>,
+    );
+
+    expect(baseElement.querySelector('h2')).toBeNull();
+    expect(baseElement.querySelector('[class*="heading"]')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Fermer' })).toBeInTheDocument();
+  });
+
+  it('devrait poser le bloc de titre dès qu’il y a un titre', () => {
+    const { baseElement } = render(<Modal open title="Confirmer" onClose={() => {}} />);
+
+    expect(baseElement.querySelector('[class*="heading"]')).not.toBeNull();
+  });
+
+  /* LE BALISAGE NE SUFFIT PAS. `.header` est rendu même sans titre — c'est la
+     croix qui l'exige —, donc si la feuille tirait son filet sur `.header` tout
+     court, la ligne pleine largeur reviendrait sous un bouton isolé. jsdom ne
+     fait pas de mise en page : seul le TEXTE de la feuille peut le tenir. */
+  /* MÊME RAISON POUR LE PIED. Sans corps — une confirmation, depuis que sa
+     phrase est passée en description —, les deux filets se retrouvaient face à
+     face autour d'une bande vide. */
+  it('devrait conditionner le filet du pied à la présence d’un corps', () => {
+    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    expect(sans).toMatch(/\.body \+ \.footer\s*\{[^}]*box-shadow/);
+    expect(sans).not.toMatch(/(^|\n)\.footer\s*\{[^}]*box-shadow/);
+  });
+
+  it('devrait conditionner le filet d’en-tête à la présence d’un titre', () => {
+    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    expect(sans).toMatch(/\.header:has\(\.heading\)\s*\{[^}]*box-shadow/);
+    expect(sans).not.toMatch(/\.header\s*\{[^}]*box-shadow/);
+  });
+});

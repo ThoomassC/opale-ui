@@ -467,19 +467,27 @@ const Modal = ({
       >
         {showHeader && (
           <div className={styles.header}>
-            <div className={styles.heading}>
-              {title && (
-                <h2 id={titleId} className={styles.title}>
-                  {title}
-                </h2>
-              )}
+            {/* LE BLOC DE TITRE N'EXISTE QUE S'IL A QUELQUE CHOSE DEDANS.
+                `showHeader` est vrai dès qu'il y a un `onClose`, donc un
+                dialogue sans titre ni description — une visionneuse d'image,
+                par exemple — posait une boîte vide à côté de sa croix, et le
+                filet de séparation tirait une ligne pleine largeur sous un
+                bouton isolé. La feuille s'accroche à la présence de ce bloc. */}
+            {(title || description) && (
+              <div className={styles.heading}>
+                {title && (
+                  <h2 id={titleId} className={styles.title}>
+                    {title}
+                  </h2>
+                )}
 
-              {description && (
-                <p id={descriptionId} className={styles.description}>
-                  {description}
-                </p>
-              )}
-            </div>
+                {description && (
+                  <p id={descriptionId} className={styles.description}>
+                    {description}
+                  </p>
+                )}
+              </div>
+            )}
 
             {(onClose || onOpenChange) && (
               <button

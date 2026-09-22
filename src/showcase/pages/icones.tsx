@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { ICON_GROUPS, Opale } from '../../magic';
+import { ICON_GROUPS, ICON_KEYWORDS, ICON_NAMES, Opale } from '../../magic';
 import type { DocPage } from '../doc-model';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
@@ -46,20 +46,55 @@ const POINTS = [
   'La couleur accompagne le sens sans être le seul signal d’état.',
 ];
 
+/**
+ * Le délai avant que le compte filtré ne soit annoncé.
+ *
+ * LA RÉGION LIVE PARLAIT À CHAQUE FRAPPE : taper « flèche » produisait six
+ * annonces polies à la file, que le lecteur d'écran débite l'une après
+ * l'autre. Ce qui intéresse, c'est le compte quand la frappe s'arrête. Le
+ * texte AFFICHÉ, lui, suit immédiatement — c'est seulement ce qui est ANNONCÉ
+ * qui attend.
+ */
+const ANNOUNCE_DELAY_MS = 400;
+
+/** L'accent et la casse ne doivent pas faire échouer une recherche. */
+function fold(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+const TOTAL = ICON_NAMES.length;
+
 function IconGallery() {
   const [query, setQuery] = useState('');
 
   const groups = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+    const needle = fold(query.trim());
     if (!needle) return ICON_GROUPS;
 
+    /* LA RECHERCHE PORTE SUR LE NOM *ET* SUR LES MOTS FRANÇAIS. Les noms sont
+       anglais — ce sont des identifiants de code —, mais le champ est lu par
+       quelqu'un qui pense « valise ». Chercher sur les seuls noms rendait le
+       champ inutile pour tout mot que la page elle-même proposait. */
     return ICON_GROUPS.map((group) => ({
       ...group,
-      names: group.names.filter((name) => name.includes(needle)),
+      names: group.names.filter(
+        (name) => fold(name).includes(needle) || fold(ICON_KEYWORDS[name]).includes(needle),
+      ),
     })).filter((group) => group.names.length > 0);
   }, [query]);
 
   const total = groups.reduce((count, group) => count + group.names.length, 0);
+
+  const [announced, setAnnounced] = useState(total);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAnnounced(total), ANNOUNCE_DELAY_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [total]);
 
   return (
     <>
@@ -67,7 +102,7 @@ function IconGallery() {
         <Opale.Input
           label="Filtrer les icônes"
           type="search"
-          placeholder="valise, carte, flèche…"
+          placeholder="valise, carte, flèche, poubelle…"
           value={query}
           onChange={(event) => setQuery(event.currentTarget.value)}
         />
@@ -76,9 +111,9 @@ function IconGallery() {
             grille a changé sous lui (WCAG 4.1.3). La région est montée AVEC la
             page et non avec le résultat, sinon l'annonce se perd. */}
         <p className="tc-doc-icon-filter__count" role="status">
-          {total === 0
+          {announced === 0
             ? 'Aucune icône ne correspond.'
-            : `${total} icône${total > 1 ? 's' : ''} sur ${ICON_GROUPS.reduce((n, g) => n + g.names.length, 0)}.`}
+            : `${announced} icône${announced > 1 ? 's' : ''} sur ${TOTAL}.`}
         </p>
       </div>
 
@@ -107,7 +142,7 @@ export const iconesPage: DocPage = {
   label: 'Icônes',
   group: 'introduction',
   title: 'Icônes',
-  lede: 'Le jeu d’icônes d’Opale — cent quatorze tracés dessinés dans le dépôt, sans aucune librairie externe.',
+  lede: `Le jeu d’icônes d’Opale — ${TOTAL} tracés dessinés dans le dépôt, sans aucune librairie externe.`,
   render: () => (
     <PageBody>
       <Specimen title="À retenir">

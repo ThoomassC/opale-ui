@@ -523,7 +523,15 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
             le message est rendu dans un portail, donc il sort de ce cadre et va se poser dans le
             coin demandé. Cinq tons : <code>neutral</code> (sans couleur), <code>success</code>,{' '}
             <code>warning</code>, <code>error</code> et <code>info</code> ; <code>error</code> et{' '}
-            <code>warning</code> sont annoncés de façon assertive, les autres poliment.
+            <code>warning</code> sont annoncés de façon assertive, les autres poliment, et chacun
+            porte une icône pour que la couleur ne soit pas le seul signal.
+          </p>
+
+          <p className="tc-doc-prose">
+            <strong>Un seul message à la fois.</strong> Deux <code>Opale.Toast</code> ouverts à la
+            même place se recouvrent : empiler, minuter et congédier une file est le travail de{' '}
+            <code>ToastProvider</code>. Et l’ordre de tabulation suit le DOM, pas l’écran — la croix
+            d’un message posé en haut est le dernier arrêt clavier de la page.
           </p>
 
           <Opale.Toast

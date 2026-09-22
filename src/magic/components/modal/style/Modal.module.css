@@ -143,6 +143,13 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: var(--opale-space-lg);
+}
+
+/* LE FILET N'EST TIRÉ QUE S'IL SÉPARE QUELQUE CHOSE. Sans titre ni
+   description, l'en-tête ne contient que la croix : une ligne pleine largeur
+   sous un bouton isolé n'articule rien, elle barre le haut du panneau. */
+.header:has(.heading) {
   padding-bottom: var(--opale-space-lg);
 
   /* LE FILET EST TIRÉ DE L'ENCRE, PAS DE `--opale-divider`. Mesuré, ce dernier
@@ -151,7 +158,6 @@
      qu'il apporte n'existait que la moitié du temps. Un mélange d'encre suit
      la polarité du thème tout seul. */
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--opale-text) 16%, transparent);
-  gap: var(--opale-space-lg);
 }
 
 .heading {
@@ -247,10 +253,18 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  padding-top: var(--opale-space-lg);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--opale-text) 16%, transparent);
   gap: var(--opale-space-sm);
   margin-top: var(--opale-space-lg);
+}
+
+/* LE FILET DU PIED NE SE TIRE QU'APRÈS UN CORPS. Une confirmation n'a plus de
+   corps depuis que sa phrase est passée en DESCRIPTION du dialogue — et les
+   deux filets se retrouvaient alors face à face, séparés par une bande vide :
+   deux lignes qui ne séparent rien de rien. Le sélecteur de frère adjacent dit
+   exactement la condition — il y a quelque chose au-dessus à détacher. */
+.body + .footer {
+  padding-top: var(--opale-space-lg);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--opale-text) 16%, transparent);
 }
 
 @keyframes opale-modal-veil {

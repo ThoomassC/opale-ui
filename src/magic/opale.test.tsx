@@ -796,3 +796,43 @@ describe('Rating — le barème', () => {
     expect(container.querySelectorAll('.opale-rating__star')).toHaveLength(20);
   });
 });
+
+/* =============================================================================
+   LA CONSÉQUENCE D'UNE CONFIRMATION APPARTIENT AU DIALOGUE.
+
+   Relevé sur le dialogue ouvert, `aria-describedby` valait `null` : « Cette
+   action est irréversible » ne faisait partie ni du nom ni de la description
+   du dialogue. La plupart des lecteurs d'écran lisent le contenu quand le
+   panneau prend le focus — ce n'était donc pas bloquant —, mais sur une
+   confirmation DESTRUCTRICE la conséquence doit être annoncée AVEC la
+   question. `Modal` savait la poser ; `ConfirmDialog` ne la lui passait pas.
+   ========================================================================== */
+describe('ConfirmDialog — la description', () => {
+  it('devrait décrire le dialogue par son corps', () => {
+    render(
+      <ConfirmDialog open title="Supprimer le fichier ?">
+        Cette action est irréversible.
+      </ConfirmDialog>,
+    );
+
+    const dialogue = screen.getByRole('dialog');
+    const id = dialogue.getAttribute('aria-describedby');
+
+    expect(id).toBeTruthy();
+    expect(document.getElementById(id as string)).toHaveTextContent(
+      'Cette action est irréversible.',
+    );
+  });
+
+  it('devrait garder son titre comme nom accessible', () => {
+    render(<ConfirmDialog open title="Supprimer le fichier ?">Irréversible.</ConfirmDialog>);
+
+    expect(screen.getByRole('dialog', { name: 'Supprimer le fichier ?' })).toBeInTheDocument();
+  });
+
+  it('ne devrait rien décrire quand il n’a pas de corps', () => {
+    render(<ConfirmDialog open title="Confirmer ?" />);
+
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-describedby');
+  });
+});

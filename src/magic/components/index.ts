@@ -31,7 +31,7 @@
    d'`Opale.Icon`, et de la croix de `Modal`. La publier en ferait un composant
    du catalogue — donc une page à écrire, et un second chemin pour rendre une
    icône là où il n'en faut qu'un. */
-export { OPALE_ICONS, ICON_NAMES, ICON_GROUPS, isOpaleIconName } from './icon';
+export { OPALE_ICONS, ICON_NAMES, ICON_GROUPS, ICON_KEYWORDS, isOpaleIconName } from './icon';
 export type { OpaleIconName, IconGroup } from './icon';
 export * from './modal';
 export * from './search-bar';

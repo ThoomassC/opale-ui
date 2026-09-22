@@ -2368,11 +2368,16 @@ body {
   font-size: 1.5rem;
 }
 
+/* LE NOM PASSE À LA LIGNE, IL NE SE TRONQUE PLUS. `chevrons-right`,
+   `more-horizontal` et `alert-triangle` étaient coupés à l'ellipse dès 100 %
+   de zoom — et le nom à recopier est exactement ce que cette page existe pour
+   donner. Il n'y a ni infobulle ni `title` pour rattraper : couper le texte,
+   c'était retirer l'information. `overflow-wrap: anywhere` casse au tiret
+   plutôt que de déborder. */
 .tc-doc-icon-cell__name {
-  overflow: hidden;
   max-inline-size: 100%;
   color: var(--opale-text-secondary);
   font-size: 0.72rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }

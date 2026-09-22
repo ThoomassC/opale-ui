@@ -1409,6 +1409,24 @@ export function Feedback({
    se trouvait dans la page. Il prend désormais les deux mêmes réglages que la
    file — un TON et une PLACE — et se rend dans un portail, donc à l'endroit de
    l'écran qu'on lui indique et non à l'endroit du code.
+
+   DEUX LIMITES ASSUMÉES, ET ELLES DÉCOULENT TOUTES DEUX DU CHOIX CI-DESSUS.
+
+   1. UN SEUL MESSAGE À LA FOIS. Chaque instance monte sa propre ancre plein
+      écran : deux `Opale.Toast` ouverts à la même place se recouvrent au
+      pixel près, le second cachant le premier et sa croix. Ce n'est pas un
+      oubli, c'est la frontière entre les deux composants — empiler, minuter,
+      dédoublonner et congédier est le travail de `ToastProvider`, qui existe
+      pour ça. Celui-ci sert quand il n'y a qu'UNE chose à dire et qu'on veut
+      en tenir l'état soi-même.
+
+   2. L'ORDRE DE TABULATION NE SUIT PAS LA PLACE À L'ÉCRAN. Le portail écrit
+      en fin de `<body>`, donc la croix d'un message posé en haut est le
+      DERNIER arrêt clavier de la page — mesuré, 106ᵉ sur 106. Elle reste
+      atteignable, mais après toute la page. Le maquiller avec un `tabindex`
+      positif ferait bien pire : ce serait déplacer l'ordre de toute la page
+      pour un message passager. Pour un message qu'on s'attend à fermer au
+      clavier, préférez les places basses.
    ========================================================================== */
 
 /** Les six places possibles à l'écran. Mêmes valeurs que `ToastProvider`. */
@@ -1620,12 +1638,23 @@ export function ConfirmDialog({
 }) {
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
      faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
-     confirmations coexistaient. `Modal` le dérive d'un `useId`. */
+     confirmations coexistaient. `Modal` le dérive d'un `useId`.
+
+     LE CORPS DEVIENT LA DESCRIPTION DU DIALOGUE, et ce n'est pas un
+     déplacement cosmétique. Relevé sur le dialogue ouvert, `aria-describedby`
+     valait `null` : « Cette action est irréversible » n'appartenait ni au nom
+     ni à la description du dialogue. La plupart des lecteurs d'écran lisent le
+     contenu quand le panneau prend le focus, donc ce n'était pas bloquant —
+     mais sur une confirmation DESTRUCTRICE, la conséquence est précisément ce
+     qui doit être annoncé avec la question, pas après elle. `Modal` sait poser
+     `aria-describedby` depuis sa prop `description` ; `ConfirmDialog` ne la
+     lui passait simplement pas. */
   return (
     <Modal
       open={open}
       onClose={onCancel}
       title={title}
+      description={children}
       footer={
         <>
           <Button variant="text" onClick={onCancel}>
@@ -1634,9 +1663,7 @@ export function ConfirmDialog({
           <Button onClick={onConfirm}>Confirmer</Button>
         </>
       }
-    >
-      {children}
-    </Modal>
+    />
   );
 }
 
