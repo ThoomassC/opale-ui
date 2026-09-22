@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+import opaleSheet from './opale.css?raw';
 import { Opale } from './index';
 import { CatalogPreview } from '../showcase/pages/catalog-preview';
 
@@ -225,4 +226,89 @@ describe('le ton se voit autrement que par la couleur', () => {
 
     expect(svg).toHaveAttribute('aria-hidden', 'true');
   });
+});
+
+/* =============================================================================
+   LA COLONNE DE TON.
+
+   Le ton n'était qu'un filet de 4 px posé en `inset` À L'INTÉRIEUR d'un rayon
+   de 1,375 rem : la bordure arrondie le rognait à ses deux extrémités, et il
+   n'en restait qu'une virgule collée au bord gauche — environ un pour cent de
+   la carte. Ce qui manquait à la couleur était de la SURFACE, pas de la
+   saturation.
+   ========================================================================== */
+describe('la colonne de ton', () => {
+  /** La feuille, commentaires retirés — jsdom ne fait pas de mise en page. */
+  const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  /** Le corps d'une règle, par son sélecteur exact. */
+  function rule(selector: string): string {
+    const debut = sheet.indexOf(`${selector} {`);
+    expect(debut, `règle ${selector} absente`).toBeGreaterThan(-1);
+
+    return sheet.slice(debut, sheet.indexOf('}', debut));
+  }
+
+  it.each(['success', 'warning', 'error', 'info'] as const)(
+    'devrait loger l’icône du ton %s dans la colonne',
+    (tone) => {
+      render(<Opale.Toast message="Publié" tone={tone} />);
+
+      const gutter = screen.getByText('Publié').closest('.opale-toast')
+        ?.querySelector('.opale-toast__gutter');
+
+      expect(gutter).not.toBeNull();
+      expect(gutter?.querySelector('svg')).not.toBeNull();
+    },
+  );
+
+  /* `neutral` N'A PAS DE TON, donc pas de colonne : une colonne grise à côté
+     d'un message sans ton annoncerait une couleur qui n'existe pas. */
+  it('ne devrait pas poser de colonne sur le ton neutre', () => {
+    render(<Opale.Toast message="Publié" tone="neutral" />);
+
+    expect(
+      screen.getByText('Publié').closest('.opale-toast')?.querySelector('.opale-toast__gutter'),
+    ).toBeNull();
+  });
+
+  /* LE MESSAGE RESTE HORS DE LA COLONNE. L'y faire entrer le poserait sur le
+     fond coloré, et c'est précisément ce que ce traitement évite : le texte
+     garde la surface d'Opale, donc son contraste ne dépend pas du ton. */
+  it('devrait garder le message et la croix hors de la colonne', () => {
+    render(<Opale.Toast message="Publié" tone="error" onClose={() => {}} />);
+
+    const gutter = screen.getByText('Publié').closest('.opale-toast')
+      ?.querySelector('.opale-toast__gutter');
+
+    expect(gutter?.textContent).toBe('');
+    expect(gutter?.querySelector('button')).toBeNull();
+  });
+
+  /* SANS `overflow: hidden` LA COLONNE DÉPASSE AUX DEUX ANGLES DE GAUCHE :
+     elle est rectangulaire, la carte est arrondie. jsdom ne mesure rien, donc
+     seul le texte de la feuille peut tenir ce garde. */
+  it('devrait découper la colonne au rayon de la carte', () => {
+    expect(rule('.opale-toast')).toMatch(/overflow:\s*hidden/);
+  });
+
+  /* LES DEUX RÔLES S'ÉCHANGENT D'UN THÈME À L'AUTRE. Les jetons de
+     remplissage ne sont pas redéfinis pour le sombre : une colonne remplie
+     avec eux y serait un vert foncé sur une carte déjà foncée. */
+  it('devrait échanger le remplissage et l’encre en thème sombre', () => {
+    const sombre = rule(":root[data-theme='dark'] .opale-toast");
+
+    expect(sombre).toMatch(/--opale-toast-fill:\s*var\(--opale-toast-tone\)/);
+    expect(sombre).toMatch(/--opale-toast-fill-ink:/);
+  });
+
+  it.each(['success', 'warning', 'error', 'info'] as const)(
+    'devrait donner au ton %s un remplissage et une encre distincts',
+    (tone) => {
+      const corps = rule(`.opale-toast--${tone}`);
+
+      expect(corps).toMatch(/--opale-toast-fill:/);
+      expect(corps).toMatch(/--opale-toast-fill-ink:/);
+    },
+  );
 });
