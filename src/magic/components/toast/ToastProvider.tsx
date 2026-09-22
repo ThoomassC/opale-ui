@@ -43,7 +43,7 @@ import styles from './style/Toast.module.css';
       aussi poliment qu'un brouillon enregistré, c'est-à-dire à la fin de ce
       que l'utilisateur était en train de lire. D'où DEUX régions par coin et
       non une : `role="status"` (poli) pour `default`, `success` et `info`,
-      `role="alert"` (assertif) pour `error`.
+      `role="alert"` (assertif) pour `error` et `warning`.
 
       CE QUE CE DÉCOUPAGE COÛTE, ET IL FAUT LE DIRE : à l'intérieur d'un même
       coin, les erreurs se groupent entre elles au lieu de s'intercaler par
@@ -75,7 +75,15 @@ import styles from './style/Toast.module.css';
    gardé au mot près, parce que la vitrine le cite.
    ========================================================================== */
 
-type ToastVariant = 'default' | 'success' | 'error' | 'info';
+/* `warning` A ÉTÉ AJOUTÉ APRÈS COUP, ET SON ABSENCE ÉTAIT UN TROU. La file
+   savait dire « c'est fait », « c'est raté » et « pour information » ; elle
+   n'avait rien pour « c'est passé, mais regardez ». Faute de ton, ces
+   messages-là partaient en `error` — ce qui interrompt pour rien — ou en
+   `default` — ce qui les rend invisibles. */
+type ToastVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
+
+/** Les tons qui doivent INTERROMPRE la lecture plutôt que l'attendre. */
+const ASSERTIVE_VARIANTS = new Set<ToastVariant>(['error', 'warning']);
 
 type ToastAnimation = 'slide-from-right' | 'slide-from-left' | 'slide-from-bottom' | 'scale';
 
@@ -158,6 +166,7 @@ const POSITIONS: readonly ToastPosition[] = [
 const variantClass: Record<ToastVariant, string> = {
   default: styles.default,
   success: styles.success,
+  warning: styles.warning,
   error: styles.error,
   info: styles.info,
 };
@@ -464,7 +473,7 @@ export const ToastProvider = ({
 
     for (const toast of toasts) {
       const bucket = byPosition[toast.position] ?? byPosition['top-right'];
-      (toast.variant === 'error' ? bucket.assertive : bucket.polite).push(toast);
+      (ASSERTIVE_VARIANTS.has(toast.variant) ? bucket.assertive : bucket.polite).push(toast);
     }
 
     for (const key of POSITIONS) {

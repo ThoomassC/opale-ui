@@ -138,7 +138,17 @@ function exampleCode(name: string, liquidGlass = false): string {
   La dernière version est disponible.
 </Opale.Feedback>`);
     case 'Toast':
-      return decorate('<Opale.Toast message="Modifications enregistrées" />');
+      return decorate(`// Le ton choisit la couleur, la place choisit le coin de l'ÉCRAN.
+// tone     : 'neutral' | 'success' | 'warning' | 'error' | 'info'
+// position : 'top-left'    | 'top-center'    | 'top-right'
+//            'bottom-left' | 'bottom-center' | 'bottom-right'
+<Opale.Toast
+  open={open}
+  tone="success"
+  position="bottom-right"
+  message="Étape publiée sur le carnet"
+  onClose={() => setOpen(false)}
+/>`);
     case 'ProgressBar':
       return decorate('<Opale.ProgressBar label="Progression" value={72} />');
     case 'Link':

@@ -130,6 +130,10 @@
   --opale-toast-accent: var(--opale-success);
 }
 
+.warning {
+  --opale-toast-accent: var(--opale-warning-on-surface);
+}
+
 .error {
   --opale-toast-accent: var(--opale-danger);
 }
@@ -386,8 +390,9 @@
    ni fond, ni bord, ni ombre, et son texte blanc se posait sur la page. Ce
    bloc lui donne la surface pleine d'Opale.
 
-   LA COULEUR DE VARIANTE N'EST PAS REPRISE : `.success`, `.error` et `.info`
-   posent leur liseré sur la même enveloppe, et continuent de le faire.
+   LA COULEUR DE VARIANTE N'EST PAS REPRISE : `.success`, `.warning`, `.error`
+   et `.info` posent leur liseré sur la même enveloppe, et continuent de le
+   faire.
    ========================================================================== */
 .plain {
   border: 1px solid var(--opale-divider);

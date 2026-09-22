@@ -16,6 +16,7 @@ import {
   type ReactNode,
   type SelectHTMLAttributes,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import Glass from './components/glass/Glass';
 import { OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './components/icon';
@@ -1424,18 +1425,64 @@ export function Feedback({
   );
 }
 
+/* =============================================================================
+   LE MESSAGE POSÉ À L'ÉCRAN.
+
+   DEUX COMPOSANTS PORTENT LE MOT « TOAST » ET CE N'EST PAS UN DOUBLON.
+   `ToastProvider` est une FILE : on lui demande d'afficher un message depuis
+   n'importe où dans l'arbre, il l'empile, le minute et le congédie. `Toast`,
+   ci-dessous, est un message UNIQUE dont l'appelant tient l'état ouvert/fermé.
+   Le second sert quand il n'y a qu'une chose à dire et qu'on veut la contrôler
+   directement ; prendre la file pour ça obligerait à envelopper l'arbre.
+
+   CE QU'IL LUI MANQUAIT, ET QUE LA FILE AVAIT DÉJÀ. Il rendait une surface
+   grise, au milieu du flux, sans ton ni place : « Modifications enregistrées »
+   et « Publication refusée » s'affichaient à l'identique, là où le composant
+   se trouvait dans la page. Il prend désormais les deux mêmes réglages que la
+   file — un TON et une PLACE — et se rend dans un portail, donc à l'endroit de
+   l'écran qu'on lui indique et non à l'endroit du code.
+   ========================================================================== */
+
+/** Les six places possibles à l'écran. Mêmes valeurs que `ToastProvider`. */
+export type ToastPlacement =
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right';
+
+/** Les tons, et leur couleur. `neutral` n'en porte aucune. */
+export type ToastTone = 'neutral' | 'success' | 'warning' | 'error' | 'info';
+
+/**
+ * Les tons qui doivent INTERROMPRE la lecture.
+ *
+ * Une erreur annoncée poliment arrive à la fin de ce que l'utilisateur est en
+ * train de lire, c'est-à-dire trop tard pour un échec ; un enregistrement
+ * annoncé de façon assertive coupe la parole pour rien. Le découpage est le
+ * même que celui de `ToastProvider`, et il tient à la même raison.
+ */
+const ASSERTIVE_TONES = new Set<ToastTone>(['error', 'warning']);
+
 export function Toast({
   message,
   open = true,
   onClose,
+  tone = 'neutral',
+  position = 'bottom-right',
   className,
 }: {
   message: ReactNode;
   open?: boolean;
   onClose?: () => void;
+  /** Le ton, qui choisit la couleur du filet et de l'icône. */
+  tone?: ToastTone;
+  /** La place à l'écran. Le message est rendu dans un portail, pas en flux. */
+  position?: ToastPlacement;
   className?: string;
 }) {
-  /* LA RÉGION EST MONTÉE EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
+  /* LES DEUX RÉGIONS SONT MONTÉES EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
 
      Le composant entier — `role="status"` compris — était rendu au moment où
      le message arrivait. Une région live insérée EN MÊME TEMPS que son
@@ -1444,26 +1491,47 @@ export function Toast({
      l'en-tête de `ToastProvider` décrit et corrige pour la file ; la
      correction n'avait pas été reportée ici.
 
-     La région extérieure ne porte aucun style : vide, elle n'occupe rien. */
-  return (
-    <div role="status">
-      {open && (
-        <div className={cx('opale-surface', 'opale-panel', className)}>
-          <span>{message}</span>
-          {onClose && (
-            <button
-              className="opale-dialog__close"
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer"
-            >
-              ×
-            </button>
-          )}
-        </div>
+     IL EN FAUT DEUX ET NON UNE, pour la même raison que dans la file : le
+     rôle d'une région ne peut pas changer en cours de route sans la remonter,
+     ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
+     posées d'avance, vides, et le message entre dans celle de son ton. */
+  const assertive = ASSERTIVE_TONES.has(tone);
+  const card = open ? (
+    <div
+      className={cx('opale-toast', tone !== 'neutral' && `opale-toast--${tone}`, className)}
+      data-opale-toast-tone={tone}
+    >
+      <span className="opale-toast__message">{message}</span>
+      {onClose && (
+        <button
+          className="opale-toast__close"
+          type="button"
+          onClick={onClose}
+          aria-label="Fermer la notification"
+        >
+          <Icon name="close" />
+        </button>
       )}
     </div>
+  ) : null;
+
+  const content = (
+    /* L'ANCRE NE CAPTE PAS LE POINTEUR quand elle est vide, sinon une bande
+       invisible en haut ou en bas de l'écran avalerait les clics de la page
+       en permanence — y compris quand aucun message n'est affiché. */
+    <div className={`opale-toast-anchor opale-toast-anchor--${position}`}>
+      <div role="status">{assertive ? null : card}</div>
+      <div role="alert">{assertive ? card : null}</div>
+    </div>
   );
+
+  /* LE PORTAIL EST RÉSOLU PENDANT LE RENDU et non dans un effet : les régions
+     doivent exister au premier rendu, pas au suivant. Sans `document` — rendu
+     serveur, test de nœud — le composant retombe sur un rendu en flux, qui
+     n'est pas placé mais reste lisible. */
+  const container = typeof document === 'undefined' ? null : document.body;
+
+  return container ? createPortal(content, container) : content;
 }
 
 /**

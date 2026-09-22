@@ -2096,3 +2096,135 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =============================================================================
+   LE MESSAGE POSÉ À L'ÉCRAN — `Opale.Toast`.
+
+   L'ANCRE EST `position: fixed` ET NE CAPTE PAS LE POINTEUR. Une bande
+   invisible collée en haut ou en bas de la fenêtre avalerait les clics de la
+   page en permanence, y compris quand aucun message n'est affiché ;
+   `pointer-events: none` sur l'ancre et `auto` sur la carte règlent les deux.
+
+   LE COIN EST CHOISI PAR `inset` ET PAR L'ALIGNEMENT, jamais par une
+   translation : `translate(-50%)` pour centrer laisserait la carte sur un
+   demi-pixel dès que sa largeur est impaire, ce qui floute le texte.
+
+   LES MARGES INTÈGRENT LES ENCOCHES. `env(safe-area-inset-*)` vaut zéro sur un
+   écran sans encoche et la bonne valeur ailleurs ; sans elles, un message posé
+   en bas passe sous la barre de gestes d'un téléphone.
+   ========================================================================== */
+.opale-toast-anchor {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px))
+    calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));
+  inset: 0;
+  pointer-events: none;
+}
+
+.opale-toast-anchor--top-left {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.opale-toast-anchor--top-center {
+  align-items: flex-start;
+  justify-content: center;
+}
+.opale-toast-anchor--top-right {
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+.opale-toast-anchor--bottom-left {
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+.opale-toast-anchor--bottom-center {
+  align-items: flex-end;
+  justify-content: center;
+}
+.opale-toast-anchor--bottom-right {
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+/* LES DEUX RÉGIONS LIVE SONT DES CONTENEURS SANS BOÎTE. Vides, elles ne
+   doivent rien occuper ni écarter la carte de son coin — d'où `display:
+   contents`, qui les efface de la mise en page sans les retirer du DOM, ce qui
+   est exactement ce qu'il faut à une région montée en permanence. */
+.opale-toast-anchor > [role='status'],
+.opale-toast-anchor > [role='alert'] {
+  display: contents;
+}
+
+.opale-toast {
+  display: flex;
+  max-inline-size: min(26rem, calc(100vw - 2rem));
+  align-items: flex-start;
+  padding: 0.85rem 0.9rem 0.85rem 1.1rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  box-shadow:
+    inset 0.25rem 0 0 var(--opale-toast-tone, transparent),
+    var(--opale-shadow-3);
+  color: var(--opale-text);
+  gap: 0.75rem;
+  pointer-events: auto;
+}
+
+/* LE FILET COLORÉ EST LE SEUL INDICE NON TEXTUEL DU TON, et il est doublé par
+   la couleur de l'encre du titre : la couleur seule ne peut pas être le seul
+   signal (WCAG 1.4.1). Les jetons `*-on-surface` sont employés plutôt que les
+   jetons de remplissage, parce qu'ici la couleur ÉCRIT — c'est la règle que
+   `opale-ink-roles.contract.test.ts` tient. */
+.opale-toast--success {
+  --opale-toast-tone: var(--opale-success-on-surface);
+}
+.opale-toast--warning {
+  --opale-toast-tone: var(--opale-warning-on-surface);
+}
+.opale-toast--error {
+  --opale-toast-tone: var(--opale-danger-on-surface);
+}
+.opale-toast--info {
+  --opale-toast-tone: var(--opale-info-on-surface);
+}
+
+.opale-toast__message {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.opale-toast__close {
+  display: grid;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+  margin: -0.5rem -0.35rem -0.5rem 0;
+  border: 0;
+  border-radius: var(--opale-radius-sm);
+  background: transparent;
+  color: var(--opale-text-secondary);
+  cursor: pointer;
+  place-items: center;
+}
+
+.opale-toast__close .opale-icon {
+  min-width: 0;
+  min-height: 0;
+  color: inherit;
+  font-size: 1.125rem;
+}
+
+.opale-toast__close:hover {
+  background: var(--opale-surface-sunken);
+  color: var(--opale-text);
+}
+
+.opale-toast__close:focus-visible {
+  outline: 3px solid var(--opale-focus);
+  outline-offset: 2px;
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
 import { Opale } from '../../magic';
+import type { ToastPlacement, ToastTone } from '../../magic';
 
 const OPTIONS = [
   { value: 'design', label: 'Design system' },
@@ -16,6 +17,29 @@ const NAV_ITEMS = [
 
 const PREVIEW_IMAGE =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23dce7fb%22/%3E%3Ccircle cx=%22180%22 cy=%22155%22 r=%2275%22 fill=%22%233d66aa%22/%3E%3Cpath d=%22M40 320 245 120l95 105 80-70 180 165Z%22 fill=%22%23f8b31a%22 opacity=%22.85%22/%3E%3C/svg%3E';
+
+/* LES SIX PLACES ET LES CINQ TONS SONT RECOPIÉS ICI EN VALEURS, et un garde de
+   `opale.test.tsx` vérifie qu'ils correspondent aux types du composant : une
+   place ajoutée au composant et oubliée dans l'aperçu serait publiée sans
+   jamais pouvoir être essayée. */
+const TOAST_TONES = ['neutral', 'success', 'warning', 'error', 'info'] as const;
+
+const TOAST_PLACEMENTS = [
+  'top-left',
+  'top-center',
+  'top-right',
+  'bottom-left',
+  'bottom-center',
+  'bottom-right',
+] as const;
+
+const TOAST_MESSAGES: Record<ToastTone, string> = {
+  neutral: 'Modifications enregistrées',
+  success: 'Étape publiée sur le carnet',
+  warning: 'La carte n’a pas été régénérée',
+  error: 'Publication refusée : titre manquant',
+  info: 'Une nouvelle version est disponible',
+};
 
 function Row({ children }: { children: ReactNode }) {
   return <div className="tc-doc-opale-preview__row">{children}</div>;
@@ -90,6 +114,8 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [language, setLanguage] = useState('FR');
   const [dark, setDark] = useState(false);
   const [toastOpen, setToastOpen] = useState(true);
+  const [toastTone, setToastTone] = useState<ToastTone>('success');
+  const [toastPlacement, setToastPlacement] = useState<ToastPlacement>('bottom-right');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -455,14 +481,46 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'Toast':
+      /* LA DÉMONSTRATION EST PILOTABLE, ET LA LIGNE DE CODE SUIT LES RÉGLAGES.
+
+         L'aperçu affichait une surface grise au milieu du cadre, sans ton ni
+         place : on ne pouvait ni voir qu'il y en avait, ni vérifier où le
+         message atterrit. Les deux sélecteurs ci-dessous écrivent l'appel
+         exact sous eux ; cliquer « Afficher le toast » le pose EXACTEMENT là
+         où cette ligne le dit, c'est-à-dire dans le coin de la fenêtre et non
+         dans le cadre — un toast est posé sur l'écran, pas dans le flux. */
       preview = (
         <DemoFrame>
+          <div className="tc-doc-opale-preview__row">
+            <Opale.Select
+              label="Ton"
+              value={toastTone}
+              onChange={(event) => setToastTone(event.currentTarget.value as ToastTone)}
+              options={TOAST_TONES.map((value) => ({ value, label: value }))}
+            />
+            <Opale.Select
+              label="Place à l’écran"
+              value={toastPlacement}
+              onChange={(event) =>
+                setToastPlacement(event.currentTarget.value as ToastPlacement)
+              }
+              options={TOAST_PLACEMENTS.map((value) => ({ value, label: value }))}
+            />
+          </div>
+
+          <code className="tc-doc-inline-code">
+            {`<Opale.Toast tone="${toastTone}" position="${toastPlacement}" message="…" />`}
+          </code>
+
           <Opale.Button size="small" onClick={() => setToastOpen(true)}>
             Afficher le toast
           </Opale.Button>
+
           <Opale.Toast
             open={toastOpen}
-            message="Modifications enregistrées"
+            tone={toastTone}
+            position={toastPlacement}
+            message={TOAST_MESSAGES[toastTone]}
             onClose={() => setToastOpen(false)}
           />
         </DemoFrame>

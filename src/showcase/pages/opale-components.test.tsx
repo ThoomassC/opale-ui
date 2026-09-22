@@ -155,12 +155,12 @@ describe('le catalogue interactif V3', () => {
     const user = userEvent.setup();
     render(<CatalogPreview name="Toast" liquidGlass={false} />);
 
-    expect(screen.getByText('Modifications enregistrées')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Fermer' }));
-    expect(screen.queryByText('Modifications enregistrées')).not.toBeInTheDocument();
+    expect(screen.getByText('Étape publiée sur le carnet')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Fermer la notification' }));
+    expect(screen.queryByText('Étape publiée sur le carnet')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Afficher le toast' }));
-    expect(screen.getByText('Modifications enregistrées')).toBeInTheDocument();
+    expect(screen.getByText('Étape publiée sur le carnet')).toBeInTheDocument();
   });
 
   it('soumet Form et affiche son résultat', async () => {
