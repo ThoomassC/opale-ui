@@ -338,3 +338,56 @@ describe('les exemples du catalogue', () => {
     ).toEqual([]);
   });
 });
+
+/* =============================================================================
+   LE COMMUTATEUR DE MATIÈRE NE S'AFFICHE QUE LÀ OÙ IL AGIT.
+
+   LE DÉFAUT. La page posait « Liquid Glass pour X » sur les quatre-vingt-cinq
+   composants du catalogue. Onze rendent le matériau. Pour les autres,
+   basculer l'interrupteur posait la photographie et le voile sous un composant
+   qui ne changeait pas : une quarantaine se retrouvaient avec leur encre
+   sombre sur un cliché sombre. Le commutateur ne mentait pas seulement, il
+   abîmait la démonstration qu'il était censé enrichir.
+
+   CE TEST PARCOURT TOUT LE CATALOGUE plutôt que deux cas représentatifs :
+   c'est la seule façon de constater qu'aucune page n'a été oubliée, et le
+   défaut corrigé était précisément un oubli à grande échelle.
+   ========================================================================== */
+describe('le commutateur de matière', () => {
+  const declared = new Set(
+    (
+      /const FORWARDS_LIQUID_GLASS: readonly string\[\] = \[([\s\S]*?)\];/.exec(
+        opaleComponentsSource,
+      )?.[1] ?? ''
+    )
+      .match(/'([A-Z][A-Za-z0-9]+)'/g)
+      ?.map((quoted) => quoted.replaceAll("'", '')) ?? [],
+  );
+
+  it.each(OPALE_CATALOG)('$name ne montre le commutateur que s’il agit', (entry) => {
+    const page = opaleComponentPages.find(
+      (candidate) => candidate.label === catalogComponentLabel(entry.name),
+    );
+
+    if (!page) throw new Error(`Page introuvable pour ${entry.name}.`);
+
+    const { container } = render(<>{page.render()}</>);
+    const toggle = within(container).queryByRole('checkbox', {
+      name: new RegExp(`^Liquid Glass pour `),
+    });
+
+    if (declared.has(entry.name)) {
+      expect(
+        toggle,
+        `${entry.name} rend le matériau : son commutateur doit être proposé.`,
+      ).not.toBeNull();
+    } else {
+      expect(
+        toggle,
+        `${entry.name} ne rend pas le matériau. Le commutateur poserait la ` +
+          'photographie sous un composant inchangé — encre sombre sur cliché ' +
+          'sombre —, ce qui abîme la démonstration au lieu de l’enrichir.',
+      ).toBeNull();
+    }
+  });
+});

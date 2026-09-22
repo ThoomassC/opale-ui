@@ -123,7 +123,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'Pressable':
       preview = (
-        <Opale.Pressable onClick={() => setMessage('Surface activée')}>
+        <Opale.Pressable liquidGlass={liquidGlass} onClick={() => setMessage('Surface activée')}>
           Surface pressable · {message}
         </Opale.Pressable>
       );
@@ -131,6 +131,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'InlineInput':
       preview = (
         <Opale.InlineInput
+          liquidGlass={liquidGlass}
           label="Nom du projet"
           value={text}
           onChange={(event) => setText(event.currentTarget.value)}

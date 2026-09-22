@@ -25,6 +25,24 @@ import { CatalogPreview } from './catalog-preview';
    LES QUATRE DERNIERS VENUS — `Badge`, `Checkbox`, `Select`, `Slider` — sont
    arrivés avec la suppression des doublons : leur homologue vendoré avait sa
    propre page, et il est devenu la matière de ce commutateur. */
+/* LA LISTE DES COMPOSANTS QUI PORTENT VRAIMENT LE MATÉRIAU.
+
+   ELLE COMMANDE DEUX CHOSES, et c'est nouveau : l'extrait de code affiché —
+   qui ajoute ` liquidGlass` aux balises — ET la présence du commutateur
+   lui-même.
+
+   LE DÉFAUT QU'ON CORRIGE. La page montrait « Liquid Glass pour X » sur les
+   quatre-vingt-cinq composants du catalogue. Onze rendent le matériau. Pour
+   les autres, basculer l'interrupteur posait la photographie et le voile sous
+   un composant qui ne changeait pas : une quarantaine se retrouvaient avec
+   leur encre sombre sur un cliché sombre — la barre de progression, le
+   tableau, le fil d'Ariane, l'état vide. Le commutateur ne mentait pas
+   seulement, il ABÎMAIT la démonstration.
+
+   POURQUOI CACHER PLUTÔT QUE GRISER. Un interrupteur désactivé pose la
+   question « pourquoi ne puis-je pas ? » à quatre-vingts reprises. Son
+   absence ne pose aucune question : le matériau est une option de certains
+   composants, pas une propriété du catalogue. */
 const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Autocomplete',
   'Badge',
@@ -32,7 +50,9 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Card',
   'CardGrid',
   'Checkbox',
+  'InlineInput',
   'Input',
+  'Pressable',
   'Select',
   'Slider',
   'StatCard',
@@ -133,6 +153,7 @@ function exampleCode(name: string, liquidGlass = false): string {
 
 function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
+  const supportsLiquidGlass = FORWARDS_LIQUID_GLASS.includes(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
   const code = exampleCode(entry.name, liquidGlass);
 
@@ -154,17 +175,19 @@ function ComponentPage({ entry }: { entry: CatalogEntry }) {
           </div>
           <Opale.Badge tone="accent">V3</Opale.Badge>
         </div>
-        <div className="tc-doc-opale-material-toggle">
-          <div className="tc-doc-opale-material-toggle__text">
-            <strong>Rendu Liquid Glass</strong>
-            <span>Appliquer le matériau uniquement à ce composant.</span>
+        {supportsLiquidGlass && (
+          <div className="tc-doc-opale-material-toggle">
+            <div className="tc-doc-opale-material-toggle__text">
+              <strong>Rendu Liquid Glass</strong>
+              <span>Appliquer le matériau uniquement à ce composant.</span>
+            </div>
+            <Opale.Toggle
+              label={`Liquid Glass pour ${displayName}`}
+              checked={liquidGlass}
+              onChange={(event) => setLiquidGlass(event.currentTarget.checked)}
+            />
           </div>
-          <Opale.Toggle
-            label={`Liquid Glass pour ${displayName}`}
-            checked={liquidGlass}
-            onChange={(event) => setLiquidGlass(event.currentTarget.checked)}
-          />
-        </div>
+        )}
         {/* LE SUPPORT S'ASSOMBRIT AVEC LE MATÉRIAU, et ce n'est pas un effet de
             mise en scène : un verre RÉFRACTE ce qui est derrière lui. Posé sur
             la carte blanche, il n'avait rien à réfracter — on voyait un
