@@ -2292,3 +2292,87 @@ body {
     white-space: normal;
   }
 }
+
+/* =============================================================================
+   LA GALERIE D'ICÔNES.
+
+   LA GRILLE EST AUTO-AJUSTÉE ET NON À NOMBRE DE COLONNES FIXE : cent quatorze
+   cellules sur un écran de téléphone en trois colonnes forcées donneraient des
+   noms tronqués, et sur un grand écran huit colonnes laisseraient la moitié de
+   la largeur vide. `auto-fill` avec une largeur minimale règle les deux d'un
+   coup.
+
+   LE NOM EST SOUS LE DESSIN, PAS EN INFOBULLE. Une infobulle demande un survol
+   — inaccessible au clavier sans travail supplémentaire, et invisible au
+   toucher —, alors que ce qu'on vient chercher sur cette page EST le nom à
+   recopier dans le code.
+   ========================================================================== */
+.tc-doc-icon-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-block-end: 1.5rem;
+}
+
+.tc-doc-icon-filter > :first-child {
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+}
+
+.tc-doc-icon-filter__count {
+  margin: 0 0 0.6rem;
+  color: var(--opale-text-secondary);
+  font-size: 0.85rem;
+}
+
+.tc-doc-icon-family + .tc-doc-icon-family {
+  margin-block-start: 2rem;
+}
+
+.tc-doc-icon-family__title {
+  margin: 0 0 0.9rem;
+  color: var(--opale-text-secondary);
+  font: 600 0.75rem var(--opale-font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tc-doc-icon-grid {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  list-style: none;
+}
+
+.tc-doc-icon-cell {
+  display: grid;
+  padding: 0.9rem 0.5rem 0.75rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  gap: 0.5rem;
+  justify-items: center;
+  text-align: center;
+}
+
+/* LE DESSIN PREND L'ENCRE DU TEXTE ET NON LE BLEU DU PRIMAIRE. Sur une planche
+   de cent quatorze icônes, le bleu se lit comme « tout est un lien » ; et la
+   page montre justement que l'icône suit `currentColor`. */
+.tc-doc-icon-cell .opale-icon {
+  min-width: 0;
+  min-height: 0;
+  color: var(--opale-text);
+  font-size: 1.5rem;
+}
+
+.tc-doc-icon-cell__name {
+  overflow: hidden;
+  max-inline-size: 100%;
+  color: var(--opale-text-secondary);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

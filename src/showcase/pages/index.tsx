@@ -2,7 +2,8 @@ import type { DocPage } from '../doc-model';
 
 import { introductionPage } from './introduction';
 import { installationPage } from './installation';
-import { iconesPage, themingPage, utilisationPage } from './guide-pages';
+import { themingPage, utilisationPage } from './guide-pages';
+import { iconesPage } from './icones';
 import { verreLiquidePage } from './verre-liquide';
 import { notesVersionsPage } from './notes-de-versions';
 

@@ -26,6 +26,7 @@
    portail, une file de notifications, un motif d'onglets ARIA, un champ de
    recherche et la navigation de site. */
 
+export * from './icon';
 export * from './modal';
 export * from './search-bar';
 export * from './sidebar';

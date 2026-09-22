@@ -434,11 +434,16 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'Icon':
+      /* LES NOMS SONT CEUX DU JEU D'OPALE, plus le glyphe libre en dernier —
+         l'aperçu montre les DEUX formes que la prop accepte. Le catalogue
+         complet est sur la page « Icônes ». */
       preview = (
         <Row>
+          <Opale.Icon name="compass" label="Boussole" />
+          <Opale.Icon name="map-pin" label="Point sur la carte" />
+          <Opale.Icon name="luggage" label="Bagage" />
+          <Opale.Icon name="bell" label="Notifications" />
           <Opale.Icon name="✦" label="Étincelle" />
-          <Opale.Icon name="⌘" label="Commande" />
-          <Opale.Icon name="✓" label="Validé" />
         </Row>
       );
       break;

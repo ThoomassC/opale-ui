@@ -957,6 +957,18 @@
   color: var(--opale-primary-on-surface);
   font-size: 1.5rem;
 }
+
+/* LE TRACÉ SUIT LA TAILLE DU TEXTE, PAS UNE TAILLE EN DUR. `1em` fait que
+   l'icône grandit avec le `font-size` de son hôte, exactement comme le faisait
+   le glyphe qu'elle remplace : un appelant qui réglait la taille en changeant
+   `font-size` n'a rien à réécrire. `display: block` supprime l'espace de ligne
+   sous un élément en ligne, qui décentrait le dessin de deux ou trois pixels
+   dans sa grille. */
+.opale-icon__glyph {
+  display: block;
+  inline-size: 1em;
+  block-size: 1em;
+}
 .opale-link {
   color: var(--opale-primary-on-surface);
   font-weight: 600;

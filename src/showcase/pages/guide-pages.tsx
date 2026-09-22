@@ -83,18 +83,3 @@ export const themingPage = guidePage({
     'Les tokens de couleur restent la source de vérité des deux thèmes.',
   ],
 });
-
-export const iconesPage = guidePage({
-  slug: 'icones',
-  label: 'Icônes',
-  title: 'Icônes',
-  lede: 'Les icônes renforcent la compréhension sans remplacer un libellé ni une action explicite.',
-  overview:
-    'Utilisez une icône quand elle apporte une information ou une affordance immédiate. Les actions restent nommées pour les technologies d’assistance.',
-  code: '<Opale.Icon name="check" aria-label="Validé" />',
-  points: [
-    'Une icône décorative est masquée aux technologies d’assistance.',
-    'Une action icon-only reçoit un nom accessible et une cible confortable.',
-    'La couleur accompagne le sens sans être le seul signal d’état.',
-  ],
-});

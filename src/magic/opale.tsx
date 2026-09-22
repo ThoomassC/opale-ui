@@ -18,6 +18,7 @@ import {
 } from 'react';
 
 import Glass from './components/glass/Glass';
+import { OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './components/icon';
 /* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
 
    `ConfirmDialog`, `SidePanel`, `CommandPalette` et `Lightbox` peignaient
@@ -1324,11 +1325,20 @@ export function Text({
 }
 
 export function Icon({
-  name = '✦',
+  name = 'sparkle',
   label,
   className,
 }: {
-  name?: ReactNode;
+  /**
+   * Le nom d'une icône du jeu d'Opale — voir `ICON_NAMES` et la page « Icônes »
+   * — ou n'importe quel nœud à rendre tel quel.
+   *
+   * LES DEUX FORMES COEXISTENT À DESSEIN. Le composant ne savait rendre qu'un
+   * CARACTÈRE, et des appels existants passent « ✦ » ou « ⌘ » ; les casser
+   * n'aurait rien apporté. Un nom connu dessine le tracé d'Opale, tout le
+   * reste passe au travers inchangé.
+   */
+  name?: OpaleIconName | ReactNode;
   label?: string;
   className?: string;
 }) {
@@ -1338,8 +1348,40 @@ export function Icon({
       aria-label={label}
       role={label ? 'img' : undefined}
     >
-      {name}
+      {isOpaleIconName(name) ? <IconGlyph name={name} /> : name}
     </span>
+  );
+}
+
+/**
+ * Le tracé d'une icône du jeu.
+ *
+ * `aria-hidden` EST SUR LE `<svg>` ET NON SUR L'HÔTE : c'est l'hôte qui porte
+ * `role="img"` et le nom accessible quand `label` est fourni. Masquer le dessin
+ * plutôt que l'enveloppe laisse ce nom intact tout en empêchant les lecteurs
+ * d'écran d'énumérer des chemins.
+ *
+ * `focusable="false"` VISE INTERNET EXPLORER ET LES VIEUX EDGE, où un `<svg>`
+ * entre dans l'ordre de tabulation — un point d'arrêt clavier sur une
+ * décoration.
+ */
+function IconGlyph({ name }: { name: OpaleIconName }) {
+  return (
+    <svg
+      className="opale-icon__glyph"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {OPALE_ICONS[name].map((d) => (
+        <path d={d} key={d} />
+      ))}
+    </svg>
   );
 }
 
@@ -1531,7 +1573,7 @@ export function EmptyState({
 }) {
   return (
     <Card className="opale-empty-state" title={title} subtitle={description} actions={action}>
-      <Icon name="⌁" />
+      <Icon name="search" />
     </Card>
   );
 }
