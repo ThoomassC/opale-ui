@@ -195,7 +195,9 @@ describe('Sidebar — ce que la réécriture corrige', () => {
      le rebond sur toutes les surfaces.
      ====================================================================== */
   it('ne rebondit pas : le rail est une surface, pas une cible d’appui', () => {
-    const { container } = renderSidebar();
+    /* `liquidGlass` EXPLICITE : le rail est ORIGINAL par défaut depuis qu'il a
+       les deux matières, et ce test porte sur le comportement du matériau. */
+    const { container } = renderSidebar({ liquidGlass: true });
     const material = container.querySelector('[data-opale-glass]');
 
     expect(material).not.toBeNull();
@@ -220,5 +222,29 @@ describe('Sidebar — ce que la réécriture corrige', () => {
 
     expect(screen.getByRole('button', { name: 'Replier' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Replier le rail' })).toBeNull();
+  });
+
+  /* CHAQUE COMPOSANT D'OPALE PROPOSE LES DEUX MATIÈRES, ET MONTRE L'ORIGINALE
+     PAR DÉFAUT. Le rail ne savait rendre que du verre : sur une page claire,
+     il posait une encre blanche sur un liseré blanc, et rien ne permettait
+     d'obtenir la version pleine. */
+  it('rend la version originale par défaut et le verre sur demande', () => {
+    const { container, unmount } = renderSidebar();
+
+    expect(
+      container.querySelector('[data-opale-glass]'),
+      'Le matériau est une option : il ne doit pas être le rendu par défaut.',
+    ).toBeNull();
+    expect(container.querySelector('aside')).not.toBeNull();
+
+    unmount();
+
+    const { container: verre } = renderSidebar({ liquidGlass: true });
+
+    expect(verre.querySelector('[data-opale-glass]')).not.toBeNull();
+    expect(
+      verre.querySelector('aside'),
+      'Le balisage ne change pas avec la matière.',
+    ).not.toBeNull();
   });
 });

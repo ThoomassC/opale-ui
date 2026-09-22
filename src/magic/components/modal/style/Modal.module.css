@@ -244,3 +244,22 @@
     animation-name: opale-modal-veil;
   }
 }
+
+/* =============================================================================
+   LA VERSION ORIGINALE DU PANNEAU.
+
+   Le dialogue ne savait rendre que du verre : sans matériau, il n'avait ni
+   fond, ni bord, ni ombre — il empruntait tout à l'enveloppe et devenait
+   transparent dès qu'on la retirait. Ce bloc lui donne la surface pleine
+   d'Opale.
+
+   LA SILHOUETTE ET LA TAILLE NE SONT PAS REPRISES : le rayon, la largeur
+   maximale et le débordement restent ceux de `.shell` et des trois tailles,
+   qui se posent maintenant sur le même élément que `.panel`.
+   ========================================================================== */
+.plain {
+  border: 1px solid var(--opale-divider);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  box-shadow: var(--opale-shadow-4);
+}

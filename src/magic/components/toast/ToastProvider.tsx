@@ -91,6 +91,14 @@ export type ToastDefinition = {
   animation?: ToastAnimation;
   position?: ToastPosition;
   enableLiquidAnimation?: boolean;
+  /**
+   * Rend la notification dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT ELLE EST ORIGINALE. Ce composant ne savait rendre que du verre :
+   * le matériau est une OPTION de chaque composant d'Opale, jamais son seul
+   * état.
+   */
+  liquidGlass?: boolean;
   onClose?: () => void;
 };
 
@@ -102,6 +110,7 @@ type ToastRecord = ToastDefinition & {
   position: ToastPosition;
   variant: ToastVariant;
   enableLiquidAnimation: boolean;
+  liquidGlass: boolean;
 };
 
 export type ToastProviderProps = PropsWithChildren<{
@@ -109,6 +118,14 @@ export type ToastProviderProps = PropsWithChildren<{
   animation?: ToastAnimation;
   position?: ToastPosition;
   enableLiquidAnimation?: boolean;
+  /**
+   * Rend la notification dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT ELLE EST ORIGINALE. Ce composant ne savait rendre que du verre :
+   * le matériau est une OPTION de chaque composant d'Opale, jamais son seul
+   * état.
+   */
+  liquidGlass?: boolean;
   portalContainer?: HTMLElement | null;
 }>;
 
@@ -121,6 +138,7 @@ type ToastContextValue = {
     animation: ToastAnimation;
     position: ToastPosition;
     enableLiquidAnimation: boolean;
+    liquidGlass: boolean;
   };
 };
 
@@ -193,6 +211,44 @@ const generateToastId = () => {
   return Math.random().toString(36).slice(2);
 };
 
+/* =============================================================================
+   LA CARTE DE NOTIFICATION, DANS LES DEUX MATIÈRES.
+
+   Le verre sépare l'enveloppe du contenu ; une carte pleine n'en a pas besoin
+   et porte les deux classes. Le reste — le texte, le bouton de fermeture, la
+   minuterie et sa pause — ne dépend d'aucune des deux.
+   ========================================================================== */
+function Carte({
+  liquidGlass,
+  rootClassName,
+  className,
+  enableLiquidAnimation,
+  triggerAnimation,
+  children,
+}: {
+  readonly liquidGlass: boolean;
+  readonly rootClassName?: string;
+  readonly className?: string;
+  readonly enableLiquidAnimation?: boolean;
+  readonly triggerAnimation?: boolean;
+  readonly children: ReactNode;
+}) {
+  if (!liquidGlass) {
+    return <div className={cx(rootClassName, className, styles.plain)}>{children}</div>;
+  }
+
+  return (
+    <Glass
+      rootClassName={rootClassName}
+      className={className}
+      enableLiquidAnimation={enableLiquidAnimation}
+      triggerAnimation={triggerAnimation}
+    >
+      {children}
+    </Glass>
+  );
+}
+
 type ToastCardProps = {
   readonly toast: ToastRecord;
   readonly onDismiss: (id: string) => void;
@@ -200,8 +256,17 @@ type ToastCardProps = {
 };
 
 function ToastCard({ toast, onDismiss, onRemove }: ToastCardProps) {
-  const { animation, description, dismissed, enableLiquidAnimation, id, onClose, title, variant } =
-    toast;
+  const {
+    animation,
+    description,
+    dismissed,
+    enableLiquidAnimation,
+    id,
+    liquidGlass,
+    onClose,
+    title,
+    variant,
+  } = toast;
 
   const [paused, setPaused] = useState(false);
   const [entered, setEntered] = useState(false);
@@ -273,7 +338,8 @@ function ToastCard({ toast, onDismiss, onRemove }: ToastCardProps) {
       onFocus={pause}
       onBlur={resume}
     >
-      <Glass
+      <Carte
+        liquidGlass={liquidGlass}
         rootClassName={cx(styles.surface, variantClass[variant])}
         className={styles.body}
         enableLiquidAnimation={enableLiquidAnimation}
@@ -292,7 +358,7 @@ function ToastCard({ toast, onDismiss, onRemove }: ToastCardProps) {
         >
           <span aria-hidden="true">×</span>
         </button>
-      </Glass>
+      </Carte>
     </div>
   );
 }
@@ -313,6 +379,7 @@ export const ToastProvider = ({
   animation = 'slide-from-right',
   position = 'top-right',
   enableLiquidAnimation = true,
+  liquidGlass = false,
   portalContainer,
 }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
@@ -329,6 +396,7 @@ export const ToastProvider = ({
         animation: toast.animation ?? animation,
         position: toast.position ?? position,
         enableLiquidAnimation: toast.enableLiquidAnimation ?? enableLiquidAnimation,
+        liquidGlass: toast.liquidGlass ?? liquidGlass,
         dismissed: false,
       };
 
@@ -348,7 +416,7 @@ export const ToastProvider = ({
 
       return id;
     },
-    [animation, duration, enableLiquidAnimation, position],
+    [animation, duration, enableLiquidAnimation, liquidGlass, position],
   );
 
   const dismissToast = useCallback((id: string) => {
@@ -370,9 +438,18 @@ export const ToastProvider = ({
       showToast,
       dismissToast,
       clearToasts,
-      defaults: { duration, animation, position, enableLiquidAnimation },
+      defaults: { duration, animation, position, enableLiquidAnimation, liquidGlass },
     }),
-    [animation, clearToasts, dismissToast, duration, enableLiquidAnimation, position, showToast],
+    [
+      animation,
+      clearToasts,
+      dismissToast,
+      duration,
+      enableLiquidAnimation,
+      liquidGlass,
+      position,
+      showToast,
+    ],
   );
 
   /* Chaque coin est découpé en deux files par NIVEAU DE POLITESSE, pas par

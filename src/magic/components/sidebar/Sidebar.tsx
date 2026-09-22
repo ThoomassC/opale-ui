@@ -117,6 +117,14 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle'> &
   activeItemId?: string;
   defaultActiveItemId?: string;
   onSelectItem?: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
+  /**
+   * Rend le rail dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT IL EST ORIGINAL. Ce composant ne savait rendre que du verre :
+   * le matériau est une OPTION de chaque composant d'Opale, jamais son seul
+   * état.
+   */
+  liquidGlass?: boolean;
 } & GlassSurfaceProps;
 
 const widthClassMap: Record<SidebarSize, string> = {
@@ -136,6 +144,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       activeItemId: activeItemIdProp,
       defaultActiveItemId,
       onSelectItem,
+      liquidGlass = false,
       className,
       rootClassName,
       children,
@@ -208,6 +217,28 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       [size, collapsed, collapsible, handleToggle, handleItemSelect, activeItemId, sidebarId],
     );
 
+    const enveloppe = clsx(
+      styles.sidebarRoot,
+      collapsed ? styles.collapsed : widthClassMap[size],
+      rootClassName,
+    );
+    const contenu = clsx(styles.sidebar, collapsed && styles.sidebarCollapsed, className);
+
+    if (!liquidGlass) {
+      return (
+        <SidebarContext.Provider value={contextValue}>
+          <aside
+            ref={ref}
+            id={sidebarId}
+            className={clsx(enveloppe, contenu, styles.plain)}
+            {...rest}
+          >
+            {children}
+          </aside>
+        </SidebarContext.Provider>
+      );
+    }
+
     return (
       <SidebarContext.Provider value={contextValue}>
         <Glass
@@ -220,12 +251,8 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
              appartient à l'entrée, qui l'a. */
           enableLiquidAnimation={false}
           triggerAnimation={false}
-          rootClassName={clsx(
-            styles.sidebarRoot,
-            collapsed ? styles.collapsed : widthClassMap[size],
-            rootClassName,
-          )}
-          className={clsx(styles.sidebar, collapsed && styles.sidebarCollapsed, className)}
+          rootClassName={enveloppe}
+          className={contenu}
           {...rest}
         >
           {children}

@@ -210,3 +210,41 @@
     transition: none;
   }
 }
+
+/* =============================================================================
+   LA VERSION ORIGINALE.
+
+   Les onglets ne savaient rendre que du verre : sans matériau, ni le bandeau
+   ni ses déclencheurs n'avaient de fond, de bord ou d'encre propres. Ce bloc
+   leur donne la surface pleine d'Opale.
+
+   LE DÉCLENCHEUR REÇOIT LES DEUX CLASSES DE GÉOMÉTRIE — celle de l'enveloppe
+   et celle du contenu — sur un seul `<button>` : sans matériau, il n'y a plus
+   d'enveloppe à habiller. Rien d'autre n'est repris : l'espacement, la taille
+   de cible et l'état sélectionné restent ceux des règles au-dessus.
+   ========================================================================== */
+.plain {
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+}
+
+.plainTrigger {
+  border: 0;
+  background: transparent;
+  color: var(--opale-text-secondary);
+  cursor: pointer;
+}
+
+.plainTrigger[aria-selected='true'] {
+  background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
+  color: var(--opale-primary);
+  font-weight: 600;
+}
+
+.plainTrigger:disabled {
+  color: var(--opale-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.55;
+}

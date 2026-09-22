@@ -104,6 +104,14 @@ type GlassSurfaceProps = Pick<
 export type TopbarProps = ComponentPropsWithoutRef<'header'> & {
   size?: TopbarSize;
   elevated?: boolean;
+  /**
+   * Rend la barre dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT ELLE EST ORIGINALE. Ce composant ne savait rendre que du verre :
+   * le matériau est une OPTION de chaque composant d'Opale, jamais son seul
+   * état.
+   */
+  liquidGlass?: boolean;
 } & GlassSurfaceProps;
 
 const sizeClassMap: Record<TopbarSize, string> = {
@@ -117,6 +125,7 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     {
       size = 'comfortable',
       elevated = true,
+      liquidGlass = false,
       className,
       rootClassName,
       children,
@@ -125,6 +134,23 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     ref,
   ) => {
     const value = useMemo<TopbarContextValue>(() => ({ size }), [size]);
+
+    const enveloppe = clsx(styles.topbarRoot, elevated && styles.elevated, rootClassName);
+    const contenu = clsx(styles.topbar, sizeClassMap[size], className);
+
+    /* SANS VERRE, LES DEUX CLASSES SE POSENT SUR UN SEUL ÉLÉMENT. Le matériau
+       a besoin d'une enveloppe — c'est elle qui porte la silhouette et les
+       trois couches — et le contenu vit dedans. Une barre pleine n'a pas cette
+       contrainte : la même géométrie tient sur un `<header>` unique. */
+    if (!liquidGlass) {
+      return (
+        <TopbarContext.Provider value={value}>
+          <header ref={ref} className={clsx(enveloppe, contenu, styles.plain)} {...rest}>
+            {children}
+          </header>
+        </TopbarContext.Provider>
+      );
+    }
 
     return (
       <TopbarContext.Provider value={value}>
@@ -135,8 +161,8 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
              désormais la largeur et l'ombre : la laisser écraser par celle de
              l'appelant lui ferait perdre les deux au moment précis où il veut
              juste ajouter un crochet de style. */
-          rootClassName={clsx(styles.topbarRoot, elevated && styles.elevated, rootClassName)}
-          className={clsx(styles.topbar, sizeClassMap[size], className)}
+          rootClassName={enveloppe}
+          className={contenu}
           {...rest}
         >
           {children}

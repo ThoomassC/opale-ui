@@ -8,6 +8,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
+  type Ref,
 } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -103,6 +104,14 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   size?: ModalSize;
   enableLiquidAnimation?: boolean;
   portalContainer?: HTMLElement | null;
+  /**
+   * Rend le panneau dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT IL EST ORIGINAL. Ce composant ne savait rendre que du verre :
+   * le matériau est une OPTION de chaque composant d'Opale, jamais son seul
+   * état.
+   */
+  liquidGlass?: boolean;
   /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
      côtés, sans quoi l'intersection le ramène à une chaîne. */
 } & Omit<GlassProps, 'title'>;
@@ -137,6 +146,54 @@ const FOCUSABLE_SELECTOR = [
 const cx = (...values: readonly (string | false | null | undefined)[]) =>
   values.filter(Boolean).join(' ');
 
+/* =============================================================================
+   LE PANNEAU DU DIALOGUE, DANS LES DEUX MATIÈRES.
+
+   `Glass` distingue l'ENVELOPPE — qui porte la silhouette, la taille et
+   l'ombre — du CONTENU, qui porte le remplissage et l'encre. Une boîte pleine
+   n'a pas besoin de cette séparation : les deux classes se posent sur le même
+   `<div>`. Extraire ce choix ici évite d'écrire deux fois les huit attributs
+   du dialogue, qui sont son contrat d'accessibilité.
+   ========================================================================== */
+type PanneauProps = Omit<GlassProps<'div'>, 'title'> & {
+  liquidGlass: boolean;
+  /* `ref` EST UNE PROP ORDINAIRE, et ce fichier n'importe pas `forwardRef`.
+     React 19 l'a rendu inutile sur un composant de fonction ; l'envelopper
+     ici n'apporterait qu'un import de plus. */
+  ref?: Ref<HTMLDivElement>;
+};
+
+function Panneau({
+  liquidGlass,
+  ref,
+  rootClassName,
+  className,
+  triggerAnimation,
+  children,
+  ...rest
+}: PanneauProps) {
+  if (liquidGlass) {
+    return (
+      <Glass
+        {...rest}
+        ref={ref}
+        enableLiquidAnimation={false}
+        triggerAnimation={triggerAnimation}
+        rootClassName={rootClassName}
+        className={className}
+      >
+        {children}
+      </Glass>
+    );
+  }
+
+  return (
+    <div {...rest} ref={ref} className={cx(rootClassName, className, styles.plain)}>
+      {children}
+    </div>
+  );
+}
+
 const Modal = ({
   open,
   onClose,
@@ -150,6 +207,7 @@ const Modal = ({
   lockScroll = true,
   size = 'md',
   enableLiquidAnimation = true,
+  liquidGlass = false,
   className,
   rootClassName,
   portalContainer,
@@ -383,10 +441,16 @@ const Modal = ({
         onClick={closeOnOverlay ? handleClose : undefined}
       />
 
-      <Glass
+      {/* LE PANNEAU, DANS L'UNE OU L'AUTRE MATIÈRE.
+
+          Les attributs du dialogue — rôle, `aria-modal`, nom, description,
+          `tabIndex` et les deux gestionnaires — sont écrits UNE FOIS et posés
+          sur les deux rendus : c'est tout le contrat d'accessibilité du
+          composant, et il ne doit pas dépendre d'une apparence. */}
+      <Panneau
         {...rest}
         ref={panelRef}
-        enableLiquidAnimation={false}
+        liquidGlass={liquidGlass}
         triggerAnimation={openRipple}
         rootClassName={cx(styles.shell, sizeClass[size], rootClassName)}
         className={cx(styles.panel, className)}
@@ -431,7 +495,7 @@ const Modal = ({
         {children && <div className={styles.body}>{children}</div>}
 
         {footer && <div className={styles.footer}>{footer}</div>}
-      </Glass>
+      </Panneau>
     </div>,
     container,
   );

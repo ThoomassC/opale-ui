@@ -237,3 +237,20 @@
 .dividerSpacious {
   height: 2.5rem;
 }
+
+/* =============================================================================
+   LA VERSION ORIGINALE.
+
+   La barre ne savait rendre que du verre : sans matériau, elle n'avait ni
+   fond, ni bord, ni encre propres — elle empruntait tout au verre, donc elle
+   disparaissait dès qu'on le retirait. Ce bloc lui donne la surface pleine
+   d'Opale, avec le filet du bas qui la sépare du contenu.
+
+   IL NE REPREND AUCUNE GÉOMÉTRIE : la hauteur, l'espacement et l'alignement
+   restent ceux de `.topbar` et de ses trois tailles.
+   ========================================================================== */
+.plain {
+  border-block-end: 1px solid var(--opale-divider);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+}

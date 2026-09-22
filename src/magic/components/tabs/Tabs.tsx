@@ -134,6 +134,11 @@ export type TabsContextValue = {
   readonly isControlled: boolean;
   readonly getTriggerId: (value: string) => string;
   readonly getContentId: (value: string) => string;
+  /* LA MATIÈRE PASSE PAR LE CONTEXTE, et elle n'a pas le choix : les
+     déclencheurs sont écrits par l'appelant, un par un. Leur demander de
+     répéter `liquidGlass` garantirait qu'un onglet finisse en verre au milieu
+     de cinq onglets pleins. La racine décide, la liste suit. */
+  readonly liquidGlass: boolean;
 };
 
 const TabsContext = createContext<TabsContextValue | null>(null);
@@ -322,6 +327,14 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
   readonly onValueChange?: (next: string) => void;
   readonly activationMode?: TabsActivationMode;
   readonly orientation?: TabsOrientation;
+  /**
+   * Rend les onglets dans le matériau « verre liquide ».
+   *
+   * PAR DÉFAUT ILS SONT ORIGINAUX. Ce composant ne savait rendre que du verre :
+   * le matériau est une OPTION de chaque composant d'Opale, jamais son seul
+   * état.
+   */
+  readonly liquidGlass?: boolean;
 } & GlassProps;
 
 const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
@@ -331,6 +344,7 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     onValueChange,
     activationMode = 'auto',
     orientation = 'horizontal',
+    liquidGlass = false,
     className,
     children,
     ...rest
@@ -368,23 +382,37 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
       isControlled,
       getTriggerId,
       getContentId,
+      liquidGlass,
     }),
-    [value, setValue, activationMode, orientation, isControlled, getTriggerId, getContentId],
+    [
+      value,
+      setValue,
+      activationMode,
+      orientation,
+      isControlled,
+      getTriggerId,
+      getContentId,
+      liquidGlass,
+    ],
+  );
+
+  const contenu = classes(
+    styles.tabs,
+    orientation === 'vertical' && styles.tabsVertical,
+    className,
   );
 
   return (
     <TabsContext.Provider value={context}>
-      <Glass
-        ref={ref}
-        className={classes(
-          styles.tabs,
-          orientation === 'vertical' && styles.tabsVertical,
-          className,
-        )}
-        {...rest}
-      >
-        {children}
-      </Glass>
+      {liquidGlass ? (
+        <Glass ref={ref} className={contenu} {...rest}>
+          {children}
+        </Glass>
+      ) : (
+        <div ref={ref} className={classes(contenu, styles.plain)} {...rest}>
+          {children}
+        </div>
+      )}
     </TabsContext.Provider>
   );
 });
@@ -525,6 +553,7 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function Tab
     activationMode,
     getTriggerId,
     getContentId,
+    liquidGlass,
   } = useTabsContext('Tabs.Trigger');
 
   const isSelected = selected === value;
@@ -556,6 +585,38 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function Tab
 
     if (list) roveTabStop(list);
   };
+
+  const attributsCommuns = {
+    type: 'button',
+    role: 'tab',
+    id: getTriggerId(value),
+    'data-value': value,
+    'aria-selected': isSelected,
+    'aria-controls': getContentId(value),
+    tabIndex: isSelected ? 0 : -1,
+    disabled,
+    onClick: handleClick,
+    onKeyDown: handleKeyDown,
+    onFocus: handleFocus,
+  } as const;
+
+  if (!liquidGlass) {
+    return (
+      <button
+        ref={ref}
+        {...attributsCommuns}
+        className={classes(
+          styles.tabsTriggerRoot,
+          styles.tabsTrigger,
+          styles.plainTrigger,
+          className,
+        )}
+        {...rest}
+      >
+        {children}
+      </button>
+    );
+  }
 
   return (
     <Glass
