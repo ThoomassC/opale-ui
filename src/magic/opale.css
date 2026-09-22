@@ -1768,23 +1768,9 @@
   min-width: 0;
   padding: var(--opale-space-2xl);
 }
-.opale-page-scaffold {
-  min-height: 100%;
-  background: var(--opale-background);
-}
-.opale-page-content {
-  width: min(100%, 72rem);
-  margin-inline: auto;
-}
 .opale-divider {
   border: 0;
   border-top: 1px solid var(--opale-divider);
-}
-.opale-separator {
-  width: 0.35rem;
-  height: 0.35rem;
-  border-radius: 50%;
-  background: var(--opale-primary);
 }
 .opale-opaley-background {
   position: relative;
@@ -1822,11 +1808,6 @@
   content: '';
   background: color-mix(in srgb, var(--opale-secondary) 18%, transparent);
   transform: rotate(18deg);
-}
-.opale-scrollbar {
-  overflow: auto;
-  scrollbar-color: var(--opale-primary) var(--opale-surface-sunken);
-  scrollbar-width: thin;
 }
 
 .opale-stat-grid {
@@ -2001,32 +1982,6 @@
 .opale-upload-list {
   display: grid;
   gap: var(--opale-space-xs);
-}
-.opale-countdown {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--opale-space-xs);
-  font-family: var(--opale-font-display);
-  color: var(--opale-primary-on-surface);
-}
-.opale-map {
-  display: grid;
-  min-height: 14rem;
-  place-items: center;
-  border-radius: var(--opale-radius-md);
-  background:
-    repeating-linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--opale-primary) 8%, transparent) 0 1rem,
-      transparent 1rem 2rem
-    ),
-    var(--opale-surface-sunken);
-  color: var(--opale-text-secondary);
-}
-.opale-game {
-  display: grid;
-  gap: var(--opale-space-sm);
-  padding: var(--opale-space-lg);
 }
 .opale-svg-map {
   width: 100%;

@@ -111,8 +111,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [selected, setSelected] = useState('design');
   const [multiSelected, setMultiSelected] = useState<string[]>(['design', 'docs']);
   const [slider, setSlider] = useState(64);
-  const [language, setLanguage] = useState('FR');
-  const [dark, setDark] = useState(false);
   const [toastOpen, setToastOpen] = useState(true);
   const [toastTone, setToastTone] = useState<ToastTone>('success');
   const [toastPlacement, setToastPlacement] = useState<ToastPlacement>('bottom-right');
@@ -123,9 +121,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('overview');
   const [selectedFile, setSelectedFile] = useState(false);
-  const [allowed, setAllowed] = useState(true);
-  const [valid, setValid] = useState(true);
-  const [score, setScore] = useState(12);
   const progress = useDemoProgress(name === 'ProgressBar');
 
   let preview: ReactNode;
@@ -252,63 +247,9 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Form>
       );
       break;
-    case 'LanguageSelector':
-      preview = (
-        <Row>
-          <Opale.LanguageSelector
-            value={language}
-            onChange={(event) => setLanguage(event.currentTarget.value)}
-          />
-          <Opale.Badge>{language}</Opale.Badge>
-        </Row>
-      );
-      break;
     case 'SegmentedControl':
       preview = (
         <Opale.SegmentedControl options={OPTIONS} value={selected} onChange={setSelected} />
-      );
-      break;
-    case 'ThemeToggle':
-      preview = (
-        <Row>
-          <Opale.ThemeToggle dark={dark} onChange={setDark} />
-          <span role="status">Thème {dark ? 'sombre' : 'clair'}</span>
-        </Row>
-      );
-      break;
-    case 'AddButton':
-      preview = (
-        <DemoFrame>
-          <Opale.AddButton onClick={() => setMessage('Élément ajouté')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
-      );
-      break;
-    case 'SaveButton':
-      preview = <Opale.SaveButton onSaved={() => setMessage('Modification enregistrée')} />;
-      break;
-    case 'ApproveButton':
-      preview = (
-        <DemoFrame>
-          <Opale.ApproveButton onClick={() => setMessage('Demande validée')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
-      );
-      break;
-    case 'EditButton':
-      preview = (
-        <DemoFrame>
-          <Opale.EditButton onClick={() => setMessage('Mode édition')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
-      );
-      break;
-    case 'DeleteButton':
-      preview = (
-        <DemoFrame>
-          <Opale.DeleteButton onClick={() => setMessage('Élément supprimé')} />
-          <span role="status">{message}</span>
-        </DemoFrame>
       );
       break;
     case 'IconActionButton':
@@ -381,14 +322,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'StatusChip':
-      preview = (
-        <Row>
-          <Opale.StatusChip status="En production" />
-          <Opale.StatusChip status="En révision" tone="accent" />
-        </Row>
-      );
-      break;
     case 'Badge':
       preview = (
         <Row>
@@ -430,11 +363,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
             { id: 'accessibility', label: 'Accessibilité', href: '#/accessibilite' },
           ]}
         />
-      );
-      break;
-    case 'Legend':
-      preview = (
-        <Opale.Legend items={[{ label: 'Stable' }, { label: 'En cours' }, { label: 'Déprécié' }]} />
       );
       break;
     case 'Heading':
@@ -568,7 +496,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         <Opale.EmptyState
           title="Aucun projet"
           description="Créez votre premier projet Opale."
-          action={<Opale.AddButton />}
+          action={<Opale.Button>Créer un projet</Opale.Button>}
         />
       );
       break;
@@ -599,17 +527,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </>
       );
       break;
-    case 'SettingsMenu':
-      preview = (
-        <Opale.SettingsMenu>
-          <Opale.ThemeToggle dark={dark} onChange={setDark} />
-          <Opale.LanguageSelector
-            value={language}
-            onChange={(event) => setLanguage(event.currentTarget.value)}
-          />
-        </Opale.SettingsMenu>
-      );
-      break;
     case 'CommandPalette':
       preview = (
         <>
@@ -638,14 +555,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         />
       );
       break;
-    case 'Toolbar':
-      preview = (
-        <Opale.Toolbar>
-          <Opale.Input aria-label="Rechercher" placeholder="Rechercher" />
-          <Opale.Button size="small">Filtrer</Opale.Button>
-        </Opale.Toolbar>
-      );
-      break;
     case 'CookieBanner':
       preview = (
         <DemoFrame>
@@ -654,15 +563,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           </Opale.Button>
           <Opale.CookieBanner open={cookieOpen} onAccept={() => setCookieOpen(false)} />
         </DemoFrame>
-      );
-      break;
-    case 'Scrollbar':
-      preview = (
-        <Opale.Scrollbar className="tc-doc-opale-demo__scroll">
-          {Array.from({ length: 8 }, (_, index) => (
-            <p key={index}>Ligne de contenu {index + 1}</p>
-          ))}
-        </Opale.Scrollbar>
       );
       break;
     case 'SelectionBar':
@@ -694,27 +594,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.Layout>
       );
       break;
-    case 'PageScaffold':
-      preview = (
-        <Opale.PageScaffold className="tc-doc-opale-demo__page">
-          <Opale.Toolbar>
-            <strong>Opale</strong>
-            <Opale.Badge>V3</Opale.Badge>
-          </Opale.Toolbar>
-          <Opale.PageContent>
-            <Opale.Heading level={3}>Page complète</Opale.Heading>
-          </Opale.PageContent>
-        </Opale.PageScaffold>
-      );
-      break;
-    case 'PageContent':
-      preview = (
-        <Opale.PageContent>
-          <Opale.Heading level={3}>Contenu centré</Opale.Heading>
-          <Opale.Text>La largeur de lecture reste maîtrisée.</Opale.Text>
-        </Opale.PageContent>
-      );
-      break;
     case 'Divider':
       preview = (
         <DemoFrame>
@@ -722,17 +601,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           <Opale.Divider />
           <span>Après le séparateur</span>
         </DemoFrame>
-      );
-      break;
-    case 'Separator':
-      preview = (
-        <Row>
-          <span>Stable</span>
-          <Opale.Separator />
-          <span>React 19</span>
-          <Opale.Separator />
-          <span>TypeScript</span>
-        </Row>
       );
       break;
     case 'BackgroundSurface':
@@ -770,111 +638,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
             onClose={() => setLightboxOpen(false)}
           />
         </>
-      );
-      break;
-    case 'Map':
-      preview = (
-        <Opale.Map>
-          <Row>
-            <Opale.Badge>Paris</Opale.Badge>
-            <Opale.Badge tone="accent">Lyon</Opale.Badge>
-          </Row>
-        </Opale.Map>
-      );
-      break;
-    case 'RouteGuard':
-      preview = (
-        <DemoFrame>
-          <Opale.Toggle
-            label="Accès autorisé"
-            checked={allowed}
-            onChange={(event) => setAllowed(event.currentTarget.checked)}
-          />
-          <Opale.RouteGuard allowed={allowed} fallback="Accès administrateur requis">
-            <Opale.Feedback severity="success">Contenu protégé visible</Opale.Feedback>
-          </Opale.RouteGuard>
-        </DemoFrame>
-      );
-      break;
-    case 'I18n':
-      preview = (
-        <Opale.I18n>
-          <Row>
-            <Opale.LanguageSelector
-              value={language}
-              onChange={(event) => setLanguage(event.currentTarget.value)}
-            />
-            <span role="status">
-              Message actif : {language === 'FR' ? 'Bonjour' : language === 'EN' ? 'Hello' : 'Hola'}
-            </span>
-          </Row>
-        </Opale.I18n>
-      );
-      break;
-    case 'Http':
-      preview = (
-        <DemoFrame>
-          <Opale.Http status={message === 'Chargement' ? 'Chargement…' : 'API prête · 200'} />
-          <Opale.Button
-            size="small"
-            onClick={() => {
-              setMessage('Chargement');
-              window.setTimeout(() => setMessage('Prêt'), 250);
-            }}
-          >
-            Relancer
-          </Opale.Button>
-        </DemoFrame>
-      );
-      break;
-    case 'Validation':
-      preview = (
-        <DemoFrame>
-          <Opale.Input
-            label="Identifiant"
-            value={text}
-            onChange={(event) => {
-              setText(event.currentTarget.value);
-              setValid(event.currentTarget.value.length >= 3);
-            }}
-          />
-          <Opale.Validation valid={valid} />
-        </DemoFrame>
-      );
-      break;
-    case 'Sound':
-      preview = <Opale.Sound enabled />;
-      break;
-    case 'LocalStore':
-      preview = (
-        <Opale.LocalStore>
-          <DemoFrame>
-            <Opale.Input
-              label="Valeur locale"
-              value={text}
-              onChange={(event) => setText(event.currentTarget.value)}
-            />
-            <Opale.Badge>{text || 'Vide'}</Opale.Badge>
-          </DemoFrame>
-        </Opale.LocalStore>
-      );
-      break;
-    case 'Countdown':
-      preview = (
-        <Row>
-          <span>Départ dans</span>
-          <Opale.Countdown seconds={15} />
-        </Row>
-      );
-      break;
-    case 'Game':
-      preview = (
-        <DemoFrame>
-          <Opale.Game score={score} />
-          <Opale.Button size="small" onClick={() => setScore((value) => value + 1)}>
-            Marquer un point
-          </Opale.Button>
-        </DemoFrame>
       );
       break;
     case 'Clipboard':

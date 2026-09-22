@@ -7,13 +7,10 @@ import {
   Badge,
   Breadcrumb,
   Button,
-  Countdown,
-  DeleteButton,
   DescriptionList,
   Checkbox,
   Dropzone,
   Input,
-  Map,
   MultiSelect,
   ProgressBar,
   Select,
@@ -26,7 +23,6 @@ import {
   Rating,
   SegmentedControl,
   SidePanel,
-  StatusChip,
 } from './opale';
 
 afterEach(cleanup);
@@ -265,27 +261,6 @@ describe('les bloquants de l’audit d’accessibilité', () => {
    LES DOUBLONS RETIRÉS, ET CE QUI DOIT SURVIVRE À LEUR RETRAIT.
    ========================================================================== */
 describe('les doublons du catalogue', () => {
-  /* `StatusChip` NE TRANSMETTAIT PAS LE TON. Sa démonstration affichait « En
-     production » et « En révision » côte à côte, rendus À L'IDENTIQUE : deux
-     statuts qu'on ne pouvait pas distinguer, dans un composant dont le seul
-     objet est de distinguer des statuts. */
-  it('laisse StatusChip distinguer deux statuts', () => {
-    const { container } = render(
-      <>
-        <StatusChip status="En production" />
-        <StatusChip status="En révision" tone="accent" />
-      </>,
-    );
-
-    const chips = [...container.querySelectorAll('.opale-badge')];
-
-    expect(chips).toHaveLength(2);
-    expect(
-      chips[0]?.className,
-      'Deux statuts rendus avec les mêmes classes ne se distinguent pas.',
-    ).not.toBe(chips[1]?.className);
-  });
-
   /* `ShapeBackground` EST DEVENU UNE PROP. Les deux classes déclaraient la
      même boîte et partageaient déjà le même `::before` : seule la forme
      organique les séparait. */
@@ -301,8 +276,9 @@ describe('les doublons du catalogue', () => {
     expect(surface()).toHaveClass('opale-opaley-background--shape');
   });
 
-  /* LE BADGE RESTE LA RÉFÉRENCE : c'est vers lui que `StatusChip` est
-     déprécié, donc son ton doit continuer de produire une classe distincte. */
+  /* LE BADGE A ABSORBÉ `StatusChip`, qui n'était qu'un alias posant le même
+     `.opale-badge` sous un autre nom. Son ton doit donc continuer de produire
+     une classe distincte : c'est tout ce que l'alias apportait. */
   it('garde le ton du badge distinct de son défaut', () => {
     const { container } = render(
       <>
@@ -368,39 +344,15 @@ describe('les constats sérieux de l’audit', () => {
     );
   });
 
-  /* `role="img"` REND TOUS LES DESCENDANTS PRÉSENTATIONNELS. Les marqueurs
-     passés en `children` restaient focalisables tout en devenant anonymes. */
-  it('laisse voir ce qu’une carte contient', () => {
-    const { container } = render(
-      <Map>
-        <button type="button">Paris</button>
-      </Map>,
-    );
-
-    /* CE QUI SE VÉRIFIE EST LE RÔLE, PAS LA REQUÊTE.
-
-       Une première version cherchait le bouton avec `getByRole` et passait
-       AVEC `role="img"` remis : le test de mutation l'a montré. Testing
-       Library interroge le DOM et n'applique pas la règle ARIA des enfants
-       PRÉSENTATIONNELS — un vrai lecteur d'écran, si. Le test aurait donc
-       certifié comme accessible un balisage qui efface ses propres marqueurs.
-
-       C'est la cause qu'on épingle : `img` élague ses descendants, `group`
-       les garde. */
-    const carte = container.querySelector('.opale-map') as HTMLElement;
-
-    expect(carte.getAttribute('role')).not.toBe('img');
-    expect(
-      carte,
-      'Un conteneur qui reçoit des marqueurs en `children` ne peut pas se ' +
-        'déclarer image : le rôle rendrait tous ses descendants présentationnels.',
-    ).toHaveAttribute('role', 'group');
-    expect(carte).toHaveAccessibleName('Carte');
-  });
-
-  /* L'ICÔNE DÉCORATIVE ENTRAIT DANS LE NOM DU BOUTON : « × Supprimer ». */
+  /* L'ICÔNE DÉCORATIVE ENTRAIT DANS LE NOM DU BOUTON : « × Supprimer ». Le
+     cas portait sur `DeleteButton`, qui n'était que ce `Button`-ci avec son
+     libellé écrit en dur ; l'invariant, lui, appartenait déjà à `Button`. */
   it('garde l’icône d’un bouton hors de son nom', () => {
-    render(<DeleteButton />);
+    render(
+      <Button variant="danger" startIcon="×">
+        Supprimer
+      </Button>,
+    );
 
     expect(screen.getByRole('button', { name: 'Supprimer' })).toBeInTheDocument();
   });
@@ -422,20 +374,14 @@ describe('les constats sérieux de l’audit', () => {
     ).toHaveTextContent('Enregistré');
   });
 
-  /* LE COMPTE CHANGEAIT SANS UN MOT ; LE DÉCOMPTE, LUI, PARLAIT CHAQUE
-     SECONDE ET COUVRAIT LA PAGE. Les deux défauts sont symétriques. */
-  it('annonce le compte de la sélection sans faire crier le décompte', () => {
-    const { container, unmount } = render(<SelectionBar selectedCount={3} />);
+  /* LE COMPTE CHANGEAIT SANS UN MOT : on cochait des lignes et le total
+     n'était jamais annoncé (WCAG 4.1.3). La région est montée avec la barre,
+     donc avant que le nombre ne bouge — c'est la condition pour qu'une
+     annonce parte. */
+  it('annonce le compte de la sélection', () => {
+    const { container } = render(<SelectionBar selectedCount={3} />);
 
     expect(container.querySelector('[aria-live]')).not.toBeNull();
-    unmount();
-
-    const { container: chrono } = render(<Countdown seconds={60} />);
-
-    expect(
-      chrono.querySelector('[aria-live]'),
-      'Une valeur qui change chaque seconde monopolise la parole.',
-    ).toBeNull();
   });
 
   it('structure la liste de définitions et le fil d’Ariane', () => {

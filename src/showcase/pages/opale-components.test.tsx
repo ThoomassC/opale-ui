@@ -118,15 +118,6 @@ describe('le catalogue interactif V3', () => {
     ).toEqual(wired);
   });
 
-  it('fait réellement basculer ThemeToggle', async () => {
-    const user = userEvent.setup();
-    render(<CatalogPreview name="ThemeToggle" liquidGlass={false} />);
-
-    expect(screen.getByRole('status')).toHaveTextContent('Thème clair');
-    await user.click(screen.getByRole('checkbox', { name: 'Thème' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Thème sombre');
-  });
-
   it('rend SegmentedControl contrôlable', async () => {
     const user = userEvent.setup();
     render(<CatalogPreview name="SegmentedControl" liquidGlass={false} />);
@@ -171,13 +162,8 @@ describe('le catalogue interactif V3', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Formulaire envoyé');
   });
 
-  it('rend LanguageSelector et MultiSelect contrôlables', async () => {
+  it('rend MultiSelect contrôlable', async () => {
     const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="LanguageSelector" liquidGlass={false} />);
-
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Langue' }), 'ES');
-    expect(screen.getByRole('combobox', { name: 'Langue' })).toHaveValue('ES');
-    expect(screen.getByText('ES')).toBeInTheDocument();
 
     /* LA SÉLECTION MULTIPLE N'EST PLUS UN `<select multiple>` VISIBLE, et ce
        test a changé avec elle — pas pour s'adoucir, pour suivre.
@@ -199,7 +185,7 @@ describe('le catalogue interactif V3', () => {
        le vérifie, car c'est lui qui garantit que `onChange` continue de rendre
        `currentTarget.selectedOptions` aux consommateurs existants. C'est le
        contrat qui ne devait PAS bouger. */
-    rerender(<CatalogPreview name="MultiSelect" liquidGlass={false} />);
+    render(<CatalogPreview name="MultiSelect" liquidGlass={false} />);
 
     const liste = screen.getByRole('listbox', { name: 'Domaines' });
     const optionsDe = () =>
@@ -218,18 +204,6 @@ describe('le catalogue interactif V3', () => {
     /* Le `<select>` masqué porte la même vérité : c'est lui que reçoit le
        `onChange` du consommateur. */
     expect(document.querySelector('select[multiple]')).toHaveValue(['code', 'docs']);
-  });
-
-  it('confirme les actions des boutons spécialisés', async () => {
-    const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="AddButton" liquidGlass={false} />);
-
-    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
-    expect(screen.getByRole('status')).toHaveTextContent('Élément ajouté');
-
-    rerender(<CatalogPreview name="SaveButton" liquidGlass={false} />);
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
-    expect(screen.getByRole('button', { name: 'Enregistré' })).toBeInTheDocument();
   });
 
   it('met à jour la page active de Navbar', async () => {
@@ -251,9 +225,9 @@ describe('le catalogue interactif V3', () => {
     expect(screen.queryByText(/Nous utilisons des cookies/)).not.toBeInTheDocument();
   });
 
-  it('sélectionne FileCard et bloque RouteGuard', async () => {
+  it('sélectionne FileCard', async () => {
     const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="FileCard" liquidGlass={false} />);
+    render(<CatalogPreview name="FileCard" liquidGlass={false} />);
 
     const file = screen.getByRole('button', { name: /design-system\.fig/ });
 
@@ -268,23 +242,8 @@ describe('le catalogue interactif V3', () => {
 
     expect(file).toHaveAttribute('aria-pressed', 'true');
     expect(file).toHaveClass('opale-file-card--selected');
-
-    rerender(<CatalogPreview name="RouteGuard" liquidGlass={false} />);
-    await user.click(screen.getByRole('checkbox', { name: 'Accès autorisé' }));
-    expect(screen.getByRole('alert')).toHaveTextContent('Accès administrateur requis');
   });
 
-  it('réagit à la validation et au score de Game', async () => {
-    const user = userEvent.setup();
-    const { rerender } = render(<CatalogPreview name="Validation" liquidGlass={false} />);
-
-    await user.clear(screen.getByRole('textbox', { name: 'Identifiant' }));
-    expect(screen.getByText('À corriger')).toBeInTheDocument();
-
-    rerender(<CatalogPreview name="Game" liquidGlass={false} />);
-    await user.click(screen.getByRole('button', { name: 'Marquer un point' }));
-    expect(screen.getByText('13')).toBeInTheDocument();
-  });
 });
 
 /* =============================================================================

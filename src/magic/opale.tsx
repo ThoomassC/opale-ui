@@ -1138,97 +1138,8 @@ export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement
   return <form className={cx('opale-stack', 'opale-stack--column', className)} {...props} />;
 }
 
-export function LanguageSelector({
-  value = 'FR',
-  onChange,
-  className,
-  ariaLabel = 'Langue',
-}: {
-  value?: string;
-  onChange?: SelectHTMLAttributes<HTMLSelectElement>['onChange'];
-  className?: string;
-  ariaLabel?: string;
-}) {
-  return (
-    <Select
-      className={className}
-      aria-label={ariaLabel}
-      value={value}
-      onChange={onChange}
-      options={[
-        { value: 'FR', label: 'Français' },
-        { value: 'EN', label: 'English' },
-        { value: 'ES', label: 'Español' },
-      ]}
-    />
-  );
-}
 
-export function ThemeToggle({
-  dark = false,
-  onChange,
-  className,
-}: {
-  dark?: boolean;
-  onChange?: (dark: boolean) => void;
-  className?: string;
-}) {
-  return (
-    <Toggle
-      className={className}
-      aria-label="Thème"
-      checked={dark}
-      onChange={(event) => onChange?.(event.currentTarget.checked)}
-    />
-  );
-}
 
-export function AddButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} startIcon="+">
-      Ajouter
-    </Button>
-  );
-}
-export function SaveButton({
-  onSaved,
-  ...props
-}: Omit<ButtonProps, 'children'> & { onSaved?: () => void }) {
-  const [saved, setSaved] = useState(false);
-  return (
-    <Button
-      {...props}
-      onClick={(event) => {
-        setSaved(true);
-        onSaved?.();
-        props.onClick?.(event);
-      }}
-    >
-      {saved ? 'Enregistré' : 'Enregistrer'}
-    </Button>
-  );
-}
-export function ApproveButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} variant="primary" startIcon="✓">
-      Valider
-    </Button>
-  );
-}
-export function EditButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} variant="tonal" startIcon="✎">
-      Modifier
-    </Button>
-  );
-}
-export function DeleteButton(props: Omit<ButtonProps, 'children'>) {
-  return (
-    <Button {...props} variant="danger" startIcon="×">
-      Supprimer
-    </Button>
-  );
-}
 export function IconActionButton({
   label = 'Action',
   ...props
@@ -1275,30 +1186,6 @@ export function Badge({
   return <span className={classes}>{children}</span>;
 }
 
-/**
- * @deprecated Utilisez `Badge` avec sa prop `tone`. `StatusChip` n'est qu'un
- * `Badge` amputé : il n'exposait ni `tone` ni `liquidGlass` et contraignait
- * son contenu à une chaîne. La démonstration du catalogue affichait deux
- * statuts différents… rendus à l'identique, faute de pouvoir les distinguer.
- *
- * Le ton est transmis depuis cette version, pour que le composant cesse au
- * moins de mentir tant qu'il existe.
- */
-export function StatusChip({
-  status = 'En production',
-  tone,
-  className,
-}: {
-  status?: string;
-  tone?: 'primary' | 'accent' | 'danger';
-  className?: string;
-}) {
-  return (
-    <Badge tone={tone} className={className}>
-      {status}
-    </Badge>
-  );
-}
 
 export function Heading({
   level = 2,
@@ -1792,19 +1679,6 @@ export function SidePanel({
   );
 }
 
-export function SettingsMenu({
-  children,
-  className,
-}: {
-  children?: ReactNode;
-  className?: string;
-}) {
-  return (
-    <Menu className={className} label="Réglages" items={[]}>
-      <div className="opale-stack opale-stack--column">{children}</div>
-    </Menu>
-  );
-}
 export function CommandPalette({
   open = false,
   value = '',
@@ -1862,13 +1736,6 @@ export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
     </nav>
   );
 }
-export function Toolbar({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cx('opale-surface', 'opale-toolbar', 'opale-panel', className)} {...props}>
-      {children}
-    </div>
-  );
-}
 export function CookieBanner({
   open = true,
   children = 'Nous utilisons des cookies pour améliorer votre expérience.',
@@ -1906,9 +1773,6 @@ export function SelectionBar({
       {children}
     </div>
   );
-}
-export function Scrollbar({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-scrollbar', className)}>{children}</div>;
 }
 
 export function Stack({
@@ -1948,17 +1812,8 @@ export function Layout({
     </div>
   );
 }
-export function PageScaffold({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-page-scaffold', className)}>{children}</div>;
-}
-export function PageContent({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <section className={cx('opale-page-content', className)}>{children}</section>;
-}
 export function Divider({ className }: { className?: string }) {
   return <hr className={cx('opale-divider', className)} />;
-}
-export function Separator({ className }: { className?: string }) {
-  return <span className={cx('opale-separator', className)} aria-hidden="true" />;
 }
 /**
  * Le fond décoratif du catalogue.
@@ -2219,22 +2074,6 @@ export function Donut({ value = 60, label = `${value}%` }: { value?: number; lab
     />
   );
 }
-export function Legend({
-  items = [],
-}: {
-  items?: readonly { label: ReactNode; color?: string }[];
-}) {
-  return (
-    <div className="opale-stack opale-stack--wrap">
-      {items.map((item, index) => (
-        <span key={index} className="opale-stack">
-          <Separator />
-          {item.label}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 export interface DataTableProps {
   columns?: readonly { key: string; label: ReactNode }[];
@@ -2374,70 +2213,6 @@ export function Lightbox({
     </Modal>
   );
 }
-export function Map({ children = 'Carte interactive' }: { children?: ReactNode }) {
-  /* `role="group"` ET NON `role="img"`. Une image rend tous ses descendants
-     PRÉSENTATIONNELS : ils disparaissent de l'arbre d'accessibilité. Or ce
-     composant reçoit ses marqueurs en `children`, et sa fiche promet des
-     bulles et un clic — des marqueurs cliquables restaient focalisables tout
-     en devenant anonymes et sans rôle, le pire des deux mondes (WCAG 1.3.1).
-     Le groupe garde son nom et laisse voir ce qu'il contient. */
-  return (
-    <div className="opale-map" role="group" aria-label="Carte">
-      {children}
-    </div>
-  );
-}
-export function RouteGuard({
-  allowed = true,
-  fallback = 'Accès refusé',
-  children,
-}: {
-  allowed?: boolean;
-  fallback?: ReactNode;
-  children?: ReactNode;
-}) {
-  return allowed ? <>{children}</> : <Feedback severity="error">{fallback}</Feedback>;
-}
-export function I18n({ children }: { children?: ReactNode }) {
-  return <>{children}</>;
-}
-export function Http({ status = 'API prête' }: { status?: ReactNode }) {
-  return <StatusChip status={String(status)} />;
-}
-export function Validation({ valid = true }: { valid?: boolean }) {
-  return <StatusChip status={valid ? 'Valide' : 'À corriger'} />;
-}
-export function Sound({ enabled = true }: { enabled?: boolean }) {
-  return <Toggle label="Sons" defaultChecked={enabled} />;
-}
-export function LocalStore({ children }: { children?: ReactNode }) {
-  return <>{children}</>;
-}
-export function Countdown({ seconds = 60 }: { seconds?: number }) {
-  const [remaining, setRemaining] = useState(seconds);
-  useEffect(() => {
-    const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return (
-    /* PAS DE RÉGION LIVE ICI, ET C'EST LE CONTRAIRE DU DÉFAUT VOISIN. La
-       valeur change CHAQUE SECONDE : le lecteur d'écran énonçait « 59 s,
-       58 s, 57 s… » sans discontinuer et couvrait tout le reste de la page.
-       Aucun critère WCAG ne l'interdit — c'est une question de qualité, pas
-       de conformité —, mais un composant qui monopolise la parole est
-       inutilisable. Le décompte reste lisible ; il cesse d'être criée. */
-    <span className="opale-countdown">{remaining}s</span>
-  );
-}
-export function Game({ score = 0 }: { score?: number }) {
-  return (
-    <div className="opale-surface opale-game">
-      <Heading level={3}>Partie</Heading>
-      <strong className="opale-stat-card__value">{score}</strong>
-      <Button size="small">Continuer</Button>
-    </div>
-  );
-}
 export function Clipboard({ value, children = 'Copier' }: { value: string; children?: ReactNode }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -2489,27 +2264,18 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['Select', 'Inputs', 'Sélecteur mono-valeur avec libellé accessible et options illustrées.'],
   ['Autocomplete', 'Inputs', 'Champ à suggestions avec filtrage et présélection.'],
   ['Form', 'Inputs', 'Formulaire orchestré par les primitives contrôlées.'],
-  ['LanguageSelector', 'Inputs', "Sélecteur de langue branché sur l'i18n."],
   ['SegmentedControl', 'Inputs', 'Sélecteur segmenté animé pour choisir une option.'],
-  ['ThemeToggle', 'Inputs', 'Bascule de thème clair ou sombre, avec matériau local.'],
-  ['AddButton', 'Boutons spécialisés', "Bouton d'ajout avec icône plus intégrée."],
-  ['SaveButton', 'Boutons spécialisés', "Bouton d'enregistrement unique, avec confirmation."],
-  ['ApproveButton', 'Boutons spécialisés', 'Bouton de validation avec icône check.'],
-  ['EditButton', 'Boutons spécialisés', "Bouton d'édition avec icône crayon."],
-  ['DeleteButton', 'Boutons spécialisés', 'Bouton de suppression avec confirmation intégrée.'],
   ['IconActionButton', 'Boutons spécialisés', "Bouton d'action carré à icône."],
   ['Card', 'Affichage de données', 'Carte avec titre, sous-titre, actions et élévations.'],
   ['CardGrid', 'Affichage de données', 'Grille responsive auto-adaptative pour cartes.'],
   ['DataTable', 'Affichage de données', 'Table riche avec tri, sélection et clavier.'],
   ['DescriptionList', 'Affichage de données', 'Liste de paires libellé / valeur.'],
   ['BulletList', 'Affichage de données', 'Liste à puces avec icônes personnalisables.'],
-  ['StatusChip', 'Affichage de données', 'Pastille de statut en plusieurs tonalités.'],
   ['Badge', 'Affichage de données', 'Pastille de compteur ou point de notification.'],
   ['Rating', 'Affichage de données', 'Note moyenne en étoiles, remplissage fractionnaire.'],
   ['StatCard', 'Affichage de données', 'Carte de métrique avec valeur, variation et icône.'],
   ['Donut', 'Affichage de données', 'Graphique en anneau segmenté avec contenu central.'],
   ['LegalLinks', 'Affichage de données', 'Pied de page légal et mentions.'],
-  ['Legend', 'Affichage de données', 'Légende de statuts pour tableaux et graphiques.'],
   ['Heading', 'Affichage de données', 'Titres hiérarchisés avec échelle typographique.'],
   ['Text', 'Affichage de données', 'Corps de texte, labels, légendes et métriques.'],
   ['Icon', 'Affichage de données', 'Icônes Opale en plusieurs tailles.'],
@@ -2523,32 +2289,17 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['Menu', 'Navigation', 'Menu contextuel positionnable avec items.'],
   ['Link', 'Navigation', 'Lien stylé compatible avec les routeurs externes.'],
   ['SidePanel', 'Navigation', 'Panneau latéral coulissant avec titre et footer.'],
-  ['SettingsMenu', 'Navigation', 'Menu de réglages : thème, langue et session.'],
   ['CommandPalette', 'Navigation', 'Palette de commandes avec recherche clavier.'],
   ['Breadcrumb', 'Navigation', "Fil d'Ariane avec repli automatique."],
-  ['Toolbar', 'Navigation', 'Barre d’outils : recherche, tri et actions.'],
   ['CookieBanner', 'Navigation', 'Bandeau de consentement avec mémorisation.'],
-  ['Scrollbar', 'Navigation', 'Barre de défilement appliquée par le thème.'],
   ['SelectionBar', 'Navigation', "Barre d'actions groupées sur sélection multiple."],
   ['Stack', 'Mise en page', 'Empilement flexbox avec gaps issus des tokens.'],
   ['Layout', 'Mise en page', 'Gabarit de page avec navigation et contenu.'],
-  ['PageScaffold', 'Mise en page', 'Squelette complet : navigation, contenu et footer.'],
-  ['PageContent', 'Mise en page', 'Conteneur de contenu avec en-tête et footer.'],
   ['Divider', 'Mise en page', 'Séparateur horizontal ou vertical.'],
-  ['Separator', 'Mise en page', 'Séparateur décoratif léger.'],
   ['BackgroundSurface', 'Mise en page', 'Fond animé par thème.'],
   ['FileCard', 'Modules', 'Carte de fichier ou dossier avec aperçu et sélection.'],
   ['Dropzone', 'Modules', 'Zone de dépôt par glisser-déposer ou sélection.'],
   ['Lightbox', 'Modules', "Visionneuse plein écran d'images et documents."],
-  ['Map', 'Modules', 'Carte avec marqueurs, bulles et clic.'],
-  ['RouteGuard', 'Modules', 'Garde de routes et redirections.'],
-  ['I18n', 'Modules', 'Provider d’internationalisation et messages.'],
-  ['Http', 'Modules', 'Client API avec gestion d’erreurs normalisée.'],
-  ['Validation', 'Modules', 'Règles de validation réutilisables.'],
-  ['Sound', 'Modules', 'Sons sémantiques, coupure et volume.'],
-  ['LocalStore', 'Modules', 'État local typé, versionné et synchronisé.'],
-  ['Countdown', 'Modules', 'Compte à rebours calé sur une échéance absolue.'],
-  ['Game', 'Modules', 'Pièces de partie, série et grille partageable.'],
   ['Clipboard', 'Modules', 'Copie dans le presse-papier avec état fugace.'],
   ['SvgMap', 'Modules', 'Carte SVG gestuelle et accessible au clavier.'],
 ].map(([name, category, description]) => ({ name, category, description }));
@@ -2567,25 +2318,16 @@ export const OpaleUI = {
   MultiSelect: MultiSelect,
   Autocomplete: Autocomplete,
   Form: Form,
-  LanguageSelector: LanguageSelector,
   SegmentedControl: SegmentedControl,
-  ThemeToggle: ThemeToggle,
-  AddButton: AddButton,
-  SaveButton: SaveButton,
-  ApproveButton: ApproveButton,
-  EditButton: EditButton,
-  DeleteButton: DeleteButton,
   IconActionButton: IconActionButton,
   DataTable: DataTable,
   DescriptionList: DescriptionList,
   BulletList: BulletList,
-  StatusChip: StatusChip,
   Badge: Badge,
   Rating: Rating,
   StatCard: StatCard,
   Donut: Donut,
   LegalLinks: LegalLinks,
-  Legend: Legend,
   Heading: Heading,
   Text: Text,
   Icon: Icon,
@@ -2599,32 +2341,17 @@ export const OpaleUI = {
   Menu: Menu,
   Link: Link,
   SidePanel: SidePanel,
-  SettingsMenu: SettingsMenu,
   CommandPalette: CommandPalette,
   Breadcrumb: Breadcrumb,
-  Toolbar: Toolbar,
   CookieBanner: CookieBanner,
-  Scrollbar: Scrollbar,
   SelectionBar: SelectionBar,
   Stack: Stack,
   Layout: Layout,
-  PageScaffold: PageScaffold,
-  PageContent: PageContent,
   Divider: Divider,
-  Separator: Separator,
   BackgroundSurface: BackgroundSurface,
   FileCard: FileCard,
   Dropzone: Dropzone,
   Lightbox: Lightbox,
-  Map: Map,
-  RouteGuard: RouteGuard,
-  I18n: I18n,
-  Http: Http,
-  Validation: Validation,
-  Sound: Sound,
-  LocalStore: LocalStore,
-  Countdown: Countdown,
-  Game: Game,
   Clipboard: Clipboard,
   SvgMap: SvgMap,
 } as const;
