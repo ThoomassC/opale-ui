@@ -70,7 +70,7 @@ import styles from './style/Toast.module.css';
       écrit depuis des gestionnaires d'évènements.
 
    CE QUI NE CHANGE PAS : `ToastProviderProps`, `ToastDefinition`, `useToast` et
-   ses trois opérations, les quatre variantes, les six positions, les quatre
+   ses trois opérations, les six positions, les quatre
    animations et leurs durées de sortie. Le message d'erreur du hook est même
    gardé au mot près, parce que la vitrine le cite.
    ========================================================================== */
@@ -462,8 +462,8 @@ export const ToastProvider = ({
   );
 
   /* Chaque coin est découpé en deux files par NIVEAU DE POLITESSE, pas par
-     variante : `error` est la seule chose qui interrompt, tout le reste
-     attend son tour. */
+     variante : `error` et `warning` interrompent, tout le reste attend son
+     tour. */
   const grouped = useMemo(() => {
     const empty = () => ({ polite: [] as ToastRecord[], assertive: [] as ToastRecord[] });
     const byPosition = Object.fromEntries(POSITIONS.map((key) => [key, empty()])) as Record<

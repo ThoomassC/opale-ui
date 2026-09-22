@@ -1433,6 +1433,28 @@ export type ToastTone = 'neutral' | 'success' | 'warning' | 'error' | 'info';
  */
 const ASSERTIVE_TONES = new Set<ToastTone>(['error', 'warning']);
 
+/**
+ * L'icône de chaque ton.
+ *
+ * LA COULEUR NE PEUT PAS ÊTRE LE SEUL SIGNAL (WCAG 1.4.1), et elle l'était :
+ * relevé dans le DOM, le balisage des cinq tons ne différait que par une
+ * variable de couleur — pas d'icône, pas de titre, même encre. « La carte n'a
+ * pas été régénérée » et « Étape publiée » étaient le même objet pour qui
+ * distingue mal le vert du rouge, en contrastes forcés ou sur un écran
+ * monochrome. La distinction `status`/`alert` sauvait le lecteur d'écran, pas
+ * l'utilisateur voyant.
+ *
+ * `neutral` N'EN A PAS, et c'est cohérent : il n'a pas de couleur non plus. Il
+ * n'y a rien à doubler.
+ */
+const TONE_ICON: Record<ToastTone, OpaleIconName | null> = {
+  neutral: null,
+  success: 'check-circle',
+  warning: 'alert-triangle',
+  error: 'x-circle',
+  info: 'info',
+};
+
 export function Toast({
   message,
   open = true,
@@ -1469,6 +1491,15 @@ export function Toast({
       className={cx('opale-toast', tone !== 'neutral' && `opale-toast--${tone}`, className)}
       data-opale-toast-tone={tone}
     >
+      {/* L'ICÔNE EST MASQUÉE AUX TECHNOLOGIES D'ASSISTANCE, et ce n'est pas
+          une contradiction avec ce qui précède : l'urgence leur est déjà dite
+          par la région — polie ou assertive — dans laquelle le message entre.
+          Lui donner en plus un nom ferait annoncer « attention » avant chaque
+          avertissement, c'est-à-dire répéter ce que le ton de l'annonce porte
+          déjà. Le doublage manquait à l'ŒIL, pas à l'oreille. */}
+      {TONE_ICON[tone] && (
+        <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />
+      )}
       <span className="opale-toast__message">{message}</span>
       {onClose && (
         <button

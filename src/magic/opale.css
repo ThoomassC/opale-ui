@@ -2199,6 +2199,19 @@
   --opale-toast-tone: var(--opale-info-on-surface);
 }
 
+/* L'ICÔNE PREND LA COULEUR DU TON ET NON CELLE DU TEXTE : c'est elle qui
+   double le filet, donc elle doit être reconnaissable du même coup d'œil. Son
+   décalage vertical l'aligne sur la première ligne du message plutôt que sur
+   le haut de la boîte. */
+.opale-toast__icon {
+  display: block;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex: 0 0 auto;
+  margin-block-start: 0.05rem;
+  color: var(--opale-toast-tone, currentColor);
+}
+
 .opale-toast__message {
   flex: 1 1 auto;
   min-inline-size: 0;

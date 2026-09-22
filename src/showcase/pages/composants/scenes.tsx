@@ -230,7 +230,7 @@ function ToastClear() {
   );
 }
 
-/** Les quatre variantes de toast, dans le coin par défaut. */
+/** Les cinq variantes de toast, dans le coin par défaut. */
 export function ToastVariantScene({ liquidGlass = false }: { liquidGlass?: boolean }) {
   return (
     /* PAS DE SCÈNE ICI : `MaterialSwitch` pose la sienne, et elle change avec
@@ -245,6 +245,14 @@ export function ToastVariantScene({ liquidGlass = false }: { liquidGlass?: boole
         <ToastTrigger
           label="success"
           toast={{ variant: 'success', title: 'Étape publiée', description: 'Kyoto, 3 jours.' }}
+        />
+        <ToastTrigger
+          label="warning"
+          toast={{
+            variant: 'warning',
+            title: 'Carte non régénérée',
+            description: 'Les étapes ont bougé depuis.',
+          }}
         />
         <ToastTrigger
           label="error"

@@ -126,8 +126,15 @@
   --opale-toast-accent: var(--opale-text-secondary);
 }
 
+/* LES QUATRE TONS EMPLOIENT LE JETON `*-on-surface`, ET TROIS D'ENTRE EUX NE
+   LE FAISAIENT PAS. `--opale-success` et `--opale-info` ne sont pas redéfinis
+   en thème sombre : mesuré sur la surface sombre, le liseré `success` tenait
+   **2,78:1** et `info` **1,72:1**, contre les 3:1 exigés d'un graphique
+   porteur de sens (WCAG 1.4.11) — et 2,45 / 1,62 sous verre. Le `warning`
+   ajouté en dernier était le seul des cinq à viser le bon jeton ; c'est lui
+   qui a rendu les autres visibles comme un défaut. */
 .success {
-  --opale-toast-accent: var(--opale-success);
+  --opale-toast-accent: var(--opale-success-on-surface);
 }
 
 .warning {
@@ -135,11 +142,11 @@
 }
 
 .error {
-  --opale-toast-accent: var(--opale-danger);
+  --opale-toast-accent: var(--opale-danger-on-surface);
 }
 
 .info {
-  --opale-toast-accent: var(--opale-info);
+  --opale-toast-accent: var(--opale-info-on-surface);
 }
 
 .body {
@@ -403,7 +410,7 @@
      MÊME élément, et celle-ci, écrite plus bas, remplaçait l'ombre en entier.
      Le bandeau latéral disparaissait donc — avec lui la seule marque non
      colorée de la variante, celle qui compte pour qui distingue mal le vert du
-     rouge (WCAG 1.4.1). Les quatre variantes devenaient identiques au pixel. */
+     rouge (WCAG 1.4.1). Les cinq variantes devenaient identiques au pixel. */
   box-shadow:
     inset 0.25rem 0 0 var(--opale-toast-accent),
     var(--opale-shadow-3);

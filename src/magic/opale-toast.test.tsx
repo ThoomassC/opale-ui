@@ -171,3 +171,58 @@ describe('l’aperçu du catalogue', () => {
     expect(baseElement.querySelector('.opale-toast-anchor--top-center')).not.toBeNull();
   });
 });
+
+/* =============================================================================
+   LA COULEUR N'EST PAS LE SEUL SIGNAL.
+
+   Relevé dans le DOM avant correction : le balisage des cinq tons ne différait
+   que par une variable de couleur — ni icône, ni titre, même encre. En vision
+   des couleurs réduite, en contrastes forcés ou sur un écran monochrome,
+   « La carte n'a pas été régénérée » et « Étape publiée » étaient le même
+   objet. C'est WCAG 1.4.1, et la distinction status/alert n'y répond pas :
+   elle sauve le lecteur d'écran, pas l'utilisateur voyant.
+   ========================================================================== */
+describe('le ton se voit autrement que par la couleur', () => {
+  it.each(['success', 'warning', 'error', 'info'] as const)(
+    'devrait doubler le ton %s par une icône',
+    (tone) => {
+      render(<Opale.Toast message="Publié" tone={tone} />);
+
+      expect(screen.getByText('Publié').closest('.opale-toast')?.querySelector('svg')).not.toBeNull();
+    },
+  );
+
+  /* LES QUATRE DESSINS DOIVENT DIFFÉRER ENTRE EUX, et la comparaison porte sur
+     le TRACÉ ENTIER : `x-circle` et `info` partagent leur premier chemin — le
+     cercle —, donc comparer le premier `<path>` aurait déclaré identiques deux
+     icônes qui ne le sont pas, et laissé passer une vraie collision ailleurs. */
+  it('devrait donner aux quatre tons colorés quatre dessins distincts', () => {
+    const dessins = (['success', 'warning', 'error', 'info'] as const).map((tone) => {
+      const vue = render(<Opale.Toast message={tone} tone={tone} />);
+      const carte = vue.baseElement.querySelector(`[data-opale-toast-tone='${tone}']`);
+
+      return [...(carte?.querySelectorAll('path') ?? [])].map((p) => p.getAttribute('d')).join('|');
+    });
+
+    expect(new Set(dessins).size).toBe(4);
+  });
+
+  /* `neutral` N'A PAS DE COULEUR, donc il n'a rien à doubler. Lui coller une
+     icône reviendrait à inventer un ton là où le composant n'en annonce pas. */
+  it('ne devrait pas poser d’icône sur le ton neutre', () => {
+    render(<Opale.Toast message="Publié" tone="neutral" />);
+
+    expect(screen.getByText('Publié').closest('.opale-toast')?.querySelector('svg')).toBeNull();
+  });
+
+  /* L'ICÔNE EST MUETTE : l'urgence est déjà portée par la région live dans
+     laquelle le message entre. Un nom accessible ferait annoncer « attention »
+     avant chaque avertissement. */
+  it('devrait masquer l’icône de ton aux technologies d’assistance', () => {
+    render(<Opale.Toast message="Refusé" tone="error" />);
+
+    const svg = screen.getByText('Refusé').closest('.opale-toast')?.querySelector('svg');
+
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+  });
+});
