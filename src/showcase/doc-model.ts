@@ -207,9 +207,9 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Icon', 'Icon'),
       /* `Badge` et `Card` vendorés sont partis pour la même raison que les six
          d'INPUTS : ils doublonnaient `opaleEntry('Badge')` et
-         `opaleEntry('Card')` juste au-dessus. `Glass` reste — c'est le
-         matériau lui-même, et rien côté Opale ne le documente. */
-      { label: 'Glass', slug: 'composants/glass' },
+         `opaleEntry('Card')` juste au-dessus. `Glass` est parti à son tour :
+         ce n'est pas un composant mais le matériau des autres, et la page
+         « Le verre liquide » le documente en tant que tel. */
     ],
   },
   {

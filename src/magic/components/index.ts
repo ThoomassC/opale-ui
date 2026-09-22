@@ -10,15 +10,21 @@
    LES MODULES TIERS N'ONT PAS ÉTÉ REFERMÉS, ILS ONT ÉTÉ SUPPRIMÉS. Fermer une
    porte en gardant la pièce laisse du code que personne ne relit, que rien ne
    teste, et qui continue de peser dans le dépôt. Ce qui reste ici est écrit
-   par Opale, matériau `Glass` compris.
+   par Opale.
 
-   CES HUIT-LÀ N'AVAIENT PAS D'ÉQUIVALENT et sont donc restés : un rail de
+   `Glass` A ÉTÉ RETIRÉ DE CETTE LISTE, ET C'EST LE DERNIER DOUBLON. Il était
+   publié comme un composant alors qu'il n'en est pas un : c'est le MATÉRIAU
+   dont les autres sont faits. Tout ce qu'on pouvait en obtenir s'obtient
+   désormais par `liquidGlass` sur le composant qu'on veut vraiment — un
+   `Glass` nu ne rend qu'un rectangle translucide que rien ne remplit. Le
+   module reste, il tourne à l'écran dès qu'on active le verre, et `opale.tsx`
+   l'importe par chemin direct comme les sept autres modules internes ; il n'a
+   simplement plus de nom public, donc plus de page à exiger.
+
+   CES SEPT-LÀ N'AVAIENT PAS D'ÉQUIVALENT et sont donc restés : un rail de
    navigation permanent, une barre de page composée, un dialogue générique à
    portail, une file de notifications, un motif d'onglets ARIA, un champ de
-   recherche, la navigation de site et le matériau lui-même. */
-
-export { Glass } from './glass';
-export type { GlassProps } from './glass';
+   recherche et la navigation de site. */
 
 export * from './modal';
 export * from './search-bar';

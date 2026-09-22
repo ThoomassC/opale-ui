@@ -146,10 +146,12 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
    ils n'ont simplement plus de nom public, donc plus de page à exiger.
 
-   IL NE RESTE QUE HUIT EXPORTS NON PRÉFIXÉS `Opale` : `Glass`, `Modal`,
-   `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` et `Topbar`.
-   Ce sont exactement les huit vendorés sans jumeau Opale, et exactement les
-   huit pages qui subsistent dans `src/showcase/pages/composants/`. Si ce
+   IL NE RESTE QUE SEPT EXPORTS NON PRÉFIXÉS `Opale` : `Modal`, `SearchBar`,
+   `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` et `Topbar`. Ce sont
+   exactement les sept vendorés sans jumeau Opale, et exactement les sept
+   pages qui subsistent dans `src/showcase/pages/composants/`. `Glass` a
+   quitté la liste : le matériau n'est pas un composant, et `liquidGlass`
+   l'atteint sur chacun des autres. Si ce
    chiffre bouge sans qu'un composant ait été ajouté ou retiré, c'est le barril
    qu'il faut relire. */
 /* 85 AVANT LE RETRAIT DE QUATRE PASSE-PLATS.
@@ -162,7 +164,11 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    prop `shape`. Aucun des quatre n'avait d'usage hors de sa propre
    démonstration. Rupture d'API assumée, à consigner dans les notes de
    version. */
-const PUBLISHED_COMPONENT_COUNT = 81;
+/* 81 AVANT LE RETRAIT DE `Glass`. Le matériau était publié comme un composant
+   alors qu'il ne rend, seul, qu'un rectangle translucide : ce qu'on venait y
+   chercher s'obtient par `liquidGlass` sur le composant voulu. Dernier
+   doublon de la campagne. Rupture d'API assumée. */
+const PUBLISHED_COMPONENT_COUNT = 80;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {
