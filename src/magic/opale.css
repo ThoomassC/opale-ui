@@ -2156,98 +2156,84 @@
 
 .opale-toast {
   display: flex;
-  overflow: hidden;
   max-inline-size: min(26rem, calc(100vw - 2rem));
-  min-block-size: 3.75rem;
-  align-items: stretch;
-  border: 1px solid var(--opale-divider);
+  align-items: flex-start;
+  padding: 0.85rem 0.9rem 0.85rem 1rem;
+  border: 1px solid var(--opale-toast-fill, var(--opale-divider));
   border-radius: var(--opale-radius-md);
-  background: var(--opale-surface);
+  background: var(--opale-toast-fill, var(--opale-surface));
   box-shadow: var(--opale-shadow-3);
-  color: var(--opale-text);
+  color: var(--opale-toast-fill-ink, var(--opale-text));
+  gap: 0.75rem;
   pointer-events: auto;
 }
 
 /* =============================================================================
-   LA COLONNE DE TON.
+   LE TON REMPLIT TOUTE LA CARTE.
 
    POURQUOI LE FILET EST PARTI. Il était posé en `inset 0.25rem 0 0`, donc À
    L'INTÉRIEUR d'un rayon de 1,375 rem : la bordure arrondie le rognait à ses
    deux extrémités, et il n'en restait qu'une virgule d'une trentaine de pixels
-   collée au bord gauche. Le problème n'était pas la saturation de la couleur
-   mais sa SURFACE — elle occupait environ un pour cent de la carte.
+   collée au bord gauche. Ce qui manquait à la couleur était de la SURFACE, pas
+   de la saturation — elle en occupait environ un pour cent.
 
-   LA COLONNE FAIT 3,5 rem ET PORTE L'ICÔNE. C'est le seul traitement essayé
-   qui donne beaucoup de surface colorée sans teinter le fond du message : le
-   texte garde la surface d'Opale, donc son contraste ne bouge pas d'un
-   dixième. `overflow: hidden` sur la carte est ce qui découpe la colonne au
-   rayon — sans lui elle dépasserait aux deux angles de gauche.
+   CE QUE LE TON PLEIN COÛTE, ET IL FAUT LE DIRE : le message se lit désormais
+   SUR la couleur, donc le seuil applicable passe de 3:1 — un graphique — à
+   4,5:1 — du texte. Les quatre jetons de remplissage ne le tiennent pas tels
+   quels : l'ambre sous une encre claire ne donne que 4,07:1. Ils sont donc
+   assombris de 20 % vers l'encre, ce qui porte le pire des quatre à 5,57:1.
+   L'assombrissement n'est pas un choix esthétique, c'est ce qui rend ce
+   traitement lisible.
 
-   DEUX JETONS, ET C'EST LE MÊME PARTAGE QUE PARTOUT AILLEURS DANS CETTE
-   FEUILLE : `--opale-toast-fill` remplit, `--opale-toast-fill-ink` écrit
-   dessus. Les deux s'échangent d'un thème à l'autre — en clair la colonne est
-   sombre sous un glyphe clair, en sombre elle est claire sous un glyphe
-   sombre. Un seul jeton ne peut pas faire les deux.
+   DEUX JETONS, PARCE QU'UN SEUL NE PEUT PAS FAIRE LES DEUX RÔLES :
+   `--opale-toast-fill` remplit, `--opale-toast-fill-ink` écrit dessus. Les
+   deux s'échangent d'un thème à l'autre — voir plus bas.
    ========================================================================== */
-.opale-toast__gutter {
-  display: grid;
-  flex: 0 0 3.5rem;
-  background: var(--opale-toast-fill, var(--opale-surface-sunken));
-  place-items: center;
-}
-
-.opale-toast__body {
-  display: flex;
-  flex: 1 1 auto;
-  min-inline-size: 0;
-  align-items: center;
-  padding: 0.8rem 0.9rem 0.8rem 1rem;
-  gap: 0.75rem;
-}
-
-/* LE GLYPHE EST L'INDICE NON TEXTUEL DU TON : la couleur seule ne peut pas
-   être le seul signal (WCAG 1.4.1), et une colonne colorée sans dessin serait
-   exactement ça. Mesuré contre son propre fond, il tient 4,90:1 au pire en
-   thème clair et 8,95:1 au pire en sombre — bien au-delà des 3:1 exigés d'un
-   graphique porteur de sens. */
 .opale-toast__icon {
   display: block;
-  inline-size: 1.375rem;
-  block-size: 1.375rem;
-  color: var(--opale-toast-fill-ink, var(--opale-text));
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex: 0 0 auto;
+  margin-block-start: 0.1rem;
+
+  /* L'ICÔNE PREND L'ENCRE DE LA CARTE. C'est l'indice non textuel du ton : la
+     couleur seule ne peut pas être le seul signal (WCAG 1.4.1), et une carte
+     colorée sans dessin serait exactement ça — un daltonien y verrait le même
+     objet pour « publié » et pour « refusé ». */
+  color: currentColor;
 }
 
 /* LES QUATRE TONS. `--opale-toast-tone` reste le jeton *-on-surface — c'est
-   lui qui sert d'encre en thème sombre ; `--opale-toast-fill` est le jeton de
-   REMPLISSAGE, assombri vers l'encre pour porter un glyphe clair : l'ambre
-   brut ne tenait que 4,07:1 sous du blanc, contre 4,90:1 une fois assombri. */
+   lui qui sert de remplissage en thème sombre ; `--opale-toast-fill` est le
+   jeton de REMPLISSAGE du thème clair, assombri pour porter une encre claire. */
 .opale-toast--success {
   --opale-toast-tone: var(--opale-success-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-success) 88%, var(--opale-text));
+  --opale-toast-fill: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
   --opale-toast-fill-ink: #fbfaf9;
 }
 .opale-toast--warning {
   --opale-toast-tone: var(--opale-warning-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-warning) 88%, var(--opale-text));
+  --opale-toast-fill: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
   --opale-toast-fill-ink: #fbfaf9;
 }
 .opale-toast--error {
   --opale-toast-tone: var(--opale-danger-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-danger) 88%, var(--opale-text));
+  --opale-toast-fill: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
   --opale-toast-fill-ink: #fbfaf9;
 }
 .opale-toast--info {
   --opale-toast-tone: var(--opale-info-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-info) 88%, var(--opale-text));
+  --opale-toast-fill: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
   --opale-toast-fill-ink: #fbfaf9;
 }
 
 /* EN THÈME SOMBRE LES DEUX RÔLES S'ÉCHANGENT, en une règle plutôt qu'en
    quatre. Les jetons de remplissage — `--opale-success`, `--opale-info` — ne
-   sont pas redéfinis pour le sombre : une colonne remplie avec eux serait un
-   vert foncé sur une carte déjà foncée, c'est-à-dire invisible. C'est le
-   `*-on-surface`, clair, qui devient le remplissage, et l'encre qui
-   s'assombrit. */
+   sont pas redéfinis pour le sombre : une carte remplie avec eux, déjà
+   assombrie de 20 %, serait un vert presque noir posé sur un sol noir. C'est
+   le `*-on-surface`, clair, qui devient le remplissage, et l'encre qui
+   s'assombrit — mesuré, l'encre y tient de 8,95 à 10,41:1 et la carte se
+   détache du sol de 8,43 à 9,80:1. */
 :root[data-theme='dark'] .opale-toast {
   --opale-toast-fill: var(--opale-toast-tone);
   --opale-toast-fill-ink: #0c0f0d;
@@ -2260,6 +2246,11 @@
   line-height: 1.45;
 }
 
+/* LA CROIX EST SUR LA COULEUR, donc elle hérite de l'encre de la carte :
+   `--opale-text-secondary` y serait un gris sur du vert, c'est-à-dire illisible
+   dans un thème et invisible dans l'autre. Le survol et l'anneau de focus se
+   composent eux aussi à partir de cette encre — un anneau bleu sur une carte
+   rouge ne se verrait pas. */
 .opale-toast__close {
   display: grid;
   min-width: 2.75rem;
@@ -2269,8 +2260,9 @@
   border: 0;
   border-radius: var(--opale-radius-sm);
   background: transparent;
-  color: var(--opale-text-secondary);
+  color: inherit;
   cursor: pointer;
+  opacity: 0.86;
   place-items: center;
 }
 
@@ -2282,11 +2274,12 @@
 }
 
 .opale-toast__close:hover {
-  background: var(--opale-surface-sunken);
-  color: var(--opale-text);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  opacity: 1;
 }
 
 .opale-toast__close:focus-visible {
-  outline: 3px solid var(--opale-focus);
+  outline: 3px solid currentColor;
   outline-offset: 2px;
+  opacity: 1;
 }

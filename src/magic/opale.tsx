@@ -1509,13 +1509,12 @@ export function Toast({
       className={cx('opale-toast', tone !== 'neutral' && `opale-toast--${tone}`, className)}
       data-opale-toast-tone={tone}
     >
-      {/* LA COLONNE DE TON PORTE LA COULEUR, ET L'ICÔNE EST DEDANS.
+      {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
 
           Le ton n'était qu'un filet de 4 px en ombre intérieure, rogné à ses
           deux extrémités par le rayon de la carte : il occupait environ un
           pour cent de la surface, et c'est la SURFACE qui manquait, pas la
-          saturation. La colonne lui donne de la place sans teinter le fond du
-          message, dont le contraste ne bouge donc pas d'un dixième.
+          saturation.
 
           L'ICÔNE EST MASQUÉE AUX TECHNOLOGIES D'ASSISTANCE, et ce n'est pas
           une contradiction avec ce qui précède : l'urgence leur est déjà dite
@@ -1524,26 +1523,21 @@ export function Toast({
           avertissement, c'est-à-dire répéter ce que le ton de l'annonce porte
           déjà. Le doublage manquait à l'ŒIL, pas à l'oreille.
 
-          `neutral` N'A PAS DE COLONNE puisqu'il n'a pas de ton : le corps
-          reprend alors toute la carte. */}
-      {TONE_ICON[tone] && (
-        <span className="opale-toast__gutter">
-          <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />
-        </span>
+          `neutral` N'A PAS D'ICÔNE puisqu'il n'a pas de ton : sa carte reste
+          la surface d'Opale sous l'encre d'Opale, et il n'y a rien à
+          doubler. */}
+      {TONE_ICON[tone] && <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />}
+      <span className="opale-toast__message">{message}</span>
+      {onClose && (
+        <button
+          className="opale-toast__close"
+          type="button"
+          onClick={onClose}
+          aria-label="Fermer la notification"
+        >
+          <Icon name="close" />
+        </button>
       )}
-      <span className="opale-toast__body">
-        <span className="opale-toast__message">{message}</span>
-        {onClose && (
-          <button
-            className="opale-toast__close"
-            type="button"
-            onClick={onClose}
-            aria-label="Fermer la notification"
-          >
-            <Icon name="close" />
-          </button>
-        )}
-      </span>
     </div>
   ) : null;
 

@@ -229,15 +229,21 @@ describe('le ton se voit autrement que par la couleur', () => {
 });
 
 /* =============================================================================
-   LA COLONNE DE TON.
+   LE TON PLEIN.
 
    Le ton n'était qu'un filet de 4 px posé en `inset` À L'INTÉRIEUR d'un rayon
    de 1,375 rem : la bordure arrondie le rognait à ses deux extrémités, et il
    n'en restait qu'une virgule collée au bord gauche — environ un pour cent de
    la carte. Ce qui manquait à la couleur était de la SURFACE, pas de la
    saturation.
+
+   CE QUE LE REMPLISSAGE COÛTE, et ce que les cas ci-dessous tiennent : le
+   message se lit désormais SUR la couleur, donc le seuil applicable passe de
+   3:1 à 4,5:1. Les jetons bruts ne le tiennent pas — l'ambre sous une encre
+   claire donne 4,07:1 —, d'où l'assombrissement, qui est une condition de
+   lisibilité et non un goût.
    ========================================================================== */
-describe('la colonne de ton', () => {
+describe('le ton plein', () => {
   /** La feuille, commentaires retirés — jsdom ne fait pas de mise en page. */
   const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
 
@@ -249,66 +255,53 @@ describe('la colonne de ton', () => {
     return sheet.slice(debut, sheet.indexOf('}', debut));
   }
 
+  it('devrait peindre la carte avec le remplissage du ton et écrire avec son encre', () => {
+    const carte = rule('.opale-toast');
+
+    expect(carte).toMatch(/background:\s*var\(--opale-toast-fill, var\(--opale-surface\)\)/);
+    expect(carte).toMatch(/color:\s*var\(--opale-toast-fill-ink, var\(--opale-text\)\)/);
+  });
+
+  /* LE REPLI EST CE QUI TIENT `neutral`. Sans ton, les deux variables ne sont
+     pas déclarées : la carte doit retomber sur la surface et l'encre d'Opale,
+     pas sur `transparent` — un message sans fond posé sur la page. */
+  it('devrait rendre le ton neutre sur la surface d’Opale', () => {
+    render(<Opale.Toast message="Publié" tone="neutral" />);
+
+    const carte = screen.getByText('Publié').closest('.opale-toast');
+
+    expect(carte?.className).not.toMatch(/opale-toast--/);
+    expect(carte?.querySelector('svg')).toBeNull();
+  });
+
+  /* L'ASSOMBRISSEMENT EST LA CONDITION DE LISIBILITÉ. Sans lui, l'ambre sous
+     une encre claire tient 4,07:1 — sous le seuil du texte. Le mélange porte
+     le pire des quatre à 5,57:1. */
   it.each(['success', 'warning', 'error', 'info'] as const)(
-    'devrait loger l’icône du ton %s dans la colonne',
+    'devrait assombrir le remplissage du ton %s pour porter une encre claire',
     (tone) => {
-      render(<Opale.Toast message="Publié" tone={tone} />);
+      const corps = rule(`.opale-toast--${tone}`);
 
-      const gutter = screen.getByText('Publié').closest('.opale-toast')
-        ?.querySelector('.opale-toast__gutter');
-
-      expect(gutter).not.toBeNull();
-      expect(gutter?.querySelector('svg')).not.toBeNull();
+      expect(corps).toMatch(/--opale-toast-fill:\s*color-mix\(in srgb, var\(--opale-\w+\) 80%, var\(--opale-text\)\)/);
+      expect(corps).toMatch(/--opale-toast-fill-ink:\s*#fbfaf9/);
     },
   );
 
-  /* `neutral` N'A PAS DE TON, donc pas de colonne : une colonne grise à côté
-     d'un message sans ton annoncerait une couleur qui n'existe pas. */
-  it('ne devrait pas poser de colonne sur le ton neutre', () => {
-    render(<Opale.Toast message="Publié" tone="neutral" />);
-
-    expect(
-      screen.getByText('Publié').closest('.opale-toast')?.querySelector('.opale-toast__gutter'),
-    ).toBeNull();
-  });
-
-  /* LE MESSAGE RESTE HORS DE LA COLONNE. L'y faire entrer le poserait sur le
-     fond coloré, et c'est précisément ce que ce traitement évite : le texte
-     garde la surface d'Opale, donc son contraste ne dépend pas du ton. */
-  it('devrait garder le message et la croix hors de la colonne', () => {
-    render(<Opale.Toast message="Publié" tone="error" onClose={() => {}} />);
-
-    const gutter = screen.getByText('Publié').closest('.opale-toast')
-      ?.querySelector('.opale-toast__gutter');
-
-    expect(gutter?.textContent).toBe('');
-    expect(gutter?.querySelector('button')).toBeNull();
-  });
-
-  /* SANS `overflow: hidden` LA COLONNE DÉPASSE AUX DEUX ANGLES DE GAUCHE :
-     elle est rectangulaire, la carte est arrondie. jsdom ne mesure rien, donc
-     seul le texte de la feuille peut tenir ce garde. */
-  it('devrait découper la colonne au rayon de la carte', () => {
-    expect(rule('.opale-toast')).toMatch(/overflow:\s*hidden/);
-  });
-
   /* LES DEUX RÔLES S'ÉCHANGENT D'UN THÈME À L'AUTRE. Les jetons de
-     remplissage ne sont pas redéfinis pour le sombre : une colonne remplie
-     avec eux y serait un vert foncé sur une carte déjà foncée. */
+     remplissage ne sont pas redéfinis pour le sombre : une carte remplie avec
+     eux, déjà assombrie de 20 %, serait un vert presque noir sur un sol noir. */
   it('devrait échanger le remplissage et l’encre en thème sombre', () => {
     const sombre = rule(":root[data-theme='dark'] .opale-toast");
 
     expect(sombre).toMatch(/--opale-toast-fill:\s*var\(--opale-toast-tone\)/);
-    expect(sombre).toMatch(/--opale-toast-fill-ink:/);
+    expect(sombre).toMatch(/--opale-toast-fill-ink:\s*#0c0f0d/);
   });
 
-  it.each(['success', 'warning', 'error', 'info'] as const)(
-    'devrait donner au ton %s un remplissage et une encre distincts',
-    (tone) => {
-      const corps = rule(`.opale-toast--${tone}`);
-
-      expect(corps).toMatch(/--opale-toast-fill:/);
-      expect(corps).toMatch(/--opale-toast-fill-ink:/);
-    },
-  );
+  /* LA CROIX EST POSÉE SUR LA COULEUR. Une encre secondaire y serait un gris
+     sur du vert, et un anneau de focus bleu sur une carte rouge ne se verrait
+     pas : les deux se composent à partir de l'encre de la carte. */
+  it('devrait faire hériter la croix de l’encre de la carte', () => {
+    expect(rule('.opale-toast__close')).toMatch(/color:\s*inherit/);
+    expect(rule('.opale-toast__close:focus-visible')).toMatch(/outline:[^;]*currentColor/);
+  });
 });
