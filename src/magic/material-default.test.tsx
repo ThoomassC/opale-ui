@@ -2,6 +2,12 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { Modal, SearchBar, Sidebar, Tabs, Topbar, ToastProvider, useToast } from './components';
+import searchBarSheet from './components/search-bar/style/SearchBar.module.scss?raw';
+import modalSheet from './components/modal/style/Modal.module.css?raw';
+import sidebarSheet from './components/sidebar/style/Sidebar.module.css?raw';
+import tabsSheet from './components/tabs/style/Tabs.module.css?raw';
+import toastSheet from './components/toast/style/Toast.module.css?raw';
+import topbarSheet from './components/topbar/style/Topbar.module.css?raw';
 import opaleSource from './opale.tsx?raw';
 import { Opale } from './opale';
 
@@ -222,4 +228,79 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
         'dans PORTEURS, ou dans la liste des exclus avec la raison.',
     ).toEqual([]);
   });
+
+  /* =========================================================================
+     UN JETON BLANC RÉGLÉ POUR LE VERRE NE DOIT PAS PILOTER LE RENDU PLEIN.
+
+     LE DÉFAUT OBSERVÉ. Les feuilles de ces six composants ont été écrites pour
+     le matériau : leurs jetons d'encre valent du blanc, puisqu'ils se posent
+     sur une photographie. En leur ajoutant une version pleine, on a repris la
+     COULEUR DU TEXTE — visible, donc vite corrigée — mais pas celle de
+     l'ANNEAU DE FOCUS, qui dérive du même jeton. Le bandeau d'onglets
+     dessinait ainsi son anneau en blanc à 94 % sur un fond blanc : rien, et
+     rien ne rougissait (WCAG 2.4.7).
+
+     CE QUE CE TEST FAIT. Pour chaque feuille qui porte un bloc `.plain`, il
+     cherche les jetons dont la valeur est un blanc ou quasi-blanc, retient
+     ceux qu'une règle `:focus-visible` consomme, et exige que le bloc `.plain`
+     les redéfinisse. C'est la forme générale du défaut, pas le seul cas connu.
+     ====================================================================== */
+  const FEUILLES = [
+    { nom: 'SearchBar', css: searchBarSheet },
+    { nom: 'Topbar', css: topbarSheet },
+    { nom: 'Sidebar', css: sidebarSheet },
+    { nom: 'Tabs', css: tabsSheet },
+    { nom: 'Modal', css: modalSheet },
+    { nom: 'Toast', css: toastSheet },
+  ];
+
+  it.each(FEUILLES)(
+    '$nom ne laisse aucun jeton blanc peindre le focus du rendu plein',
+    ({ nom, css }) => {
+      const sansCommentaires = css.replace(/\/\*[\s\S]*?\*\//g, '');
+      const plain = /\.plain\b[^{]*\{([^}]*)\}/.exec(sansCommentaires)?.[1];
+
+      /* Une feuille sans bloc `.plain` n'a pas de rendu plein à protéger : son
+       composant ne porte pas le matériau, ou il n'a pas de surface propre. */
+      if (!plain) return;
+
+      /* Les jetons dont la valeur est un blanc — littéral ou `rgba(255,…)`. */
+      const blancs = [
+        ...sansCommentaires.matchAll(/(--[\w-]+):\s*(#fff\w*|rgba?\(\s*255,\s*255,\s*255[^)]*\))/g),
+      ].map((match) => match[1]);
+
+      /* Les jetons qu'une règle de focus consomme, directement ou par un alias
+       (`--a: var(--b)` puis `outline: var(--a)`). */
+      const alias = new Map(
+        [...sansCommentaires.matchAll(/(--[\w-]+):\s*var\((--[\w-]+)\)/g)].map((match) => [
+          match[1],
+          match[2],
+        ]),
+      );
+      const reglesFocus = [...sansCommentaires.matchAll(/:focus-visible[^{]*\{([^}]*)\}/g)]
+        .map((match) => match[1])
+        .join('\n');
+
+      const coupables = blancs.filter((jeton) => {
+        const cites = [
+          jeton,
+          ...[...alias.entries()]
+            .filter(([, cible]) => cible === jeton)
+            .map(([nomAlias]) => nomAlias),
+        ];
+
+        return (
+          cites.some((cite) => reglesFocus.includes(`var(${cite})`)) &&
+          !new RegExp(`${jeton}:`).test(plain)
+        );
+      });
+
+      expect(
+        coupables,
+        `${nom} : ${coupables.join(', ')} vaut du blanc et pilote l’anneau de ` +
+          'focus. Sur la surface pleine, l’anneau se dessine donc en blanc sur ' +
+          'blanc. Redéfinissez le jeton dans le bloc `.plain`.',
+      ).toEqual([]);
+    },
+  );
 });

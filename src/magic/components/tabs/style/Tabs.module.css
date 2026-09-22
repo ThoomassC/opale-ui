@@ -224,6 +224,15 @@
    de cible et l'état sélectionné restent ceux des règles au-dessus.
    ========================================================================== */
 .plain {
+  /* LES JETONS DU BANDEAU SONT BLANCS, PARCE QU'ILS ONT ÉTÉ ÉCRITS POUR LE
+     VERRE. Sur la surface pleine, l'encre était bien reprise par
+     `.plainTrigger` — mais pas L'ANNEAU DE FOCUS, qui dérive du même jeton :
+     il se dessinait donc en blanc à 94 % sur un fond blanc, c'est-à-dire nulle
+     part (WCAG 2.4.7). Redéfinir les jetons À LA RACINE du bandeau les corrige
+     tous les deux d'un coup, et couvre aussi le panneau de contenu, qui est
+     focalisable et tire du même endroit. */
+  --opale-tabs-ink: var(--opale-text);
+  --opale-tabs-focus: var(--opale-focus);
   border: 1px solid var(--opale-divider);
   border-radius: var(--opale-radius-md);
   background: var(--opale-surface);
