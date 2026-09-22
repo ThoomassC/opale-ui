@@ -1141,14 +1141,29 @@ export function Badge({
   return <span className={classes}>{children}</span>;
 }
 
+/**
+ * @deprecated Utilisez `Badge` avec sa prop `tone`. `StatusChip` n'est qu'un
+ * `Badge` amputé : il n'exposait ni `tone` ni `liquidGlass` et contraignait
+ * son contenu à une chaîne. La démonstration du catalogue affichait deux
+ * statuts différents… rendus à l'identique, faute de pouvoir les distinguer.
+ *
+ * Le ton est transmis depuis cette version, pour que le composant cesse au
+ * moins de mentir tant qu'il existe.
+ */
 export function StatusChip({
   status = 'En production',
+  tone,
   className,
 }: {
   status?: string;
+  tone?: 'primary' | 'accent' | 'danger';
   className?: string;
 }) {
-  return <Badge className={className}>{status}</Badge>;
+  return (
+    <Badge tone={tone} className={className}>
+      {status}
+    </Badge>
+  );
 }
 
 export function Heading({
@@ -1588,14 +1603,33 @@ export function Divider({ className }: { className?: string }) {
 export function Separator({ className }: { className?: string }) {
   return <span className={cx('opale-separator', className)} aria-hidden="true" />;
 }
-export function BackgroundSurface({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-opaley-background', className)}>{children}</div>;
-}
-export function ShapeBackground({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-shape-background', className)}>{children}</div>;
-}
-export function SlidingIndicator({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-sliding-indicator', className)}>{children}</div>;
+/**
+ * Le fond décoratif du catalogue.
+ *
+ * `shape` REMPLACE L'ANCIEN `ShapeBackground`, qui était ce composant plus un
+ * `::after`. Les deux classes déclaraient la même boîte — mêmes `position`,
+ * `overflow` et `background` — et PARTAGEAIENT déjà le même `::before` dans un
+ * sélecteur groupé : seule la forme organique les distinguait. Deux composants
+ * pour un pseudo-élément, c'était un de trop.
+ */
+export function BackgroundSurface({
+  shape = false,
+  children,
+  className,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { shape?: boolean }) {
+  return (
+    <div
+      className={cx(
+        'opale-opaley-background',
+        shape && 'opale-opaley-background--shape',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function DescriptionList({
@@ -1715,9 +1749,6 @@ export function DataTable({ columns = [], rows = [] }: DataTableProps) {
   );
 }
 
-export function Carousel({ children, className }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cx('opale-card-grid', className)}>{children}</div>;
-}
 export function LegalLinks({ links = [] }: { links?: readonly NavItem[] }) {
   return (
     <nav className="opale-legal-links" aria-label="Liens légaux">
@@ -1782,9 +1813,6 @@ export function Dropzone({
       <span>Sélectionner des fichiers</span>
     </label>
   );
-}
-export function FileUploader({ onFiles }: { onFiles?: (files: FileList) => void }) {
-  return <Dropzone onFiles={onFiles} />;
 }
 export function Lightbox({
   src,
@@ -1932,7 +1960,6 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['IconActionButton', 'Boutons spécialisés', "Bouton d'action carré à icône."],
   ['Card', 'Affichage de données', 'Carte avec titre, sous-titre, actions et élévations.'],
   ['CardGrid', 'Affichage de données', 'Grille responsive auto-adaptative pour cartes.'],
-  ['Carousel', 'Affichage de données', 'Carrousel de cartes avec navigation.'],
   ['DataTable', 'Affichage de données', 'Table riche avec tri, sélection et clavier.'],
   ['DescriptionList', 'Affichage de données', 'Liste de paires libellé / valeur.'],
   ['BulletList', 'Affichage de données', 'Liste à puces avec icônes personnalisables.'],
@@ -1970,9 +1997,6 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['Divider', 'Mise en page', 'Séparateur horizontal ou vertical.'],
   ['Separator', 'Mise en page', 'Séparateur décoratif léger.'],
   ['BackgroundSurface', 'Mise en page', 'Fond animé par thème.'],
-  ['ShapeBackground', 'Mise en page', 'Arrière-plan décoratif à formes organiques.'],
-  ['SlidingIndicator', 'Mise en page', 'Indicateur coulissant partagé entre éléments.'],
-  ['FileUploader', 'Modules', 'Upload de fichiers par chunks.'],
   ['FileCard', 'Modules', 'Carte de fichier ou dossier avec aperçu et sélection.'],
   ['Dropzone', 'Modules', 'Zone de dépôt par glisser-déposer ou sélection.'],
   ['Lightbox', 'Modules', "Visionneuse plein écran d'images et documents."],
@@ -2012,7 +2036,6 @@ export const OpaleUI = {
   EditButton: EditButton,
   DeleteButton: DeleteButton,
   IconActionButton: IconActionButton,
-  Carousel: Carousel,
   DataTable: DataTable,
   DescriptionList: DescriptionList,
   BulletList: BulletList,
@@ -2050,9 +2073,6 @@ export const OpaleUI = {
   Divider: Divider,
   Separator: Separator,
   BackgroundSurface: BackgroundSurface,
-  ShapeBackground: ShapeBackground,
-  SlidingIndicator: SlidingIndicator,
-  FileUploader: FileUploader,
   FileCard: FileCard,
   Dropzone: Dropzone,
   Lightbox: Lightbox,

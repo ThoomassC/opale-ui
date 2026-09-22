@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import opaleSheet from './opale.css?raw';
 import {
+  BackgroundSurface,
+  Badge,
   Button,
   CommandPalette,
   ConfirmDialog,
@@ -11,6 +13,7 @@ import {
   Rating,
   SegmentedControl,
   SidePanel,
+  StatusChip,
 } from './opale';
 
 afterEach(cleanup);
@@ -242,5 +245,62 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     render(<Rating value={3} max={5} />);
 
     expect(screen.getByRole('img', { name: '3 sur 5' })).toBeInTheDocument();
+  });
+});
+
+/* =============================================================================
+   LES DOUBLONS RETIRÉS, ET CE QUI DOIT SURVIVRE À LEUR RETRAIT.
+   ========================================================================== */
+describe('les doublons du catalogue', () => {
+  /* `StatusChip` NE TRANSMETTAIT PAS LE TON. Sa démonstration affichait « En
+     production » et « En révision » côte à côte, rendus À L'IDENTIQUE : deux
+     statuts qu'on ne pouvait pas distinguer, dans un composant dont le seul
+     objet est de distinguer des statuts. */
+  it('laisse StatusChip distinguer deux statuts', () => {
+    const { container } = render(
+      <>
+        <StatusChip status="En production" />
+        <StatusChip status="En révision" tone="accent" />
+      </>,
+    );
+
+    const chips = [...container.querySelectorAll('.opale-badge')];
+
+    expect(chips).toHaveLength(2);
+    expect(
+      chips[0]?.className,
+      'Deux statuts rendus avec les mêmes classes ne se distinguent pas.',
+    ).not.toBe(chips[1]?.className);
+  });
+
+  /* `ShapeBackground` EST DEVENU UNE PROP. Les deux classes déclaraient la
+     même boîte et partageaient déjà le même `::before` : seule la forme
+     organique les séparait. */
+  it('rend la forme organique sous une prop, et seulement si on la demande', () => {
+    const { container, rerender } = render(<BackgroundSurface>Fond</BackgroundSurface>);
+    const surface = () => container.firstElementChild as HTMLElement;
+
+    expect(surface()).toHaveClass('opale-opaley-background');
+    expect(surface()).not.toHaveClass('opale-opaley-background--shape');
+
+    rerender(<BackgroundSurface shape>Fond</BackgroundSurface>);
+
+    expect(surface()).toHaveClass('opale-opaley-background--shape');
+  });
+
+  /* LE BADGE RESTE LA RÉFÉRENCE : c'est vers lui que `StatusChip` est
+     déprécié, donc son ton doit continuer de produire une classe distincte. */
+  it('garde le ton du badge distinct de son défaut', () => {
+    const { container } = render(
+      <>
+        <Badge>Défaut</Badge>
+        <Badge tone="danger">Danger</Badge>
+      </>,
+    );
+
+    const badges = [...container.querySelectorAll('.opale-badge')];
+
+    expect(badges[1]?.className).toContain('opale-badge--danger');
+    expect(badges[0]?.className).not.toContain('opale-badge--');
   });
 });

@@ -328,15 +328,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         </Opale.CardGrid>
       );
       break;
-    case 'Carousel':
-      preview = (
-        <Opale.Carousel className="tc-doc-opale-demo__carousel">
-          <Opale.Card title="Carte 1">Découvrir</Opale.Card>
-          <Opale.Card title="Carte 2">Comparer</Opale.Card>
-          <Opale.Card title="Carte 3">Adopter</Opale.Card>
-        </Opale.Carousel>
-      );
-      break;
     case 'DataTable':
       preview = (
         <Opale.DataTable
@@ -373,7 +364,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = (
         <Row>
           <Opale.StatusChip status="En production" />
-          <Opale.StatusChip status="En révision" />
+          <Opale.StatusChip status="En révision" tone="accent" />
         </Row>
       );
       break;
@@ -669,35 +660,6 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         <Opale.BackgroundSurface className="tc-doc-opale-demo__background">
           <Opale.Card title="Fond animé">Contenu au premier plan</Opale.Card>
         </Opale.BackgroundSurface>
-      );
-      break;
-    case 'ShapeBackground':
-      preview = (
-        <Opale.ShapeBackground className="tc-doc-opale-demo__background">
-          <Opale.Card title="Formes organiques">Décor non interactif</Opale.Card>
-        </Opale.ShapeBackground>
-      );
-      break;
-    case 'SlidingIndicator':
-      preview = (
-        <Opale.SlidingIndicator>
-          <Opale.Button size="small" variant="tonal">
-            Actifs
-          </Opale.Button>
-          <Opale.Button size="small" variant="text">
-            Archivés
-          </Opale.Button>
-        </Opale.SlidingIndicator>
-      );
-      break;
-    case 'FileUploader':
-      preview = (
-        <DemoFrame>
-          <Opale.FileUploader
-            onFiles={(files) => setMessage(`${files.length} fichier(s) sélectionné(s)`)}
-          />
-          <span role="status">{message}</span>
-        </DemoFrame>
       );
       break;
     case 'FileCard':

@@ -192,7 +192,6 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     entries: [
       opaleEntry('Card', 'Card'),
       opaleEntry('CardGrid', 'CardGrid'),
-      opaleEntry('Carousel', 'Carousel'),
       opaleEntry('DataTable', 'DataTable'),
       opaleEntry('DescriptionList', 'DescriptionList'),
       opaleEntry('BulletList', 'BulletList'),
@@ -265,15 +264,12 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Divider', 'Divider'),
       opaleEntry('Separator', 'Separator'),
       opaleEntry('BackgroundSurface', 'Background'),
-      opaleEntry('ShapeBackground', 'ShapeBackground'),
-      opaleEntry('SlidingIndicator', 'SlidingIndicator'),
     ],
   },
   {
     id: 'modules',
     label: 'MODULES',
     entries: [
-      opaleEntry('FileUploader', 'Upload'),
       opaleEntry('FileCard', 'FileCard'),
       opaleEntry('Dropzone', 'Dropzone'),
       opaleEntry('Lightbox', 'Lightbox'),

@@ -152,7 +152,17 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    huit pages qui subsistent dans `src/showcase/pages/composants/`. Si ce
    chiffre bouge sans qu'un composant ait été ajouté ou retiré, c'est le barril
    qu'il faut relire. */
-const PUBLISHED_COMPONENT_COUNT = 85;
+/* 85 AVANT LE RETRAIT DE QUATRE PASSE-PLATS.
+
+   `Carousel` rendait `<div className="opale-card-grid">` — la classe de
+   `CardGrid` — sans défilement ni navigation ; `FileUploader` rendait
+   `<Dropzone/>` en perdant ses `children` ; `SlidingIndicator` rendait la
+   piste de `SegmentedControl` sans l'indicateur qui glisse ; et
+   `ShapeBackground` était `BackgroundSurface` plus un `::after`, désormais sa
+   prop `shape`. Aucun des quatre n'avait d'usage hors de sa propre
+   démonstration. Rupture d'API assumée, à consigner dans les notes de
+   version. */
+const PUBLISHED_COMPONENT_COUNT = 81;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {

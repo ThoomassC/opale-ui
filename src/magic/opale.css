@@ -1640,8 +1640,7 @@
   overflow: hidden;
   background: var(--opale-background);
 }
-.opale-opaley-background::before,
-.opale-shape-background::before {
+.opale-opaley-background::before {
   position: absolute;
   inset: -20%;
   content: '';
@@ -1659,12 +1658,10 @@
     );
   filter: blur(28px);
 }
-.opale-shape-background {
-  position: relative;
-  overflow: hidden;
-  background: var(--opale-background);
-}
-.opale-shape-background::after {
+/* LA FORME ORGANIQUE EST UN MODIFICATEUR, PLUS UN SECOND COMPOSANT. La classe
+   qu'elle portait déclarait exactement la même boîte que le fond, et partageait
+   déjà son `::before` : il ne restait que ce `::after` pour les distinguer. */
+.opale-opaley-background--shape::after {
   position: absolute;
   right: -12rem;
   bottom: -14rem;
@@ -1674,14 +1671,6 @@
   content: '';
   background: color-mix(in srgb, var(--opale-secondary) 18%, transparent);
   transform: rotate(18deg);
-}
-.opale-sliding-indicator {
-  position: relative;
-  display: inline-flex;
-  gap: var(--opale-space-xs);
-  padding: 0.25rem;
-  border-radius: var(--opale-radius-pill);
-  background: var(--opale-surface-sunken);
 }
 .opale-scrollbar {
   overflow: auto;
