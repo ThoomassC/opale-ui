@@ -133,10 +133,18 @@
   outline-offset: -4px;
 }
 
+/* L'EN-TÊTE EST SÉPARÉ DU CORPS PAR UN FILET, ET IL LE FALLAIT. Titre, texte
+   et boutons flottaient dans une même boîte blanche sans aucune articulation :
+   rien ne disait où finissait la question et où commençait la réponse. Le
+   filet est posé en `box-shadow` et non en `border-bottom` pour qu'il ne
+   compte pas dans la hauteur — un bord de 1 px décalerait de 1 px tout ce qui
+   suit, y compris entre les deux matières. */
 .header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  padding-bottom: var(--opale-space-lg);
+  box-shadow: inset 0 -1px 0 var(--opale-divider);
   gap: var(--opale-space-lg);
 }
 
@@ -164,29 +172,52 @@
   line-height: 1.4;
 }
 
+/* LA CROIX NE CONCURRENCE PLUS LE TITRE.
+
+   Elle portait un cercle plein et bordé, à l'encre du texte : deux formes
+   fermées de même valeur en haut du dialogue, dont la plus petite tirait l'œil
+   la première. Le cercle ne s'allume donc plus qu'au survol et au focus, et
+   l'encre passe au secondaire — le titre redevient ce qu'on lit d'abord.
+
+   LA CIBLE EST DE 44 px (WCAG 2.5.5, niveau AAA) alors qu'elle en faisait 40,
+   et les marges NÉGATIVES sont ce qui permet de l'agrandir sans écarter le
+   titre ni décaler l'en-tête : la cible déborde dans le rembourrage du
+   panneau, où il n'y a rien.
+
+   `margin-top` NÉGATIF ALIGNE LE CENTRE DE LA CROIX SUR LA PREMIÈRE LIGNE DU
+   TITRE. L'en-tête est aligné en haut — il le faut, à cause du sous-titre
+   optionnel —, ce qui posait une cible de 44 px en face d'une ligne de 29 : la
+   croix tombait cinq pixels trop bas. */
 .close {
   display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
   padding: 0;
-  border: 1px solid var(--opale-divider);
+  border: 1px solid transparent;
+  margin: -0.55rem -0.65rem -0.55rem 0;
   border-radius: var(--opale-radius-pill);
-  background: color-mix(in srgb, var(--opale-surface) 70%, transparent);
-  color: var(--opale-text);
-  font-size: 1.125rem;
-  line-height: 1;
+  background: transparent;
+  color: var(--opale-text-secondary);
   cursor: pointer;
   transition:
     background var(--opale-motion-fast) var(--opale-ease),
-    border-color var(--opale-motion-fast) var(--opale-ease);
+    border-color var(--opale-motion-fast) var(--opale-ease),
+    color var(--opale-motion-fast) var(--opale-ease);
+}
+
+.closeGlyph {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .close:hover {
-  border-color: var(--opale-text-secondary);
+  border-color: var(--opale-divider);
   background: color-mix(in srgb, var(--opale-text) 8%, var(--opale-surface));
+  color: var(--opale-text);
 }
 
 .close:focus-visible {
@@ -210,8 +241,10 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
+  padding-top: var(--opale-space-lg);
+  box-shadow: inset 0 1px 0 var(--opale-divider);
   gap: var(--opale-space-sm);
-  margin-top: var(--opale-space-xl);
+  margin-top: var(--opale-space-lg);
 }
 
 @keyframes opale-modal-veil {
@@ -258,8 +291,26 @@
    qui se posent maintenant sur le même élément que `.panel`.
    ========================================================================== */
 .plain {
-  border: 1px solid var(--opale-divider);
+  /* LE RAYON EST ÉCRIT ICI, ET SON ABSENCE ÉTAIT LE DÉFAUT DES CONTOURS.
+
+     `.panel` demande `border-radius: inherit` — ce qui est juste en verre, où
+     il est une couche de contenu à l'intérieur de l'enveloppe arrondie de
+     `Glass`. En rendu original il n'y a pas d'enveloppe : `.shell` et `.panel`
+     atterrissent sur le MÊME élément, `inherit` remonte donc au conteneur du
+     voile, qui n'a aucun rayon, et la valeur calculée était `0px`. Le dialogue
+     original était un rectangle à angles vifs — mesuré au navigateur — quand
+     sa version en verre était arrondie. */
+  border: 1px solid color-mix(in srgb, var(--opale-text) 14%, transparent);
+  border-radius: var(--opale-radius-lg);
   background: var(--opale-surface);
   color: var(--opale-text);
-  box-shadow: var(--opale-shadow-4);
+
+  /* TROIS COUCHES, ET CHACUNE FAIT UN TRAVAIL DIFFÉRENT. Le liseré interne
+     clair détache le bord haut de la surface ; l'anneau extérieur sombre donne
+     l'arête que `--opale-divider` seul ne donnait pas — 1,09:1 contre le
+     blanc, c'est-à-dire rien ; l'ombre portée creuse la distance au voile. */
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 55%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--opale-text) 8%, transparent),
+    var(--opale-shadow-4);
 }

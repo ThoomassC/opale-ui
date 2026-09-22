@@ -26,7 +26,13 @@
    portail, une file de notifications, un motif d'onglets ARIA, un champ de
    recherche et la navigation de site. */
 
-export * from './icon';
+/* LE JEU D'ICÔNES EST PUBLIÉ, SON RENDEUR NE L'EST PAS. `IconGlyph` dessine un
+   tracé nu, sans nom accessible ni mise en forme : c'est la pièce interne
+   d'`Opale.Icon`, et de la croix de `Modal`. La publier en ferait un composant
+   du catalogue — donc une page à écrire, et un second chemin pour rendre une
+   icône là où il n'en faut qu'un. */
+export { OPALE_ICONS, ICON_NAMES, ICON_GROUPS, isOpaleIconName } from './icon';
+export type { OpaleIconName, IconGroup } from './icon';
 export * from './modal';
 export * from './search-bar';
 export * from './sidebar';

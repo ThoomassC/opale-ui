@@ -14,6 +14,8 @@ import { createPortal } from 'react-dom';
 
 import Glass, { type GlassProps } from '../glass/Glass';
 
+import { IconGlyph } from '../icon';
+
 import styles from './style/Modal.module.css';
 
 /* =============================================================================
@@ -486,7 +488,14 @@ const Modal = ({
                 aria-label="Fermer"
                 onClick={handleClose}
               >
-                <span aria-hidden="true">×</span>
+                {/* LA CROIX EST UN TRACÉ, PLUS UN CARACTÈRE. « × » est le signe
+                    MULTIPLIER : sa barre est plus fine que le reste de
+                    l'interface, sa taille dépend de la police installée, et il
+                    n'est pas centré dans sa boîte — d'où une croix qui flottait
+                    un peu haut et un peu à gauche dans son cercle. Le tracé du
+                    jeu d'Opale a l'épaisseur de trait de toutes les autres
+                    icônes et se centre sur sa grille. */}
+                <IconGlyph name="close" className={styles.closeGlyph} />
               </button>
             )}
           </div>

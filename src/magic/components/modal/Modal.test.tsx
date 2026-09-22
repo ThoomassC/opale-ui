@@ -1,4 +1,5 @@
 import modalSource from './Modal.tsx?raw';
+import modalStyles from './style/Modal.module.css?raw';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -253,5 +254,63 @@ describe('l’ordre des effets de Modal', () => {
         'encore `inert`, et l’appel sera sans effet — silencieusement. jsdom ne ' +
         'voit pas ce défaut : il n’implémente pas `inert`.',
     ).toBeGreaterThan(inertie);
+  });
+});
+
+/* =============================================================================
+   LA SILHOUETTE DU PANNEAU ORIGINAL.
+
+   `.panel` demande `border-radius: inherit`, ce qui est juste EN VERRE — il y
+   est une couche de contenu dans l'enveloppe arrondie de `Glass`. En rendu
+   original il n'y a pas d'enveloppe : `.shell` et `.panel` atterrissent sur le
+   même élément, `inherit` remonte au conteneur du voile, qui n'a aucun rayon,
+   et la valeur calculée tombe à zéro. Le dialogue original était un rectangle
+   à angles vifs pendant que sa version en verre était arrondie, et rien ne le
+   signalait : jsdom ne fait pas de mise en page, donc seul le TEXTE de la
+   feuille peut porter ce garde.
+   ========================================================================== */
+describe('les contours du panneau original', () => {
+  /** Le corps de la règle `.plain`, commentaires retirés. */
+  const plain = (() => {
+    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
+    const debut = sans.indexOf('.plain {');
+    return sans.slice(debut, sans.indexOf('}', debut));
+  })();
+
+  it('devrait écrire son propre rayon plutôt que de l’hériter', () => {
+    expect(plain).toMatch(/border-radius:\s*var\(--opale-radius-lg\)/);
+  });
+
+  /* `--opale-divider` SEUL NE DESSINE PAS D'ARÊTE : mesuré, il tient 1,09:1
+     contre la surface blanche. Le panneau doit donc porter un anneau tiré de
+     l'encre du texte, qui suit les deux thèmes. */
+  it('devrait porter une arête tirée de l’encre et non du seul filet de séparation', () => {
+    expect(plain).toMatch(/color-mix\(in srgb, var\(--opale-text\)/);
+  });
+
+  it('devrait garder son ombre portée', () => {
+    expect(plain).toMatch(/var\(--opale-shadow-4\)/);
+  });
+});
+
+describe('la croix de fermeture', () => {
+  it('devrait dessiner un tracé et non le caractère « × »', () => {
+    render(<Modal open title="Confirmer" onClose={() => {}} />);
+
+    const croix = screen.getByRole('button', { name: 'Fermer' });
+
+    expect(croix.querySelector('svg')).not.toBeNull();
+    expect(croix.textContent).toBe('');
+  });
+
+  /* LE TRACÉ EST MASQUÉ, LE BOUTON EST NOMMÉ. Un `<svg>` exposé ferait
+     énumérer des chemins par le lecteur d'écran par-dessus le nom du bouton. */
+  it('devrait masquer son tracé aux technologies d’assistance', () => {
+    render(<Modal open title="Confirmer" onClose={() => {}} />);
+
+    const svg = screen.getByRole('button', { name: 'Fermer' }).querySelector('svg');
+
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+    expect(svg).toHaveAttribute('focusable', 'false');
   });
 });
