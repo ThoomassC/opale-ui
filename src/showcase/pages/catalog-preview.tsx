@@ -403,16 +403,11 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'Rating':
-      /* LA DÉMONSTRATION MONTRE UN QUART, PAS UN ENTIER. Avec `value={4}` on ne
-         voyait pas que le remplissage est fractionnaire — c'est pourtant tout
-         l'intérêt du composant. */
-      preview = (
-        <DemoFrame>
-          <Opale.Rating value={3.75} max={5} />
-          <Opale.Rating value={2.5} max={5} />
-          <Opale.Rating value={1.25} max={5} />
-        </DemoFrame>
-      );
+      /* UN SEUL EXEMPLE, ET IL PORTE UN QUART. Avec `value={4}` on ne voyait
+         pas que le remplissage est fractionnaire — c'est pourtant tout
+         l'intérêt du composant ; avec trois rangées on ne savait plus laquelle
+         l'extrait de code montrait. Une rangée, la même que le code. */
+      preview = <Opale.Rating value={4.75} max={5} />;
       break;
     case 'StatCard':
       preview = (

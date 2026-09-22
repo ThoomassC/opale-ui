@@ -137,6 +137,14 @@ function exampleCode(name: string, liquidGlass = false): string {
       return decorate(`<Opale.Feedback severity="success" title="En production">
   La dernière version est disponible.
 </Opale.Feedback>`);
+    case 'Rating':
+      /* L'EXTRAIT PAR DÉFAUT — `<Opale.Rating />` — NE MONTRAIT AUCUNE PROP.
+         On y lisait un composant sans réglage, alors que la note et le barème
+         sont exactement ce qu'on vient y régler : la page ne disait nulle part
+         OÙ le développeur pose son nombre d'étoiles. */
+      return decorate(`// value : la note, au quart près — 0,25 / 0,5 / 0,75 / 1 par étoile.
+// max   : le nombre d'étoiles (5 par défaut).
+<Opale.Rating value={4.75} max={5} />`);
     case 'Toast':
       return decorate(`// Le ton choisit la couleur, la place choisit le coin de l'ÉCRAN.
 // tone     : 'neutral' | 'success' | 'warning' | 'error' | 'info'
