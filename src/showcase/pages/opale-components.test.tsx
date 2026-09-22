@@ -256,8 +256,18 @@ describe('le catalogue interactif V3', () => {
     const { rerender } = render(<CatalogPreview name="FileCard" liquidGlass={false} />);
 
     const file = screen.getByRole('button', { name: /design-system\.fig/ });
+
+    /* L'ÉTAT SE LIT SUR `aria-pressed`, PLUS SUR UNE CLASSE DE STYLE. La
+       sélection était signalée par `.opale-liquid` — l'ancienne imitation du
+       verre détournée en surbrillance : rien ne l'annonçait, et l'information
+       n'existait que par la couleur. Ce test visait la classe ; il vise
+       maintenant ce qu'un lecteur d'écran entend. */
+    expect(file).toHaveAttribute('aria-pressed', 'false');
+
     await user.click(file);
-    expect(file).toHaveClass('opale-liquid');
+
+    expect(file).toHaveAttribute('aria-pressed', 'true');
+    expect(file).toHaveClass('opale-file-card--selected');
 
     rerender(<CatalogPreview name="RouteGuard" liquidGlass={false} />);
     await user.click(screen.getByRole('checkbox', { name: 'Accès autorisé' }));

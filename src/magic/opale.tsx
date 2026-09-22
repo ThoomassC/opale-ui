@@ -826,20 +826,33 @@ export function MultiSelect({
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- la
           `listbox` EST la commande : c'est le motif ARIA de la sélection
           multiple, et les `option` en sont les enfants exigés. */}
-      <div
-        className={cx('opale-multiselect', liquidGlass && 'opale-liquid')}
-        role="listbox"
-        aria-multiselectable="true"
-        aria-labelledby={label ? labelId : undefined}
-        aria-activedescendant={`${fieldId}-option-${activeIndex}`}
-        tabIndex={0}
-        onKeyDown={onKeyDown}
-      >
-        {options.map((option, index) => {
-          const isSelected = selected.has(option.value);
+      {/* LE MATÉRIAU EST CELUI DE TOUT LE MONDE, ENFIN.
 
-          return (
-            /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
+          Cette liste posait `.opale-liquid`, l'ancienne imitation en lavis
+          laiteux d'avant la réécriture du verre : sur une même page, une liste
+          multiple et un select rendaient deux verres différents. `FieldShell`
+          est la coquille des champs ; elle bascule sur `Glass` quand on le
+          demande et rend un simple `<span>` sinon, donc le balisage et les
+          attributs ARIA de la liste ne changent pas d'un état à l'autre. */}
+      <FieldShell
+        liquidGlass={liquidGlass}
+        className={cx('opale-multiselect', liquidGlass && 'opale-multiselect--glass')}
+        rootClassName="opale-multiselect--glass-root"
+      >
+        <div
+          className="opale-multiselect__list"
+          role="listbox"
+          aria-multiselectable="true"
+          aria-labelledby={label ? labelId : undefined}
+          aria-activedescendant={`${fieldId}-option-${activeIndex}`}
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+        >
+          {options.map((option, index) => {
+            const isSelected = selected.has(option.value);
+
+            return (
+              /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
                LES DEUX RÈGLES SE TROMPENT ICI, ET POUR LA MÊME RAISON. Elles
                réclament un écouteur clavier et un `tabIndex` sur l'option. Or
                le motif `listbox` + `aria-activedescendant` veut exactement
@@ -850,25 +863,26 @@ export function MultiSelect({
                `onKeyDown` serait du code mort, l'élément ne pouvant jamais
                recevoir d'événement clavier. Même arbitrage que le combobox de
                la recherche de la vitrine. */
-            <div
-              key={option.value}
-              id={`${fieldId}-option-${index}`}
-              className="opale-multiselect__option"
-              role="option"
-              aria-selected={isSelected}
-              data-active={index === activeIndex ? 'true' : undefined}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => {
-                setActiveIndex(index);
-                toggle(option.value);
-              }}
-            >
-              <span className="opale-multiselect__mark" aria-hidden="true" />
-              <span className="opale-multiselect__label">{option.label}</span>
-            </div>
-          );
-        })}
-      </div>
+              <div
+                key={option.value}
+                id={`${fieldId}-option-${index}`}
+                className="opale-multiselect__option"
+                role="option"
+                aria-selected={isSelected}
+                data-active={index === activeIndex ? 'true' : undefined}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  setActiveIndex(index);
+                  toggle(option.value);
+                }}
+              >
+                <span className="opale-multiselect__mark" aria-hidden="true" />
+                <span className="opale-multiselect__label">{option.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </FieldShell>
 
       {helperText && <span className="opale-field__helper">{helperText}</span>}
     </div>
@@ -1773,9 +1787,18 @@ export function FileCard({
   onClick?: () => void;
 }) {
   return (
+    /* `aria-pressed` ET UNE CLASSE PROPRE, À LA PLACE DU LAVIS.
+
+       La sélection n'était signalée que par `.opale-liquid` — l'ancienne
+       imitation du verre, détournée en surbrillance. Deux défauts pour le
+       prix d'un : un lecteur d'écran ne pouvait pas dire quelles cartes
+       étaient choisies (WCAG 4.1.2), et l'information n'existait que par la
+       couleur (1.4.1). La classe dédiée porte un liseré et une coche ; l'état
+       est désormais annoncé. */
     <button
       type="button"
-      className={cx('opale-surface', 'opale-file-card', selected && 'opale-liquid')}
+      className={cx('opale-surface', 'opale-file-card', selected && 'opale-file-card--selected')}
+      aria-pressed={selected}
       onClick={onClick}
     >
       <span className="opale-file-card__icon">⌁</span>

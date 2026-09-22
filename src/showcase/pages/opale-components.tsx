@@ -52,6 +52,7 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Checkbox',
   'InlineInput',
   'Input',
+  'MultiSelect',
   'Pressable',
   'Select',
   'Slider',

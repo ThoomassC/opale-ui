@@ -276,23 +276,6 @@
     transform var(--opale-motion) var(--opale-ease);
 }
 
-.opale-liquid {
-  background:
-    radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.7), transparent 52%),
-    radial-gradient(
-      100% 130% at 100% 100%,
-      color-mix(in srgb, var(--opale-primary) 14%, transparent),
-      transparent 62%
-    ),
-    var(--opale-glass-surface);
-  border-color: var(--opale-glass-border);
-  box-shadow:
-    var(--opale-glass-shadow),
-    inset 1px 1px 0 rgba(255, 255, 255, 0.54);
-  -webkit-backdrop-filter: blur(var(--opale-glass-blur)) saturate(1.35);
-  backdrop-filter: blur(var(--opale-glass-blur)) saturate(1.35);
-}
-
 /* LA CASE À COCHER MANQUAIT À CETTE LISTE, ET L'OUBLI SE VOYAIT À SON
    ASYMÉTRIE. Son `<input>` natif est absolu, de 1 px, à opacité nulle : sans
    règle, l'anneau du navigateur se dessine sur cette boîte invisible, et la
@@ -785,29 +768,6 @@
   transform: translateX(1.5rem);
 }
 
-.opale-button.opale-liquid {
-  --opale-button-background:
-    radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.7), transparent 52%),
-    radial-gradient(
-      100% 130% at 100% 100%,
-      color-mix(in srgb, var(--opale-primary) 14%, transparent),
-      transparent 62%
-    ),
-    var(--opale-glass-surface);
-  --opale-button-hover-background:
-    radial-gradient(110% 140% at 0% 0%, rgba(255, 255, 255, 0.78), transparent 52%),
-    radial-gradient(
-      100% 130% at 100% 100%,
-      color-mix(in srgb, var(--opale-primary) 20%, transparent),
-      transparent 62%
-    ),
-    var(--opale-glass-surface);
-  color: var(--opale-text);
-}
-.opale-button.opale-liquid.opale-button--primary {
-  color: var(--opale-text);
-}
-
 @media (max-width: 37.499rem) {
   .opale-button {
     min-height: 3rem;
@@ -998,6 +958,23 @@
   border-radius: var(--opale-radius-md);
   background: var(--opale-surface);
 }
+
+/* SOUS VERRE, LA LISTE N'A NI FOND NI LISERÉ PROPRES : le filet spéculaire du
+   matériau EST son bord, comme pour les cinq autres champs. La liste elle-même
+   reste un enfant transparent, qui ne fait que porter le rôle et le clavier. */
+.opale-multiselect--glass {
+  border-color: transparent;
+  background: transparent;
+  color: var(--opale-glass-ink);
+}
+.opale-multiselect--glass-root {
+  --opale-glass-width: 100%;
+  --opale-glass-radius: var(--opale-radius-md);
+}
+.opale-multiselect__list {
+  display: grid;
+  gap: inherit;
+}
 .opale-multiselect:focus-within,
 .opale-multiselect:focus {
   border-color: var(--opale-primary);
@@ -1057,6 +1034,35 @@
 .opale-multiselect__option[aria-selected='true'] {
   color: var(--opale-text);
   font-weight: 600;
+}
+
+/* L'ENCRE DES OPTIONS DESCEND SOUS LE VERRE, et il faut le dire ici parce que
+   l'héritage ne suffit pas : `.opale-multiselect__option` déclare sa propre
+   couleur, plus loin dans la feuille que le jeton du matériau. C'est
+   exactement le défaut qui avait laissé l'encre du champ de saisie en gris
+   sombre sur une photographie — le seul que le propriétaire ait signalé de
+   lui-même. */
+.opale-multiselect--glass .opale-multiselect__option,
+.opale-multiselect--glass .opale-multiselect__option[aria-selected='true'] {
+  color: var(--opale-glass-ink);
+}
+.opale-multiselect--glass .opale-multiselect__mark {
+  border-color: var(--opale-glass-ink);
+}
+
+/* LE CURSEUR CLAVIER ÉTAIT À 1,19:1, ET C'EST MESURÉ. Dans un motif
+   `listbox` + `aria-activedescendant`, le focus reste sur la liste : la
+   position courante est la SEULE chose qui dise où l'on est. Elle n'était
+   marquée que par un lavis primaire à 12 % — 1,19:1 en thème clair, 1,17:1 en
+   sombre, pour 3:1 exigés (WCAG 2.4.7 et 1.4.11). Qui descend aux flèches ne
+   voyait pas où il était. Le lavis reste, pour le survol ; le liseré s'y
+   ajoute, et lui ne dépend pas de la couleur. */
+.opale-multiselect:focus-within .opale-multiselect__option[data-active='true'] {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: -2px;
+}
+.opale-multiselect--glass:focus-within .opale-multiselect__option[data-active='true'] {
+  outline-color: var(--opale-glass-ink);
 }
 
 .opale-checkbox-row,
@@ -1764,10 +1770,35 @@
 }
 
 .opale-file-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--opale-space-md);
   padding: var(--opale-space-md);
+}
+
+/* LA SÉLECTION NE PASSE PLUS PAR LA SEULE COULEUR. Elle était signalée par un
+   lavis — l'ancienne imitation du verre détournée en surbrillance : invisible
+   en niveaux de gris, et muette pour un lecteur d'écran. Le liseré donne la
+   forme, la coche donne le signe, et `aria-pressed` donne l'annonce. */
+.opale-file-card--selected {
+  border-color: var(--opale-primary);
+  box-shadow: inset 0 0 0 2px var(--opale-primary);
+}
+.opale-file-card--selected::after {
+  position: absolute;
+  top: var(--opale-space-sm);
+  right: var(--opale-space-sm);
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  border-radius: 50%;
+  content: '✓';
+  background: var(--opale-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1;
 }
 .opale-file-card__icon {
   display: grid;

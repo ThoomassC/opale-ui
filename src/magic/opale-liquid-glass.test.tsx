@@ -1099,6 +1099,55 @@ describe('les coquilles de verre', () => {
   });
 });
 
+/* =============================================================================
+   IL N'Y A PLUS QU'UN SEUL VERRE.
+
+   `.opale-liquid` ÉTAIT L'IMITATION D'AVANT LA RÉÉCRITURE : deux dégradés
+   radiaux, un `backdrop-filter` et le lavis laiteux `--opale-glass-surface`.
+   Elle a survécu à la bascule sur deux composants — la liste multiple et la
+   carte de fichier —, si bien qu'une même page pouvait afficher deux verres
+   différents côte à côte, l'un réfractant la photographie et l'autre non.
+
+   Le nom, lui, ne dit pas qu'il s'agit d'une imitation : rien n'empêchait
+   qu'on le reprenne de bonne foi. D'où ce garde, qui interdit son retour et
+   dit où aller à la place.
+   ========================================================================== */
+describe('le matériau unique', () => {
+  it('ne laisse pas revenir l’imitation en lavis', () => {
+    const sheet = opaleSource.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    expect(
+      sheet,
+      '`.opale-liquid` est l’ancienne imitation du verre. Le matériau se ' +
+        'demande par la prop `liquidGlass`, qui passe par `Glass` : une classe ' +
+        'de lavis donnerait un second verre, plus pâle et sans réfraction.',
+    ).not.toMatch(/\.opale-liquid(?![\w-])/);
+  });
+
+  it('rend la liste multiple avec le matériau et rien d’autre', () => {
+    const { container, rerender } = render(
+      <Opale.MultiSelect label="Domaines" options={[{ value: 'a', label: 'A' }]} />,
+    );
+
+    expect(container.querySelector('[data-opale-glass]')).toBeNull();
+
+    rerender(
+      <Opale.MultiSelect liquidGlass label="Domaines" options={[{ value: 'a', label: 'A' }]} />,
+    );
+
+    const envelope = container.querySelector('[data-opale-glass]');
+
+    expect(
+      envelope,
+      'La liste multiple doit porter le matériau comme les autres champs.',
+    ).not.toBeNull();
+    /* Et le contrôle reste le même des deux côtés : c'est la règle de toutes
+       les fusions de ce fichier. */
+    expect(screen.getAllByRole('listbox')).toHaveLength(1);
+    expect(screen.getByRole('option', { name: 'A' })).toBeInTheDocument();
+  });
+});
+
 describe('les seuils de lisibilité du verre', () => {
   /** L'opacité plancher d'une encre blanche, mesurée : en dessous, AA tombe. */
   const PLANCHER = 0.85;
