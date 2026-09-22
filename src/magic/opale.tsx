@@ -1862,19 +1862,66 @@ export function BulletList({ items = [] }: { items?: readonly ReactNode[] }) {
     </ul>
   );
 }
+/** Le pas de la note. Une étoile se remplit au quart, au demi, aux trois quarts. */
+const RATING_STEP = 0.25;
+
+/**
+ * Ramène une note sur le pas du quart, puis dans l'intervalle `[0, max]`.
+ *
+ * L'ARRONDI EST FAIT ICI ET PAS AU RENDU, pour que le nom accessible et le
+ * dessin disent la même chose. Annoncer « 3,7 sur 5 » en dessinant trois
+ * étoiles et trois quarts, c'est deux notes différentes selon qu'on voit ou
+ * qu'on écoute.
+ */
+function snapRating(value: number, max: number): number {
+  if (!Number.isFinite(value)) return 0;
+
+  return Math.min(Math.max(Math.round(value / RATING_STEP) * RATING_STEP, 0), max);
+}
+
+/** `3.75` → `« 3,75 »`. Le composant parle français, comme ses libellés. */
+function formatRating(value: number): string {
+  return String(Number(value.toFixed(2))).replace('.', ',');
+}
+
 export function Rating({ value = 0, max = 5 }: { value?: number; max?: number }) {
+  /* LE REMPLISSAGE EST FRACTIONNAIRE, ET C'EST TOUT LE COMPOSANT.
+
+     Il comparait `index + 1 <= value` : une note de 3,75 dessinait donc
+     exactement les mêmes trois étoiles que 3,0, et les trois quarts se
+     perdaient en silence. Chaque étoile est désormais DEUX glyphes
+     superposés — le contour, puis le plein rogné à la fraction voulue par
+     une largeur en pourcentage. Le rognage est fait au quart près, ce qui
+     donne les cinq états 0, ¼, ½, ¾ et 1 par étoile. */
+  const note = snapRating(value, max);
+
   return (
     /* `role="img"` EST OBLIGATOIRE ICI. Un `aria-label` posé sur un élément
        sans rôle — un `<span>` a le rôle `generic` — est ignoré par les API
        d'accessibilité, et les étoiles enfants sont toutes `aria-hidden` : la
        note ne s'annonçait donc PAS DU TOUT (WCAG 1.1.1). `Icon`, quelques
        lignes plus haut, prend déjà cette précaution. */
-    <span className="opale-rating" role="img" aria-label={`${value} sur ${max}`}>
-      {Array.from({ length: max }, (_, index) => (
-        <span key={index} aria-hidden="true">
-          {index + 1 <= value ? '★' : '☆'}
-        </span>
-      ))}
+    <span
+      className="opale-rating"
+      role="img"
+      aria-label={`${formatRating(note)} sur ${max}`}
+      data-opale-rating={note}
+    >
+      {Array.from({ length: max }, (_, index) => {
+        const fill = Math.min(Math.max(note - index, 0), 1);
+
+        return (
+          <span className="opale-rating__star" key={index} aria-hidden="true">
+            <span className="opale-rating__outline">☆</span>
+            <span
+              className="opale-rating__fill"
+              style={{ '--opale-rating-fill': `${fill * 100}%` } as CSSProperties}
+            >
+              ★
+            </span>
+          </span>
+        );
+      })}
     </span>
   );
 }

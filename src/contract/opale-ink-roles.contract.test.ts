@@ -29,7 +29,6 @@ import docSource from '../styles/doc-v3.css?raw';
 const FILL_ONLY = ['--opale-primary', '--opale-accent', '--opale-accent-dark'] as const;
 
 const AA_TEXT = 4.5; // WCAG 1.4.3
-const AA_NON_TEXT = 3; // WCAG 1.4.11 — graphiques porteurs de sens
 
 const SHEETS = [
   { name: 'opale.css', source: opaleSource },
@@ -66,7 +65,7 @@ describe('les encres de surface tiennent leur seuil dans les deux thèmes', () =
   const CASES = [
     { token: '--opale-primary-on-surface', floor: AA_TEXT },
     { token: '--opale-accent-ink', floor: AA_TEXT },
-    { token: '--opale-accent-graphic', floor: AA_NON_TEXT },
+    { token: '--opale-accent-graphic', floor: AA_TEXT },
   ] as const;
 
   for (const theme of ['light', 'dark-explicit'] as const) {

@@ -611,3 +611,74 @@ describe('le nom des champs ne contient que leur libellé', () => {
     ).toMatch(/text-decoration:\s*underline/);
   });
 });
+
+/* =============================================================================
+   LA NOTE FRACTIONNAIRE.
+
+   `Rating` comparait `index + 1 <= value` : 3,75 dessinait donc exactement les
+   mêmes trois étoiles que 3,0, et les trois quarts disparaissaient — sans que
+   rien ne le signale, ni à l'écran ni dans le nom accessible. Les cas
+   ci-dessous tiennent les cinq états d'UNE étoile, l'arrondi au quart, et le
+   fait que le dessin et l'annonce disent la même note.
+   ========================================================================== */
+describe('Rating — le remplissage au quart', () => {
+  /** Les largeurs de rognage, étoile par étoile, telles qu'elles sont peintes. */
+  function fills(container: HTMLElement): readonly string[] {
+    return [...container.querySelectorAll('.opale-rating__fill')].map(
+      (node) => (node as HTMLElement).style.getPropertyValue('--opale-rating-fill'),
+    );
+  }
+
+  it('devrait remplir les étoiles pleines, le quart demandé, puis rien', () => {
+    const { container } = render(<Rating value={3.75} max={5} />);
+
+    expect(fills(container)).toEqual(['100%', '100%', '100%', '75%', '0%']);
+  });
+
+  it.each([
+    [0.25, '25%'],
+    [0.5, '50%'],
+    [0.75, '75%'],
+    [1, '100%'],
+  ])('devrait peindre %s comme %s de la première étoile', (value, expected) => {
+    const { container } = render(<Rating value={value} max={5} />);
+
+    expect(fills(container)[0]).toBe(expected);
+  });
+
+  /* L'ARRONDI EST FAIT UNE SEULE FOIS, AVANT LE DESSIN ET AVANT L'ANNONCE.
+     Arrondir au rendu seulement laisserait le lecteur d'écran dire « 3,7 sur
+     5 » devant trois étoiles et trois quarts : deux notes selon qu'on voit ou
+     qu'on écoute. */
+  it('devrait ramener une note hors pas sur le quart le plus proche, dessin et annonce ensemble', () => {
+    const { container } = render(<Rating value={3.7} max={5} />);
+
+    expect(fills(container)[3]).toBe('75%');
+    expect(screen.getByRole('img', { name: '3,75 sur 5' })).toBeInTheDocument();
+  });
+
+  it('devrait annoncer la note décimale à la française', () => {
+    render(<Rating value={2.5} max={5} />);
+
+    expect(screen.getByRole('img', { name: '2,5 sur 5' })).toBeInTheDocument();
+  });
+
+  it.each([
+    [-2, '0 sur 5'],
+    [12, '5 sur 5'],
+    [Number.NaN, '0 sur 5'],
+  ])('devrait borner une note de %s à « %s »', (value, name) => {
+    render(<Rating value={value} max={5} />);
+
+    expect(screen.getByRole('img', { name })).toBeInTheDocument();
+  });
+
+  /* LE CONTOUR RESTE SOUS LE PLEIN. Peindre seulement la fraction laisserait
+     une étoile à un quart sans silhouette : on ne verrait qu'un moignon, et
+     `max` deviendrait indevinable. */
+  it('devrait poser autant de contours que de max, quelle que soit la note', () => {
+    const { container } = render(<Rating value={1.25} max={5} />);
+
+    expect(container.querySelectorAll('.opale-rating__outline')).toHaveLength(5);
+  });
+});

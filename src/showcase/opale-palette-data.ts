@@ -90,8 +90,8 @@ export const OPALE_PLATES: readonly Plate[] = [
           },
           {
             token: '--opale-accent-graphic',
-            hex: '#ad7600',
-            against: 'ambre qui dessine — étoiles, icônes (3:1)',
+            hex: '#8e6000',
+            against: 'ambre qui dessine — étoiles, icônes',
           },
         ],
       },

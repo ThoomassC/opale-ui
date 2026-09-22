@@ -54,11 +54,13 @@
      d'étoiles y était une suggestion plus qu'un dessin. Mais lui appliquer
      l'encre (#7a5200, 6,92:1) donnait un brun, pas de l'or.
 
-     Cet ambre-ci est le compromis mesuré : 3,91:1 sur la surface blanche et
-     3,29:1 sur la surface creusée — le pire des trois fonds clairs — donc
-     conforme partout, en gardant la teinte. En sombre l'ambre d'origine passe déjà
-     largement — le jeton y reste donc `--opale-accent`. */
-  --opale-accent-graphic: #ad7600;
+     CE JETON VISE 4,5:1 ET NON 3:1. Le critère applicable à un graphique est
+     1.4.11, soit 3:1 ; mais une rangée d'étoiles se LIT comme un chiffre, et
+     un quart d'étoile ne se distingue d'un demi que si le dessin est franc.
+     La valeur ci-dessous mesure 5,49:1 sur la surface blanche et 4,62:1 sur
+     la surface creusée — le pire des trois fonds clairs. En sombre l'ambre
+     d'origine tient déjà 9,36:1 ; le jeton y garde donc sa valeur. */
+  --opale-accent-graphic: #8e6000;
 
   /* L'ENCRE DU PRIMAIRE QUAND ELLE SE LIT *SUR* UNE SURFACE.
 
@@ -1860,6 +1862,27 @@
   display: inline-flex;
   gap: 0.15rem;
   color: var(--opale-accent-graphic);
+  line-height: 1;
+}
+
+/* CHAQUE ÉTOILE EST DEUX GLYPHES EMPILÉS. Le contour tient la place, le plein
+   est posé par-dessus et ROGNÉ à la fraction voulue. `overflow: hidden` sur
+   une largeur en pourcentage suffit : le glyphe garde sa taille et son
+   alignement, seule la fenêtre qui le montre rétrécit. `white-space: nowrap`
+   empêche le caractère de se recentrer dans la boîte rognée — sans lui, un
+   quart d'étoile affichait le MILIEU du glyphe au lieu de son début. */
+.opale-rating__star {
+  position: relative;
+  display: inline-block;
+}
+
+.opale-rating__fill {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  overflow: hidden;
+  inline-size: var(--opale-rating-fill, 0%);
+  white-space: nowrap;
 }
 .opale-donut {
   display: grid;
