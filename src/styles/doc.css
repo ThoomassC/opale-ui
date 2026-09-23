@@ -2196,10 +2196,34 @@ body {
    la réécriture du matériau : il était un composant tiers qui peignait son
    libellé en blanc, il est devenu un `<Glass as="button">` nu, donc il a hérité
    du noir par défaut du navigateur. Mesuré sur le pire pixel de la scène
-   voilée : **3,78:1** — sous le seuil. Le blanc y tient 5,56:1. */
-.tc-doc-liquid-action-button {
+   voilée : **3,78:1** — sous le seuil. Le blanc y tient 5,56:1.
+
+   IL AVAIT AUSSI PERDU SA TAILLE, et ce second oubli se voyait bien plus.
+
+   CE QUI S'EST PASSÉ. Le bouton portait les classes du composant tiers —
+   `btn medium` — qui lui donnaient son coussin et son échelle. Elles sont
+   parties avec la librairie ; le `<Glass as="button">` qui l'a remplacé s'est
+   retrouvé avec le `padding: 1px 6px` du navigateur. Mesuré, avant et après :
+   **133 × 52 → 88 × 28**, et `700 18px/28px → 16px hérité`. Le pavé de verre
+   était devenu une puce.
+
+   ET CELA DÉPLAÇAIT LE SQUIRCLE. Les trois cellules de la scène se répartissent
+   par `space-between` : en perdant quarante-cinq pixels de largeur, le bouton
+   changeait le retour à la ligne, et la goutte passait du plan d'eau — où son
+   verre se lit — au ciel, où il ne réfracte plus grand-chose. Rendre au bouton
+   ses dimensions remet la scène dans son ordre.
+
+   LA SPÉCIFICITÉ EST LE PIÈGE ICI, et c'est pour cela que le sélecteur porte
+   aussi l'attribut de couche. `Glass.module.css` déclare
+   `.content:where(button) { font: inherit }` — `:where()` ne pèse rien, donc
+   cette règle et une simple classe sont à égalité, et c'est l'ordre des
+   feuilles dans le paquet qui tranche. Il tranchait contre celle-ci : la
+   déclaration `font` écrite plus haut n'a jamais été appliquée. */
+[data-opale-glass-layer='content'].tc-doc-liquid-action-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
   color: var(--tc-white);
-  font: 600 0.9375rem/1.4 var(--font-sans);
+  font: 700 1.125rem/1.75rem var(--font-sans);
 }
 
 .tc-doc-squire-circle__button {
