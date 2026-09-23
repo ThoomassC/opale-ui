@@ -110,7 +110,11 @@ export const verreLiquidePage: DocPage = {
                 as="button"
                 type="button"
                 className="tc-doc-liquid-action-button"
-                rootClassName="tc-doc-liquid-modal"
+                /* LA RACINE A SA PROPRE CLASSE, en plus de celle de la scène :
+                   c'est elle qui porte la silhouette du bouton d'Opale — le
+                   rayon du verre et le découpage en squircle — que la modale
+                   voisine, elle, ne doit pas prendre. */
+                rootClassName="tc-doc-liquid-modal tc-doc-liquid-action-button__root"
                 rootStyle={TRANSPARENT_MODAL_STYLE}
                 enableLiquidAnimation
               >
