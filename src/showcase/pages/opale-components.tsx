@@ -140,7 +140,8 @@ function exampleCode(name: string, liquidGlass = false): string {
   ]}
 />`);
     case 'Card':
-      return decorate(`<Opale.Card title="Une surface Opale" subtitle="Carte, actions et élévation.">
+      return decorate(`// elevation : 0 (à plat) à 3 (détachée) ; 1 par défaut.
+<Opale.Card title="Une surface Opale" subtitle="Carte, actions et élévation." elevation={2}>
   <p>Une surface claire, lisible et responsive.</p>
 </Opale.Card>`);
     case 'CardGrid':
@@ -149,7 +150,9 @@ function exampleCode(name: string, liquidGlass = false): string {
   <Opale.StatCard label="Thèmes" value="2 globaux + 1 matériau" />
 </Opale.CardGrid>`);
     case 'Badge':
-      return decorate('<Opale.Badge tone="accent">Nouveau</Opale.Badge>');
+      return decorate(`<Opale.Badge tone="accent">Nouveau</Opale.Badge>
+// dot : un point de notification ; le texte reste lu par les lecteurs d'écran.
+<Opale.Badge tone="danger" dot>3 messages non lus</Opale.Badge>`);
     case 'StatCard':
       return decorate('<Opale.StatCard label="Disponibilité" value="99,9 %" delta="+0,4 %" />');
     case 'Heading':
@@ -157,9 +160,20 @@ function exampleCode(name: string, liquidGlass = false): string {
     case 'Text':
       return decorate('<Opale.Text variant="caption">Légende secondaire</Opale.Text>');
     case 'DataTable':
-      return decorate(`<Opale.DataTable
-  columns={[{ key: 'name', label: 'Nom' }, { key: 'status', label: 'Statut' }]}
-  rows={[{ name: 'Button', status: 'Stable' }, { name: 'DataTable', status: 'Nouveau' }]}
+      return decorate(`// sortable : l'en-tête devient un bouton de tri.
+// sortValue : la valeur de tri quand la cellule n'est pas du texte.
+<Opale.DataTable
+  caption="Composants"
+  columns={[
+    { key: 'name', label: 'Nom', sortable: true },
+    { key: 'uses', label: 'Usages', sortable: true },
+    { key: 'status', label: 'Statut' },
+  ]}
+  rows={[
+    { name: 'DataTable', uses: 4, status: 'Nouveau' },
+    { name: 'Button', uses: 128, status: 'Stable' },
+  ]}
+  onSortChange={({ key, direction }) => console.log(key, direction)}
 />`);
     case 'Feedback':
       return decorate(`<Opale.Feedback severity="success" title="En production">
@@ -193,6 +207,32 @@ function exampleCode(name: string, liquidGlass = false): string {
       return decorate('<Opale.FileCard name="design-system.fig" size="2,4 Mo" />');
     case 'Clipboard':
       return decorate('<Opale.Clipboard value="npm install @thomascaron/opale-ui" />');
+    case 'CookieBanner':
+      return decorate(`// Le choix est mémorisé dans localStorage, sous storageKey
+// ('opale-cookie-consent' par défaut ; null coupe la mémoire).
+// Sans open, le bandeau ne revient plus une fois le choix fait ;
+// open={true} le rouvre, pour un lien « Gérer mes cookies ».
+
+// Au démarrage : onAccept ne part qu'au clic, le choix mémorisé se lit ici
+// (import { readCookieConsent } from '@thomascaron/opale-ui').
+if (readCookieConsent() === 'accepted') enableAnalytics();
+
+<Opale.CookieBanner
+  onAccept={() => enableAnalytics()}
+  onDecline={() => disableAnalytics()}
+/>`);
+    case 'Dropzone':
+      return decorate(`// Glisser-déposer ou sélecteur natif : les deux passent par onFiles.
+<Opale.Dropzone onFiles={(files) => upload(files)}>
+  Déposez les maquettes ici
+</Opale.Dropzone>`);
+    case 'InlineInput':
+      return decorate(`// Entrée appelle onCommit ; Échap rétablit la dernière valeur validée.
+<Opale.InlineInput
+  label="Nom du projet"
+  defaultValue="Opale"
+  onCommit={(value) => rename(value)}
+/>`);
     default:
       return decorate(`<Opale.${displayName} />`);
   }
