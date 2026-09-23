@@ -1031,7 +1031,9 @@
 }
 .opale-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  /* `min(15rem, 100%)` : sous 240 px de conteneur, une colonne unique qui
+     rétrécit, au lieu d'une colonne de 240 px qui déborde (WCAG 1.4.10). */
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
   gap: var(--opale-space-lg);
 }
 .opale-empty-state {
@@ -2040,6 +2042,14 @@
   background: var(--opale-surface);
   color: var(--opale-text);
   font-family: var(--opale-font-display);
+}
+/* LA TABLE DÉFILE DANS SA BOÎTE, PAS LA PAGE. Une table de données a le droit
+   de défiler en deux dimensions — WCAG 1.4.10 l'exempte du reflow —, mais à
+   l'intérieur de son cadre : sans ce conteneur, trois colonnes poussaient toute
+   la page d'un téléphone à l'horizontale. */
+.opale-table-scroll {
+  max-inline-size: 100%;
+  overflow-x: auto;
 }
 .opale-table {
   width: 100%;

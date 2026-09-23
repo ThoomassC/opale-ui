@@ -88,7 +88,7 @@ export const verreLiquidePage: DocPage = {
                 style={{
                   display: 'grid',
                   gap: '10px',
-                  minInlineSize: '260px',
+                  minInlineSize: 'min(260px, 100%)',
                   padding: '22px 26px',
                 }}
               >

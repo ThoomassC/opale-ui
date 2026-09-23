@@ -2559,51 +2559,53 @@ export function DataTable({
 
   return (
     <Surface liquidGlass={liquidGlass} className="opale-panel">
-      <table className="opale-table">
-        {caption && <caption className="opale-table__caption">{caption}</caption>}
-        <thead>
-          <tr>
-            {columns.map((column) => {
-              const active = sort?.key === column.key ? sort.direction : undefined;
-              return (
-                <th key={column.key} scope="col" aria-sort={active}>
-                  {column.sortable ? (
-                    <button
-                      type="button"
-                      className="opale-table__sort"
-                      data-sort={active}
-                      onClick={() => toggle(column)}
-                    >
-                      {column.label}
-                      <IconGlyph
-                        name={
-                          active === 'ascending'
-                            ? 'chevron-up'
-                            : active === 'descending'
-                              ? 'chevron-down'
-                              : 'sort'
-                        }
-                        className="opale-table__sort-icon"
-                      />
-                    </button>
-                  ) : (
-                    column.label
-                  )}
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {ordered.map(({ row, index }) => (
-            <tr key={index}>
-              {columns.map((column) => (
-                <td key={column.key}>{row[column.key]}</td>
-              ))}
+      <div className="opale-table-scroll">
+        <table className="opale-table">
+          {caption && <caption className="opale-table__caption">{caption}</caption>}
+          <thead>
+            <tr>
+              {columns.map((column) => {
+                const active = sort?.key === column.key ? sort.direction : undefined;
+                return (
+                  <th key={column.key} scope="col" aria-sort={active}>
+                    {column.sortable ? (
+                      <button
+                        type="button"
+                        className="opale-table__sort"
+                        data-sort={active}
+                        onClick={() => toggle(column)}
+                      >
+                        {column.label}
+                        <IconGlyph
+                          name={
+                            active === 'ascending'
+                              ? 'chevron-up'
+                              : active === 'descending'
+                                ? 'chevron-down'
+                                : 'sort'
+                          }
+                          className="opale-table__sort-icon"
+                        />
+                      </button>
+                    ) : (
+                      column.label
+                    )}
+                  </th>
+                );
+              })}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {ordered.map(({ row, index }) => (
+              <tr key={index}>
+                {columns.map((column) => (
+                  <td key={column.key}>{row[column.key]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <span className="opale-visually-hidden" role="status">
         {announcement}
       </span>
