@@ -42,3 +42,29 @@ describe('la vitrine à 320 px', () => {
     expect(rule('.tc-doc-page__title')).toMatch(/overflow-wrap:\s*anywhere/);
   });
 });
+
+/* Le rail permanent laissait 184 px au contenu : sous 30 rem il cède la place
+   à un sommaire repliable, au-dessus de la page. */
+describe('le rail cède sous 30 rem', () => {
+  const narrow = (() => {
+    const start = CSS.search(/@media \(max-width: 30rem\)\s*\{\s*\.tc-doc-body/);
+    return start < 0 ? '' : CSS.slice(start, start + 4000);
+  })();
+
+  it('devrait passer la coquille en une seule colonne, rail replié compris', () => {
+    expect(narrow).toMatch(
+      /\.tc-doc-body,\s*\.tc-doc-body:has\([^)]*\)\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*!important/,
+    );
+  });
+
+  it('devrait masquer le sommaire replié et montrer le bouton', () => {
+    expect(narrow).toMatch(
+      /\.tc-doc-nav\[data-menu='closed'\] \.tc-doc-nav__glass\s*\{[^}]*display:\s*none/,
+    );
+    expect(narrow).toMatch(/\.tc-doc-nav__menu\s*\{[^}]*display:\s*flex/);
+  });
+
+  it('devrait cacher le bouton au-dessus de 30 rem', () => {
+    expect(rule('.tc-doc-nav__menu')).toMatch(/display:\s*none/);
+  });
+});

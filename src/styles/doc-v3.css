@@ -2463,3 +2463,98 @@ body {
     white-space: normal;
   }
 }
+
+/* =============================================================================
+   SOUS 30 REM, LE RAIL CÈDE LA PLACE À UN SOMMAIRE REPLIABLE.
+
+   Le rail permanent du téléphone (« le rail reste permanent », plus haut)
+   prenait 136 px sur 320 et laissait 184 px au contenu : après toutes les
+   corrections de reflow, treize pages de composants débordaient encore, leurs
+   démos coincées dans une centaine de pixels (WCAG 1.4.10). Décision du
+   propriétaire : sous 30 rem, le rail cède. Tablettes et bureau ne changent
+   pas.
+
+   Le bouton « Sommaire » vit dans `DocNav` et n'est montré qu'ici. Replié, le
+   sommaire est `display: none` — hors de l'écran ET de l'arbre accessible, ce
+   qui est l'état juste d'un contenu replié. `aria-expanded` porte l'état.
+   ========================================================================== */
+.tc-doc-nav__menu {
+  display: none;
+}
+@media (max-width: 30rem) {
+  .tc-doc-body,
+  .tc-doc-body:has(.tc-doc-nav[data-open='false']) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .tc-doc-nav {
+    position: relative !important;
+    inset-block-start: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: var(--opale-space-sm) var(--opale-space-md) !important;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--opale-divider);
+    overflow: visible !important;
+  }
+  .tc-doc-nav__resize {
+    display: none !important;
+  }
+  .tc-doc-nav__menu {
+    display: flex;
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--opale-space-sm);
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--opale-divider);
+    border-radius: var(--opale-radius-md);
+    background: var(--opale-surface);
+    color: var(--opale-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  /* Le chevron dit le sens : vers le bas replié, vers le haut déplié. La
+     forme change, pas seulement une couleur. */
+  .tc-doc-nav__menu::after {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-block-end: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+    content: '';
+    transform: translateY(-0.125rem) rotate(45deg);
+    transition: transform var(--opale-motion) var(--opale-ease);
+  }
+  .tc-doc-nav__menu[aria-expanded='true']::after {
+    transform: translateY(0.125rem) rotate(-135deg);
+  }
+  .tc-doc-nav[data-menu='closed'] .tc-doc-nav__glass {
+    display: none !important;
+  }
+  .tc-doc-nav__glass,
+  .tc-doc-nav__panel {
+    height: auto !important;
+    max-height: min(60dvh, 32rem);
+    margin-block-start: var(--opale-space-sm);
+  }
+  .tc-doc-nav__scroll {
+    max-height: min(60dvh, 32rem) !important;
+  }
+  /* Pleine largeur, les intitulés n'ont plus à être tronqués ni réduits :
+     le rail les compactait à 0,7 rem pour tenir dans 136 px. */
+  .tc-doc-nav__link {
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+    white-space: normal;
+  }
+  .tc-doc-nav__grouptitle {
+    font-size: 0.72rem;
+  }
+}
+@media (max-width: 30rem) and (prefers-reduced-motion: reduce) {
+  .tc-doc-nav__menu::after {
+    transition: none;
+  }
+}

@@ -164,7 +164,10 @@ export const topbarPage: DocPage = {
               <Topbar.Brand icon={<span aria-hidden="true">◈</span>} title={size} />
               <Topbar.Divider />
               <Topbar.Section grow>
-                <span>size=&quot;{size}&quot;</span>
+                {/* `<code>` ET NON `<span>` : c'est du code, et le code en ligne de
+                    la vitrine se coupe — `size="comfortable"` d'un seul tenant
+                    débordait la barre à 320 px. */}
+                <code>size=&quot;{size}&quot;</code>
               </Topbar.Section>
             </Topbar>
           ))}

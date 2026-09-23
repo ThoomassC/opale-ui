@@ -1,6 +1,7 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import tabsSheet from './components/tabs/style/Tabs.module.css?raw';
 import opaleSheet from './opale.css?raw';
 import { DataTable } from './opale';
 
@@ -36,5 +37,15 @@ describe('DataTable — la table défile dans sa boîte', () => {
     );
     expect(container.querySelector('.opale-table-scroll > table.opale-table')).not.toBeNull();
     expect(SHEET).toMatch(/\.opale-table-scroll\s*\{[^}]*overflow-x:\s*auto/);
+  });
+});
+
+describe('Tabs — la liste d’onglets passe à la ligne', () => {
+  /* Trois libellés d'affilée mesuraient 251 px : la liste débordait un
+     téléphone de 320 px, et la page avec. */
+  it('devrait laisser la liste horizontale passer à la ligne', () => {
+    const sheet = tabsSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(sheet).toMatch(/\.tabsListHorizontal\s*\{[^}]*flex-wrap:\s*wrap/);
+    expect(sheet).toMatch(/\.tabs\s*\{[^}]*max-inline-size:\s*100%/);
   });
 });

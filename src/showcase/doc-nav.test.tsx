@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { DocNav } from './doc-nav';
@@ -144,5 +144,50 @@ describe('DocNav — rail permanent et statique', () => {
     const version = screen.getByText('v' + UI_VERSION);
 
     expect(nav.firstElementChild).toContainElement(version);
+  });
+});
+
+/* ============================================================================
+   LE SOMMAIRE SE REPLIE SUR TÉLÉPHONE.
+
+   À 320 px, le rail permanent prenait 136 px et laissait 184 px au contenu :
+   treize pages de composants débordaient encore à l'horizontale (WCAG 1.4.10).
+   Sous 30 rem, le rail cède la place à un sommaire qu'on déplie. Le bouton
+   existe toujours dans le DOM ; c'est la feuille qui ne le montre que sous
+   30 rem (voir `doc-reflow.structure.test.ts`).
+   ========================================================================== */
+describe('le sommaire repliable', () => {
+  const toggle = () => screen.getByRole('button', { name: 'Sommaire' });
+  const shell = (container: HTMLElement) => container.querySelector('.tc-doc-nav');
+
+  it('devrait démarrer replié, et dire ce qu’il commande', () => {
+    const { container } = renderNav();
+
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    const controlled = document.getElementById(toggle().getAttribute('aria-controls') ?? '');
+    expect(controlled, 'aria-controls doit viser un élément existant.').not.toBeNull();
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+  });
+
+  it('devrait se déplier et se replier au clic', () => {
+    const { container } = renderNav();
+
+    fireEvent.click(toggle());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+
+    fireEvent.click(toggle());
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+  });
+
+  /* Sans cela, choisir une page laissait le sommaire déplié par-dessus la
+     page qu'on venait d'ouvrir : il fallait le refermer à la main. */
+  it('devrait se replier quand on change de page', () => {
+    const { container, rerender } = renderNav();
+    fireEvent.click(toggle());
+
+    rerender(<DocNav pages={PAGES} currentSlug="installation" />);
+
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
   });
 });
