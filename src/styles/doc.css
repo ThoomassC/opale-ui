@@ -2219,19 +2219,68 @@ body {
    cette règle et une simple classe sont à égalité, et c'est l'ordre des
    feuilles dans le paquet qui tranche. Il tranchait contre celle-ci : la
    déclaration `font` écrite plus haut n'a jamais été appliquée. */
+/* IL N'AVAIT PAS NON PLUS LA FORME D'UN BOUTON D'OPALE, et la page est
+   précisément celle qui documente le matériau : son bouton de démonstration
+   doit être le bouton de la librairie.
+
+   CE QUI LES SÉPARAIT, mesuré au navigateur sur `Opale.Button liquidGlass` :
+   la librairie découpe ses QUATRE couches au squircle
+   (`clip-path: var(--opale-squircle-clip)`) et donne 0,9375 rem de rayon à
+   l'enveloppe. Le bouton de la page n'avait aucun découpage, 12 px de rayon
+   sur son contenu et 22 px sur son enveloppe — un rectangle arrondi ordinaire
+   là où la librairie dessine un carré-cercle.
+
+   LA HAUTEUR SUIT LA FORME, ET CE N'EST PAS UN CAPRICE. Le coin du squircle
+   est plafonné à `min(1.375rem, 50%)`, soit 22 px : à 44 px de haut — la
+   hauteur du bouton d'Opale — ces 22 px valent exactement la moitié, et le
+   coin se referme en demi-cercle ; à 52 px ils n'en valent plus que 42 %, et
+   la même règle dessine une forme visiblement moins ronde. Rendre la
+   silhouette identique demandait donc de rendre aussi la hauteur. La largeur,
+   elle, reste généreuse : c'est une démonstration, on la regarde.
+
+   LE DÉCOUPAGE EST SUR LES COUCHES, PAS SUR L'ENVELOPPE, exactement comme
+   `.opale-button--glass-root` : un `clip-path` rogne l'`outline` et la
+   `box-shadow` de son propre élément, et c'est l'enveloppe qui porte le halo
+   de focus du matériau. La clipper effacerait l'indicateur de focus. */
+.tc-doc-liquid-action-button__root {
+  --opale-glass-radius: 0.9375rem;
+}
+
+.tc-doc-liquid-action-button__root > * {
+  clip-path: var(--opale-squircle-clip);
+}
+
 [data-opale-glass-layer='content'].tc-doc-liquid-action-button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
+  display: grid;
+  min-block-size: var(--target-min);
+  padding: 0.375rem 1.5rem;
+
+  /* LE RAYON EST REMIS À ZÉRO : la silhouette vient du découpage. En garder un
+     laisserait croire que les deux dessinent le même bord, alors que seul le
+     second est visible. */
+  border-radius: 0;
+  place-items: center;
   color: var(--tc-white);
   font: 700 1.125rem/1.75rem var(--font-sans);
 }
 
+/* LA GOUTTE N'ÉTAIT PAS CENTRÉE, ET ELLE NE POUVAIT PAS L'ÊTRE.
+
+   Le bouton est `inline-block` avec `text-align: center` — ce qui centre du
+   TEXTE. Son enfant est un `<svg>` en `display: block`, c'est-à-dire une boîte
+   de bloc, que `text-align` ne déplace pas d'un pixel. Mesuré : 28 px d'icône
+   dans 44 px de bouton, marge gauche **−1 px** et marge droite **17 px** — la
+   goutte était collée au bord, et même un pixel en dehors, à cause d'un
+   `translateX(-1px)` posé pour compenser autre chose. Une grille centre les
+   deux axes d'un seul coup, et le décalage manuel disparaît avec sa cause. */
 .tc-doc-squire-circle__button {
+  display: grid;
   inline-size: 100%;
   block-size: 100%;
   padding: 0;
   border-radius: 0.75rem;
   background: transparent;
+  place-items: center;
 }
 
 /* Le contrôle reprend la même empreinte que la bascule de thème. Les trois
@@ -2248,7 +2297,6 @@ body {
   inline-size: 1.75rem;
   block-size: 1.75rem;
   overflow: visible;
-  transform: translateX(-1px);
 }
 
 /* La scène Liquid Glass expose trois variantes : elles respirent sur toute la

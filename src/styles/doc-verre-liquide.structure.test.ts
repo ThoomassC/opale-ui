@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import docSheet from './doc.css?raw';
 import glassSheet from '../magic/components/glass/style/Glass.module.css?raw';
+import glassOpale from '../magic/opale.css?raw';
 
 /* =============================================================================
    LA SCÈNE DU MATÉRIAU : LE BOUTON DOIT GARDER SA TAILLE.
@@ -41,8 +42,8 @@ function rule(sheet: string, selector: string): string {
 describe('le bouton de la scène « verre liquide »', () => {
   const corps = rule(docSheet, "[data-opale-glass-layer='content'].tc-doc-liquid-action-button");
 
-  it('devrait garder le coussin qui lui donnait ses 133 × 52', () => {
-    expect(corps).toMatch(/padding:\s*0\.75rem 1\.5rem/);
+  it('devrait garder le coussin qui lui rend sa largeur', () => {
+    expect(corps).toMatch(/padding:\s*0\.375rem 1\.5rem/);
   });
 
   it('devrait garder son échelle de 18 px sur 28, en gras', () => {
@@ -51,6 +52,44 @@ describe('le bouton de la scène « verre liquide »', () => {
 
   it('devrait garder son encre claire, lisible sur le cliché voilé', () => {
     expect(corps).toMatch(/color:\s*var\(--tc-white\)/);
+  });
+
+  /* LA SILHOUETTE EST CELLE DE LA LIBRAIRIE, ET C'EST TOUT L'OBJET DE CETTE
+     PAGE : elle documente le matériau, donc son bouton de démonstration doit
+     être le bouton d'Opale. Mesuré sur `Opale.Button liquidGlass`, la
+     silhouette tient à deux choses — le rayon de l'enveloppe et le découpage
+     des quatre couches — et les deux se recopient ici. Un rectangle arrondi
+     ordinaire, c'est ce qu'il était. */
+  it('devrait prendre le rayon d’enveloppe du bouton d’Opale', () => {
+    expect(rule(docSheet, '.tc-doc-liquid-action-button__root')).toMatch(
+      /--opale-glass-radius:\s*0\.9375rem/,
+    );
+    expect(rule(glassOpale, '.opale-button--glass-root')).toMatch(
+      /--opale-glass-radius:\s*0\.9375rem/,
+    );
+  });
+
+  it('devrait découper ses couches au squircle, comme le bouton d’Opale', () => {
+    expect(rule(docSheet, '.tc-doc-liquid-action-button__root > *')).toMatch(
+      /clip-path:\s*var\(--opale-squircle-clip\)/,
+    );
+    expect(rule(glassOpale, '.opale-button--glass-root > *')).toMatch(
+      /clip-path:\s*var\(--opale-squircle-clip\)/,
+    );
+  });
+
+  /* LA HAUTEUR FAIT PARTIE DE LA FORME. Le coin du squircle est plafonné à
+     `min(1.375rem, 50%)`, soit 22 px : à 44 px de haut ils valent la moitié
+     exacte et le coin se referme en demi-cercle ; à 52 px ils n'en valent plus
+     que 42 %, et la même règle dessine une forme moins ronde. */
+  it('devrait tenir la hauteur à laquelle le coin se referme', () => {
+    expect(corps).toMatch(/min-block-size:\s*var\(--target-min\)/);
+  });
+
+  /* LE RAYON EST REMIS À ZÉRO : la silhouette vient du découpage, et garder un
+     rayon laisserait croire que les deux dessinent le même bord. */
+  it('ne devrait plus dessiner de rayon sur son contenu', () => {
+    expect(corps).toMatch(/border-radius:\s*0;/);
   });
 
   /* LE SÉLECTEUR DOIT PESER PLUS QU'UNE SIMPLE CLASSE. C'est la moitié
@@ -69,5 +108,30 @@ describe('le bouton de la scène « verre liquide »', () => {
     expect(docSheet).toMatch(
       /\[data-opale-glass-layer='content']\.tc-doc-liquid-action-button\s*\{/,
     );
+  });
+});
+
+/* =============================================================================
+   LA GOUTTE DU SQUIRCLE.
+
+   Le bouton est `inline-block` avec `text-align: center` — ce qui centre du
+   TEXTE. Son enfant est un `<svg>` en `display: block`, une boîte de bloc, que
+   `text-align` ne déplace pas d'un pixel. Mesuré au navigateur : 28 px d'icône
+   dans 44 px de bouton, marge gauche **−1 px** et marge droite **17 px**. La
+   goutte était collée au bord, et même un pixel dehors, à cause d'un
+   `translateX(-1px)` posé pour compenser autre chose.
+   ========================================================================== */
+describe('la goutte du squire-circle', () => {
+  const corps = rule(docSheet, '.tc-doc-squire-circle__button');
+
+  it('devrait centrer son contenu sur les deux axes', () => {
+    expect(corps).toMatch(/display:\s*grid/);
+    expect(corps).toMatch(/place-items:\s*center/);
+  });
+
+  /* LE DÉCALAGE MANUEL DOIT DISPARAÎTRE AVEC SA CAUSE. Laissé en place, il
+     décentrerait maintenant d'un pixel dans l'autre sens. */
+  it('ne devrait plus compenser à la main', () => {
+    expect(rule(docSheet, '.tc-doc-squire-circle__app-icon')).not.toMatch(/transform:\s*translate/);
   });
 });
