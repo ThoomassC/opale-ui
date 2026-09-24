@@ -2884,6 +2884,9 @@ body {
   .tc-doc-nav__shortcuts button:focus-visible {
     border-color: var(--opale-primary);
   }
+  .tc-doc-nav__scrollbar {
+    inset-block-start: 1.3rem;
+  }
 }
 
 .tc-doc-opale-playground {
