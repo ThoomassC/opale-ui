@@ -2307,6 +2307,12 @@
      dialogue. `ToastProvider` avait déjà choisi 1100 pour cette raison. */
   z-index: 1100;
   display: flex;
+  /* LES MESSAGES D'UNE MÊME PLACE S'EMPILENT. L'ancre est partagée : deux
+     cartes y sont deux éléments, posés l'un sous l'autre au lieu de se
+     recouvrir. L'axe principal est donc vertical, et les six places
+     ci-dessous en tirent leurs deux alignements. */
+  flex-direction: column;
+  gap: var(--opale-space-sm);
   padding: calc(1rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px))
     calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));
   inset: 0;
@@ -2318,20 +2324,20 @@
   justify-content: flex-start;
 }
 .opale-toast-anchor--top-center {
-  align-items: flex-start;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-start;
 }
 .opale-toast-anchor--top-right {
-  align-items: flex-start;
-  justify-content: flex-end;
-}
-.opale-toast-anchor--bottom-left {
   align-items: flex-end;
   justify-content: flex-start;
 }
+.opale-toast-anchor--bottom-left {
+  align-items: flex-start;
+  justify-content: flex-end;
+}
 .opale-toast-anchor--bottom-center {
-  align-items: flex-end;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-end;
 }
 .opale-toast-anchor--bottom-right {
   align-items: flex-end;

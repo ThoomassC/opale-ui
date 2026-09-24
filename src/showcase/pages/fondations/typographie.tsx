@@ -1,4 +1,3 @@
-import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
@@ -86,18 +85,11 @@ const FAMILIES: readonly FontFamily[] = [
   },
 ];
 
-export const typographiePage: DocPage = {
-  slug: 'typographie',
-  label: 'Typographie',
-  group: 'fondations',
-  title: 'Typographie',
-  lede: (
-    <>
-      Huit pas, rapports 1,15 en bas d’échelle et 1,20 en haut. Quatre familles pour trois
-      emplois : Bricolage Grotesque aux titres, Chivo au reste, Hack au code.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `typographie.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function TypographieContent() {
+  return (
     <PageBody>
       <Specimen title="Les huit pas" note="Le texte courant est borné à --measure (66 caractères).">
         <ul className="tc-doc-scale">
@@ -116,7 +108,10 @@ export const typographiePage: DocPage = {
         </ul>
       </Specimen>
 
-      <Specimen title="Les quatre familles" note="Bricolage Grotesque et Chivo arrivent par une requête Google Fonts ; Hack est embarquée.">
+      <Specimen
+        title="Les quatre familles"
+        note="Bricolage Grotesque et Chivo arrivent par une requête Google Fonts ; Hack est embarquée."
+      >
         <ul className="tc-doc-scale">
           {FAMILIES.map((family) => (
             <li className="tc-doc-scale__row" key={family.token}>
@@ -136,5 +131,5 @@ export const typographiePage: DocPage = {
         </ul>
       </Specimen>
     </PageBody>
-  ),
-};
+  );
+}

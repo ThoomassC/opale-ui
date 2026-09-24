@@ -2283,6 +2283,18 @@ body {
   place-items: center;
 }
 
+/* LE SQUIRE-CIRCLE EST ENFIN UN SQUIRCLE. Il dessinait un rectangle à coins
+   arrondis de 12 px, seul des trois objets de la scène à ne pas porter la
+   silhouette d'Opale. Même recette que le bouton « Continuer » et que
+   `Opale.Button` sous verre : le découpage sur chacune des couches, jamais sur
+   l'enveloppe, dont le halo de focus serait rogné. À 44 px de côté, le coin
+   plafonné à `min(1.375rem, 50%)` vaut la moitié exacte : c'est la
+   superellipse pleine, la forme entre carré et cercle qui donne son nom à la
+   cellule. */
+.tc-doc-squire-circle__root > * {
+  clip-path: var(--opale-squircle-clip);
+}
+
 /* Le contrôle reprend la même empreinte que la bascule de thème. Les trois
    cellules restent dans la même rangée avec le `gap` commun de la scène. */
 .tc-doc-squire-circle__stage {

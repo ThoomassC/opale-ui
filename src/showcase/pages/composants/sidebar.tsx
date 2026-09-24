@@ -1,5 +1,4 @@
 import { Sidebar } from '../../../magic';
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { UI_VERSION } from '../../version';
 import { Specimen } from '../../section';
@@ -142,21 +141,11 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
-export const sidebarPage: DocPage = {
-  slug: 'composants/sidebar',
-  label: 'Sidebar',
-  group: 'composants',
-  title: 'Sidebar',
-  lede: (
-    <>
-      Une barre latérale de verre en cinq parties composées — <code>Sidebar</code>,{' '}
-      <code>.Header</code>, <code>.Items</code>, <code>.Item</code>, <code>.Footer</code>, plus{' '}
-      <code>.Toggle</code>. Elle rend un vrai <code>&lt;aside&gt;</code> et un vrai{' '}
-      <code>&lt;nav&gt;</code> <em>nommé</em>, donc deux points de repère corrects ; ses entrées, en
-      revanche, sont des <code>&lt;button&gt;</code> et non des liens.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `sidebar.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function SidebarContent() {
+  return (
     <PageBody>
       <MagicPreamble />
 
@@ -291,13 +280,13 @@ export const sidebarPage: DocPage = {
           Le piège de <code>badge</code>, mesuré en écrivant cette page.
         </strong>{' '}
         {/* LE MÉCANISME A ÉTÉ RÉÉCRIT, PAS LE PIÈGE. La phrase disait que
-            `liquidGlass` « délègue au composant vendoré » : ce n'est plus vrai,
-            il n'y a plus de composant tiers derrière la prop. `Opale.Badge`
-            rend lui-même `<Glass as="span">`, et c'est `Glass` — le nôtre — qui
-            enveloppe toujours son contenu dans un `<div>`. Le HTML invalide est
-            donc EXACTEMENT le même, pour une raison qui nous appartient
-            désormais : dire le contraire aurait laissé croire que la réécriture
-            avait réglé ce cas-là aussi. */}
+          `liquidGlass` « délègue au composant vendoré » : ce n'est plus vrai,
+          il n'y a plus de composant tiers derrière la prop. `Opale.Badge`
+          rend lui-même `<Glass as="span">`, et c'est `Glass` — le nôtre — qui
+          enveloppe toujours son contenu dans un `<div>`. Le HTML invalide est
+          donc EXACTEMENT le même, pour une raison qui nous appartient
+          désormais : dire le contraire aurait laissé croire que la réécriture
+          avait réglé ce cas-là aussi. */}
         Y passer un{' '}
         <a className="tc-doc-link" href={hrefFor('composants/opale-badge')}>
           Badge
@@ -321,5 +310,5 @@ export const sidebarPage: DocPage = {
         .
       </p>
     </PageBody>
-  ),
-};
+  );
+}

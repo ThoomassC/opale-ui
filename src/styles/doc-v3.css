@@ -2558,3 +2558,12 @@ body {
     transition: none;
   }
 }
+
+/* L'emplacement d'une page qui se charge. Il réserve la hauteur d'un écran
+   pour que le pied de page ne remonte pas d'un bond pendant la fraction de
+   seconde où le morceau arrive, puis redescende. Rien n'y est peint : une
+   animation d'attente pour cent millisecondes attirerait l'œil sur un
+   clignotement. */
+.tc-doc-page-loading {
+  min-block-size: 60vh;
+}

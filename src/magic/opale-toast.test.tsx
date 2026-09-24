@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import opaleSheet from './opale.css?raw';
@@ -98,14 +99,11 @@ describe('les régions live', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Refusé');
   });
 
-  it.each(['neutral', 'success', 'info'] as const)(
-    'devrait annoncer %s poliment',
-    (tone) => {
-      render(<Opale.Toast message="Publié" tone={tone} />);
+  it.each(['neutral', 'success', 'info'] as const)('devrait annoncer %s poliment', (tone) => {
+    render(<Opale.Toast message="Publié" tone={tone} />);
 
-      expect(screen.getByRole('status')).toHaveTextContent('Publié');
-    },
-  );
+    expect(screen.getByRole('status')).toHaveTextContent('Publié');
+  });
 
   /* LES DEUX RÉGIONS SONT MONTÉES AVANT LE MESSAGE. Une région live insérée en
      même temps que son contenu n'est pas surveillée à l'instant de
@@ -189,7 +187,9 @@ describe('le ton se voit autrement que par la couleur', () => {
     (tone) => {
       render(<Opale.Toast message="Publié" tone={tone} />);
 
-      expect(screen.getByText('Publié').closest('.opale-toast')?.querySelector('svg')).not.toBeNull();
+      expect(
+        screen.getByText('Publié').closest('.opale-toast')?.querySelector('svg'),
+      ).not.toBeNull();
     },
   );
 
@@ -282,7 +282,9 @@ describe('le ton plein', () => {
     (tone) => {
       const corps = rule(`.opale-toast--${tone}`);
 
-      expect(corps).toMatch(/--opale-toast-fill:\s*color-mix\(in srgb, var\(--opale-\w+\) 80%, var\(--opale-text\)\)/);
+      expect(corps).toMatch(
+        /--opale-toast-fill:\s*color-mix\(in srgb, var\(--opale-\w+\) 80%, var\(--opale-text\)\)/,
+      );
       expect(corps).toMatch(/--opale-toast-fill-ink:\s*#fbfaf9/);
     },
   );
@@ -303,5 +305,117 @@ describe('le ton plein', () => {
   it('devrait faire hériter la croix de l’encre de la carte', () => {
     expect(rule('.opale-toast__close')).toMatch(/color:\s*inherit/);
     expect(rule('.opale-toast__close:focus-visible')).toMatch(/outline:[^;]*currentColor/);
+  });
+});
+
+/* =============================================================================
+   LES ANCRES PARTAGÉES — L'EMPILEMENT ET L'ORDRE DE TABULATION.
+
+   Deux limites documentées à la création du composant, levées d'un seul
+   geste. Chaque instance montait sa propre ancre plein écran en fin de
+   `<body>` : deux messages à la même place se recouvraient au pixel près, et
+   la croix d'un message posé en haut était le DERNIER arrêt clavier de la
+   page. Il y a désormais une ancre par place, partagée, montée à la première
+   instance et retirée à la dernière ; celles du haut vivent en tête de
+   `<body>`.
+   ========================================================================== */
+describe('les ancres partagées', () => {
+  it('devrait empiler deux messages à la même place dans une seule ancre', () => {
+    const { baseElement } = render(
+      <>
+        <Opale.Toast message="Premier" tone="success" />
+        <Opale.Toast message="Second" tone="info" />
+      </>,
+    );
+
+    const anchors = baseElement.querySelectorAll('.opale-toast-anchor--bottom-right');
+    expect(anchors, 'Une place, une ancre.').toHaveLength(1);
+    expect(anchors[0]).toHaveTextContent('Premier');
+    expect(anchors[0]).toHaveTextContent('Second');
+    // Une seule région polie pour la place : getByRole ne lève plus.
+    expect(screen.getByRole('status')).toHaveTextContent('PremierSecond');
+  });
+
+  it('devrait garder l’ancre tant qu’une instance l’occupe, et la retirer à la dernière', async () => {
+    const { rerender, unmount, baseElement } = render(
+      <>
+        <Opale.Toast message="Premier" />
+        <Opale.Toast message="Second" />
+      </>,
+    );
+    rerender(<Opale.Toast message="Premier" />);
+    expect(baseElement.querySelectorAll('.opale-toast-anchor--bottom-right')).toHaveLength(1);
+
+    unmount();
+    // Le retrait attend la fin du commit (voir le cas du remplacement, plus bas).
+    await Promise.resolve();
+    expect(document.querySelector('.opale-toast-anchor--bottom-right')).toBeNull();
+  });
+
+  it('devrait poser les ancres du haut avant la page, celles du bas après', () => {
+    const { container } = render(
+      <>
+        <Opale.Toast message="En haut" position="top-left" />
+        <Opale.Toast message="En bas" position="bottom-left" />
+      </>,
+    );
+    const top = document.querySelector('.opale-toast-anchor--top-left') as HTMLElement;
+    const bottom = document.querySelector('.opale-toast-anchor--bottom-left') as HTMLElement;
+
+    expect(top.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      bottom.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBeTruthy();
+  });
+
+  /* LA CROIX D'UN MESSAGE EN HAUT ÉTAIT LE 106ᵉ ARRÊT SUR 106. Elle vient
+     maintenant avant la page, comme elle vient avant elle à l'écran. */
+  it('devrait placer la croix d’un message du haut avant la page dans l’ordre de tabulation', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Action de la page</button>
+        <Opale.Toast message="En haut" position="top-right" onClose={() => {}} />
+      </>,
+    );
+
+    await user.tab();
+
+    expect(document.activeElement).toHaveAccessibleName('Fermer la notification');
+  });
+
+  it('devrait déplacer le message dans la région assertive quand son ton le devient', () => {
+    const { rerender } = render(<Opale.Toast message="Envoi" tone="info" />);
+    expect(screen.getByRole('status')).toHaveTextContent('Envoi');
+
+    rerender(<Opale.Toast message="Échec" tone="error" />);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(screen.getByRole('alert')).toHaveTextContent('Échec');
+  });
+
+  it('devrait empiler les cartes en colonne dans la feuille', () => {
+    const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(sheet).toMatch(/\.opale-toast-anchor\s*\{[^}]*flex-direction:\s*column/);
+    expect(sheet).toMatch(/\.opale-toast-anchor\s*\{[^}]*gap:/);
+  });
+
+  it('devrait ne rien rendre côté serveur', () => {
+    expect(renderToString(<Opale.Toast message="x" />)).toBe('');
+  });
+
+  /* UN MESSAGE QUI EN REMPLACE UN AUTRE DÉTRUISAIT L'ANCRE. Démonter l'ancien et
+     monter le nouveau tombent dans le même commit : le compteur passait par
+     zéro, l'ancre était retirée puis recréée, et le message entrait dans une
+     région live née dans la même tâche — une annonce qui peut se perdre. */
+  it('devrait garder la même ancre quand un message en remplace un autre', async () => {
+    const { rerender } = render(<Opale.Toast key="a" message="Premier" />);
+    const before = document.querySelector('.opale-toast-anchor--bottom-right');
+
+    rerender(<Opale.Toast key="b" message="Second" />);
+    await Promise.resolve();
+
+    const after = document.querySelector('.opale-toast-anchor--bottom-right');
+    expect(after, 'Même nœud, régions déjà surveillées.').toBe(before);
+    expect(after).toHaveTextContent('Second');
   });
 });

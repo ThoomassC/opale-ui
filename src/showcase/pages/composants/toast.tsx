@@ -1,4 +1,3 @@
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
@@ -146,21 +145,11 @@ const PROPS: readonly PropRow[] = [
    distincts ont droit à deux noms ; c'était le LIBELLÉ qui doublonnait, pas le
    composant, et c'est donc le libellé qu'on corrige.
    ========================================================================== */
-export const toastPage: DocPage = {
-  slug: 'composants/toast-provider',
-  label: 'ToastProvider',
-  group: 'composants',
-  title: 'ToastProvider',
-  lede: (
-    <>
-      Le seul composant de la librairie qui ne s’importe pas comme un composant : c’est un{' '}
-      <strong>fournisseur plus un hook</strong>. <code>ToastProvider</code> enveloppe l’arbre et
-      porte la file, <code>useToast()</code> donne <code>showToast</code>, <code>dismissToast</code>{' '}
-      et <code>clearToasts</code>, et les toasts se peignent dans un portail sur{' '}
-      <code>document.body</code>. Cinq variantes, six positions, quatre animations.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `toast.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function ToastContent() {
+  return (
     <PageBody>
       <MagicPreamble />
 
@@ -249,11 +238,12 @@ export const toastPage: DocPage = {
         <code>role=&quot;status&quot;</code> polie ; <code>warning</code> et <code>error</code> vont
         dans une région <code>role=&quot;alert&quot;</code> assertive, qui interrompt.{' '}
         <strong>Ce que ce découpage coûte</strong> : à l’intérieur d’un coin, les messages urgents
-        se groupent entre eux au lieu de s’intercaler par ordre d’arrivée avec le reste. Deux niveaux
-        de politesse ne tiennent pas dans une seule région, et entre un empilement chronologique
-        parfait et une urgence correctement annoncée, c’est l’urgence qui gagne. Les deux régions
-        portent <code>aria-atomic=&quot;false&quot;</code> : <code>role=&quot;status&quot;</code>{' '}
-        implique l’inverse, et sans cette remise à faux toute la pile serait relue à chaque arrivée.
+        se groupent entre eux au lieu de s’intercaler par ordre d’arrivée avec le reste. Deux
+        niveaux de politesse ne tiennent pas dans une seule région, et entre un empilement
+        chronologique parfait et une urgence correctement annoncée, c’est l’urgence qui gagne. Les
+        deux régions portent <code>aria-atomic=&quot;false&quot;</code> :{' '}
+        <code>role=&quot;status&quot;</code> implique l’inverse, et sans cette remise à faux toute
+        la pile serait relue à chaque arrivée.
       </p>
 
       <p className="tc-doc-prose">
@@ -286,5 +276,5 @@ export const toastPage: DocPage = {
         accompagne.
       </p>
     </PageBody>
-  ),
-};
+  );
+}

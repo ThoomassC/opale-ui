@@ -1,8 +1,7 @@
 import { useState } from 'react';
 
-import { OPALE_CATALOG, type CatalogEntry, Opale } from '../../magic';
-import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
-import type { DocPage } from '../doc-model';
+import { type CatalogEntry, Opale } from '../../magic';
+import { catalogComponentLabel } from '../doc-model';
 import { UsageBlock } from './api';
 import { CatalogPreview } from './catalog-preview';
 
@@ -238,7 +237,7 @@ if (readCookieConsent() === 'accepted') enableAnalytics();
   }
 }
 
-function ComponentPage({ entry }: { entry: CatalogEntry }) {
+export function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
   const supportsLiquidGlass = FORWARDS_LIQUID_GLASS.includes(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
@@ -302,19 +301,3 @@ function ComponentPage({ entry }: { entry: CatalogEntry }) {
     </div>
   );
 }
-
-export const opaleComponentPages: readonly DocPage[] = OPALE_CATALOG.map((entry) => ({
-  slug: catalogComponentSlug(entry.name),
-  label: catalogComponentLabel(entry.name),
-  group: 'composants',
-  title: catalogComponentLabel(entry.name),
-  /* LA CLÉ REMET LE COMMUTATEUR À ZÉRO EN CHANGEANT DE COMPOSANT.
-
-     Toutes les pages de composants rendent le MÊME élément `ComponentPage` :
-     React les réconcilie au lieu de les remonter, si bien que l'état du
-     commutateur suivait d'une page à l'autre. On activait le verre sur
-     `FileCard`, on cliquait « Feedback » dans le sommaire, et l'encart
-     arrivait déjà en verre — alors que le commutateur dit « uniquement à ce
-     composant ». La clé force un nouveau montage, donc un état neuf. */
-  render: () => <ComponentPage key={entry.name} entry={entry} />,
-}));
