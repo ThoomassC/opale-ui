@@ -1,4 +1,3 @@
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
@@ -42,20 +41,11 @@ box-shadow:
   0 0 0 2px var(--focus-inner),
   0 0 0 5px var(--focus-outer);`;
 
-export const accessibilitePage: DocPage = {
-  slug: 'accessibilite',
-  label: 'Accessibilité',
-  group: 'fondations',
-  title: 'Le contrat d’accessibilité',
-  lede: (
-    <>
-      Deux engagements portés par les jetons, vérifiables sur cette page : le focus se voit sur
-      n’importe quel fond, et rien de cliquable ne descend sous la taille du doigt.{' '}
-      <strong>Ce contrat ne couvre pas les quatorze composants publiés</strong> — ils sont vendorés
-      et n’emploient aucun de ces jetons.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `accessibilite.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function AccessibiliteContent() {
+  return (
     <PageBody>
       <Specimen
         title="Le double anneau de focus"
@@ -75,16 +65,16 @@ export const accessibilitePage: DocPage = {
             Un lien vers la palette
           </a>
           {/* `<label for>` explicite, et non un `<label>` enveloppant : c'est
-              la sémantique que la charte demande partout, et la seule qui
-              survive à un champ déplacé dans la mise en page. */}
+            la sémantique que la charte demande partout, et la seule qui
+            survive à un champ déplacé dans la mise en page. */}
           <span>
             <label htmlFor="demo-focus">Un champ&nbsp;</label>
             <input id="demo-focus" type="text" placeholder="Tabulez jusqu’ici" />
           </span>
         </div>
         {/* Même raison que le tableau de la page palette : un bloc de code qui
-            défile doit être atteignable au clavier (WCAG 2.1.1), et la liste
-            blanche par défaut de la règle jsx-a11y ne modélise pas ce cas. */}
+          défile doit être atteignable au clavier (WCAG 2.1.1), et la liste
+          blanche par défaut de la règle jsx-a11y ne modélise pas ce cas. */}
         <pre
           className="tc-doc-code"
           tabIndex={0}
@@ -163,13 +153,13 @@ export const accessibilitePage: DocPage = {
             l’autre), donc séparés par un glyphe et un libellé obligatoires. Ces composants ne sont
             plus publiés, et les trois tons de{' '}
             {/* LE LIEN VISAIT LE `Badge` VENDORÉ, dont la page a fusionné avec celle
-                d'Opale. « Les SIX variantes » était son compte à lui
-                (`default`, `positive`, `negative`, `warning`, `info`,
-                `neutral`) ; `Opale.Badge` en expose TROIS — `primary`,
-                `accent`, `danger`. Rediriger sans recompter aurait laissé un
-                nombre faux sur la page qui promet justement de ne rien
-                arrondir. Le reproche, lui, ne change pas : la teinte est le
-                seul écart entre les trois. */}
+              d'Opale. « Les SIX variantes » était son compte à lui
+              (`default`, `positive`, `negative`, `warning`, `info`,
+              `neutral`) ; `Opale.Badge` en expose TROIS — `primary`,
+              `accent`, `danger`. Rediriger sans recompter aurait laissé un
+              nombre faux sur la page qui promet justement de ne rien
+              arrondir. Le reproche, lui, ne change pas : la teinte est le
+              seul écart entre les trois. */}
             <a className="tc-doc-link" href={hrefFor('composants/opale-badge')}>
               Badge
             </a>{' '}
@@ -196,5 +186,5 @@ export const accessibilitePage: DocPage = {
         </ul>
       </Specimen>
     </PageBody>
-  ),
-};
+  );
+}

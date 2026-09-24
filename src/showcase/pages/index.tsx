@@ -7,21 +7,21 @@ import { iconesPage } from './icones';
 import { verreLiquidePage } from './verre-liquide';
 import { notesVersionsPage } from './notes-de-versions';
 
-import { accessibilitePage } from './fondations/accessibilite';
-import { elevationPage } from './fondations/elevation';
-import { espacementPage } from './fondations/espacement';
-import { palettePage } from './fondations/palette';
-import { typographiePage } from './fondations/typographie';
-import { verrePage } from './fondations/verre';
+import { accessibilitePage } from './fondations/accessibilite.page';
+import { elevationPage } from './fondations/elevation.page';
+import { espacementPage } from './fondations/espacement.page';
+import { palettePage } from './fondations/palette.page';
+import { typographiePage } from './fondations/typographie.page';
+import { verrePage } from './fondations/verre.page';
 
-import { modalPage } from './composants/modal';
-import { searchBarPage } from './composants/search-bar';
-import { sidebarPage } from './composants/sidebar';
-import { siteNavPage } from './composants/site-nav';
-import { tabsPage } from './composants/tabs';
-import { toastPage } from './composants/toast';
-import { topbarPage } from './composants/topbar';
-import { opaleComponentPages } from './opale-components';
+import { modalPage } from './composants/modal.page';
+import { searchBarPage } from './composants/search-bar.page';
+import { sidebarPage } from './composants/sidebar.page';
+import { siteNavPage } from './composants/site-nav.page';
+import { tabsPage } from './composants/tabs.page';
+import { toastPage } from './composants/toast.page';
+import { topbarPage } from './composants/topbar.page';
+import { opaleComponentPages } from './opale-component-pages';
 
 /* =============================================================================
    LE REGISTRE — l'unique liste des pages du site, et donc de sa navigation.

@@ -1,5 +1,4 @@
 import { SearchBar } from '../../../magic';
-import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -31,13 +30,11 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
-export const searchBarPage: DocPage = {
-  slug: 'composants/search-bar',
-  label: 'SearchBar',
-  group: 'composants',
-  title: 'SearchBar',
-  lede: 'Une barre de recherche autonome, extraite de SiteNav, en surface pleine ou en verre.',
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `search-bar.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function SearchBarContent() {
+  return (
     <PageBody>
       <MagicPreamble />
       <UsageBlock label="Import et appel de SearchBar" code={USAGE} />
@@ -58,5 +55,5 @@ export const searchBarPage: DocPage = {
 
       <PropsTable id="magic-search-bar" rows={PROPS} />
     </PageBody>
-  ),
-};
+  );
+}

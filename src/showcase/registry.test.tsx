@@ -1,5 +1,5 @@
 import { cleanup, render } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /* L'ENTRÉE RACINE DU PAQUET, ET ELLE A CHANGÉ DE FICHIER EN 2.0.
    C'était `src/index.ts`, qui réexportait dix-huit composants écrits ici ;
@@ -22,6 +22,12 @@ import * as library from '../magic';
 import type { DocPage } from './doc-model';
 import { GROUPS, HOME_SLUG, catalogComponentLabel, parseSlug } from './doc-model';
 import { PAGES } from './pages';
+import { preloadPages } from './pages/lazy-page';
+
+/* Les fondations, les composants et le catalogue se chargent à la demande :
+   les monter d'un coup suppose de les charger d'avance, sans quoi chaque page
+   suspendrait sur son emplacement d'attente. */
+beforeAll(() => preloadPages());
 
 /* ============================================================================
    POURQUOI CE FICHIER EXISTE

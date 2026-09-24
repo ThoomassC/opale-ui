@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react';
 
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
@@ -49,20 +48,11 @@ const PLATE: CSSProperties = {
   padding: 'var(--space-5)',
 };
 
-export const elevationPage: DocPage = {
-  slug: 'elevation',
-  label: 'Élévation',
-  group: 'fondations',
-  title: 'Élévation',
-  lede: (
-    <>
-      Quatre crans, et une inversion de polarité :{' '}
-      <strong>en clair, c’est l’ombre qui sépare</strong> la plaque du sol (ΔE 20,6 ; un liseré
-      blanc y plafonne à ΔE 4,0), <strong>en sombre, c’est le liseré</strong> (une ombre composée y
-      mesure ΔE 2,2). Les deux sont donc toujours posés ensemble.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `elevation.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function ElevationContent() {
+  return (
     <PageBody>
       <Specimen
         title="Les quatre crans"
@@ -77,7 +67,7 @@ export const elevationPage: DocPage = {
           {ELEVATIONS.map((elevation) => (
             <div key={elevation.token} style={{ ...PLATE, boxShadow: `var(${elevation.token})` }}>
               {/* `<h3>` et non `<h4>` : le titre du spécimen est un `<h2>`
-                  depuis que la coquille rend le `<h1>` de la page. */}
+                depuis que la coquille rend le `<h1>` de la page. */}
               <h3 className="tc-doc-cardtitle">Cran {elevation.level}</h3>
               <p className="tc-doc-cardmeta">
                 <code className="tc-doc-scale__token">{elevation.token}</code>
@@ -89,12 +79,12 @@ export const elevationPage: DocPage = {
       </Specimen>
 
       {/* LA PHRASE A CHANGÉ PARCE QUE LE CODE A CHANGÉ. Elle disait, à juste
-          titre, que la prop `elevation` de la Card ne posait qu'une classe
-          qu'aucune feuille ne servait. `opale.css` sert désormais les quatre
-          crans — sur l'échelle d'ombres d'Opale, `--opale-shadow-*`, et non sur
-          ces jetons-ci, que la feuille autonome d'Opale ne charge pas. Le
-          paragraphe dit donc les deux : la carte a ses crans, et les jetons de
-          cette page restent ceux de qui compose ses propres surfaces. */}
+        titre, que la prop `elevation` de la Card ne posait qu'une classe
+        qu'aucune feuille ne servait. `opale.css` sert désormais les quatre
+        crans — sur l'échelle d'ombres d'Opale, `--opale-shadow-*`, et non sur
+        ces jetons-ci, que la feuille autonome d'Opale ne charge pas. Le
+        paragraphe dit donc les deux : la carte a ses crans, et les jetons de
+        cette page restent ceux de qui compose ses propres surfaces. */}
       <p className="tc-doc-prose tc-doc-aside">
         <strong>La Card d’Opale a ses propres crans.</strong> Sa prop <code>elevation</code>, de{' '}
         <code>0</code> à <code>3</code>, pose l’ombre correspondante de l’échelle d’Opale (
@@ -106,5 +96,5 @@ export const elevationPage: DocPage = {
         propres surfaces avec <code>tokens.css</code>.
       </p>
     </PageBody>
-  ),
-};
+  );
+}

@@ -1,5 +1,4 @@
 import { SiteNav } from '../../../magic';
-import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -53,18 +52,11 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
-export const siteNavPage: DocPage = {
-  slug: 'composants/site-nav',
-  label: 'SiteNav',
-  group: 'composants',
-  title: 'SiteNav',
-  lede: (
-    <>
-      Une démonstration de barre liquid glass centrée. Les onglets sont cliquables sans changer de
-      page ; <strong>une seule bulle</strong> glisse entre eux.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `site-nav.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function SiteNavContent() {
+  return (
     <PageBody>
       <UsageBlock label="Import et appel représentatif de SiteNav" code={USAGE} />
 
@@ -95,5 +87,5 @@ export const siteNavPage: DocPage = {
         rows={PROPS}
       />
     </PageBody>
-  ),
-};
+  );
+}

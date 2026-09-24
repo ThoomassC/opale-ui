@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
@@ -183,19 +182,11 @@ const PANE: CSSProperties = {
   maxInlineSize: '28ch',
 };
 
-export const verrePage: DocPage = {
-  slug: 'verre',
-  label: 'Verre',
-  group: 'fondations',
-  title: 'Verre',
-  lede: (
-    <>
-      Onze jetons de matériau — remplissage, flou, ménisque, liseré, spéculaire, ombre — toujours
-      publiés et toujours mesurés par le contrat. <strong>Plus rien ne les applique</strong> : la
-      feuille et les composants qui les consommaient ne sont pas dans la 2.0.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `verre.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function VerreContent() {
+  return (
     <PageBody>
       <Specimen
         title="Ce qui reste, et ce qui est parti"
@@ -271,9 +262,9 @@ export const verrePage: DocPage = {
           sont <strong>pas thémés</strong> ; le remplissage, le liseré et l’ombre le sont.
         </p>
         {/* Même recette que les autres tableaux de la vitrine : un conteneur à
-            défilement horizontal doit être atteignable au clavier (WCAG 2.1.1),
-            et la liste blanche par défaut de la règle `jsx-a11y` ne modélise
-            pas ce cas. */}
+          défilement horizontal doit être atteignable au clavier (WCAG 2.1.1),
+          et la liste blanche par défaut de la règle `jsx-a11y` ne modélise
+          pas ce cas. */}
         <div
           className="tc-doc-tablewrap"
           tabIndex={0}
@@ -315,5 +306,5 @@ export const verrePage: DocPage = {
         . Deux matériaux du même nom, mesuré pour l’un, pas pour l’autre.
       </p>
     </PageBody>
-  ),
-};
+  );
+}

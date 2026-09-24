@@ -1,6 +1,6 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import opaleComponentsSource from './opale-components.tsx?raw';
 import catalogPreviewSource from './catalog-preview.tsx?raw';
@@ -8,7 +8,13 @@ import { OPALE_CATALOG, Opale } from '../../magic';
 import { catalogComponentLabel } from '../doc-model';
 import opaleMagicSource from '../../magic/opale.tsx?raw';
 import { CatalogPreview } from './catalog-preview';
-import { opaleComponentPages } from './opale-components';
+import { opaleComponentPages } from './opale-component-pages';
+import { preloadPages } from './lazy-page';
+
+/* Les fondations, les composants et le catalogue se chargent à la demande :
+   les monter d'un coup suppose de les charger d'avance, sans quoi chaque page
+   suspendrait sur son emplacement d'attente. */
+beforeAll(() => preloadPages());
 
 afterEach(cleanup);
 
@@ -243,7 +249,6 @@ describe('le catalogue interactif V3', () => {
     expect(file).toHaveAttribute('aria-pressed', 'true');
     expect(file).toHaveClass('opale-file-card--selected');
   });
-
 });
 
 /* =============================================================================

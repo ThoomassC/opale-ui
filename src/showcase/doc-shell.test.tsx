@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DocNavEntry, DocPage } from './doc-model';
 import { GROUPS, HOME_SLUG, hrefFor, navEntriesForPages } from './doc-model';
 import { DocShell } from './doc-shell';
@@ -12,7 +12,13 @@ import {
   DOC_NAV_WIDTH_STEP,
 } from './doc-nav';
 import { PAGES } from './pages';
+import { preloadPages } from './pages/lazy-page';
 import { UI_VERSION } from './version';
+
+/* Les fondations, les composants et le catalogue se chargent à la demande :
+   les monter d'un coup suppose de les charger d'avance, sans quoi chaque page
+   suspendrait sur son emplacement d'attente. */
+beforeAll(() => preloadPages());
 
 /* ============================================================================
    POURQUOI CE FICHIER EXISTE

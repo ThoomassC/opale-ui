@@ -1,5 +1,4 @@
 import { Tabs } from '../../../magic';
-import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -101,22 +100,11 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
-export const tabsPage: DocPage = {
-  slug: 'composants/tabs',
-  label: 'Tabs',
-  group: 'composants',
-  title: 'Tabs',
-  lede: (
-    <>
-      Quatre parties composées — <code>Tabs</code>, <code>Tabs.List</code>,{' '}
-      <code>Tabs.Trigger</code>, <code>Tabs.Content</code> —, les rôles ARIA du motif tabulaire au
-      complet, les identifiants appariés par <code>useId</code>, un seul arrêt de tabulation pour
-      tout le groupe et la navigation par flèches avec <kbd>Origine</kbd> et <kbd>Fin</kbd>.
-      Contrôlé ou non, au choix. <strong>Réécrit par Opale</strong> : c’était le plus gros des
-      composants repris ailleurs, et un motif d’accessibilité ne se recopie pas — il se tient.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `tabs.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function TabsContent() {
+  return (
     <PageBody>
       <MagicPreamble />
 
@@ -226,5 +214,5 @@ export const tabsPage: DocPage = {
         sans redéfinir <code>--opale-tabs-ink</code>, le composant est illisible.
       </p>
     </PageBody>
-  ),
-};
+  );
+}

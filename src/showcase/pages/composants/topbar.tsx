@@ -1,5 +1,4 @@
 import { Opale, Topbar } from '../../../magic';
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
@@ -88,21 +87,11 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
-export const topbarPage: DocPage = {
-  slug: 'composants/topbar',
-  label: 'Topbar',
-  group: 'composants',
-  title: 'Topbar',
-  lede: (
-    <>
-      Une barre d’application en verre, rendue comme un vrai <code>&lt;header&gt;</code> — donc un
-      point de repère correct. Cinq parties composées : <code>Topbar</code>, <code>.Section</code>,{' '}
-      <code>.Brand</code>, <code>.Actions</code>, <code>.Divider</code>. Le <strong>seul</strong>{' '}
-      composant de la librairie qui n’a aucun état, aucun contexte de valeur et rien à contrôler :
-      c’est de la mise en page.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `topbar.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function TopbarContent() {
+  return (
     <PageBody>
       <MagicPreamble />
 
@@ -132,12 +121,12 @@ export const topbarPage: DocPage = {
               <Topbar.Divider />
               <Topbar.Section grow>
                 {/* `Opale.Badge` ET NON LE `Badge` VENDORÉ, qui n'est plus une
-                  porte publique : il est la matière derrière
-                  `Opale.Badge liquidGlass`. Le ton par défaut remplace son
-                  `variant="info"`, qui n'a pas d'équivalent — Opale en expose
-                  trois (`primary`, `accent`, `danger`) là où le vendoré en
-                  proposait six. Un `accent` aurait dit « attention » sur une
-                  pastille qui ne fait qu'étiqueter un brouillon. */}
+                porte publique : il est la matière derrière
+                `Opale.Badge liquidGlass`. Le ton par défaut remplace son
+                `variant="info"`, qui n'a pas d'équivalent — Opale en expose
+                trois (`primary`, `accent`, `danger`) là où le vendoré en
+                proposait six. Un `accent` aurait dit « attention » sur une
+                pastille qui ne fait qu'étiqueter un brouillon. */}
                 <Opale.Badge>brouillon</Opale.Badge>
               </Topbar.Section>
               <Topbar.Actions>
@@ -165,8 +154,8 @@ export const topbarPage: DocPage = {
               <Topbar.Divider />
               <Topbar.Section grow>
                 {/* `<code>` ET NON `<span>` : c'est du code, et le code en ligne de
-                    la vitrine se coupe — `size="comfortable"` d'un seul tenant
-                    débordait la barre à 320 px. */}
+                  la vitrine se coupe — `size="comfortable"` d'un seul tenant
+                  débordait la barre à 320 px. */}
                 <code>size=&quot;{size}&quot;</code>
               </Topbar.Section>
             </Topbar>
@@ -233,5 +222,5 @@ export const topbarPage: DocPage = {
         pour l’autre moitié du chrome.
       </p>
     </PageBody>
-  ),
-};
+  );
+}
