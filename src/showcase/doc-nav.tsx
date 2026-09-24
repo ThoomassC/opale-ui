@@ -116,11 +116,11 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
   const resizeDragRef = useRef<ResizeDrag | null>(null);
   const scrollbarStateRef = useRef<ScrollbarState>(INITIAL_SCROLLBAR_STATE);
 
-  /* Sous 30 rem, le sommaire s'affiche au-dessus de la page comme sur la
-     recette. Le bouton permet de le replier pour gagner de la place ; ce
-     choix reste en place pendant la navigation. Au-delà, le rail permanent
-     reste visible et le bouton est masqué par la feuille de style. */
-  const [menuOpen, setMenuOpen] = useState(true);
+  /* Sous 30 rem, le sommaire est replié au chargement pour laisser voir la
+     page. Le bouton permet de retrouver le rail de la recette ; le choix de
+     visibilité reste en place pendant la navigation. Au-delà, le rail est
+     permanent et le bouton est masqué par la feuille de style. */
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const scrollElement = scrollRef.current;

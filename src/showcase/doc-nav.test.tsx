@@ -160,37 +160,37 @@ describe('le sommaire repliable', () => {
   const toggle = () => screen.getByRole('button', { name: 'Sommaire' });
   const shell = (container: HTMLElement) => container.querySelector('.tc-doc-nav');
 
-  it('devrait démarrer déplié, et dire ce qu’il commande', () => {
+  it('devrait démarrer replié, et dire ce qu’il commande', () => {
     const { container } = renderNav();
 
-    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
     const controlled = document.getElementById(toggle().getAttribute('aria-controls') ?? '');
     expect(controlled, 'aria-controls doit viser un élément existant.').not.toBeNull();
-    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
   });
 
   it('devrait se déplier et se replier au clic', () => {
     const { container } = renderNav();
 
     fireEvent.click(toggle());
-    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
-    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(shell(container)).toHaveAttribute('data-menu', 'open');
 
     fireEvent.click(toggle());
-    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
   });
 
   it('devrait conserver le choix de visibilité quand on change de page', () => {
     const { container, rerender } = renderNav();
 
     rerender(<DocNav pages={PAGES} currentSlug="installation" />);
-    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
 
     fireEvent.click(toggle());
-    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+    expect(shell(container)).toHaveAttribute('data-menu', 'open');
 
     rerender(<DocNav pages={PAGES} currentSlug="notes-de-versions" />);
 
-    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+    expect(shell(container)).toHaveAttribute('data-menu', 'open');
   });
 });
