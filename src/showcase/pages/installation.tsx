@@ -4,7 +4,6 @@ import { UI_VERSION } from '../version';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
 
-const INSTALL_PRODUCTION = 'npm install opale';
 const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"`;
 
 const IMPORTS = `import '@thomascaron/opale-ui/tokens.css';
@@ -26,20 +25,8 @@ export const installationPage: DocPage = {
   render: () => (
     <PageBody>
       <Specimen
-        title="Installer la dernière version en production"
-        note="La version stable publiée pour la production se récupère automatiquement depuis npm."
-      >
-        <UsageBlock
-          label="Installation de la version stable"
-          code={INSTALL_PRODUCTION}
-          language="shell"
-          defaultOpen
-        />
-      </Specimen>
-
-      <Specimen
-        title="Installer une version précise"
-        note="La V3 reste disponible depuis le dépôt GitHub, avec son numéro de version explicite."
+        title={`Installer Opale UI ${UI_VERSION}`}
+        note="La version de recette est installable depuis le tag GitHub correspondant."
       >
         <UsageBlock label="Commande d'installation" code={INSTALL} language="shell" defaultOpen />
       </Specimen>

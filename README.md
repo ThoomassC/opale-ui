@@ -10,7 +10,7 @@ Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/por
 > `@apply` qu'ils servaient. Le matériau verre est désormais le nôtre, opt-in composant par
 > composant ; la vitrine propose les thèmes globaux `light` et `dark`.
 
-La vitrine est actuellement en **3.1.1**. Son historique est consultable dans l’onglet
+La vitrine de recette est actuellement en **3.2.0**. Son historique est consultable dans l’onglet
 « Notes de versions » ; chaque état antérieur dispose aussi d’un snapshot utilisable sous
 `public/versions/`. Les états antérieurs du paquet, y compris la **2.0** et ses composants
 copiés d'une librairie tierce, sont décrits dans ces notes — et l'héritage lui-même dans
@@ -83,12 +83,12 @@ ce qui ne l'est pas.
 Le paquet s'installe depuis git, et il n'est pas publié sur npm.
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.2.0"
 ```
 
-> **Les tags de publication restent la source de vérité du paquet.** La vitrine 3.1.1 et les
+> **Les tags de publication restent la source de vérité du paquet.** La vitrine 3.2.0 et les
 > snapshots historiques sont conservés séparément pour permettre la comparaison visuelle ;
-> au moment de publier une version, poser et pousser le tag correspondant (`v3.1.1`, puis les
+> au moment de publier une version, poser et pousser le tag correspondant (`v3.2.0`, puis les
 > suivants) permet de l’installer sans dépendre d’un HEAD de branche.
 
 Le paquet se compile à l'installation (`prepare` → `build:lib`). **Quatre points d'entrée**,
@@ -97,7 +97,7 @@ et les deux premiers suffisent :
 ```js
 import '@thomascaron/opale-ui/tokens.css'; // la palette, les échelles, le focus, le mouvement
 import '@thomascaron/opale-ui/opale.css'; // les jetons et les styles des composants, une fois par app
-import { Button, Glass, Modal } from '@thomascaron/opale-ui';
+import { Button, Modal, Opale } from '@thomascaron/opale-ui';
 ```
 
 ```ts
@@ -474,8 +474,8 @@ dans le script, jamais en appauvrissant la source.
 
 Par coût de retour en arrière décroissant.
 
-1. **Le tag de publication `v3.1.1`.** Le code et la vitrine sont prêts ; le tag doit être posé
-   au moment de la publication pour rendre l’installation git immuable.
+1. **La compatibilité de la 3.2.0.** La version de recette retire des composants publics ;
+   vérifier les consommateurs et le numéro semver avant une publication hors recette.
 2. **L'`@import` de Google Fonts dans `opale.css`.** Il impose une requête tierce à tout
    consommateur du paquet et contredit une règle que le dépôt s'applique partout ailleurs. Le
    retirer est une ligne ; ce qui se décide, c'est ce qu'on met à la place — un repli système

@@ -47,7 +47,7 @@ export const notesVersionsPage: DocPage = {
                   ) : null}
                   {release.breaking ? (
                     <span className="tc-doc-release__status tc-doc-release__status--breaking">
-                      Rupture majeure
+                      Changements incompatibles
                     </span>
                   ) : null}
                 </div>

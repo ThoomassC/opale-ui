@@ -26,7 +26,7 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
-    version: '4.0.0',
+    version: '3.2.0',
     publishedAt: '2026-09-24',
     dateLabel: '24 septembre 2026',
     summary:
@@ -43,7 +43,7 @@ export const RELEASES: readonly ReleaseNote[] = [
     ],
     breaking: true,
     appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/v4.0.0`,
+    sourceHref: `${REPOSITORY_URL}/tree/v3.2.0`,
   },
   {
     version: '3.1.1',
@@ -60,8 +60,8 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Rupture : les jetons CSS et les classes publiés prennent le préfixe opale-, et les exports nommés perdent le leur. Le chemin Opale.Button ne change pas.',
     ],
     breaking: true,
-    /* ARCHIVÉE À LA SORTIE DE LA 4.0.0. `#/` désignait la version courante :
-       gardé, le lien de la 3.1.1 aurait ouvert la 4.0.0. Le build figé vient
+    /* ARCHIVÉE À LA SORTIE DE LA 3.2.0. `#/` désignait la version courante :
+       gardé, le lien de la 3.1.1 aurait ouvert la 3.2.0. Le build figé vient
        de son tag, comme les archives qui la précèdent. */
     appHref: '/versions/v3.1.1/index.html',
     /* LE TAG ET NON LA BRANCHE. `feat/composants` avance à chaque commit :
