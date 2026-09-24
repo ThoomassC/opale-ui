@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { OPALE_CATALOG } from '../magic';
 import type { DocNavEntry, DocPage } from './doc-model';
 import { GROUPS, HOME_SLUG, hrefFor, navEntriesForPages } from './doc-model';
 import { DocShell } from './doc-shell';
@@ -648,7 +649,7 @@ describe('DocShell — le rendu de la page', () => {
        du fichier dérive déjà de `UI_VERSION` ; cette ligne était la seule
        copie restante. */
     expect(screen.getByRole('heading', { name: `Opale UI ${UI_VERSION}` })).toBeInTheDocument();
-    expect(screen.getByText('91 composants')).toBeInTheDocument();
+    expect(screen.getByText(`${OPALE_CATALOG.length} composants Opale`)).toBeInTheDocument();
     expect(screen.queryByText(/Rejoindre la bêta/i)).toBeNull();
     expect(screen.queryByText(/Explorer/i)).toBeNull();
   });

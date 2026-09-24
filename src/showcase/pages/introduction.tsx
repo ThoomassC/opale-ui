@@ -1,28 +1,32 @@
+import { OPALE_CATALOG } from '../../magic';
+import { deploymentLabel } from '../deployment-environment';
 import type { DocPage } from '../doc-model';
 import { hrefFor } from '../doc-model';
 import { CURRENT_RELEASE } from '../releases';
 import { UI_VERSION } from '../version';
 import { PageBody } from './api';
 
+const COMPONENT_COUNT = OPALE_CATALOG.length;
+
 const HOME_STATS = [
-  { value: '91', label: 'composants' },
-  { value: '3', label: 'thèmes' },
-  { value: '14', label: 'composants historiques' },
-  { value: '100%', label: 'TypeScript' },
+  { value: String(COMPONENT_COUNT), label: 'composants Opale' },
+  { value: '2', label: 'thèmes' },
+  { value: '1', label: 'matériau optionnel' },
+  { value: String(CURRENT_RELEASE.changes.length), label: `changements en v${UI_VERSION}` },
 ] as const;
 
 const HOME_FEATURES = [
   {
     icon: '▦',
-    title: '91 composants',
+    title: `${COMPONENT_COUNT} composants Opale`,
     description:
-      'Primitives Opale, composants historiques et briques spécialisées pour construire toute une interface.',
+      'Un catalogue issu des composants Opale réellement documentés, pour construire une interface cohérente.',
   },
   {
     icon: '☾',
-    title: '3 thèmes maîtrisés',
+    title: '2 thèmes, 1 matériau',
     description:
-      'Clair, sombre et Liquid Glass : le matériau s’active composant par composant, sans modifier le reste de la page.',
+      'Clair et sombre sont les deux thèmes ; Liquid Glass est un matériau optionnel, activé composant par composant.',
   },
   {
     icon: '◆',
@@ -43,8 +47,7 @@ export const introductionPage: DocPage = {
   label: 'Présentation',
   group: 'introduction',
   title: 'Le design system de l’écosystème Opale.',
-  lede:
-    'Opale UI réunit des composants React élégants, accessibles et strictement typés, enrichis du matériau Liquid Glass.',
+  lede: 'Opale UI réunit des composants React élégants, accessibles et strictement typés, enrichis du matériau Liquid Glass.',
   render: () => (
     <PageBody>
       <div className="tc-doc-home">
@@ -74,7 +77,11 @@ export const introductionPage: DocPage = {
           <div className="tc-doc-home__release-head">
             <div className="tc-doc-home__release-meta">
               <span className="tc-doc-home__release-eyebrow">Dernière version</span>
-              <span className="tc-doc-home__release-status">En production</span>
+              <span className="tc-doc-home__release-status">
+                {deploymentLabel(
+                  typeof window === 'undefined' ? 'localhost' : window.location.hostname,
+                )}
+              </span>
             </div>
             <time dateTime={CURRENT_RELEASE.publishedAt}>
               {CURRENT_RELEASE.dateLabel} · {CURRENT_RELEASE.changes.length} changements
@@ -84,7 +91,7 @@ export const introductionPage: DocPage = {
           <h2 id="tc-doc-home-release-title">Opale UI {CURRENT_RELEASE.version}</h2>
 
           <ul>
-            {CURRENT_RELEASE.changes.slice(0, 3).map((change) => (
+            {(CURRENT_RELEASE.highlights ?? CURRENT_RELEASE.changes.slice(0, 3)).map((change) => (
               <li key={change}>{change}</li>
             ))}
           </ul>

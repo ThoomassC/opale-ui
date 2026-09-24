@@ -47,6 +47,18 @@ describe('registre des notes de versions', () => {
     }
   });
 
+  it('garde les changements de la 3.2.0 dans leurs trois groupes de lecture', () => {
+    expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
+      'Compatibilité et migration',
+      'Composants et interactions',
+      'Documentation et qualité',
+    ]);
+    expect(CURRENT_RELEASE.sections?.flatMap((section) => section.changes)).toEqual(
+      CURRENT_RELEASE.changes,
+    );
+    expect(CURRENT_RELEASE.migration?.steps).toHaveLength(3);
+  });
+
   it('devrait donner une application et une provenance à chaque entrée', () => {
     for (const release of RELEASES) {
       expect(release.appHref, `application absente pour ${release.version}`).not.toBe('');

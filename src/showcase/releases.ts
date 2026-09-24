@@ -5,18 +5,83 @@
  * commits indiqués ici. Une version ne remplace donc jamais la précédente :
  * son application, ses routes et son code restent consultables tels quels.
  */
+export interface ReleaseSection {
+  readonly title: string;
+  readonly changes: readonly string[];
+}
+
+export interface ReleaseMigrationStep {
+  readonly title: string;
+  readonly before: string;
+  readonly after: string;
+}
+
 export interface ReleaseNote {
   readonly version: string;
   readonly publishedAt: string;
   readonly dateLabel: string;
   readonly summary: string;
   readonly changes: readonly string[];
+  readonly highlights?: readonly string[];
+  /** Optional grouping for releases with a longer change list. */
+  readonly sections?: readonly ReleaseSection[];
+  readonly migration?: {
+    readonly fromVersion: string;
+    readonly steps: readonly ReleaseMigrationStep[];
+  };
   readonly breaking?: boolean;
   /** URL de l'application figée, ou fragment pour la version courante. */
   readonly appHref: string;
   /** Arbre Git immuable ayant produit l'archive. */
   readonly sourceHref: string;
 }
+
+const CURRENT_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Compatibilité et migration',
+    changes: [
+      'Rupture : vingt-quatre composants qui ne portaient rien sont retirés du catalogue, dont Game, Map, StatusChip, ThemeToggle, Separator et les cinq boutons spécialisés (AddButton, SaveButton, ApproveButton, EditButton, DeleteButton).',
+      'Rupture : Glass n’est plus exporté, le verre passe par la propriété liquidGlass. IconActionButton prend une icône par son nom (icon) au lieu de l’initiale de son libellé, et Lightbox exige un texte alternatif (alt).',
+    ],
+  },
+  {
+    title: 'Composants et interactions',
+    changes: [
+      'Chaque composant qui peint une surface accepte liquidGlass et rend sa version d’origine par défaut.',
+      'Toast choisit un ton (neutral, success, warning, error, info) qui remplit la carte et l’une des six places de l’écran ; Rating se remplit au quart d’étoile ; 125 icônes Opale sont dessinées à la main, sans bibliothèque externe.',
+      'DataTable se trie par ses en-têtes, Dropzone accepte le glisser-déposer, CookieBanner mémorise le choix et propose de refuser, Clipboard signale l’échec, InlineInput valide sur Entrée et rétablit sur Échap, Badge gagne un point de notification et Card ses quatre élévations.',
+    ],
+  },
+  {
+    title: 'Documentation et qualité',
+    changes: [
+      'Chaque fiche du catalogue décrit ce que le composant fait réellement, et un test refuse désormais une fiche qui promettrait une fonction sans trace dans le code.',
+      'Les jetons de fond et d’encre sont séparés, ce qui rend le thème sombre lisible.',
+      'La vitrine tient à 320 px de large : sous 30 rem, la navigation devient un sommaire repliable.',
+    ],
+  },
+];
+
+const CURRENT_RELEASE_MIGRATION = {
+  fromVersion: '3.1.1',
+  steps: [
+    {
+      title: 'Activer le verre sur le composant',
+      before: '<Glass><Opale.Card>Contenu</Opale.Card></Glass>',
+      after: '<Opale.Card liquidGlass>Contenu</Opale.Card>',
+    },
+    {
+      title: 'Nommer l’icône d’action',
+      before: '<Opale.IconActionButton label="Partager" />',
+      after: '<Opale.IconActionButton icon="share" label="Partager" />',
+    },
+    {
+      title: 'Décrire l’image de la visionneuse',
+      before: '<Opale.Lightbox src="/visuel.png" open />',
+      after: '<Opale.Lightbox src="/visuel.png" alt="Aperçu du composant" open />',
+    },
+  ],
+} as const;
 
 const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
 
@@ -31,16 +96,14 @@ export const RELEASES: readonly ReleaseNote[] = [
     dateLabel: '24 septembre 2026',
     summary:
       'Un catalogue resserré qui tient ce qu’il annonce : chaque composant garde sa matière d’origine et son verre liquide, et la vitrine se lit sur un téléphone.',
-    changes: [
-      'Rupture : vingt-quatre composants qui ne portaient rien sont retirés du catalogue, dont Game, Map, StatusChip, ThemeToggle, Separator et les cinq boutons spécialisés (AddButton, SaveButton, ApproveButton, EditButton, DeleteButton).',
-      'Rupture : Glass n’est plus exporté, le verre passe par la propriété liquidGlass. IconActionButton prend une icône par son nom (icon) au lieu de l’initiale de son libellé, et Lightbox exige un texte alternatif (alt).',
-      'Chaque composant qui peint une surface accepte liquidGlass et rend sa version d’origine par défaut.',
-      'Toast choisit un ton (neutral, success, warning, error, info) qui remplit la carte et l’une des six places de l’écran ; Rating se remplit au quart d’étoile ; 125 icônes Opale sont dessinées à la main, sans bibliothèque externe.',
-      'DataTable se trie par ses en-têtes, Dropzone accepte le glisser-déposer, CookieBanner mémorise le choix et propose de refuser, Clipboard signale l’échec, InlineInput valide sur Entrée et rétablit sur Échap, Badge gagne un point de notification et Card ses quatre élévations.',
-      'Chaque fiche du catalogue décrit ce que le composant fait réellement, et un test refuse désormais une fiche qui promettrait une fonction sans trace dans le code.',
-      'Les jetons de fond et d’encre sont séparés, ce qui rend le thème sombre lisible.',
-      'La vitrine tient à 320 px de large : sous 30 rem, la navigation devient un sommaire repliable.',
+    sections: CURRENT_RELEASE_SECTIONS,
+    changes: CURRENT_RELEASE_SECTIONS.flatMap((section) => section.changes),
+    highlights: [
+      'Migration : Glass devient liquidGlass ; IconActionButton et Lightbox évoluent.',
+      'Composants : Toast, DataTable, Dropzone et les icônes gagnent des interactions.',
+      'Qualité : les fiches, le thème sombre et la vitrine mobile sont vérifiés.',
     ],
+    migration: CURRENT_RELEASE_MIGRATION,
     breaking: true,
     appHref: '#/',
     sourceHref: `${REPOSITORY_URL}/tree/v3.2.0`,

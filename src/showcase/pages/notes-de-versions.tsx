@@ -58,11 +58,53 @@ export const notesVersionsPage: DocPage = {
 
               <h2 className="tc-doc-release__title">{release.summary}</h2>
 
-              <ul className="tc-doc-checklist tc-doc-release__changes">
-                {release.changes.map((change) => (
-                  <li key={change}>{change}</li>
-                ))}
-              </ul>
+              {release.sections ? (
+                <div className="tc-doc-release__sections">
+                  {release.sections.map((section) => (
+                    <section className="tc-doc-release__section" key={section.title}>
+                      <h3>{section.title}</h3>
+                      <ul className="tc-doc-checklist tc-doc-release__changes">
+                        {section.changes.map((change) => (
+                          <li key={change}>{change}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
+              ) : (
+                <ul className="tc-doc-checklist tc-doc-release__changes">
+                  {release.changes.map((change) => (
+                    <li key={change}>{change}</li>
+                  ))}
+                </ul>
+              )}
+
+              {release.migration ? (
+                <details className="tc-doc-release__migration">
+                  <summary>Exemples de migration depuis la {release.migration.fromVersion}</summary>
+                  <div className="tc-doc-release__migration-steps">
+                    {release.migration.steps.map((step) => (
+                      <section className="tc-doc-release__migration-step" key={step.title}>
+                        <h3>{step.title}</h3>
+                        <div className="tc-doc-release__migration-code">
+                          <div>
+                            <span>Avant</span>
+                            <pre>
+                              <code>{step.before}</code>
+                            </pre>
+                          </div>
+                          <div>
+                            <span>Après</span>
+                            <pre>
+                              <code>{step.after}</code>
+                            </pre>
+                          </div>
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
 
               <div className="tc-doc-release__actions">
                 <a
@@ -88,8 +130,8 @@ export const notesVersionsPage: DocPage = {
 
       <p className="tc-doc-prose tc-doc-release-footnote">
         Le numéro de version est géré depuis <code>package.json</code> et vérifié par la suite de
-        tests. Une évolution compatible augmentera le mineur ou le hotfix ; les prochaines ruptures
-        majeures suivront le même registre sans écraser les archives existantes.
+        tests. Les changements incompatibles sont signalés dans leur fiche et accompagnés d’exemples
+        de migration quand une API change. Les archives existantes ne sont jamais écrasées.
       </p>
     </PageBody>
   ),

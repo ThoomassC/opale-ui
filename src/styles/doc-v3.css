@@ -1094,6 +1094,77 @@ body {
 :root[data-theme='dark'] .tc-doc-release__action.opale-button--primary {
   color: #0c0f0d !important;
 }
+/* Le détail de la 3.2.0 reste dans sa fiche, mais se parcourt par impact. */
+.tc-doc-release__sections {
+  display: grid;
+  gap: var(--opale-space-lg);
+  margin-block-start: var(--opale-space-lg);
+}
+.tc-doc-release__section + .tc-doc-release__section {
+  border-block-start: 1px solid var(--opale-divider);
+  padding-block-start: var(--opale-space-lg);
+}
+.tc-doc-release__section h3,
+.tc-doc-release__migration-step h3 {
+  margin: 0;
+  color: var(--opale-text);
+  font-family: var(--opale-font-body);
+  font-size: 1rem;
+  font-weight: 600;
+}
+.tc-doc-release__section .tc-doc-release__changes {
+  margin-block-start: var(--opale-space-sm);
+  margin-block-end: 0;
+}
+.tc-doc-release__migration {
+  margin-block-start: var(--opale-space-lg);
+  border-block-start: 1px solid var(--opale-divider);
+  padding-block-start: var(--opale-space-lg);
+}
+.tc-doc-release__migration summary {
+  color: var(--opale-primary-on-surface);
+  font-weight: 600;
+}
+.tc-doc-release__migration-steps {
+  display: grid;
+  gap: var(--opale-space-lg);
+  margin-block-start: var(--opale-space-lg);
+}
+.tc-doc-release__migration-step {
+  display: grid;
+  gap: var(--opale-space-sm);
+  min-inline-size: 0;
+}
+.tc-doc-release__migration-code {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--opale-space-sm);
+}
+.tc-doc-release__migration-code > div {
+  min-inline-size: 0;
+}
+.tc-doc-release__migration-code span {
+  color: var(--opale-text-secondary);
+  font-size: 0.8rem;
+}
+.tc-doc-release__migration-code pre {
+  overflow-x: auto;
+  margin: var(--opale-space-xs) 0 0;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  padding: var(--opale-space-sm);
+  background: var(--opale-surface-base);
+  color: var(--opale-text);
+}
+.tc-doc-release__migration-code code {
+  color: inherit;
+}
+@media (max-width: 42rem) {
+  .tc-doc-release__migration-code {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .tc-doc-grid {
   gap: var(--opale-space-lg) !important;
 }
