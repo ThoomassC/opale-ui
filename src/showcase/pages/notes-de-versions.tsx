@@ -5,7 +5,7 @@ import { CURRENT_RELEASE, RELEASES } from '../releases';
 import { PageBody } from './api';
 import { CopyMigrationCode } from './copy-migration-code';
 
-const CURRENT_SOURCE_LABEL = 'Voir le code de la version courante';
+const CURRENT_SOURCE_LABEL = 'Voir le code de la branche de revue';
 
 export const notesVersionsPage: DocPage = {
   slug: 'notes-de-versions',

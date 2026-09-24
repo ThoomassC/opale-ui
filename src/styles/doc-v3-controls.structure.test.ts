@@ -127,9 +127,11 @@ describe('la forme interactive OpaleUI', () => {
     const imports = opaleSource.match(/@import url\([^)]*\);/g) ?? [];
     const root = opaleSource.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
 
-    expect(imports).toHaveLength(1);
-    expect(imports[0]).toContain('family=Bricolage+Grotesque');
-    expect(imports[0]).toContain('family=Chivo');
+    expect(imports).toHaveLength(0);
+    expect(opaleSource).toMatch(
+      /font-family: 'Bricolage Grotesque'[\s\S]*?fonts\/bricolage-grotesque-latin\.woff2/,
+    );
+    expect(opaleSource).toMatch(/font-family: 'Chivo'[\s\S]*?fonts\/chivo-latin\.woff2/);
     expect(root).toMatch(/--opale-font-title:\s*'Bricolage Grotesque'/);
     /* `--opale-font-display` NE BOUGE PAS : il habille le titre du rail, les
        titres de plaques, la métrique, le donut et le compte à rebours, qui

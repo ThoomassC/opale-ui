@@ -2733,8 +2733,7 @@ body {
   display: none;
 }
 @media (max-width: 30rem) {
-  .tc-doc-body,
-  .tc-doc-body:has(.tc-doc-nav[data-open='false']) {
+  .tc-doc-body {
     grid-template-columns: minmax(0, 1fr) !important;
   }
   .tc-doc-nav {
@@ -2817,4 +2816,125 @@ body {
    clignotement. */
 .tc-doc-page-loading {
   min-block-size: 60vh;
+}
+
+/* Accès direct aux tâches réelles sans modifier la direction visuelle V3.2.0. */
+.tc-doc-home__entry-grid {
+  order: 5;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--opale-space-md);
+}
+.tc-doc-home__entry-grid a {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1.25rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  text-decoration: none;
+  box-shadow: var(--opale-shadow-1);
+}
+.tc-doc-home__entry-grid a:hover,
+.tc-doc-home__entry-grid a:focus-visible {
+  border-color: var(--opale-primary);
+}
+.tc-doc-home__entry-grid span {
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+}
+.tc-doc-home__stats {
+  order: 8;
+}
+.tc-doc-home__footer {
+  order: 9;
+}
+@media (max-width: 42rem) {
+  .tc-doc-home__entry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tc-doc-nav__shortcuts {
+  display: none;
+}
+@media (max-width: 30rem) {
+  .tc-doc-nav__shortcuts {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-block: 0.75rem 0.25rem;
+    scrollbar-width: thin;
+  }
+  .tc-doc-nav__shortcuts button {
+    flex: none;
+    min-block-size: 2.5rem;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--opale-divider);
+    border-radius: 999px;
+    background: var(--opale-surface);
+    color: var(--opale-text);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tc-doc-nav__shortcuts button:hover,
+  .tc-doc-nav__shortcuts button:focus-visible {
+    border-color: var(--opale-primary);
+  }
+}
+
+.tc-doc-opale-playground {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+}
+.tc-doc-opale-playground legend {
+  padding-inline: 0.25rem;
+  color: var(--opale-text);
+  font-weight: 600;
+}
+.tc-doc-opale-playground label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+}
+.tc-doc-opale-playground select {
+  min-block-size: 2.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font: inherit;
+}
+.tc-doc-opale-playground .tc-doc-opale-playground__check {
+  display: flex;
+  min-block-size: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tc-doc-opale-playground__result {
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--opale-divider);
+}
+
+/* Les nouvelles fiches Opale rendent leur API : l'ancien raccourci de doc.css la masquait. */
+.tc-doc-main--components .tc-doc-props {
+  display: block;
+}
+.tc-doc-main--components .tc-doc-props .tc-doc-specimen__title {
+  display: block;
+}
+.tc-doc-main--components .tc-doc-props .tc-doc-specimen__note {
+  display: block;
 }

@@ -8,6 +8,7 @@ import { OPALE_CATALOG, Opale } from '../../magic';
 import { catalogComponentLabel } from '../doc-model';
 import opaleMagicSource from '../../magic/opale.tsx?raw';
 import { CatalogPreview } from './catalog-preview';
+import { CATALOG_API } from './opale-api-data';
 import { opaleComponentPages } from './opale-component-pages';
 import { preloadPages } from './lazy-page';
 
@@ -363,5 +364,58 @@ describe('le commutateur de matière', () => {
           'sombre —, ce qui abîme la démonstration au lieu de l’enrichir.',
       ).toBeNull();
     }
+  });
+});
+
+describe('API et exemples du catalogue', () => {
+  it('documente une API essentielle pour chaque composant publié', () => {
+    expect(Object.keys(CATALOG_API).sort()).toEqual(
+      OPALE_CATALOG.map((entry) => entry.name).sort(),
+    );
+  });
+
+  it('synchronise les réglages Button avec son extrait copiable', async () => {
+    const user = userEvent.setup();
+    renderButtonPage();
+    await user.selectOptions(screen.getByLabelText('Variante'), 'danger');
+    await user.selectOptions(screen.getByLabelText('Taille'), 'large');
+    await user.click(screen.getByRole('checkbox', { name: 'Chargement' }));
+    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+    expect(screen.getByRole('button', { name: 'Essai configuré' })).toBeDisabled();
+    expect(
+      screen.getByRole('group', { name: 'Exemple Button, défilement horizontal' }),
+    ).toHaveTextContent(
+      '<Opale.Button variant="danger" size="large" loading>Essai configuré</Opale.Button>',
+    );
+  });
+
+  it('insère liquidGlass après un callback fléché complet', async () => {
+    const user = userEvent.setup();
+    const page = opaleComponentPages.find((entry) => entry.label === 'FileCard');
+    if (!page) throw new Error('FileCard manquant');
+    render(<>{page.render()}</>);
+    await user.click(screen.getByRole('checkbox', { name: 'Liquid Glass pour FileCard' }));
+    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+    const code =
+      screen.getByRole('group', { name: 'Exemple FileCard, défilement horizontal' }).textContent ??
+      '';
+    expect(code).toMatch(
+      /onClick=\{\(\) => setSelected\(\(value\) => !value\)\}\s+liquidGlass\s*\/>/,
+    );
+  });
+
+  it('montre le verre au bon niveau dans CardGrid', async () => {
+    const user = userEvent.setup();
+    const page = opaleComponentPages.find((entry) => entry.label === 'CardGrid');
+    if (!page) throw new Error('CardGrid manquant');
+    render(<>{page.render()}</>);
+    await user.click(screen.getByRole('checkbox', { name: 'Liquid Glass pour CardGrid' }));
+    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+    const code =
+      screen.getByRole('group', { name: 'Exemple CardGrid, défilement horizontal' }).textContent ??
+      '';
+    expect(code).toContain('<Opale.StatCard label="Composants"');
+    expect(code).toContain('liquidGlass');
+    expect(code).not.toContain('<Opale.CardGrid liquidGlass>');
   });
 });

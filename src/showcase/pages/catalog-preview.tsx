@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
-import { Opale } from '../../magic';
+import { OPALE_CATALOG, Opale } from '../../magic';
 import type { ToastPlacement, ToastTone } from '../../magic';
 
 const OPTIONS = [
@@ -109,7 +109,24 @@ function useDemoProgress(active: boolean): number {
   return value;
 }
 
-export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlass: boolean }) {
+export interface PlaygroundConfig {
+  buttonVariant: 'primary' | 'secondary' | 'accent' | 'danger';
+  buttonSize: 'small' | 'medium' | 'large';
+  buttonLoading: boolean;
+  inputError: boolean;
+  inputDisabled: boolean;
+  tableMode: 'filled' | 'empty' | 'loading';
+}
+
+export function CatalogPreview({
+  name,
+  liquidGlass,
+  playground,
+}: {
+  name: string;
+  liquidGlass: boolean;
+  playground?: PlaygroundConfig;
+}) {
   const [message, setMessage] = useState('Prêt');
   const [text, setText] = useState('Opale');
   const [selected, setSelected] = useState('design');
@@ -125,6 +142,8 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('overview');
   const [selectedFile, setSelectedFile] = useState(false);
+  const [page, setPage] = useState(2);
+  const [ratingValue, setRatingValue] = useState(3);
   const progress = useDemoProgress(name === 'ProgressBar');
 
   let preview: ReactNode;
@@ -132,18 +151,32 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   switch (name) {
     case 'Button':
       preview = (
-        <Row>
-          <Opale.Button liquidGlass={liquidGlass}>Primaire</Opale.Button>
-          <Opale.Button liquidGlass={liquidGlass} variant="secondary">
-            Secondaire
-          </Opale.Button>
-          <Opale.Button liquidGlass={liquidGlass} variant="accent">
-            Accent
-          </Opale.Button>
-          <Opale.Button liquidGlass={liquidGlass} variant="danger">
-            Danger
-          </Opale.Button>
-        </Row>
+        <>
+          <Row>
+            <Opale.Button liquidGlass={liquidGlass}>Primaire</Opale.Button>
+            <Opale.Button liquidGlass={liquidGlass} variant="secondary">
+              Secondaire
+            </Opale.Button>
+            <Opale.Button liquidGlass={liquidGlass} variant="accent">
+              Accent
+            </Opale.Button>
+            <Opale.Button liquidGlass={liquidGlass} variant="danger">
+              Danger
+            </Opale.Button>
+          </Row>
+          {playground && (
+            <div className="tc-doc-opale-playground__result">
+              <Opale.Button
+                liquidGlass={liquidGlass}
+                variant={playground.buttonVariant}
+                size={playground.buttonSize}
+                loading={playground.buttonLoading}
+              >
+                Essai configuré
+              </Opale.Button>
+            </div>
+          )}
+        </>
       );
       break;
     case 'Pressable':
@@ -179,6 +212,8 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           label="Email"
           placeholder="thomas@crn-studio.com"
           helperText="Une adresse valide est requise."
+          error={playground?.inputError ? 'Adresse invalide' : undefined}
+          disabled={playground?.inputDisabled}
         />
       );
       break;
@@ -301,7 +336,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           <Opale.StatCard
             liquidGlass={liquidGlass}
             label="Composants"
-            value="77"
+            value={String(OPALE_CATALOG.length)}
             delta="Catalogue complet"
           />
           <Opale.StatCard
@@ -323,11 +358,17 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
             { key: 'uses', label: 'Usages', sortable: true },
             { key: 'status', label: 'Statut' },
           ]}
-          rows={[
-            { name: 'DataTable', uses: 4, status: 'Nouveau' },
-            { name: 'Button', uses: 128, status: 'Stable' },
-            { name: 'Autocomplete', uses: 17, status: 'Stable' },
-          ]}
+          rowKey={(row) => String(row.name)}
+          loading={playground?.tableMode === 'loading'}
+          rows={
+            playground?.tableMode === 'empty'
+              ? []
+              : [
+                  { name: 'DataTable', uses: 4, status: 'Nouveau' },
+                  { name: 'Button', uses: 128, status: 'Stable' },
+                  { name: 'Autocomplete', uses: 17, status: 'Stable' },
+                ]
+          }
         />
       );
       break;
@@ -335,7 +376,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = (
         <Opale.DescriptionList
           items={[
-            { term: 'Version', description: '3.0.0' },
+            { term: 'Version', description: '3.2.0' },
             { term: 'Licence', description: 'MIT' },
             { term: 'React', description: '≥ 19' },
           ]}
@@ -363,6 +404,27 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
             3 messages non lus
           </Opale.Badge>
         </Row>
+      );
+      break;
+    case 'RatingInput':
+      preview = (
+        <Opale.RatingInput
+          label="Qualité de l’expérience"
+          value={ratingValue}
+          onChange={setRatingValue}
+        />
+      );
+      break;
+    case 'Pagination':
+      preview = <Opale.Pagination page={page} pageCount={8} onChange={setPage} />;
+      break;
+    case 'Skeleton':
+      preview = (
+        <div role="status" aria-label="Chargement de la fiche" className="tc-doc-opale-demo">
+          <Opale.Skeleton width="45%" height="1.5rem" />
+          <Opale.Skeleton height="5rem" />
+          <Opale.Skeleton width="70%" />
+        </div>
       );
       break;
     case 'Rating':
@@ -695,6 +757,9 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
         <DemoFrame>
           <Opale.Dropzone
             liquidGlass={liquidGlass}
+            accept="image/*"
+            maxFiles={3}
+            maxSizeBytes={5000000}
             onFiles={(files) =>
               setMessage(
                 `${files.length} fichier${files.length > 1 ? 's' : ''} reçu${files.length > 1 ? 's' : ''}`,

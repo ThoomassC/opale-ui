@@ -197,7 +197,7 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
      l'échéance absolue que sa fiche promettait.
 
    Rupture d'API assumée, à consigner dans les notes de version. */
-const PUBLISHED_COMPONENT_COUNT = 56;
+const PUBLISHED_COMPONENT_COUNT = 59;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {

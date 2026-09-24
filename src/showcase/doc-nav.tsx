@@ -377,6 +377,23 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
       >
         {copy.contents}
       </button>
+      {menuOpen && (
+        <div className="tc-doc-nav__shortcuts" role="group" aria-label="Rubriques du sommaire">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => {
+                const target = document.getElementById(`tc-doc-nav-section-${section.id}`);
+                if (target && scrollRef.current)
+                  scrollRef.current.scrollTop = target.offsetTop - scrollRef.current.offsetTop;
+              }}
+            >
+              {sectionLabelFor(section.id, section.label, language)}
+            </button>
+          ))}
+        </div>
+      )}
       <Sidebar
         className="tc-doc-nav__panel"
         /* L'ENVELOPPE A BESOIN DE SON PROPRE CROCHET, et pas seulement le

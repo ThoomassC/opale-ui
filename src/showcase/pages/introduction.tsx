@@ -70,14 +70,20 @@ export const introductionPage: DocPage = {
           </a>
         </div>
 
-        <dl className="tc-doc-home__stats" aria-label="Chiffres clés d’Opale UI">
-          {HOME_STATS.map((stat) => (
-            <div key={stat.label}>
-              <dt>{stat.value}</dt>
-              <dd>{stat.label}</dd>
-            </div>
-          ))}
-        </dl>
+        <nav className="tc-doc-home__entry-grid" aria-label="Explorer Opale UI">
+          <a href={hrefFor('utilisation')}>
+            <strong>Composer une page</strong>
+            <span>Exemples et bonnes pratiques d’intégration ›</span>
+          </a>
+          <a href={hrefFor('composants/opale-button')}>
+            <strong>Choisir un composant</strong>
+            <span>Aperçu, propriétés et états ›</span>
+          </a>
+          <a href={hrefFor('theming')}>
+            <strong>Adapter le thème</strong>
+            <span>Clair, sombre et Liquid Glass ›</span>
+          </a>
+        </nav>
 
         <section className="tc-doc-home__release" aria-labelledby="tc-doc-home-release-title">
           <div className="tc-doc-home__release-head">
@@ -117,6 +123,15 @@ export const introductionPage: DocPage = {
             ))}
           </div>
         </section>
+
+        <dl className="tc-doc-home__stats" aria-label="Chiffres clés d’Opale UI">
+          {HOME_STATS.map((stat) => (
+            <div key={stat.label}>
+              <dt>{stat.value}</dt>
+              <dd>{stat.label}</dd>
+            </div>
+          ))}
+        </dl>
 
         <footer className="tc-doc-home__footer">
           <p>Opale UI — design system de l’écosystème Opale.</p>

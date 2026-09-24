@@ -225,14 +225,6 @@ interrupteur de fichier.
 
 ## Reste ouvert
 
-- **`opale.css` porte un `@import` de Google Fonts en première ligne**
-  (Bricolage Grotesque et Chivo). Cette feuille est **publiée** : l'import impose
-  donc une requête hors origine à tout consommateur, et échoue hors ligne. C'est
-  en contradiction directe avec la règle que le README racine énonce pour le reste
-  du dépôt — piles système, aucune requête tierce. Les deux familles ont un repli
-  système déclaré dans `--opale-font-body` et `--opale-font-title`, donc la page
-  ne casse pas sans elles ; l'import reste à retirer, à charge pour le
-  consommateur de charger les familles s'il les veut.
 - **Un seul module en SCSS.** `SearchBar.module.scss` est le dernier, et il tient
   `sass` dans les dépendances de développement à lui seul. Le convertir en CSS
   simple alignerait le dossier et retirerait une dépendance.

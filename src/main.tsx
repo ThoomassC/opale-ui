@@ -74,7 +74,7 @@ import './magic/magic.scss';
    51 usages de `var(--opale-primary)` et ZÉRO déclaration. Aucun jeton
    `--opale-*` n'existait, donc aucune couleur de marque, aucun rayon, aucune
    police — les titres tombaient sur le sérif par défaut du navigateur, et la
-   règle `@import` de Google Fonts qui ouvre `opale.css` n'était jamais servie
+   règle `@import` de Google Fonts qui ouvrait alors `opale.css` n'était jamais servie
    non plus, donc ni Chivo ni Bricolage Grotesque n'étaient téléchargés.
 
    Le repli le rendait DISCRET plutôt que visible : `var(--x)` sans valeur ne

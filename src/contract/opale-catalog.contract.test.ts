@@ -4,6 +4,7 @@ import { stripComments } from './stylesheet';
 import { OPALE_CATALOG } from '../magic/opale';
 import opaleCss from '../magic/opale.css?raw';
 import opaleSource from '../magic/opale.tsx?raw';
+import extrasSource from '../magic/opale-extras.tsx?raw';
 
 /* ============================================================================
    UNE FICHE DIT CE QUE LE COMPOSANT FAIT, PAS CE QU'IL POURRAIT FAIRE.
@@ -177,7 +178,7 @@ const PROMISES: readonly Claim[] = [
 /* `stripComments` est écrit pour le CSS : il ôte les blocs, pas les `//`. Un
    « // tri à venir » dans un composant suffirait sinon à tenir la promesse du
    tri. Le `[^:]` épargne les URL. */
-const SOURCE = stripComments(opaleSource).replace(/(^|[^:])\/\/.*$/gm, '$1');
+const SOURCE = stripComments(`${opaleSource}\n${extrasSource}`).replace(/(^|[^:])\/\/.*$/gm, '$1');
 const CSS = stripComments(opaleCss);
 
 /* Le corps d'un composant va de sa déclaration à la déclaration suivante de
@@ -227,7 +228,7 @@ function cssFor(body: string): string {
 
 describe('le catalogue d’Opale', () => {
   it.each(OPALE_CATALOG.map((entry) => [entry.name]))(
-    'devrait trouver le composant %s dans opale.tsx',
+    'devrait trouver le composant %s dans la source du catalogue',
     (name) => {
       expect(bodyOf(name)).toBeDefined();
     },

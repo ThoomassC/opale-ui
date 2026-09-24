@@ -142,7 +142,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
   },
   {
     id: 'inputs',
-    label: 'INPUTS',
+    label: 'SAISIE',
     entries: [
       opaleEntry('Button', 'Button'),
       opaleEntry('Pressable', 'Pressable'),
@@ -156,6 +156,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Autocomplete', 'Autocomplete'),
       opaleEntry('Form', 'Form'),
       opaleEntry('SegmentedControl', 'SegmentedControl'),
+      opaleEntry('RatingInput', 'RatingInput'),
       /* SIX ENTRÉES VENDORÉES ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
          `Checkbox`, `Slider`, `Select` et `Switch`. Chacune doublonnait la
          `opaleEntry` qui la précède : le rail affichait « Input » puis
@@ -186,6 +187,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Card', 'Card'),
       opaleEntry('CardGrid', 'CardGrid'),
       opaleEntry('DataTable', 'DataTable'),
+      opaleEntry('Pagination', 'Pagination'),
       opaleEntry('DescriptionList', 'DescriptionList'),
       opaleEntry('BulletList', 'BulletList'),
       opaleEntry('Badge', 'Badge'),
@@ -205,11 +207,12 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
   },
   {
     id: 'feedback',
-    label: 'FEEDBACK',
+    label: 'RETOURS',
     entries: [
       opaleEntry('Feedback', 'Feedback'),
       opaleEntry('Toast', 'Toast'),
       opaleEntry('Spinner', 'Spinner'),
+      opaleEntry('Skeleton', 'Skeleton'),
       opaleEntry('ProgressBar', 'ProgressBar'),
       opaleEntry('ConfirmDialog', 'ConfirmDialog'),
       opaleEntry('EmptyState', 'EmptyState'),

@@ -61,7 +61,7 @@ const CURRENT_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Trois API à adapter',
         detail:
-          'Glass devient la propriété liquidGlass ; IconActionButton reçoit icon et Lightbox exige alt. Les exemples avant/après sont juste sous cette rubrique.',
+          'Glass devient la propriété liquidGlass ; IconActionButton exige un label et reçoit icon ; Lightbox exige alt. Les exemples avant/après sont juste sous cette rubrique.',
         links: [
           { label: 'Card', slug: 'composants/opale-card' },
           { label: 'IconActionButton', slug: 'composants/opale-icon-action-button' },
@@ -116,6 +116,48 @@ const CURRENT_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Vitrine adaptée au téléphone',
         detail: 'La documentation tient à 320 px ; sous 30 rem, le sommaire devient repliable.',
+      },
+    ],
+  },
+  {
+    title: 'Améliorations de recette',
+    changes: [
+      {
+        title: 'Catalogue praticable',
+        detail:
+          'Les fiches exposent leur API et leurs états ; Button, Input et DataTable disposent de réglages dont le code suit l’aperçu.',
+        links: [
+          { label: 'Button', slug: 'composants/opale-button' },
+          { label: 'DataTable', slug: 'composants/opale-data-table' },
+        ],
+      },
+      {
+        title: 'Trois composants supplémentaires',
+        detail:
+          'Skeleton, Pagination et RatingInput couvrent le chargement, les listes paginées et la saisie d’une note.',
+        links: [
+          { label: 'Skeleton', slug: 'composants/opale-skeleton' },
+          { label: 'Pagination', slug: 'composants/opale-pagination' },
+          { label: 'RatingInput', slug: 'composants/opale-rating-input' },
+        ],
+      },
+      {
+        title: 'États et fichiers mieux gérés',
+        detail:
+          'DataTable traite les lignes stables, le vide et le chargement ; Dropzone contrôle type, nombre et taille des fichiers ; FileCard devient statique sans action.',
+        links: [
+          { label: 'DataTable', slug: 'composants/opale-data-table' },
+          { label: 'Dropzone', slug: 'composants/opale-dropzone' },
+        ],
+      },
+      {
+        title: 'Parcours et polices autonomes',
+        detail:
+          'L’accueil, les guides et le sommaire mobile facilitent l’accès au catalogue ; les polices sont servies localement.',
+        links: [
+          { label: 'Utilisation', slug: 'utilisation' },
+          { label: 'Thèmes', slug: 'theming' },
+        ],
       },
     ],
   },
@@ -230,13 +272,13 @@ export const RELEASES: readonly ReleaseNote[] = [
     highlights: [
       'Migration : Glass devient liquidGlass ; IconActionButton et Lightbox évoluent.',
       'Composants : Toast, DataTable, Dropzone et les icônes gagnent des interactions.',
-      'Qualité : les fiches, le thème sombre et la vitrine mobile sont vérifiés.',
+      'Qualité : API et états visibles, polices locales et sommaire mobile vérifiés.',
     ],
     migration: CURRENT_RELEASE_MIGRATION,
     removedComponents: CURRENT_REMOVED_COMPONENTS,
     breaking: true,
     appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.2.0`,
+    sourceHref: `${REPOSITORY_URL}/tree/codex/recette-ux-v3.2.0`,
   },
   {
     version: '3.1.1',

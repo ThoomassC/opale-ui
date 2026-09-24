@@ -62,11 +62,9 @@ Ce qui reste vrai, et qu'il faut lire avant de s'y fier :
   commentaires ont été faites à la main, une fois, sous Chromium.
 - **`filter: url(#…)` et `backdrop-filter` n'ont pas de comportement vérifié hors Chromium**,
   et ce sont les deux déclarations dont le matériau dépend entièrement.
-- **`opale.css` charge deux polices depuis Google Fonts**, par un `@import` en première ligne
-  d'une feuille publiée. C'est une requête hors origine imposée à tout consommateur, en
-  contradiction avec la règle que ce dépôt s'applique partout ailleurs. Détaillé dans
-  [`src/magic/README.md`](./src/magic/README.md) et dans
-  [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
+- **`opale.css` embarque Bricolage Grotesque et Chivo**, sous SIL Open Font License 1.1.
+  Les licences complètes figurent dans [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
+  La feuille publiée ne déclenche plus de requête vers Google Fonts.
 
 La vitrine continue de présenter les composants sur des **scènes sombres** — un dégradé à
 trois arrêts (`#17314f`, `#2a2350`, `#101a2c`), plancher mesuré 13,22:1 contre le blanc
@@ -462,13 +460,9 @@ dans le script, jamais en appauvrissant la source.
   revanche leurs propres tests de comportement : `npx vitest run src/magic` rend
   `Test Files 10 passed (10) · Tests 115 passed (115)`.
 - Il **ne vérifie pas le rendu du verre.** Aucun harnais navigateur, aucune capture.
-- Il **n'a pas de police propre**, et **il ne tient plus tout à fait sa propre règle sur ce
-  point.** Piles système dans les deux projets, aucune requête hors origine tolérée — sauf
-  que `src/magic/opale.css`, qui est publiée, ouvre sur un `@import` de Google Fonts
-  chargeant Bricolage Grotesque et Chivo. Les deux ont un repli système déclaré
-  (`--opale-font-body`, `--opale-font-title`), donc rien ne casse sans elles ; l'import reste
-  à retirer. C'est signalé dans [`src/magic/README.md`](./src/magic/README.md) et dans
-  [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
+- Il **ne dépend plus de Google Fonts à l’exécution**. Bricolage Grotesque et Chivo sont
+  embarquées dans `opale.css`, avec un repli système via `--opale-font-body` et
+  `--opale-font-title`.
 
 ## Ce qui reste à décider
 
@@ -476,34 +470,30 @@ Par coût de retour en arrière décroissant.
 
 1. **La compatibilité de la 3.2.0.** La version de recette retire des composants publics ;
    vérifier les consommateurs et le numéro semver avant une publication hors recette.
-2. **L'`@import` de Google Fonts dans `opale.css`.** Il impose une requête tierce à tout
-   consommateur du paquet et contredit une règle que le dépôt s'applique partout ailleurs. Le
-   retirer est une ligne ; ce qui se décide, c'est ce qu'on met à la place — un repli système
-   assumé, ou des fichiers servis par le consommateur.
-3. **La mesure des couleurs composées par les composants.** Le blocage de la 2.0 a disparu
+2. **La mesure des couleurs composées par les composants.** Le blocage de la 2.0 a disparu
    avec le code copié : plus rien n'oblige à rester « fidèle plutôt que conforme », puisque
    le code est le nôtre. Reste à décider si le contrat doit s'étendre aux piles que les
    composants composent, ou si la garantie du jeton suffit.
-4. **Le harnais navigateur.** Le contrat de couleur sait recalculer une composition
+3. **Le harnais navigateur.** Le contrat de couleur sait recalculer une composition
    d'alphas ; il ne sait pas ce qu'un `backdrop-filter` a mis sous un libellé. Une sonde qui
    capture, échantillonne le pixel réel derrière une encre et recalcule le ratio est chiffrée
    à environ une journée. La surface de rendu qu'aucun test ne garde n'a pas diminué avec la
    réécriture : le matériau est toujours du `filter` et du `backdrop-filter`.
-5. **Minifier le CSS publié dans `build:css`.** Mesuré sur la 1.x : le socle livré passait de
+4. **Minifier le CSS publié dans `build:css`.** Mesuré sur la 1.x : le socle livré passait de
    46,3 à 5,7 kB gzippés (−88 %). Le périmètre a changé, le chiffre est donc à refaire, mais
    la conclusion tient — les commentaires sont la valeur du dépôt dans `src/`, ils n'ont
    aucune raison d'être téléchargés.
-6. **Un test unitaire de `Glass`.** C'est la primitive que six composants montent, et le seul
+5. **Un test unitaire de `Glass`.** C'est la primitive que six composants montent, et le seul
    des huit composants composés sans fichier de test en propre. Ce qui mériterait d'être
    tenu : le montage et le démontage du filtre SVG partagé, le compteur d'instances, et la
    présence des quatre couches nommées.
-7. **Convertir le dernier module SCSS.** `SearchBar.module.scss` tient `sass` dans les
+6. **Convertir le dernier module SCSS.** `SearchBar.module.scss` tient `sass` dans les
    dépendances de développement à lui seul.
-8. La bascule du fond de `travels_in_world` vers `#deedf0`, et le remesurage de sa carte.
-9. Les familles de caractères, et le budget de police qui va avec.
-10. La simulation de deutéranopie sur `--danger` / `--success` / `--warning` : elle n'a pas
-    été faite, et le résultat peut changer les trois valeurs. Le rouge n'est séparé du cuivre
-    que de 11,3° de teinte.
+7. La bascule du fond de `travels_in_world` vers `#deedf0`, et le remesurage de sa carte.
+8. Les familles de caractères, et le budget de police qui va avec.
+9. La simulation de deutéranopie sur `--danger` / `--success` / `--warning` : elle n'a pas
+   été faite, et le résultat peut changer les trois valeurs. Le rouge n'est séparé du cuivre
+   que de 11,3° de teinte.
 
 Deux questions que la charte laissait ouvertes sont **tranchées et mesurées** ici, plutôt que
 reportées :

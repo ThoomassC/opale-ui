@@ -48,11 +48,12 @@ describe('registre des notes de versions', () => {
     }
   });
 
-  it('garde les changements de la 3.2.0 dans leurs trois groupes de lecture', () => {
+  it('garde les changements de la 3.2.0 dans leurs groupes de lecture', () => {
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
       'Compatibilité et migration',
       'Composants et interactions',
       'Documentation et qualité',
+      'Améliorations de recette',
     ]);
     expect(
       CURRENT_RELEASE.sections?.flatMap((section) =>
@@ -60,7 +61,7 @@ describe('registre des notes de versions', () => {
       ),
     ).toEqual(CURRENT_RELEASE.changes);
     expect(CURRENT_RELEASE.migration?.steps).toHaveLength(3);
-    expect(CURRENT_RELEASE.changes).toHaveLength(8);
+    expect(CURRENT_RELEASE.changes).toHaveLength(12);
   });
 
   it('documente chaque export retiré une seule fois dans le tableau de migration', () => {

@@ -53,7 +53,7 @@ describe('le rail cède sous 30 rem', () => {
 
   it('devrait passer la coquille en une seule colonne, rail replié compris', () => {
     expect(narrow).toMatch(
-      /\.tc-doc-body,\s*\.tc-doc-body:has\([^)]*\)\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*!important/,
+      /\.tc-doc-body\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*!important/,
     );
   });
 
