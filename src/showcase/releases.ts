@@ -83,8 +83,13 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Ajout de nouveaux composants Opale en conservant les exports existants.',
     ],
     breaking: true,
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/codex/refonte-v3`,
+    /* ARCHIVÉE APRÈS COUP, AU MÊME DÉFAUT QUE LA 3.1.1 : `#/` ouvrait la
+       version courante, et la source visait une branche. Le build figé vient
+       de la pointe de `codex/refonte-v3` (438fc00) — ce que ce lien montrait,
+       encore en 3.0.0, et le premier état dont le build garde ses jetons —,
+       marquée depuis par le tag v3.0.0. */
+    appHref: '/versions/v3.0.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.0.0`,
   },
   {
     version: '2.1.0',
