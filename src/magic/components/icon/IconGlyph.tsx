@@ -34,7 +34,6 @@ export function IconGlyph({ name, className }: { name: OpaleIconName; className?
           perd un des deux au rendu. La liste est figée et jamais réordonnée,
           donc l'indice est ici une clé stable. */}
       {OPALE_ICONS[name].map((d, index) => (
-        // eslint-disable-next-line react/no-array-index-key
         <path d={d} key={index} />
       ))}
     </svg>

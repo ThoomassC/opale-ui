@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 
 import { Sidebar } from '../magic';
 import type { DocPage } from './doc-model';
@@ -115,6 +115,23 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
   const dragRef = useRef<ScrollbarDrag | null>(null);
   const resizeDragRef = useRef<ResizeDrag | null>(null);
   const scrollbarStateRef = useRef<ScrollbarState>(INITIAL_SCROLLBAR_STATE);
+
+  /* LE SOMMAIRE REPLIABLE DU TÉLÉPHONE. Sous 30 rem, le rail permanent
+     laissait 184 px au contenu et treize pages débordaient encore
+     (WCAG 1.4.10) : il cède la place à un bouton qui déplie le sommaire
+     au-dessus de la page. Au-delà, la feuille masque le bouton et le rail
+     reste ce qu'il était.
+
+     IL SE REPLIE QUAND ON CHANGE DE PAGE, sans quoi le sommaire restait
+     déplié par-dessus la page qu'on venait d'ouvrir. L'état est ajusté
+     pendant le rendu, à la comparaison du slug — un effet qui le remettrait
+     à zéro rendrait deux fois, ce que la règle `react-hooks` refuse. */
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuSlug, setMenuSlug] = useState(currentSlug);
+  if (menuSlug !== currentSlug) {
+    setMenuSlug(currentSlug);
+    setMenuOpen(false);
+  }
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -361,7 +378,16 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
        collant, la piste de grille et le sol opaque vivent donc dehors. Elle
        porte la surface visible, tandis que le rail statique porte l'état du
        sommaire sans contrôle de pliage. */
-    <div className="tc-doc-nav">
+    <div className="tc-doc-nav" data-menu={menuOpen ? 'open' : 'closed'}>
+      <button
+        type="button"
+        className="tc-doc-nav__menu"
+        aria-expanded={menuOpen}
+        aria-controls="tc-doc-nav-scroll"
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        {copy.contents}
+      </button>
       <Sidebar
         className="tc-doc-nav__panel"
         /* L'ENVELOPPE A BESOIN DE SON PROPRE CROCHET, et pas seulement le

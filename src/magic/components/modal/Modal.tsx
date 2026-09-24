@@ -284,8 +284,12 @@ const Modal = ({
   useEffect(() => {
     if (!open || !closeOnEsc) return undefined;
 
+    /* `defaultPrevented` : un contrôle du dialogue a déjà consommé Échap —
+       un champ d'édition en place qui rétablit sa valeur, une liste qui se
+       replie. Fermer en plus ferait perdre tout le dialogue pour une
+       annulation locale. */
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') handleClose();
+      if (event.key === 'Escape' && !event.defaultPrevented) handleClose();
     };
 
     window.addEventListener('keydown', handleKeyDown);

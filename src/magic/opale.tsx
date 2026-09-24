@@ -5,10 +5,13 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
   type ChangeEvent,
   type CSSProperties,
+  type DragEvent,
+  type FocusEvent,
   type FormHTMLAttributes,
   type HTMLAttributes,
   type InputHTMLAttributes,
@@ -342,7 +345,11 @@ export function Card({
      classes, donc son élévation et son échelle. */
   if (liquidGlass) {
     return (
-      <Glass className={classes} rootClassName="opale-card--glass-root" {...props}>
+      <Glass
+        className={classes}
+        rootClassName={cx('opale-card--glass-root', `opale-card--glass-root--e${elevation}`)}
+        {...props}
+      >
         {content}
       </Glass>
     );
@@ -1027,8 +1034,92 @@ export function Autocomplete({ options = [], ...props }: AutocompleteProps) {
   );
 }
 
-export function InlineInput(props: FieldProps) {
-  return <Input {...props} />;
+/* =============================================================================
+   L'ÉDITION EN PLACE : ENTRÉE VALIDE, ÉCHAP RÉTABLIT, LA SORTIE VALIDE.
+
+   Le composant était un alias nu d'`Input` sous une fiche qui promettait ces
+   deux touches. Elles existent désormais.
+
+   LA RÉFÉRENCE EST LA DERNIÈRE VALEUR VALIDÉE, pas la toute première. Elle
+   est relevée à la prise de focus, puis à chaque validation : valider « B »,
+   taper « C » et presser Échap ramène à « B ».
+
+   ENTRÉE NE SOUMET PLUS LE FORMULAIRE. Dans un `<form>`, Entrée sur un champ
+   texte déclenche l'envoi : valider un nom de colonne enverrait la page.
+
+   ÉCHAP N'EST CONSOMMÉ QUE S'IL Y A QUELQUE CHOSE À ANNULER. Dans une Modal,
+   il fermait aussi le dialogue : on perdait tout pour annuler une saisie.
+   Quand il rétablit une valeur, l'événement est arrêté et marqué ; quand il
+   n'y a rien à rétablir, il remonte et reprend son sens de fermeture.
+
+   LA VALEUR RÉTABLIE PASSE PAR `onChange`, contrôlé comme libre. Le natif est
+   réécrit par son accesseur d'origine puis un `input` est émis : c'est ce que
+   React écoute. Un brouillon tenu par l'appelant suit donc l'annulation, et
+   un champ contrôlé n'a rien à câbler de plus.
+
+   QUITTER LE CHAMP VALIDE, comme dans un tableur. Sortir par Tab laissait une
+   valeur affichée que personne n'avait reçue : une perte silencieuse.
+
+   LA COMPOSITION IME EST LAISSÉE TRANQUILLE. En japonais ou en chinois,
+   l'Entrée qui confirme une conversion arrive avec `key === 'Enter'` : elle
+   aurait validé une saisie inachevée.
+   ========================================================================== */
+export interface InlineInputProps extends FieldProps {
+  /** Entrée, ou sortie du champ après modification : la valeur est validée. */
+  onCommit?: (value: string) => void;
+  /** Échap : reçoit la valeur rétablie. */
+  onCancel?: (value: string) => void;
+}
+
+function writeNativeValue(input: HTMLInputElement, value: string) {
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+export function InlineInput({
+  onCommit,
+  onCancel,
+  onFocus,
+  onBlur,
+  onKeyDown,
+  ...props
+}: InlineInputProps) {
+  const reference = useRef('');
+
+  const commit = (value: string) => {
+    reference.current = value;
+    onCommit?.(value);
+  };
+
+  const handleFocus = (event: FocusEvent<HTMLInputElement>) => {
+    reference.current = event.currentTarget.value;
+    onFocus?.(event);
+  };
+
+  const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+    const { value } = event.currentTarget;
+    if (value !== reference.current) commit(value);
+    onBlur?.(event);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const composing = event.nativeEvent.isComposing || event.keyCode === 229;
+    if (!composing && event.key === 'Enter') {
+      event.preventDefault();
+      commit(input.value);
+    } else if (!composing && event.key === 'Escape' && input.value !== reference.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      writeNativeValue(input, reference.current);
+      onCancel?.(reference.current);
+    }
+    onKeyDown?.(event);
+  };
+
+  return (
+    <Input {...props} onFocus={handleFocus} onBlur={handleBlur} onKeyDown={handleKeyDown} />
+  );
 }
 
 export interface SegmentedControlProps {
@@ -1181,11 +1272,14 @@ export function IconActionButton({
 
 export function Badge({
   tone = 'primary',
+  dot = false,
   liquidGlass = false,
   children,
   className,
 }: {
   tone?: 'primary' | 'accent' | 'danger';
+  /** Un point de notification : le texte est masqué à l'œil, lu à l'oreille. */
+  dot?: boolean;
   liquidGlass?: boolean;
   children: ReactNode;
   className?: string;
@@ -1199,19 +1293,25 @@ export function Badge({
   const classes = cx(
     'opale-badge',
     tone !== 'primary' && `opale-badge--${tone}`,
+    dot && 'opale-badge--dot',
     liquidGlass && 'opale-badge--glass',
     className,
   );
 
+  /* LE POINT GARDE SON TEXTE. Un point seul ne dit rien à un lecteur d'écran :
+     « 3 messages non lus » reste dans le nœud, masqué par découpage, et c'est
+     ce qu'on entend là où l'on voit une pastille (WCAG 1.1.1). */
+  const content = dot ? <span className="opale-visually-hidden">{children}</span> : children;
+
   if (liquidGlass) {
     return (
       <Glass as="span" className={classes} rootClassName="opale-badge--glass-root">
-        {children}
+        {content}
       </Glass>
     );
   }
 
-  return <span className={classes}>{children}</span>;
+  return <span className={classes}>{content}</span>;
 }
 
 
@@ -1854,42 +1954,169 @@ export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
        dont c'est l'unique fonction (WCAG 1.3.1). */
     <nav className="opale-breadcrumb" aria-label="Fil d'Ariane">
       <ol>
-        {items.map((item, index) => (
-          <li key={item.id}>
-            {index > 0 && <span aria-hidden="true">/</span>}
-            {item.href ? (
-              <a href={item.href} aria-current={index === items.length - 1 ? 'page' : undefined}>
-                {item.label}
-              </a>
-            ) : (
-              item.label
-            )}
-          </li>
-        ))}
+        {items.map((item, index) => {
+          /* LA DERNIÈRE ÉTAPE EST LA PAGE COURANTE, LIEN OU PAS. `aria-current`
+             ne vivait que dans la branche `href` — or l'étape où l'on se trouve
+             n'a presque jamais de lien, puisqu'elle mènerait ici. Le cas
+             ordinaire n'était donc jamais marqué. */
+          const current = index === items.length - 1 ? 'page' : undefined;
+          return (
+            <li key={item.id}>
+              {index > 0 && <span aria-hidden="true">/</span>}
+              {item.href ? (
+                <a href={item.href} aria-current={current}>
+                  {item.label}
+                </a>
+              ) : (
+                <span aria-current={current}>{item.label}</span>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );
 }
+/* =============================================================================
+   LE BANDEAU SE SOUVIENT DU CHOIX, ET L'ON PEUT REFUSER.
+
+   Il réapparaissait à chaque visite : un bandeau de consentement qui revient
+   sans fin n'est pas neutre, il apprend à cliquer « Accepter » sans lire. Le
+   choix est désormais écrit dans `localStorage`, sous `storageKey`.
+
+   REFUSER DOIT ÊTRE AUSSI SIMPLE QU'ACCEPTER. Le bandeau n'offrait qu'un
+   bouton ; mémoriser un choix suppose qu'il y en ait deux, et les deux ont le
+   même poids.
+
+   `open` DÉCIDE S'IL EST PASSÉ ; LA MÉMOIRE DÉCIDE SINON. Sans `open`, le
+   bandeau s'affiche tant qu'aucun choix n'est mémorisé et se retire sur le
+   choix. Avec `open`, l'appelant garde la main — c'est ce qui permet un lien
+   « Gérer mes cookies » qui le rouvre, choix mémorisé ou pas.
+
+   LE CHOIX MÉMORISÉ SE LIT AU DÉMARRAGE, pas dans un rappel. `onAccept` ne
+   part qu'au clic : qui démarre une mesure d'audience sur ce rappel doit
+   aussi lire `readCookieConsent()` au chargement, sans quoi la mesure ne
+   redémarrerait plus jamais après la première visite.
+
+   LE SERVEUR N'A PAS DE STOCKAGE. Il rend le bandeau ; le client, s'il lit un
+   choix, le retire APRÈS l'hydratation. Un `useState` initialisé depuis
+   `localStorage` rendait `null` dès le premier rendu client : React y voyait
+   un désaccord avec le HTML reçu et reconstruisait le sous-arbre.
+   `useSyncExternalStore` et son instantané serveur font exactement ce
+   passage. Il suit aussi les autres onglets, par l'événement `storage`.
+
+   LE STOCKAGE PEUT MANQUER — navigation privée, cookies bloqués. Chaque accès
+   est gardé, et le choix de la visite est tenu en mémoire à côté : sans
+   stockage, le bandeau se retire quand même sur le clic.
+
+   UN REPÈRE NOMMÉ, PAS UNE RÉGION LIVE. Rendu par `Feedback`, il héritait de
+   `role="status"` : un contenu présent au montage n'y est pas annoncé, et une
+   région live n'est pas faite pour porter des boutons. Une `<section>`
+   nommée se trouve, elle, dans la liste des régions du lecteur d'écran.
+   ========================================================================== */
+export const COOKIE_CONSENT_KEY = 'opale-cookie-consent';
+
+export type CookieConsent = 'accepted' | 'declined';
+
+/** Le choix mémorisé sous `key`, ou `null` s'il n'y en a pas ou que le stockage manque. */
+export function readCookieConsent(key: string | null = COOKIE_CONSENT_KEY): CookieConsent | null {
+  if (!key || typeof window === 'undefined') return null;
+  try {
+    const stored = window.localStorage.getItem(key);
+    return stored === 'accepted' || stored === 'declined' ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+const consentListeners = new Set<() => void>();
+
+function subscribeConsent(listener: () => void) {
+  consentListeners.add(listener);
+  window.addEventListener('storage', listener);
+  return () => {
+    consentListeners.delete(listener);
+    window.removeEventListener('storage', listener);
+  };
+}
+
 export function CookieBanner({
-  open = true,
+  open,
   children = 'Nous utilisons des cookies pour améliorer votre expérience.',
   onAccept,
+  onDecline,
+  storageKey = COOKIE_CONSENT_KEY,
   liquidGlass = false,
 }: {
+  /** Passé, il décide seul de l'affichage ; omis, le bandeau suit le choix mémorisé. */
   open?: boolean;
   children?: ReactNode;
   onAccept?: () => void;
+  onDecline?: () => void;
+  /** Clé de `localStorage` où le choix est mémorisé ; `null` coupe la mémoire. */
+  storageKey?: string | null;
   liquidGlass?: boolean;
 }) {
-  return open ? (
-    <Feedback severity="info" title="Cookies" liquidGlass={liquidGlass}>
-      {children}
-      <Button size="small" liquidGlass={liquidGlass} onClick={onAccept}>
-        Accepter
-      </Button>
-    </Feedback>
-  ) : null;
+  const stored = useSyncExternalStore(
+    subscribeConsent,
+    () => readCookieConsent(storageKey),
+    () => null,
+  );
+  const [decided, setDecided] = useState<CookieConsent | null>(null);
+  const textId = useId();
+
+  const decide = (choice: CookieConsent) => {
+    if (storageKey) {
+      try {
+        window.localStorage.setItem(storageKey, choice);
+      } catch {
+        /* Stockage inaccessible : le choix vaut pour cette visite. */
+      }
+    }
+    setDecided(choice);
+    consentListeners.forEach((listener) => listener());
+    (choice === 'accepted' ? onAccept : onDecline)?.();
+  };
+
+  const visible = open ?? !(decided ?? stored);
+  if (!visible) return null;
+
+  const Shell = liquidGlass ? Glass : 'section';
+  const shellProps = liquidGlass
+    ? ({ as: 'section', rootClassName: 'opale-feedback--glass-root' } as const)
+    : {};
+
+  return (
+    <Shell
+      {...shellProps}
+      className={cx(
+        'opale-feedback',
+        'opale-feedback--info',
+        'opale-cookie-banner',
+        liquidGlass && 'opale-feedback--glass',
+      )}
+      aria-label="Consentement aux cookies"
+      aria-describedby={textId}
+    >
+      <strong>Cookies</strong>
+      <span>
+        <span id={textId}>{children}</span>
+        <span className="opale-cookie-banner__actions">
+          {/* MÊME POIDS POUR LES DEUX. Un refus en lien gris à côté d'un
+              « Accepter » plein pousse la main vers le second : c'est le
+              motif que la CNIL reproche aux bandeaux. */}
+          <Button size="small" liquidGlass={liquidGlass} onClick={() => decide('declined')}>
+            Refuser
+          </Button>
+          <Button size="small" liquidGlass={liquidGlass} onClick={() => decide('accepted')}>
+            Accepter
+          </Button>
+        </span>
+      </span>
+    </Shell>
+  );
 }
+
 export function SelectionBar({
   selectedCount = 0,
   children,
@@ -2213,32 +2440,175 @@ export function Donut({ value = 60, label = `${value}%` }: { value?: number; lab
   );
 }
 
+/* =============================================================================
+   LA TABLE SE TRIE PAR SES EN-TÊTES.
+
+   Elle promettait « tri, sélection et clavier » et rendait un `<table>`
+   statique. Le tri existe désormais, colonne par colonne, sur déclaration :
+   `sortable` sur la colonne, `sortValue` quand la cellule n'est pas du texte.
+
+   LE CLAVIER, SANS `role="grid"`. L'en-tête triable porte un vrai `<button>` :
+   Tab l'atteint, Entrée et Espace le déclenchent, sans une ligne de gestion
+   de touches. Une grille à navigation par flèches aurait été plus lourde ET
+   pire : elle remplace la table par un widget et coupe au lecteur d'écran ses
+   raccourcis de lecture ligne à ligne, colonne à colonne. Le motif « table
+   triable » de l'APG est précisément celui-ci.
+
+   `aria-sort` N'EST POSÉ QUE SUR LA COLONNE TRIÉE, et la région de statut
+   annonce le changement : les lecteurs d'écran ne relisent pas un
+   `aria-sort` qui change sous le focus.
+
+   L'ORDRE FRANÇAIS. `Intl.Collator('fr', { numeric: true })` : « avatar »
+   avant « Bouton » avant « Écran » — la casse et l'accent ne décident pas —,
+   et « item 2 » avant « item 10 ». Une cellule sans valeur triable (un nœud
+   React sans `sortValue`) part en fin de liste dans les deux sens.
+   ========================================================================== */
+export type DataTableSortDirection = 'ascending' | 'descending';
+
+export interface DataTableSort {
+  key: string;
+  direction: DataTableSortDirection;
+}
+
+export type DataTableRow = Record<string, ReactNode>;
+
+export interface DataTableColumn {
+  key: string;
+  label: ReactNode;
+  /** L'en-tête devient un bouton qui trie la colonne. */
+  sortable?: boolean;
+  /** Valeur de tri quand la cellule n'est pas du texte ou un nombre. */
+  sortValue?: (row: DataTableRow) => string | number;
+  /** Nom annoncé au tri quand `label` n'est pas du texte. */
+  sortLabel?: string;
+}
+
 export interface DataTableProps {
-  columns?: readonly { key: string; label: ReactNode }[];
-  rows?: readonly Record<string, ReactNode>[];
+  columns?: readonly DataTableColumn[];
+  rows?: readonly DataTableRow[];
+  /** Nom de la table, rendu en `<caption>`. */
+  caption?: ReactNode;
+  defaultSort?: DataTableSort;
+  onSortChange?: (sort: DataTableSort) => void;
   liquidGlass?: boolean;
 }
-export function DataTable({ columns = [], rows = [], liquidGlass = false }: DataTableProps) {
+
+const TABLE_COLLATOR = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' });
+
+const SORT_WORDING: Record<DataTableSortDirection, string> = {
+  ascending: 'ordre croissant',
+  descending: 'ordre décroissant',
+};
+
+function sortKeyOf(row: DataTableRow, column: DataTableColumn): string | number | undefined {
+  if (column.sortValue) return column.sortValue(row);
+  const cell = row[column.key];
+  return typeof cell === 'string' || typeof cell === 'number' ? cell : undefined;
+}
+
+/* UN ORDRE TOTAL, SINON `sort` N'A PAS DE RÉSULTAT DÉFINI. Comparer deux
+   nombres en arithmétique et un nombre à un texte par le collateur formait des
+   cycles — `1.5 < "1.10" < 1.25 < 1.5` — et l'ordre produit dépendait de
+   l'ordre d'arrivée. Les nombres passent donc d'abord, entre eux, puis les
+   textes, entre eux. */
+function compareKeys(a: string | number, b: string | number): number {
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  if (typeof a === 'number') return -1;
+  if (typeof b === 'number') return 1;
+  return TABLE_COLLATOR.compare(a, b);
+}
+
+export function DataTable({
+  columns = [],
+  rows = [],
+  caption,
+  defaultSort,
+  onSortChange,
+  liquidGlass = false,
+}: DataTableProps) {
+  const [sort, setSort] = useState<DataTableSort | undefined>(defaultSort);
+  const [announcement, setAnnouncement] = useState('');
+
+  const sortedColumn = sort && columns.find((column) => column.key === sort.key);
+
+  /* L'indice d'origine sert de clé : quand le tri déplace une ligne, React la
+     déplace au lieu de la reconstruire. Il ne vaut que pour des `rows` stables
+     — une ligne insérée en tête décale les indices, comme avant le tri. */
+  const ordered = rows.map((row, index) => ({ row, index }));
+  if (sort && sortedColumn) {
+    const sign = sort.direction === 'ascending' ? 1 : -1;
+    ordered.sort((left, right) => {
+      const a = sortKeyOf(left.row, sortedColumn);
+      const b = sortKeyOf(right.row, sortedColumn);
+      if (a === undefined || b === undefined) {
+        return a === b ? 0 : a === undefined ? 1 : -1;
+      }
+      return sign * compareKeys(a, b);
+    });
+  }
+
+  const toggle = (column: DataTableColumn) => {
+    const direction: DataTableSortDirection =
+      sort?.key === column.key && sort.direction === 'ascending' ? 'descending' : 'ascending';
+    const next = { key: column.key, direction };
+    setSort(next);
+    const name = column.sortLabel ?? (typeof column.label === 'string' ? column.label : column.key);
+    setAnnouncement(`Trié par ${name}, ${SORT_WORDING[direction]}`);
+    onSortChange?.(next);
+  };
+
   return (
     <Surface liquidGlass={liquidGlass} className="opale-panel">
-      <table className="opale-table">
-        <thead>
-          <tr>
-            {columns.map((column) => (
-              <th key={column.key}>{column.label}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={index}>
-              {columns.map((column) => (
-                <td key={column.key}>{row[column.key]}</td>
-              ))}
+      <div className="opale-table-scroll">
+        <table className="opale-table">
+          {caption && <caption className="opale-table__caption">{caption}</caption>}
+          <thead>
+            <tr>
+              {columns.map((column) => {
+                const active = sort?.key === column.key ? sort.direction : undefined;
+                return (
+                  <th key={column.key} scope="col" aria-sort={active}>
+                    {column.sortable ? (
+                      <button
+                        type="button"
+                        className="opale-table__sort"
+                        data-sort={active}
+                        onClick={() => toggle(column)}
+                      >
+                        {column.label}
+                        <IconGlyph
+                          name={
+                            active === 'ascending'
+                              ? 'chevron-up'
+                              : active === 'descending'
+                                ? 'chevron-down'
+                                : 'sort'
+                          }
+                          className="opale-table__sort-icon"
+                        />
+                      </button>
+                    ) : (
+                      column.label
+                    )}
+                  </th>
+                );
+              })}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {ordered.map(({ row, index }) => (
+              <tr key={index}>
+                {columns.map((column) => (
+                  <td key={column.key}>{row[column.key]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <span className="opale-visually-hidden" role="status">
+        {announcement}
+      </span>
     </Surface>
   );
 }
@@ -2332,7 +2702,7 @@ function FileCardShell({
 }
 export function Dropzone({
   onFiles,
-  children = 'Déposez vos fichiers ici',
+  children = 'Ajoutez vos fichiers',
   liquidGlass = false,
 }: {
   onFiles?: (files: FileList) => void;
@@ -2343,11 +2713,48 @@ export function Dropzone({
   const zoneProps = liquidGlass
     ? ({ as: 'label', rootClassName: 'opale-dropzone--glass-root' } as const)
     : {};
+  const [dragging, setDragging] = useState(false);
+  const depth = useRef(0);
+
+  /* LE DÉPÔT EXISTE ENFIN. La zone s'appelait « de dépôt » et n'écoutait aucun
+     `drop` : un fichier lâché dessus était ignoré — ou, pire, ouvert par le
+     navigateur à la place de la page, faute d'un `preventDefault`. Les deux
+     annulations sont ce qui fait d'un élément une cible de dépôt : `dragover`
+     l'autorise, `drop` empêche l'ouverture.
+
+     `dragleave` SE DÉCLENCHE AUSSI EN PASSANT SUR UN ENFANT : survoler le
+     titre de la zone la faisait « quitter », et l'état de survol clignotait.
+     On compte les entrées et les sorties plutôt que de lire `relatedTarget`,
+     que Safari laisse à `null` sur ces événements : la zone n'est quittée que
+     quand le compte retombe à zéro. */
+  const dragHandlers = {
+    onDragEnter: (event: DragEvent<HTMLElement>) => {
+      event.preventDefault();
+      depth.current += 1;
+      setDragging(true);
+    },
+    onDragOver: (event: DragEvent<HTMLElement>) => {
+      event.preventDefault();
+    },
+    onDragLeave: () => {
+      depth.current = Math.max(0, depth.current - 1);
+      if (depth.current === 0) setDragging(false);
+    },
+    onDrop: (event: DragEvent<HTMLElement>) => {
+      event.preventDefault();
+      depth.current = 0;
+      setDragging(false);
+      const { files } = event.dataTransfer;
+      if (files.length > 0) onFiles?.(files);
+    },
+  };
 
   return (
     <Zone
       {...zoneProps}
+      {...dragHandlers}
       className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass')}
+      data-dragging={dragging ? 'true' : undefined}
     >
       {/* `opale-visually-hidden` ET NON `hidden`, ET C'EST LA DIFFÉRENCE ENTRE
           UN COMPOSANT ET UN CUL-DE-SAC. L'attribut `hidden` vaut
@@ -2404,6 +2811,30 @@ export function Lightbox({
     </Modal>
   );
 }
+/* =============================================================================
+   LE PRESSE-PAPIER DIT CE QUI S'EST PASSÉ.
+
+   `writeText` était lancé sans être attendu, et « Copié » posé sans
+   condition : en HTTP hors localhost — où `navigator.clipboard` n'existe
+   pas — ou sur un refus de permission, le bouton affirmait une copie qui
+   n'avait pas eu lieu. Et l'état ne revenait jamais : un second clic, une
+   heure plus tard, ne changeait plus rien à l'écran.
+
+   L'ANNONCE PASSE PAR UNE RÉGION, pas par le libellé du bouton. Un lecteur
+   d'écran ne relit pas le nom du contrôle qu'on vient d'actionner : « Copié »
+   apparaissait sans un mot (WCAG 4.1.3). La région est montée vide dès le
+   départ, condition pour que son premier changement soit entendu.
+   ========================================================================== */
+const CLIPBOARD_RESET_MS = 2000;
+
+type ClipboardState = 'idle' | 'copied' | 'failed';
+
+const CLIPBOARD_STATUS: Record<ClipboardState, string> = {
+  idle: '',
+  copied: 'Copié dans le presse-papier',
+  failed: 'Échec de la copie',
+};
+
 export function Clipboard({
   value,
   liquidGlass = false,
@@ -2413,19 +2844,49 @@ export function Clipboard({
   liquidGlass?: boolean;
   children?: ReactNode;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [state, setState] = useState<ClipboardState>('idle');
+  const reset = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => clearTimeout(reset.current), []);
+
+  const copy = async () => {
+    /* LA RÉGION REPASSE PAR LE VIDE. Deux copies rapprochées laissaient le même
+       texte en place : la seconde n'était pas entendue. */
+    setState('idle');
+    clearTimeout(reset.current);
+    let next: ClipboardState = 'failed';
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(value);
+        next = 'copied';
+      }
+    } catch {
+      next = 'failed';
+    }
+    setState(next);
+    /* L'ÉCHEC RESTE jusqu'au prochain essai : effacé au bout de deux secondes,
+       il disparaissait avant qu'on ait pu le lire ou réagir. */
+    if (next === 'copied') {
+      reset.current = setTimeout(() => setState('idle'), CLIPBOARD_RESET_MS);
+    }
+  };
+
   return (
-    <Button
-      size="small"
-      variant="tonal"
-      liquidGlass={liquidGlass}
-      onClick={() => {
-        void navigator.clipboard?.writeText(value);
-        setCopied(true);
-      }}
-    >
-      {copied ? 'Copié' : children}
-    </Button>
+    <>
+      <Button
+        size="small"
+        variant="tonal"
+        liquidGlass={liquidGlass}
+        onClick={() => {
+          void copy();
+        }}
+      >
+        {state === 'copied' ? 'Copié' : state === 'failed' ? 'Échec de la copie' : children}
+      </Button>
+      <span className="opale-visually-hidden" role="status">
+        {CLIPBOARD_STATUS[state]}
+      </span>
+    </>
   );
 }
 export function SvgMap({
@@ -2473,54 +2934,66 @@ export interface CatalogEntry {
 
 export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['Button', 'Inputs', "Bouton d'action avec variantes, tailles et état de chargement."],
-  ['Pressable', 'Inputs', 'Surface cliquable sans apparence : forme, focus et sélection.'],
-  ['InlineInput', 'Inputs', "Champ d'édition en place : Entrée valide, Échap abandonne."],
-  ['Input', 'Inputs', 'Champ de saisie avec validation, icône et types spécialisés.'],
-  ['Checkbox', 'Inputs', 'Case à cocher avec label, sous-label et état indéterminé.'],
+  [
+    'Pressable',
+    'Inputs',
+    'Bouton sans fond, la variante texte de Button, pour un contenu cliquable.',
+  ],
+  ['InlineInput', 'Inputs', "Champ d'édition en place : Entrée valide, Échap rétablit."],
+  ['Input', 'Inputs', "Champ de saisie avec libellé, icône, texte d'aide et erreur annoncée."],
+  ['Checkbox', 'Inputs', 'Case à cocher avec label et sous-label décrit.'],
   ['Toggle', 'Inputs', 'Interrupteur animé pour les états binaires.'],
-  ['Slider', 'Inputs', 'Curseur contrôlé avec libellé, valeur et graduations.'],
-  ['MultiSelect', 'Inputs', 'Sélection multiple avec chips et liste déroulante.'],
-  ['Select', 'Inputs', 'Sélecteur mono-valeur avec libellé accessible et options illustrées.'],
-  ['Autocomplete', 'Inputs', 'Champ à suggestions avec filtrage et présélection.'],
-  ['Form', 'Inputs', 'Formulaire orchestré par les primitives contrôlées.'],
+  ['Slider', 'Inputs', 'Curseur avec libellé, et valeur si on la lui fournit.'],
+  ['MultiSelect', 'Inputs', 'Liste à choix multiples contrôlée, à la souris ou au clavier.'],
+  ['Select', 'Inputs', "Sélecteur natif mono-valeur avec libellé et texte d'aide."],
+  ['Autocomplete', 'Inputs', 'Champ à suggestions fournies, dans la liste native du navigateur.'],
+  ['Form', 'Inputs', 'Formulaire natif, champs empilés en colonne.'],
   ['SegmentedControl', 'Inputs', 'Sélecteur segmenté animé pour choisir une option.'],
-  ['IconActionButton', 'Boutons spécialisés', "Bouton d'action carré à icône."],
-  ['Card', 'Affichage de données', 'Carte avec titre, sous-titre, actions et élévations.'],
+  ['IconActionButton', 'Boutons spécialisés', "Bouton d'action à icône seule, nommé par son libellé."],
+  ['Card', 'Affichage de données', 'Carte avec titre, sous-titre, actions, pied et quatre élévations.'],
   ['CardGrid', 'Affichage de données', 'Grille responsive auto-adaptative pour cartes.'],
-  ['DataTable', 'Affichage de données', 'Table riche avec tri, sélection et clavier.'],
+  ['DataTable', 'Affichage de données', 'Table de données triable par en-tête de colonne.'],
   ['DescriptionList', 'Affichage de données', 'Liste de paires libellé / valeur.'],
-  ['BulletList', 'Affichage de données', 'Liste à puces avec icônes personnalisables.'],
-  ['Badge', 'Affichage de données', 'Pastille de compteur ou point de notification.'],
-  ['Rating', 'Affichage de données', 'Note moyenne en étoiles, remplissage fractionnaire.'],
-  ['StatCard', 'Affichage de données', 'Carte de métrique avec valeur, variation et icône.'],
-  ['Donut', 'Affichage de données', 'Graphique en anneau segmenté avec contenu central.'],
-  ['LegalLinks', 'Affichage de données', 'Pied de page légal et mentions.'],
-  ['Heading', 'Affichage de données', 'Titres hiérarchisés avec échelle typographique.'],
+  ['BulletList', 'Affichage de données', "Liste à puces construite depuis un tableau d'éléments."],
+  ['Badge', 'Affichage de données', 'Pastille de texte en trois tons, ou point de notification.'],
+  ['Rating', 'Affichage de données', 'Note en étoiles, remplie au quart près.'],
+  ['StatCard', 'Affichage de données', 'Carte de métrique avec libellé, valeur et variation.'],
+  ['Donut', 'Affichage de données', 'Anneau de progression à une valeur, libellé au centre.'],
+  ['LegalLinks', 'Affichage de données', 'Liens légaux regroupés dans une navigation.'],
+  ['Heading', 'Affichage de données', "Titre de niveau 1 à 4 dans la police d'affichage."],
   ['Text', 'Affichage de données', 'Corps de texte, labels, légendes et métriques.'],
-  ['Icon', 'Affichage de données', 'Icônes Opale en plusieurs tailles.'],
+  ['Icon', 'Affichage de données', 'Icône Opale par son nom, ou nœud libre, libellé optionnel.'],
   ['Feedback', 'Feedback', 'Encart de message contextuel en quatre sévérités.'],
-  ['Toast', 'Feedback', 'Notification éphémère avec fermeture automatique.'],
+  ['Toast', 'Feedback', "Notification en cinq tons et six positions, fermée par l'appelant."],
   ['Spinner', 'Feedback', 'Indicateur de chargement circulaire.'],
-  ['ProgressBar', 'Feedback', 'Barre de progression déterminée ou segmentée.'],
+  ['ProgressBar', 'Feedback', 'Barre de progression déterminée, de 0 à 100.'],
   ['ConfirmDialog', 'Feedback', "Boîte de dialogue de confirmation d'action."],
   ['EmptyState', 'Feedback', 'État vide illustré avec titre, description et action.'],
-  ['Navbar', 'Navigation', 'Barre de navigation responsive avec sous-menus.'],
-  ['Menu', 'Navigation', 'Menu contextuel positionnable avec items.'],
-  ['Link', 'Navigation', 'Lien stylé compatible avec les routeurs externes.'],
-  ['SidePanel', 'Navigation', 'Panneau latéral coulissant avec titre et footer.'],
-  ['CommandPalette', 'Navigation', 'Palette de commandes avec recherche clavier.'],
-  ['Breadcrumb', 'Navigation', "Fil d'Ariane avec repli automatique."],
-  ['CookieBanner', 'Navigation', 'Bandeau de consentement avec mémorisation.'],
+  ['Navbar', 'Navigation', 'Navigation en colonne, liens ou boutons, page courante signalée.'],
+  ['Menu', 'Navigation', 'Menu dépliant dans le flux, avec items.'],
+  ['Link', 'Navigation', 'Lien stylé sur la balise native.'],
+  ['SidePanel', 'Navigation', 'Panneau latéral pleine hauteur, avec titre.'],
+  [
+    'CommandPalette',
+    'Navigation',
+    "Palette de commandes : un champ de recherche en modale, résultats fournis par l'appelant.",
+  ],
+  ['Breadcrumb', 'Navigation', "Fil d'Ariane en liste ordonnée, dernière étape marquée page courante."],
+  ['CookieBanner', 'Navigation', 'Bandeau de consentement qui mémorise le choix, accepté ou refusé.'],
   ['SelectionBar', 'Navigation', "Barre d'actions groupées sur sélection multiple."],
   ['Stack', 'Mise en page', 'Empilement flexbox avec gaps issus des tokens.'],
   ['Layout', 'Mise en page', 'Gabarit de page avec navigation et contenu.'],
-  ['Divider', 'Mise en page', 'Séparateur horizontal ou vertical.'],
-  ['BackgroundSurface', 'Mise en page', 'Fond animé par thème.'],
-  ['FileCard', 'Modules', 'Carte de fichier ou dossier avec aperçu et sélection.'],
-  ['Dropzone', 'Modules', 'Zone de dépôt par glisser-déposer ou sélection.'],
-  ['Lightbox', 'Modules', "Visionneuse plein écran d'images et documents."],
-  ['Clipboard', 'Modules', 'Copie dans le presse-papier avec état fugace.'],
-  ['SvgMap', 'Modules', 'Carte SVG gestuelle et accessible au clavier.'],
+  ['Divider', 'Mise en page', 'Séparateur horizontal.'],
+  [
+    'BackgroundSurface',
+    'Mise en page',
+    'Fond de page aux dégradés du thème, forme décorative en option.',
+  ],
+  ['FileCard', 'Modules', 'Carte de fichier sélectionnable, avec nom et taille.'],
+  ['Dropzone', 'Modules', 'Zone de dépôt par glisser-déposer, ou par le sélecteur natif.'],
+  ['Lightbox', 'Modules', "Visionneuse d'image en modale, texte alternatif obligatoire."],
+  ['Clipboard', 'Modules', "Copie dans le presse-papier, état fugace et échec annoncé."],
+  ['SvgMap', 'Modules', 'Cadre SVG pour une carte : tracé de fond et contenu libre.'],
 ].map(([name, category, description]) => ({ name, category, description }));
 
 export const OpaleUI = {

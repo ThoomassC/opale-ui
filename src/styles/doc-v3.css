@@ -2381,3 +2381,180 @@ body {
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
+
+/* =============================================================================
+   LA VITRINE TIENT À 320 PX (WCAG 1.4.10, REFLOW).
+
+   Mesuré à 320 px de large, sur un chargement réel en téléphone — le rail de
+   navigation y reste permanent, par choix, et laisse 184 px à la colonne :
+   soixante-deux pages sur soixante-neuf débordaient à l'horizontale, de 5 à
+   223 px. Personne ne l'avait vu, le défaut étant invisible sur un écran
+   d'ordinateur.
+
+   LES CAUSES SONT PEU NOMBREUSES, ET GÉNÉRIQUES. Ce ne sont pas les blocs de
+   code — leur `<pre>` défile dans sa boîte, comme il doit —, mais ce qui les
+   entoure :
+   — une piste de grille implicite prend la largeur MINIMALE de son contenu,
+     donc celle d'une ligne de code en `white-space: pre` : la page de
+     composant entière s'élargissait à la plus longue ligne de son exemple ;
+   — un `<code>` en ligne ne se coupe pas : un nom de jeton de trente
+     caractères pousse sa phrase hors de l'écran ;
+   — quelques boîtes à largeur fixe, dont les cellules de scène (260 px).
+   ========================================================================== */
+.tc-doc-opale-page {
+  grid-template-columns: minmax(0, 1fr);
+}
+.tc-doc-column :not(pre) > code {
+  overflow-wrap: anywhere;
+}
+.tc-doc-magicstage__cell {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+/* Le commutateur de matériau passe sous son texte plutôt que de sortir du
+   cadre : « Liquid Glass pour SegmentedControl » ne tient pas à côté. */
+.tc-doc-opale-material-toggle {
+  flex-wrap: wrap;
+}
+.tc-doc-opale-material-toggle .opale-toggle-row {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+/* Un titre d'un seul mot — `SegmentedControl`, `IconActionButton` — mesure
+   plus que la colonne d'un téléphone à 1,8 rem. Le corps descend sur écran
+   étroit, et la coupure reste le dernier recours. */
+.tc-doc-page__title {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 30rem) {
+  .tc-doc-page__title {
+    font-size: 1.375rem !important;
+  }
+}
+/* Sur écran étroit, les trois cadres emboîtés — page, spécimen, aperçu —
+   rendaient chacun 16 px de chaque côté : il restait 86 px à la démo. */
+@media (max-width: 30rem) {
+  .tc-doc-specimen {
+    padding: var(--opale-space-sm) !important;
+  }
+  .tc-doc-opale-preview__material {
+    padding: var(--opale-space-sm);
+  }
+}
+/* Les autres pistes implicites de la vitrine, même cause que la page de
+   composant : une grille sans colonnes déclarées prend la largeur minimale de
+   son contenu le plus large, et la page avec. */
+.tc-doc-release-list,
+.tc-doc-opale-demo {
+  grid-template-columns: minmax(0, 1fr);
+}
+/* L'échantillon et sa légende passent l'un sous l'autre plutôt que d'écraser
+   la légende à deux pixels de large. */
+.tc-doc-swatch {
+  flex-wrap: wrap;
+}
+@media (max-width: 30rem) {
+  /* Le spécimen typographique réclamait 12 rem à côté de son libellé. */
+  .tc-doc-scale__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* « Masquer le code » sur une ligne mesurait 157 px pour 152 de cadre. */
+  .tc-doc-codeaction {
+    white-space: normal;
+  }
+}
+
+/* =============================================================================
+   SOUS 30 REM, LE RAIL CÈDE LA PLACE À UN SOMMAIRE REPLIABLE.
+
+   Le rail permanent du téléphone (« le rail reste permanent », plus haut)
+   prenait 136 px sur 320 et laissait 184 px au contenu : après toutes les
+   corrections de reflow, treize pages de composants débordaient encore, leurs
+   démos coincées dans une centaine de pixels (WCAG 1.4.10). Décision du
+   propriétaire : sous 30 rem, le rail cède. Tablettes et bureau ne changent
+   pas.
+
+   Le bouton « Sommaire » vit dans `DocNav` et n'est montré qu'ici. Replié, le
+   sommaire est `display: none` — hors de l'écran ET de l'arbre accessible, ce
+   qui est l'état juste d'un contenu replié. `aria-expanded` porte l'état.
+   ========================================================================== */
+.tc-doc-nav__menu {
+  display: none;
+}
+@media (max-width: 30rem) {
+  .tc-doc-body,
+  .tc-doc-body:has(.tc-doc-nav[data-open='false']) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .tc-doc-nav {
+    position: relative !important;
+    inset-block-start: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: var(--opale-space-sm) var(--opale-space-md) !important;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--opale-divider);
+    overflow: visible !important;
+  }
+  .tc-doc-nav__resize {
+    display: none !important;
+  }
+  .tc-doc-nav__menu {
+    display: flex;
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--opale-space-sm);
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--opale-divider);
+    border-radius: var(--opale-radius-md);
+    background: var(--opale-surface);
+    color: var(--opale-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  /* Le chevron dit le sens : vers le bas replié, vers le haut déplié. La
+     forme change, pas seulement une couleur. */
+  .tc-doc-nav__menu::after {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-block-end: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+    content: '';
+    transform: translateY(-0.125rem) rotate(45deg);
+    transition: transform var(--opale-motion) var(--opale-ease);
+  }
+  .tc-doc-nav__menu[aria-expanded='true']::after {
+    transform: translateY(0.125rem) rotate(-135deg);
+  }
+  .tc-doc-nav[data-menu='closed'] .tc-doc-nav__glass {
+    display: none !important;
+  }
+  .tc-doc-nav__glass,
+  .tc-doc-nav__panel {
+    height: auto !important;
+    max-height: min(60dvh, 32rem);
+    margin-block-start: var(--opale-space-sm);
+  }
+  .tc-doc-nav__scroll {
+    max-height: min(60dvh, 32rem) !important;
+  }
+  /* Pleine largeur, les intitulés n'ont plus à être tronqués ni réduits :
+     le rail les compactait à 0,7 rem pour tenir dans 136 px. */
+  .tc-doc-nav__link {
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+    white-space: normal;
+  }
+  .tc-doc-nav__grouptitle {
+    font-size: 0.72rem;
+  }
+}
+@media (max-width: 30rem) and (prefers-reduced-motion: reduce) {
+  .tc-doc-nav__menu::after {
+    transition: none;
+  }
+}

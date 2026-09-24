@@ -15,6 +15,10 @@ const NAV_ITEMS = [
   { id: 'settings', label: 'Réglages' },
 ] as const;
 
+/* Clé propre à la démo : accepter ici n'engage pas un vrai site servi à la
+   même origine, qui lirait la clé par défaut. */
+const COOKIE_DEMO_KEY = 'opale-demo-cookie-consent';
+
 const PREVIEW_IMAGE =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23dce7fb%22/%3E%3Ccircle cx=%22180%22 cy=%22155%22 r=%2275%22 fill=%22%233d66aa%22/%3E%3Cpath d=%22M40 320 245 120l95 105 80-70 180 165Z%22 fill=%22%23f8b31a%22 opacity=%22.85%22/%3E%3C/svg%3E';
 
@@ -117,7 +121,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
   const [dialogOpen, setDialogOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [cookieOpen, setCookieOpen] = useState(true);
+  const [cookieRun, setCookieRun] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('overview');
   const [selectedFile, setSelectedFile] = useState(false);
@@ -151,12 +155,21 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'InlineInput':
       preview = (
-        <Opale.InlineInput
-          liquidGlass={liquidGlass}
-          label="Nom du projet"
-          value={text}
-          onChange={(event) => setText(event.currentTarget.value)}
-        />
+        <DemoFrame>
+          <Opale.InlineInput
+            liquidGlass={liquidGlass}
+            label="Nom du projet"
+            helperText="Entrée valide, Échap rétablit."
+            value={text}
+            onChange={(event) => setText(event.currentTarget.value)}
+            onCommit={(value) => setMessage(`Validé : ${value}`)}
+            onCancel={(value) => {
+              setText(value);
+              setMessage('Modification abandonnée');
+            }}
+          />
+          <span role="status">{message}</span>
+        </DemoFrame>
       );
       break;
     case 'Input':
@@ -304,13 +317,16 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = (
         <Opale.DataTable
           liquidGlass={liquidGlass}
+          caption="Composants"
           columns={[
-            { key: 'name', label: 'Nom' },
+            { key: 'name', label: 'Nom', sortable: true },
+            { key: 'uses', label: 'Usages', sortable: true },
             { key: 'status', label: 'Statut' },
           ]}
           rows={[
-            { name: 'Button', status: 'Stable' },
-            { name: 'DataTable', status: 'Nouveau' },
+            { name: 'DataTable', uses: 4, status: 'Nouveau' },
+            { name: 'Button', uses: 128, status: 'Stable' },
+            { name: 'Autocomplete', uses: 17, status: 'Stable' },
           ]}
         />
       );
@@ -342,6 +358,9 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           </Opale.Badge>
           <Opale.Badge liquidGlass={liquidGlass} tone="danger">
             Critique
+          </Opale.Badge>
+          <Opale.Badge liquidGlass={liquidGlass} tone="danger" dot>
+            3 messages non lus
           </Opale.Badge>
         </Row>
       );
@@ -435,9 +454,7 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
             <Opale.Select
               label="Place à l’écran"
               value={toastPlacement}
-              onChange={(event) =>
-                setToastPlacement(event.currentTarget.value as ToastPlacement)
-              }
+              onChange={(event) => setToastPlacement(event.currentTarget.value as ToastPlacement)}
               options={TOAST_PLACEMENTS.map((value) => ({ value, label: value }))}
             />
           </div>
@@ -483,7 +500,9 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       preview = <Opale.Spinner label="Chargement des composants" />;
       break;
     case 'ProgressBar':
-      preview = <Opale.ProgressBar liquidGlass={liquidGlass} label="Progression" value={progress} />;
+      preview = (
+        <Opale.ProgressBar liquidGlass={liquidGlass} label="Progression" value={progress} />
+      );
       break;
     case 'ConfirmDialog':
       preview = (
@@ -515,12 +534,14 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       );
       break;
     case 'Navbar':
-      preview = <Opale.Navbar
+      preview = (
+        <Opale.Navbar
           liquidGlass={liquidGlass}
           items={NAV_ITEMS}
           activeId={activeNav}
           onSelect={setActiveNav}
-        />;
+        />
+      );
       break;
     case 'Menu':
       preview = (
@@ -584,14 +605,32 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
     case 'CookieBanner':
       preview = (
         <DemoFrame>
-          <Opale.Button size="small" onClick={() => setCookieOpen(true)}>
+          {/* LA DÉMO OUBLIE LE CHOIX À LA DEMANDE. Le bandeau le mémorise, ce
+              qui est son rôle — sans ce bouton, un seul clic le ferait
+              disparaître de la page pour toujours. « Réafficher » efface la
+              clé de démonstration et remonte le bandeau pour relire le
+              stockage. */}
+          <Opale.Button
+            size="small"
+            onClick={() => {
+              try {
+                window.localStorage.removeItem(COOKIE_DEMO_KEY);
+              } catch {
+                /* Stockage inaccessible : rien à effacer. */
+              }
+              setCookieRun((run) => run + 1);
+            }}
+          >
             Réafficher
           </Opale.Button>
           <Opale.CookieBanner
-            open={cookieOpen}
+            key={cookieRun}
+            storageKey={COOKIE_DEMO_KEY}
             liquidGlass={liquidGlass}
-            onAccept={() => setCookieOpen(false)}
+            onAccept={() => setMessage('Cookies acceptés — choix mémorisé')}
+            onDecline={() => setMessage('Cookies refusés — choix mémorisé')}
           />
+          <span role="status">{message}</span>
         </DemoFrame>
       );
       break;
@@ -653,12 +692,19 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
       break;
     case 'Dropzone':
       preview = (
-        <Opale.Dropzone
-          liquidGlass={liquidGlass}
-          onFiles={(files) => setMessage(`${files.length} fichier(s) déposé(s)`)}
-        >
-          Déposez les maquettes ici
-        </Opale.Dropzone>
+        <DemoFrame>
+          <Opale.Dropzone
+            liquidGlass={liquidGlass}
+            onFiles={(files) =>
+              setMessage(
+                `${files.length} fichier${files.length > 1 ? 's' : ''} reçu${files.length > 1 ? 's' : ''}`,
+              )
+            }
+          >
+            Déposez les maquettes ici
+          </Opale.Dropzone>
+          <span role="status">{message}</span>
+        </DemoFrame>
       );
       break;
     case 'Lightbox':

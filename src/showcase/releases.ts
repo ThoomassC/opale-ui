@@ -26,6 +26,26 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '4.0.0',
+    publishedAt: '2026-09-24',
+    dateLabel: '24 septembre 2026',
+    summary:
+      'Un catalogue resserré qui tient ce qu’il annonce : chaque composant garde sa matière d’origine et son verre liquide, et la vitrine se lit sur un téléphone.',
+    changes: [
+      'Rupture : vingt-quatre composants qui ne portaient rien sont retirés du catalogue, dont Game, Map, StatusChip, ThemeToggle, Separator et les cinq boutons spécialisés (AddButton, SaveButton, ApproveButton, EditButton, DeleteButton).',
+      'Rupture : Glass n’est plus exporté, le verre passe par la propriété liquidGlass. IconActionButton prend une icône par son nom (icon) au lieu de l’initiale de son libellé, et Lightbox exige un texte alternatif (alt).',
+      'Chaque composant qui peint une surface accepte liquidGlass et rend sa version d’origine par défaut.',
+      'Toast choisit un ton (neutral, success, warning, error, info) qui remplit la carte et l’une des six places de l’écran ; Rating se remplit au quart d’étoile ; 125 icônes Opale sont dessinées à la main, sans bibliothèque externe.',
+      'DataTable se trie par ses en-têtes, Dropzone accepte le glisser-déposer, CookieBanner mémorise le choix et propose de refuser, Clipboard signale l’échec, InlineInput valide sur Entrée et rétablit sur Échap, Badge gagne un point de notification et Card ses quatre élévations.',
+      'Chaque fiche du catalogue décrit ce que le composant fait réellement, et un test refuse désormais une fiche qui promettrait une fonction sans trace dans le code.',
+      'Les jetons de fond et d’encre sont séparés, ce qui rend le thème sombre lisible.',
+      'La vitrine tient à 320 px de large : sous 30 rem, la navigation devient un sommaire repliable.',
+    ],
+    breaking: true,
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/v4.0.0`,
+  },
+  {
     version: '3.1.1',
     publishedAt: '2026-09-21',
     dateLabel: '21 septembre 2026',
@@ -40,7 +60,10 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Rupture : les jetons CSS et les classes publiés prennent le préfixe opale-, et les exports nommés perdent le leur. Le chemin Opale.Button ne change pas.',
     ],
     breaking: true,
-    appHref: '#/',
+    /* ARCHIVÉE À LA SORTIE DE LA 4.0.0. `#/` désignait la version courante :
+       gardé, le lien de la 3.1.1 aurait ouvert la 4.0.0. Le build figé vient
+       de son tag, comme les archives qui la précèdent. */
+    appHref: '/versions/v3.1.1/index.html',
     /* LE TAG ET NON LA BRANCHE. `feat/composants` avance à chaque commit :
        « le code qui a produit cette version » y désignerait autre chose demain,
        ce que le contrat de ce champ interdit. Un tag ne bouge pas — c'est

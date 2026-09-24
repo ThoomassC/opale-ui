@@ -21,6 +21,8 @@
    ========================================================================== */
 
 .tabs {
+  min-inline-size: 0;
+  max-inline-size: 100%;
   /* L'encre et les voiles du matériau. Cinq réglages, et le seul endroit de
      cette feuille où une couleur est écrite. */
   --opale-tabs-ink: rgba(255, 255, 255, 0.94);
@@ -86,6 +88,11 @@
 
 .tabsListHorizontal {
   flex-direction: row;
+  /* LES ONGLETS PASSENT À LA LIGNE PLUTÔT QUE DE POUSSER LA PAGE. Trois
+     libellés d'affilée mesuraient 251 px et débordaient un téléphone de
+     320 px (WCAG 1.4.10). L'indicateur suit : il est placé sur les deux axes,
+     d'après le rectangle de l'onglet actif (`placeIndicator`). */
+  flex-wrap: wrap;
 }
 
 .tabsListVertical {

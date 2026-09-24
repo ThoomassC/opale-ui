@@ -68,8 +68,8 @@ export const elevationPage: DocPage = {
         title="Les quatre crans"
         note={
           <>
-            Les plaques sont neutres et écrites à la main : la 2.0 ne publie plus de composant qui
-            consomme ces jetons.
+            Les plaques sont neutres et écrites à la main : aucun composant publié ne consomme ces
+            jetons, la Card d’Opale ayant sa propre échelle.
           </>
         }
       >
@@ -88,26 +88,22 @@ export const elevationPage: DocPage = {
         </div>
       </Specimen>
 
-      {/* LE LIEN VISAIT LA PAGE DE LA `Card` VENDORÉE, QUI N'EXISTE PLUS : ce
-          composant est devenu la matière derrière `Opale.Card liquidGlass`. Le
-          renvoi pointe donc la page d'Opale — mais la PHRASE ne pouvait pas
-          suivre telle quelle. Elle disait « une carte de verre, sans cran », ce
-          qui était vrai de la vendorée et ne l'est plus : `CardProps`
-          déclare bel et bien `elevation?: 0 | 1 | 2 | 3`. Vérifié avant
-          réécriture : la prop ne pose que la classe `opale-card--e{n}`, et
-          aucune feuille du dépôt ne sert cette classe ni ne lit
-          `--elevation-*`. Le titre du paragraphe reste donc exact, et c'est le
-          détail qui devient plus précis, pas moins. */}
+      {/* LA PHRASE A CHANGÉ PARCE QUE LE CODE A CHANGÉ. Elle disait, à juste
+          titre, que la prop `elevation` de la Card ne posait qu'une classe
+          qu'aucune feuille ne servait. `opale.css` sert désormais les quatre
+          crans — sur l'échelle d'ombres d'Opale, `--opale-shadow-*`, et non sur
+          ces jetons-ci, que la feuille autonome d'Opale ne charge pas. Le
+          paragraphe dit donc les deux : la carte a ses crans, et les jetons de
+          cette page restent ceux de qui compose ses propres surfaces. */}
       <p className="tc-doc-prose tc-doc-aside">
-        <strong>Plus aucun composant publié ne consomme ces quatre jetons.</strong> La 1.0 les
-        exposait par la prop <code>elevation</code> de sa <code>Card</code>. La 2.0 publie bien une{' '}
+        <strong>La Card d’Opale a ses propres crans.</strong> Sa prop <code>elevation</code>, de{' '}
+        <code>0</code> à <code>3</code>, pose l’ombre correspondante de l’échelle d’Opale (
+        <code>--opale-shadow-*</code>) : à plat, posée, soulevée, détachée. Voir la{' '}
         <a className="tc-doc-link" href={hrefFor('composants/opale-card')}>
           Card
-        </a>{' '}
-        qui garde une prop <code>elevation</code> à quatre crans, mais celle-ci ne pose qu’une
-        classe — <code>opale-card--e{'{n}'}</code> — qu’aucune feuille ne sert : elle ne lit aucun
-        de ces jetons et ne peint donc aucune ombre. Les jetons restent publiés pour qui compose ses
-        propres surfaces.
+        </a>
+        . Les jetons <code>--elevation-*</code> de cette page restent publiés pour qui compose ses
+        propres surfaces avec <code>tokens.css</code>.
       </p>
     </PageBody>
   ),
