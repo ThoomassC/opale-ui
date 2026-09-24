@@ -116,22 +116,11 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
   const resizeDragRef = useRef<ResizeDrag | null>(null);
   const scrollbarStateRef = useRef<ScrollbarState>(INITIAL_SCROLLBAR_STATE);
 
-  /* LE SOMMAIRE REPLIABLE DU TÉLÉPHONE. Sous 30 rem, le rail permanent
-     laissait 184 px au contenu et treize pages débordaient encore
-     (WCAG 1.4.10) : il cède la place à un bouton qui déplie le sommaire
-     au-dessus de la page. Au-delà, la feuille masque le bouton et le rail
-     reste ce qu'il était.
-
-     IL SE REPLIE QUAND ON CHANGE DE PAGE, sans quoi le sommaire restait
-     déplié par-dessus la page qu'on venait d'ouvrir. L'état est ajusté
-     pendant le rendu, à la comparaison du slug — un effet qui le remettrait
-     à zéro rendrait deux fois, ce que la règle `react-hooks` refuse. */
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [menuSlug, setMenuSlug] = useState(currentSlug);
-  if (menuSlug !== currentSlug) {
-    setMenuSlug(currentSlug);
-    setMenuOpen(false);
-  }
+  /* Sous 30 rem, le sommaire s'affiche au-dessus de la page comme sur la
+     recette. Le bouton permet de le replier pour gagner de la place ; ce
+     choix reste en place pendant la navigation. Au-delà, le rail permanent
+     reste visible et le bouton est masqué par la feuille de style. */
+  const [menuOpen, setMenuOpen] = useState(true);
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
