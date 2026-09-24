@@ -135,3 +135,23 @@ describe('la goutte du squire-circle', () => {
     expect(rule(docSheet, '.tc-doc-squire-circle__app-icon')).not.toMatch(/transform:\s*translate/);
   });
 });
+
+/* LE SQUIRE-CIRCLE ÉTAIT UN RECTANGLE ARRONDI. La cellule portait le nom d'une
+   forme — le squircle, entre carré et cercle — et dessinait un
+   `border-radius: 0.75rem`. C'était la seule des trois pièces de la scène à ne
+   pas porter la silhouette d'Opale, que le bouton « Continuer » reçoit juste à
+   côté. */
+describe('la silhouette du squire-circle', () => {
+  it('devrait découper ses couches au squircle d’Opale', () => {
+    expect(rule(docSheet, '.tc-doc-squire-circle__root > *')).toMatch(
+      /clip-path:\s*var\(--opale-squircle-clip\)/,
+    );
+  });
+
+  /* Le découpage va aux COUCHES et non à l'enveloppe : un `clip-path` rogne
+     aussi le halo de focus, qui se dessine sur l'enveloppe. */
+  it('ne devrait pas découper l’enveloppe elle-même', () => {
+    const sans = docSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(sans).not.toMatch(/\.tc-doc-squire-circle__root\s*\{[^}]*clip-path/);
+  });
+});
