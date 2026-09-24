@@ -1,5 +1,5 @@
 import { OPALE_CATALOG } from '../../magic';
-import { deploymentLabel } from '../deployment-environment';
+import { currentDeploymentLabel } from '../deployment-environment';
 import type { DocPage } from '../doc-model';
 import { hrefFor } from '../doc-model';
 import { CURRENT_RELEASE } from '../releases';
@@ -62,6 +62,12 @@ export const introductionPage: DocPage = {
           <a className="tc-doc-home__action" href={hrefFor('installation')}>
             Commencer <span aria-hidden="true">›</span>
           </a>
+          <a
+            className="tc-doc-home__action tc-doc-home__action--secondary"
+            href={hrefFor('composants/opale-button')}
+          >
+            Explorer les composants <span aria-hidden="true">›</span>
+          </a>
         </div>
 
         <dl className="tc-doc-home__stats" aria-label="Chiffres clés d’Opale UI">
@@ -77,11 +83,7 @@ export const introductionPage: DocPage = {
           <div className="tc-doc-home__release-head">
             <div className="tc-doc-home__release-meta">
               <span className="tc-doc-home__release-eyebrow">Dernière version</span>
-              <span className="tc-doc-home__release-status">
-                {deploymentLabel(
-                  typeof window === 'undefined' ? 'localhost' : window.location.hostname,
-                )}
-              </span>
+              <span className="tc-doc-home__release-status">{currentDeploymentLabel()}</span>
             </div>
             <time dateTime={CURRENT_RELEASE.publishedAt}>
               {CURRENT_RELEASE.dateLabel} · {CURRENT_RELEASE.changes.length} changements

@@ -1105,7 +1105,7 @@ body {
   padding-block-start: var(--opale-space-lg);
 }
 .tc-doc-release__section h3,
-.tc-doc-release__migration-step h3 {
+.tc-doc-release__migration-step h4 {
   margin: 0;
   color: var(--opale-text);
   font-family: var(--opale-font-body);
@@ -1115,6 +1115,41 @@ body {
 .tc-doc-release__section .tc-doc-release__changes {
   margin-block-start: var(--opale-space-sm);
   margin-block-end: 0;
+}
+.tc-doc-release-lede {
+  max-inline-size: 44rem;
+  margin: 0;
+  color: var(--opale-text-secondary);
+  line-height: 1.5;
+}
+.tc-doc-release__change-list {
+  display: grid;
+  gap: 0;
+  margin: var(--opale-space-sm) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tc-doc-release__change-list li {
+  border-block-start: 1px solid var(--opale-divider);
+  padding-block: var(--opale-space-sm);
+}
+.tc-doc-release__change-list strong {
+  display: block;
+  color: var(--opale-text);
+}
+.tc-doc-release__change-list p {
+  margin: 0.35rem 0 0;
+  color: var(--opale-text-secondary);
+  line-height: 1.5;
+}
+.tc-doc-release__change-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  margin-block-start: 0.4rem;
+}
+.tc-doc-release__change-links a {
+  font-size: 0.875rem;
 }
 .tc-doc-release__migration {
   margin-block-start: var(--opale-space-lg);
@@ -1158,6 +1193,65 @@ body {
 }
 .tc-doc-release__migration-code code {
   color: inherit;
+}
+.tc-doc-release__copy {
+  margin-block-start: 0.5rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  padding: 0.4rem 0.7rem;
+  background: var(--opale-surface);
+  color: var(--opale-primary-on-surface);
+  font: 600 0.8rem var(--opale-font-body);
+  cursor: pointer;
+}
+.tc-doc-release__copy:hover {
+  background: color-mix(in srgb, var(--opale-primary) 10%, var(--opale-surface));
+}
+.tc-doc-release__copy:focus-visible {
+  outline: 2px solid var(--opale-primary-on-surface);
+  outline-offset: 2px;
+}
+.tc-doc-release__removed {
+  border-block-start: 1px solid var(--opale-divider);
+  padding-block-start: var(--opale-space-md);
+}
+.tc-doc-release__removed summary {
+  color: var(--opale-primary-on-surface);
+  font-weight: 600;
+}
+.tc-doc-release__removed-scroll {
+  overflow-x: auto;
+  margin-block-start: var(--opale-space-sm);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+}
+.tc-doc-release__removed table {
+  width: 100%;
+  min-inline-size: 34rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+.tc-doc-release__removed th,
+.tc-doc-release__removed td {
+  border-block-end: 1px solid var(--opale-divider);
+  padding: 0.75rem;
+  vertical-align: top;
+}
+.tc-doc-release__removed thead {
+  background: var(--opale-surface-base);
+}
+.tc-doc-install-status {
+  margin: 0;
+}
+.tc-doc-language-notice {
+  margin-block: 0.5rem 0 !important;
+  border-inline-start: 3px solid var(--opale-primary-on-surface);
+  padding: 0.55rem 0.8rem;
+  background: color-mix(in srgb, var(--opale-primary) 7%, var(--opale-surface));
+  color: var(--opale-text-secondary);
+}
+.tc-doc-specimen--opale .tc-doc-specimen__header h2 {
+  margin: 0;
 }
 @media (max-width: 42rem) {
   .tc-doc-release__migration-code {
@@ -1240,6 +1334,18 @@ body {
   min-height: 7rem;
   padding: var(--opale-space-md);
   border-radius: var(--opale-radius-md);
+}
+@media (max-width: 30rem) {
+  .tc-doc-specimen--opale .tc-doc-specimen__header {
+    margin-block-end: var(--opale-space-sm);
+  }
+  .tc-doc-opale-material-toggle {
+    margin-block: var(--opale-space-sm);
+    padding: 0.5rem 0.75rem;
+  }
+  .tc-doc-opale-material-toggle__text {
+    display: none;
+  }
 }
 
 /* =============================================================================
@@ -1949,7 +2055,7 @@ body {
 
 /* Le menu compact prend le relais avant que la navigation principale ne
    perde le lien Accueil ou ne tronque Installation. */
-@media (max-width: 89.999rem) {
+@media (max-width: 77.999rem) {
   .tc-doc-topbar .tc-doc-topbar__bar {
     grid-template-areas:
       'brand menu actions'
@@ -1988,7 +2094,7 @@ body {
 /* Le menu hamburger remplace les onglets dès que nécessaire, mais la
    recherche reste sur cette même ligne tant que la marque et les deux
    contrôles latéraux tiennent encore avec une largeur confortable. */
-@media (min-width: 42.001rem) and (max-width: 89.999rem) {
+@media (min-width: 42.001rem) and (max-width: 77.999rem) {
   :root {
     --doc-topbar-size: 4.5rem;
   }
@@ -2004,6 +2110,15 @@ body {
   .tc-doc-topbar__field {
     width: 100%;
     justify-self: stretch;
+  }
+}
+
+@media (min-width: 78rem) and (max-width: 89.999rem) {
+  .tc-doc-topbar .tc-doc-topbar__bar {
+    grid-template-columns: auto minmax(12rem, 1fr) max-content auto !important;
+  }
+  .tc-doc-topbar__tabs {
+    overflow: visible;
   }
 }
 

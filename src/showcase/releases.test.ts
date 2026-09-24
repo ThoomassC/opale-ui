@@ -3,7 +3,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { CURRENT_RELEASE, RELEASES } from './releases';
+import { PAGES } from './pages';
+import { CURRENT_RELEASE, CURRENT_REMOVED_COMPONENTS, RELEASES } from './releases';
 import { UI_VERSION } from './version';
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
@@ -53,10 +54,35 @@ describe('registre des notes de versions', () => {
       'Composants et interactions',
       'Documentation et qualité',
     ]);
-    expect(CURRENT_RELEASE.sections?.flatMap((section) => section.changes)).toEqual(
-      CURRENT_RELEASE.changes,
-    );
+    expect(
+      CURRENT_RELEASE.sections?.flatMap((section) =>
+        section.changes.map((change) => `${change.title} : ${change.detail}`),
+      ),
+    ).toEqual(CURRENT_RELEASE.changes);
     expect(CURRENT_RELEASE.migration?.steps).toHaveLength(3);
+    expect(CURRENT_RELEASE.changes).toHaveLength(8);
+  });
+
+  it('documente chaque export retiré une seule fois dans le tableau de migration', () => {
+    const removed = CURRENT_REMOVED_COMPONENTS.flatMap((row) => row.removed);
+
+    expect(removed).toHaveLength(28);
+    expect(new Set(removed).size).toBe(removed.length);
+    expect(CURRENT_RELEASE.removedComponents).toBe(CURRENT_REMOVED_COMPONENTS);
+  });
+
+  it('lie chaque changement et remplacement à une fiche existante', () => {
+    const slugs = new Set(PAGES.map((page) => page.slug));
+    const linkedSlugs = [
+      ...(CURRENT_RELEASE.sections ?? []).flatMap((section) =>
+        section.changes.flatMap((change) => change.links?.map((link) => link.slug) ?? []),
+      ),
+      ...CURRENT_REMOVED_COMPONENTS.flatMap((row) => (row.slug ? [row.slug] : [])),
+    ];
+
+    for (const slug of linkedSlugs) {
+      expect(slugs.has(slug), `fiche absente : ${slug}`).toBe(true);
+    }
   });
 
   it('devrait donner une application et une provenance à chaque entrée', () => {

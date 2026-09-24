@@ -1,4 +1,5 @@
 import type { DocPage } from '../doc-model';
+import { currentDeploymentLabel } from '../deployment-environment';
 import { hrefFor } from '../doc-model';
 import { UI_VERSION } from '../version';
 import { Specimen } from '../section';
@@ -11,11 +12,20 @@ import '@thomascaron/opale-ui/opale.css';
 
 import { Button, Opale } from '@thomascaron/opale-ui';`;
 
+const FIRST_COMPONENT = `import '@thomascaron/opale-ui/tokens.css';
+import '@thomascaron/opale-ui/opale.css';
+import { Opale } from '@thomascaron/opale-ui';
+
+export function App() {
+  return <Opale.Button variant="primary">Continuer</Opale.Button>;
+}`;
+
 export const installationPage: DocPage = {
   slug: 'installation',
   label: 'Installation',
   group: 'introduction',
   title: 'Installation',
+  searchTerms: ['npm', 'import', 'tokens.css', 'opale.css', 'premier composant'],
   lede: (
     <>
       Installez Opale UI, chargez ses feuilles de style, puis utilisez les composants historiques ou
@@ -24,9 +34,12 @@ export const installationPage: DocPage = {
   ),
   render: () => (
     <PageBody>
+      <p className="tc-doc-install-status">
+        <span className="tc-doc-release__status">{currentDeploymentLabel()}</span>
+      </p>
       <Specimen
         title={`Installer Opale UI ${UI_VERSION}`}
-        note="La version de recette est installable depuis le tag GitHub correspondant."
+        note="Cette version est installable depuis le tag GitHub correspondant."
       >
         <UsageBlock label="Commande d'installation" code={INSTALL} language="shell" defaultOpen />
       </Specimen>
@@ -35,10 +48,18 @@ export const installationPage: DocPage = {
         <UsageBlock label="Imports CSS et composants" code={IMPORTS} defaultOpen />
       </Specimen>
 
+      <Specimen
+        title="Afficher un premier composant"
+        note="Un exemple minimal prêt à copier dans un composant React."
+      >
+        <UsageBlock label="Premier composant Opale" code={FIRST_COMPONENT} defaultOpen />
+      </Specimen>
+
       <Specimen title="Choisir une brique">
         <p className="tc-doc-prose">
-          Les composants publiés gardent leurs exports habituels. Les nouveaux composants Opale sont
-          disponibles via le namespace <code>Opale</code>.
+          Les exports historiques comme <code>Button</code> restent disponibles. Pour le catalogue
+          V3 présenté ici, utilisez <code>Opale.Button</code> et les autres composants du namespace{' '}
+          <code>Opale</code>.
         </p>
         <ul className="tc-doc-checklist">
           <li>

@@ -7,7 +7,19 @@
  */
 export interface ReleaseSection {
   readonly title: string;
-  readonly changes: readonly string[];
+  readonly changes: readonly ReleaseChange[];
+}
+
+export interface ReleaseChange {
+  readonly title: string;
+  readonly detail: string;
+  readonly links?: readonly { readonly label: string; readonly slug: string }[];
+}
+
+export interface ReleaseReplacement {
+  readonly removed: readonly string[];
+  readonly guidance: string;
+  readonly slug?: string;
 }
 
 export interface ReleaseMigrationStep {
@@ -29,6 +41,7 @@ export interface ReleaseNote {
     readonly fromVersion: string;
     readonly steps: readonly ReleaseMigrationStep[];
   };
+  readonly removedComponents?: readonly ReleaseReplacement[];
   readonly breaking?: boolean;
   /** URL de l'application figée, ou fragment pour la version courante. */
   readonly appHref: string;
@@ -40,25 +53,139 @@ const CURRENT_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Compatibilité et migration',
     changes: [
-      'Rupture : vingt-quatre composants qui ne portaient rien sont retirés du catalogue, dont Game, Map, StatusChip, ThemeToggle, Separator et les cinq boutons spécialisés (AddButton, SaveButton, ApproveButton, EditButton, DeleteButton).',
-      'Rupture : Glass n’est plus exporté, le verre passe par la propriété liquidGlass. IconActionButton prend une icône par son nom (icon) au lieu de l’initiale de son libellé, et Lightbox exige un texte alternatif (alt).',
+      {
+        title: '28 exports retirés depuis la 3.1.1',
+        detail:
+          'Les alias, composants sans comportement propre et promesses non tenues quittent le catalogue. Le tableau de migration ci-dessous indique les remplacements possibles.',
+      },
+      {
+        title: 'Trois API à adapter',
+        detail:
+          'Glass devient la propriété liquidGlass ; IconActionButton reçoit icon et Lightbox exige alt. Les exemples avant/après sont juste sous cette rubrique.',
+        links: [
+          { label: 'Card', slug: 'composants/opale-card' },
+          { label: 'IconActionButton', slug: 'composants/opale-icon-action-button' },
+          { label: 'Lightbox', slug: 'composants/opale-lightbox' },
+        ],
+      },
     ],
   },
   {
     title: 'Composants et interactions',
     changes: [
-      'Chaque composant qui peint une surface accepte liquidGlass et rend sa version d’origine par défaut.',
-      'Toast choisit un ton (neutral, success, warning, error, info) qui remplit la carte et l’une des six places de l’écran ; Rating se remplit au quart d’étoile ; 125 icônes Opale sont dessinées à la main, sans bibliothèque externe.',
-      'DataTable se trie par ses en-têtes, Dropzone accepte le glisser-déposer, CookieBanner mémorise le choix et propose de refuser, Clipboard signale l’échec, InlineInput valide sur Entrée et rétablit sur Échap, Badge gagne un point de notification et Card ses quatre élévations.',
+      {
+        title: 'Liquid Glass reste optionnel',
+        detail:
+          'Les composants qui peignent une surface acceptent liquidGlass ; ils gardent leur matériau d’origine par défaut.',
+        links: [{ label: 'Voir Card', slug: 'composants/opale-card' }],
+      },
+      {
+        title: 'Notifications, notes et icônes enrichies',
+        detail:
+          'Toast propose cinq tons et six positions, Rating se remplit au quart d’étoile et Opale fournit 125 icônes dessinées à la main.',
+        links: [
+          { label: 'Toast', slug: 'composants/opale-toast' },
+          { label: 'Rating', slug: 'composants/opale-rating' },
+          { label: 'Icônes', slug: 'icones' },
+        ],
+      },
+      {
+        title: 'Des interactions qui fonctionnent',
+        detail:
+          'DataTable trie, Dropzone accepte le dépôt, CookieBanner mémorise le choix, Clipboard signale l’échec et InlineInput valide ou annule au clavier. Badge et Card gagnent leurs variantes documentées.',
+        links: [
+          { label: 'DataTable', slug: 'composants/opale-data-table' },
+          { label: 'Dropzone', slug: 'composants/opale-dropzone' },
+        ],
+      },
     ],
   },
   {
     title: 'Documentation et qualité',
     changes: [
-      'Chaque fiche du catalogue décrit ce que le composant fait réellement, et un test refuse désormais une fiche qui promettrait une fonction sans trace dans le code.',
-      'Les jetons de fond et d’encre sont séparés, ce qui rend le thème sombre lisible.',
-      'La vitrine tient à 320 px de large : sous 30 rem, la navigation devient un sommaire repliable.',
+      {
+        title: 'Des fiches fidèles au code',
+        detail:
+          'Chaque fiche décrit le comportement réel du composant et un test empêche les promesses sans implémentation.',
+      },
+      {
+        title: 'Thème sombre lisible',
+        detail: 'Les jetons de fond et d’encre sont séparés pour garder un contraste cohérent.',
+        links: [{ label: 'Thèmes', slug: 'theming' }],
+      },
+      {
+        title: 'Vitrine adaptée au téléphone',
+        detail: 'La documentation tient à 320 px ; sous 30 rem, le sommaire devient repliable.',
+      },
     ],
+  },
+];
+
+/** Diff vérifié entre les exports publics des tags v3.1.1 et v3.2.0. */
+export const CURRENT_REMOVED_COMPONENTS: readonly ReleaseReplacement[] = [
+  {
+    removed: ['AddButton', 'SaveButton', 'ApproveButton', 'EditButton', 'DeleteButton'],
+    guidance:
+      'Utilisez Button ou IconActionButton ; ajoutez ConfirmDialog pour confirmer une suppression.',
+    slug: 'composants/opale-button',
+  },
+  {
+    removed: ['Carousel'],
+    guidance: 'CardGrid couvre la grille statique ; aucun carrousel animé équivalent.',
+    slug: 'composants/opale-card-grid',
+  },
+  { removed: ['FileUploader'], guidance: 'Utilisez Dropzone.', slug: 'composants/opale-dropzone' },
+  {
+    removed: ['SlidingIndicator'],
+    guidance: 'Utilisez SegmentedControl.',
+    slug: 'composants/opale-segmented-control',
+  },
+  {
+    removed: ['ShapeBackground'],
+    guidance: 'Utilisez Background avec sa propriété shape.',
+    slug: 'composants/opale-background',
+  },
+  {
+    removed: ['StatusChip', 'Http', 'Validation'],
+    guidance: 'Utilisez Badge pour un état court ou Feedback pour un message.',
+    slug: 'composants/opale-badge',
+  },
+  {
+    removed: ['ThemeToggle', 'Sound'],
+    guidance: 'Utilisez Toggle relié à l’état réel de votre application.',
+    slug: 'composants/opale-toggle',
+  },
+  {
+    removed: ['LanguageSelector'],
+    guidance: 'Utilisez Select relié à votre système de traduction.',
+    slug: 'composants/opale-select',
+  },
+  { removed: ['SettingsMenu'], guidance: 'Utilisez Menu.', slug: 'composants/opale-menu' },
+  {
+    removed: ['Map'],
+    guidance: 'SvgMap couvre un SVG interactif ; aucun fond cartographique n’est fourni.',
+    slug: 'composants/opale-svg-map',
+  },
+  { removed: ['Legend'], guidance: 'Utilisez une liste sémantique adaptée à la visualisation.' },
+  {
+    removed: ['PageContent', 'PageScaffold'],
+    guidance: 'Composez la page avec Layout, Stack et les éléments HTML adaptés.',
+    slug: 'composants/opale-layout',
+  },
+  { removed: ['Separator'], guidance: 'Utilisez Divider.', slug: 'composants/opale-divider' },
+  { removed: ['Scrollbar'], guidance: 'Utilisez le défilement natif du navigateur.' },
+  {
+    removed: ['Toolbar'],
+    guidance: 'Créez une barre d’outils adaptée avec le rôle et le clavier appropriés.',
+  },
+  {
+    removed: ['I18n', 'LocalStore', 'RouteGuard'],
+    guidance:
+      'Ces responsabilités relèvent de la traduction, du stockage et du routeur de l’application.',
+  },
+  {
+    removed: ['Game', 'Countdown'],
+    guidance: 'Aucun équivalent Opale ; implémentez le comportement nécessaire dans l’application.',
   },
 ];
 
@@ -97,13 +224,16 @@ export const RELEASES: readonly ReleaseNote[] = [
     summary:
       'Un catalogue resserré qui tient ce qu’il annonce : chaque composant garde sa matière d’origine et son verre liquide, et la vitrine se lit sur un téléphone.',
     sections: CURRENT_RELEASE_SECTIONS,
-    changes: CURRENT_RELEASE_SECTIONS.flatMap((section) => section.changes),
+    changes: CURRENT_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
     highlights: [
       'Migration : Glass devient liquidGlass ; IconActionButton et Lightbox évoluent.',
       'Composants : Toast, DataTable, Dropzone et les icônes gagnent des interactions.',
       'Qualité : les fiches, le thème sombre et la vitrine mobile sont vérifiés.',
     ],
     migration: CURRENT_RELEASE_MIGRATION,
+    removedComponents: CURRENT_REMOVED_COMPONENTS,
     breaking: true,
     appHref: '#/',
     sourceHref: `${REPOSITORY_URL}/tree/v3.2.0`,

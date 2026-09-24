@@ -255,11 +255,7 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
         aria-label={`Démonstration ${displayName}`}
       >
         <div className="tc-doc-specimen__header">
-          <div>
-            <span className="tc-doc-specimen__eyebrow">DÉMO INTERACTIVE</span>
-            <h2>{displayName}</h2>
-          </div>
-          <Opale.Badge tone="accent">V3</Opale.Badge>
+          <h2>Aperçu interactif</h2>
         </div>
         {supportsLiquidGlass && (
           <div className="tc-doc-opale-material-toggle">

@@ -38,6 +38,8 @@ export interface DocPage {
   readonly group: DocGroupId;
   /** Le `<h1>` de la page, et le titre du document. */
   readonly title: string;
+  /** Terms used to find an API, an old name, or a concept beyond the page title. */
+  readonly searchTerms?: readonly string[];
   /** Le chapeau, rendu par la coquille juste sous le titre. */
   readonly lede?: ReactNode;
   /**
@@ -175,9 +177,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
   {
     id: 'boutons-specialises',
     label: 'BOUTONS SPÉCIALISÉS',
-    entries: [
-      opaleEntry('IconActionButton', 'IconActionButton'),
-    ],
+    entries: [opaleEntry('IconActionButton', 'IconActionButton')],
   },
   {
     id: 'affichage-de-donnees',

@@ -12,7 +12,7 @@ describe('Notes de versions — actions', () => {
     expect(screen.getByRole('heading', { name: 'Composants et interactions' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Documentation et qualité' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Exemples de migration depuis la 3.1.1'));
+    expect(screen.getByText('Guide de migration depuis la 3.1.1')).toBeVisible();
     expect(screen.getByText('<Opale.Card liquidGlass>Contenu</Opale.Card>')).toBeVisible();
     expect(
       screen.getByText('<Opale.IconActionButton icon="share" label="Partager" />'),
@@ -20,6 +20,15 @@ describe('Notes de versions — actions', () => {
     expect(
       screen.getByText('<Opale.Lightbox src="/visuel.png" alt="Aperçu du composant" open />'),
     ).toBeVisible();
+    expect(screen.getAllByRole('button', { name: 'Copier le code après' })).toHaveLength(3);
+    fireEvent.click(screen.getByText('Correspondance des 28 exports retirés'));
+    expect(screen.getByRole('columnheader', { name: 'Export 3.1.1' })).toBeVisible();
+    expect(screen.getByRole('rowheader', { name: /AddButton/ })).toBeVisible();
+    expect(screen.getByText('En local · version courante')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'IconActionButton' })).toHaveAttribute(
+      'href',
+      '#/composants/opale-icon-action-button',
+    );
   });
 
   it('utilise les variantes Button de la vitrine pour chaque version', () => {

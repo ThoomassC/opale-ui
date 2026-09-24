@@ -651,7 +651,10 @@ describe('DocShell — le rendu de la page', () => {
     expect(screen.getByRole('heading', { name: `Opale UI ${UI_VERSION}` })).toBeInTheDocument();
     expect(screen.getByText(`${OPALE_CATALOG.length} composants Opale`)).toBeInTheDocument();
     expect(screen.queryByText(/Rejoindre la bêta/i)).toBeNull();
-    expect(screen.queryByText(/Explorer/i)).toBeNull();
+    expect(screen.getByRole('link', { name: 'Explorer les composants' })).toHaveAttribute(
+      'href',
+      '#/composants/opale-button',
+    );
   });
 
   it('devrait présenter les composants comme Opale sans bloc API ni habillage de référence', () => {

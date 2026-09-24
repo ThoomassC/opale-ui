@@ -445,6 +445,11 @@ export function DocShell({ pages }: DocShellProps) {
             <h1 className="tc-doc-page__title" ref={titleRef} tabIndex={-1}>
               {pageTitle}
             </h1>
+            {copy.contentLanguageNotice ? (
+              <p className="tc-doc-language-notice" lang={language.toLowerCase()}>
+                {copy.contentLanguageNotice}
+              </p>
+            ) : null}
             {/* La frontière n'entoure QUE le contenu de la page : le titre, le
                 sommaire et les deux bascules restent rendus quoi qu'il
                 arrive. Une page sur vingt et une qui jette ne doit pas

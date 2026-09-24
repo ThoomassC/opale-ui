@@ -30,6 +30,7 @@ export interface InterfaceCopy {
   readonly contentsScroll: string;
   readonly contentsStart: string;
   readonly contentsWidth: string;
+  readonly contentLanguageNotice: string;
 }
 
 const COPY: Record<Language, InterfaceCopy> = {
@@ -53,6 +54,7 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsScroll: 'Défilement du sommaire',
     contentsStart: 'Début du sommaire',
     contentsWidth: 'Largeur du sommaire',
+    contentLanguageNotice: '',
   },
   EN: {
     skipToContent: 'Skip to content',
@@ -74,6 +76,8 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsScroll: 'Contents scroll',
     contentsStart: 'Start of contents',
     contentsWidth: 'Contents width',
+    contentLanguageNotice:
+      'The navigation is translated; documentation content is currently in French.',
   },
   ES: {
     skipToContent: 'Ir al contenido',
@@ -95,6 +99,8 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsScroll: 'Desplazamiento del índice',
     contentsStart: 'Inicio del índice',
     contentsWidth: 'Ancho del índice',
+    contentLanguageNotice:
+      'La navegación está traducida; el contenido de la documentación está actualmente en francés.',
   },
 };
 

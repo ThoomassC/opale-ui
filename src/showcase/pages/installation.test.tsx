@@ -15,12 +15,12 @@ describe('la page Installation', () => {
     );
     expect(container.textContent).not.toContain('npm install opale');
   });
-  it('montre ses deux commandes dès le premier rendu', () => {
+  it('montre ses trois extraits dès le premier rendu', () => {
     const { container } = render(<>{installationPage.render()}</>);
     const reveals = container.querySelectorAll('.tc-doc-codeexample__reveal');
 
-    expect(reveals).toHaveLength(2);
-    expect(screen.getAllByRole('button', { name: 'Masquer le code' })).toHaveLength(2);
+    expect(reveals).toHaveLength(3);
+    expect(screen.getAllByRole('button', { name: 'Masquer le code' })).toHaveLength(3);
     expect(screen.queryByRole('button', { name: 'Afficher le code' })).not.toBeInTheDocument();
 
     for (const reveal of reveals) {
@@ -35,6 +35,10 @@ describe('la page Installation', () => {
       (code) => code.dataset.language,
     );
 
-    expect(languages).toEqual(['shell', 'tsx']);
+    expect(languages).toEqual(['shell', 'tsx', 'tsx']);
+    expect(container.textContent).toContain(
+      'return <Opale.Button variant="primary">Continuer</Opale.Button>;',
+    );
+    expect(screen.getByText('En local')).toBeVisible();
   });
 });
