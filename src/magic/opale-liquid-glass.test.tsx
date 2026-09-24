@@ -464,9 +464,9 @@ describe('l’accessibilité du matériau', () => {
 
     expect(
       rule,
-      'Le matériau ne marque plus le focus. Les jetons d’anneau de la vitrine ' +
-        'valent `transparent` : sans cette règle, un champ de verre n’a AUCUN ' +
-        'indicateur au clavier (WCAG 2.4.7).',
+      'Le matériau ne marque plus le focus. L’anneau discret de la vitrine ' +
+        'est exclu des couches de verre : sans cette règle, un champ de verre ' +
+        'n’a AUCUN indicateur au clavier (WCAG 2.4.7).',
     ).toMatch(/box-shadow:\s*var\(\s*--opale-glass-focus-halo/);
 
     expect(

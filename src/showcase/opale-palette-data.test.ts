@@ -69,7 +69,7 @@ function resolve(theme: 'light' | 'dark', token: string): string | undefined {
    périmée est un mensonge silencieux. */
 const NOT_PLATED: Readonly<Record<string, string>> = {
   '--opale-focus':
-    'anneau de focus — rendu transparent dans la vitrine, il ne peint plus rien à montrer',
+    'anneau de focus — dans la vitrine, un graphite tiré de --opale-text : il n’a pas de teinte propre à montrer',
   '--opale-glass-surface':
     'lavis du matériau Liquid Glass — documenté par la page « Verre », qui montre la pile composée plutôt que la couche seule',
   '--opale-glass-border': 'liseré du matériau Liquid Glass — même raison',
