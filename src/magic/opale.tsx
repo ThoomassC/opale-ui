@@ -1463,7 +1463,10 @@ export function Feedback({
       mesuré, 106ᵉ sur 106. Les ancres du haut vivent désormais en TÊTE de
       `<body>`, celles du bas en fin : l'ordre de tabulation suit la place à
       l'écran, sans `tabindex` positif, qui aurait déplacé l'ordre de toute la
-      page pour un message passager.
+      page pour un message passager. L'arbitrage est assumé : un message
+      ouvert en haut passe AVANT un éventuel lien d'évitement de l'application,
+      comme il passe avant lui à l'écran. Il ne coûte qu'un arrêt, et seulement
+      tant que le message est ouvert.
 
    L'ancre naît avec la première instance de sa place et disparaît avec la
    dernière. Ses deux régions live vivent donc aussi longtemps qu'un message
@@ -1546,13 +1549,24 @@ function acquireToastAnchor(position: ToastPlacement) {
   anchor.users += 1;
 }
 
+/* LA DESTRUCTION ATTEND LA FIN DU COMMIT. Un message qui en remplace un autre
+   — `key` qui change — démonte l'ancien et monte le nouveau dans le même
+   commit, et le nettoyage du premier passe avant l'abonnement du second : le
+   compteur touchait zéro, l'ancre était retirée puis recréée, et le message
+   entrait dans une région live née dans la même tâche, dont l'annonce peut se
+   perdre. Le retrait est donc remis à une micro-tâche, et n'a lieu que si
+   personne n'a repris l'ancre entre-temps. */
 function releaseToastAnchor(position: ToastPlacement) {
   const anchor = TOAST_ANCHORS.get(position);
   if (!anchor) return;
   anchor.users -= 1;
   if (anchor.users > 0) return;
-  anchor.root.remove();
-  TOAST_ANCHORS.delete(position);
+  queueMicrotask(() => {
+    if (anchor.users > 0 || TOAST_ANCHORS.get(position) !== anchor) return;
+    anchor.root.remove();
+    TOAST_ANCHORS.delete(position);
+    notifyToastAnchors();
+  });
 }
 
 /* L'ANCRE S'OBTIENT PAR UN MAGASIN EXTERNE, pas par un état posé dans un
@@ -1569,7 +1583,6 @@ function useToastAnchor(position: ToastPlacement): ToastAnchor | null {
       return () => {
         toastAnchorListeners.delete(listener);
         releaseToastAnchor(position);
-        notifyToastAnchors();
       };
     },
     [position],
@@ -1672,7 +1685,9 @@ export function Toast({
      deviendrait le bloc conteneur, et le message s'afficherait dans la carte.
 
      LE MESSAGE ENTRE DANS LA RÉGION DE SON TON : polie ou assertive. Les deux
-     existent dès que l'ancre existe, donc avant lui. */
+     existent dès que l'ancre existe. Pour qu'elles précèdent le message — ce
+     qui garantit son annonce —, montez le composant fermé et ouvrez-le ensuite,
+     ou gardez une autre instance à la même place. */
   const anchor = useToastAnchor(position);
 
   if (!anchor || !card) return null;

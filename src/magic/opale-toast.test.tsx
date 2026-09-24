@@ -336,7 +336,7 @@ describe('les ancres partagées', () => {
     expect(screen.getByRole('status')).toHaveTextContent('PremierSecond');
   });
 
-  it('devrait garder l’ancre tant qu’une instance l’occupe, et la retirer à la dernière', () => {
+  it('devrait garder l’ancre tant qu’une instance l’occupe, et la retirer à la dernière', async () => {
     const { rerender, unmount, baseElement } = render(
       <>
         <Opale.Toast message="Premier" />
@@ -347,6 +347,8 @@ describe('les ancres partagées', () => {
     expect(baseElement.querySelectorAll('.opale-toast-anchor--bottom-right')).toHaveLength(1);
 
     unmount();
+    // Le retrait attend la fin du commit (voir le cas du remplacement, plus bas).
+    await Promise.resolve();
     expect(document.querySelector('.opale-toast-anchor--bottom-right')).toBeNull();
   });
 
@@ -399,5 +401,21 @@ describe('les ancres partagées', () => {
 
   it('devrait ne rien rendre côté serveur', () => {
     expect(renderToString(<Opale.Toast message="x" />)).toBe('');
+  });
+
+  /* UN MESSAGE QUI EN REMPLACE UN AUTRE DÉTRUISAIT L'ANCRE. Démonter l'ancien et
+     monter le nouveau tombent dans le même commit : le compteur passait par
+     zéro, l'ancre était retirée puis recréée, et le message entrait dans une
+     région live née dans la même tâche — une annonce qui peut se perdre. */
+  it('devrait garder la même ancre quand un message en remplace un autre', async () => {
+    const { rerender } = render(<Opale.Toast key="a" message="Premier" />);
+    const before = document.querySelector('.opale-toast-anchor--bottom-right');
+
+    rerender(<Opale.Toast key="b" message="Second" />);
+    await Promise.resolve();
+
+    const after = document.querySelector('.opale-toast-anchor--bottom-right');
+    expect(after, 'Même nœud, régions déjà surveillées.').toBe(before);
+    expect(after).toHaveTextContent('Second');
   });
 });
