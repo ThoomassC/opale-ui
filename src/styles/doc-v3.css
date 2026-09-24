@@ -1676,8 +1676,10 @@ body {
   padding-inline-end: 1.45rem !important;
 }
 
-/* Les commandes gardent une boîte rectangulaire pour le focus et confient leur
-   silhouette au même polygone de squircle que Button. */
+/* Les commandes gardent une boîte rectangulaire et confient leur silhouette au
+   même polygone de squircle que Button. Au focus clavier seulement, la boîte
+   s'arrondit pour que l'anneau discret épouse le squircle — voir « L'ANNEAU
+   REVIENT, DISCRET », qui l'emporte sur cette règle. */
 .tc-doc
   :is(
     .tc-doc-search,
@@ -1763,11 +1765,11 @@ body {
    `:focus-visible` aurait aussi emporté la lueur du champ de saisie et celle
    des cartes, qui ne sont pas des anneaux et suivent la forme du contrôle.
 
-   CE QUE ÇA COÛTE, ÉCRIT ICI POUR QUE PERSONNE NE LE REDÉCOUVRE. Naviguer au
-   clavier dans cette vitrine ne montre plus où l'on se trouve : c'est l'échec
-   du critère WCAG 2.4.7 (Focus Visible, niveau AA), et 2.4.11 avec lui. La
-   décision est celle du propriétaire du design system, prise en connaissance
-   de cause ; elle n'est pas un oubli.
+   CE QUE ÇA COÛTAIT : naviguer au clavier ne montrait plus où l'on se
+   trouvait, l'échec du critère WCAG 2.4.7 (Focus Visible, niveau AA). La
+   décision était celle du propriétaire, prise en connaissance de cause. Elle a
+   été révisée le 24 septembre 2026 : les jetons bruyants restent éteints, et
+   un anneau DISCRET les remplace — voir le bloc qui suit.
 
    `tokens.css` N'EST PAS TOUCHÉ, ET C'EST DÉLIBÉRÉ. C'est un artefact PUBLIÉ
    (`exports["./tokens.css"]`) : y couper l'anneau le retirerait à tous les
@@ -1783,26 +1785,89 @@ body {
 .tc-doc {
   --focus-outer: transparent;
   --focus-inner: transparent;
-  --opale-focus: transparent;
+  --tc-doc-focus-ring: color-mix(in srgb, var(--opale-text) 50%, transparent);
+  --opale-focus: var(--tc-doc-focus-ring);
 }
 
-.tc-doc :is(a, button, [role='button'], [role='slider']):focus,
-.tc-doc :is(a, button, [role='button'], [role='slider']):focus-visible,
+/* =============================================================================
+   L'ANNEAU REVIENT, DISCRET — DÉCISION DU PROPRIÉTAIRE, SUR PROPOSITION.
+
+   Le bloc ci-dessus racontait pourquoi il avait été éteint : un rectangle bleu
+   épais autour de contrôles en squircle, doublé d'un filet citron. Ce qui est
+   rendu n'est PAS cet anneau-là, et c'est ce qui rend son retour acceptable :
+
+   — LE CLAVIER SEUL. `:focus-visible` ne s'allume pas au clic d'un bouton :
+     pour qui navigue à la souris — la quasi-totalité des visites —, rien ne
+     change.
+   — UN SEUL TRAIT DE 2 PX, sans ombre ni filet, à 3 px du contrôle.
+   — GRAPHITE ET NON BLEU : l'encre du texte à 50 %, qui suit le thème. Pas
+     `currentColor`, qui semblait l'évidence : sur un bouton plein il vaut
+     blanc, et l'anneau posé sur la page claire aurait disparu. Et pas 40 %,
+     le chiffre proposé : mesuré à 2,56:1 sur le fond clair, sous le plancher
+     de 3:1 d'un indicateur (WCAG 1.4.11). `doc-focus-ring.contract.test.ts`
+     mesure chaque sol des deux thèmes.
+   — IL ÉPOUSE LA SILHOUETTE. Les squircles de la vitrine sont peints par un
+     pseudo-élément, et la boîte du contrôle reste un rectangle : c'est elle
+     que l'anneau suivait, d'où ses « oreilles ». Ces boîtes étant
+     transparentes et sans bordure, leur donner un rayon ne change rien à
+     l'écran, sinon le tracé de l'anneau. Le rayon est celui que la
+     bibliothèque calcule pour qu'un rectangle arrondi CONTIENNE le squircle :
+     0,68 fois celui du squircle (voir `.opale-button--glass-root`).
+
+   `--opale-focus` passe à la même encre : les anneaux de la bibliothèque — la
+   marque d'une case cochée, la zone de dépôt, l'option active d'une liste —
+   parlent la même langue. Le VERRE garde son halo, choisi à part : ses couches
+   de contenu sont exclues d'ici.
+
+   RESTENT SANS ANNEAU les cibles de focus programmatique (`tabindex="-1"`) :
+   le titre de page, qui reçoit le focus à chaque navigation, et `<main>`,
+   filet du lien d'évitement. Un anneau autour d'un titre qu'on n'a pas choisi
+   serait du bruit.
+   ========================================================================== */
+.tc-doc :focus-visible {
+  outline: 2px solid var(--tc-doc-focus-ring);
+  outline-offset: 3px;
+}
+
+.tc-doc
+  :is(
+    .opale-button,
+    .tc-doc-codeaction,
+    .tc-doc-nav__link,
+    .tc-doc-nav__alltitle,
+    .tc-doc-themetoggle,
+    .tc-doc-language__trigger,
+    .tc-doc-language__option,
+    .tc-doc-topbar__menu-toggle,
+    .tc-doc-topbar__tab,
+    .tc-doc-mobile-nav-toggle,
+    .tc-doc-search__option,
+    .tc-doc-home__action
+  ):focus-visible {
+  /* `!important` parce qu'une règle plus haut remet ces boîtes à 0 de la même
+     façon ; celle-ci, plus précise, ne vaut que le temps du focus clavier. */
+  border-radius: calc(var(--opale-squircle-radius) * 0.68) !important;
+}
+
+.tc-doc [tabindex='-1']:focus-visible,
+.tc-doc [data-opale-glass-layer]:focus-visible,
 .tc-doc-main:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
 
+/* LA RECHERCHE PORTE L'ANNEAU SUR SON CADRE, pas sur le champ nu : c'est le
+   cadre qu'on voit, et le champ en occupe une partie seulement. Sa bordure
+   passe en plus au primaire, comme avant. */
 .tc-doc-search:focus-within {
   --tc-doc-search-border: var(--opale-primary);
-  outline: none !important;
-  box-shadow: none !important;
 }
 
 .tc-doc-search:has(.tc-doc-search__input:focus-visible) {
   --tc-doc-search-border: var(--opale-primary);
-  outline: none !important;
-  box-shadow: none !important;
+  outline: 2px solid var(--tc-doc-focus-ring);
+  outline-offset: 3px;
+  border-radius: calc(var(--opale-squircle-radius) * 0.68) !important;
 }
 
 .tc-doc .tc-doc-search__input:focus,

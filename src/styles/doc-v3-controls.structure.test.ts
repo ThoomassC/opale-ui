@@ -71,34 +71,37 @@ describe('la forme interactive OpaleUI', () => {
      seule chose qui sépare un second jeton d'un second aller-retour réseau
      bloquant au premier rendu. Un `@import` supplémentaire aurait fonctionné à
      l'écran et coûté une requête de plus, sans que rien ne le signale. */
-  /* LA SUPPRESSION DE L'ANNEAU DE FOCUS EST UNE DÉCISION, DONC ELLE SE GARDE.
+  /* L'ANNEAU DE FOCUS EST UNE DÉCISION, DONC ELLE SE GARDE — DANS SA NOUVELLE FORME.
 
-     Sans ce test, rétablir l'anneau serait une seule ligne, et le rectangle que
-     le propriétaire a demandé de retirer reviendrait sans que rien ne le dise.
-     Ce qui est épinglé n'est pas une valeur d'apparence mais le MÉCANISME :
-     la suppression passe par les trois jetons de couleur de focus, vérifiés
-     ailleurs comme ne servant à rien d'autre. Un `box-shadow: none !important`
-     général aurait aussi emporté la lueur du champ de saisie et celle des
-     cartes, qui ne sont pas des anneaux.
+     Il avait été éteint à la demande du propriétaire : un rectangle bleu épais,
+     doublé d'un filet citron, autour de contrôles en squircle. Il revient
+     discret, et ce test tient ce qui le distingue de l'ancien : les jetons
+     bruyants restent éteints, un seul trait de 2 px au clavier seulement,
+     d'encre graphite et non bleue. Sans ce garde, rallumer l'ancien anneau
+     tiendrait en une ligne.
 
      `tokens.css` N'EST PAS CONCERNÉ et ne doit pas l'être : c'est un artefact
-     publié (`exports["./tokens.css"]`), donc y couper l'anneau le retirerait
-     aux consommateurs du paquet. La dernière assertion l'empêche. */
-  it('ne peint plus aucun anneau de focus dans la vitrine', () => {
-    /* Le sélecteur est une LISTE sur deux lignes (`:root,` puis `.tc-doc`), que
-       le lecteur de règles partagé ne sait pas retrouver par son nom. On lit
-       donc le bloc dans la source, ce qui épingle aussi le fait que les trois
-       jetons vivent bien ENSEMBLE — les séparer serait la façon la plus simple
-       d'en oublier un. */
+     publié (`exports["./tokens.css"]`). La dernière assertion l'empêche. */
+  it('peint un anneau discret au clavier, et jamais l’ancien', () => {
     const scope = /:root,\s*\.tc-doc\s*\{([\s\S]*?)\}/.exec(docSource)?.[1] ?? '';
 
+    // L'ancien anneau — halo bleu et filet citron — reste éteint.
     expect(scope).toMatch(/--focus-outer:\s*transparent/);
     expect(scope).toMatch(/--focus-inner:\s*transparent/);
-    expect(scope).toMatch(/--opale-focus:\s*transparent/);
+    // Le nouveau : l'encre du texte, et la bibliothèque parle la même langue.
+    expect(scope).toMatch(/--tc-doc-focus-ring:\s*color-mix\(in srgb,\s*var\(--opale-text\)/);
+    expect(scope).toMatch(/--opale-focus:\s*var\(--tc-doc-focus-ring\)/);
 
-    /* Les deux `outline` posés en dur — ceux qui citaient `--opale-primary` et
-       non un jeton de focus — sont éteints à part, les jetons ne pouvant rien
-       pour eux. */
+    // Au clavier seulement, un trait de 2 px, sans ombre.
+    const ring = /\.tc-doc :focus-visible\s*\{([^}]*)\}/.exec(docSource)?.[1] ?? '';
+    expect(ring).toMatch(/outline:\s*2px solid var\(--tc-doc-focus-ring\)/);
+    expect(ring).toMatch(/outline-offset:\s*3px/);
+    expect(docSource).not.toMatch(/\.tc-doc [^{]*:focus\s*[,{][^}]*outline:\s*[1-9]/);
+
+    // Les cibles de focus programmatique restent sans anneau.
+    expect(docSource).toMatch(
+      /\.tc-doc \[tabindex='-1'\]:focus-visible[\s\S]{0,120}outline:\s*none\s*!important/,
+    );
     expect(docSource).toMatch(
       /\.tc-doc-main:focus-visible[\s\S]{0,120}outline:\s*none\s*!important/,
     );
@@ -106,6 +109,18 @@ describe('la forme interactive OpaleUI', () => {
     /* La feuille PUBLIÉE garde son anneau : la vitrine n'impose pas son choix
        d'accessibilité aux projets qui installent le paquet. */
     expect(tokensSource).toMatch(/:focus-visible\s*\{[\s\S]*?outline:\s*3px\s+solid/);
+  });
+
+  /* L'ANNEAU ÉPOUSE LA SILHOUETTE. Les squircles sont peints par un
+     pseudo-élément et la boîte reste un rectangle : sans rayon, l'anneau
+     retrouvait les « oreilles » qui avaient fait éteindre l'ancien. */
+  it('arrondit la boîte des contrôles en squircle quand ils portent le focus', () => {
+    const shaped = /\.tc-doc\s*:is\(([^)]*)\):focus-visible\s*\{([^}]*)\}/.exec(docSource) ?? [];
+    expect(shaped[1]).toContain('.opale-button');
+    expect(shaped[1]).toContain('.tc-doc-nav__link');
+    expect(shaped[2]).toMatch(
+      /border-radius:\s*calc\(var\(--opale-squircle-radius\)\s*\*\s*0\.68\)/,
+    );
   });
 
   it('borne la police de titre et la sert sans requête supplémentaire', () => {
