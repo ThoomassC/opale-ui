@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -1449,23 +1450,24 @@ export function Feedback({
    file — un TON et une PLACE — et se rend dans un portail, donc à l'endroit de
    l'écran qu'on lui indique et non à l'endroit du code.
 
-   DEUX LIMITES ASSUMÉES, ET ELLES DÉCOULENT TOUTES DEUX DU CHOIX CI-DESSUS.
+   UNE ANCRE PAR PLACE, PARTAGÉE. Chaque instance montait sa propre ancre plein
+   écran en fin de `<body>`, d'où deux défauts documentés à la création du
+   composant et levés ensemble :
 
-   1. UN SEUL MESSAGE À LA FOIS. Chaque instance monte sa propre ancre plein
-      écran : deux `Opale.Toast` ouverts à la même place se recouvrent au
-      pixel près, le second cachant le premier et sa croix. Ce n'est pas un
-      oubli, c'est la frontière entre les deux composants — empiler, minuter,
-      dédoublonner et congédier est le travail de `ToastProvider`, qui existe
-      pour ça. Celui-ci sert quand il n'y a qu'UNE chose à dire et qu'on veut
-      en tenir l'état soi-même.
+   1. DEUX MESSAGES À LA MÊME PLACE SE RECOUVRAIENT au pixel près, le second
+      cachant le premier et sa croix. Ils partagent maintenant l'ancre de leur
+      place et s'y empilent. Minuter, dédoublonner et congédier reste le
+      travail de `ToastProvider` ; empiler proprement, c'est le minimum.
 
-   2. L'ORDRE DE TABULATION NE SUIT PAS LA PLACE À L'ÉCRAN. Le portail écrit
-      en fin de `<body>`, donc la croix d'un message posé en haut est le
-      DERNIER arrêt clavier de la page — mesuré, 106ᵉ sur 106. Elle reste
-      atteignable, mais après toute la page. Le maquiller avec un `tabindex`
-      positif ferait bien pire : ce serait déplacer l'ordre de toute la page
-      pour un message passager. Pour un message qu'on s'attend à fermer au
-      clavier, préférez les places basses.
+   2. LA CROIX D'UN MESSAGE EN HAUT ÉTAIT LE DERNIER ARRÊT CLAVIER de la page —
+      mesuré, 106ᵉ sur 106. Les ancres du haut vivent désormais en TÊTE de
+      `<body>`, celles du bas en fin : l'ordre de tabulation suit la place à
+      l'écran, sans `tabindex` positif, qui aurait déplacé l'ordre de toute la
+      page pour un message passager.
+
+   L'ancre naît avec la première instance de sa place et disparaît avec la
+   dernière. Ses deux régions live vivent donc aussi longtemps qu'un message
+   peut y entrer, ouvert ou fermé — la condition pour qu'il soit annoncé.
    ========================================================================== */
 
 /** Les six places possibles à l'écran. Mêmes valeurs que `ToastProvider`. */
@@ -1511,6 +1513,73 @@ const TONE_ICON: Record<ToastTone, OpaleIconName | null> = {
   error: 'x-circle',
   info: 'info',
 };
+
+interface ToastAnchor {
+  readonly status: HTMLDivElement;
+  readonly alert: HTMLDivElement;
+  readonly root: HTMLDivElement;
+  users: number;
+}
+
+const TOAST_ANCHORS = new Map<ToastPlacement, ToastAnchor>();
+const toastAnchorListeners = new Set<() => void>();
+
+function notifyToastAnchors() {
+  toastAnchorListeners.forEach((listener) => listener());
+}
+
+function acquireToastAnchor(position: ToastPlacement) {
+  let anchor = TOAST_ANCHORS.get(position);
+  if (!anchor) {
+    const root = document.createElement('div');
+    root.className = `opale-toast-anchor opale-toast-anchor--${position}`;
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    const alert = document.createElement('div');
+    alert.setAttribute('role', 'alert');
+    root.append(status, alert);
+    if (position.startsWith('top')) document.body.prepend(root);
+    else document.body.append(root);
+    anchor = { root, status, alert, users: 0 };
+    TOAST_ANCHORS.set(position, anchor);
+  }
+  anchor.users += 1;
+}
+
+function releaseToastAnchor(position: ToastPlacement) {
+  const anchor = TOAST_ANCHORS.get(position);
+  if (!anchor) return;
+  anchor.users -= 1;
+  if (anchor.users > 0) return;
+  anchor.root.remove();
+  TOAST_ANCHORS.delete(position);
+}
+
+/* L'ANCRE S'OBTIENT PAR UN MAGASIN EXTERNE, pas par un état posé dans un
+   effet. S'abonner, c'est occuper l'ancre de sa place — la créer si l'on est
+   le premier — et se désabonner, la libérer. React relit l'instantané aussitôt
+   après l'abonnement et rend le portail dans la foulée. Côté serveur,
+   l'instantané est `null` : pas d'ancre, pas de portail, et rien à hydrater. */
+function useToastAnchor(position: ToastPlacement): ToastAnchor | null {
+  const subscribe = useCallback(
+    (listener: () => void) => {
+      toastAnchorListeners.add(listener);
+      acquireToastAnchor(position);
+      notifyToastAnchors();
+      return () => {
+        toastAnchorListeners.delete(listener);
+        releaseToastAnchor(position);
+        notifyToastAnchors();
+      };
+    },
+    [position],
+  );
+  return useSyncExternalStore(
+    subscribe,
+    () => TOAST_ANCHORS.get(position) ?? null,
+    () => null,
+  );
+}
 
 export function Toast({
   message,
@@ -1593,34 +1662,22 @@ export function Toast({
     </Shell>
   ) : null;
 
-  const content = (
-    /* L'ANCRE NE CAPTE PAS LE POINTEUR quand elle est vide, sinon une bande
-       invisible en haut ou en bas de l'écran avalerait les clics de la page
-       en permanence — y compris quand aucun message n'est affiché. */
-    <div className={`opale-toast-anchor opale-toast-anchor--${position}`}>
-      <div role="status">{assertive ? null : card}</div>
-      <div role="alert">{assertive ? card : null}</div>
-    </div>
-  );
+  /* L'ANCRE NE CAPTE PAS LE POINTEUR quand elle est vide (voir la feuille),
+     sinon une bande invisible avalerait les clics de la page en permanence.
 
-  /* LE PORTAIL EST RÉSOLU PENDANT LE RENDU et non dans un effet : les régions
-     doivent exister au premier rendu, pas au suivant.
-
-     SANS `document`, LE COMPOSANT NE REND RIEN — c'est ce que fait `Modal`, et
-     les deux composants à portail du dépôt doivent tenir le même contrat. Le
+     SANS `document`, LE COMPOSANT NE REND RIEN — c'est ce que fait `Modal`. Le
      repli tentant est de rendre l'ancre EN PLACE dans l'arbre ; il est pire
      que rien. L'ancre est `position: fixed`, donc un ancêtre qui porte
-     `backdrop-filter`, `transform` ou `filter` — c'est-à-dire tout verre de ce
-     dépôt — en devient le bloc conteneur : le message s'afficherait à
-     l'intérieur de la carte, voire rogné par elle, puis serait détruit et
-     reconstruit ailleurs à l'hydratation. Un message mal placé pendant une
-     seconde est un défaut visible ; son absence pendant la même seconde ne
-     l'est pas. */
-  const container = typeof document === 'undefined' ? null : document.body;
+     `backdrop-filter`, `transform` ou `filter` — tout verre de ce dépôt — en
+     deviendrait le bloc conteneur, et le message s'afficherait dans la carte.
 
-  if (!container) return null;
+     LE MESSAGE ENTRE DANS LA RÉGION DE SON TON : polie ou assertive. Les deux
+     existent dès que l'ancre existe, donc avant lui. */
+  const anchor = useToastAnchor(position);
 
-  return createPortal(content, container);
+  if (!anchor || !card) return null;
+
+  return createPortal(card, assertive ? anchor.alert : anchor.status);
 }
 
 /**

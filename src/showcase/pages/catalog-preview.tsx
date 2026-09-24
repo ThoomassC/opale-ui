@@ -479,10 +479,10 @@ export function CatalogPreview({ name, liquidGlass }: { name: string; liquidGlas
           </p>
 
           <p className="tc-doc-prose">
-            <strong>Un seul message à la fois.</strong> Deux <code>Opale.Toast</code> ouverts à la
-            même place se recouvrent : empiler, minuter et congédier une file est le travail de{' '}
-            <code>ToastProvider</code>. Et l’ordre de tabulation suit le DOM, pas l’écran — la croix
-            d’un message posé en haut est le dernier arrêt clavier de la page.
+            <strong>Plusieurs messages à la même place s’empilent</strong> dans une ancre partagée,
+            et l’ordre de tabulation suit l’écran : un message posé en haut vient avant la page, un
+            message posé en bas après elle. Minuter et congédier une file reste le travail de{' '}
+            <code>ToastProvider</code>.
           </p>
 
           <Opale.Toast
