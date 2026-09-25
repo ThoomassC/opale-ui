@@ -19,10 +19,15 @@
 }
 
 .searchBar:focus-within {
-  border-color: color-mix(in srgb, #ffffff 94%, transparent);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, #ffffff 18%, transparent),
-    0 0 1rem color-mix(in srgb, #ffffff 10%, transparent);
+  border-color: var(--opale-primary-light, #a9c7f4);
+}
+
+/* Le verre ne garde ni halo extérieur ni assombrissement au focus :
+   seul son contour prend le bleu du contrôle. */
+.root:has([data-opale-glass-layer='content'] .input:focus) {
+  --opale-glass-edge: var(--opale-primary-light, #a9c7f4);
+  --opale-glass-tint: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 }
 
 .icon {
@@ -44,9 +49,8 @@
   line-height: 1;
 }
 
-/* The global focus recipe is intentionally replaced by the rounded surface
-   above. Keeping the reset on the input prevents the browser from painting a
-   rectangular black-and-white ring inside the liquid-glass pill. */
+/* Le champ intérieur ne dessine pas de focus : le contour arrondi
+   de la barre porte seul l'état actif. */
 .input:focus-visible {
   outline: none;
   box-shadow: none;
@@ -99,7 +103,6 @@
 
 .plain:focus-within {
   border-color: var(--opale-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--opale-primary) 18%, transparent);
 }
 
 .plain .input::placeholder {

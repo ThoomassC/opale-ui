@@ -2062,18 +2062,14 @@ body {
   box-shadow: none !important;
 }
 
-/* LA RECHERCHE PORTE L'ANNEAU SUR SON CADRE, pas sur le champ nu : c'est le
-   cadre qu'on voit, et le champ en occupe une partie seulement. Sa bordure
-   passe en plus au primaire, comme avant. */
+/* Le seul indicateur de focus de la recherche est son filet bleu.
+   L'ancien anneau graphite reste éteint sur l'enveloppe. */
 .tc-doc-search:focus-within {
   --tc-doc-search-border: var(--opale-primary);
 }
 
 .tc-doc-search:has(.tc-doc-search__input:focus-visible) {
-  --tc-doc-search-border: var(--opale-primary);
-  outline: 2px solid var(--tc-doc-focus-ring);
-  outline-offset: 3px;
-  border-radius: calc(var(--opale-squircle-radius) * 0.68) !important;
+  outline: none;
 }
 
 .tc-doc .tc-doc-search__input:focus,

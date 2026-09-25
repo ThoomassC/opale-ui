@@ -1151,6 +1151,17 @@
   outline: 2px solid var(--opale-focus);
   outline-offset: 3px;
 }
+/* Une recherche se signale par son seul contour bleu, sans halo extérieur. */
+.opale-input-shell:has(> .opale-input[type='search']:focus) {
+  border-color: var(--opale-primary);
+  box-shadow: none;
+  outline: none;
+}
+.opale-input--glass-root:has(.opale-input[type='search']:focus) {
+  --opale-glass-edge: var(--opale-primary-light);
+  --opale-glass-tint: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
 .opale-input::placeholder {
   color: var(--opale-text-secondary);
   opacity: 0.72;
