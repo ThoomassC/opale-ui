@@ -2552,23 +2552,27 @@ body {
    toucher —, alors que ce qu'on vient chercher sur cette page EST le nom à
    recopier dans le code.
    ========================================================================== */
+/* Le compteur garde sa propre ligne : ses chiffres et le message vide ne
+   changent jamais la largeur ni la position de la recherche. */
 .tc-doc-icon-filter {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
   margin-block-end: 1.5rem;
 }
 
 .tc-doc-icon-filter > :first-child {
-  flex: 1 1 18rem;
   min-inline-size: 0;
 }
 
 .tc-doc-icon-filter__count {
-  margin: 0 0 0.6rem;
+  min-block-size: 1.25rem;
+  margin: 0;
   color: var(--opale-text-secondary);
   font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25rem;
+  text-align: end;
 }
 
 .tc-doc-icon-family + .tc-doc-icon-family {
