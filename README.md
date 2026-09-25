@@ -157,6 +157,14 @@ Les propriétés `logo`, `siteName`, `navigation`, `searchAction` et `footerLink
 éléments courants. `slots` remplace individuellement `brand`, `navigation`, `search`, `actions`,
 `intro`, `footer` et les autres zones. `classNames` et les variables CSS
 `--page-scaffold-max-width` / `--page-scaffold-gutter` règlent les détails de présentation.
+Le header inclut une bascule clair/sombre et un sélecteur FR/EN/ES. Le thème est limité au
+`PageScaffold` : il ne modifie pas le thème de la page hôte. La langue traduit ses libellés
+fournis par défaut ; si vous fournissez votre propre navigation ou contenu, traduisez-les dans
+votre application via `onLanguageChange`. Utilisez `theme` / `language` pour piloter les valeurs,
+ou `defaultTheme` / `defaultLanguage` pour laisser le gabarit les gérer. Les props `showThemeToggle`
+et `showLanguageSelector` masquent les contrôles, et `slots.actions` remplace leur zone.
+Les menus mobiles du gabarit et du site Opale se replient au clic extérieur.
+
 La fiche `#/composants/page-scaffold` dans la vitrine de cette branche documente l'API complète.
 
 ## Le catalogue de composants

@@ -23,6 +23,9 @@ export interface PageScaffoldLink {
   readonly rel?: string;
 }
 
+export type PageScaffoldTheme = 'light' | 'dark';
+export type PageScaffoldLanguage = 'fr' | 'en' | 'es';
+
 /** `undefined` conserve la zone par défaut ; `null` la retire. */
 export interface PageScaffoldSlots {
   readonly header?: ReactNode;
@@ -50,6 +53,17 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithoutRef<'div'>,
   onNavigate?: (link: PageScaffoldLink, event: MouseEvent<HTMLAnchorElement>) => void;
   navigationLabel?: string;
   mobileMenuLabel?: string;
+  /** Thème et langue contrôlés, ou valeurs initiales en mode autonome. */
+  theme?: PageScaffoldTheme;
+  defaultTheme?: PageScaffoldTheme;
+  onThemeChange?: (theme: PageScaffoldTheme) => void;
+  language?: PageScaffoldLanguage;
+  defaultLanguage?: PageScaffoldLanguage;
+  onLanguageChange?: (language: PageScaffoldLanguage) => void;
+  showThemeToggle?: boolean;
+  showLanguageSelector?: boolean;
+  themeToggleLabel?: string;
+  languageSelectorLabel?: string;
   showNavigation?: boolean;
   showSearch?: boolean;
   /** Attributs natifs du vrai champ Opale.SearchBar. */
@@ -85,15 +99,70 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithoutRef<'div'>,
   >;
 }
 
-const DEFAULT_NAVIGATION: readonly PageScaffoldLink[] = [
-  { id: 'home', href: '/', label: 'Accueil' },
-  { id: 'explore', href: '/explorer', label: 'Explorer' },
-  { id: 'about', href: '/a-propos', label: 'À propos' },
-];
+const COPY = {
+  fr: {
+    home: 'Accueil',
+    explore: 'Explorer',
+    about: 'À propos',
+    legal: 'Mentions légales',
+    privacy: 'Confidentialité',
+    navigation: 'Navigation principale',
+    menu: 'Menu',
+    search: 'Rechercher',
+    searchLabel: 'Rechercher sur le site',
+    welcome: 'Bienvenue',
+    description: 'Découvrez nos contenus et trouvez rapidement ce qui vous intéresse.',
+    footerNavigation: 'Liens de pied de page',
+    footerDescription: 'Une expérience construite avec Opale.',
+    copyright: 'Tous droits réservés.',
+    skip: 'Aller au contenu',
+    theme: 'Changer le thème clair ou sombre',
+    language: 'Langue de la page',
+  },
+  en: {
+    home: 'Home',
+    explore: 'Explore',
+    about: 'About',
+    legal: 'Legal notice',
+    privacy: 'Privacy',
+    navigation: 'Primary navigation',
+    menu: 'Menu',
+    search: 'Search',
+    searchLabel: 'Search this site',
+    welcome: 'Welcome',
+    description: 'Explore our content and quickly find what you need.',
+    footerNavigation: 'Footer links',
+    footerDescription: 'An experience built with Opale.',
+    copyright: 'All rights reserved.',
+    skip: 'Skip to content',
+    theme: 'Switch between light and dark theme',
+    language: 'Page language',
+  },
+  es: {
+    home: 'Inicio',
+    explore: 'Explorar',
+    about: 'Acerca de',
+    legal: 'Aviso legal',
+    privacy: 'Privacidad',
+    navigation: 'Navegación principal',
+    menu: 'Menú',
+    search: 'Buscar',
+    searchLabel: 'Buscar en el sitio',
+    welcome: 'Bienvenido',
+    description: 'Descubre nuestros contenidos y encuentra rápidamente lo que necesitas.',
+    footerNavigation: 'Enlaces del pie de página',
+    footerDescription: 'Una experiencia creada con Opale.',
+    copyright: 'Todos los derechos reservados.',
+    skip: 'Ir al contenido',
+    theme: 'Cambiar entre tema claro y oscuro',
+    language: 'Idioma de la página',
+  },
+} as const;
 
-const DEFAULT_FOOTER_LINKS: readonly PageScaffoldLink[] = [
-  { id: 'legal', href: '/mentions-legales', label: 'Mentions légales' },
-  { id: 'privacy', href: '/confidentialite', label: 'Confidentialité' },
+const LANGUAGE_OPTIONS: readonly { value: PageScaffoldLanguage; label: string }[] = [
+  { value: 'fr', label: 'FR' },
+  { value: 'en', label: 'EN' },
+  { value: 'es', label: 'ES' },
 ];
 
 /** Une page Opale complète, dont chaque région peut être configurée ou remplacée. */
@@ -103,11 +172,21 @@ export function PageScaffold({
   logo,
   brandLabel,
   headerSize = 'comfortable',
-  navigation = DEFAULT_NAVIGATION,
+  navigation,
   activeId = 'home',
   onNavigate,
-  navigationLabel = 'Navigation principale',
-  mobileMenuLabel = 'Menu',
+  navigationLabel,
+  mobileMenuLabel,
+  theme,
+  defaultTheme = 'light',
+  onThemeChange,
+  language,
+  defaultLanguage = 'fr',
+  onLanguageChange,
+  showThemeToggle = true,
+  showLanguageSelector = true,
+  themeToggleLabel,
+  languageSelectorLabel,
   showNavigation = true,
   showSearch = true,
   searchProps,
@@ -115,14 +194,14 @@ export function PageScaffold({
   searchName = 'q',
   onSearch,
   pageTitle,
-  introEyebrow = 'Bienvenue',
+  introEyebrow,
   titleAs: Title = 'h1',
-  pageDescription = 'Découvrez nos contenus et trouvez rapidement ce qui vous intéresse.',
-  footerLinks = DEFAULT_FOOTER_LINKS,
-  footerNavigationLabel = 'Liens de pied de page',
-  footerDescription = 'Une expérience construite avec Opale.',
+  pageDescription,
+  footerLinks,
+  footerNavigationLabel,
+  footerDescription,
   copyrightOwner,
-  copyrightText = 'Tous droits réservés.',
+  copyrightText,
   copyrightYear = new Date().getFullYear(),
   showCopyright = true,
   contentWidth = 'normal',
@@ -130,7 +209,7 @@ export function PageScaffold({
   liquidGlass = false,
   mainId,
   mainAs: Main = 'main',
-  skipLinkLabel = 'Aller au contenu',
+  skipLinkLabel,
   slots,
   classNames,
   className,
@@ -141,7 +220,31 @@ export function PageScaffold({
   const contentId = mainId ?? `opale-page-content-${generatedId}`;
   const mobileId = `opale-page-menu-${generatedId}`;
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNavRef = useRef<HTMLElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [localTheme, setLocalTheme] = useState<PageScaffoldTheme>(defaultTheme);
+  const [localLanguage, setLocalLanguage] = useState<PageScaffoldLanguage>(defaultLanguage);
+  const activeTheme = theme ?? localTheme;
+  const activeLanguage = language ?? localLanguage;
+  const copy = COPY[activeLanguage];
+  const pageNavigation = navigation ?? [
+    { id: 'home', href: '/', label: copy.home },
+    { id: 'explore', href: '/explorer', label: copy.explore },
+    { id: 'about', href: '/a-propos', label: copy.about },
+  ];
+  const pageFooterLinks = footerLinks ?? [
+    { id: 'legal', href: '/mentions-legales', label: copy.legal },
+    { id: 'privacy', href: '/confidentialite', label: copy.privacy },
+  ];
+  const changeTheme = () => {
+    const next = activeTheme === 'light' ? 'dark' : 'light';
+    if (theme === undefined) setLocalTheme(next);
+    onThemeChange?.(next);
+  };
+  const changeLanguage = (next: PageScaffoldLanguage) => {
+    if (language === undefined) setLocalLanguage(next);
+    onLanguageChange?.(next);
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -150,8 +253,18 @@ export function PageScaffold({
       setMenuOpen(false);
       menuButtonRef.current?.focus();
     };
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (menuButtonRef.current?.contains(target) || mobileNavRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    };
     document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.removeEventListener('pointerdown', closeOnOutsidePointer);
+    };
   }, [menuOpen]);
 
   const renderLinks = (items: readonly PageScaffoldLink[], mobile = false) =>
@@ -196,8 +309,8 @@ export function PageScaffold({
         }
       >
         <SearchBar
-          placeholder="Rechercher"
-          aria-label="Rechercher sur le site"
+          placeholder={copy.search}
+          aria-label={copy.searchLabel}
           {...searchProps}
           name={searchProps?.name ?? searchName}
           liquidGlass={searchProps?.liquidGlass ?? liquidGlass}
@@ -212,7 +325,7 @@ export function PageScaffold({
       <a
         className={clsx(styles.brand, classNames?.brand)}
         href={homeHref}
-        aria-label={brandLabel ?? `Accueil — ${siteName}`}
+        aria-label={brandLabel ?? `${copy.home} — ${siteName}`}
       >
         {logo !== null ? (
           <span
@@ -241,13 +354,13 @@ export function PageScaffold({
           className={clsx(styles.header, classNames?.header)}
         >
           <Topbar.Section className={styles.brandSection}>{brand}</Topbar.Section>
-          {showNavigation && navigation.length > 0 ? (
+          {showNavigation && pageNavigation.length > 0 ? (
             <Topbar.Section grow className={styles.desktopNavigation}>
               <nav
-                aria-label={navigationLabel}
+                aria-label={navigationLabel ?? copy.navigation}
                 className={clsx(styles.navigation, classNames?.navigation)}
               >
-                {slots?.navigation !== undefined ? slots.navigation : renderLinks(navigation)}
+                {slots?.navigation !== undefined ? slots.navigation : renderLinks(pageNavigation)}
               </nav>
             </Topbar.Section>
           ) : (
@@ -256,15 +369,45 @@ export function PageScaffold({
           {search ? (
             <Topbar.Section className={styles.searchSection}>{search}</Topbar.Section>
           ) : null}
-          {slots?.actions ? (
-            <Topbar.Actions className={styles.actions}>{slots.actions}</Topbar.Actions>
+          {slots?.actions !== undefined ? (
+            slots.actions ? (
+              <Topbar.Actions className={styles.actions}>{slots.actions}</Topbar.Actions>
+            ) : null
+          ) : showThemeToggle || showLanguageSelector ? (
+            <Topbar.Actions className={styles.actions}>
+              {showThemeToggle ? (
+                <button
+                  className={styles.controlButton}
+                  type="button"
+                  aria-label={themeToggleLabel ?? copy.theme}
+                  aria-pressed={activeTheme === 'dark'}
+                  onClick={changeTheme}
+                >
+                  <span aria-hidden="true">{activeTheme === 'dark' ? '☀' : '☾'}</span>
+                </button>
+              ) : null}
+              {showLanguageSelector ? (
+                <select
+                  className={styles.languageSelect}
+                  aria-label={languageSelectorLabel ?? copy.language}
+                  value={activeLanguage}
+                  onChange={(event) => changeLanguage(event.target.value as PageScaffoldLanguage)}
+                >
+                  {LANGUAGE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : null}
+            </Topbar.Actions>
           ) : null}
-          {showNavigation && navigation.length > 0 ? (
+          {showNavigation && pageNavigation.length > 0 ? (
             <button
               ref={menuButtonRef}
               className={styles.menuButton}
               type="button"
-              aria-label={mobileMenuLabel}
+              aria-label={mobileMenuLabel ?? copy.menu}
               aria-expanded={menuOpen}
               aria-controls={mobileId}
               onClick={() => setMenuOpen((open) => !open)}
@@ -273,16 +416,17 @@ export function PageScaffold({
             </button>
           ) : null}
         </Topbar>
-        {showNavigation && navigation.length > 0 ? (
+        {showNavigation && pageNavigation.length > 0 ? (
           <nav
+            ref={mobileNavRef}
             id={mobileId}
-            aria-label={`${navigationLabel} — mobile`}
+            aria-label={`${navigationLabel ?? copy.navigation} — mobile`}
             className={styles.mobileNavigation}
             hidden={!menuOpen}
           >
             {slots?.mobileNavigation !== undefined
               ? slots.mobileNavigation
-              : renderLinks(navigation, true)}
+              : renderLinks(pageNavigation, true)}
           </nav>
         ) : null}
       </>
@@ -293,9 +437,15 @@ export function PageScaffold({
       slots.intro
     ) : (
       <div className={clsx(styles.intro, classNames?.intro)}>
-        {introEyebrow ? <span className={styles.eyebrow}>{introEyebrow}</span> : null}
+        {(introEyebrow === undefined ? copy.welcome : introEyebrow) ? (
+          <span className={styles.eyebrow}>
+            {introEyebrow === undefined ? copy.welcome : introEyebrow}
+          </span>
+        ) : null}
         <Title>{pageTitle ?? siteName}</Title>
-        {pageDescription ? <p>{pageDescription}</p> : null}
+        {(pageDescription === undefined ? copy.description : pageDescription) ? (
+          <p>{pageDescription === undefined ? copy.description : pageDescription}</p>
+        ) : null}
       </div>
     );
 
@@ -307,11 +457,16 @@ export function PageScaffold({
         <div className={styles.footerTop}>
           <div>
             <strong>{siteName}</strong>
-            {footerDescription ? <p>{footerDescription}</p> : null}
+            {(footerDescription === undefined ? copy.footerDescription : footerDescription) ? (
+              <p>{footerDescription === undefined ? copy.footerDescription : footerDescription}</p>
+            ) : null}
           </div>
-          {footerLinks.length > 0 ? (
-            <nav aria-label={footerNavigationLabel} className={styles.footerLinks}>
-              {footerLinks.map((link) => (
+          {pageFooterLinks.length > 0 ? (
+            <nav
+              aria-label={footerNavigationLabel ?? copy.footerNavigation}
+              className={styles.footerLinks}
+            >
+              {pageFooterLinks.map((link) => (
                 <a key={link.id} href={link.href} target={link.target} rel={link.rel}>
                   {link.label}
                 </a>
@@ -323,16 +478,23 @@ export function PageScaffold({
         {showCopyright ? (
           <div className={styles.copyright}>
             © {copyrightYear} {copyrightOwner ?? siteName}
-            {copyrightText ? <>. {copyrightText}</> : null}
+            {(copyrightText === undefined ? copy.copyright : copyrightText) ? (
+              <>. {copyrightText === undefined ? copy.copyright : copyrightText}</>
+            ) : null}
           </div>
         ) : null}
       </footer>
     );
 
   return (
-    <div className={clsx(styles.root, className)} {...rootProps}>
+    <div
+      className={clsx(styles.root, className)}
+      data-opale-page-theme={activeTheme}
+      lang={activeLanguage}
+      {...rootProps}
+    >
       <a className={styles.skipLink} href={`#${contentId}`}>
-        {skipLinkLabel}
+        {skipLinkLabel ?? copy.skip}
       </a>
       {header}
       <Main

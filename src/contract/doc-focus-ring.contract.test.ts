@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { compositeOver, contrastRatio, withAlpha } from './color';
 import opaleSource from '../magic/opale.css?raw';
 import docSource from '../styles/doc-v3.css?raw';
+import { ruleBody } from '../test/css-rules';
 
 /* =============================================================================
    L'ANNEAU DISCRET DE LA VITRINE TIENT 3:1 SUR CHAQUE SOL.
@@ -22,18 +23,14 @@ const AA_NON_TEXT = 3;
 
 const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 
-function block(css: string, selector: RegExp): string {
-  return selector.exec(strip(css))?.[1] ?? '';
-}
-
 function token(body: string, name: string): string {
   const value = new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`).exec(body)?.[1];
   expect(value, `${name} introuvable`).toBeDefined();
   return value as string;
 }
 
-const LIGHT = block(opaleSource, /:root\s*\{([\s\S]*?)\n\}/);
-const DARK = block(opaleSource, /:root\[data-theme='dark'\]\s*\{([\s\S]*?)\n\}/);
+const LIGHT = ruleBody(opaleSource, ':root') ?? '';
+const DARK = ruleBody(opaleSource, ":root[data-theme='dark']") ?? '';
 
 const SURFACES = [
   '--opale-background',

@@ -24,6 +24,10 @@ describe('PageScaffold', () => {
       '/',
     );
     expect(within(header).getByRole('navigation', { name: 'Navigation principale' })).toBeVisible();
+    expect(
+      within(header).getByRole('button', { name: 'Changer le thème clair ou sombre' }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    expect(within(header).getByRole('combobox', { name: 'Langue de la page' })).toHaveValue('fr');
     expect(container.querySelector('form')).toHaveAttribute('action', '/search');
     expect(container.querySelector('form')).toHaveAttribute('method', 'get');
     expect(
@@ -127,6 +131,63 @@ describe('PageScaffold', () => {
 
     fireEvent.click(button);
     fireEvent.click(within(menu).getByText('Accueil'));
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('change localement de thème et traduit les libellés par défaut', async () => {
+    const user = userEvent.setup();
+    const onThemeChange = vi.fn();
+    const onLanguageChange = vi.fn();
+    const { container } = render(
+      <PageScaffold onThemeChange={onThemeChange} onLanguageChange={onLanguageChange} />,
+    );
+    const root = container.firstElementChild;
+    expect(root).toHaveAttribute('data-opale-page-theme', 'light');
+    await user.click(screen.getByRole('button', { name: 'Changer le thème clair ou sombre' }));
+    expect(root).toHaveAttribute('data-opale-page-theme', 'dark');
+    expect(onThemeChange).toHaveBeenCalledWith('dark');
+    expect(document.documentElement).not.toHaveAttribute('data-opale-page-theme');
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Langue de la page' }), 'en');
+    expect(root).toHaveAttribute('lang', 'en');
+    expect(onLanguageChange).toHaveBeenCalledWith('en');
+    expect(screen.getByRole('link', { name: 'Home — Mon site' })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Search this site' })).toBeInTheDocument();
+    expect(screen.getByText('All rights reserved.', { exact: false })).toBeInTheDocument();
+  });
+
+  it('garde les valeurs contrôlées tant que le parent ne les modifie pas', async () => {
+    const user = userEvent.setup();
+    const onThemeChange = vi.fn();
+    const onLanguageChange = vi.fn();
+    const { container } = render(
+      <PageScaffold
+        theme="dark"
+        language="es"
+        onThemeChange={onThemeChange}
+        onLanguageChange={onLanguageChange}
+      />,
+    );
+    expect(container.firstElementChild).toHaveAttribute('data-opale-page-theme', 'dark');
+    await user.click(screen.getByRole('button', { name: 'Cambiar entre tema claro y oscuro' }));
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Idioma de la página' }), 'fr');
+    expect(onThemeChange).toHaveBeenCalledWith('light');
+    expect(onLanguageChange).toHaveBeenCalledWith('fr');
+    expect(container.firstElementChild).toHaveAttribute('data-opale-page-theme', 'dark');
+    expect(container.firstElementChild).toHaveAttribute('lang', 'es');
+  });
+
+  it('ferme le menu mobile après un clic hors du bouton et du panneau', () => {
+    const { container } = render(<PageScaffold />);
+    const button = container.querySelector<HTMLButtonElement>('button[aria-controls]');
+    if (!button) throw new Error('Bouton de menu absent');
+    fireEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    const menu = document.getElementById(button.getAttribute('aria-controls') ?? '');
+    if (!menu) throw new Error('Menu mobile absent');
+    fireEvent.pointerDown(menu);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.pointerDown(screen.getByRole('heading', { name: 'Mon site' }));
     expect(button).toHaveAttribute('aria-expanded', 'false');
   });
 

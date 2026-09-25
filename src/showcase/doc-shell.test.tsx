@@ -300,6 +300,17 @@ describe('DocShell — les onglets du header', () => {
     expect(menu?.querySelector('summary')).toHaveAttribute('aria-label', 'Ouvrir le menu');
     expect(menu?.querySelectorAll('.tc-doc-topbar__menu-nav a')).toHaveLength(3);
   });
+
+  it('referme le menu compact au clic extérieur mais le laisse ouvert au clic intérieur', () => {
+    render(<DocShell pages={PAGES} />);
+    const menu = document.querySelector<HTMLDetailsElement>('.tc-doc-topbar__menu');
+    if (!menu) throw new Error('Menu compact absent');
+    menu.open = true;
+    fireEvent.pointerDown(menu.querySelector('summary') as HTMLElement);
+    expect(menu.open).toBe(true);
+    fireEvent.pointerDown(screen.getByRole('main'));
+    expect(menu.open).toBe(false);
+  });
 });
 
 describe('DocShell — la largeur du sommaire', () => {

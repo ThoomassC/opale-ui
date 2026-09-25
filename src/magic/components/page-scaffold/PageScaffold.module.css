@@ -1,4 +1,5 @@
 .root {
+  position: relative;
   --page-scaffold-max-width: 72rem;
   --page-scaffold-gutter: clamp(1rem, 4vw, 3rem);
   container-type: inline-size;
@@ -7,7 +8,12 @@
   flex-direction: column;
   background: var(--opale-background);
   color: var(--opale-text);
+  color-scheme: light;
   font-family: var(--opale-font-body);
+}
+
+.root[data-opale-page-theme='dark'] {
+  color-scheme: dark;
 }
 
 .root *,
@@ -68,7 +74,9 @@
 .brand:focus-visible,
 .navLink:focus-visible,
 .footerLinks a:focus-visible,
-.menuButton:focus-visible {
+.menuButton:focus-visible,
+.controlButton:focus-visible,
+.languageSelect:focus-visible {
   outline: 2px solid var(--opale-focus);
   outline-offset: 4px;
 }
@@ -158,20 +166,93 @@
 
 .actions {
   flex: none;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.controlButton,
+.languageSelect {
+  min-width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.controlButton {
+  display: grid;
+  place-items: center;
+  font-size: 1.45rem;
+}
+
+.controlButton:hover,
+.languageSelect:hover {
+  border-color: var(--opale-primary);
+}
+
+.languageSelect {
+  width: 4.25rem;
+  padding-inline: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .menuButton {
+  --page-menu-border: var(--opale-divider);
+  position: relative;
+  isolation: isolate;
   display: none;
   width: 2.75rem;
   height: 2.75rem;
   flex: none;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--opale-divider);
-  border-radius: var(--opale-radius-sm);
-  background: var(--opale-surface);
+  border: 0;
+  background: transparent;
   color: var(--opale-text);
   cursor: pointer;
+}
+
+.menuButton::before,
+.menuButton::after {
+  position: absolute;
+  clip-path: var(--opale-squircle-clip);
+  content: '';
+  pointer-events: none;
+}
+
+.menuButton::before {
+  z-index: -2;
+  inset: 0;
+  background: var(--page-menu-border);
+}
+
+.menuButton::after {
+  z-index: -1;
+  inset: 1px;
+  background: var(--opale-surface);
+}
+
+.menuButton:hover {
+  --page-menu-border: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
+}
+
+.menuButton[aria-expanded='true'] .menuIcon {
+  background: transparent;
+}
+
+.menuButton[aria-expanded='true'] .menuIcon::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.menuButton[aria-expanded='true'] .menuIcon::after {
+  top: 0;
+  transform: rotate(-45deg);
 }
 
 .menuIcon,
@@ -364,6 +445,16 @@
 
   .footerTop {
     flex-direction: column;
+  }
+}
+
+@container (max-width: 20rem) {
+  .searchSection {
+    width: calc(100% - 3.5rem);
+  }
+
+  .menuButton {
+    order: 6;
   }
 }
 

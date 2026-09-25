@@ -178,6 +178,17 @@ export function DocShell({ pages }: DocShellProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const topbarRef = useRef<HTMLDivElement>(null);
+  const headerMenuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const menu = headerMenuRef.current;
+      if (!menu?.open || !(event.target instanceof Node) || menu.contains(event.target)) return;
+      menu.open = false;
+    };
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
+  }, []);
 
   /* Le header a plusieurs hauteurs selon le breakpoint : sur petit écran les
      onglets, la recherche et les actions peuvent occuper plusieurs lignes. La
@@ -373,7 +384,7 @@ export function DocShell({ pages }: DocShellProps) {
               ariaLabel={copy.primaryNavigation}
               copy={copy}
             />
-            <details className="tc-doc-topbar__menu">
+            <details className="tc-doc-topbar__menu" ref={headerMenuRef}>
               <summary className="tc-doc-topbar__menu-toggle" aria-label={copy.openMenu}>
                 <span aria-hidden="true" />
               </summary>

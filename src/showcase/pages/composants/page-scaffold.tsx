@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import { Opale, PageScaffold } from '../../../magic';
-import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock, type PropRow } from '../api';
 
 const USAGE = `import { Opale, PageScaffold } from '@thomascaron/opale-ui';
@@ -42,6 +41,25 @@ const PROPS: readonly PropRow[] = [
     type: "'compact' | 'comfortable' | 'spacious' / boolean / string / string",
     defaultValue: "'comfortable' / true / 'Navigation principale' / 'Menu'",
     description: 'Visibilité et noms accessibles de la navigation responsive.',
+  },
+  {
+    name: 'theme / defaultTheme / onThemeChange',
+    type: "'light' | 'dark' / 'light' | 'dark' / callback",
+    defaultValue: "— / 'light' / —",
+    description: 'Bascule clair/sombre locale au gabarit, contrôlée ou autonome.',
+  },
+  {
+    name: 'language / defaultLanguage / onLanguageChange',
+    type: "'fr' | 'en' | 'es' / même union / callback",
+    defaultValue: "— / 'fr' / —",
+    description:
+      'Traduit les libellés fournis par défaut. Traduisez vos contenus personnalisés via le callback.',
+  },
+  {
+    name: 'showThemeToggle / showLanguageSelector / themeToggleLabel / languageSelectorLabel',
+    type: 'boolean / boolean / string / string',
+    defaultValue: 'true / true / libellés traduits',
+    description: 'Affichage et noms accessibles des deux contrôles du header.',
   },
   {
     name: 'showSearch / searchProps',
@@ -107,44 +125,93 @@ const DEMO_NAVIGATION = [
 export default function PageScaffoldContent() {
   const [activeId, setActiveId] = useState('home');
   const [query, setQuery] = useState('');
+  const [language, setLanguage] = useState<'fr' | 'en' | 'es'>('fr');
+  const content = {
+    fr: {
+      home: 'Accueil',
+      work: 'Projets',
+      about: 'À propos',
+      title: 'Une base pour vos projets',
+      description: 'Une page accueillante, avec les composants Opale déjà en place.',
+      card: 'Votre contenu',
+      body: 'Ajoutez ici vos sections, cartes et interactions.',
+      ready: 'La recherche est prête.',
+      sent: 'Recherche envoyée',
+      release: 'Notes de versions',
+    },
+    en: {
+      home: 'Home',
+      work: 'Projects',
+      about: 'About',
+      title: 'A home for your projects',
+      description: 'A welcoming page, with Opale components already in place.',
+      card: 'Your content',
+      body: 'Add your sections, cards and interactions here.',
+      ready: 'Search is ready.',
+      sent: 'Search submitted',
+      release: 'Release notes',
+    },
+    es: {
+      home: 'Inicio',
+      work: 'Proyectos',
+      about: 'Acerca de',
+      title: 'Una base para tus proyectos',
+      description: 'Una página acogedora con los componentes Opale ya incluidos.',
+      card: 'Tu contenido',
+      body: 'Añade aquí tus secciones, tarjetas e interacciones.',
+      ready: 'La búsqueda está lista.',
+      sent: 'Búsqueda enviada',
+      release: 'Notas de versión',
+    },
+  }[language];
 
   return (
     <PageBody>
       <UsageBlock label="Créer une page avec PageScaffold" code={USAGE} />
 
-      <Specimen
-        title="Une page complète, prête à personnaliser"
-        note="Essayez la navigation et soumettez une recherche. Réduisez la fenêtre pour ouvrir le menu mobile."
-      >
+      <section className="tc-doc-page-scaffold-section">
+        <h2 className="tc-doc-specimen__title">Une page complète, prête à personnaliser</h2>
+        <p className="tc-doc-specimen__note">
+          Essayez le thème, la langue, la navigation et la recherche. Réduisez la fenêtre pour
+          ouvrir le menu mobile.
+        </p>
         <PageScaffold
           className="tc-doc-page-scaffold-demo"
           mainAs="div"
           titleAs="h3"
           siteName="Atelier"
           homeHref="#/"
-          navigation={DEMO_NAVIGATION}
+          navigation={DEMO_NAVIGATION.map((link) => ({
+            ...link,
+            label: content[link.id as 'home' | 'work' | 'about'],
+          }))}
+          language={language}
+          onLanguageChange={setLanguage}
           activeId={activeId}
           onNavigate={(link, event) => {
             event.preventDefault();
             setActiveId(link.id);
           }}
           onSearch={setQuery}
-          searchProps={{ placeholder: 'Rechercher dans Atelier' }}
-          pageTitle="Une base pour vos projets"
-          pageDescription="Une page accueillante, avec les composants Opale déjà en place."
-          footerLinks={[{ id: 'legal', href: '#/notes-de-versions', label: 'Notes de versions' }]}
+          searchProps={{
+            placeholder:
+              language === 'fr'
+                ? 'Rechercher dans Atelier'
+                : language === 'en'
+                  ? 'Search Atelier'
+                  : 'Buscar en Atelier',
+          }}
+          pageTitle={content.title}
+          pageDescription={content.description}
+          footerLinks={[{ id: 'legal', href: '#/notes-de-versions', label: content.release }]}
           copyrightYear={2026}
         >
           <div className="tc-doc-page-scaffold-demo__content">
-            <Opale.Card title="Votre contenu">
-              Ajoutez ici vos sections, cartes et interactions.
-            </Opale.Card>
-            <p role="status">
-              {query ? `Recherche envoyée : ${query}` : 'La recherche est prête.'}
-            </p>
+            <Opale.Card title={content.card}>{content.body}</Opale.Card>
+            <p role="status">{query ? `${content.sent} : ${query}` : content.ready}</p>
           </div>
         </PageScaffold>
-      </Specimen>
+      </section>
 
       <PropsTable id="page-scaffold" rows={PROPS} />
     </PageBody>

@@ -2940,12 +2940,23 @@ body {
   display: block;
 }
 
-/* Le spécimen PageScaffold garde la DA du site sans occuper toute la hauteur du viewport. */
+/* La page est montrée directement, sans seconde carte blanche autour du gabarit. */
+.tc-doc-page-scaffold-section {
+  margin-block: 2rem;
+}
+
+.tc-doc-page-scaffold-section > .tc-doc-specimen__title,
+.tc-doc-page-scaffold-section > .tc-doc-specimen__note {
+  display: block;
+}
+
+.tc-doc-page-scaffold-section > .tc-doc-specimen__note {
+  margin-block-end: 1.25rem;
+}
+
 .tc-doc-page-scaffold-demo {
   min-height: 35rem;
   overflow: clip;
-  border: 1px solid var(--opale-divider);
-  border-radius: var(--opale-radius-md);
 }
 
 .tc-doc-page-scaffold-demo__content {

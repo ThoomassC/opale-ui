@@ -8,7 +8,7 @@ import tokensSource from '../tokens/tokens.css?raw';
 
 describe('la forme interactive OpaleUI', () => {
   it('épingle la palette saphir et la géométrie mesurée sur la référence', () => {
-    const root = opaleSource.match(/:root\s*\{([\s\S]*?)\}/)?.[1] ?? '';
+    const root = ruleBody(opaleSource, ':root') ?? '';
     const darkRoot = ruleBody(opaleSource, ":root[data-theme='dark']") ?? '';
     const button = ruleBody(opaleSource, '.opale-button') ?? '';
     const small = ruleBody(opaleSource, '.opale-button--small') ?? '';
@@ -126,7 +126,7 @@ describe('la forme interactive OpaleUI', () => {
 
   it('borne la police de titre et la sert sans requête supplémentaire', () => {
     const imports = opaleSource.match(/@import url\([^)]*\);/g) ?? [];
-    const root = opaleSource.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const root = ruleBody(opaleSource, ':root') ?? '';
 
     expect(imports).toHaveLength(0);
     expect(opaleSource).toMatch(
