@@ -322,6 +322,38 @@ describe('les doublons du catalogue', () => {
 describe('les constats sérieux de l’audit', () => {
   const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
 
+  it('affiche une loupe décorative dans les recherches, sauf si une icône est fournie', () => {
+    render(
+      <>
+        <Input label="Filtrer les icônes" type="search" />
+        <Input label="Chercher sous verre" type="search" liquidGlass />
+        <Input
+          label="Recherche personnalisée"
+          type="search"
+          icon={<span data-testid="custom-icon" />}
+        />
+        <Input label="E-mail" type="email" />
+      </>,
+    );
+
+    for (const name of ['Filtrer les icônes', 'Chercher sous verre']) {
+      const shell = screen.getByRole('searchbox', { name }).closest('.opale-input-shell');
+      expect(shell?.querySelector('svg.opale-input__search-icon')).toHaveAttribute(
+        'aria-hidden',
+        'true',
+      );
+    }
+
+    const customShell = screen
+      .getByRole('searchbox', { name: 'Recherche personnalisée' })
+      .closest('.opale-input-shell');
+    expect(customShell?.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument();
+    expect(customShell?.querySelector('.opale-input__search-icon')).toBeNull();
+    expect(
+      screen.getByRole('textbox', { name: 'E-mail' }).parentElement?.querySelector('svg'),
+    ).toBeNull();
+  });
+
   /* LE MESSAGE D'ERREUR ÉTAIT DANS LE NOM DU CHAMP. Tout le champ était
      enveloppé dans un `<label>` : « E-mail » devenait « E-mail Adresse
      invalide », ce qui casse la commande vocale et noie l'erreur dans

@@ -1131,6 +1131,16 @@
   border-color: var(--opale-primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--opale-primary) 18%, transparent);
 }
+.opale-input__search-icon {
+  display: block;
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--opale-primary-on-surface);
+}
+.opale-input-shell--glass .opale-input__search-icon {
+  color: var(--opale-glass-ink);
+}
 .opale-input,
 .opale-select {
   width: 100%;

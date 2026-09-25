@@ -425,7 +425,10 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
           className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
           rootClassName="opale-input--glass-root"
         >
-          {icon}
+          {icon ??
+            (props.type === 'search' ? (
+              <IconGlyph name="search" className="opale-input__search-icon" />
+            ) : null)}
           <input
             ref={ref}
             id={inputId}

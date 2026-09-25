@@ -105,6 +105,10 @@
   border-color: var(--opale-primary);
 }
 
+.plain .icon {
+  color: var(--opale-primary-on-surface);
+}
+
 .plain .input::placeholder {
   color: var(--opale-text-secondary);
 }
