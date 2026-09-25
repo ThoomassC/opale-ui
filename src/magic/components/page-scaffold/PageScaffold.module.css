@@ -28,6 +28,10 @@
   gap: clamp(0.75rem, 2vw, 2rem);
 }
 
+.headerSurface {
+  overflow: visible;
+}
+
 .stickyHeader {
   position: sticky;
   z-index: 20;
@@ -54,9 +58,7 @@
 .brand:focus-visible,
 .navLink:focus-visible,
 .footerLinks a:focus-visible,
-.menuButton:focus-visible,
-.controlButton:focus-visible,
-.languageSelect:focus-visible {
+.menuButton:focus-visible {
   outline: 2px solid var(--opale-focus);
   outline-offset: 4px;
 }
@@ -148,36 +150,6 @@
   flex: none;
   display: flex;
   gap: 0.5rem;
-}
-
-.controlButton,
-.languageSelect {
-  min-width: 2.75rem;
-  height: 2.75rem;
-  border: 1px solid var(--opale-divider);
-  border-radius: var(--opale-radius-md);
-  background: var(--opale-surface);
-  color: var(--opale-text);
-  cursor: pointer;
-  font: inherit;
-}
-
-.controlButton {
-  display: grid;
-  place-items: center;
-  font-size: 1.45rem;
-}
-
-.controlButton:hover,
-.languageSelect:hover {
-  border-color: var(--opale-primary);
-}
-
-.languageSelect {
-  width: 4.25rem;
-  padding-inline: 0.45rem;
-  font-size: 0.8rem;
-  font-weight: 700;
 }
 
 .menuButton {
@@ -407,6 +379,12 @@
   }
 }
 
+@container (max-width: 20rem) {
+  .brandName {
+    display: none;
+  }
+}
+
 @container (max-width: 40rem) {
   .header {
     flex-wrap: wrap;
@@ -425,15 +403,5 @@
 
   .footerTop {
     flex-direction: column;
-  }
-}
-
-@container (max-width: 20rem) {
-  .searchSection {
-    width: calc(100% - 3.5rem);
-  }
-
-  .menuButton {
-    order: 6;
   }
 }

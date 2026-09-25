@@ -10,6 +10,8 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
+import { HeaderThemeToggle } from '../header-controls/HeaderThemeToggle';
+import { LanguageSelector } from '../header-controls/LanguageSelector';
 import Topbar from '../topbar/Topbar';
 import SearchBar, { type SearchBarProps } from '../search-bar/SearchBar';
 import styles from './PageScaffold.module.css';
@@ -155,11 +157,8 @@ const COPY = {
   },
 } as const;
 
-const LANGUAGE_OPTIONS: readonly { value: PageScaffoldLanguage; label: string }[] = [
-  { value: 'fr', label: 'FR' },
-  { value: 'en', label: 'EN' },
-  { value: 'es', label: 'ES' },
-];
+const HEADER_LANGUAGE = { fr: 'FR', en: 'EN', es: 'ES' } as const;
+const PAGE_LANGUAGE = { FR: 'fr', EN: 'en', ES: 'es' } as const;
 
 /** Une page Opale complète, dont chaque région peut être configurée ou remplacée. */
 export function PageScaffold({
@@ -345,7 +344,11 @@ export function PageScaffold({
           elevated={false}
           size={headerSize}
           liquidGlass={liquidGlass}
-          rootClassName={clsx(stickyHeader && styles.stickyHeader, classNames?.headerRoot)}
+          rootClassName={clsx(
+            styles.headerSurface,
+            stickyHeader && styles.stickyHeader,
+            classNames?.headerRoot,
+          )}
           className={clsx(styles.header, classNames?.header)}
         >
           <Topbar.Section className={styles.brandSection}>{brand}</Topbar.Section>
@@ -364,39 +367,6 @@ export function PageScaffold({
           {search ? (
             <Topbar.Section className={styles.searchSection}>{search}</Topbar.Section>
           ) : null}
-          {slots?.actions !== undefined ? (
-            slots.actions ? (
-              <Topbar.Actions className={styles.actions}>{slots.actions}</Topbar.Actions>
-            ) : null
-          ) : showThemeToggle || showLanguageSelector ? (
-            <Topbar.Actions className={styles.actions}>
-              {showThemeToggle ? (
-                <button
-                  className={styles.controlButton}
-                  type="button"
-                  aria-label={themeToggleLabel ?? copy.theme}
-                  aria-pressed={activeTheme === 'dark'}
-                  onClick={changeTheme}
-                >
-                  <span aria-hidden="true">{activeTheme === 'dark' ? '☀' : '☾'}</span>
-                </button>
-              ) : null}
-              {showLanguageSelector ? (
-                <select
-                  className={styles.languageSelect}
-                  aria-label={languageSelectorLabel ?? copy.language}
-                  value={activeLanguage}
-                  onChange={(event) => changeLanguage(event.target.value as PageScaffoldLanguage)}
-                >
-                  {LANGUAGE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
-            </Topbar.Actions>
-          ) : null}
           {showNavigation && pageNavigation.length > 0 ? (
             <button
               ref={menuButtonRef}
@@ -409,6 +379,28 @@ export function PageScaffold({
             >
               <span aria-hidden="true" className={styles.menuIcon} />
             </button>
+          ) : null}
+          {slots?.actions !== undefined ? (
+            slots.actions ? (
+              <Topbar.Actions className={styles.actions}>{slots.actions}</Topbar.Actions>
+            ) : null
+          ) : showThemeToggle || showLanguageSelector ? (
+            <Topbar.Actions className={styles.actions}>
+              {showThemeToggle ? (
+                <HeaderThemeToggle
+                  isDark={activeTheme === 'dark'}
+                  label={themeToggleLabel ?? copy.theme}
+                  onToggle={changeTheme}
+                />
+              ) : null}
+              {showLanguageSelector ? (
+                <LanguageSelector
+                  language={HEADER_LANGUAGE[activeLanguage]}
+                  label={languageSelectorLabel ?? copy.language}
+                  onChange={(next) => changeLanguage(PAGE_LANGUAGE[next])}
+                />
+              ) : null}
+            </Topbar.Actions>
           ) : null}
         </Topbar>
         {showNavigation && pageNavigation.length > 0 ? (

@@ -27,7 +27,10 @@ describe('PageScaffold', () => {
     expect(
       within(header).getByRole('button', { name: 'Changer le thème clair ou sombre' }),
     ).toHaveAttribute('aria-pressed', 'false');
-    expect(within(header).getByRole('combobox', { name: 'Langue de la page' })).toHaveValue('fr');
+    expect(within(header).getByRole('combobox', { name: 'Langue de la page' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
     expect(container.querySelector('form')).toHaveAttribute('action', '/search');
     expect(container.querySelector('form')).toHaveAttribute('method', 'get');
     expect(
@@ -145,12 +148,37 @@ describe('PageScaffold', () => {
     expect(onThemeChange).toHaveBeenCalledWith('dark');
     expect(document.documentElement).not.toHaveAttribute('data-opale-page-theme');
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Langue de la page' }), 'en');
+    await user.click(screen.getByRole('combobox', { name: 'Langue de la page' }));
+    await user.click(
+      within(screen.getByRole('listbox', { name: 'Langue de la page' })).getByRole('option', {
+        name: 'English',
+      }),
+    );
     expect(root).toHaveAttribute('lang', 'en');
     expect(onLanguageChange).toHaveBeenCalledWith('en');
     expect(screen.getByRole('link', { name: 'Home — Mon site' })).toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Search this site' })).toBeInTheDocument();
     expect(screen.getByText('All rights reserved.', { exact: false })).toBeInTheDocument();
+  });
+
+  it('aligne les contrôles sur le header et ferme la liste de langues au clic extérieur', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<PageScaffold />);
+    const header = screen.getByRole('banner');
+    const menu = header.querySelector<HTMLButtonElement>('button[aria-expanded][aria-controls]');
+    const theme = within(header).getByRole('button', { name: 'Changer le thème clair ou sombre' });
+    const language = within(header).getByRole('combobox', { name: 'Langue de la page' });
+
+    if (!menu) throw new Error('Bouton de menu absent');
+    expect(menu.compareDocumentPosition(theme) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(theme.compareDocumentPosition(language) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await user.click(language);
+    expect(language).toHaveAttribute('aria-expanded', 'true');
+    expect(within(header).getByRole('listbox', { name: 'Langue de la page' })).toBeVisible();
+    fireEvent.pointerDown(screen.getByRole('heading', { name: 'Mon site' }));
+    expect(language).toHaveAttribute('aria-expanded', 'false');
+    expect(container.firstElementChild).toHaveAttribute('lang', 'fr');
   });
 
   it('garde les valeurs contrôlées tant que le parent ne les modifie pas', async () => {
@@ -167,7 +195,12 @@ describe('PageScaffold', () => {
     );
     expect(container.firstElementChild).toHaveAttribute('data-opale-page-theme', 'dark');
     await user.click(screen.getByRole('button', { name: 'Cambiar entre tema claro y oscuro' }));
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Idioma de la página' }), 'fr');
+    await user.click(screen.getByRole('combobox', { name: 'Idioma de la página' }));
+    await user.click(
+      within(screen.getByRole('listbox', { name: 'Idioma de la página' })).getByRole('option', {
+        name: 'Français',
+      }),
+    );
     expect(onThemeChange).toHaveBeenCalledWith('light');
     expect(onLanguageChange).toHaveBeenCalledWith('fr');
     expect(container.firstElementChild).toHaveAttribute('data-opale-page-theme', 'dark');

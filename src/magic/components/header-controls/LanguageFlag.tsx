@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 
-import type { Language } from './localization';
+export type HeaderLanguage = 'FR' | 'EN' | 'ES';
 
 /* =============================================================================
    LES DRAPEAUX SONT DESSINÉS, ET CE N'EST PAS UN CAPRICE DE DESSINATEUR.
@@ -61,14 +61,14 @@ function SpanishFlag() {
   );
 }
 
-const FLAGS: Record<Language, () => ReactElement> = {
+const FLAGS: Record<HeaderLanguage, () => ReactElement> = {
   FR: FrenchFlag,
   EN: BritishFlag,
   ES: SpanishFlag,
 };
 
 export interface LanguageFlagProps {
-  readonly language: Language;
+  readonly language: HeaderLanguage;
   readonly className?: string;
 }
 
