@@ -23,6 +23,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import Glass from './components/glass/Glass';
+import SearchBar from './components/search-bar/SearchBar';
 import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './components/icon';
 /* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
 
@@ -420,24 +421,33 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
             aucun emplacement où la poser, donc la prop était silencieusement
             ignorée dès qu'on basculait le commutateur. La coquille étant
             désormais la nôtre, l'icône y reste. */}
-        <FieldShell
-          liquidGlass={liquidGlass}
-          className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
-          rootClassName="opale-input--glass-root"
-        >
-          {icon ??
-            (props.type === 'search' ? (
-              <IconGlyph name="search" className="opale-input__search-icon" />
-            ) : null)}
-          <input
+        {props.type === 'search' ? (
+          <SearchBar
+            {...props}
             ref={ref}
             id={inputId}
-            className="opale-input"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={message ? messageId : undefined}
-            {...props}
+            icon={icon}
+            liquidGlass={liquidGlass}
+            aria-invalid={error ? true : props['aria-invalid']}
+            aria-describedby={message ? messageId : props['aria-describedby']}
           />
-        </FieldShell>
+        ) : (
+          <FieldShell
+            liquidGlass={liquidGlass}
+            className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
+            rootClassName="opale-input--glass-root"
+          >
+            {icon}
+            <input
+              ref={ref}
+              id={inputId}
+              className="opale-input"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={message ? messageId : undefined}
+              {...props}
+            />
+          </FieldShell>
+        )}
         {message && (
           <span
             id={messageId}
@@ -3151,6 +3161,7 @@ export const OpaleUI = {
   Card: Card,
   CardGrid: CardGrid,
   Input: Input,
+  SearchBar: SearchBar,
   InlineInput: InlineInput,
   Checkbox: Checkbox,
   Toggle: Toggle,

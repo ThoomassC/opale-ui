@@ -235,40 +235,15 @@ body {
 }
 
 .tc-doc-search {
-  --tc-doc-search-border: color-mix(in srgb, var(--opale-text-secondary) 44%, transparent);
   position: relative;
-  isolation: isolate;
   width: 100%;
   min-height: 2.75rem;
+  padding: 0 !important;
   border: 0 !important;
-  border-radius: 0 !important;
   background: transparent !important;
-  color: var(--opale-text) !important;
   box-shadow: none !important;
 }
 
-.tc-doc-search::before,
-.tc-doc-search::after {
-  position: absolute;
-  clip-path: var(--opale-squircle-clip);
-  content: '';
-  pointer-events: none;
-}
-.tc-doc-search::before {
-  z-index: -2;
-  inset: 0;
-  background: var(--tc-doc-search-border);
-  transition: background var(--opale-motion) var(--opale-ease);
-}
-.tc-doc-search::after {
-  z-index: -1;
-  inset: 1px;
-  background: var(--opale-surface);
-}
-.tc-doc-search:focus-within {
-  --tc-doc-search-border: var(--opale-primary);
-  box-shadow: none !important;
-}
 .tc-doc-search input {
   color: var(--opale-text) !important;
   font-family: var(--opale-font-body) !important;
@@ -2060,12 +2035,6 @@ body {
 .tc-doc-main:focus-visible {
   outline: none !important;
   box-shadow: none !important;
-}
-
-/* Le seul indicateur de focus de la recherche est son filet bleu.
-   L'ancien anneau graphite reste éteint sur l'enveloppe. */
-.tc-doc-search:focus-within {
-  --tc-doc-search-border: var(--opale-primary);
 }
 
 .tc-doc-search:has(.tc-doc-search__input:focus-visible) {

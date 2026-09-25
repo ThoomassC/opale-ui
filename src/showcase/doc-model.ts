@@ -171,7 +171,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
          elle se contente de mentir à qui lit cette liste. C'est la raison pour
          laquelle les cinq autres partent ici et pas « plus tard ».
 
-         `SearchBar` reste : il n'a pas de jumeau Opale. */
+         `SearchBar` reste : l'export historique et `Opale.SearchBar` désignent désormais la même barre. */
       { label: 'SearchBar', slug: 'composants/search-bar' },
     ],
   },

@@ -4,7 +4,6 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { TabsControlledScene } from './scenes';
 import { MaterialSwitch, PlainStage } from './material-switch';
-import { MagicPreamble } from './stage';
 
 const USAGE = `import { Tabs } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -106,8 +105,6 @@ const PROPS: readonly PropRow[] = [
 export default function TabsContent() {
   return (
     <PageBody>
-      <MagicPreamble />
-
       <UsageBlock label="Import et appels représentatifs de Tabs" code={USAGE} />
 
       <Specimen

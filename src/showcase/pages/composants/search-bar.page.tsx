@@ -6,6 +6,6 @@ export const searchBarPage: DocPage = {
   label: 'SearchBar',
   group: 'composants',
   title: 'SearchBar',
-  lede: 'Une barre de recherche autonome, extraite de SiteNav, en surface pleine ou en verre.',
+  lede: 'La barre de recherche Opale utilisée dans l’en-tête et les filtres, en surface pleine ou en verre.',
   render: lazyPage(() => import('./search-bar').then((module) => module.default)),
 };

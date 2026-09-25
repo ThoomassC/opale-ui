@@ -6,7 +6,6 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { SidebarCollapsibleScene } from './scenes';
 import { MaterialSwitch } from './material-switch';
-import { MagicPreamble } from './stage';
 
 const USAGE = `import { Sidebar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -147,8 +146,6 @@ const PROPS: readonly PropRow[] = [
 export default function SidebarContent() {
   return (
     <PageBody>
-      <MagicPreamble />
-
       <UsageBlock label="Import et appels représentatifs de Sidebar" code={USAGE} />
 
       <Specimen

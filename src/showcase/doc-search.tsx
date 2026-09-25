@@ -1,6 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 
+import { Opale } from '../magic';
+
 import type { DocPage } from './doc-model';
 import { hrefFor } from './doc-model';
 import {
@@ -306,11 +308,7 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
         {copy.searchLabel}
       </label>
 
-      <span className="tc-doc-search__glyph" aria-hidden="true">
-        ⌕
-      </span>
-
-      <input
+      <Opale.SearchBar
         className="tc-doc-search__input"
         id={inputId}
         ref={inputRef}

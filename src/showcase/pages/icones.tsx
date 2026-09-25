@@ -99,13 +99,17 @@ function IconGallery() {
   return (
     <>
       <div className="tc-doc-icon-filter">
-        <Opale.Input
-          label="Filtrer les icônes"
-          type="search"
-          placeholder="valise, carte, flèche, poubelle…"
-          value={query}
-          onChange={(event) => setQuery(event.currentTarget.value)}
-        />
+        <div className="opale-field">
+          <label className="opale-field__label" htmlFor="tc-doc-icon-search">
+            Filtrer les icônes
+          </label>
+          <Opale.SearchBar
+            id="tc-doc-icon-search"
+            placeholder="valise, carte, flèche, poubelle…"
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+          />
+        </div>
         {/* LE COMPTE EST UNE RÉGION LIVE POLIE. Filtrer au clavier ne déplace
             pas le focus : sans annonce, un lecteur d'écran ne sait pas que la
             grille a changé sous lui (WCAG 4.1.3). La région est montée AVEC la

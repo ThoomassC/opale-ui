@@ -1,14 +1,13 @@
-import { SearchBar } from '../../../magic';
+import { Opale } from '../../../magic';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MaterialSwitch } from './material-switch';
-import { MagicPreamble } from './stage';
 
-const USAGE = `import { SearchBar } from '@thomascaron/opale-ui';
+const USAGE = `import { Opale } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
-<SearchBar placeholder="Un voyage, un lieu, un pays…" />`;
+<Opale.SearchBar placeholder="Un voyage, un lieu, un pays…" />`;
 
 const PROPS: readonly PropRow[] = [
   {
@@ -24,6 +23,18 @@ const PROPS: readonly PropRow[] = [
     description: 'Active la déformation liquide au clic.',
   },
   {
+    name: 'icon',
+    type: 'ReactNode',
+    defaultValue: 'loupe Opale',
+    description: 'Remplace la loupe décorative si une autre icône est nécessaire.',
+  },
+  {
+    name: 'liquidGlass',
+    type: 'boolean',
+    defaultValue: 'false',
+    description: 'Active le matériau Liquid Glass.',
+  },
+  {
     name: '…ComponentPropsWithoutRef<"input">',
     type: 'union (sans size)',
     description: 'Les attributs et événements natifs de l’input.',
@@ -36,14 +47,13 @@ const PROPS: readonly PropRow[] = [
 export default function SearchBarContent() {
   return (
     <PageBody>
-      <MagicPreamble />
-      <UsageBlock label="Import et appel de SearchBar" code={USAGE} />
+      <UsageBlock label="Import et appel d’Opale.SearchBar" code={USAGE} />
 
       <Specimen title="Barre de recherche">
         <MaterialSwitch name="SearchBar">
           {(liquidGlass) => (
             <div style={{ width: '100%', maxWidth: '36rem' }}>
-              <SearchBar
+              <Opale.SearchBar
                 liquidGlass={liquidGlass}
                 placeholder="Un voyage, un lieu, un pays…"
                 aria-label="Rechercher"

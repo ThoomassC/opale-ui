@@ -1,10 +1,11 @@
-import { forwardRef, type ComponentPropsWithoutRef } from 'react';
+import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import clsx from 'clsx';
 import Glass from '../glass/Glass';
 import styles from './style/SearchBar.module.scss';
 
 export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   size?: 'small' | 'medium' | 'large';
+  icon?: ReactNode;
   enableClickAnimation?: boolean;
   /**
    * Rend la barre dans le matériau « verre liquide ».
@@ -22,6 +23,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
   (
     {
       size = 'medium',
+      icon,
       disabled,
       enableClickAnimation = true,
       liquidGlass = false,
@@ -37,16 +39,25 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
        des deux. Les séparer est ce qui empêche les deux rendus de diverger. */
     const contenu = (
       <>
-        <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="10.8" cy="10.8" r="5.8" fill="none" stroke="currentColor" strokeWidth="1.8" />
-          <path
-            d="m15.2 15.2 4.3 4.3"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="1.8"
-          />
-        </svg>
+        {icon ?? (
+          <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle
+              cx="10.8"
+              cy="10.8"
+              r="5.8"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+            <path
+              d="m15.2 15.2 4.3 4.3"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="1.8"
+            />
+          </svg>
+        )}
         <input
           ref={ref}
           type="search"

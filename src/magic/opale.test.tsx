@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import opaleSheet from './opale.css?raw';
@@ -337,8 +338,8 @@ describe('les constats sérieux de l’audit', () => {
     );
 
     for (const name of ['Filtrer les icônes', 'Chercher sous verre']) {
-      const shell = screen.getByRole('searchbox', { name }).closest('.opale-input-shell');
-      expect(shell?.querySelector('svg.opale-input__search-icon')).toHaveAttribute(
+      const shell = screen.getByRole('searchbox', { name }).closest('[role="search"]');
+      expect(shell?.querySelector('svg')).toHaveAttribute(
         'aria-hidden',
         'true',
       );
@@ -346,12 +347,22 @@ describe('les constats sérieux de l’audit', () => {
 
     const customShell = screen
       .getByRole('searchbox', { name: 'Recherche personnalisée' })
-      .closest('.opale-input-shell');
+      .closest('[role="search"]');
     expect(customShell?.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument();
-    expect(customShell?.querySelector('.opale-input__search-icon')).toBeNull();
+    expect(customShell?.querySelector('svg')).toBeNull();
     expect(
       screen.getByRole('textbox', { name: 'E-mail' }).parentElement?.querySelector('svg'),
     ).toBeNull();
+  });
+
+  it('conserve le nom, la référence et l’erreur quand Input rend SearchBar', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Input ref={ref} label="Rechercher des pages" type="search" error="Recherche invalide" />);
+
+    const input = screen.getByRole('searchbox', { name: 'Rechercher des pages' });
+    expect(ref.current).toBe(input);
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription('Recherche invalide');
   });
 
   /* LE MESSAGE D'ERREUR ÉTAIT DANS LE NOM DU CHAMP. Tout le champ était
