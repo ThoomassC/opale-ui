@@ -534,34 +534,28 @@ const rows = [
                     <option value="large">Grande</option>
                   </select>
                 </label>
-                <label className="tc-doc-opale-playground__check">
-                  <input
-                    type="checkbox"
-                    checked={buttonLoading}
-                    onChange={(event) => setButtonLoading(event.currentTarget.checked)}
-                  />{' '}
-                  Chargement
-                </label>
+                <Opale.Checkbox
+                  className="tc-doc-opale-playground__check"
+                  label="Chargement"
+                  checked={buttonLoading}
+                  onChange={(event) => setButtonLoading(event.currentTarget.checked)}
+                />
               </>
             )}
             {entry.name === 'Input' && (
               <>
-                <label className="tc-doc-opale-playground__check">
-                  <input
-                    type="checkbox"
-                    checked={inputError}
-                    onChange={(event) => setInputError(event.currentTarget.checked)}
-                  />{' '}
-                  Erreur
-                </label>
-                <label className="tc-doc-opale-playground__check">
-                  <input
-                    type="checkbox"
-                    checked={inputDisabled}
-                    onChange={(event) => setInputDisabled(event.currentTarget.checked)}
-                  />{' '}
-                  Désactivé
-                </label>
+                <Opale.Checkbox
+                  className="tc-doc-opale-playground__check"
+                  label="Erreur"
+                  checked={inputError}
+                  onChange={(event) => setInputError(event.currentTarget.checked)}
+                />
+                <Opale.Checkbox
+                  className="tc-doc-opale-playground__check"
+                  label="Désactivé"
+                  checked={inputDisabled}
+                  onChange={(event) => setInputDisabled(event.currentTarget.checked)}
+                />
               </>
             )}
             {entry.name === 'DataTable' && (
