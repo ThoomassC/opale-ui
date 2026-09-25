@@ -109,6 +109,29 @@ describe('PageScaffold', () => {
     expect(onNavigate).toHaveBeenCalledWith(navigation[1], expect.anything());
   });
 
+  it('conserve les onglets et menus personnalisés par les emplacements du gabarit', () => {
+    const { container } = render(
+      <PageScaffold
+        slots={{
+          navigation: <a href="/sur-mesure">Sur mesure</a>,
+          mobileNavigation: <a href="/mobile">Mobile personnalisé</a>,
+        }}
+      />,
+    );
+    const desktop = within(screen.getByRole('banner')).getByRole('navigation', {
+      name: 'Navigation principale',
+    });
+    const mobile = container.querySelector('nav[aria-label="Navigation principale — mobile"]');
+
+    expect(within(desktop).getByRole('link', { name: 'Sur mesure' })).toHaveAttribute(
+      'href',
+      '/sur-mesure',
+    );
+    expect(within(desktop).queryByRole('link', { name: 'Accueil' })).not.toBeInTheDocument();
+    expect(mobile).toHaveTextContent('Mobile personnalisé');
+    expect(mobile).not.toHaveTextContent('Accueil');
+  });
+
   it('ouvre le menu mobile, le ferme par Échap ou par une destination et restaure le focus', async () => {
     const { container } = render(
       <PageScaffold onNavigate={(_link, event) => event.preventDefault()} />,

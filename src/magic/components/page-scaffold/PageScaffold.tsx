@@ -10,6 +10,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
+import { HeaderNavigation } from '../header-controls/HeaderNavigation';
 import { HeaderThemeToggle } from '../header-controls/HeaderThemeToggle';
 import { LanguageSelector } from '../header-controls/LanguageSelector';
 import Topbar from '../topbar/Topbar';
@@ -261,27 +262,6 @@ export function PageScaffold({
     };
   }, [menuOpen]);
 
-  const renderLinks = (items: readonly PageScaffoldLink[], mobile = false) =>
-    items.map((link) => (
-      <a
-        key={link.id}
-        href={link.href}
-        target={link.target}
-        rel={link.rel}
-        aria-current={link.id === activeId ? 'page' : undefined}
-        className={clsx(styles.navLink, link.id === activeId && styles.navLinkActive)}
-        onClick={(event) => {
-          onNavigate?.(link, event);
-          if (mobile) {
-            setMenuOpen(false);
-            menuButtonRef.current?.focus();
-          }
-        }}
-      >
-        {link.label}
-      </a>
-    ));
-
   const search =
     slots?.search !== undefined ? (
       slots.search
@@ -354,12 +334,15 @@ export function PageScaffold({
           <Topbar.Section className={styles.brandSection}>{brand}</Topbar.Section>
           {showNavigation && pageNavigation.length > 0 ? (
             <Topbar.Section grow className={styles.desktopNavigation}>
-              <nav
-                aria-label={navigationLabel ?? copy.navigation}
+              <HeaderNavigation
+                links={pageNavigation}
+                activeId={activeId}
+                ariaLabel={navigationLabel ?? copy.navigation}
                 className={clsx(styles.navigation, classNames?.navigation)}
+                onNavigate={onNavigate}
               >
-                {slots?.navigation !== undefined ? slots.navigation : renderLinks(pageNavigation)}
-              </nav>
+                {slots?.navigation}
+              </HeaderNavigation>
             </Topbar.Section>
           ) : (
             <Topbar.Section grow />
@@ -404,17 +387,22 @@ export function PageScaffold({
           ) : null}
         </Topbar>
         {showNavigation && pageNavigation.length > 0 ? (
-          <nav
+          <HeaderNavigation
             ref={mobileNavRef}
             id={mobileId}
-            aria-label={`${navigationLabel ?? copy.navigation} — mobile`}
+            links={pageNavigation}
+            activeId={activeId}
+            ariaLabel={`${navigationLabel ?? copy.navigation} — mobile`}
             className={styles.mobileNavigation}
             hidden={!menuOpen}
+            onNavigate={(link, event) => {
+              onNavigate?.(link, event);
+              setMenuOpen(false);
+              menuButtonRef.current?.focus();
+            }}
           >
-            {slots?.mobileNavigation !== undefined
-              ? slots.mobileNavigation
-              : renderLinks(pageNavigation, true)}
-          </nav>
+            {slots?.mobileNavigation}
+          </HeaderNavigation>
         ) : null}
       </>
     );

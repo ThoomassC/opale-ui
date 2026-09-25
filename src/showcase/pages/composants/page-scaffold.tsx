@@ -172,8 +172,8 @@ export default function PageScaffoldContent() {
       <section className="tc-doc-page-scaffold-section">
         <h2 className="tc-doc-specimen__title">Une page complète, prête à personnaliser</h2>
         <p className="tc-doc-specimen__note">
-          Les boutons de thème et de langue reprennent ceux du header Opale. Essayez aussi la
-          navigation et la recherche, puis réduisez la fenêtre pour ouvrir le menu mobile.
+          Les onglets, le thème et la langue reprennent les contrôles du header Opale. Essayez aussi
+          la recherche, puis réduisez la fenêtre pour ouvrir le menu mobile.
         </p>
         <PageScaffold
           className="tc-doc-page-scaffold-demo"

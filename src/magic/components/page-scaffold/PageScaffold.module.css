@@ -56,7 +56,6 @@
 }
 
 .brand:focus-visible,
-.navLink:focus-visible,
 .footerLinks a:focus-visible,
 .menuButton:focus-visible {
   outline: 2px solid var(--opale-focus);
@@ -103,6 +102,8 @@
 }
 
 .desktopNavigation {
+  max-width: 40%;
+  flex: 0 0 auto;
   justify-content: center;
 }
 
@@ -116,30 +117,10 @@
   white-space: nowrap;
 }
 
-.navLink {
-  display: inline-flex;
-  min-height: 2.75rem;
-  align-items: center;
-  border-radius: var(--opale-radius-pill);
-  padding: 0.5rem 0.9rem;
-  color: var(--opale-text-secondary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.navLink:hover {
-  background: var(--opale-surface-sunken);
-  color: var(--opale-text);
-}
-
-.navLinkActive {
-  background: color-mix(in srgb, var(--opale-primary) 12%, var(--opale-surface));
-  color: var(--opale-primary-on-surface);
-}
-
 .searchSection {
   width: min(22rem, 30vw);
-  flex: none;
+  min-width: 0;
+  flex: 0 1 22rem;
 }
 
 .searchForm {
@@ -150,6 +131,7 @@
   flex: none;
   display: flex;
   gap: 0.5rem;
+  margin-inline-start: auto;
 }
 
 .menuButton {
@@ -245,8 +227,9 @@
   display: none;
 }
 
-.mobileNavigation .navLink {
+.mobileNavigation a {
   display: flex;
+  width: 100%;
 }
 
 .main {
@@ -358,7 +341,7 @@
   font-size: 0.82rem;
 }
 
-@container (max-width: 62rem) {
+@container (max-width: 56rem) {
   .desktopNavigation {
     display: none;
   }
@@ -373,7 +356,7 @@
   }
 }
 
-@container (min-width: 62.001rem) {
+@container (min-width: 56.001rem) {
   .mobileNavigation {
     display: none;
   }

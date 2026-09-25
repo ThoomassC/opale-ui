@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { Topbar } from '../magic';
+import { HeaderNavigation } from '../magic/components/header-controls/HeaderNavigation';
 import type { DocPage } from './doc-model';
 import { HOME_SLUG, findPage, hrefFor } from './doc-model';
 import {
@@ -84,39 +85,25 @@ interface HeaderNavProps {
 }
 
 function HeaderNav({ page, className, ariaLabel, copy }: HeaderNavProps) {
+  const links = [
+    { id: HOME_SLUG, href: hrefFor(HOME_SLUG), label: copy.home },
+    { id: 'installation', href: hrefFor('installation'), label: copy.installation },
+    {
+      id: 'notes-de-versions',
+      href: hrefFor('notes-de-versions'),
+      label: copy.releaseNotes,
+    },
+  ];
+
   return (
-    <nav className={className} aria-label={ariaLabel}>
-      <a
-        className="tc-doc-topbar__tab"
-        href={hrefFor(HOME_SLUG)}
-        aria-current={page.slug === HOME_SLUG ? 'page' : undefined}
-        onClick={(event) => {
-          event.currentTarget.closest('details')?.removeAttribute('open');
-        }}
-      >
-        {copy.home}
-      </a>
-      <a
-        className="tc-doc-topbar__tab"
-        href={hrefFor('installation')}
-        aria-current={page.slug === 'installation' ? 'page' : undefined}
-        onClick={(event) => {
-          event.currentTarget.closest('details')?.removeAttribute('open');
-        }}
-      >
-        {copy.installation}
-      </a>
-      <a
-        className="tc-doc-topbar__tab"
-        href={hrefFor('notes-de-versions')}
-        aria-current={page.slug === 'notes-de-versions' ? 'page' : undefined}
-        onClick={(event) => {
-          event.currentTarget.closest('details')?.removeAttribute('open');
-        }}
-      >
-        {copy.releaseNotes}
-      </a>
-    </nav>
+    <HeaderNavigation
+      links={links}
+      activeId={page.slug}
+      className={className}
+      ariaLabel={ariaLabel}
+      siteClassNames
+      onNavigate={(_link, event) => event.currentTarget.closest('details')?.removeAttribute('open')}
+    />
   );
 }
 
