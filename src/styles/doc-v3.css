@@ -2939,3 +2939,22 @@ body {
 .tc-doc-main--components .tc-doc-props .tc-doc-specimen__note {
   display: block;
 }
+
+/* Le spécimen PageScaffold garde la DA du site sans occuper toute la hauteur du viewport. */
+.tc-doc-page-scaffold-demo {
+  min-height: 35rem;
+  overflow: clip;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+}
+
+.tc-doc-page-scaffold-demo__content {
+  display: grid;
+  gap: 1rem;
+  max-width: 36rem;
+}
+
+.tc-doc-page-scaffold-demo__content p {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}

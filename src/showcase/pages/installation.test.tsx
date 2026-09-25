@@ -1,17 +1,17 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { UI_VERSION } from '../version';
+import { INSTALL_REF } from '../install-ref';
 import { installationPage } from './installation';
 
 afterEach(cleanup);
 
 describe('la page Installation', () => {
-  it('pointe vers le paquet Opale et le tag de la version affichée', () => {
+  it('pointe vers le paquet Opale et la référence réellement disponible', () => {
     const { container } = render(<>{installationPage.render()}</>);
 
     expect(container.textContent).toContain(
-      `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"`,
+      `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${INSTALL_REF}"`,
     );
     expect(container.textContent).not.toContain('npm install opale');
   });

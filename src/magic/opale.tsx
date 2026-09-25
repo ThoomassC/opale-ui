@@ -24,6 +24,7 @@ import { createPortal } from 'react-dom';
 
 import Glass from './components/glass/Glass';
 import SearchBar from './components/search-bar/SearchBar';
+import { PageScaffold } from './components/page-scaffold';
 import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './components/icon';
 /* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
 
@@ -3162,6 +3163,7 @@ export const OpaleUI = {
   CardGrid: CardGrid,
   Input: Input,
   SearchBar: SearchBar,
+  PageScaffold: PageScaffold,
   InlineInput: InlineInput,
   Checkbox: Checkbox,
   Toggle: Toggle,

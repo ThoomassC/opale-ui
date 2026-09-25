@@ -2,10 +2,11 @@ import type { DocPage } from '../doc-model';
 import { currentDeploymentLabel } from '../deployment-environment';
 import { hrefFor } from '../doc-model';
 import { UI_VERSION } from '../version';
+import { INSTALL_REF, INSTALL_REF_KIND } from '../install-ref';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
 
-const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"`;
+const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${INSTALL_REF}"`;
 
 const IMPORTS = `import '@thomascaron/opale-ui/tokens.css';
 import '@thomascaron/opale-ui/opale.css';
@@ -39,7 +40,11 @@ export const installationPage: DocPage = {
       </p>
       <Specimen
         title={`Installer Opale UI ${UI_VERSION}`}
-        note="Cette version est installable depuis le tag GitHub correspondant."
+        note={
+          INSTALL_REF_KIND === 'branch'
+            ? 'Version de recette : installez la branche de revue. Le tag v3.3.0 sera créé lors de la publication.'
+            : 'Cette version est installable depuis le tag GitHub correspondant.'
+        }
       >
         <UsageBlock label="Commande d'installation" code={INSTALL} language="shell" defaultOpen />
       </Specimen>

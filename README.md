@@ -10,7 +10,7 @@ Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/por
 > `@apply` qu'ils servaient. Le matériau verre est désormais le nôtre, opt-in composant par
 > composant ; la vitrine propose les thèmes globaux `light` et `dark`.
 
-La vitrine de recette est actuellement en **3.2.0**. Son historique est consultable dans l’onglet
+La branche de recette prépare **3.3.0** avec PageScaffold. Son historique est consultable dans l’onglet
 « Notes de versions » ; chaque état antérieur dispose aussi d’un snapshot utilisable sous
 `public/versions/`. Les états antérieurs du paquet, y compris la **2.0** et ses composants
 copiés d'une librairie tierce, sont décrits dans ces notes — et l'héritage lui-même dans
@@ -78,16 +78,15 @@ ce qui ne l'est pas.
 
 ## Installation
 
-Le paquet s'installe depuis git, et il n'est pas publié sur npm.
+Le paquet s'installe depuis GitHub ; il n'est pas publié sur npm. Le dernier tag est
+`v3.2.0`. Pour essayer **PageScaffold en 3.3.0 sur la branche de revue** :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.2.0"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#codex/recette-ux-v3.2.0"
 ```
 
-> **Les tags de publication restent la source de vérité du paquet.** La vitrine 3.2.0 et les
-> snapshots historiques sont conservés séparément pour permettre la comparaison visuelle ;
-> au moment de publier une version, poser et pousser le tag correspondant (`v3.2.0`, puis les
-> suivants) permet de l’installer sans dépendre d’un HEAD de branche.
+Cette référence de branche évolue avec la recette. Le tag `v3.3.0` sera créé lors de la
+publication ; la documentation ne propose pas de commande vers un tag inexistant.
 
 Le paquet se compile à l'installation (`prepare` → `build:lib`). **Quatre points d'entrée**,
 et les deux premiers suffisent :
@@ -131,6 +130,34 @@ la palette d'Opale.
 > **Point de vigilance en déploiement.** Si l'hôte n'exécute pas le script `prepare` (cache
 > npm, image de build minimale), `dist/` sera absent et le build cassera en production sans
 > avoir cassé en local. À vérifier par un déploiement de préversion.
+
+## PageScaffold — une page Opale prête à adapter
+
+`PageScaffold` assemble la marque, la navigation, la recherche `SearchBar`, le contenu principal
+et le pied de page. La mise en page s'adapte au mobile ; le menu fonctionne au clavier et un lien
+d'évitement rejoint le contenu. La recherche soumet un formulaire GET vers `/search` par défaut :
+prévoyez cette route ou fournissez `searchAction` / `onSearch`.
+
+```tsx
+import { PageScaffold, Opale } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
+
+<PageScaffold
+  siteName="Atelier"
+  navigation={[{ id: 'home', href: '/', label: 'Accueil' }]}
+  activeId="home"
+  searchAction="/recherche"
+  footerLinks={[{ id: 'legal', href: '/mentions-legales', label: 'Mentions légales' }]}
+>
+  <Opale.Card title="Bienvenue">Votre contenu.</Opale.Card>
+</PageScaffold>;
+```
+
+Les propriétés `logo`, `siteName`, `navigation`, `searchAction` et `footerLinks` règlent les
+éléments courants. `slots` remplace individuellement `brand`, `navigation`, `search`, `actions`,
+`intro`, `footer` et les autres zones. `classNames` et les variables CSS
+`--page-scaffold-max-width` / `--page-scaffold-gutter` règlent les détails de présentation.
+La fiche `#/composants/page-scaffold` dans la vitrine de cette branche documente l'API complète.
 
 ## Le catalogue de composants
 

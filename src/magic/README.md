@@ -14,7 +14,7 @@ de notices à la racine — trois choses qu'on ne devine pas.
 
 Deux familles de code, et elles ne se ressemblent pas.
 
-**`components/` — huit composants composés, un dossier chacun.** Ce sont les
+**`components/` — des composants composés, un dossier chacun.** Ce sont les
 pièces qui ont une structure interne, un état, ou les deux : elles ne se
 réduisent pas à un élément natif habillé.
 
@@ -22,6 +22,7 @@ réduisent pas à un élément natif habillé.
 | --- | --- | --- |
 | `Glass` | le matériau lui-même | — |
 | `Modal` | un dialogue à portail, contrôlé | oui |
+| `PageScaffold` | une page complète et configurable | via Topbar et SearchBar |
 | `SearchBar` | un champ de recherche à suggestions | oui |
 | `Sidebar` | un rail de navigation pliable | oui |
 | `SiteNav` | la navigation de site, à bulle | **non** |
@@ -29,11 +30,8 @@ réduisent pas à un élément natif habillé.
 | `ToastProvider` (+ `useToast`) | une file de notifications | oui |
 | `Topbar` | une barre de page composée | oui |
 
-Compté sur l'arbre : huit dossiers sous `components/`, huit portes dans
-`components/index.ts`. **Six des sept composants non-`Glass` montent le
-matériau** ; `SiteNav` est la seule exception, et c'est délibéré — sa bulle est
-un rendu à elle, écrit dans `liquid-bubble.tsx`, et elle n'a pas besoin des
-trois couches.
+`PageScaffold` assemble les briques publiques et délègue `liquidGlass` à `Topbar` et
+`SearchBar`. `SiteNav` garde sa bulle propre, écrite dans `liquid-bubble.tsx`.
 
 **`opale.tsx` — le catalogue plat.** Un seul fichier, et c'est un choix
 défendable : ce sont des composants courts — une vingtaine de lignes en moyenne

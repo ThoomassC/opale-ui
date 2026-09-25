@@ -152,12 +152,12 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
    ils n'ont simplement plus de nom public, donc plus de page à exiger.
 
-   IL NE RESTE QUE SEPT EXPORTS NON PRÉFIXÉS `Opale` : `Modal`, `SearchBar`,
-   `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` et `Topbar`. Ce sont
-   exactement les sept vendorés sans jumeau Opale, et exactement les sept
-   pages qui subsistent dans `src/showcase/pages/composants/`. `Glass` a
+   IL RESTE HUIT EXPORTS NON PRÉFIXÉS `Opale` : `Modal`, `SearchBar`,
+   `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider`, `Topbar` et `PageScaffold`.
+   Le dernier est revenu en 3.3.0 avec une vraie structure et un menu accessible.
+   Chacun a sa page dans `src/showcase/pages/composants/`. `Glass` a
    quitté la liste : le matériau n'est pas un composant, et `liquidGlass`
-   l'atteint sur chacun des autres. Si ce
+   est proposé par les surfaces concernées. Si ce
    chiffre bouge sans qu'un composant ait été ajouté ou retiré, c'est le barril
    qu'il faut relire. */
 /* 85 AVANT LE RETRAIT DE QUATRE PASSE-PLATS.
@@ -197,7 +197,7 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
      l'échéance absolue que sa fiche promettait.
 
    Rupture d'API assumée, à consigner dans les notes de version. */
-const PUBLISHED_COMPONENT_COUNT = 59;
+const PUBLISHED_COMPONENT_COUNT = 60;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {
@@ -504,7 +504,10 @@ describe('Le registre des pages', () => {
 
       const broken = [...container.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')]
         .map((anchor) => anchor.getAttribute('href') ?? '')
-        .filter((href) => !known.has(parseSlug(href)))
+        .filter((href) => {
+          if (!href.startsWith('#/') && document.getElementById(href.slice(1))) return false;
+          return !known.has(parseSlug(href));
+        })
         .map((href) => `« ${href} » → slug « ${parseSlug(href)} »`);
 
       expect(

@@ -15,6 +15,7 @@ import { typographiePage } from './fondations/typographie.page';
 import { verrePage } from './fondations/verre.page';
 
 import { modalPage } from './composants/modal.page';
+import { pageScaffoldPage } from './composants/page-scaffold.page';
 import { searchBarPage } from './composants/search-bar.page';
 import { sidebarPage } from './composants/sidebar.page';
 import { siteNavPage } from './composants/site-nav.page';
@@ -78,6 +79,7 @@ export const PAGES: readonly DocPage[] = [
   /* Les composants composés d’Opale gardent leurs fiches propres. La commande
      d’installation est documentée une fois sur la page « Installation ». */
   modalPage,
+  pageScaffoldPage,
   searchBarPage,
   sidebarPage,
   siteNavPage,

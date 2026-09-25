@@ -12,7 +12,16 @@ export const notesVersionsPage: DocPage = {
   label: 'Notes de versions',
   group: 'introduction',
   title: 'Notes de versions',
-  searchTerms: ['migration', 'rupture', 'Glass', 'liquidGlass', '3.2.0', 'changelog'],
+  searchTerms: [
+    'migration',
+    'rupture',
+    'Glass',
+    'liquidGlass',
+    '3.2.0',
+    '3.3.0',
+    'PageScaffold',
+    'changelog',
+  ],
   lede: (
     <>
       L’historique d’Opale, version par version. Chaque entrée décrit les changements et donne accès

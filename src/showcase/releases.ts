@@ -49,7 +49,41 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
-const CURRENT_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+const V330_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Créer une page avec Opale',
+    changes: [
+      {
+        title: 'PageScaffold, un gabarit complet',
+        detail:
+          'Le nouveau composant assemble une marque, une navigation responsive, la barre de recherche Opale, un contenu principal et un pied de page avec copyright.',
+        links: [{ label: 'PageScaffold', slug: 'composants/page-scaffold' }],
+      },
+      {
+        title: 'Une page prête à personnaliser',
+        detail:
+          'Nom du site, liens, page courante, recherche, introduction, largeur, styles et zones remplaçables sont configurables par les propriétés et les slots.',
+      },
+    ],
+  },
+  {
+    title: 'Navigation et accessibilité',
+    changes: [
+      {
+        title: 'Menu mobile et repères sémantiques',
+        detail:
+          'Le menu s’ouvre au bouton, se ferme avec Échap ou après un choix et restaure le focus. Le lien d’évitement mène au contenu principal.',
+      },
+      {
+        title: 'Recherche branchable',
+        detail:
+          'La recherche utilise SearchBar et soumet un formulaire GET natif ; un callback peut prendre le relais pour un routeur client.',
+      },
+    ],
+  },
+];
+
+const V320_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Compatibilité et migration',
     changes: [
@@ -164,7 +198,7 @@ const CURRENT_RELEASE_SECTIONS: readonly ReleaseSection[] = [
 ];
 
 /** Diff vérifié entre les exports publics des tags v3.1.1 et v3.2.0. */
-export const CURRENT_REMOVED_COMPONENTS: readonly ReleaseReplacement[] = [
+export const V320_REMOVED_COMPONENTS: readonly ReleaseReplacement[] = [
   {
     removed: ['AddButton', 'SaveButton', 'ApproveButton', 'EditButton', 'DeleteButton'],
     guidance:
@@ -231,7 +265,7 @@ export const CURRENT_REMOVED_COMPONENTS: readonly ReleaseReplacement[] = [
   },
 ];
 
-const CURRENT_RELEASE_MIGRATION = {
+const V320_RELEASE_MIGRATION = {
   fromVersion: '3.1.1',
   steps: [
     {
@@ -260,13 +294,30 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.3.0',
+    publishedAt: '2026-09-25',
+    dateLabel: '25 septembre 2026',
+    summary: 'PageScaffold compose une page complète dans la direction visuelle d’Opale.',
+    sections: V330_RELEASE_SECTIONS,
+    changes: V330_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'PageScaffold assemble l’en-tête, la recherche, le contenu et le pied de page.',
+      'Le menu mobile, les repères et le lien d’évitement sont intégrés.',
+      'Chaque zone peut être configurée ou remplacée sans modifier le composant.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/codex/recette-ux-v3.2.0`,
+  },
+  {
     version: '3.2.0',
     publishedAt: '2026-09-24',
     dateLabel: '24 septembre 2026',
     summary:
       'Un catalogue resserré qui tient ce qu’il annonce : chaque composant garde sa matière d’origine et son verre liquide, et la vitrine se lit sur un téléphone.',
-    sections: CURRENT_RELEASE_SECTIONS,
-    changes: CURRENT_RELEASE_SECTIONS.flatMap((section) =>
+    sections: V320_RELEASE_SECTIONS,
+    changes: V320_RELEASE_SECTIONS.flatMap((section) =>
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: [
@@ -274,11 +325,11 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Composants : Toast, DataTable, Dropzone et les icônes gagnent des interactions.',
       'Qualité : API et états visibles, polices locales et sommaire mobile vérifiés.',
     ],
-    migration: CURRENT_RELEASE_MIGRATION,
-    removedComponents: CURRENT_REMOVED_COMPONENTS,
+    migration: V320_RELEASE_MIGRATION,
+    removedComponents: V320_REMOVED_COMPONENTS,
     breaking: true,
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/codex/recette-ux-v3.2.0`,
+    appHref: '/versions/v3.2.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/de045eba2ea3a7f361e3e9ec9f39ad3a84a118bb`,
   },
   {
     version: '3.1.1',
