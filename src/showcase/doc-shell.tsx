@@ -271,32 +271,6 @@ export function DocShell({ pages }: DocShellProps) {
 
   return (
     <div className="tc-doc" ref={docRef}>
-      {/* LE LIEN D'ÉVITEMENT NE DOIT PAS NAVIGUER, et sans ce gestionnaire il
-          navigue. Le routage lit TOUT le fragment : laisser le navigateur poser
-          `#contenu` dans l'adresse, c'est `parseSlug('#contenu') === 'contenu'`,
-          aucune page de ce slug, et le repli sur l'accueil. Le lien censé faire
-          gagner du temps faisait donc PERDRE la page qu'on lisait — la panne
-          était d'autant plus discrète que le focus, lui, atterrissait au bon
-          endroit.
-
-          `href` est conservé : c'est ce qui en fait un lien pour les
-          technologies d'assistance et ce qui le fait fonctionner si le
-          gestionnaire n'a pas encore été attaché. Le `preventDefault` empêche
-          seulement l'écriture du fragment, et le focus est donné à la main —
-          `focus()` sans `preventScroll`, pour que le défilement suive comme
-          l'aurait fait l'ancre. Il vise le TITRE et non `<main>`, pour la même
-          raison que le changement de route : c'est là que la lecture reprend. */}
-      <a
-        className="tc-doc-skip"
-        href="#contenu"
-        onClick={(event) => {
-          event.preventDefault();
-          titleRef.current?.focus();
-        }}
-      >
-        {copy.skipToContent}
-      </a>
-
       {/* =====================================================================
           LA BARRE DU HAUT EST LE `Topbar` DE LA LIBRAIRIE, ET LE `<div>` QUI
           L'ENTOURE N'EST PAS DÉCORATIF.
@@ -444,14 +418,9 @@ export function DocShell({ pages }: DocShellProps) {
         />
 
         <div className="tc-doc-column">
-          {/* `tabIndex={-1}` sur `<main>` reste le FILET du lien d'évitement :
-              son `href="#contenu"` doit continuer de déplacer le focus si le
-              gestionnaire de clic n'a pas encore été attaché. Le focus visé
-              par le code, lui, est le titre juste en dessous. */}
           <main
             className={`tc-doc-main${page.slug === HOME_SLUG ? ' tc-doc-main--home' : ''}${page.group === 'composants' ? ' tc-doc-main--components' : ''}`}
             id="contenu"
-            tabIndex={-1}
           >
             <h1 className="tc-doc-page__title" ref={titleRef} tabIndex={-1}>
               {pageTitle}

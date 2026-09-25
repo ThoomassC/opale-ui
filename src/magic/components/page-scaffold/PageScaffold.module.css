@@ -1,5 +1,4 @@
 .root {
-  position: relative;
   --page-scaffold-max-width: 72rem;
   --page-scaffold-gutter: clamp(1rem, 4vw, 3rem);
   container-type: inline-size;
@@ -20,25 +19,6 @@
 .root *::before,
 .root *::after {
   box-sizing: border-box;
-}
-
-.skipLink {
-  position: absolute;
-  z-index: 100;
-  top: 0.5rem;
-  left: 0.5rem;
-  transform: translateY(-180%);
-  border-radius: var(--opale-radius-sm);
-  padding: 0.65rem 1rem;
-  border: 2px solid var(--opale-focus);
-  background: var(--opale-surface);
-  color: var(--opale-text);
-  box-shadow: var(--opale-shadow-2);
-  font-weight: 700;
-}
-
-.skipLink:focus-visible {
-  transform: translateY(0);
 }
 
 .header {
@@ -455,11 +435,5 @@
 
   .menuButton {
     order: 6;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skipLink {
-    transition: none;
   }
 }

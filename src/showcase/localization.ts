@@ -11,7 +11,6 @@ export const LANGUAGE_OPTIONS: readonly { value: Language; label: string }[] = [
 ];
 
 export interface InterfaceCopy {
-  readonly skipToContent: string;
   readonly home: string;
   readonly installation: string;
   readonly releaseNotes: string;
@@ -35,7 +34,6 @@ export interface InterfaceCopy {
 
 const COPY: Record<Language, InterfaceCopy> = {
   FR: {
-    skipToContent: 'Aller au contenu',
     home: 'Accueil',
     installation: 'Installation',
     releaseNotes: 'Notes de versions',
@@ -57,7 +55,6 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentLanguageNotice: '',
   },
   EN: {
-    skipToContent: 'Skip to content',
     home: 'Home',
     installation: 'Installation',
     releaseNotes: 'Release notes',
@@ -80,7 +77,6 @@ const COPY: Record<Language, InterfaceCopy> = {
       'The navigation is translated; documentation content is currently in French.',
   },
   ES: {
-    skipToContent: 'Ir al contenido',
     home: 'Inicio',
     installation: 'Instalación',
     releaseNotes: 'Notas de versión',

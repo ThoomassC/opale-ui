@@ -49,7 +49,6 @@ beforeAll(() => preloadPages());
 const TITLE_SUFFIX = ' — opaleUI';
 
 /** L'identifiant de `<main>`, cible du lien d'évitement et du focus. */
-const MAIN_ID = 'contenu';
 
 /**
  * Le titre de la page de repli que la coquille rend quand le registre ne peut
@@ -299,6 +298,7 @@ describe('DocShell — les onglets du header', () => {
     expect(menu).toBeInstanceOf(HTMLDetailsElement);
     expect(menu?.querySelector('summary')).toHaveAttribute('aria-label', 'Ouvrir le menu');
     expect(menu?.querySelectorAll('.tc-doc-topbar__menu-nav a')).toHaveLength(3);
+    expect(screen.queryByRole('link', { name: 'Aller au contenu' })).not.toBeInTheDocument();
   });
 
   it('referme le menu compact au clic extérieur mais le laisse ouvert au clic intérieur', () => {
@@ -853,9 +853,8 @@ describe('DocShell — le repli du registre', () => {
    on ne voyait que deux traits verticaux, bord haut passant sous la barre
    collante (WCAG 2.4.7) ; et un `<main>` sans nom accessible s'annonce
    « main », c'est-à-dire rien, là où un titre focalisé s'annonce « Button,
-   titre niveau 1 ». `<main id="contenu" tabIndex={-1}>` reste — c'est le filet
-   du `href="#contenu"` tant que le gestionnaire de clic n'est pas attaché —
-   mais plus rien ne le focalise par code.
+   titre niveau 1 ». Le titre reste donc la cible du focus lors du changement
+   de page.
    ========================================================================== */
 describe('DocShell — le focus', () => {
   it('ne devrait pas prendre le focus au premier rendu', () => {
@@ -963,102 +962,6 @@ describe('DocShell — l’absence de région live', () => {
       `la coquille annonce la page dans une région live EN PLUS du titre ` +
         `focalisé — le nom de la page s'entendrait deux fois`,
     ).toEqual([]);
-  });
-});
-
-/* ============================================================================
-   LE LIEN D'ÉVITEMENT — un lien qui ne doit PAS naviguer.
-
-   `href="#contenu"` laissé au navigateur écrit `#contenu` dans l'adresse ; le
-   routage lit TOUT le fragment, `parseSlug('#contenu')` rend le slug
-   « contenu », aucune page ne correspond, et la coquille sert l'accueil. Le
-   lien censé faire gagner du temps faisait donc PERDRE la page qu'on lisait —
-   panne d'autant plus discrète que le focus, lui, atterrissait au bon endroit.
-   ========================================================================== */
-describe('DocShell — le lien d’évitement', () => {
-  /** La coquille rendue sur une page profonde, prête à évitement. */
-  async function renderOnDeepPage() {
-    const user = userEvent.setup();
-
-    render(<DocShell pages={FIXTURE_PAGES} />);
-    navigate(hrefFor(BUTTON_FIXTURE.slug));
-
-    return { user, skip: screen.getByRole('link', { name: 'Aller au contenu' }) };
-  }
-
-  /* Le FILET, que l'audit a délibérément gardé : tant que le gestionnaire de
-     clic n'est pas attaché (chargement, hydratation), c'est le `href` seul qui
-     doit déplacer le focus. Il lui faut donc une cible qui existe ET qui soit
-     focalisable — `<main id="contenu" tabIndex={-1}>`. */
-  it('devrait pointer sur un élément qui existe', () => {
-    render(<DocShell pages={FIXTURE_PAGES} />);
-
-    const skip = screen.getByRole('link', { name: 'Aller au contenu' });
-
-    expect(
-      document.getElementById(skip.getAttribute('href')?.slice(1) ?? ''),
-      `le href du lien d'évitement (« ${skip.getAttribute('href')} ») ne désigne ` +
-        `aucun élément : le filet ne rattrape rien`,
-    ).not.toBeNull();
-  });
-
-  it('devrait viser un élément focalisable sans son gestionnaire', () => {
-    render(<DocShell pages={FIXTURE_PAGES} />);
-
-    expect(
-      document.getElementById(MAIN_ID),
-      `<main id="${MAIN_ID}"> n'est plus focalisable : le href seul déplacerait ` +
-        `le défilement mais pas le focus`,
-    ).toHaveAttribute('tabindex', '-1');
-  });
-
-  it('ne devrait pas changer l’adresse depuis une page profonde', async () => {
-    const { user, skip } = await renderOnDeepPage();
-
-    await user.click(skip);
-
-    expect(
-      window.location.hash,
-      `l'adresse est devenue « ${window.location.hash} » — le routage en tirera ` +
-        `un slug inconnu et servira l'accueil, donc le lien fait perdre la page lue`,
-    ).toBe(hrefFor(BUTTON_FIXTURE.slug));
-  });
-
-  it('ne devrait pas changer la page rendue', async () => {
-    const { user, skip } = await renderOnDeepPage();
-
-    await user.click(skip);
-
-    expect(
-      screen.getByRole('heading', { level: 1 }).textContent,
-      `la page rendue a changé en activant le lien d'évitement`,
-    ).toBe('Button');
-  });
-
-  it('ne devrait pas déplacer aria-current', async () => {
-    const { user, skip } = await renderOnDeepPage();
-
-    await user.click(skip);
-
-    expect(
-      labelsOf(currentLinks()),
-      `aria-current a suivi le lien d'évitement : ${labelsOf(currentLinks()).join(', ') || '(aucune entrée)'}`,
-    ).toEqual(['Button']);
-  });
-
-  /* Le lien vise le TITRE et non `<main>`, pour la même raison que le
-     changement de route : c'est là que la lecture reprend, et c'est le seul
-     des deux qui s'annonce. */
-  it('devrait donner le focus au titre de la page lue', async () => {
-    const { user, skip } = await renderOnDeepPage();
-
-    await user.click(skip);
-
-    expect(
-      describeActiveElement(),
-      `le focus est sur ${describeActiveElement()} — un lien d'évitement qui ne ` +
-        `déplace pas le focus ne fait rien pour qui navigue au clavier`,
-    ).toBe('<h1> « Button »');
   });
 });
 

@@ -104,10 +104,10 @@ const PROPS: readonly PropRow[] = [
     description: 'Remplace les régions ou ajuste leurs classes et les variables CSS du gabarit.',
   },
   {
-    name: 'mainAs / mainId / skipLinkLabel',
-    type: "'main' | 'div' / string / string",
-    defaultValue: "'main' / identifiant unique / 'Aller au contenu'",
-    description: 'Repère principal, cible du lien d’évitement et usage imbriqué.',
+    name: 'mainAs / mainId',
+    type: "'main' | 'div' / string",
+    defaultValue: "'main' / identifiant unique",
+    description: 'Repère principal, identifiant personnalisable et usage imbriqué.',
   },
   {
     name: 'children / …ComponentPropsWithoutRef<"div">',

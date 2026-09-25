@@ -36,10 +36,7 @@ describe('PageScaffold', () => {
     expect(within(main).getByRole('heading', { level: 1, name: 'Mon site' })).toBeVisible();
     expect(main).toHaveTextContent('Contenu personnalisé');
     expect(within(footer).getByText('© 2026 Mon site. Tous droits réservés.')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Aller au contenu' })).toHaveAttribute(
-      'href',
-      `#${main.id}`,
-    );
+    expect(screen.queryByRole('link', { name: 'Aller au contenu' })).not.toBeInTheDocument();
   });
 
   it('transmet les réglages et soumet la recherche sans navigation quand un callback est fourni', async () => {

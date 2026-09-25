@@ -89,7 +89,6 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithoutRef<'div'>,
   mainId?: string;
   /** Utile quand le gabarit est montré dans une page qui possède déjà un `<main>`. */
   mainAs?: 'main' | 'div';
-  skipLinkLabel?: string;
   slots?: PageScaffoldSlots;
   classNames?: Partial<
     Record<
@@ -115,7 +114,6 @@ const COPY = {
     footerNavigation: 'Liens de pied de page',
     footerDescription: 'Une expérience construite avec Opale.',
     copyright: 'Tous droits réservés.',
-    skip: 'Aller au contenu',
     theme: 'Changer le thème clair ou sombre',
     language: 'Langue de la page',
   },
@@ -134,7 +132,6 @@ const COPY = {
     footerNavigation: 'Footer links',
     footerDescription: 'An experience built with Opale.',
     copyright: 'All rights reserved.',
-    skip: 'Skip to content',
     theme: 'Switch between light and dark theme',
     language: 'Page language',
   },
@@ -153,7 +150,6 @@ const COPY = {
     footerNavigation: 'Enlaces del pie de página',
     footerDescription: 'Una experiencia creada con Opale.',
     copyright: 'Todos los derechos reservados.',
-    skip: 'Ir al contenido',
     theme: 'Cambiar entre tema claro y oscuro',
     language: 'Idioma de la página',
   },
@@ -209,7 +205,6 @@ export function PageScaffold({
   liquidGlass = false,
   mainId,
   mainAs: Main = 'main',
-  skipLinkLabel,
   slots,
   classNames,
   className,
@@ -493,9 +488,6 @@ export function PageScaffold({
       lang={activeLanguage}
       {...rootProps}
     >
-      <a className={styles.skipLink} href={`#${contentId}`}>
-        {skipLinkLabel ?? copy.skip}
-      </a>
       {header}
       <Main
         id={contentId}

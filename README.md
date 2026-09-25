@@ -134,8 +134,8 @@ la palette d'Opale.
 ## PageScaffold — une page Opale prête à adapter
 
 `PageScaffold` assemble la marque, la navigation, la recherche `SearchBar`, le contenu principal
-et le pied de page. La mise en page s'adapte au mobile ; le menu fonctionne au clavier et un lien
-d'évitement rejoint le contenu. La recherche soumet un formulaire GET vers `/search` par défaut :
+et le pied de page. La mise en page s'adapte au mobile et le menu fonctionne au clavier.
+La recherche soumet un formulaire GET vers `/search` par défaut :
 prévoyez cette route ou fournissez `searchAction` / `onSearch`.
 
 ```tsx
