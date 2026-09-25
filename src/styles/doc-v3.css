@@ -2026,6 +2026,35 @@ body {
   border-radius: calc(var(--opale-squircle-radius) * 0.68) !important;
 }
 
+/* La vitrine charge aussi son focus générique : il ne doit pas réapparaître
+   sur le champ intérieur, dont la coquille porte désormais l'anneau arrondi. */
+.tc-doc :is(.opale-input, .opale-select, .opale-multiselect__list):focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Les contrôles nus gardent un indicateur de clavier, mais aux coins arrondis. */
+.tc-doc
+  :is(
+    .tc-doc-topbar__brand,
+    .tc-doc-link,
+    .tc-doc-focusdemo button,
+    .tc-doc-focusdemo input
+  ):focus-visible {
+  border-radius: 0.5rem;
+}
+
+/* La poignée est une pilule courte : le focus suit cette poignée visible,
+   plutôt que de tracer un rectangle haut comme toute la colonne. */
+.tc-doc .tc-doc-nav__resize:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.tc-doc-nav__resize:focus-visible > span {
+  outline: 2px solid var(--tc-doc-focus-ring);
+  outline-offset: 3px;
+}
+
 .tc-doc [tabindex='-1']:focus-visible,
 .tc-doc [data-opale-glass-layer]:focus-visible,
 .tc-doc-main:focus-visible {

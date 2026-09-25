@@ -381,8 +381,6 @@
 .opale-card:focus-visible,
 .opale-button:focus-visible,
 .opale-table__sort:focus-visible,
-.opale-input:focus-visible,
-.opale-select:focus-visible,
 .opale-checkbox:focus-visible + .opale-checkbox-mark,
 .opale-toggle:focus-visible + .opale-toggle-track {
   outline: 3px solid var(--opale-focus);
@@ -1143,6 +1141,16 @@
   color: var(--opale-text);
   font: 400 1rem/1.5 var(--opale-font-body);
 }
+/* Le champ intérieur est rectangulaire ; le focus suit la coquille arrondie. */
+.opale-input:focus-visible,
+.opale-select:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.opale-input-shell:has(> .opale-input:focus-visible, > .opale-select:focus-visible) {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 3px;
+}
 .opale-input::placeholder {
   color: var(--opale-text-secondary);
   opacity: 0.72;
@@ -1217,6 +1225,14 @@
 .opale-multiselect__list {
   display: grid;
   gap: inherit;
+}
+.opale-multiselect__list:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.opale-multiselect:has(> .opale-multiselect__list:focus-visible) {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 3px;
 }
 .opale-multiselect:focus-within,
 .opale-multiselect:focus {
