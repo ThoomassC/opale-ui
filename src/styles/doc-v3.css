@@ -868,6 +868,43 @@ body {
   padding: 0 0.15rem 0.15rem;
   list-style: none;
 }
+.tc-doc-nav__grouptitle {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 2.25rem;
+  padding-inline-end: 1.5rem;
+  border: 0;
+  border-radius: var(--opale-radius-sm);
+  background: transparent;
+  text-align: start;
+}
+.tc-doc-nav__grouptitle:hover {
+  background: var(--opale-surface-sunken);
+}
+.tc-doc-nav__grouptitle::after {
+  position: absolute;
+  inset-inline-end: 1rem;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-inline-end: 1.5px solid currentColor;
+  border-block-end: 1.5px solid currentColor;
+  content: '';
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform var(--opale-motion) var(--opale-ease);
+}
+.tc-doc-nav__grouptitle[aria-expanded='false']::after {
+  transform: translateY(-35%) rotate(-45deg);
+}
+.tc-doc-nav__list[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tc-doc-nav__grouptitle::after {
+    transition: none;
+  }
+}
 /* L'ÉCHELLE TYPOGRAPHIQUE SE MONTRE DANS LA POLICE DU SITE, PAS DANS UNE SERIF
    QUE PLUS RIEN NE SERT. `doc.css` peint ses spécimens en `var(--font-display)`
    — l'Iowan Old Style de la 2.x. Résultat : la page qui documente la
@@ -1817,11 +1854,6 @@ body {
   display: none !important;
 }
 
-.tc-doc-nav__grouptitle {
-  cursor: default !important;
-  user-select: none;
-}
-
 .tc-doc-nav__list {
   /* Le conteneur du rail empiète de 0,2 rem sur la liste : ce retrait
      supplémentaire garde le fond actif à égale distance des deux côtés. */
@@ -2187,7 +2219,7 @@ body {
   .tc-doc-nav__grouptitle {
     overflow: hidden;
     padding-block: 0.55rem 0.25rem;
-    padding-inline: 0.35rem;
+    padding-inline: 0.35rem 1.5rem;
     font-size: 0.58rem;
     letter-spacing: 0.08em;
     text-overflow: ellipsis;

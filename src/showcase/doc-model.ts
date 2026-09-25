@@ -119,6 +119,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     label: 'PRISE EN MAIN',
     entries: [
       { label: 'Utilisation', slug: 'utilisation' },
+      { label: 'PageScaffold', slug: 'composants/page-scaffold' },
       /* « Thèmes » et non « Theming » : le sommaire tient ses libellés à part
          de ceux des pages, donc renommer la page ne suffisait pas — la
          navigation aurait gardé l'anglicisme. Le slug reste `theming`, déjà
