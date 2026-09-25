@@ -114,6 +114,24 @@ describe('SegmentedControl', () => {
     expect(indicator?.style.width).toBe('72px');
     expect(indicator?.dataset.animated).toBe('true');
   });
+
+  it('montre immédiatement la sélection après passage au verre', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.classList.contains('opale-segmented')) return rect(0, 240);
+      if (this.getAttribute('aria-pressed') === 'true') return rect(130, 72);
+      return rect(0, 36);
+    });
+
+    const { container, rerender } = render(<SegmentedControl options={OPTIONS} value="code" />);
+    rerender(<SegmentedControl options={OPTIONS} value="code" liquidGlass />);
+
+    const indicator = container.querySelector<HTMLElement>('.opale-segmented__indicator');
+    expect(container.querySelector('.opale-segmented--glass')).toBeInTheDocument();
+    expect(indicator?.style.width).toBe('72px');
+    expect(indicator?.style.transform).toBe('translate3d(130px, 0px, 0)');
+  });
 });
 
 /* =============================================================================

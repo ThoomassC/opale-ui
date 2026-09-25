@@ -1635,6 +1635,10 @@
   border-radius: var(--opale-radius-pill);
   background: var(--opale-surface-sunken);
 }
+/* La piste du verre reste transparente même après la règle de base. */
+.opale-segmented--glass {
+  background: transparent;
+}
 .opale-segmented__indicator {
   position: absolute;
   top: 0;
@@ -1669,6 +1673,13 @@
 }
 .opale-segmented__item[aria-pressed='true'] {
   color: var(--opale-primary-on-surface);
+}
+/* Sur le paysage voilé, l'encre de surface opaque devient illisible. */
+.opale-segmented--glass .opale-segmented__item {
+  color: var(--opale-glass-ink-muted);
+}
+.opale-segmented--glass .opale-segmented__item[aria-pressed='true'] {
+  color: var(--opale-glass-ink);
 }
 .opale-chip,
 .opale-badge {

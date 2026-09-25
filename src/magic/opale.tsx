@@ -1161,7 +1161,6 @@ export function SegmentedControl({
 }: SegmentedControlProps) {
   const groupRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
-  const hasPlacedRef = useRef(false);
 
   useLayoutEffect(() => {
     const group = groupRef.current;
@@ -1190,10 +1189,9 @@ export function SegmentedControl({
       indicator.style.height = `${activeRect.height}px`;
       indicator.style.transform = `translate3d(${activeRect.left - groupRect.left + group.scrollLeft}px, ${activeRect.top - groupRect.top + group.scrollTop}px, 0)`;
 
-      if (!hasPlacedRef.current) {
-        hasPlacedRef.current = true;
-        /* Force le calcul de la mise en page : la position ci-dessus devient
-           l'état de départ de la transition armée juste après. */
+      if (!indicator.dataset.animated) {
+        /* Un changement de matière remonte le nœud de la pastille : armer
+           l'animation sur ce nœud, après son premier placement mesuré. */
         void indicator.offsetWidth;
         indicator.dataset.animated = 'true';
       }
@@ -1214,7 +1212,7 @@ export function SegmentedControl({
       observer?.disconnect();
       window.removeEventListener('resize', place);
     };
-  }, [options, value]);
+  }, [options, value, liquidGlass]);
 
   /* LA MESURE SE FAIT SUR LE MÊME NŒUD DANS LES DEUX MATIÈRES. `Glass`
      transmet sa `ref` à sa couche de CONTENU, celle qui porte `className` :
