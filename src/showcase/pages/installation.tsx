@@ -42,7 +42,7 @@ export const installationPage: DocPage = {
         title={`Installer Opale UI ${UI_VERSION}`}
         note={
           INSTALL_REF_KIND === 'branch'
-            ? 'Version de recette : installez la branche de revue. Le tag v3.3.0 sera créé lors de la publication.'
+            ? 'Version de recette : installez la branche recette. Le tag v3.3.0 sera créé lors de la publication.'
             : 'Cette version est installable depuis le tag GitHub correspondant.'
         }
       >

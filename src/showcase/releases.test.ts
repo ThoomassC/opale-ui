@@ -49,6 +49,7 @@ describe('registre des notes de versions', () => {
   });
 
   it('présente la 3.3.0 et conserve les groupes de la 3.2.0 archivée', () => {
+    expect(CURRENT_RELEASE.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/recette');
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
       'Créer une page avec Opale',
       'Navigation et accessibilité',

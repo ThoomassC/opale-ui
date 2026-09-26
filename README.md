@@ -79,10 +79,10 @@ ce qui ne l'est pas.
 ## Installation
 
 Le paquet s'installe depuis GitHub ; il n'est pas publié sur npm. Le dernier tag est
-`v3.2.0`. Pour essayer **PageScaffold en 3.3.0 sur la branche de revue** :
+`v3.2.0`. Pour essayer **PageScaffold en 3.3.0 sur la branche de recette** :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#codex/recette-ux-v3.2.0"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#recette"
 ```
 
 Cette référence de branche évolue avec la recette. Le tag `v3.3.0` sera créé lors de la

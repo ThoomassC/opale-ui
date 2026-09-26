@@ -41,6 +41,10 @@ describe('Notes de versions — actions', () => {
 
     expect(applicationLinks).toHaveLength(RELEASES.length);
     expect(sourceLinks).toHaveLength(RELEASES.length);
+    expect(screen.getByRole('link', { name: 'Voir le code de la recette' })).toHaveAttribute(
+      'href',
+      RELEASES[0].sourceHref,
+    );
 
     for (const link of applicationLinks) {
       expect(link).toHaveClass('opale-button', 'opale-button--primary');

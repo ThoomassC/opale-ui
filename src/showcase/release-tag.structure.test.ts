@@ -28,7 +28,7 @@ describe('la référence d’installation affichée', () => {
 
   it('n’annonce un tag que lorsqu’il existe, sinon la branche de recette', () => {
     if (INSTALL_REF_KIND === 'branch') {
-      expect(INSTALL_REF).toMatch(/^codex\//);
+      expect(INSTALL_REF).toBe('recette');
       expect(INSTALL_REF).not.toBe(`v${UI_VERSION}`);
       return;
     }

@@ -72,12 +72,12 @@ const V330_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Menu mobile et repères sémantiques',
         detail:
-          'Le menu s’ouvre au bouton, se ferme avec Échap ou après un choix et restaure le focus. Le lien d’évitement mène au contenu principal.',
+          'Le menu s’ouvre au bouton, se ferme avec Échap ou après un choix et restaure le focus. Un clic extérieur referme aussi le menu.',
       },
       {
         title: 'Recherche branchable',
         detail:
-          'La recherche utilise SearchBar et soumet un formulaire GET natif ; un callback peut prendre le relais pour un routeur client.',
+          'La recherche utilise SearchBar, propose des suggestions personnalisables et soumet un formulaire GET natif ; un callback peut prendre le relais.',
       },
     ],
   },
@@ -295,8 +295,8 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
 export const RELEASES: readonly ReleaseNote[] = [
   {
     version: '3.3.0',
-    publishedAt: '2026-09-25',
-    dateLabel: '25 septembre 2026',
+    publishedAt: '2026-09-26',
+    dateLabel: '26 septembre 2026',
     summary: 'PageScaffold compose une page complète dans la direction visuelle d’Opale.',
     sections: V330_RELEASE_SECTIONS,
     changes: V330_RELEASE_SECTIONS.flatMap((section) =>
@@ -304,11 +304,11 @@ export const RELEASES: readonly ReleaseNote[] = [
     ),
     highlights: [
       'PageScaffold assemble l’en-tête, la recherche, le contenu et le pied de page.',
-      'Le menu mobile, les repères et le lien d’évitement sont intégrés.',
+      'Le menu mobile, les repères sémantiques et les suggestions de recherche sont intégrés.',
       'Chaque zone peut être configurée ou remplacée sans modifier le composant.',
     ],
     appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/codex/recette-ux-v3.2.0`,
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
   },
   {
     version: '3.2.0',
