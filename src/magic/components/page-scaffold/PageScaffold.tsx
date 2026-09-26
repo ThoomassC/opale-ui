@@ -332,6 +332,9 @@ export function PageScaffold({
           className={clsx(styles.header, classNames?.header)}
         >
           <Topbar.Section className={styles.brandSection}>{brand}</Topbar.Section>
+          {search ? (
+            <Topbar.Section className={styles.searchSection}>{search}</Topbar.Section>
+          ) : null}
           {showNavigation && pageNavigation.length > 0 ? (
             <Topbar.Section grow className={styles.desktopNavigation}>
               <HeaderNavigation
@@ -347,9 +350,6 @@ export function PageScaffold({
           ) : (
             <Topbar.Section grow />
           )}
-          {search ? (
-            <Topbar.Section className={styles.searchSection}>{search}</Topbar.Section>
-          ) : null}
           {showNavigation && pageNavigation.length > 0 ? (
             <button
               ref={menuButtonRef}

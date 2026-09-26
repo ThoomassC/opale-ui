@@ -188,11 +188,16 @@ describe('PageScaffold', () => {
     const user = userEvent.setup();
     const { container } = render(<PageScaffold />);
     const header = screen.getByRole('banner');
+    const search = within(header).getByRole('searchbox');
+    const navigation = within(header).getByRole('navigation');
     const menu = header.querySelector<HTMLButtonElement>('button[aria-expanded][aria-controls]');
     const theme = within(header).getByRole('button', { name: 'Changer le thème clair ou sombre' });
     const language = within(header).getByRole('combobox', { name: 'Langue de la page' });
 
     if (!menu) throw new Error('Bouton de menu absent');
+    expect(
+      search.compareDocumentPosition(navigation) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(menu.compareDocumentPosition(theme) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(theme.compareDocumentPosition(language) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
