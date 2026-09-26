@@ -17,6 +17,7 @@ const navigation = [
   navigation={navigation}
   activeId="home"
   searchAction="/recherche"
+  searchSuggestions={[{ id: 'work', href: '/projets', label: 'Projets', group: 'Navigation' }]}
   pageTitle="Un espace pour vos idées"
   pageDescription="Une introduction que vous pouvez remplacer."
   footerLinks={[{ id: 'legal', href: '/mentions-legales', label: 'Mentions légales' }]}
@@ -67,6 +68,19 @@ const PROPS: readonly PropRow[] = [
     defaultValue: 'true / —',
     description:
       'Affiche le même SearchBar Opale que le reste du site ; accepte ses attributs natifs.',
+  },
+  {
+    name: 'searchSuggestions / onSearchSuggestionSelect',
+    type: 'readonly PageScaffoldSearchSuggestion[] / callback',
+    defaultValue: '— / —',
+    description:
+      'Suggestions personnalisées filtrées dans une liste accessible ; sans callback, le choix ouvre href.',
+  },
+  {
+    name: 'searchSuggestionsLabel / searchNoResultsLabel',
+    type: 'string / string',
+    defaultValue: 'libellés traduits',
+    description: 'Noms du panneau de suggestions et du message sans résultat.',
   },
   {
     name: 'searchAction / searchName / onSearch',
@@ -173,7 +187,7 @@ export default function PageScaffoldContent() {
         <h2 className="tc-doc-specimen__title">Une page complète, prête à personnaliser</h2>
         <p className="tc-doc-specimen__note">
           Les onglets, le thème et la langue reprennent les contrôles du header Opale. Essayez aussi
-          la recherche, puis réduisez la fenêtre pour ouvrir le menu mobile.
+          la recherche et ses suggestions, puis réduisez la fenêtre pour ouvrir le menu mobile.
         </p>
         <PageScaffold
           className="tc-doc-page-scaffold-demo"
@@ -193,6 +207,13 @@ export default function PageScaffoldContent() {
             setActiveId(link.id);
           }}
           onSearch={setQuery}
+          searchSuggestions={DEMO_NAVIGATION.map((link) => ({
+            ...link,
+            label: content[link.id as 'home' | 'work' | 'about'],
+            group:
+              language === 'fr' ? 'Navigation' : language === 'en' ? 'Navigation' : 'Navegación',
+          }))}
+          onSearchSuggestionSelect={(suggestion) => setActiveId(suggestion.id)}
           searchProps={{
             placeholder:
               language === 'fr'

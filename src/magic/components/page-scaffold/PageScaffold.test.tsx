@@ -33,9 +33,11 @@ describe('PageScaffold', () => {
     );
     expect(container.querySelector('form')).toHaveAttribute('action', '/search');
     expect(container.querySelector('form')).toHaveAttribute('method', 'get');
-    expect(
-      within(header).getByRole('searchbox', { name: 'Rechercher sur le site' }),
-    ).toHaveAttribute('name', 'q');
+    const search = within(header).getByRole('searchbox', { name: 'Rechercher sur le site' });
+    expect(search).toHaveAttribute('name', 'q');
+    expect(search).toHaveAttribute('autocomplete', 'off');
+    expect(search).toHaveAttribute('autocorrect', 'off');
+    expect(search).toHaveAttribute('spellcheck', 'false');
     expect(within(main).getByRole('heading', { level: 1, name: 'Mon site' })).toBeVisible();
     expect(main).toHaveTextContent('Contenu personnalisé');
     expect(within(footer).getByText('© 2026 Mon site. Tous droits réservés.')).toBeVisible();
@@ -107,6 +109,44 @@ describe('PageScaffold', () => {
 
     await user.click(screen.getByRole('link', { name: 'Projets' }));
     expect(onNavigate).toHaveBeenCalledWith(navigation[1], expect.anything());
+  });
+
+  it('propose une liste bleue pilotable au clavier et ouvre la suggestion choisie', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const suggestion = { id: 'projects', label: 'Projets', href: '/projets', group: 'Navigation' };
+    render(<PageScaffold searchSuggestions={[suggestion]} onSearchSuggestionSelect={onSelect} />);
+
+    const search = screen.getByRole('combobox', { name: 'Rechercher sur le site' });
+    await user.type(search, 'pro');
+    const list = screen.getByRole('listbox', { name: 'Suggestions de recherche' });
+    const option = within(list).getByRole('option', { name: 'Projets — Navigation' });
+    expect(search).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{ArrowDown}');
+    expect(option).toHaveAttribute('aria-selected', 'true');
+    expect(search).toHaveAttribute('aria-activedescendant', option.id);
+    await user.keyboard('{Enter}');
+    expect(onSelect).toHaveBeenCalledWith(suggestion);
+    expect(search).toHaveValue('');
+    expect(list).not.toBeVisible();
+  });
+
+  it('écarte la complétion native et ferme les suggestions au clic extérieur', async () => {
+    const user = userEvent.setup();
+    render(
+      <PageScaffold searchSuggestions={[{ id: 'projects', label: 'Projets', href: '/projets' }]} />,
+    );
+    const search = screen.getByRole('combobox', { name: 'Rechercher sur le site' });
+    expect(search).toHaveAttribute('autocomplete', 'off');
+    expect(search).toHaveAttribute('autocorrect', 'off');
+    expect(search).toHaveAttribute('spellcheck', 'false');
+    await user.type(search, 'zzz');
+    expect(screen.getByRole('status')).toHaveTextContent('Aucun résultat');
+    await user.clear(search);
+    await user.type(search, 'pro');
+    expect(screen.getByRole('listbox', { name: 'Suggestions de recherche' })).toBeVisible();
+    await user.click(screen.getByRole('heading', { name: 'Mon site' }));
+    expect(search).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('conserve les onglets et menus personnalisés par les emplacements du gabarit', () => {

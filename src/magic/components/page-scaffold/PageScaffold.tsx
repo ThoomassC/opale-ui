@@ -14,7 +14,8 @@ import { HeaderNavigation } from '../header-controls/HeaderNavigation';
 import { HeaderThemeToggle } from '../header-controls/HeaderThemeToggle';
 import { LanguageSelector } from '../header-controls/LanguageSelector';
 import Topbar from '../topbar/Topbar';
-import SearchBar, { type SearchBarProps } from '../search-bar/SearchBar';
+import type { SearchBarProps } from '../search-bar/SearchBar';
+import { PageScaffoldSearch } from './PageScaffoldSearch';
 import styles from './PageScaffold.module.css';
 
 /** Une destination du menu ou du pied de page. Les liens restent de vrais liens. */
@@ -28,6 +29,14 @@ export interface PageScaffoldLink {
 
 export type PageScaffoldTheme = 'light' | 'dark';
 export type PageScaffoldLanguage = 'fr' | 'en' | 'es';
+
+/** Proposition de recherche propre au site, affichée sous le champ. */
+export interface PageScaffoldSearchSuggestion {
+  readonly id: string;
+  readonly label: string;
+  readonly href: string;
+  readonly group?: string;
+}
 
 /** `undefined` conserve la zone par défaut ; `null` la retire. */
 export interface PageScaffoldSlots {
@@ -71,6 +80,12 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithoutRef<'div'>,
   showSearch?: boolean;
   /** Attributs natifs du vrai champ Opale.SearchBar. */
   searchProps?: SearchBarProps;
+  /** Suggestions du site ; leur présence active la liste accessible et son état bleu. */
+  searchSuggestions?: readonly PageScaffoldSearchSuggestion[];
+  /** Gère le choix dans un routeur client ; sans callback, le lien est ouvert. */
+  onSearchSuggestionSelect?: (suggestion: PageScaffoldSearchSuggestion) => void;
+  searchSuggestionsLabel?: string;
+  searchNoResultsLabel?: string;
   /** La soumission native GET vers `/search` reste disponible sans callback. */
   searchAction?: string;
   searchName?: string;
@@ -112,6 +127,8 @@ const COPY = {
     menu: 'Menu',
     search: 'Rechercher',
     searchLabel: 'Rechercher sur le site',
+    searchSuggestions: 'Suggestions de recherche',
+    searchNoResults: 'Aucun résultat',
     welcome: 'Bienvenue',
     description: 'Découvrez nos contenus et trouvez rapidement ce qui vous intéresse.',
     footerNavigation: 'Liens de pied de page',
@@ -130,6 +147,8 @@ const COPY = {
     menu: 'Menu',
     search: 'Search',
     searchLabel: 'Search this site',
+    searchSuggestions: 'Search suggestions',
+    searchNoResults: 'No results',
     welcome: 'Welcome',
     description: 'Explore our content and quickly find what you need.',
     footerNavigation: 'Footer links',
@@ -148,6 +167,8 @@ const COPY = {
     menu: 'Menú',
     search: 'Buscar',
     searchLabel: 'Buscar en el sitio',
+    searchSuggestions: 'Sugerencias de búsqueda',
+    searchNoResults: 'Sin resultados',
     welcome: 'Bienvenido',
     description: 'Descubre nuestros contenidos y encuentra rápidamente lo que necesitas.',
     footerNavigation: 'Enlaces del pie de página',
@@ -186,6 +207,10 @@ export function PageScaffold({
   showNavigation = true,
   showSearch = true,
   searchProps,
+  searchSuggestions,
+  onSearchSuggestionSelect,
+  searchSuggestionsLabel,
+  searchNoResultsLabel,
   searchAction = '/search',
   searchName = 'q',
   onSearch,
@@ -266,30 +291,21 @@ export function PageScaffold({
     slots?.search !== undefined ? (
       slots.search
     ) : showSearch ? (
-      <form
-        className={clsx(styles.searchForm, classNames?.search)}
-        action={searchAction}
-        method="get"
-        onSubmit={
-          onSearch
-            ? (event) => {
-                event.preventDefault();
-                const query = new FormData(event.currentTarget).get(
-                  searchProps?.name ?? searchName,
-                );
-                onSearch(typeof query === 'string' ? query : '', event);
-              }
-            : undefined
-        }
-      >
-        <SearchBar
-          placeholder={copy.search}
-          aria-label={copy.searchLabel}
-          {...searchProps}
-          name={searchProps?.name ?? searchName}
-          liquidGlass={searchProps?.liquidGlass ?? liquidGlass}
-        />
-      </form>
+      <PageScaffoldSearch
+        language={activeLanguage}
+        placeholder={copy.search}
+        label={copy.searchLabel}
+        suggestionsLabel={searchSuggestionsLabel ?? copy.searchSuggestions}
+        noResultsLabel={searchNoResultsLabel ?? copy.searchNoResults}
+        suggestions={searchSuggestions}
+        onSuggestionSelect={onSearchSuggestionSelect}
+        searchProps={searchProps}
+        searchAction={searchAction}
+        searchName={searchName}
+        liquidGlass={liquidGlass}
+        className={classNames?.search}
+        onSearch={onSearch}
+      />
     ) : null;
 
   const brand =
