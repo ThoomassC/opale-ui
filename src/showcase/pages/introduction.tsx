@@ -1,5 +1,5 @@
 import { OPALE_CATALOG } from '../../magic';
-import { deploymentLabel } from '../deployment-environment';
+import { currentDeploymentLabel } from '../deployment-environment';
 import type { DocPage } from '../doc-model';
 import { hrefFor } from '../doc-model';
 import { CURRENT_RELEASE } from '../releases';
@@ -62,26 +62,34 @@ export const introductionPage: DocPage = {
           <a className="tc-doc-home__action" href={hrefFor('installation')}>
             Commencer <span aria-hidden="true">›</span>
           </a>
+          <a
+            className="tc-doc-home__action tc-doc-home__action--secondary"
+            href={hrefFor('composants/opale-button')}
+          >
+            Explorer les composants <span aria-hidden="true">›</span>
+          </a>
         </div>
 
-        <dl className="tc-doc-home__stats" aria-label="Chiffres clés d’Opale UI">
-          {HOME_STATS.map((stat) => (
-            <div key={stat.label}>
-              <dt>{stat.value}</dt>
-              <dd>{stat.label}</dd>
-            </div>
-          ))}
-        </dl>
+        <nav className="tc-doc-home__entry-grid" aria-label="Explorer Opale UI">
+          <a href={hrefFor('utilisation')}>
+            <strong>Composer une page</strong>
+            <span>Exemples et bonnes pratiques d’intégration ›</span>
+          </a>
+          <a href={hrefFor('composants/opale-button')}>
+            <strong>Choisir un composant</strong>
+            <span>Aperçu, propriétés et états ›</span>
+          </a>
+          <a href={hrefFor('theming')}>
+            <strong>Adapter le thème</strong>
+            <span>Clair, sombre et Liquid Glass ›</span>
+          </a>
+        </nav>
 
         <section className="tc-doc-home__release" aria-labelledby="tc-doc-home-release-title">
           <div className="tc-doc-home__release-head">
             <div className="tc-doc-home__release-meta">
               <span className="tc-doc-home__release-eyebrow">Dernière version</span>
-              <span className="tc-doc-home__release-status">
-                {deploymentLabel(
-                  typeof window === 'undefined' ? 'localhost' : window.location.hostname,
-                )}
-              </span>
+              <span className="tc-doc-home__release-status">{currentDeploymentLabel()}</span>
             </div>
             <time dateTime={CURRENT_RELEASE.publishedAt}>
               {CURRENT_RELEASE.dateLabel} · {CURRENT_RELEASE.changes.length} changements
@@ -115,6 +123,15 @@ export const introductionPage: DocPage = {
             ))}
           </div>
         </section>
+
+        <dl className="tc-doc-home__stats" aria-label="Chiffres clés d’Opale UI">
+          {HOME_STATS.map((stat) => (
+            <div key={stat.label}>
+              <dt>{stat.value}</dt>
+              <dd>{stat.label}</dd>
+            </div>
+          ))}
+        </dl>
 
         <footer className="tc-doc-home__footer">
           <p>Opale UI — design system de l’écosystème Opale.</p>

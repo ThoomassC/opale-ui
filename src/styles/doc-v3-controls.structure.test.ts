@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { ruleBody } from '../test/css-rules';
 import opaleSource from '../magic/opale.css?raw';
+import searchBarSource from '../magic/components/search-bar/style/SearchBar.module.scss?raw';
 import docSource from './doc-v3.css?raw';
 import tokensSource from '../tokens/tokens.css?raw';
 
 describe('la forme interactive OpaleUI', () => {
   it('épingle la palette saphir et la géométrie mesurée sur la référence', () => {
-    const root = opaleSource.match(/:root\s*\{([\s\S]*?)\}/)?.[1] ?? '';
+    const root = ruleBody(opaleSource, ':root') ?? '';
     const darkRoot = ruleBody(opaleSource, ":root[data-theme='dark']") ?? '';
     const button = ruleBody(opaleSource, '.opale-button') ?? '';
     const small = ruleBody(opaleSource, '.opale-button--small') ?? '';
@@ -125,11 +126,13 @@ describe('la forme interactive OpaleUI', () => {
 
   it('borne la police de titre et la sert sans requête supplémentaire', () => {
     const imports = opaleSource.match(/@import url\([^)]*\);/g) ?? [];
-    const root = opaleSource.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+    const root = ruleBody(opaleSource, ':root') ?? '';
 
-    expect(imports).toHaveLength(1);
-    expect(imports[0]).toContain('family=Bricolage+Grotesque');
-    expect(imports[0]).toContain('family=Chivo');
+    expect(imports).toHaveLength(0);
+    expect(opaleSource).toMatch(
+      /font-family: 'Bricolage Grotesque'[\s\S]*?fonts\/bricolage-grotesque-latin\.woff2/,
+    );
+    expect(opaleSource).toMatch(/font-family: 'Chivo'[\s\S]*?fonts\/chivo-latin\.woff2/);
     expect(root).toMatch(/--opale-font-title:\s*'Bricolage Grotesque'/);
     /* `--opale-font-display` NE BOUGE PAS : il habille le titre du rail, les
        titres de plaques, la métrique, le donut et le compte à rebours, qui
@@ -150,7 +153,6 @@ describe('la forme interactive OpaleUI', () => {
 
   it.each([
     '.tc-doc-topbar__tab::before',
-    '.tc-doc-search::before',
     '.tc-doc-search__option::before',
     '.tc-doc-nav__link::before',
     '.tc-doc-home__action::before',
@@ -158,6 +160,13 @@ describe('la forme interactive OpaleUI', () => {
     expect(ruleBody(docSource, selector) ?? '').toMatch(
       /clip-path:\s*var\(--opale-squircle-clip\)/,
     );
+  });
+
+  it('place la squircle de recherche dans le composant partagé', () => {
+    expect(searchBarSource).toMatch(
+      /\.plain::before,\s*\.plain::after\s*\{[\s\S]*?clip-path:\s*var\(--opale-squircle-clip\)/,
+    );
+    expect(searchBarSource).toMatch(/\.plain::after\s*\{[^}]*background:\s*var\(--opale-surface\)/);
   });
 
   it('garde les actions de code, leur dévoilement animé et le filet anti-mouvement', () => {
@@ -189,12 +198,11 @@ describe('la forme interactive OpaleUI', () => {
   });
 
   it('garde la recherche nette au focus et renforce seulement les éléments sélectionnés', () => {
-    const searchFocus = ruleBody(docSource, '.tc-doc-search:focus-within') ?? '';
+    const searchFocus = ruleBody(searchBarSource, '.plain:focus-within') ?? '';
+    const headerWrapper = ruleBody(docSource, '.tc-doc-search') ?? '';
 
-    expect(docSource).toMatch(
-      /\.tc-doc-search::after\s*\{[\s\S]*?z-index:\s*-1;[\s\S]*?background:\s*var\(--opale-surface\)/,
-    );
-    expect(searchFocus).toMatch(/box-shadow:\s*none\s*!important/);
+    expect(searchFocus).toMatch(/--opale-search-border:\s*var\(--opale-primary\)/);
+    expect(headerWrapper).toMatch(/box-shadow:\s*none\s*!important/);
     expect(docSource).toMatch(
       /\.tc-doc-nav__link\[aria-current='page'\]\s*\{\s*font-weight:\s*600/,
     );

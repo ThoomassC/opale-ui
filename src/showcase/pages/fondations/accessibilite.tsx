@@ -125,9 +125,9 @@ export default function AccessibiliteContent() {
             <em>mouvement</em> n’est pas une demande de moins de <em>retour d’information</em>.
           </li>
           <li>
-            Zéro requête hors origine : pas de police distante, pas de <code>@font-face</code>, pas
-            même un <code>preconnect</code> — y compris dans la feuille des composants, dont l’
-            <code>@import</code> Google Fonts d’origine a été retiré à la reprise du code.
+            Zéro requête de police hors origine : Bricolage Grotesque et Chivo sont servies
+            localement par <code>@font-face</code>, sans <code>preconnect</code> ni
+            <code>@import</code> Google Fonts.
           </li>
           <li>
             Le double anneau de focus s’applique à <strong>tout</strong> élément focusable de la

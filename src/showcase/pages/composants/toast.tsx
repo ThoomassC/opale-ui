@@ -4,7 +4,7 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
-import { MagicGroundNote, MagicPreamble } from './stage';
+import { MagicGroundNote } from './stage';
 
 const USAGE = `import { Opale, ToastProvider, useToast } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -151,8 +151,6 @@ const PROPS: readonly PropRow[] = [
 export default function ToastContent() {
   return (
     <PageBody>
-      <MagicPreamble />
-
       <UsageBlock label="Le montage de ToastProvider, en deux temps" code={USAGE} />
 
       <p className="tc-doc-prose">

@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import opaleSheet from './opale.css?raw';
@@ -113,6 +114,24 @@ describe('SegmentedControl', () => {
     expect(indicator?.style.transform).toBe('translate3d(130px, 0px, 0)');
     expect(indicator?.style.width).toBe('72px');
     expect(indicator?.dataset.animated).toBe('true');
+  });
+
+  it('montre immédiatement la sélection après passage au verre', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.classList.contains('opale-segmented')) return rect(0, 240);
+      if (this.getAttribute('aria-pressed') === 'true') return rect(130, 72);
+      return rect(0, 36);
+    });
+
+    const { container, rerender } = render(<SegmentedControl options={OPTIONS} value="code" />);
+    rerender(<SegmentedControl options={OPTIONS} value="code" liquidGlass />);
+
+    const indicator = container.querySelector<HTMLElement>('.opale-segmented__indicator');
+    expect(container.querySelector('.opale-segmented--glass')).toBeInTheDocument();
+    expect(indicator?.style.width).toBe('72px');
+    expect(indicator?.style.transform).toBe('translate3d(130px, 0px, 0)');
   });
 });
 
@@ -303,6 +322,48 @@ describe('les doublons du catalogue', () => {
    ========================================================================== */
 describe('les constats sérieux de l’audit', () => {
   const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  it('affiche une loupe décorative dans les recherches, sauf si une icône est fournie', () => {
+    render(
+      <>
+        <Input label="Filtrer les icônes" type="search" />
+        <Input label="Chercher sous verre" type="search" liquidGlass />
+        <Input
+          label="Recherche personnalisée"
+          type="search"
+          icon={<span data-testid="custom-icon" />}
+        />
+        <Input label="E-mail" type="email" />
+      </>,
+    );
+
+    for (const name of ['Filtrer les icônes', 'Chercher sous verre']) {
+      const shell = screen.getByRole('searchbox', { name }).closest('[role="search"]');
+      expect(shell?.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true',
+      );
+    }
+
+    const customShell = screen
+      .getByRole('searchbox', { name: 'Recherche personnalisée' })
+      .closest('[role="search"]');
+    expect(customShell?.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument();
+    expect(customShell?.querySelector('svg')).toBeNull();
+    expect(
+      screen.getByRole('textbox', { name: 'E-mail' }).parentElement?.querySelector('svg'),
+    ).toBeNull();
+  });
+
+  it('conserve le nom, la référence et l’erreur quand Input rend SearchBar', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Input ref={ref} label="Rechercher des pages" type="search" error="Recherche invalide" />);
+
+    const input = screen.getByRole('searchbox', { name: 'Rechercher des pages' });
+    expect(ref.current).toBe(input);
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription('Recherche invalide');
+  });
 
   /* LE MESSAGE D'ERREUR ÉTAIT DANS LE NOM DU CHAMP. Tout le champ était
      enveloppé dans un `<label>` : « E-mail » devenait « E-mail Adresse

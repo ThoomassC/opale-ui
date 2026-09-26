@@ -1,7 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import { UI_VERSION } from '../../version';
-
 /* =============================================================================
    L'IMPORT DE `magic.scss` A ÉTÉ RETIRÉ D'ICI, ET IL FAUT DIRE POURQUOI.
 
@@ -169,7 +167,7 @@ export function MagicCell({ label, children }: MagicCellProps) {
  * Rendue par `Specimen note=…`, donc dans un `<p>` juste au-dessus de la scène
  * — la contrainte est écrite à côté de ce qu'elle contraint, et non reléguée en
  * bas de page. Elle tient dans une phrase parce qu'elle est répétée quatorze
- * fois ; le développement est dans `MagicPreamble`, une fois par page.
+ * fois ; la page « Installation » porte seule la commande d'installation.
  */
 export function MagicGroundNote() {
   return (
@@ -178,23 +176,5 @@ export function MagicGroundNote() {
       en dur, et sur la plaque claire d’un spécimen d’Opale il tombe à 1,12:1 — il disparaît. La
       scène porte donc son propre dégradé, plancher mesuré 13,22:1.
     </>
-  );
-}
-
-/**
- * Le chapeau commun aux quatorze pages : d'où vient ce code, et ce qu'il n'est
- * pas.
- *
- * DIT SUR CHAQUE PAGE ET NON UNE SEULE FOIS DANS LA NOTE DU GROUPE. Une page de
- * documentation s'atteint par son adresse — `#/composants/button` est un lien qu'on
- * partage — et la note du sommaire est à gauche, pliable, et absente d'un
- * copier-coller. Un lecteur qui arrive ici doit apprendre sur la page qu'il lit
- * que ce composant n'est pas d'Opale et qu'aucun de ses ratios n'a été mesuré.
- */
-export function MagicPreamble() {
-  return (
-    <p className="tc-doc-install">
-      <code>{`npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"`}</code>
-    </p>
   );
 }

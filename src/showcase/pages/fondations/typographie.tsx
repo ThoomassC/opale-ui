@@ -54,8 +54,7 @@ interface FontFamily {
 
    CE QUI REND VRAIMENT LA VITRINE AUJOURD'HUI, mesuré dans le navigateur :
    Bricolage Grotesque sur les titres de pages et les chiffres de l'accueil,
-   Chivo partout ailleurs, Hack pour le code. Les deux premières viennent d'une
-   requête Google Fonts déclarée en tête de `opale.css` ; Hack est embarquée
+   Chivo partout ailleurs, Hack pour le code. Les deux premières sont embarquées dans `opale.css` ; Hack est embarquée
    avec la vitrine.
 
    LES JETONS CITÉS SONT DONC LES `--opale-font-*` ET NON LES `--font-*`. Les
@@ -110,7 +109,7 @@ export default function TypographieContent() {
 
       <Specimen
         title="Les quatre familles"
-        note="Bricolage Grotesque et Chivo arrivent par une requête Google Fonts ; Hack est embarquée."
+        note="Bricolage Grotesque, Chivo et Hack sont servis localement."
       >
         <ul className="tc-doc-scale">
           {FAMILIES.map((family) => (

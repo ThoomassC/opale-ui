@@ -14,16 +14,19 @@ function renderNav(currentSlug: string = HOME_SLUG) {
 
 const NAV_SECTIONS = navSectionsForPages(PAGES);
 
-describe('DocNav — rail permanent et statique', () => {
-  it('devrait afficher tous les groupes sans contrôle de pliage', () => {
+describe('DocNav — groupes du sommaire', () => {
+  it('affiche tous les groupes, ouverts au départ', () => {
     renderNav();
 
     const nav = screen.getByRole('navigation', { name: 'Sommaire' });
 
     expect(nav.querySelectorAll('.tc-doc-nav__group')).toHaveLength(NAV_SECTIONS.length);
-    expect(nav.querySelector('details')).toBeNull();
-    expect(nav.querySelector('summary')).toBeNull();
-    expect(nav.querySelector('button')).toBeNull();
+    expect(within(nav).getAllByRole('button')).toHaveLength(NAV_SECTIONS.length);
+    expect(
+      within(nav)
+        .getAllByRole('button')
+        .every((button) => button.getAttribute('aria-expanded') === 'true'),
+    ).toBe(true);
     expect(document.querySelector('.tc-doc-nav__scroll')).not.toBeNull();
     expect(document.querySelector('.tc-doc-nav__scrollbar')).not.toBeNull();
   });
@@ -42,18 +45,59 @@ describe('DocNav — rail permanent et statique', () => {
     expect(nav).not.toHaveTextContent('Notes de versions');
   });
 
-  it('devrait rendre les libellés de section comme du texte statique', () => {
+  it('relie chaque bouton à sa liste et replie un seul groupe à la fois', () => {
     renderNav();
 
     const nav = screen.getByRole('navigation', { name: 'Sommaire' });
+    const priseEnMain = within(nav).getByRole('button', { name: 'PRISE EN MAIN' });
+    const fondations = within(nav).getByRole('button', { name: 'FONDATIONS' });
+    const list = document.getElementById(priseEnMain.getAttribute('aria-controls') ?? '');
 
-    for (const section of NAV_SECTIONS) {
-      const title = nav.querySelector('#tc-doc-nav-section-' + section.id);
+    expect(priseEnMain.tagName).toBe('BUTTON');
+    expect(list).not.toBeNull();
+    expect(list).toHaveAttribute('aria-labelledby', priseEnMain.id);
+    fireEvent.click(priseEnMain);
+    expect(priseEnMain).toHaveAttribute('aria-expanded', 'false');
+    expect(list).toHaveAttribute('hidden');
+    expect(within(nav).queryByRole('link', { name: 'PageScaffold' })).not.toBeInTheDocument();
+    expect(fondations).toHaveAttribute('aria-expanded', 'true');
 
-      expect(title).not.toBeNull();
-      expect(title).toHaveTextContent(section.label);
-      expect(title?.tagName).toBe('DIV');
-    }
+    fireEvent.click(priseEnMain);
+    expect(priseEnMain).toHaveAttribute('aria-expanded', 'true');
+    expect(list).not.toHaveAttribute('hidden');
+    expect(within(nav).getByRole('link', { name: 'PageScaffold' })).toBeVisible();
+  });
+
+  it('rouvre le groupe de la page courante sans rouvrir les autres', () => {
+    const { rerender } = renderNav();
+    const nav = screen.getByRole('navigation', { name: 'Sommaire' });
+    const saisie = within(nav).getByRole('button', { name: 'SAISIE' });
+    const fondations = within(nav).getByRole('button', { name: 'FONDATIONS' });
+
+    fireEvent.click(saisie);
+    fireEvent.click(fondations);
+    rerender(<DocNav pages={PAGES} currentSlug="composants/opale-button" />);
+
+    expect(saisie).toHaveAttribute('aria-expanded', 'true');
+    expect(fondations).toHaveAttribute('aria-expanded', 'false');
+    expect(within(nav).getByRole('link', { name: 'Button' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('place PageScaffold dans Prise en main, juste après Utilisation', () => {
+    const first = NAV_SECTIONS[0];
+    expect(first.id).toBe('prise-en-main');
+    expect(first.entries.slice(0, 2).map(({ page }) => page.slug)).toEqual([
+      'utilisation',
+      'composants/page-scaffold',
+    ]);
+    expect(
+      NAV_SECTIONS.flatMap((section) => section.entries).filter(
+        ({ page }) => page.slug === 'composants/page-scaffold',
+      ),
+    ).toHaveLength(1);
   });
 
   it('devrait garder une seule page courante dans le rail', () => {
@@ -180,14 +224,17 @@ describe('le sommaire repliable', () => {
     expect(shell(container)).toHaveAttribute('data-menu', 'closed');
   });
 
-  /* Sans cela, choisir une page laissait le sommaire déplié par-dessus la
-     page qu'on venait d'ouvrir : il fallait le refermer à la main. */
-  it('devrait se replier quand on change de page', () => {
+  it('devrait conserver le choix de visibilité quand on change de page', () => {
     const { container, rerender } = renderNav();
-    fireEvent.click(toggle());
 
     rerender(<DocNav pages={PAGES} currentSlug="installation" />);
-
     expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+
+    fireEvent.click(toggle());
+    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+
+    rerender(<DocNav pages={PAGES} currentSlug="notes-de-versions" />);
+
+    expect(shell(container)).toHaveAttribute('data-menu', 'open');
   });
 });

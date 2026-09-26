@@ -21,10 +21,11 @@
    l'importe par chemin direct comme les sept autres modules internes ; il n'a
    simplement plus de nom public, donc plus de page à exiger.
 
-   CES SEPT-LÀ N'AVAIENT PAS D'ÉQUIVALENT et sont donc restés : un rail de
+   SEPT COMPOSANTS SONT RESTÉS sans équivalent : un rail de
    navigation permanent, une barre de page composée, un dialogue générique à
    portail, une file de notifications, un motif d'onglets ARIA, un champ de
-   recherche et la navigation de site. */
+   recherche et la navigation de site. `PageScaffold`, retiré comme simple `div`
+   à classe en 3.2.0, revient en 3.3.0 comme gabarit complet. */
 
 /* LE JEU D'ICÔNES EST PUBLIÉ, SON RENDEUR NE L'EST PAS. `IconGlyph` dessine un
    tracé nu, sans nom accessible ni mise en forme : c'est la pièce interne
@@ -34,6 +35,7 @@
 export { OPALE_ICONS, ICON_NAMES, ICON_GROUPS, ICON_KEYWORDS, isOpaleIconName } from './icon';
 export type { OpaleIconName, IconGroup } from './icon';
 export * from './modal';
+export * from './page-scaffold';
 export * from './search-bar';
 export * from './sidebar';
 export * from './site-nav';

@@ -1,0 +1,476 @@
+.root {
+  --page-scaffold-max-width: 72rem;
+  --page-scaffold-gutter: clamp(1rem, 4vw, 3rem);
+  container-type: inline-size;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--opale-background);
+  color: var(--opale-text);
+  color-scheme: light;
+  font-family: var(--opale-font-body);
+}
+
+.root[data-opale-page-theme='dark'] {
+  color-scheme: dark;
+}
+
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+}
+
+.header {
+  width: 100%;
+  padding-inline: var(--page-scaffold-gutter);
+  color: var(--opale-text);
+  gap: clamp(0.75rem, 2vw, 2rem);
+}
+
+.headerSurface {
+  overflow: visible;
+}
+
+.stickyHeader {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+}
+
+.brandSection {
+  flex: none;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 15rem;
+  color: var(--opale-text);
+  text-decoration: none;
+}
+
+.brand:hover .brandName {
+  color: var(--opale-primary-on-surface);
+}
+
+.brand:focus-visible,
+.footerLinks a:focus-visible,
+.menuButton:focus-visible {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 4px;
+}
+
+.brandMark {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.18rem;
+}
+
+.brandLogo {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandLogo :is(svg, img) {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.brandMark span {
+  border-radius: 0.1rem;
+  background: var(--opale-primary);
+}
+
+.brandName {
+  overflow: hidden;
+  font-family: var(--opale-font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktopNavigation {
+  max-width: 40%;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.searchSection {
+  width: min(22rem, 30vw);
+  min-width: 0;
+  flex: 0 1 22rem;
+}
+
+.searchForm {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.searchSuggestions,
+.searchNoResults {
+  position: absolute;
+  z-index: 3;
+  inset-inline: 0;
+  inset-block-start: calc(100% + 0.5rem);
+  margin: 0;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  box-shadow: var(--opale-shadow-4);
+  color: var(--opale-text);
+}
+
+.searchSuggestions {
+  max-height: min(60dvh, 28rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.4rem;
+  list-style: none;
+}
+
+.searchSuggestions[hidden] {
+  display: none;
+}
+
+.searchSuggestion {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--opale-text);
+  cursor: pointer;
+}
+
+.searchSuggestion::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  clip-path: var(--opale-squircle-clip);
+  background: transparent;
+  content: '';
+}
+
+.searchSuggestion[aria-selected='true'] {
+  color: #fff;
+}
+
+.searchSuggestion[aria-selected='true']::before {
+  background: var(--opale-primary);
+}
+
+.searchSuggestionLabel {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchSuggestionGroup {
+  flex: none;
+  color: var(--opale-text-secondary);
+  font-size: 0.8rem;
+}
+
+.searchSuggestion[aria-selected='true'] .searchSuggestionGroup {
+  color: #e8f8fb;
+}
+
+.searchNoResults {
+  padding: 0.85rem 1rem;
+}
+
+@media (forced-colors: active) {
+  .searchSuggestion[aria-selected='true'] {
+    outline: 2px solid Highlight;
+    color: HighlightText;
+  }
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+
+.menuButton {
+  --page-menu-border: var(--opale-divider);
+  position: relative;
+  isolation: isolate;
+  display: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--opale-text);
+  cursor: pointer;
+}
+
+.menuButton::before,
+.menuButton::after {
+  position: absolute;
+  clip-path: var(--opale-squircle-clip);
+  content: '';
+  pointer-events: none;
+}
+
+.menuButton::before {
+  z-index: -2;
+  inset: 0;
+  background: var(--page-menu-border);
+}
+
+.menuButton::after {
+  z-index: -1;
+  inset: 1px;
+  background: var(--opale-surface);
+}
+
+.menuButton:hover {
+  --page-menu-border: var(--opale-primary);
+  color: var(--opale-primary-on-surface);
+}
+
+.menuButton[aria-expanded='true'] .menuIcon {
+  background: transparent;
+}
+
+.menuButton[aria-expanded='true'] .menuIcon::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.menuButton[aria-expanded='true'] .menuIcon::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+.menuIcon,
+.menuIcon::before,
+.menuIcon::after {
+  display: block;
+  width: 1.15rem;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.menuIcon {
+  position: relative;
+}
+
+.menuIcon::before,
+.menuIcon::after {
+  position: absolute;
+  content: '';
+}
+
+.menuIcon::before {
+  top: -0.36rem;
+}
+
+.menuIcon::after {
+  top: 0.36rem;
+}
+
+.mobileNavigation {
+  padding: 0.75rem var(--page-scaffold-gutter) 1rem;
+  border-bottom: 1px solid var(--opale-divider);
+  background: var(--opale-surface);
+}
+
+.mobileNavigation[hidden] {
+  display: none;
+}
+
+.mobileNavigation a {
+  display: flex;
+  width: 100%;
+}
+
+.main {
+  width: min(100%, calc(var(--page-scaffold-max-width) + 2 * var(--page-scaffold-gutter)));
+  flex: 1 0 auto;
+  margin-inline: auto;
+  padding: clamp(2.5rem, 6vw, 5rem) var(--page-scaffold-gutter);
+}
+
+.main:focus {
+  outline: none;
+}
+
+.wide {
+  --page-scaffold-max-width: 90rem;
+}
+
+.full {
+  --page-scaffold-max-width: 100%;
+}
+
+.intro {
+  max-width: 48rem;
+  margin-block-end: clamp(2rem, 5vw, 4rem);
+}
+
+.eyebrow {
+  display: inline-flex;
+  margin-block-end: 0.9rem;
+  border-radius: var(--opale-radius-pill);
+  padding: 0.35rem 0.75rem;
+  background: color-mix(in srgb, var(--opale-primary) 12%, var(--opale-surface));
+  color: var(--opale-primary-on-surface);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intro :is(h1, h2, h3) {
+  margin: 0;
+  font-family: var(--opale-font-display);
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 1.04;
+}
+
+.intro p {
+  max-width: 42rem;
+  margin: 1.25rem 0 0;
+  color: var(--opale-text-secondary);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.6;
+}
+
+.footer {
+  padding: 2.5rem var(--page-scaffold-gutter) 1.5rem;
+  border-top: 1px solid var(--opale-divider);
+  background: var(--opale-surface);
+}
+
+.footerTop,
+.copyright {
+  width: min(100%, var(--page-scaffold-max-width));
+  margin-inline: auto;
+}
+
+.footerTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.footerTop strong {
+  font-family: var(--opale-font-display);
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+}
+
+.footerTop p {
+  margin: 0.6rem 0 0;
+  color: var(--opale-text-secondary);
+  line-height: 1.5;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 0.5rem 1.5rem;
+}
+
+.footerLinks a {
+  color: var(--opale-text-secondary);
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  color: var(--opale-primary-on-surface);
+  text-decoration: underline;
+}
+
+.copyright {
+  margin-block-start: 2rem;
+  padding-block-start: 1rem;
+  border-top: 1px solid var(--opale-divider);
+  color: var(--opale-text-secondary);
+  font-size: 0.82rem;
+}
+
+@container (max-width: 56rem) {
+  .desktopNavigation {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .searchSection {
+    width: min(22rem, 42vw);
+    margin-inline-start: auto;
+  }
+}
+
+@container (min-width: 56.001rem) {
+  .mobileNavigation {
+    display: none;
+  }
+}
+
+@container (max-width: 20rem) {
+  .brandName {
+    display: none;
+  }
+}
+
+@container (max-width: 40rem) {
+  .header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .brandSection {
+    flex: 1 1 auto;
+  }
+
+  .searchSection {
+    order: 5;
+    width: 100%;
+    margin-inline: 0;
+  }
+
+  .footerTop {
+    flex-direction: column;
+  }
+}

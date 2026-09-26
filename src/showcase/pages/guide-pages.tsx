@@ -10,6 +10,7 @@ interface GuidePageOptions {
   readonly overview: string;
   readonly code: string;
   readonly points: readonly string[];
+  readonly recipes: readonly { title: string; description: string; code: string }[];
 }
 
 function guidePage(options: GuidePageOptions): DocPage {
@@ -42,6 +43,12 @@ function guidePage(options: GuidePageOptions): DocPage {
         <Specimen title="Exemple">
           <UsageBlock label="Point de départ" code={options.code} actions={false} />
         </Specimen>
+        {options.recipes.map((recipe) => (
+          <Specimen key={recipe.title} title={recipe.title}>
+            <p className="tc-doc-prose">{recipe.description}</p>
+            <UsageBlock label={recipe.title} code={recipe.code} actions={false} />
+          </Specimen>
+        ))}
       </PageBody>
     ),
   };
@@ -55,11 +62,33 @@ export const utilisationPage = guidePage({
   lede: 'Composez une page Opale en partant des primitives et des composants dont vous avez besoin.',
   overview:
     'Chaque composant peut être utilisé indépendamment. Les exemples de la documentation restent interactifs afin de comparer les états et les variantes directement dans la page.',
-  code: "import { Opale } from '@thomascaron/opale-ui';",
+  code: `import { Opale } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';`,
   points: [
     'Commencez par une primitive de mise en page, puis ajoutez les composants métier.',
     'Conservez les libellés visibles et les états de focus dans chaque composition.',
     'Activez Liquid Glass localement sur le composant à comparer.',
+  ],
+  recipes: [
+    {
+      title: 'Une première page',
+      description: 'Assemblez les composants puis gardez les actions nommées.',
+      code: `<Opale.Stack>
+  <Opale.Heading level={1}>Mes projets</Opale.Heading>
+  <Opale.Card title="Dernier projet" subtitle="Mis à jour aujourd’hui">
+    <Opale.Button onClick={ouvrirProjet}>Ouvrir</Opale.Button>
+  </Opale.Card>
+</Opale.Stack>`,
+    },
+    {
+      title: 'Un formulaire',
+      description:
+        'La validation native reste disponible ; affichez aussi les erreurs près du champ.',
+      code: `<Opale.Form onSubmit={enregistrer}>
+  <Opale.Input label="Nom du projet" name="nom" required />
+  <Opale.Button type="submit">Enregistrer</Opale.Button>
+</Opale.Form>`,
+    },
   ],
 });
 
@@ -81,5 +110,32 @@ export const themingPage = guidePage({
     'Le soleil et la lune changent uniquement le thème global de la documentation.',
     'Le mode Liquid Glass ne modifie pas les autres composants de la page.',
     'Les tokens de couleur restent la source de vérité des deux thèmes.',
+  ],
+  recipes: [
+    {
+      title: 'Choisir le thème global',
+      description:
+        'Posez le thème sur la racine du document ; les composants lisent alors leurs jetons clairs ou sombres.',
+      code: `document.documentElement.dataset.theme = 'dark';
+// Pour revenir au thème clair :
+document.documentElement.dataset.theme = 'light';`,
+    },
+    {
+      title: 'Personnaliser sans refaire la palette',
+      description: 'Surchargez les jetons sémantiques au niveau de votre application.',
+      code: `:root {
+  --opale-primary: #315d9f;
+}
+:root[data-theme='dark'] {
+  --opale-primary: #9bbdf0;
+}`,
+    },
+    {
+      title: 'Activer le matériau localement',
+      description: 'Le verre concerne seulement le composant qui reçoit la propriété.',
+      code: `<Opale.Card title="Projet" liquidGlass>
+  <Opale.Text>Une surface sur un arrière-plan riche.</Opale.Text>
+</Opale.Card>`,
+    },
   ],
 });

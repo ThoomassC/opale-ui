@@ -235,40 +235,15 @@ body {
 }
 
 .tc-doc-search {
-  --tc-doc-search-border: color-mix(in srgb, var(--opale-text-secondary) 44%, transparent);
   position: relative;
-  isolation: isolate;
   width: 100%;
   min-height: 2.75rem;
+  padding: 0 !important;
   border: 0 !important;
-  border-radius: 0 !important;
   background: transparent !important;
-  color: var(--opale-text) !important;
   box-shadow: none !important;
 }
 
-.tc-doc-search::before,
-.tc-doc-search::after {
-  position: absolute;
-  clip-path: var(--opale-squircle-clip);
-  content: '';
-  pointer-events: none;
-}
-.tc-doc-search::before {
-  z-index: -2;
-  inset: 0;
-  background: var(--tc-doc-search-border);
-  transition: background var(--opale-motion) var(--opale-ease);
-}
-.tc-doc-search::after {
-  z-index: -1;
-  inset: 1px;
-  background: var(--opale-surface);
-}
-.tc-doc-search:focus-within {
-  --tc-doc-search-border: var(--opale-primary);
-  box-shadow: none !important;
-}
 .tc-doc-search input {
   color: var(--opale-text) !important;
   font-family: var(--opale-font-body) !important;
@@ -893,6 +868,43 @@ body {
   padding: 0 0.15rem 0.15rem;
   list-style: none;
 }
+.tc-doc-nav__grouptitle {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 2.25rem;
+  padding-inline-end: 1.5rem;
+  border: 0;
+  border-radius: var(--opale-radius-sm);
+  background: transparent;
+  text-align: start;
+}
+.tc-doc-nav__grouptitle:hover {
+  background: var(--opale-surface-sunken);
+}
+.tc-doc-nav__grouptitle::after {
+  position: absolute;
+  inset-inline-end: 1rem;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-inline-end: 1.5px solid currentColor;
+  border-block-end: 1.5px solid currentColor;
+  content: '';
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform var(--opale-motion) var(--opale-ease);
+}
+.tc-doc-nav__grouptitle[aria-expanded='false']::after {
+  transform: translateY(-35%) rotate(-45deg);
+}
+.tc-doc-nav__list[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tc-doc-nav__grouptitle::after {
+    transition: none;
+  }
+}
 /* L'ÉCHELLE TYPOGRAPHIQUE SE MONTRE DANS LA POLICE DU SITE, PAS DANS UNE SERIF
    QUE PLUS RIEN NE SERT. `doc.css` peint ses spécimens en `var(--font-display)`
    — l'Iowan Old Style de la 2.x. Résultat : la page qui documente la
@@ -1105,7 +1117,7 @@ body {
   padding-block-start: var(--opale-space-lg);
 }
 .tc-doc-release__section h3,
-.tc-doc-release__migration-step h3 {
+.tc-doc-release__migration-step h4 {
   margin: 0;
   color: var(--opale-text);
   font-family: var(--opale-font-body);
@@ -1115,6 +1127,41 @@ body {
 .tc-doc-release__section .tc-doc-release__changes {
   margin-block-start: var(--opale-space-sm);
   margin-block-end: 0;
+}
+.tc-doc-release-lede {
+  max-inline-size: 44rem;
+  margin: 0;
+  color: var(--opale-text-secondary);
+  line-height: 1.5;
+}
+.tc-doc-release__change-list {
+  display: grid;
+  gap: 0;
+  margin: var(--opale-space-sm) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tc-doc-release__change-list li {
+  border-block-start: 1px solid var(--opale-divider);
+  padding-block: var(--opale-space-sm);
+}
+.tc-doc-release__change-list strong {
+  display: block;
+  color: var(--opale-text);
+}
+.tc-doc-release__change-list p {
+  margin: 0.35rem 0 0;
+  color: var(--opale-text-secondary);
+  line-height: 1.5;
+}
+.tc-doc-release__change-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  margin-block-start: 0.4rem;
+}
+.tc-doc-release__change-links a {
+  font-size: 0.875rem;
 }
 .tc-doc-release__migration {
   margin-block-start: var(--opale-space-lg);
@@ -1158,6 +1205,65 @@ body {
 }
 .tc-doc-release__migration-code code {
   color: inherit;
+}
+.tc-doc-release__copy {
+  margin-block-start: 0.5rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  padding: 0.4rem 0.7rem;
+  background: var(--opale-surface);
+  color: var(--opale-primary-on-surface);
+  font: 600 0.8rem var(--opale-font-body);
+  cursor: pointer;
+}
+.tc-doc-release__copy:hover {
+  background: color-mix(in srgb, var(--opale-primary) 10%, var(--opale-surface));
+}
+.tc-doc-release__copy:focus-visible {
+  outline: 2px solid var(--opale-primary-on-surface);
+  outline-offset: 2px;
+}
+.tc-doc-release__removed {
+  border-block-start: 1px solid var(--opale-divider);
+  padding-block-start: var(--opale-space-md);
+}
+.tc-doc-release__removed summary {
+  color: var(--opale-primary-on-surface);
+  font-weight: 600;
+}
+.tc-doc-release__removed-scroll {
+  overflow-x: auto;
+  margin-block-start: var(--opale-space-sm);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+}
+.tc-doc-release__removed table {
+  width: 100%;
+  min-inline-size: 34rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+.tc-doc-release__removed th,
+.tc-doc-release__removed td {
+  border-block-end: 1px solid var(--opale-divider);
+  padding: 0.75rem;
+  vertical-align: top;
+}
+.tc-doc-release__removed thead {
+  background: var(--opale-surface-base);
+}
+.tc-doc-install-status {
+  margin: 0;
+}
+.tc-doc-language-notice {
+  margin-block: 0.5rem 0 !important;
+  border-inline-start: 3px solid var(--opale-primary-on-surface);
+  padding: 0.55rem 0.8rem;
+  background: color-mix(in srgb, var(--opale-primary) 7%, var(--opale-surface));
+  color: var(--opale-text-secondary);
+}
+.tc-doc-specimen--opale .tc-doc-specimen__header h2 {
+  margin: 0;
 }
 @media (max-width: 42rem) {
   .tc-doc-release__migration-code {
@@ -1240,6 +1346,18 @@ body {
   min-height: 7rem;
   padding: var(--opale-space-md);
   border-radius: var(--opale-radius-md);
+}
+@media (max-width: 30rem) {
+  .tc-doc-specimen--opale .tc-doc-specimen__header {
+    margin-block-end: var(--opale-space-sm);
+  }
+  .tc-doc-opale-material-toggle {
+    margin-block: var(--opale-space-sm);
+    padding: 0.5rem 0.75rem;
+  }
+  .tc-doc-opale-material-toggle__text {
+    display: none;
+  }
 }
 
 /* =============================================================================
@@ -1736,11 +1854,6 @@ body {
   display: none !important;
 }
 
-.tc-doc-nav__grouptitle {
-  cursor: default !important;
-  user-select: none;
-}
-
 .tc-doc-nav__list {
   /* Le conteneur du rail empiète de 0,2 rem sur la liste : ce retrait
      supplémentaire garde le fond actif à égale distance des deux côtés. */
@@ -1920,6 +2033,35 @@ body {
   border-radius: calc(var(--opale-squircle-radius) * 0.68) !important;
 }
 
+/* La vitrine charge aussi son focus générique : il ne doit pas réapparaître
+   sur le champ intérieur, dont la coquille porte désormais l'anneau arrondi. */
+.tc-doc :is(.opale-input, .opale-select, .opale-multiselect__list):focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Les contrôles nus gardent un indicateur de clavier, mais aux coins arrondis. */
+.tc-doc
+  :is(
+    .tc-doc-topbar__brand,
+    .tc-doc-link,
+    .tc-doc-focusdemo button,
+    .tc-doc-focusdemo input
+  ):focus-visible {
+  border-radius: 0.5rem;
+}
+
+/* La poignée est une pilule courte : le focus suit cette poignée visible,
+   plutôt que de tracer un rectangle haut comme toute la colonne. */
+.tc-doc .tc-doc-nav__resize:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.tc-doc-nav__resize:focus-visible > span {
+  outline: 2px solid var(--tc-doc-focus-ring);
+  outline-offset: 3px;
+}
+
 .tc-doc [tabindex='-1']:focus-visible,
 .tc-doc [data-opale-glass-layer]:focus-visible,
 .tc-doc-main:focus-visible {
@@ -1927,18 +2069,8 @@ body {
   box-shadow: none !important;
 }
 
-/* LA RECHERCHE PORTE L'ANNEAU SUR SON CADRE, pas sur le champ nu : c'est le
-   cadre qu'on voit, et le champ en occupe une partie seulement. Sa bordure
-   passe en plus au primaire, comme avant. */
-.tc-doc-search:focus-within {
-  --tc-doc-search-border: var(--opale-primary);
-}
-
 .tc-doc-search:has(.tc-doc-search__input:focus-visible) {
-  --tc-doc-search-border: var(--opale-primary);
-  outline: 2px solid var(--tc-doc-focus-ring);
-  outline-offset: 3px;
-  border-radius: calc(var(--opale-squircle-radius) * 0.68) !important;
+  outline: none;
 }
 
 .tc-doc .tc-doc-search__input:focus,
@@ -1949,7 +2081,7 @@ body {
 
 /* Le menu compact prend le relais avant que la navigation principale ne
    perde le lien Accueil ou ne tronque Installation. */
-@media (max-width: 89.999rem) {
+@media (max-width: 77.999rem) {
   .tc-doc-topbar .tc-doc-topbar__bar {
     grid-template-areas:
       'brand menu actions'
@@ -1988,7 +2120,7 @@ body {
 /* Le menu hamburger remplace les onglets dès que nécessaire, mais la
    recherche reste sur cette même ligne tant que la marque et les deux
    contrôles latéraux tiennent encore avec une largeur confortable. */
-@media (min-width: 42.001rem) and (max-width: 89.999rem) {
+@media (min-width: 42.001rem) and (max-width: 77.999rem) {
   :root {
     --doc-topbar-size: 4.5rem;
   }
@@ -2004,6 +2136,15 @@ body {
   .tc-doc-topbar__field {
     width: 100%;
     justify-self: stretch;
+  }
+}
+
+@media (min-width: 78rem) and (max-width: 89.999rem) {
+  .tc-doc-topbar .tc-doc-topbar__bar {
+    grid-template-columns: auto minmax(12rem, 1fr) max-content auto !important;
+  }
+  .tc-doc-topbar__tabs {
+    overflow: visible;
   }
 }
 
@@ -2078,7 +2219,7 @@ body {
   .tc-doc-nav__grouptitle {
     overflow: hidden;
     padding-block: 0.55rem 0.25rem;
-    padding-inline: 0.35rem;
+    padding-inline: 0.35rem 1.5rem;
     font-size: 0.58rem;
     letter-spacing: 0.08em;
     text-overflow: ellipsis;
@@ -2443,23 +2584,27 @@ body {
    toucher —, alors que ce qu'on vient chercher sur cette page EST le nom à
    recopier dans le code.
    ========================================================================== */
+/* Le compteur garde sa propre ligne : ses chiffres et le message vide ne
+   changent jamais la largeur ni la position de la recherche. */
 .tc-doc-icon-filter {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
   margin-block-end: 1.5rem;
 }
 
 .tc-doc-icon-filter > :first-child {
-  flex: 1 1 18rem;
   min-inline-size: 0;
 }
 
 .tc-doc-icon-filter__count {
-  margin: 0 0 0.6rem;
+  min-block-size: 1.25rem;
+  margin: 0;
   color: var(--opale-text-secondary);
   font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25rem;
+  text-align: end;
 }
 
 .tc-doc-icon-family + .tc-doc-icon-family {
@@ -2618,8 +2763,7 @@ body {
   display: none;
 }
 @media (max-width: 30rem) {
-  .tc-doc-body,
-  .tc-doc-body:has(.tc-doc-nav[data-open='false']) {
+  .tc-doc-body {
     grid-template-columns: minmax(0, 1fr) !important;
   }
   .tc-doc-nav {
@@ -2702,4 +2846,158 @@ body {
    clignotement. */
 .tc-doc-page-loading {
   min-block-size: 60vh;
+}
+
+/* Accès direct aux tâches réelles sans modifier la direction visuelle V3.2.0. */
+.tc-doc-home__entry-grid {
+  order: 5;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--opale-space-md);
+}
+.tc-doc-home__entry-grid a {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1.25rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  text-decoration: none;
+  box-shadow: var(--opale-shadow-1);
+}
+.tc-doc-home__entry-grid a:hover,
+.tc-doc-home__entry-grid a:focus-visible {
+  border-color: var(--opale-primary);
+}
+.tc-doc-home__entry-grid span {
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+}
+.tc-doc-home__stats {
+  order: 8;
+}
+.tc-doc-home__footer {
+  order: 9;
+}
+@media (max-width: 42rem) {
+  .tc-doc-home__entry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tc-doc-nav__shortcuts {
+  display: none;
+}
+@media (max-width: 30rem) {
+  .tc-doc-nav__shortcuts {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-block: 0.75rem 0.25rem;
+    scrollbar-width: thin;
+  }
+  .tc-doc-nav__shortcuts button {
+    flex: none;
+    min-block-size: 2.5rem;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--opale-divider);
+    border-radius: 999px;
+    background: var(--opale-surface);
+    color: var(--opale-text);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tc-doc-nav__shortcuts button:hover,
+  .tc-doc-nav__shortcuts button:focus-visible {
+    border-color: var(--opale-primary);
+  }
+  .tc-doc-nav__scrollbar {
+    inset-block-start: 1.3rem;
+  }
+}
+
+.tc-doc-opale-playground {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+}
+.tc-doc-opale-playground legend {
+  padding-inline: 0.25rem;
+  color: var(--opale-text);
+  font-weight: 600;
+}
+.tc-doc-opale-playground label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+}
+.tc-doc-opale-playground select {
+  min-block-size: 2.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font: inherit;
+}
+.tc-doc-opale-playground .tc-doc-opale-playground__check {
+  display: flex;
+  min-block-size: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tc-doc-opale-playground__result {
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--opale-divider);
+}
+
+/* Les nouvelles fiches Opale rendent leur API : l'ancien raccourci de doc.css la masquait. */
+.tc-doc-main--components .tc-doc-props {
+  display: block;
+}
+.tc-doc-main--components .tc-doc-props .tc-doc-specimen__title {
+  display: block;
+}
+.tc-doc-main--components .tc-doc-props .tc-doc-specimen__note {
+  display: block;
+}
+
+/* La page est montrée directement, sans seconde carte blanche autour du gabarit. */
+.tc-doc-page-scaffold-section {
+  margin-block: 2rem;
+}
+
+.tc-doc-page-scaffold-section > .tc-doc-specimen__title,
+.tc-doc-page-scaffold-section > .tc-doc-specimen__note {
+  display: block;
+}
+
+.tc-doc-page-scaffold-section > .tc-doc-specimen__note {
+  margin-block-end: 1.25rem;
+}
+
+.tc-doc-page-scaffold-demo {
+  min-height: 35rem;
+  overflow: clip;
+}
+
+.tc-doc-page-scaffold-demo__content {
+  display: grid;
+  gap: 1rem;
+  max-width: 36rem;
+}
+
+.tc-doc-page-scaffold-demo__content p {
+  margin: 0;
+  color: var(--opale-text-secondary);
 }

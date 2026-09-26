@@ -3,7 +3,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { CURRENT_RELEASE, RELEASES } from './releases';
+import { PAGES } from './pages';
+import { CURRENT_RELEASE, V320_REMOVED_COMPONENTS, RELEASES } from './releases';
 import { UI_VERSION } from './version';
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
@@ -47,16 +48,46 @@ describe('registre des notes de versions', () => {
     }
   });
 
-  it('garde les changements de la 3.2.0 dans leurs trois groupes de lecture', () => {
+  it('présente la 3.3.0 et conserve les groupes de la 3.2.0 archivée', () => {
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
+      'Créer une page avec Opale',
+      'Navigation et accessibilité',
+    ]);
+    expect(CURRENT_RELEASE.changes).toHaveLength(4);
+    const previous = RELEASES.find((release) => release.version === '3.2.0');
+    expect(previous?.sections?.map((section) => section.title)).toEqual([
       'Compatibilité et migration',
       'Composants et interactions',
       'Documentation et qualité',
+      'Améliorations de recette',
     ]);
-    expect(CURRENT_RELEASE.sections?.flatMap((section) => section.changes)).toEqual(
-      CURRENT_RELEASE.changes,
+    expect(previous?.migration?.steps).toHaveLength(3);
+    expect(previous?.changes).toHaveLength(12);
+    expect(previous?.appHref).toBe('/versions/v3.2.0/index.html');
+  });
+
+  it('documente chaque export retiré une seule fois dans le tableau de migration', () => {
+    const removed = V320_REMOVED_COMPONENTS.flatMap((row) => row.removed);
+
+    expect(removed).toHaveLength(28);
+    expect(new Set(removed).size).toBe(removed.length);
+    expect(RELEASES.find((release) => release.version === '3.2.0')?.removedComponents).toBe(
+      V320_REMOVED_COMPONENTS,
     );
-    expect(CURRENT_RELEASE.migration?.steps).toHaveLength(3);
+  });
+
+  it('lie chaque changement et remplacement à une fiche existante', () => {
+    const slugs = new Set(PAGES.map((page) => page.slug));
+    const linkedSlugs = [
+      ...RELEASES.flatMap((release) => release.sections ?? []).flatMap((section) =>
+        section.changes.flatMap((change) => change.links?.map((link) => link.slug) ?? []),
+      ),
+      ...V320_REMOVED_COMPONENTS.flatMap((row) => (row.slug ? [row.slug] : [])),
+    ];
+
+    for (const slug of linkedSlugs) {
+      expect(slugs.has(slug), `fiche absente : ${slug}`).toBe(true);
+    }
   });
 
   it('devrait donner une application et une provenance à chaque entrée', () => {

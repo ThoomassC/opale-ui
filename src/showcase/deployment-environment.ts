@@ -24,3 +24,8 @@ export function deploymentLabel(hostname: string, channel?: string): string {
   if (environment === 'local') return 'En local';
   return 'En production';
 }
+
+/** Shared label for every page that describes the deployed release. */
+export function currentDeploymentLabel(): string {
+  return deploymentLabel(typeof window === 'undefined' ? 'localhost' : window.location.hostname);
+}

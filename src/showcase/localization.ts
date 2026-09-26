@@ -11,7 +11,6 @@ export const LANGUAGE_OPTIONS: readonly { value: Language; label: string }[] = [
 ];
 
 export interface InterfaceCopy {
-  readonly skipToContent: string;
   readonly home: string;
   readonly installation: string;
   readonly releaseNotes: string;
@@ -30,11 +29,11 @@ export interface InterfaceCopy {
   readonly contentsScroll: string;
   readonly contentsStart: string;
   readonly contentsWidth: string;
+  readonly contentLanguageNotice: string;
 }
 
 const COPY: Record<Language, InterfaceCopy> = {
   FR: {
-    skipToContent: 'Aller au contenu',
     home: 'Accueil',
     installation: 'Installation',
     releaseNotes: 'Notes de versions',
@@ -53,9 +52,9 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsScroll: 'Défilement du sommaire',
     contentsStart: 'Début du sommaire',
     contentsWidth: 'Largeur du sommaire',
+    contentLanguageNotice: '',
   },
   EN: {
-    skipToContent: 'Skip to content',
     home: 'Home',
     installation: 'Installation',
     releaseNotes: 'Release notes',
@@ -74,9 +73,10 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsScroll: 'Contents scroll',
     contentsStart: 'Start of contents',
     contentsWidth: 'Contents width',
+    contentLanguageNotice:
+      'The navigation is translated; documentation content is currently in French.',
   },
   ES: {
-    skipToContent: 'Ir al contenido',
     home: 'Inicio',
     installation: 'Instalación',
     releaseNotes: 'Notas de versión',
@@ -95,6 +95,8 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsScroll: 'Desplazamiento del índice',
     contentsStart: 'Inicio del índice',
     contentsWidth: 'Ancho del índice',
+    contentLanguageNotice:
+      'La navegación está traducida; el contenido de la documentación está actualmente en francés.',
   },
 };
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { Topbar } from '../magic';
+import { HeaderNavigation } from '../magic/components/header-controls/HeaderNavigation';
 import type { DocPage } from './doc-model';
 import { HOME_SLUG, findPage, hrefFor } from './doc-model';
 import {
@@ -84,39 +85,25 @@ interface HeaderNavProps {
 }
 
 function HeaderNav({ page, className, ariaLabel, copy }: HeaderNavProps) {
+  const links = [
+    { id: HOME_SLUG, href: hrefFor(HOME_SLUG), label: copy.home },
+    { id: 'installation', href: hrefFor('installation'), label: copy.installation },
+    {
+      id: 'notes-de-versions',
+      href: hrefFor('notes-de-versions'),
+      label: copy.releaseNotes,
+    },
+  ];
+
   return (
-    <nav className={className} aria-label={ariaLabel}>
-      <a
-        className="tc-doc-topbar__tab"
-        href={hrefFor(HOME_SLUG)}
-        aria-current={page.slug === HOME_SLUG ? 'page' : undefined}
-        onClick={(event) => {
-          event.currentTarget.closest('details')?.removeAttribute('open');
-        }}
-      >
-        {copy.home}
-      </a>
-      <a
-        className="tc-doc-topbar__tab"
-        href={hrefFor('installation')}
-        aria-current={page.slug === 'installation' ? 'page' : undefined}
-        onClick={(event) => {
-          event.currentTarget.closest('details')?.removeAttribute('open');
-        }}
-      >
-        {copy.installation}
-      </a>
-      <a
-        className="tc-doc-topbar__tab"
-        href={hrefFor('notes-de-versions')}
-        aria-current={page.slug === 'notes-de-versions' ? 'page' : undefined}
-        onClick={(event) => {
-          event.currentTarget.closest('details')?.removeAttribute('open');
-        }}
-      >
-        {copy.releaseNotes}
-      </a>
-    </nav>
+    <HeaderNavigation
+      links={links}
+      activeId={page.slug}
+      className={className}
+      ariaLabel={ariaLabel}
+      siteClassNames
+      onNavigate={(_link, event) => event.currentTarget.closest('details')?.removeAttribute('open')}
+    />
   );
 }
 
@@ -178,6 +165,17 @@ export function DocShell({ pages }: DocShellProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const topbarRef = useRef<HTMLDivElement>(null);
+  const headerMenuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const menu = headerMenuRef.current;
+      if (!menu?.open || !(event.target instanceof Node) || menu.contains(event.target)) return;
+      menu.open = false;
+    };
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
+  }, []);
 
   /* Le header a plusieurs hauteurs selon le breakpoint : sur petit écran les
      onglets, la recherche et les actions peuvent occuper plusieurs lignes. La
@@ -260,32 +258,6 @@ export function DocShell({ pages }: DocShellProps) {
 
   return (
     <div className="tc-doc" ref={docRef}>
-      {/* LE LIEN D'ÉVITEMENT NE DOIT PAS NAVIGUER, et sans ce gestionnaire il
-          navigue. Le routage lit TOUT le fragment : laisser le navigateur poser
-          `#contenu` dans l'adresse, c'est `parseSlug('#contenu') === 'contenu'`,
-          aucune page de ce slug, et le repli sur l'accueil. Le lien censé faire
-          gagner du temps faisait donc PERDRE la page qu'on lisait — la panne
-          était d'autant plus discrète que le focus, lui, atterrissait au bon
-          endroit.
-
-          `href` est conservé : c'est ce qui en fait un lien pour les
-          technologies d'assistance et ce qui le fait fonctionner si le
-          gestionnaire n'a pas encore été attaché. Le `preventDefault` empêche
-          seulement l'écriture du fragment, et le focus est donné à la main —
-          `focus()` sans `preventScroll`, pour que le défilement suive comme
-          l'aurait fait l'ancre. Il vise le TITRE et non `<main>`, pour la même
-          raison que le changement de route : c'est là que la lecture reprend. */}
-      <a
-        className="tc-doc-skip"
-        href="#contenu"
-        onClick={(event) => {
-          event.preventDefault();
-          titleRef.current?.focus();
-        }}
-      >
-        {copy.skipToContent}
-      </a>
-
       {/* =====================================================================
           LA BARRE DU HAUT EST LE `Topbar` DE LA LIBRAIRIE, ET LE `<div>` QUI
           L'ENTOURE N'EST PAS DÉCORATIF.
@@ -373,7 +345,7 @@ export function DocShell({ pages }: DocShellProps) {
               ariaLabel={copy.primaryNavigation}
               copy={copy}
             />
-            <details className="tc-doc-topbar__menu">
+            <details className="tc-doc-topbar__menu" ref={headerMenuRef}>
               <summary className="tc-doc-topbar__menu-toggle" aria-label={copy.openMenu}>
                 <span aria-hidden="true" />
               </summary>
@@ -433,18 +405,18 @@ export function DocShell({ pages }: DocShellProps) {
         />
 
         <div className="tc-doc-column">
-          {/* `tabIndex={-1}` sur `<main>` reste le FILET du lien d'évitement :
-              son `href="#contenu"` doit continuer de déplacer le focus si le
-              gestionnaire de clic n'a pas encore été attaché. Le focus visé
-              par le code, lui, est le titre juste en dessous. */}
           <main
             className={`tc-doc-main${page.slug === HOME_SLUG ? ' tc-doc-main--home' : ''}${page.group === 'composants' ? ' tc-doc-main--components' : ''}`}
             id="contenu"
-            tabIndex={-1}
           >
             <h1 className="tc-doc-page__title" ref={titleRef} tabIndex={-1}>
               {pageTitle}
             </h1>
+            {copy.contentLanguageNotice ? (
+              <p className="tc-doc-language-notice" lang={language.toLowerCase()}>
+                {copy.contentLanguageNotice}
+              </p>
+            ) : null}
             {/* La frontière n'entoure QUE le contenu de la page : le titre, le
                 sommaire et les deux bascules restent rendus quoi qu'il
                 arrive. Une page sur vingt et une qui jette ne doit pas

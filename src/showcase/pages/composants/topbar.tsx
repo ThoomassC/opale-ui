@@ -4,7 +4,6 @@ import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MaterialSwitch, PlainStage } from './material-switch';
-import { MagicPreamble } from './stage';
 
 const USAGE = `import { Opale, Topbar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -93,8 +92,6 @@ const PROPS: readonly PropRow[] = [
 export default function TopbarContent() {
   return (
     <PageBody>
-      <MagicPreamble />
-
       <UsageBlock label="Import et appels représentatifs de Topbar" code={USAGE} />
 
       <Specimen

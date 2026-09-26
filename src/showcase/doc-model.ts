@@ -38,6 +38,8 @@ export interface DocPage {
   readonly group: DocGroupId;
   /** Le `<h1>` de la page, et le titre du document. */
   readonly title: string;
+  /** Terms used to find an API, an old name, or a concept beyond the page title. */
+  readonly searchTerms?: readonly string[];
   /** Le chapeau, rendu par la coquille juste sous le titre. */
   readonly lede?: ReactNode;
   /**
@@ -117,6 +119,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     label: 'PRISE EN MAIN',
     entries: [
       { label: 'Utilisation', slug: 'utilisation' },
+      { label: 'PageScaffold', slug: 'composants/page-scaffold' },
       /* « Thèmes » et non « Theming » : le sommaire tient ses libellés à part
          de ceux des pages, donc renommer la page ne suffisait pas — la
          navigation aurait gardé l'anglicisme. Le slug reste `theming`, déjà
@@ -140,7 +143,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
   },
   {
     id: 'inputs',
-    label: 'INPUTS',
+    label: 'SAISIE',
     entries: [
       opaleEntry('Button', 'Button'),
       opaleEntry('Pressable', 'Pressable'),
@@ -154,6 +157,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Autocomplete', 'Autocomplete'),
       opaleEntry('Form', 'Form'),
       opaleEntry('SegmentedControl', 'SegmentedControl'),
+      opaleEntry('RatingInput', 'RatingInput'),
       /* SIX ENTRÉES VENDORÉES ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
          `Checkbox`, `Slider`, `Select` et `Switch`. Chacune doublonnait la
          `opaleEntry` qui la précède : le rail affichait « Input » puis
@@ -168,16 +172,14 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
          elle se contente de mentir à qui lit cette liste. C'est la raison pour
          laquelle les cinq autres partent ici et pas « plus tard ».
 
-         `SearchBar` reste : il n'a pas de jumeau Opale. */
+         `SearchBar` reste : l'export historique et `Opale.SearchBar` désignent désormais la même barre. */
       { label: 'SearchBar', slug: 'composants/search-bar' },
     ],
   },
   {
     id: 'boutons-specialises',
     label: 'BOUTONS SPÉCIALISÉS',
-    entries: [
-      opaleEntry('IconActionButton', 'IconActionButton'),
-    ],
+    entries: [opaleEntry('IconActionButton', 'IconActionButton')],
   },
   {
     id: 'affichage-de-donnees',
@@ -186,6 +188,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Card', 'Card'),
       opaleEntry('CardGrid', 'CardGrid'),
       opaleEntry('DataTable', 'DataTable'),
+      opaleEntry('Pagination', 'Pagination'),
       opaleEntry('DescriptionList', 'DescriptionList'),
       opaleEntry('BulletList', 'BulletList'),
       opaleEntry('Badge', 'Badge'),
@@ -205,11 +208,12 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
   },
   {
     id: 'feedback',
-    label: 'FEEDBACK',
+    label: 'RETOURS',
     entries: [
       opaleEntry('Feedback', 'Feedback'),
       opaleEntry('Toast', 'Toast'),
       opaleEntry('Spinner', 'Spinner'),
+      opaleEntry('Skeleton', 'Skeleton'),
       opaleEntry('ProgressBar', 'ProgressBar'),
       opaleEntry('ConfirmDialog', 'ConfirmDialog'),
       opaleEntry('EmptyState', 'EmptyState'),

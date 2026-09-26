@@ -23,6 +23,8 @@ import {
 import { createPortal } from 'react-dom';
 
 import Glass from './components/glass/Glass';
+import SearchBar from './components/search-bar/SearchBar';
+import { PageScaffold } from './components/page-scaffold';
 import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './components/icon';
 /* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
 
@@ -38,6 +40,9 @@ import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './c
    `Modal` fait tout cela, et il est déjà testé pour. Les quatre deviennent
    donc ce qu'ils auraient toujours dû être : des PRÉRÉGLAGES. */
 import { Modal } from './components/modal';
+import { Pagination, RatingInput, Skeleton } from './opale-extras';
+export { Pagination, RatingInput, Skeleton } from './opale-extras';
+export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
 
 /* =============================================================================
    LE VERRE EST LA PEAU, LE CONTRÔLE NATIF RESTE LE MOTEUR.
@@ -417,21 +422,33 @@ export const Input = forwardRef<HTMLInputElement, FieldProps>(
             aucun emplacement où la poser, donc la prop était silencieusement
             ignorée dès qu'on basculait le commutateur. La coquille étant
             désormais la nôtre, l'icône y reste. */}
-        <FieldShell
-          liquidGlass={liquidGlass}
-          className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
-          rootClassName="opale-input--glass-root"
-        >
-          {icon}
-          <input
+        {props.type === 'search' ? (
+          <SearchBar
+            {...props}
             ref={ref}
             id={inputId}
-            className="opale-input"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={message ? messageId : undefined}
-            {...props}
+            icon={icon}
+            liquidGlass={liquidGlass}
+            aria-invalid={error ? true : props['aria-invalid']}
+            aria-describedby={message ? messageId : props['aria-describedby']}
           />
-        </FieldShell>
+        ) : (
+          <FieldShell
+            liquidGlass={liquidGlass}
+            className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
+            rootClassName="opale-input--glass-root"
+          >
+            {icon}
+            <input
+              ref={ref}
+              id={inputId}
+              className="opale-input"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={message ? messageId : undefined}
+              {...props}
+            />
+          </FieldShell>
+        )}
         {message && (
           <span
             id={messageId}
@@ -1118,9 +1135,7 @@ export function InlineInput({
     onKeyDown?.(event);
   };
 
-  return (
-    <Input {...props} onFocus={handleFocus} onBlur={handleBlur} onKeyDown={handleKeyDown} />
-  );
+  return <Input {...props} onFocus={handleFocus} onBlur={handleBlur} onKeyDown={handleKeyDown} />;
 }
 
 export interface SegmentedControlProps {
@@ -1160,7 +1175,6 @@ export function SegmentedControl({
 }: SegmentedControlProps) {
   const groupRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
-  const hasPlacedRef = useRef(false);
 
   useLayoutEffect(() => {
     const group = groupRef.current;
@@ -1189,10 +1203,9 @@ export function SegmentedControl({
       indicator.style.height = `${activeRect.height}px`;
       indicator.style.transform = `translate3d(${activeRect.left - groupRect.left + group.scrollLeft}px, ${activeRect.top - groupRect.top + group.scrollTop}px, 0)`;
 
-      if (!hasPlacedRef.current) {
-        hasPlacedRef.current = true;
-        /* Force le calcul de la mise en page : la position ci-dessus devient
-           l'état de départ de la transition armée juste après. */
+      if (!indicator.dataset.animated) {
+        /* Un changement de matière remonte le nœud de la pastille : armer
+           l'animation sur ce nœud, après son premier placement mesuré. */
         void indicator.offsetWidth;
         indicator.dataset.animated = 'true';
       }
@@ -1213,7 +1226,7 @@ export function SegmentedControl({
       observer?.disconnect();
       window.removeEventListener('resize', place);
     };
-  }, [options, value]);
+  }, [options, value, liquidGlass]);
 
   /* LA MESURE SE FAIT SUR LE MÊME NŒUD DANS LES DEUX MATIÈRES. `Glass`
      transmet sa `ref` à sa couche de CONTENU, celle qui porte `className` :
@@ -1221,9 +1234,7 @@ export function SegmentedControl({
      qui contient les boutons, verre ou pas. Mesurer l'enveloppe donnerait un
      indicateur décalé de l'épaisseur du matériau. */
   const Track = liquidGlass ? Glass : 'div';
-  const trackProps = liquidGlass
-    ? ({ rootClassName: 'opale-segmented--glass-root' } as const)
-    : {};
+  const trackProps = liquidGlass ? ({ rootClassName: 'opale-segmented--glass-root' } as const) : {};
 
   return (
     <Track
@@ -1252,13 +1263,11 @@ export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement
   return <form className={cx('opale-stack', 'opale-stack--column', className)} {...props} />;
 }
 
-
-
 export function IconActionButton({
   icon = 'more-horizontal',
-  label = 'Action',
+  label,
   ...props
-}: Omit<ButtonProps, 'children'> & { icon?: OpaleIconName; label?: string }) {
+}: Omit<ButtonProps, 'children'> & { icon?: OpaleIconName; label: string }) {
   /* IL RENDAIT LA PREMIÈRE LETTRE DU LIBELLÉ. `label.slice(0, 1)` : un bouton
      « Partager » affichait « P ». Ce n'était pas une icône, c'était l'aveu
      qu'il n'y en avait pas — le jeu d'Opale n'existait pas encore. Il en
@@ -1314,7 +1323,6 @@ export function Badge({
 
   return <span className={classes}>{content}</span>;
 }
-
 
 export function Heading({
   level = 2,
@@ -1475,12 +1483,7 @@ export function Feedback({
 
 /** Les six places possibles à l'écran. Mêmes valeurs que `ToastProvider`. */
 export type ToastPlacement =
-  | 'top-left'
-  | 'top-center'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-center'
-  | 'bottom-right';
+  'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 
 /** Les tons, et leur couleur. `neutral` n'en porte aucune. */
 export type ToastTone = 'neutral' | 'success' | 'warning' | 'error' | 'info';
@@ -1734,9 +1737,7 @@ export function ProgressBar({
      reste opaque sous verre : une progression translucide sur un paysage ne
      se lirait plus, et c'est la seule chose que la barre a à dire. */
   const Track = liquidGlass ? Glass : 'div';
-  const trackProps = liquidGlass
-    ? ({ rootClassName: 'opale-progress--glass-root' } as const)
-    : {};
+  const trackProps = liquidGlass ? ({ rootClassName: 'opale-progress--glass-root' } as const) : {};
 
   return (
     <div className={cx('opale-field', className)}>
@@ -2394,9 +2395,7 @@ function inkCut(fill: number): number {
   const bas = Math.floor(position);
   const haut = Math.min(bas + 1, RATING_INK_CUTS.length - 1);
 
-  return (
-    RATING_INK_CUTS[bas] + (RATING_INK_CUTS[haut] - RATING_INK_CUTS[bas]) * (position - bas)
-  );
+  return RATING_INK_CUTS[bas] + (RATING_INK_CUTS[haut] - RATING_INK_CUTS[bas]) * (position - bas);
 }
 
 export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: { value?: number; max?: number }) {
@@ -2562,6 +2561,10 @@ export interface DataTableProps {
   caption?: ReactNode;
   defaultSort?: DataTableSort;
   onSortChange?: (sort: DataTableSort) => void;
+  /** Stable identity when rows are inserted, removed or sorted. */
+  rowKey?: (row: DataTableRow, index: number) => string | number;
+  loading?: boolean;
+  emptyMessage?: string;
   liquidGlass?: boolean;
 }
 
@@ -2596,6 +2599,9 @@ export function DataTable({
   caption,
   defaultSort,
   onSortChange,
+  rowKey,
+  loading = false,
+  emptyMessage = 'Aucune donnée à afficher.',
   liquidGlass = false,
 }: DataTableProps) {
   const [sort, setSort] = useState<DataTableSort | undefined>(defaultSort);
@@ -2668,18 +2674,28 @@ export function DataTable({
             </tr>
           </thead>
           <tbody>
-            {ordered.map(({ row, index }) => (
-              <tr key={index}>
-                {columns.map((column) => (
-                  <td key={column.key}>{row[column.key]}</td>
-                ))}
+            {loading ? (
+              <tr>
+                <td colSpan={Math.max(1, columns.length)}>Chargement des données…</td>
               </tr>
-            ))}
+            ) : ordered.length === 0 ? (
+              <tr>
+                <td colSpan={Math.max(1, columns.length)}>{emptyMessage}</td>
+              </tr>
+            ) : (
+              ordered.map(({ row, index }) => (
+                <tr key={rowKey?.(row, index) ?? index}>
+                  {columns.map((column) => (
+                    <td key={column.key}>{row[column.key]}</td>
+                  ))}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
       <span className="opale-visually-hidden" role="status">
-        {announcement}
+        {loading ? 'Chargement des données…' : announcement}
       </span>
     </Surface>
   );
@@ -2727,13 +2743,14 @@ export function FileCard({
         'opale-file-card',
         selected && 'opale-file-card--selected',
       )}
-      aria-pressed={selected}
+      selected={selected}
       onClick={onClick}
     >
       <IconGlyph name="file" className="opale-file-card__icon" />
       <span className="opale-file-card__text">
         <strong>{name}</strong>
         {size && <small className="opale-field__helper">{size}</small>}
+        {selected && !onClick && <span className="opale-visually-hidden">Sélectionné</span>}
       </span>
     </FileCardShell>
   );
@@ -2750,64 +2767,115 @@ export function FileCard({
 function FileCardShell({
   liquidGlass,
   children,
+  selected,
+  onClick,
   ...props
 }: {
   liquidGlass: boolean;
   className: string;
-  'aria-pressed': boolean;
+  selected: boolean;
   onClick?: () => void;
   children: ReactNode;
 }) {
   if (liquidGlass) {
-    return (
-      <Glass as="button" type="button" rootClassName="opale-file-card--glass-root" {...props}>
+    return onClick ? (
+      <Glass
+        as="button"
+        type="button"
+        rootClassName="opale-file-card--glass-root"
+        aria-pressed={selected}
+        onClick={onClick}
+        {...props}
+      >
+        {children}
+      </Glass>
+    ) : (
+      <Glass as="div" rootClassName="opale-file-card--glass-root" {...props}>
         {children}
       </Glass>
     );
   }
 
-  return (
-    <button type="button" {...props}>
+  return onClick ? (
+    <button type="button" aria-pressed={selected} onClick={onClick} {...props}>
       {children}
     </button>
+  ) : (
+    <div {...props}>{children}</div>
   );
 }
+export interface DropzoneProps {
+  onFiles?: (files: FileList) => void;
+  onError?: (message: string) => void;
+  children?: ReactNode;
+  accept?: string;
+  maxFiles?: number;
+  maxSizeBytes?: number;
+  disabled?: boolean;
+  liquidGlass?: boolean;
+}
+
+function fileMatchesAccept(file: File, accept: string): boolean {
+  const rules = accept
+    .split(',')
+    .map((rule) => rule.trim().toLowerCase())
+    .filter(Boolean);
+  if (rules.length === 0) return true;
+  const type = file.type.toLowerCase();
+  const name = file.name.toLowerCase();
+  return rules.some((rule) =>
+    rule.startsWith('.')
+      ? name.endsWith(rule)
+      : rule.endsWith('/' + '*')
+        ? type.startsWith(rule.slice(0, -1))
+        : type === rule,
+  );
+}
+
 export function Dropzone({
   onFiles,
+  onError,
   children = 'Ajoutez vos fichiers',
+  accept,
+  maxFiles,
+  maxSizeBytes,
+  disabled = false,
   liquidGlass = false,
-}: {
-  onFiles?: (files: FileList) => void;
-  children?: ReactNode;
-  liquidGlass?: boolean;
-}) {
+}: DropzoneProps) {
   const Zone = liquidGlass ? Glass : 'label';
   const zoneProps = liquidGlass
     ? ({ as: 'label', rootClassName: 'opale-dropzone--glass-root' } as const)
     : {};
   const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState('');
   const depth = useRef(0);
 
-  /* LE DÉPÔT EXISTE ENFIN. La zone s'appelait « de dépôt » et n'écoutait aucun
-     `drop` : un fichier lâché dessus était ignoré — ou, pire, ouvert par le
-     navigateur à la place de la page, faute d'un `preventDefault`. Les deux
-     annulations sont ce qui fait d'un élément une cible de dépôt : `dragover`
-     l'autorise, `drop` empêche l'ouverture.
+  const receive = (files: FileList) => {
+    if (disabled || files.length === 0) return;
+    let message = '';
+    if (maxFiles !== undefined && files.length > maxFiles) {
+      message = `Sélectionnez au maximum ${maxFiles} fichier${maxFiles > 1 ? 's' : ''}.`;
+    } else if (
+      maxSizeBytes !== undefined &&
+      Array.from(files).some((file) => file.size > maxSizeBytes)
+    ) {
+      message = `Un fichier dépasse la taille maximale de ${maxSizeBytes} octets.`;
+    } else if (accept && Array.from(files).some((file) => !fileMatchesAccept(file, accept))) {
+      message = 'Le type d’un fichier n’est pas accepté.';
+    }
+    setError(message);
+    if (message) onError?.(message);
+    else onFiles?.(files);
+  };
 
-     `dragleave` SE DÉCLENCHE AUSSI EN PASSANT SUR UN ENFANT : survoler le
-     titre de la zone la faisait « quitter », et l'état de survol clignotait.
-     On compte les entrées et les sorties plutôt que de lire `relatedTarget`,
-     que Safari laisse à `null` sur ces événements : la zone n'est quittée que
-     quand le compte retombe à zéro. */
   const dragHandlers = {
     onDragEnter: (event: DragEvent<HTMLElement>) => {
       event.preventDefault();
+      if (disabled) return;
       depth.current += 1;
       setDragging(true);
     },
-    onDragOver: (event: DragEvent<HTMLElement>) => {
-      event.preventDefault();
-    },
+    onDragOver: (event: DragEvent<HTMLElement>) => event.preventDefault(),
     onDragLeave: () => {
       depth.current = Math.max(0, depth.current - 1);
       if (depth.current === 0) setDragging(false);
@@ -2816,8 +2884,7 @@ export function Dropzone({
       event.preventDefault();
       depth.current = 0;
       setDragging(false);
-      const { files } = event.dataTransfer;
-      if (files.length > 0) onFiles?.(files);
+      receive(event.dataTransfer.files);
     },
   };
 
@@ -2827,23 +2894,25 @@ export function Dropzone({
       {...dragHandlers}
       className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass')}
       data-dragging={dragging ? 'true' : undefined}
+      data-disabled={disabled ? 'true' : undefined}
     >
-      {/* `opale-visually-hidden` ET NON `hidden`, ET C'EST LA DIFFÉRENCE ENTRE
-          UN COMPOSANT ET UN CUL-DE-SAC. L'attribut `hidden` vaut
-          `display: none` : le champ sortait de l'ordre de tabulation, et le
-          `<label>` qui l'enveloppe n'est pas focalisable. On tabulait donc
-          jusqu'ici et l'on ne rencontrait RIEN — envoyer un fichier au clavier
-          était impossible (WCAG 2.1.1). La classe, elle, masque par découpage
-          sans déclasser : le champ garde son arrêt de tabulation, son anneau
-          de focus et son annonce. */}
       <input
         type="file"
         className="opale-visually-hidden"
         multiple
-        onChange={(event) => event.currentTarget.files && onFiles?.(event.currentTarget.files)}
+        accept={accept}
+        disabled={disabled}
+        aria-invalid={error ? true : undefined}
+        onChange={(event) => {
+          if (event.currentTarget.files) receive(event.currentTarget.files);
+          event.currentTarget.value = '';
+        }}
       />
       <strong>{children}</strong>
-      <span>Sélectionner des fichiers</span>
+      <span>{disabled ? 'Sélection désactivée' : 'Sélectionner des fichiers'}</span>
+      <span className="opale-dropzone__error" role="alert">
+        {error}
+      </span>
     </Zone>
   );
 }
@@ -3021,14 +3090,25 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['Autocomplete', 'Inputs', 'Champ à suggestions fournies, dans la liste native du navigateur.'],
   ['Form', 'Inputs', 'Formulaire natif, champs empilés en colonne.'],
   ['SegmentedControl', 'Inputs', 'Sélecteur segmenté animé pour choisir une option.'],
-  ['IconActionButton', 'Boutons spécialisés', "Bouton d'action à icône seule, nommé par son libellé."],
-  ['Card', 'Affichage de données', 'Carte avec titre, sous-titre, actions, pied et quatre élévations.'],
+  [
+    'IconActionButton',
+    'Boutons spécialisés',
+    "Bouton d'action à icône seule, nommé par son libellé.",
+  ],
+  [
+    'Card',
+    'Affichage de données',
+    'Carte avec titre, sous-titre, actions, pied et quatre élévations.',
+  ],
   ['CardGrid', 'Affichage de données', 'Grille responsive auto-adaptative pour cartes.'],
   ['DataTable', 'Affichage de données', 'Table de données triable par en-tête de colonne.'],
   ['DescriptionList', 'Affichage de données', 'Liste de paires libellé / valeur.'],
   ['BulletList', 'Affichage de données', "Liste à puces construite depuis un tableau d'éléments."],
   ['Badge', 'Affichage de données', 'Pastille de texte en trois tons, ou point de notification.'],
   ['Rating', 'Affichage de données', 'Note en étoiles, remplie au quart près.'],
+  ['RatingInput', 'Inputs', 'Saisie accessible d’une note en étoiles.'],
+  ['Pagination', 'Navigation', 'Pagination contrôlée avec page courante et bornes.'],
+  ['Skeleton', 'Feedback', 'Espace réservé décoratif pendant un chargement.'],
   ['StatCard', 'Affichage de données', 'Carte de métrique avec libellé, valeur et variation.'],
   ['Donut', 'Affichage de données', 'Anneau de progression à une valeur, libellé au centre.'],
   ['LegalLinks', 'Affichage de données', 'Liens légaux regroupés dans une navigation.'],
@@ -3050,8 +3130,16 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
     'Navigation',
     "Palette de commandes : un champ de recherche en modale, résultats fournis par l'appelant.",
   ],
-  ['Breadcrumb', 'Navigation', "Fil d'Ariane en liste ordonnée, dernière étape marquée page courante."],
-  ['CookieBanner', 'Navigation', 'Bandeau de consentement qui mémorise le choix, accepté ou refusé.'],
+  [
+    'Breadcrumb',
+    'Navigation',
+    "Fil d'Ariane en liste ordonnée, dernière étape marquée page courante.",
+  ],
+  [
+    'CookieBanner',
+    'Navigation',
+    'Bandeau de consentement qui mémorise le choix, accepté ou refusé.',
+  ],
   ['SelectionBar', 'Navigation', "Barre d'actions groupées sur sélection multiple."],
   ['Stack', 'Mise en page', 'Empilement flexbox avec gaps issus des tokens.'],
   ['Layout', 'Mise en page', 'Gabarit de page avec navigation et contenu.'],
@@ -3064,7 +3152,7 @@ export const OPALE_CATALOG: readonly CatalogEntry[] = [
   ['FileCard', 'Modules', 'Carte de fichier sélectionnable, avec nom et taille.'],
   ['Dropzone', 'Modules', 'Zone de dépôt par glisser-déposer, ou par le sélecteur natif.'],
   ['Lightbox', 'Modules', "Visionneuse d'image en modale, texte alternatif obligatoire."],
-  ['Clipboard', 'Modules', "Copie dans le presse-papier, état fugace et échec annoncé."],
+  ['Clipboard', 'Modules', 'Copie dans le presse-papier, état fugace et échec annoncé.'],
   ['SvgMap', 'Modules', 'Cadre SVG pour une carte : tracé de fond et contenu libre.'],
 ].map(([name, category, description]) => ({ name, category, description }));
 
@@ -3074,6 +3162,8 @@ export const OpaleUI = {
   Card: Card,
   CardGrid: CardGrid,
   Input: Input,
+  SearchBar: SearchBar,
+  PageScaffold: PageScaffold,
   InlineInput: InlineInput,
   Checkbox: Checkbox,
   Toggle: Toggle,
@@ -3089,6 +3179,9 @@ export const OpaleUI = {
   BulletList: BulletList,
   Badge: Badge,
   Rating: Rating,
+  RatingInput: RatingInput,
+  Pagination: Pagination,
+  Skeleton: Skeleton,
   StatCard: StatCard,
   Donut: Donut,
   LegalLinks: LegalLinks,

@@ -9,11 +9,9 @@ import { GROUPS } from './doc-model';
    la normalisation et le plafond se testent ici sur des tableaux ; le
    composant, lui, n'a plus qu'à câbler un clavier sur le résultat.
 
-   AUCUN INDEX, AUCUNE DÉPENDANCE. Vingt-quatre pages : un balayage linéaire
-   coûte vingt et une comparaisons de chaînes par frappe, soit un temps qu'on ne
-   sait pas mesurer. Un index inversé, une distance de Levenshtein ou un paquet
-   de recherche floue seraient trois façons de payer pour rien — et le dernier
-   entrerait dans le budget de tous les consommateurs de la vitrine.
+   AUCUN INDEX, AUCUNE DÉPENDANCE. Le registre reste assez petit pour un
+   balayage linéaire. Les termes API et anciens noms sont déclarés sur les pages
+   concernées, sans charger leur corps React ni ajouter un moteur de recherche.
    ========================================================================== */
 
 /**
@@ -58,8 +56,10 @@ const Rank = {
   LabelInfix: 2,
   /** Le titre de la page contient la requête, mais pas son libellé. */
   TitleInfix: 3,
+  /** Un terme d'API, une description ou un ancien nom correspond. */
+  SearchTerms: 4,
   /** Seul le nom du groupe contient la requête. « fonda » → les six fondations. */
-  GroupInfix: 4,
+  GroupInfix: 5,
 } as const;
 
 /** Le nom de groupe, indexé une fois — `GROUPS` est un tableau, pas une carte. */
@@ -120,6 +120,12 @@ function rankOf(page: DocPage, query: string): number | null {
 
   if (label.includes(query)) return Rank.LabelInfix;
   if (normalize(page.title).includes(query)) return Rank.TitleInfix;
+  const terms = page.searchTerms?.map(normalize) ?? [];
+  if (terms.some((term) => term.includes(query))) return Rank.SearchTerms;
+  if (query.includes(' ')) {
+    const searchable = [label, normalize(page.title), ...terms].join(' ');
+    if (query.split(/\s+/).every((word) => searchable.includes(word))) return Rank.SearchTerms;
+  }
   if ((GROUP_LABELS.get(page.group) ?? '').includes(query)) return Rank.GroupInfix;
 
   return null;

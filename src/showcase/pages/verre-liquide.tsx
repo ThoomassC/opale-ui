@@ -15,7 +15,6 @@ import Glass from '../../magic/components/glass/Glass';
    montre au lieu de le raconter. */
 import type { CSSProperties } from 'react';
 import type { DocPage } from '../doc-model';
-import { UI_VERSION } from '../version';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
 import { MagicCell, MagicStage } from './composants/stage';
@@ -59,9 +58,7 @@ function LiquidGlassFilter() {
   );
 }
 
-const USAGE = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v${UI_VERSION}"
-
-import { Opale } from '@thomascaron/opale-ui';
+const USAGE = `import { Opale } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 <Opale.Card liquidGlass title="Liquid Glass" />
@@ -213,7 +210,7 @@ export const verreLiquidePage: DocPage = {
         </MagicStage>
       </Specimen>
 
-      <UsageBlock label="Installation et activation du matériau" code={USAGE} />
+      <UsageBlock label="Activer le matériau" code={USAGE} />
     </PageBody>
   ),
 };

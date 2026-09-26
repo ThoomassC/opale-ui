@@ -1,8 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { Opale } from '../../opale';
 import SearchBar from './SearchBar';
 
 describe('SearchBar', () => {
+  it('est le même composant depuis Opale.SearchBar et l’export historique', () => {
+    expect(Opale.SearchBar).toBe(SearchBar);
+  });
+
   it('renders a labelled search field in a search landmark', () => {
     render(<SearchBar placeholder="Un voyage, un lieu, un pays…" />);
 

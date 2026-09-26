@@ -3,6 +3,33 @@ import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import type { DocPage } from '../doc-model';
 import { lazyPage } from './lazy-page';
 
+const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
+  BackgroundSurface: ['Background', 'ShapeBackground', 'shape'],
+  Badge: ['StatusChip', 'Http', 'Validation', 'dot'],
+  Button: [
+    'AddButton',
+    'SaveButton',
+    'ApproveButton',
+    'EditButton',
+    'DeleteButton',
+    'variant',
+    'loading',
+  ],
+  Card: ['liquidGlass', 'elevation'],
+  CardGrid: ['Carousel'],
+  DataTable: ['sortable', 'sortValue', 'tri'],
+  Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
+  Feedback: ['Http', 'Validation', 'severity'],
+  IconActionButton: ['icon', 'share', 'bouton icône'],
+  Lightbox: ['alt', 'texte alternatif'],
+  Menu: ['SettingsMenu'],
+  SegmentedControl: ['SlidingIndicator'],
+  Select: ['LanguageSelector'],
+  SvgMap: ['Map'],
+  Toast: ['tone', 'placement', 'notification'],
+  Toggle: ['ThemeToggle', 'Sound'],
+} as const;
+
 /* =============================================================================
    LES PAGES DU CATALOGUE, SANS LEUR CONTENU.
 
@@ -23,6 +50,7 @@ export const opaleComponentPages: readonly DocPage[] = OPALE_CATALOG.map((entry)
   label: catalogComponentLabel(entry.name),
   group: 'composants',
   title: catalogComponentLabel(entry.name),
+  searchTerms: [entry.description, ...(COMPONENT_SEARCH_TERMS[entry.name] ?? [])],
   render: lazyPage(() => import('./opale-components').then((module) => module.ComponentPage), {
     entry,
   }),

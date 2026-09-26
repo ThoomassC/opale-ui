@@ -15,6 +15,7 @@ import { typographiePage } from './fondations/typographie.page';
 import { verrePage } from './fondations/verre.page';
 
 import { modalPage } from './composants/modal.page';
+import { pageScaffoldPage } from './composants/page-scaffold.page';
 import { searchBarPage } from './composants/search-bar.page';
 import { sidebarPage } from './composants/sidebar.page';
 import { siteNavPage } from './composants/site-nav.page';
@@ -75,27 +76,10 @@ export const PAGES: readonly DocPage[] = [
   verrePage,
   accessibilitePage,
 
-  /* LES COMPOSANTS VENDORÉS QUI ONT ENCORE UNE PAGE À EUX. Ils sont copiés de
-     `react-magic-ui` (MIT, @tweeedlex) et gardés fidèles au caractère : hors du
-     contrat de couleur, sans un seul jeton `--tc-*`, et aucun de leurs ratios
-     n'a été mesuré. Chaque page le dit en tête par `MagicPreamble` — le préfixe
-     `Magic` des briques partagées nomme cette PROVENANCE, qui reste vraie, et
-     non le groupe de la vitrine, qui n'existe plus.
-
-     ILS ÉTAIENT QUATORZE, ILS SONT SEPT, ET CE N'EST PAS UNE PERTE DE
-     DOCUMENTATION. Huit pages sont parties — `button`, puis `badge`, `card`,
-     `checkbox`, `input`, `select`, `slider` et `switch` — parce que leurs
-     composants ne sont plus une porte publique : ils sont la matière que rend
-     `Opale.X liquidGlass`, et c'est donc la page Opale (`composants/opale-x`)
-     qui les documente désormais, commutateur de verre compris. Ce qui reste
-     ici n'a pas de jumeau Opale.
-
-     `toastPage` EST L'EXCEPTION ET ELLE A CHANGÉ D'ADRESSE. Le vendoré ne
-     publie pas de `Toast` : il publie `ToastProvider` et `useToast`, une file
-     portaillée dans `document.body`. Ce n'était donc pas un doublon
-     d'`Opale.Toast` mais une homonymie de sommaire, réglée en nommant la page
-     d'après ce qu'elle documente. */
+  /* Les composants composés d’Opale gardent leurs fiches propres. La commande
+     d’installation est documentée une fois sur la page « Installation ». */
   modalPage,
+  pageScaffoldPage,
   searchBarPage,
   sidebarPage,
   siteNavPage,

@@ -10,7 +10,7 @@ Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/por
 > `@apply` qu'ils servaient. Le matériau verre est désormais le nôtre, opt-in composant par
 > composant ; la vitrine propose les thèmes globaux `light` et `dark`.
 
-La vitrine de recette est actuellement en **3.2.0**. Son historique est consultable dans l’onglet
+La branche de recette prépare **3.3.0** avec PageScaffold. Son historique est consultable dans l’onglet
 « Notes de versions » ; chaque état antérieur dispose aussi d’un snapshot utilisable sous
 `public/versions/`. Les états antérieurs du paquet, y compris la **2.0** et ses composants
 copiés d'une librairie tierce, sont décrits dans ces notes — et l'héritage lui-même dans
@@ -62,11 +62,9 @@ Ce qui reste vrai, et qu'il faut lire avant de s'y fier :
   commentaires ont été faites à la main, une fois, sous Chromium.
 - **`filter: url(#…)` et `backdrop-filter` n'ont pas de comportement vérifié hors Chromium**,
   et ce sont les deux déclarations dont le matériau dépend entièrement.
-- **`opale.css` charge deux polices depuis Google Fonts**, par un `@import` en première ligne
-  d'une feuille publiée. C'est une requête hors origine imposée à tout consommateur, en
-  contradiction avec la règle que ce dépôt s'applique partout ailleurs. Détaillé dans
-  [`src/magic/README.md`](./src/magic/README.md) et dans
-  [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
+- **`opale.css` embarque Bricolage Grotesque et Chivo**, sous SIL Open Font License 1.1.
+  Les licences complètes figurent dans [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
+  La feuille publiée ne déclenche plus de requête vers Google Fonts.
 
 La vitrine continue de présenter les composants sur des **scènes sombres** — un dégradé à
 trois arrêts (`#17314f`, `#2a2350`, `#101a2c`), plancher mesuré 13,22:1 contre le blanc
@@ -80,16 +78,15 @@ ce qui ne l'est pas.
 
 ## Installation
 
-Le paquet s'installe depuis git, et il n'est pas publié sur npm.
+Le paquet s'installe depuis GitHub ; il n'est pas publié sur npm. Le dernier tag est
+`v3.2.0`. Pour essayer **PageScaffold en 3.3.0 sur la branche de revue** :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.2.0"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#codex/recette-ux-v3.2.0"
 ```
 
-> **Les tags de publication restent la source de vérité du paquet.** La vitrine 3.2.0 et les
-> snapshots historiques sont conservés séparément pour permettre la comparaison visuelle ;
-> au moment de publier une version, poser et pousser le tag correspondant (`v3.2.0`, puis les
-> suivants) permet de l’installer sans dépendre d’un HEAD de branche.
+Cette référence de branche évolue avec la recette. Le tag `v3.3.0` sera créé lors de la
+publication ; la documentation ne propose pas de commande vers un tag inexistant.
 
 Le paquet se compile à l'installation (`prepare` → `build:lib`). **Quatre points d'entrée**,
 et les deux premiers suffisent :
@@ -133,6 +130,42 @@ la palette d'Opale.
 > **Point de vigilance en déploiement.** Si l'hôte n'exécute pas le script `prepare` (cache
 > npm, image de build minimale), `dist/` sera absent et le build cassera en production sans
 > avoir cassé en local. À vérifier par un déploiement de préversion.
+
+## PageScaffold — une page Opale prête à adapter
+
+`PageScaffold` assemble la marque, la navigation, la recherche `SearchBar`, le contenu principal
+et le pied de page. La mise en page s'adapte au mobile et le menu fonctionne au clavier.
+La recherche soumet un formulaire GET vers `/search` par défaut :
+prévoyez cette route ou fournissez `searchAction` / `onSearch`.
+
+```tsx
+import { PageScaffold, Opale } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
+
+<PageScaffold
+  siteName="Atelier"
+  navigation={[{ id: 'home', href: '/', label: 'Accueil' }]}
+  activeId="home"
+  searchAction="/recherche"
+  footerLinks={[{ id: 'legal', href: '/mentions-legales', label: 'Mentions légales' }]}
+>
+  <Opale.Card title="Bienvenue">Votre contenu.</Opale.Card>
+</PageScaffold>;
+```
+
+Les propriétés `logo`, `siteName`, `navigation`, `searchAction` et `footerLinks` règlent les
+éléments courants. `slots` remplace individuellement `brand`, `navigation`, `search`, `actions`,
+`intro`, `footer` et les autres zones. `classNames` et les variables CSS
+`--page-scaffold-max-width` / `--page-scaffold-gutter` règlent les détails de présentation.
+Le header inclut une bascule clair/sombre et un sélecteur FR/EN/ES. Le thème est limité au
+`PageScaffold` : il ne modifie pas le thème de la page hôte. La langue traduit ses libellés
+fournis par défaut ; si vous fournissez votre propre navigation ou contenu, traduisez-les dans
+votre application via `onLanguageChange`. Utilisez `theme` / `language` pour piloter les valeurs,
+ou `defaultTheme` / `defaultLanguage` pour laisser le gabarit les gérer. Les props `showThemeToggle`
+et `showLanguageSelector` masquent les contrôles, et `slots.actions` remplace leur zone.
+Les menus mobiles du gabarit et du site Opale se replient au clic extérieur.
+
+La fiche `#/composants/page-scaffold` dans la vitrine de cette branche documente l'API complète.
 
 ## Le catalogue de composants
 
@@ -462,13 +495,9 @@ dans le script, jamais en appauvrissant la source.
   revanche leurs propres tests de comportement : `npx vitest run src/magic` rend
   `Test Files 10 passed (10) · Tests 115 passed (115)`.
 - Il **ne vérifie pas le rendu du verre.** Aucun harnais navigateur, aucune capture.
-- Il **n'a pas de police propre**, et **il ne tient plus tout à fait sa propre règle sur ce
-  point.** Piles système dans les deux projets, aucune requête hors origine tolérée — sauf
-  que `src/magic/opale.css`, qui est publiée, ouvre sur un `@import` de Google Fonts
-  chargeant Bricolage Grotesque et Chivo. Les deux ont un repli système déclaré
-  (`--opale-font-body`, `--opale-font-title`), donc rien ne casse sans elles ; l'import reste
-  à retirer. C'est signalé dans [`src/magic/README.md`](./src/magic/README.md) et dans
-  [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
+- Il **ne dépend plus de Google Fonts à l’exécution**. Bricolage Grotesque et Chivo sont
+  embarquées dans `opale.css`, avec un repli système via `--opale-font-body` et
+  `--opale-font-title`.
 
 ## Ce qui reste à décider
 
@@ -476,34 +505,30 @@ Par coût de retour en arrière décroissant.
 
 1. **La compatibilité de la 3.2.0.** La version de recette retire des composants publics ;
    vérifier les consommateurs et le numéro semver avant une publication hors recette.
-2. **L'`@import` de Google Fonts dans `opale.css`.** Il impose une requête tierce à tout
-   consommateur du paquet et contredit une règle que le dépôt s'applique partout ailleurs. Le
-   retirer est une ligne ; ce qui se décide, c'est ce qu'on met à la place — un repli système
-   assumé, ou des fichiers servis par le consommateur.
-3. **La mesure des couleurs composées par les composants.** Le blocage de la 2.0 a disparu
+2. **La mesure des couleurs composées par les composants.** Le blocage de la 2.0 a disparu
    avec le code copié : plus rien n'oblige à rester « fidèle plutôt que conforme », puisque
    le code est le nôtre. Reste à décider si le contrat doit s'étendre aux piles que les
    composants composent, ou si la garantie du jeton suffit.
-4. **Le harnais navigateur.** Le contrat de couleur sait recalculer une composition
+3. **Le harnais navigateur.** Le contrat de couleur sait recalculer une composition
    d'alphas ; il ne sait pas ce qu'un `backdrop-filter` a mis sous un libellé. Une sonde qui
    capture, échantillonne le pixel réel derrière une encre et recalcule le ratio est chiffrée
    à environ une journée. La surface de rendu qu'aucun test ne garde n'a pas diminué avec la
    réécriture : le matériau est toujours du `filter` et du `backdrop-filter`.
-5. **Minifier le CSS publié dans `build:css`.** Mesuré sur la 1.x : le socle livré passait de
+4. **Minifier le CSS publié dans `build:css`.** Mesuré sur la 1.x : le socle livré passait de
    46,3 à 5,7 kB gzippés (−88 %). Le périmètre a changé, le chiffre est donc à refaire, mais
    la conclusion tient — les commentaires sont la valeur du dépôt dans `src/`, ils n'ont
    aucune raison d'être téléchargés.
-6. **Un test unitaire de `Glass`.** C'est la primitive que six composants montent, et le seul
+5. **Un test unitaire de `Glass`.** C'est la primitive que six composants montent, et le seul
    des huit composants composés sans fichier de test en propre. Ce qui mériterait d'être
    tenu : le montage et le démontage du filtre SVG partagé, le compteur d'instances, et la
    présence des quatre couches nommées.
-7. **Convertir le dernier module SCSS.** `SearchBar.module.scss` tient `sass` dans les
+6. **Convertir le dernier module SCSS.** `SearchBar.module.scss` tient `sass` dans les
    dépendances de développement à lui seul.
-8. La bascule du fond de `travels_in_world` vers `#deedf0`, et le remesurage de sa carte.
-9. Les familles de caractères, et le budget de police qui va avec.
-10. La simulation de deutéranopie sur `--danger` / `--success` / `--warning` : elle n'a pas
-    été faite, et le résultat peut changer les trois valeurs. Le rouge n'est séparé du cuivre
-    que de 11,3° de teinte.
+7. La bascule du fond de `travels_in_world` vers `#deedf0`, et le remesurage de sa carte.
+8. Les familles de caractères, et le budget de police qui va avec.
+9. La simulation de deutéranopie sur `--danger` / `--success` / `--warning` : elle n'a pas
+   été faite, et le résultat peut changer les trois valeurs. Le rouge n'est séparé du cuivre
+   que de 11,3° de teinte.
 
 Deux questions que la charte laissait ouvertes sont **tranchées et mesurées** ici, plutôt que
 reportées :

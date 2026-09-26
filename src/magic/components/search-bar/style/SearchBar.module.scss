@@ -1,5 +1,5 @@
 .root {
-  --lg-radius: var(--radius-pill, 999px);
+  --opale-glass-radius: var(--opale-squircle-radius, 1.375rem);
   width: 100%;
 }
 
@@ -9,8 +9,8 @@
   width: 100%;
   min-height: var(--target-min, 44px);
   align-items: center;
-  gap: var(--space-2, 0.5rem);
-  padding-inline: var(--space-4, 1rem);
+  gap: var(--opale-space-xs, 0.5rem);
+  padding-inline: var(--opale-space-sm, 0.75rem);
   border: 1px solid color-mix(in srgb, #ffffff 72%, transparent);
   border-radius: inherit;
   background: transparent;
@@ -19,10 +19,15 @@
 }
 
 .searchBar:focus-within {
-  border-color: color-mix(in srgb, #ffffff 94%, transparent);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, #ffffff 18%, transparent),
-    0 0 1rem color-mix(in srgb, #ffffff 10%, transparent);
+  border-color: var(--opale-primary-light, #a9c7f4);
+}
+
+/* Le verre ne garde ni halo extérieur ni assombrissement au focus :
+   seul son contour prend le bleu du contrôle. */
+.root:has([data-opale-glass-layer='content'] .input:focus) {
+  --opale-glass-edge: var(--opale-primary-light, #a9c7f4);
+  --opale-glass-tint: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 }
 
 .icon {
@@ -35,7 +40,9 @@
 .input {
   min-width: 0;
   flex: 1;
+  align-self: stretch;
   padding: 0;
+  appearance: none;
   border: 0;
   outline: 0;
   background: transparent;
@@ -44,9 +51,8 @@
   line-height: 1;
 }
 
-/* The global focus recipe is intentionally replaced by the rounded surface
-   above. Keeping the reset on the input prevents the browser from painting a
-   rectangular black-and-white ring inside the liquid-glass pill. */
+/* Le champ intérieur ne dessine pas de focus : le contour arrondi
+   de la barre porte seul l'état actif. */
 .input:focus-visible {
   outline: none;
   box-shadow: none;
@@ -78,28 +84,44 @@
   opacity: 0.5;
 }
 
-/* =============================================================================
-   LA VERSION ORIGINALE.
-
-   Tout ce qui précède est réglé pour le verre : encre blanche, liseré blanc,
-   fond transparent. C'est juste POSÉ SUR UNE PHOTOGRAPHIE, et illisible
-   ailleurs — or ce composant ne savait rendre que cela.
-
-   Ce bloc reprend les jetons d'Opale, qui sont ceux de toutes les surfaces
-   pleines du catalogue : le fond de surface, le filet du diviseur, l'encre de
-   la page. Il ne double aucune géométrie — la boîte, l'espacement et la cible
-   de 44 px restent ceux de `.searchBar`.
-   ========================================================================== */
+/* Le dessin plein reprend la recherche de la barre d’en-tête : un filet
+   superelliptique de 1 px, un fond opaque et aucun halo supplémentaire. */
 .plain {
-  border-color: var(--opale-divider);
-  border-radius: var(--opale-radius-pill);
-  background: var(--opale-surface);
+  --opale-search-border: color-mix(in srgb, var(--opale-text-secondary) 44%, transparent);
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  background: transparent;
   color: var(--opale-text);
 }
 
+.plain::before,
+.plain::after {
+  position: absolute;
+  clip-path: var(--opale-squircle-clip);
+  content: '';
+  pointer-events: none;
+}
+
+.plain::before {
+  z-index: -2;
+  inset: 0;
+  background: var(--opale-search-border);
+  transition: background var(--opale-motion) var(--opale-ease);
+}
+
+.plain::after {
+  z-index: -1;
+  inset: 1px;
+  background: var(--opale-surface);
+}
+
 .plain:focus-within {
-  border-color: var(--opale-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--opale-primary) 18%, transparent);
+  --opale-search-border: var(--opale-primary);
+}
+
+.plain .icon {
+  color: var(--opale-primary-on-surface);
 }
 
 .plain .input::placeholder {

@@ -155,11 +155,7 @@ const PORTEURS = [
   {
     nom: 'SegmentedControl',
     rendre: (g?: boolean) => (
-      <Opale.SegmentedControl
-        liquidGlass={g}
-        value="a"
-        options={[{ value: 'a', label: 'A' }]}
-      />
+      <Opale.SegmentedControl liquidGlass={g} value="a" options={[{ value: 'a', label: 'A' }]} />
     ),
   },
   {
@@ -447,6 +443,9 @@ describe('l’inventaire du matériau', () => {
     ['LegalLinks', 'une liste de liens, sans fond ni bord'],
     ['Link', 'un `<a>` : du texte souligné, sans boîte peinte'],
     ['Rating', 'des étoiles : un graphique, pas une surface'],
+    ['RatingInput', 'des étoiles interactives, sans surface peinte'],
+    ['Pagination', 'une liste de boutons ; le verre est une propriété des boutons si nécessaire'],
+    ['Skeleton', 'un repère de chargement décoratif, sans contenu à réfracter'],
     ['Spinner', 'un anneau qui tourne, sans surface'],
     ['Stack', 'un empilement flex : de la mise en page'],
     ['Text', 'du texte : corps, légende ou métrique, sans boîte peinte'],
@@ -468,9 +467,7 @@ describe('l’inventaire du matériau', () => {
       'ToastProvider',
     ]);
 
-    const orphelins = publies.filter(
-      (nom) => !porteurs.has(nom) && !SANS_MATIERE.has(nom),
-    );
+    const orphelins = publies.filter((nom) => !porteurs.has(nom) && !SANS_MATIERE.has(nom));
 
     expect(
       orphelins,

@@ -97,11 +97,12 @@ const INITIAL_SCROLLBAR_STATE: ScrollbarState = {
  * AUCUN TITRE DE SECTION ICI, ET C'EST DÉLIBÉRÉ. La nav précède le contenu
  * dans le DOM ; un `<h2>` par groupe placerait plusieurs titres de niveau 2 avant
  * le `<h1>` de la page, c'est-à-dire un plan de document inversé pour qui
- * navigue par titres. Les libellés de groupe sont donc des `<div>` statiques —
- * ni `<h2>` ni `<h3>` —, et chaque liste est nommée par `aria-label`.
+ * navigue par titres. Les libellés de groupe sont donc des boutons —
+ * ni `<h2>` ni `<h3>` —, et chaque liste est nommée par `aria-labelledby`.
  *
- * Les groupes ne sont pas pliables : le rail reste permanent et aucun bouton
- * de navigation secondaire ne concurrence les onglets du header.
+ * Chaque groupe se plie avec un bouton natif. Sa liste reste montée mais
+ * masquée quand elle est fermée ; le lien courant rouvre son groupe à la
+ * navigation, sans effacer les choix faits sur les autres groupes.
  *
  * Les libellés sont nommés par `aria-labelledby` afin que chaque liste
  * reste clairement associée à sa famille sans introduire de titre hiérarchique.
@@ -109,29 +110,44 @@ const INITIAL_SCROLLBAR_STATE: ScrollbarState = {
  */
 export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavProps) {
   const sections = navSectionsForPages(pages);
+  const activeSectionId = sections.find((section) =>
+    section.entries.some(({ page }) => page.slug === currentSlug),
+  )?.id;
   const copy = copyFor(language);
+  const [closedSections, setClosedSections] = useState<ReadonlyMap<string, string>>(
+    () => new Map(),
+  );
+
+  /* Le groupe d'une nouvelle page redevient visible, même s'il avait été plié
+     ailleurs. Les autres gardent leur choix, sans effet de synchronisation. */
+  const isSectionExpanded = (id: string) => {
+    const closedAtSlug = closedSections.get(id);
+    return closedAtSlug === undefined || (id === activeSectionId && closedAtSlug !== currentSlug);
+  };
+
+  const toggleSection = (id: string) => {
+    setClosedSections((closed) => {
+      const next = new Map(closed);
+      const closedAtSlug = closed.get(id);
+      const expanded =
+        closedAtSlug === undefined || (id === activeSectionId && closedAtSlug !== currentSlug);
+      if (expanded) next.set(id, currentSlug);
+      else next.delete(id);
+      return next;
+    });
+  };
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollbarRef = useRef<HTMLSpanElement>(null);
   const dragRef = useRef<ScrollbarDrag | null>(null);
   const resizeDragRef = useRef<ResizeDrag | null>(null);
   const scrollbarStateRef = useRef<ScrollbarState>(INITIAL_SCROLLBAR_STATE);
 
-  /* LE SOMMAIRE REPLIABLE DU TÉLÉPHONE. Sous 30 rem, le rail permanent
-     laissait 184 px au contenu et treize pages débordaient encore
-     (WCAG 1.4.10) : il cède la place à un bouton qui déplie le sommaire
-     au-dessus de la page. Au-delà, la feuille masque le bouton et le rail
-     reste ce qu'il était.
-
-     IL SE REPLIE QUAND ON CHANGE DE PAGE, sans quoi le sommaire restait
-     déplié par-dessus la page qu'on venait d'ouvrir. L'état est ajusté
-     pendant le rendu, à la comparaison du slug — un effet qui le remettrait
-     à zéro rendrait deux fois, ce que la règle `react-hooks` refuse. */
+  /* Sous 30 rem, le sommaire est replié au chargement pour laisser voir la
+     page. Le bouton permet de retrouver le rail de la recette ; le choix de
+     visibilité reste en place pendant la navigation. Au-delà, le rail est
+     permanent et le bouton est masqué par la feuille de style. */
   const [menuOpen, setMenuOpen] = useState(false);
-  const [menuSlug, setMenuSlug] = useState(currentSlug);
-  if (menuSlug !== currentSlug) {
-    setMenuSlug(currentSlug);
-    setMenuOpen(false);
-  }
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -201,7 +217,7 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
     resizeObserver?.observe(scrollElement);
     mutationObserver?.observe(scrollElement, {
       attributes: true,
-      attributeFilter: ['open'],
+      attributeFilter: ['hidden'],
       childList: true,
       subtree: true,
     });
@@ -377,7 +393,7 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
        est un contexte d'empilement et dont la largeur est `fit-content`. Le
        collant, la piste de grille et le sol opaque vivent donc dehors. Elle
        porte la surface visible, tandis que le rail statique porte l'état du
-       sommaire sans contrôle de pliage. */
+       sommaire, tandis que les groupes ont chacun leur commande de pliage. */
     <div className="tc-doc-nav" data-menu={menuOpen ? 'open' : 'closed'}>
       <button
         type="button"
@@ -388,6 +404,29 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
       >
         {copy.contents}
       </button>
+      {menuOpen && (
+        <div className="tc-doc-nav__shortcuts" role="group" aria-label="Rubriques du sommaire">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => {
+                setClosedSections((closed) => {
+                  if (!closed.has(section.id)) return closed;
+                  const next = new Map(closed);
+                  next.delete(section.id);
+                  return next;
+                });
+                const target = document.getElementById(`tc-doc-nav-section-${section.id}`);
+                if (target && scrollRef.current)
+                  scrollRef.current.scrollTop = target.offsetTop - scrollRef.current.offsetTop;
+              }}
+            >
+              {sectionLabelFor(section.id, section.label, language)}
+            </button>
+          ))}
+        </div>
+      )}
       <Sidebar
         className="tc-doc-nav__panel"
         /* L'ENVELOPPE A BESOIN DE SON PROPRE CROCHET, et pas seulement le
@@ -421,17 +460,28 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
 
             {sections.map((section) => {
               const sectionLabel = sectionLabelFor(section.id, section.label, language);
+              const sectionId = `tc-doc-nav-section-${section.id}`;
+              const listId = `tc-doc-nav-list-${section.id}`;
+              const expanded = isSectionExpanded(section.id);
 
               return (
-                <section
-                  className="tc-doc-nav__group"
-                  key={section.id}
-                  aria-labelledby={'tc-doc-nav-section-' + section.id}
-                >
-                  <div className="tc-doc-nav__grouptitle" id={'tc-doc-nav-section-' + section.id}>
+                <section className="tc-doc-nav__group" key={section.id} aria-labelledby={sectionId}>
+                  <button
+                    className="tc-doc-nav__grouptitle"
+                    id={sectionId}
+                    type="button"
+                    aria-expanded={expanded}
+                    aria-controls={listId}
+                    onClick={() => toggleSection(section.id)}
+                  >
                     {sectionLabel}
-                  </div>
-                  <ul className="tc-doc-nav__list" aria-label={sectionLabel}>
+                  </button>
+                  <ul
+                    className="tc-doc-nav__list"
+                    id={listId}
+                    aria-labelledby={sectionId}
+                    hidden={!expanded}
+                  >
                     {section.entries.map(({ page, label }) => {
                       const localizedLabel = pageLabelFor(page, language, label);
 

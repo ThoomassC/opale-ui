@@ -3,7 +3,7 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { ModalScene } from './scenes';
 import { MaterialSwitch, PlainStage } from './material-switch';
-import { MagicGroundNote, MagicPreamble } from './stage';
+import { MagicGroundNote } from './stage';
 
 const USAGE = `import { Modal } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -121,8 +121,6 @@ const PROPS: readonly PropRow[] = [
 export default function ModalContent() {
   return (
     <PageBody>
-      <MagicPreamble />
-
       <UsageBlock label="Import et appels représentatifs de Modal" code={USAGE} />
 
       <Specimen

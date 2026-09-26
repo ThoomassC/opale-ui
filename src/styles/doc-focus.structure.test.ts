@@ -61,7 +61,6 @@ import docSource from './doc.css?raw';
  */
 const ALLOWED: readonly { readonly selector: string; readonly focusable: boolean }[] = [
   /* Les trois anneaux de focus eux-mêmes : ils POSENT les deux ombres. */
-  { selector: '.tc-doc-skip:focus-visible', focusable: true },
   { selector: '.tc-doc-topbar__brand:focus-visible', focusable: true },
   { selector: '.tc-doc-nav__grouptitle:focus-visible', focusable: true },
   { selector: '.tc-doc-nav__alltitle:focus-visible', focusable: true },

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import opaleSource from '../magic/opale.css?raw';
+import { ruleBody } from '../test/css-rules';
 import { contrastRatio } from '../contract/color';
 import { OPALE_PLATES, OPALE_TEXT_PAIRS } from './opale-palette-data';
 
@@ -26,22 +27,9 @@ import { OPALE_PLATES, OPALE_TEXT_PAIRS } from './opale-palette-data';
 
 /** Le corps d'un bloc de `opale.css`, à accolades équilibrées. */
 function blockBody(selector: string): string {
-  const start = opaleSource.indexOf(`${selector} {`);
-
-  if (start === -1) throw new Error(`Bloc « ${selector} » introuvable dans opale.css.`);
-
-  const open = opaleSource.indexOf('{', start);
-  let depth = 0;
-
-  for (let index = open; index < opaleSource.length; index += 1) {
-    if (opaleSource[index] === '{') depth += 1;
-    if (opaleSource[index] === '}') {
-      depth -= 1;
-      if (depth === 0) return opaleSource.slice(open + 1, index);
-    }
-  }
-
-  throw new Error(`Bloc « ${selector} » non refermé.`);
+  const body = ruleBody(opaleSource, selector);
+  if (body === null) throw new Error(`Bloc « ${selector} » introuvable dans opale.css.`);
+  return body;
 }
 
 /** Les déclarations `--opale-*` d'un bloc, en minuscules. */
@@ -94,6 +82,11 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {
+  it('applique les mêmes jetons aux thèmes locaux du PageScaffold', () => {
+    expect(blockBody("[data-opale-page-theme='light']")).toBe(blockBody(':root'));
+    expect(blockBody("[data-opale-page-theme='dark']")).toBe(blockBody(":root[data-theme='dark']"));
+  });
+
   it.each(
     OPALE_PLATES.flatMap((plate) =>
       plate.groups.flatMap((group) =>

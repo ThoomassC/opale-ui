@@ -1,9 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Chivo:wght@400;500;600;700&display=swap');
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('./fonts/bricolage-grotesque-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/chivo-latin.woff2') format('woff2');
+}
 
 /* OpaleUI-compatible design tokens. The names intentionally mirror the
    reference library so an Opale consumer can move between both systems
    without translating a second vocabulary. */
-:root {
+:root,
+[data-opale-page-theme='light'] {
   --opale-background: #f7f4ef;
   --opale-surface: #ffffff;
   --opale-surface-base: #fbfaf9;
@@ -284,7 +298,8 @@
     0 0 4px 2px rgba(255, 255, 255, 0.85), 0 0 16px 7px rgba(7, 28, 43, 0.9);
 }
 
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+[data-opale-page-theme='dark'] {
   --opale-background: #0c0f0d;
   --opale-surface: #262c27;
   --opale-surface-base: #1d221e;
@@ -368,8 +383,6 @@
 .opale-card:focus-visible,
 .opale-button:focus-visible,
 .opale-table__sort:focus-visible,
-.opale-input:focus-visible,
-.opale-select:focus-visible,
 .opale-checkbox:focus-visible + .opale-checkbox-mark,
 .opale-toggle:focus-visible + .opale-toggle-track {
   outline: 3px solid var(--opale-focus);
@@ -1130,6 +1143,16 @@
   color: var(--opale-text);
   font: 400 1rem/1.5 var(--opale-font-body);
 }
+/* Le champ intérieur est rectangulaire ; le focus suit la coquille arrondie. */
+.opale-input:focus-visible,
+.opale-select:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.opale-input-shell:has(> .opale-input:focus-visible, > .opale-select:focus-visible) {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 3px;
+}
 .opale-input::placeholder {
   color: var(--opale-text-secondary);
   opacity: 0.72;
@@ -1204,6 +1227,14 @@
 .opale-multiselect__list {
   display: grid;
   gap: inherit;
+}
+.opale-multiselect__list:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.opale-multiselect:has(> .opale-multiselect__list:focus-visible) {
+  outline: 2px solid var(--opale-focus);
+  outline-offset: 3px;
 }
 .opale-multiselect:focus-within,
 .opale-multiselect:focus {
@@ -1606,6 +1637,10 @@
   border-radius: var(--opale-radius-pill);
   background: var(--opale-surface-sunken);
 }
+/* La piste du verre reste transparente même après la règle de base. */
+.opale-segmented--glass {
+  background: transparent;
+}
 .opale-segmented__indicator {
   position: absolute;
   top: 0;
@@ -1640,6 +1675,13 @@
 }
 .opale-segmented__item[aria-pressed='true'] {
   color: var(--opale-primary-on-surface);
+}
+/* Sur le paysage voilé, l'encre de surface opaque devient illisible. */
+.opale-segmented--glass .opale-segmented__item {
+  color: var(--opale-glass-ink-muted);
+}
+.opale-segmented--glass .opale-segmented__item[aria-pressed='true'] {
+  color: var(--opale-glass-ink);
 }
 .opale-chip,
 .opale-badge {
@@ -2481,4 +2523,133 @@
   outline: 3px solid currentColor;
   outline-offset: 2px;
   opacity: 1;
+}
+
+.opale-dropzone[data-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.opale-dropzone__error:not(:empty) {
+  color: var(--opale-danger);
+  font-weight: 600;
+}
+
+.opale-skeleton {
+  display: block;
+  max-inline-size: 100%;
+  border-radius: var(--opale-radius-sm);
+  background: color-mix(in srgb, var(--opale-text) 9%, var(--opale-surface));
+  background-image: linear-gradient(
+    100deg,
+    transparent 25%,
+    color-mix(in srgb, white 32%, transparent) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: opale-skeleton-shimmer 1.6s ease-in-out infinite;
+}
+.opale-skeleton--rounded {
+  border-radius: 999px;
+}
+@keyframes opale-skeleton-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opale-skeleton {
+    animation: none;
+  }
+}
+.opale-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+.opale-pagination button {
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font: inherit;
+  cursor: pointer;
+}
+.opale-pagination button[aria-current='page'] {
+  border-color: var(--opale-primary);
+  background: var(--opale-primary);
+  color: white;
+}
+.opale-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.opale-rating-input {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--opale-text);
+}
+.opale-rating-input legend {
+  margin-block-end: 0.5rem;
+  font-weight: 600;
+}
+.opale-rating-input__options {
+  display: flex;
+  gap: 0.25rem;
+}
+.opale-rating-input__option {
+  position: relative;
+  display: grid;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  place-items: center;
+  cursor: pointer;
+  color: var(--opale-text-secondary);
+}
+.opale-rating-input__option[data-selected='true'] {
+  color: var(--opale-primary-on-surface);
+}
+.opale-rating-input__option input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.opale-rating-input__option:has(input:focus-visible) {
+  outline: 3px solid var(--opale-focus);
+  outline-offset: 2px;
+  border-radius: var(--opale-radius-sm);
+}
+.opale-rating-input__option svg {
+  inline-size: 1.65rem;
+  block-size: 1.65rem;
+  pointer-events: none;
+}
+.opale-rating-input:disabled .opale-rating-input__option {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.opale-rating-input__option[data-selected='true'] svg {
+  fill: currentColor;
+}
+:root[data-theme='dark'] .opale-pagination button[aria-current='page'] {
+  color: #0c0f0d;
+}
+
+@media (max-width: 30rem) {
+  .opale-pagination {
+    gap: 0.25rem;
+  }
+  .opale-pagination button {
+    min-inline-size: 2.5rem;
+    min-block-size: 2.5rem;
+  }
+  .opale-pagination button[data-neighbor='true'] {
+    display: none;
+  }
 }

@@ -14,9 +14,9 @@ import { PageBody, UsageBlock } from './api';
    existaient — la réponse, à l'époque, étant « aucun » : le composant rendait
    le caractère qu'on lui passait.
 
-   LES CONSEILS RESTENT, EN TÊTE. Ils ne coûtent rien et disent quelque chose
-   qu'une grille ne dit pas : quand une icône se suffit, et quand elle doit
-   être accompagnée d'un nom accessible.
+   LES CONSEILS RESTENT APRÈS LA GALERIE. Ils disent quand une icône se suffit
+   et quand elle doit être accompagnée d'un nom accessible ; la recherche et
+   les tracés sont visibles dès l'arrivée sur la page.
 
    LE FILTRE EST UN CHAMP, PAS UN ONGLET PAR FAMILLE. Avec plus de cent vingt
    dessins, ce qu'on cherche est « quelque chose comme une valise » : on tape
@@ -99,13 +99,17 @@ function IconGallery() {
   return (
     <>
       <div className="tc-doc-icon-filter">
-        <Opale.Input
-          label="Filtrer les icônes"
-          type="search"
-          placeholder="valise, carte, flèche, poubelle…"
-          value={query}
-          onChange={(event) => setQuery(event.currentTarget.value)}
-        />
+        <div className="opale-field">
+          <label className="opale-field__label" htmlFor="tc-doc-icon-search">
+            Filtrer les icônes
+          </label>
+          <Opale.SearchBar
+            id="tc-doc-icon-search"
+            placeholder="valise, carte, flèche, poubelle…"
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+          />
+        </div>
         {/* LE COMPTE EST UNE RÉGION LIVE POLIE. Filtrer au clavier ne déplace
             pas le focus : sans annonce, un lecteur d'écran ne sait pas que la
             grille a changé sous lui (WCAG 4.1.3). La région est montée AVEC la
@@ -145,23 +149,23 @@ export const iconesPage: DocPage = {
   lede: `Le jeu d’icônes d’Opale — ${TOTAL} tracés dessinés dans le dépôt, sans aucune librairie externe.`,
   render: () => (
     <PageBody>
+      <Specimen title="Le jeu complet">
+        <IconGallery />
+      </Specimen>
+
       <Specimen title="À retenir">
         <p className="tc-doc-prose">
           Toutes les icônes partagent une grille de 24×24, un trait de 1,75 et des extrémités
           rondes. Elles sont des <strong>contours</strong> : elles prennent la couleur du texte par{' '}
           <code>currentColor</code> et grandissent avec son <code>font-size</code>. Utilisez une
-          icône quand elle apporte une information ou une affordance immédiate ; les actions
-          restent nommées pour les technologies d’assistance.
+          icône quand elle apporte une information ou une affordance immédiate ; les actions restent
+          nommées pour les technologies d’assistance.
         </p>
         <ul className="tc-doc-checklist">
           {POINTS.map((point) => (
             <li key={point}>{point}</li>
           ))}
         </ul>
-      </Specimen>
-
-      <Specimen title="Le jeu complet">
-        <IconGallery />
       </Specimen>
 
       <Specimen title="Exemple">

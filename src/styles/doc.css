@@ -346,13 +346,10 @@ body {
   font-size: 0.9em;
 }
 
-/* --- Lien d'évitement ------------------------------------------------------ */
-
 /* --- L'ÉCHELLE DE PROFONDEUR DE LA VITRINE, ÉCRITE UNE FOIS ---------------
-   Quatre calques se disputent le même contexte d'empilement — la racine —, et
+   Trois calques se disputent le même contexte d'empilement — la racine —, et
    l'ordre entre eux n'est PAS arbitraire :
 
-     3  le lien d'évitement       au-dessus de tout, c'est sa raison d'être
      2  la barre du haut          et, dans son contexte, le panneau de recherche
      1  la pastille de version    au-dessus des entrées qui défilent sous elle
      -  le contenu                `z-index: auto`
@@ -367,41 +364,6 @@ body {
    Le panneau garde `z-index: 2` DANS le contexte de la barre : la barre étant
    elle-même un contexte d'empilement (elle a un `z-index` numérique), ce 2 ne
    se compare qu'à ses frères, pas à l'échelle ci-dessus. */
-
-.tc-doc-skip {
-  position: absolute;
-  inset-block-start: var(--space-2);
-  inset-inline-start: var(--space-2);
-  /* 100 ET NON 3 : mesuré, le lien d'évitement était calculé VISIBLE au focus
-     (rect 8,8 — 159 × 44, fond opaque) et n'était pas peint — la barre du haut
-     pèse `z-index: 20` et passait devant. La toute première tabulation de
-     chaque page ne produisait donc aucun retour visuel, ce qui est le pire
-     endroit possible pour un indicateur manquant : c'est le geste par lequel
-     un utilisateur au clavier découvre la page. */
-  z-index: 100;
-  display: inline-flex;
-  align-items: center;
-  min-block-size: var(--target-min);
-  padding-inline: var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--text-on-accent);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
-  transform: translateY(calc(-1 * (var(--space-8) + var(--space-4))));
-  transition: transform var(--motion-move) var(--motion-ease);
-}
-
-.tc-doc-skip:focus-visible {
-  transform: translateY(0);
-  /* Même correction que le bloc de focus des composants : l'outline porte
-     l'anneau EXTÉRIEUR, sans quoi il repeint la bande 2-4 px. */
-  outline: 3px solid var(--focus-outer);
-  outline-offset: 2px;
-  box-shadow:
-    0 0 0 2px var(--focus-inner),
-    0 0 0 5px var(--focus-outer);
-}
 
 /* --- Barre du haut ----------------------------------------------------------
    Une barre fine et collante, sur toute la largeur : l'identité du paquet à
@@ -3223,7 +3185,7 @@ body {
    coûtaient deux choses : une boîte en ligne atomique, qui ne se coupe plus en
    fin de ligne, et un interligne irrégulier dans chaque paragraphe qui héberge
    un lien. Le plancher reste là où il a un sens — `.tc-doc-nav__link`,
-   `.tc-doc-topbar__brand`, `.tc-doc-themetoggle`, `.tc-doc-skip` — qui sont
+   `.tc-doc-topbar__brand`, `.tc-doc-themetoggle` — qui sont
    des contrôles isolés, pas des mots dans une phrase. */
 /* LES LIENS DE PROSE NE RÉPONDAIENT PAS AU POINTEUR, et c'était un manque et
    non un choix : l'élément interactif le plus fréquent du site ne déclarait

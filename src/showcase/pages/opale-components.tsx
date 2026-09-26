@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
-import { type CatalogEntry, Opale } from '../../magic';
-import { catalogComponentLabel } from '../doc-model';
-import { UsageBlock } from './api';
-import { CatalogPreview } from './catalog-preview';
+import { type CatalogEntry, OPALE_CATALOG, Opale } from '../../magic';
+import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
+import { PropsTable, UsageBlock } from './api';
+import { CATALOG_API } from './opale-api-data';
+import { CatalogPreview, type PlaygroundConfig } from './catalog-preview';
 
 /* =============================================================================
    L'EXEMPLE DIT SI LE VERRE EST ACTIF, PARCE QU'IL NE LE DISAIT PAS.
@@ -87,25 +88,192 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Toggle',
 ];
 
-/**
- * Ajoute ` liquidGlass` à chaque balise ouvrante `<Opale.X …>` d'un extrait.
- *
- * `[^>]*?` NE PEUT PAS FRANCHIR UN `>`, donc la substitution s'arrête à la fin
- * de la balise ouvrante et ne touche ni au contenu ni aux balises fermantes.
- * C'est aussi ce qui la rend sûre sur les exemples multilignes, où le `/>`
- * final se trouve plusieurs lignes plus bas.
- */
-function withLiquidGlass(code: string): string {
-  return code.replace(
-    /(<Opale\.[A-Za-z]+[^>]*?)(\s*\/?>)/g,
-    (_match, open: string, close: string) => `${open} liquidGlass${close}`,
-  );
+/** Ajoute la prop à la balise ouvrante ciblée, y compris avec des callbacks `=>` dans les attributs. */
+function withLiquidGlass(code: string, name: string): string {
+  const target = name === 'CardGrid' ? 'StatCard' : catalogComponentLabel(name);
+  const starts = [...code.matchAll(new RegExp(`<Opale\\.${target}(?=[\\s/>])`, 'g'))];
+  const insertions: number[] = [];
+
+  for (const match of starts) {
+    const start = match.index;
+    let braces = 0;
+    let quote: string | null = null;
+    for (let index = start + match[0].length; index < code.length; index += 1) {
+      const char = code[index];
+      if (quote) {
+        if (char === '\\') {
+          index += 1;
+          continue;
+        }
+        if (char === quote) quote = null;
+      } else if (char === '"' || char === "'" || char === '`') {
+        quote = char;
+      } else if (char === '{') {
+        braces += 1;
+      } else if (char === '}') {
+        braces -= 1;
+      } else if (char === '>' && braces === 0) {
+        const tag = code.slice(start, index);
+        if (!/\bliquidGlass\b/.test(tag))
+          insertions.push(code[index - 1] === '/' ? index - 1 : index);
+        break;
+      }
+    }
+  }
+  return insertions
+    .reverse()
+    .reduce((result, index) => `${result.slice(0, index)} liquidGlass${result.slice(index)}`, code);
 }
+
+/** Chaque fiche du catalogue possède un exemple qui montre son usage réel. */
+const REPRESENTATIVE_EXAMPLES: Readonly<Record<string, string>> = {
+  Pressable: '<Opale.Pressable onClick={() => alert("Action")}>Ouvrir</Opale.Pressable>',
+  MultiSelect: `<Opale.MultiSelect
+  label="Domaines"
+  values={['design']}
+  options={[{ value: 'design', label: 'Design' }, { value: 'code', label: 'Code' }]}
+  onChange={(event) => console.log([...event.currentTarget.selectedOptions].map((item) => item.value))}
+/>`,
+  Select: `<Opale.Select
+  label="Domaine"
+  defaultValue="design"
+  options={[{ value: 'design', label: 'Design' }, { value: 'code', label: 'Code' }]}
+/>`,
+  Autocomplete: `<Opale.Autocomplete
+  label="Composant"
+  options={['Button', 'Card', 'Select']}
+  placeholder="Commencez à saisir…"
+/>`,
+  Form: `<Opale.Form onSubmit={(event) => { event.preventDefault(); alert('Envoyé'); }}>
+  <Opale.Input label="Projet" name="project" required />
+  <Opale.Button type="submit">Envoyer</Opale.Button>
+</Opale.Form>`,
+  IconActionButton: `<Opale.IconActionButton
+  icon="share"
+  label="Partager cette page"
+  onClick={() => void navigator.clipboard?.writeText(location.href)}
+/>`,
+  DescriptionList: `<Opale.DescriptionList items={[
+  { term: 'Version', description: '3.2.0' },
+  { term: 'Licence', description: 'MIT' },
+]} />`,
+  BulletList: `<Opale.BulletList items={['Clavier', 'Thème sombre', 'TypeScript']} />`,
+  Donut: '<Opale.Donut value={72} label="72 % des tâches terminées" />',
+  LegalLinks: `<Opale.LegalLinks links={[
+  { id: 'legal', label: 'Mentions légales', href: '/mentions-legales' },
+  { id: 'privacy', label: 'Confidentialité', href: '/confidentialite' },
+]} />`,
+  Icon: '<Opale.Icon name="compass" label="Boussole" />',
+  Spinner: '<Opale.Spinner label="Chargement des projets" />',
+  ConfirmDialog: `import { useState } from 'react';
+
+export function DeleteAction() {
+  const [open, setOpen] = useState(false);
+  return <>
+    <Opale.Button variant="danger" onClick={() => setOpen(true)}>Supprimer</Opale.Button>
+    <Opale.ConfirmDialog open={open} title="Supprimer ce projet ?"
+      onCancel={() => setOpen(false)}
+      onConfirm={() => { setOpen(false); console.log('Projet supprimé'); }}>
+      Cette action est irréversible.
+    </Opale.ConfirmDialog>
+  </>;
+}`,
+  EmptyState: `<Opale.EmptyState
+  title="Aucun projet"
+  description="Créez votre premier projet."
+  action={<Opale.Link href="/projets/nouveau">Créer un projet</Opale.Link>}
+/>`,
+  Navbar: `<Opale.Navbar items={[
+  { id: 'home', label: 'Accueil', href: '/' },
+  { id: 'projects', label: 'Projets', href: '/projets' },
+]} activeId="projects" />`,
+  Menu: `<Opale.Menu label="Actions" items={[
+  { id: 'duplicate', label: 'Dupliquer' },
+  { id: 'archive', label: 'Archiver' },
+]} />`,
+  SidePanel: `import { useState } from 'react';
+
+export function SettingsPanel() {
+  const [open, setOpen] = useState(false);
+  return <>
+    <Opale.Button onClick={() => setOpen(true)}>Réglages</Opale.Button>
+    <Opale.SidePanel open={open} title="Réglages" onClose={() => setOpen(false)}>
+      <Opale.Toggle label="Notifications" defaultChecked />
+    </Opale.SidePanel>
+  </>;
+}`,
+  CommandPalette: `import { useState } from 'react';
+
+export function Commands() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  return <>
+    <Opale.Button onClick={() => setOpen(true)}>Commandes</Opale.Button>
+    <Opale.CommandPalette open={open} value={query} onChange={setQuery}
+      onClose={() => setOpen(false)}>
+      <Opale.Button variant="text" onClick={() => setOpen(false)}>
+        Fermer
+      </Opale.Button>
+    </Opale.CommandPalette>
+  </>;
+}`,
+  Breadcrumb: `<Opale.Breadcrumb items={[
+  { id: 'home', label: 'Accueil', href: '/' },
+  { id: 'projects', label: 'Projets', href: '/projets' },
+  { id: 'current', label: 'Opale' },
+]} />`,
+  SelectionBar: `<Opale.SelectionBar selectedCount={3}>
+  <Opale.Button size="small" variant="danger">Supprimer la sélection</Opale.Button>
+</Opale.SelectionBar>`,
+  Stack: `<Opale.Stack direction="row" wrap>
+  <Opale.Badge>Design</Opale.Badge><Opale.Badge>Code</Opale.Badge>
+</Opale.Stack>`,
+  Layout: `<Opale.Layout navigation={<Opale.Navbar items={[{ id: 'home', label: 'Accueil', href: '/' }]} />}>
+  <Opale.Heading level={2}>Contenu principal</Opale.Heading>
+</Opale.Layout>`,
+  Divider: `<Opale.Text>Avant</Opale.Text>
+<Opale.Divider />
+<Opale.Text>Après</Opale.Text>`,
+  BackgroundSurface: `<Opale.Background>
+  <Opale.Card title="Contenu au premier plan">Bienvenue</Opale.Card>
+</Opale.Background>`,
+  Lightbox: `import { useState } from 'react';
+
+export function ImagePreview() {
+  const [open, setOpen] = useState(false);
+  return <>
+    <Opale.Button onClick={() => setOpen(true)}>Voir l’image</Opale.Button>
+    <Opale.Lightbox src="/visuel.png" alt="Aperçu du projet" open={open}
+      onClose={() => setOpen(false)} />
+  </>;
+}`,
+  RatingInput: `import { useState } from 'react';
+
+export function ReviewRating() {
+  const [rating, setRating] = useState(3);
+  return <Opale.RatingInput label="Qualité de l’expérience" value={rating} onChange={setRating} />;
+}`,
+  Pagination: `import { useState } from 'react';
+
+export function ResultsPagination() {
+  const [page, setPage] = useState(2);
+  return <Opale.Pagination page={page} pageCount={8} onChange={setPage} />;
+}`,
+  Skeleton: `<div role="status" aria-label="Chargement de la fiche">
+  <Opale.Skeleton width="45%" height="1.5rem" />
+  <Opale.Skeleton height="5rem" />
+</div>`,
+  SvgMap: `<Opale.SvgMap>
+  <circle cx="205" cy="75" r="12" fill="currentColor">
+    <title>Étape active</title>
+  </circle>
+</Opale.SvgMap>`,
+};
 
 function exampleCode(name: string, liquidGlass = false): string {
   const displayName = catalogComponentLabel(name);
   const decorate = (code: string) =>
-    liquidGlass && FORWARDS_LIQUID_GLASS.includes(name) ? withLiquidGlass(code) : code;
+    liquidGlass && FORWARDS_LIQUID_GLASS.includes(name) ? withLiquidGlass(code, name) : code;
 
   switch (name) {
     case 'Button':
@@ -145,7 +313,7 @@ function exampleCode(name: string, liquidGlass = false): string {
 </Opale.Card>`);
     case 'CardGrid':
       return decorate(`<Opale.CardGrid>
-  <Opale.StatCard label="Composants" value="77" delta="+12 cette version" />
+  <Opale.StatCard label="Composants" value="${OPALE_CATALOG.length}" delta="Catalogue Opale" />
   <Opale.StatCard label="Thèmes" value="2 globaux + 1 matériau" />
 </Opale.CardGrid>`);
     case 'Badge':
@@ -203,7 +371,13 @@ function exampleCode(name: string, liquidGlass = false): string {
     case 'Link':
       return decorate('<Opale.Link href="/installation">Lire le guide</Opale.Link>');
     case 'FileCard':
-      return decorate('<Opale.FileCard name="design-system.fig" size="2,4 Mo" />');
+      return decorate(`import { useState } from 'react';
+
+export function FileSelection() {
+  const [selected, setSelected] = useState(false);
+  return <Opale.FileCard name="design-system.fig" size="2,4 Mo"
+    selected={selected} onClick={() => setSelected((value) => !value)} />;
+}`);
     case 'Clipboard':
       return decorate('<Opale.Clipboard value="npm install @thomascaron/opale-ui" />');
     case 'CookieBanner':
@@ -222,7 +396,8 @@ if (readCookieConsent() === 'accepted') enableAnalytics();
 />`);
     case 'Dropzone':
       return decorate(`// Glisser-déposer ou sélecteur natif : les deux passent par onFiles.
-<Opale.Dropzone onFiles={(files) => upload(files)}>
+<Opale.Dropzone accept="image/*" maxFiles={3} maxSizeBytes={5000000}
+  onFiles={(files) => upload(files)} onError={(message) => announce(message)}>
   Déposez les maquettes ici
 </Opale.Dropzone>`);
     case 'InlineInput':
@@ -233,7 +408,10 @@ if (readCookieConsent() === 'accepted') enableAnalytics();
   onCommit={(value) => rename(value)}
 />`);
     default:
-      return decorate(`<Opale.${displayName} />`);
+      if (!REPRESENTATIVE_EXAMPLES[name]) {
+        throw new Error(`Exemple manquant pour ${displayName}`);
+      }
+      return decorate(REPRESENTATIVE_EXAMPLES[name]);
   }
 }
 
@@ -241,13 +419,59 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
   const supportsLiquidGlass = FORWARDS_LIQUID_GLASS.includes(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
-  const code = exampleCode(entry.name, liquidGlass);
+  const [buttonVariant, setButtonVariant] = useState<PlaygroundConfig['buttonVariant']>('primary');
+  const [buttonSize, setButtonSize] = useState<PlaygroundConfig['buttonSize']>('medium');
+  const [buttonLoading, setButtonLoading] = useState(false);
+  const [inputError, setInputError] = useState(false);
+  const [inputDisabled, setInputDisabled] = useState(false);
+  const [tableMode, setTableMode] = useState<PlaygroundConfig['tableMode']>('filled');
+  const playground: PlaygroundConfig = {
+    buttonVariant,
+    buttonSize,
+    buttonLoading,
+    inputError,
+    inputDisabled,
+    tableMode,
+  };
+  const baseCode = exampleCode(entry.name, liquidGlass);
+  const code =
+    entry.name === 'Button'
+      ? `${baseCode}\n\n// Essai configuré\n<Opale.Button variant="${buttonVariant}" size="${buttonSize}"${buttonLoading ? ' loading' : ''}${liquidGlass ? ' liquidGlass' : ''}>Essai configuré</Opale.Button>`
+      : entry.name === 'Input'
+        ? `<Opale.Input label="Email" placeholder="thomas@crn-studio.com" helperText="Une adresse valide est requise."${inputError ? ' error="Adresse invalide"' : ''}${inputDisabled ? ' disabled' : ''}${liquidGlass ? ' liquidGlass' : ''} />`
+        : entry.name === 'DataTable'
+          ? `const columns = [
+  { key: 'name', label: 'Nom', sortable: true },
+  { key: 'uses', label: 'Usages', sortable: true },
+  { key: 'status', label: 'Statut' },
+];
+const rows = [
+  { name: 'DataTable', uses: 4, status: 'Nouveau' },
+  { name: 'Button', uses: 128, status: 'Stable' },
+  { name: 'Autocomplete', uses: 17, status: 'Stable' },
+];
+<Opale.DataTable
+  caption="Composants"
+  columns={columns}
+  rowKey={(row) => String(row.name)}
+  rows={${tableMode === 'empty' ? '[]' : 'rows'}}${tableMode === 'loading' ? '\n  loading' : ''}${liquidGlass ? '\n  liquidGlass' : ''}
+/>`
+          : baseCode;
+  const api = CATALOG_API[entry.name];
+
+  if (!api) throw new Error(`API manquante pour ${entry.name}`);
 
   return (
     <div className="tc-doc-opale-page">
       <p className="tc-doc-lede">{entry.description}</p>
       <div className="tc-doc-opale-meta">
-        <Opale.Badge>{entry.category}</Opale.Badge>
+        <Opale.Badge>
+          {entry.category === 'Inputs'
+            ? 'Saisie'
+            : entry.category === 'Feedback'
+              ? 'Retours'
+              : entry.category}
+        </Opale.Badge>
         <span>Composant Opale · TypeScript strict</span>
       </div>
       <section
@@ -255,11 +479,7 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
         aria-label={`Démonstration ${displayName}`}
       >
         <div className="tc-doc-specimen__header">
-          <div>
-            <span className="tc-doc-specimen__eyebrow">DÉMO INTERACTIVE</span>
-            <h2>{displayName}</h2>
-          </div>
-          <Opale.Badge tone="accent">V3</Opale.Badge>
+          <h2>Aperçu interactif</h2>
         </div>
         {supportsLiquidGlass && (
           <div className="tc-doc-opale-material-toggle">
@@ -280,8 +500,83 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
             rectangle pâle, et l'encre claire du bouton « Primaire » disparaissait
             purement et simplement dans le fond. Le commutateur pose donc la
             scène en même temps que la matière. */}
+        {(entry.name === 'Button' || entry.name === 'Input' || entry.name === 'DataTable') && (
+          <fieldset className="tc-doc-opale-playground" aria-label={`Réglages de ${displayName}`}>
+            <legend>Essayer les états</legend>
+            {entry.name === 'Button' && (
+              <>
+                <label>
+                  Variante{' '}
+                  <select
+                    value={buttonVariant}
+                    onChange={(event) =>
+                      setButtonVariant(
+                        event.currentTarget.value as PlaygroundConfig['buttonVariant'],
+                      )
+                    }
+                  >
+                    <option value="primary">Primaire</option>
+                    <option value="secondary">Secondaire</option>
+                    <option value="accent">Accent</option>
+                    <option value="danger">Danger</option>
+                  </select>
+                </label>
+                <label>
+                  Taille{' '}
+                  <select
+                    value={buttonSize}
+                    onChange={(event) =>
+                      setButtonSize(event.currentTarget.value as PlaygroundConfig['buttonSize'])
+                    }
+                  >
+                    <option value="small">Petite</option>
+                    <option value="medium">Moyenne</option>
+                    <option value="large">Grande</option>
+                  </select>
+                </label>
+                <Opale.Checkbox
+                  className="tc-doc-opale-playground__check"
+                  label="Chargement"
+                  checked={buttonLoading}
+                  onChange={(event) => setButtonLoading(event.currentTarget.checked)}
+                />
+              </>
+            )}
+            {entry.name === 'Input' && (
+              <>
+                <Opale.Checkbox
+                  className="tc-doc-opale-playground__check"
+                  label="Erreur"
+                  checked={inputError}
+                  onChange={(event) => setInputError(event.currentTarget.checked)}
+                />
+                <Opale.Checkbox
+                  className="tc-doc-opale-playground__check"
+                  label="Désactivé"
+                  checked={inputDisabled}
+                  onChange={(event) => setInputDisabled(event.currentTarget.checked)}
+                />
+              </>
+            )}
+            {entry.name === 'DataTable' && (
+              <label>
+                État{' '}
+                <select
+                  value={tableMode}
+                  onChange={(event) =>
+                    setTableMode(event.currentTarget.value as PlaygroundConfig['tableMode'])
+                  }
+                >
+                  <option value="filled">Avec données</option>
+                  <option value="empty">Vide</option>
+                  <option value="loading">Chargement</option>
+                </select>
+              </label>
+            )}
+          </fieldset>
+        )}
         <div className="tc-doc-opale-preview" data-liquid-glass={liquidGlass ? 'true' : undefined}>
-          <CatalogPreview name={entry.name} liquidGlass={liquidGlass} />
+          <CatalogPreview name={entry.name} liquidGlass={liquidGlass} playground={playground} />
         </div>
         {/* LA LIGNE D'`import` EST REMONTÉE ICI, ET CE N'EST PAS UN DÉTAIL DE
             DÉPLACEMENT. La page affichait le même extrait DEUX fois : une plaque
@@ -298,6 +593,24 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
           code={`import { Opale } from '@thomascaron/opale-ui';\n\n${code}`}
         />
       </section>
+      <PropsTable
+        id={catalogComponentSlug(entry.name).replace('/', '-')}
+        title="API et états"
+        note={api.states}
+        rows={[
+          ...api.rows,
+          ...(supportsLiquidGlass
+            ? [
+                {
+                  name: 'liquidGlass',
+                  type: 'boolean',
+                  defaultValue: 'false',
+                  description: 'Active le matériau en verre.',
+                },
+              ]
+            : []),
+        ]}
+      />
     </div>
   );
 }
