@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 
 import { Opale, SvgMap, useSvgMapViewport } from '../../../../magic';
 import { Specimen } from '../../../section';
@@ -6,6 +6,11 @@ import { PageBody, PropsTable, UsageBlock } from '../../api';
 import type { PropRow } from '../../api';
 import { CATALOG_API } from '../../opale-api-data';
 import { MaterialSwitch, PlainStage } from '../material-switch';
+
+/* LE MONDE SE CHARGE À PART. Le jeu 50m pèse l'essentiel de cette page ; lié
+   au reste, il retardait l'affichage des départements, qui n'en ont pas
+   besoin. La démonstration arrive quand ses données sont là. */
+const WorldMap = lazy(() => import('./world-map'));
 import { CORSE, FRANCE_DEPARTMENTS, FRANCE_VIEWBOX, ILE_DE_FRANCE } from './france-departments';
 
 const USAGE = `import { SvgMap, SvgMapControls, useSvgMapViewport } from '@thomascaron/opale-ui';
@@ -284,6 +289,12 @@ const VIEWPORT_ROWS: readonly PropRow[] = [
     description: 'Cadre sur un ensemble de régions, en gardant le rapport de la carte.',
   },
   {
+    name: 'fitBounds',
+    type: '({ minX, minY, maxX, maxY }, options?) => void',
+    description:
+      'Cadre sur une zone du dessin. Pour un continent, dont les pays emportent des territoires lointains.',
+  },
+  {
     name: 'zoomBy',
     type: '(factor, origin?, { animate? }) => void',
     description:
@@ -331,6 +342,26 @@ export default function SvgMapContent() {
       </Specimen>
 
       <Specimen
+        title="Le monde — un carnet de voyage"
+        note={
+          <>
+            La carte de <strong>Travels in World</strong>, rendue par <code>SvgMap</code> : les 239
+            pays du jeu 50m de world-atlas — la résolution de Travels in World — projetés en Natural
+            Earth I dans son cadre d’usine de 960 × 500, joints sur leur code ISO numérique et
+            nommés en français par <code>Intl.DisplayNames</code>. Cliquez un pays pour le passer de
+            non visité à visité, puis à venir ; l’état s’entend aussi dans son nom. Les boutons
+            cadrent sur un continent.
+          </>
+        }
+      >
+        <Suspense
+          fallback={<p className="tc-doc-svgmap-loading">Chargement de la carte du monde…</p>}
+        >
+          <WorldMap />
+        </Suspense>
+      </Specimen>
+
+      <Specimen
         title="Cadrer de l’extérieur"
         note="La vue peut être tenue par l’appelant. Le cadrage garde le rapport de la carte — un ensemble plus haut que large n’est pas coupé — et reste centré même quand l’ensemble est plus petit que le zoom maximal ne l’autorise."
       >
@@ -352,8 +383,10 @@ export default function SvgMapContent() {
       />
 
       <p className="tc-doc-prose tc-doc-svgmap-credit">
-        Tracés des départements : svg-maps de Victor Cazanave, sous licence CC-BY-4.0. Ils ne font
-        pas partie de la librairie — la vitrine les installe pour la démonstration.
+        Tracés des départements : svg-maps de Victor Cazanave, sous licence CC-BY-4.0. Carte du
+        monde : world-atlas (licence ISC), d’après les données Natural Earth, du domaine public. Ni
+        l’un ni l’autre ne font partie de la librairie — la vitrine les installe pour la
+        démonstration.
       </p>
     </PageBody>
   );

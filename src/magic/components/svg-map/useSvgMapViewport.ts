@@ -49,6 +49,12 @@ export interface UseSvgMapViewportResult {
   panBy(dx: number, dy: number): void;
   /** Cadre sur un ensemble de régions, désignées par leur identifiant. */
   fitTo(ids: readonly string[], options?: SvgMapFitOptions): void;
+  /**
+   * Cadre sur une zone du dessin, en unités du viewBox. Pour ce que les régions
+   * ne bornent pas bien : un continent n'est pas l'union de ses pays quand un
+   * pays emporte un territoire à l'autre bout du monde.
+   */
+  fitBounds(bounds: Bounds, options?: SvgMapFitOptions): void;
   /** Recentre sur une région si elle sort de la vue, sans changer le zoom. */
   reveal(id: string, options?: SvgMapMoveOptions): void;
   /** Revient à la vue d'ensemble. */
@@ -182,6 +188,13 @@ export function useSvgMapViewport(
     [base, maxZoom, moveTo],
   );
 
+  const fitToBounds = useCallback(
+    (bounds: Bounds, { padding, animate = true }: SvgMapFitOptions = {}) => {
+      moveTo(fitBounds(bounds, base, maxZoom, padding), animate);
+    },
+    [base, maxZoom, moveTo],
+  );
+
   const reveal = useCallback(
     (id: string, { animate = true }: SvgMapMoveOptions = {}) => {
       const bounds = regionsRef.current.get(id);
@@ -227,11 +240,25 @@ export function useSvgMapViewport(
       zoomBy,
       panBy,
       fitTo,
+      fitBounds: fitToBounds,
       reveal,
       reset,
       getView,
       registerRegions,
     }),
-    [viewBox, view, zoom, maxZoom, zoomBy, panBy, fitTo, reveal, reset, getView, registerRegions],
+    [
+      viewBox,
+      view,
+      zoom,
+      maxZoom,
+      zoomBy,
+      panBy,
+      fitTo,
+      fitToBounds,
+      reveal,
+      reset,
+      getView,
+      registerRegions,
+    ],
   );
 }

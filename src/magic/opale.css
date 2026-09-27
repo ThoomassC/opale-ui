@@ -2551,12 +2551,26 @@
   margin-inline: auto;
   color: var(--opale-svg-map-ink);
 }
+/* LE COUSSIN ÉCARTE LE DESSIN DES COINS ARRONDIS. Une carte remplit son
+   viewBox jusqu'aux bords — la Corse dans le coin inférieur droit, la pointe
+   de la Bretagne sur le bord gauche —, et la plaque rogne ce qui dépasse de
+   ses arrondis : sans coussin, la carte perdait ses coins. Le coussin est
+   posé sur la plaque et non sur le cadre, qui doit coïncider avec le `<svg>`
+   pour que l'infobulle et les commandes se placent sur le dessin. */
 .opale-svg-map__plate {
   display: block;
   overflow: hidden;
   border: 1px solid var(--opale-divider);
   border-radius: var(--opale-radius-md);
+  padding: var(--opale-space-sm);
   background: var(--opale-surface-sunken);
+}
+/* L'ANNEAU DE FOCUS EST SUR LA PLAQUE, pas sur le `<svg>`. Tracé sur le
+   rectangle du dessin, il était rogné par les arrondis et s'arrêtait net aux
+   coins ; la plaque, elle, porte l'arrondi, et `outline` le suit. */
+.opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible) {
+  outline: 3px solid var(--opale-focus);
+  outline-offset: 2px;
 }
 .opale-svg-map__canvas {
   position: relative;
@@ -2571,6 +2585,10 @@
    la carte prend tous les gestes. */
 .opale-svg-map__svg {
   display: block;
+  /* Le navigateur rogne un `<svg>` à son cadre : un tracé qui touche le bord
+     du viewBox — la Corse — y perdait la moitié de son contour. Le trait
+     déborde dans le coussin de la plaque, qui est là pour lui. */
+  overflow: visible;
   inline-size: 100%;
   block-size: auto;
   aspect-ratio: var(--opale-svg-map-ratio);
@@ -2579,10 +2597,14 @@
   -webkit-user-select: none;
 }
 /* La carte sans régions à choisir prend elle-même le focus : son anneau est
-   tracé à l'intérieur, pour ne pas être rogné par la plaque. */
-.opale-svg-map__svg:focus-visible {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: -3px;
+   porté par la plaque, plus haut. TROIS CLASSES, parce qu'une application pose
+   souvent son propre anneau universel — la vitrine en a deux, `tokens.css` et
+   `.tc-doc :focus-visible` — qui, de même poids, gagnait par l'ordre des
+   feuilles et redessinait un rectangle autour du dessin, à l'intérieur de la
+   plaque arrondie. */
+.opale-svg-map .opale-svg-map__svg:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 .opale-svg-map__canvas[data-zoomed='true'] .opale-svg-map__svg {
   cursor: grab;

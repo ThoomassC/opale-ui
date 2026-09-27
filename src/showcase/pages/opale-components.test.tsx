@@ -347,9 +347,12 @@ describe('le commutateur de matière', () => {
     if (!page) throw new Error(`Page introuvable pour ${entry.name}.`);
 
     const { container } = render(<>{page.render()}</>);
-    const toggle = within(container).queryByRole('checkbox', {
+    /* TOUS LES COMMUTATEURS, ET NON LE SEUL. Une page propre peut en porter
+       plusieurs — une par démonstration, comme celle de SvgMap. */
+    const toggles = within(container).queryAllByRole('checkbox', {
       name: new RegExp(`^Liquid Glass pour `),
     });
+    const toggle = toggles[0] ?? null;
 
     if (declared.has(entry.name)) {
       expect(

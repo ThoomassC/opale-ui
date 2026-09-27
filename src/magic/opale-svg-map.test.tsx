@@ -238,6 +238,36 @@ describe('SvgMap', () => {
       );
     }
 
+    /* Un continent n'est pas l'union de ses pays : la France du jeu mondial
+       emporte la Guyane, la Russie va jusqu'au Pacifique. On cadre alors sur
+       une zone du dessin. */
+    it('cadre sur une zone du dessin, indépendamment des régions', () => {
+      function Zone() {
+        const viewport = useSvgMapViewport('0 0 400 200');
+        return (
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                viewport.fitBounds(
+                  { minX: 0, minY: 0, maxX: 100, maxY: 50 },
+                  { padding: 0, animate: false },
+                )
+              }
+            >
+              Zone
+            </button>
+            <SvgMap viewBox="0 0 400 200" regions={REGIONS} viewport={viewport} controls={false} />
+          </>
+        );
+      }
+      const { container } = render(<Zone />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Zone' }));
+
+      expect(svgOf(container).getAttribute('viewBox')).toBe('0 0 100 50');
+    });
+
     it('cadre sur un ensemble de régions en gardant le rapport de la carte', () => {
       const { container } = render(<Framed />);
 
@@ -294,6 +324,39 @@ describe('SvgMap', () => {
    l'entoure (WCAG 1.4.11). La référence dont ce composant s'inspire posait le
    filet de séparation des surfaces, qui plafonne à 1,47:1 en thème sombre.
    ========================================================================== */
+/* =============================================================================
+   LE DESSIN NE TOUCHE PAS LES COINS ARRONDIS.
+
+   Un dessin cartographique remplit son viewBox jusqu'aux bords : la Corse est
+   dans le coin inférieur droit de la France de svg-maps, la pointe de la
+   Bretagne sur le bord gauche. Posée dans une plaque arrondie qui rogne ce qui
+   dépasse, la carte perdait ses coins — la Corse amputée —, et l'anneau de
+   focus, tracé sur le `<svg>` rectangulaire, s'arrêtait net aux arrondis.
+   ========================================================================== */
+describe('SvgMap — les coins de la plaque', () => {
+  const css = stripComments(opaleSource);
+
+  it('écarte le dessin des coins arrondis par un coussin de la plaque', () => {
+    expect(ruleBodies(css, '.opale-svg-map__plate').join('\n')).toMatch(
+      /(^|[;{\s])padding:\s*var\(--opale-space-sm\)/,
+    );
+  });
+
+  /* L'ANNEAU GLOBAL DE L'APPLICATION NE DOIT PAS REVENIR SUR LE SVG. La vitrine
+     pose `.tc-doc :focus-visible` (deux classes) et `tokens.css` un
+     `:focus-visible` universel avec son ombre : de même poids que la règle du
+     composant, la première gagnait par l'ordre et redessinait un rectangle
+     autour du dessin. La règle du composant porte donc trois classes. */
+  it('trace l’anneau de focus sur la plaque, qui suit ses arrondis, et non sur le svg', () => {
+    const svgRule = ruleBodies(css, '.opale-svg-map .opale-svg-map__svg:focus-visible').join('');
+    expect(svgRule).toMatch(/outline:\s*none/);
+    expect(svgRule).toMatch(/box-shadow:\s*none/);
+    expect(
+      ruleBodies(css, '.opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible)').join(''),
+    ).toMatch(/outline:\s*3px solid var\(--opale-focus\)/);
+  });
+});
+
 describe('SvgMap — contraste du contour', () => {
   const themes = new Map<string, Theme>(parseThemes(opaleSource).map((t) => [t.name, t]));
   const body = ruleBodies(stripComments(opaleSource), '.opale-svg-map').join('\n');
