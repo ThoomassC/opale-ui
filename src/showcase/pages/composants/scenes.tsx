@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { UI_VERSION } from '../../version';
 
 import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../magic';
-import type { ToastDefinition } from '../../../magic';
+import type { OpaleIconName, ToastDefinition } from '../../../magic';
 
 import { PlainStage } from './material-switch';
 
@@ -45,6 +45,14 @@ import { PlainStage } from './material-switch';
    pas parce qu'il le faut.
    ========================================================================== */
 
+/* L'ICÔNE D'UNE ENTRÉE DU RAIL, prise dans le jeu d'Opale par sa prop
+   publique, comme l'écrirait un consommateur. La classe retire le gabarit de
+   2,5 rem et l'encre primaire que `Opale.Icon` pose seul : dans le rail,
+   l'icône suit la taille et l'encre de l'entrée qui la porte. */
+function SceneGlyph({ name }: { name: OpaleIconName }) {
+  return <Opale.Icon name={name} className="tc-doc-sidebar-glyph" />;
+}
+
 /** La barre latérale pliable, contrôlée pour que son état soit affiché. */
 export function SidebarCollapsibleScene() {
   const [collapsed, setCollapsed] = useState(false);
@@ -80,7 +88,7 @@ export function SidebarCollapsibleScene() {
         </Sidebar.Header>
 
         <Sidebar.Items aria-label="Sections du voyage">
-          <Sidebar.Item itemId="etapes" icon={<span aria-hidden="true">◆</span>}>
+          <Sidebar.Item itemId="etapes" icon={<SceneGlyph name="map-pin" />}>
             Étapes
           </Sidebar.Item>
           {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
@@ -92,16 +100,21 @@ export function SidebarCollapsibleScene() {
               un bouton, c'est du HTML invalide, que ni TypeScript ni React ne
               signalent. Le `<span>` écrit ici ne dépend d'aucune prop. Écrit
               dans la prose de la page. */}
-          <Sidebar.Item itemId="carte" badge={<span>3</span>}>
+          <Sidebar.Item itemId="carte" icon={<SceneGlyph name="map" />} badge={<span>3</span>}>
             Carte
           </Sidebar.Item>
-          <Sidebar.Item itemId="photos">Photos</Sidebar.Item>
-          <Sidebar.Item itemId="brouillon" disabled>
+          <Sidebar.Item itemId="photos" icon={<SceneGlyph name="image" />}>
+            Photos
+          </Sidebar.Item>
+          <Sidebar.Item itemId="brouillon" icon={<SceneGlyph name="file-text" />} disabled>
             Brouillon
           </Sidebar.Item>
         </Sidebar.Items>
 
-        <Sidebar.Footer>{collapsed ? '·' : `v${UI_VERSION}`}</Sidebar.Footer>
+        {/* LE PIED N'EXISTE QUE DÉPLIÉ. Replié, il peignait un point médian
+            seul sous les vignettes : un signe orphelin, sans nom ni
+            information, que rien ne rattachait à la version qu'il remplaçait. */}
+        {!collapsed && <Sidebar.Footer>v{UI_VERSION}</Sidebar.Footer>}
       </Sidebar>
 
       <p className="tc-doc-magicstage__label">
