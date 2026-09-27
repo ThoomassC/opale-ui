@@ -40,6 +40,7 @@ import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './c
    `Modal` fait tout cela, et il est déjà testé pour. Les quatre deviennent
    donc ce qu'ils auraient toujours dû être : des PRÉRÉGLAGES. */
 import { Modal } from './components/modal';
+import toastMotion from './components/toast/style/Toast.module.css';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
@@ -2107,6 +2108,9 @@ export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
    ========================================================================== */
 export const COOKIE_CONSENT_KEY = 'opale-cookie-consent';
 
+/* Même durée que la sortie « slide-from-bottom » de Toast. */
+const COOKIE_EXIT_MS = 240;
+
 export type CookieConsent = 'accepted' | 'declined';
 
 /** Le choix mémorisé sous `key`, ou `null` s'il n'y en a pas ou que le stockage manque. */
@@ -2155,6 +2159,23 @@ export function CookieBanner({
   );
   const [decided, setDecided] = useState<CookieConsent | null>(null);
   const textId = useId();
+  const visible = open ?? !(decided ?? stored);
+  const [wasVisible, setWasVisible] = useState(visible);
+  const [leaving, setLeaving] = useState(false);
+
+  /* La sortie animée suit un clic ou la fermeture pilotée par `open`. Une
+     préférence déjà mémorisée, découverte après hydratation, se retire tout
+     de suite pour ne pas laisser clignoter un bandeau devenu inutile. */
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    setLeaving(!visible && (decided !== null || open === false));
+  }
+
+  useEffect(() => {
+    if (!leaving) return undefined;
+    const timeout = window.setTimeout(() => setLeaving(false), COOKIE_EXIT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [leaving]);
 
   const decide = (choice: CookieConsent) => {
     if (storageKey) {
@@ -2169,42 +2190,45 @@ export function CookieBanner({
     (choice === 'accepted' ? onAccept : onDecline)?.();
   };
 
-  const visible = open ?? !(decided ?? stored);
-  if (!visible) return null;
+  if (!visible && !leaving) return null;
 
   const Shell = liquidGlass ? Glass : 'section';
   const shellProps = liquidGlass
-    ? ({ as: 'section', rootClassName: 'opale-feedback--glass-root' } as const)
+    ? ({ as: 'section', rootClassName: 'opale-cookie-banner--glass-root' } as const)
     : {};
 
   return (
-    <Shell
-      {...shellProps}
-      className={cx(
-        'opale-feedback',
-        'opale-feedback--info',
-        'opale-cookie-banner',
-        liquidGlass && 'opale-feedback--glass',
-      )}
-      aria-label="Consentement aux cookies"
-      aria-describedby={textId}
-    >
-      <strong>Cookies</strong>
-      <span>
-        <span id={textId}>{children}</span>
-        <span className="opale-cookie-banner__actions">
-          {/* MÊME POIDS POUR LES DEUX. Un refus en lien gris à côté d'un
-              « Accepter » plein pousse la main vers le second : c'est le
-              motif que la CNIL reproche aux bandeaux. */}
-          <Button size="small" liquidGlass={liquidGlass} onClick={() => decide('declined')}>
-            Refuser
-          </Button>
-          <Button size="small" liquidGlass={liquidGlass} onClick={() => decide('accepted')}>
-            Accepter
-          </Button>
-        </span>
-      </span>
-    </Shell>
+    <div className="opale-cookie-banner-anchor">
+      <div
+        className={cx(
+          toastMotion.card,
+          toastMotion.slideFromBottom,
+          leaving && toastMotion.leaving,
+        )}
+        inert={leaving}
+        aria-hidden={leaving ? true : undefined}
+      >
+        <Shell
+          {...shellProps}
+          className={cx('opale-cookie-banner', liquidGlass && 'opale-cookie-banner--glass')}
+          aria-label="Consentement aux cookies"
+          aria-describedby={textId}
+        >
+          <div className="opale-cookie-banner__copy">
+            <strong>Cookies</strong>
+            <div id={textId}>{children}</div>
+          </div>
+          <div className="opale-cookie-banner__actions">
+            <Button variant="danger" size="small" onClick={() => decide('declined')}>
+              Refuser
+            </Button>
+            <Button variant="primary" size="small" onClick={() => decide('accepted')}>
+              Accepter
+            </Button>
+          </div>
+        </Shell>
+      </div>
+    </div>
   );
 }
 

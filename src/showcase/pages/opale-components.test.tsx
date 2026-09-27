@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
@@ -229,7 +229,7 @@ describe('le catalogue interactif V3', () => {
     render(<CatalogPreview name="CookieBanner" liquidGlass={false} />);
 
     await user.click(screen.getByRole('button', { name: 'Accepter' }));
-    expect(screen.queryByText(/Nous utilisons des cookies/)).not.toBeInTheDocument();
+    await waitForElementToBeRemoved(() => screen.queryByText(/Nous utilisons des cookies/));
   });
 
   it('sélectionne FileCard', async () => {

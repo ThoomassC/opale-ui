@@ -324,8 +324,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [prop('items', 'readonly NavItem[]', 'Étapes du chemin.')],
   },
   CookieBanner: {
-    states: 'Le choix est mémorisé et peut être rouvert par l’application.',
+    states: 'En bas au centre, animé comme un toast ; le choix est mémorisé.',
     rows: [
+      prop('open', 'boolean', 'Force l’affichage ou la fermeture.', 'choix mémorisé'),
       prop('onAccept', '() => void', 'Consentement accepté.'),
       prop('onDecline', '() => void', 'Consentement refusé.'),
       prop('storageKey', 'string | null', 'Clé de persistance.', 'opale-cookie-consent'),

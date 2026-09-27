@@ -1785,13 +1785,78 @@
   border-radius: var(--opale-radius-md);
   border: 1px solid currentColor;
 }
-/* Les deux choix du bandeau de consentement, sous son texte. Ils passent à la
-   ligne plutôt que de pousser l'encart hors d'un écran étroit. */
+/* Le bandeau se place comme un toast en bas au centre. L'ancre porte la
+   translation horizontale ; son enfant animé garde ainsi sa glissade verticale. */
+.opale-cookie-banner-anchor {
+  position: fixed;
+  z-index: 900;
+  inset-inline-start: 50%;
+  inset-block-end: calc(var(--opale-space-lg) + env(safe-area-inset-bottom, 0px));
+  width: min(44rem, calc(100vw - 2 * var(--opale-space-lg)));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.opale-cookie-banner {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--opale-space-lg);
+  padding: var(--opale-space-lg);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-lg);
+  background: var(--opale-surface);
+  box-shadow: var(--opale-shadow-3);
+  color: var(--opale-text);
+}
+.opale-cookie-banner__copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: var(--opale-space-2xs);
+  line-height: 1.4;
+}
+.opale-cookie-banner__copy strong {
+  font-size: 1rem;
+}
+.opale-cookie-banner__copy > div {
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+}
 .opale-cookie-banner__actions {
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
+  justify-content: flex-end;
   gap: var(--opale-space-sm);
-  margin-block-start: var(--opale-space-sm);
+}
+.opale-cookie-banner__actions .opale-button {
+  min-width: 6.5rem;
+}
+.opale-cookie-banner--glass-root {
+  --opale-glass-width: 100%;
+  --opale-glass-radius: var(--opale-radius-lg);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-surface) 96%, transparent);
+}
+.opale-cookie-banner.opale-cookie-banner--glass {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--opale-text);
+}
+@media (max-width: 42rem) {
+  .opale-cookie-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--opale-space-md);
+  }
+}
+@media (max-width: 22rem) {
+  .opale-cookie-banner__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .opale-cookie-banner__actions .opale-button {
+    min-width: 0;
+  }
 }
 .opale-feedback--success {
   color: var(--opale-success-on-surface);
