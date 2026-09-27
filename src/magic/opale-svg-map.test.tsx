@@ -238,6 +238,36 @@ describe('SvgMap', () => {
       );
     }
 
+    /* Un continent n'est pas l'union de ses pays : la France du jeu mondial
+       emporte la Guyane, la Russie va jusqu'au Pacifique. On cadre alors sur
+       une zone du dessin. */
+    it('cadre sur une zone du dessin, indépendamment des régions', () => {
+      function Zone() {
+        const viewport = useSvgMapViewport('0 0 400 200');
+        return (
+          <>
+            <button
+              type="button"
+              onClick={() =>
+                viewport.fitBounds(
+                  { minX: 0, minY: 0, maxX: 100, maxY: 50 },
+                  { padding: 0, animate: false },
+                )
+              }
+            >
+              Zone
+            </button>
+            <SvgMap viewBox="0 0 400 200" regions={REGIONS} viewport={viewport} controls={false} />
+          </>
+        );
+      }
+      const { container } = render(<Zone />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Zone' }));
+
+      expect(svgOf(container).getAttribute('viewBox')).toBe('0 0 100 50');
+    });
+
     it('cadre sur un ensemble de régions en gardant le rapport de la carte', () => {
       const { container } = render(<Framed />);
 

@@ -51,6 +51,7 @@ export type {
   SvgMapWheel,
   UseSvgMapViewportResult,
 } from './svg-map';
+export type { Bounds as SvgMapBounds } from './svg-map';
 export * from './tabs';
 export * from './toast';
 export * from './topbar';
