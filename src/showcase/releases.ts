@@ -49,6 +49,55 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V340_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Navigation',
+    changes: [
+      {
+        title: 'Sidebar retravaillée',
+        detail:
+          'Les icônes perdent leur tuile grise, l’entrée retenue prend la teinte d’Opale et un liseré qui se voit aussi rail replié, et les entrées repliées deviennent des vignettes carrées identiques. Le pied du rail ne laisse plus de point orphelin une fois replié.',
+        links: [{ label: 'Sidebar', slug: 'composants/sidebar' }],
+      },
+      {
+        title: 'Sidebar et SiteNav dans les deux matières',
+        detail:
+          'La Sidebar pliable et la SiteNav se montrent désormais en version originale et en verre liquide. La SiteNav en verre n’est plus un aplat bleu posé sur la photographie.',
+        links: [
+          { label: 'Sidebar', slug: 'composants/sidebar' },
+          { label: 'SiteNav', slug: 'composants/site-nav' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Composants corrigés',
+    changes: [
+      {
+        title: 'Divider visible',
+        detail:
+          'Le séparateur occupe toute la largeur de son conteneur et trace un trait lisible dans les deux thèmes ; il tombait à 0 px dans une grille et ne contrastait qu’à 1,09:1 en sombre.',
+        links: [{ label: 'Divider', slug: 'composants/opale-divider' }],
+      },
+      {
+        title: 'Dropzone sous verre',
+        detail:
+          'Le verre ne perd plus contre la zone pleine : fond transparent, tirets et texte clairs. L’action de sélection passe en italique et se rapproche du titre.',
+        links: [{ label: 'Dropzone', slug: 'composants/opale-dropzone' }],
+      },
+      {
+        title: 'FileCard et Lightbox',
+        detail:
+          'Sous verre, la vignette de la carte de fichier redevient une surface. La visionneuse range sa croix en haut à droite, comme tout dialogue sans titre, et ferme par un Button tonal.',
+        links: [
+          { label: 'FileCard', slug: 'composants/opale-file-card' },
+          { label: 'Lightbox', slug: 'composants/opale-lightbox' },
+        ],
+      },
+    ],
+  },
+];
+
 const V330_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Créer une page avec Opale',
@@ -294,6 +343,24 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.4.0',
+    publishedAt: '2026-09-27',
+    dateLabel: '27 septembre 2026',
+    summary:
+      'Des composants qui se voient dans les deux matières : Sidebar retravaillée, SiteNav en vrai verre, et quatre corrections de rendu.',
+    sections: V340_RELEASE_SECTIONS,
+    changes: V340_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'Sidebar : états plus lisibles, rail replié homogène et version verre liquide.',
+      'SiteNav : version originale ajoutée, verre liquide sans aplat.',
+      'Divider, Dropzone, FileCard et Lightbox corrigés.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.3.0',
     publishedAt: '2026-09-26',
     dateLabel: '26 septembre 2026',
@@ -307,8 +374,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Le menu mobile, les repères sémantiques et les suggestions de recherche sont intégrés.',
       'Chaque zone peut être configurée ou remplacée sans modifier le composant.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.4.0. `#/` et la branche `recette` désignent
+       désormais la 3.4.0 : gardés, le lien et la provenance de la 3.3.0
+       auraient ouvert la version suivante. Le build figé vient du commit que
+       la recette servait alors. */
+    appHref: '/versions/v3.3.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/649162f74cf2be6c13d78158c181e626e7dc4cbe`,
   },
   {
     version: '3.2.0',

@@ -48,13 +48,24 @@ describe('registre des notes de versions', () => {
     }
   });
 
-  it('présente la 3.3.0 et conserve les groupes de la 3.2.0 archivée', () => {
+  it('présente la 3.4.0 et archive la 3.3.0 sur son commit figé', () => {
     expect(CURRENT_RELEASE.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/recette');
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
+      'Navigation',
+      'Composants corrigés',
+    ]);
+    expect(CURRENT_RELEASE.changes).toHaveLength(5);
+
+    const archived = RELEASES.find((release) => release.version === '3.3.0');
+    expect(archived?.appHref).toBe('/versions/v3.3.0/index.html');
+    expect(archived?.sourceHref).toMatch(/\/tree\/[0-9a-f]{40}$/);
+    expect(archived?.sections?.map((section) => section.title)).toEqual([
       'Créer une page avec Opale',
       'Navigation et accessibilité',
     ]);
-    expect(CURRENT_RELEASE.changes).toHaveLength(4);
+  });
+
+  it('conserve les groupes de la 3.2.0 archivée', () => {
     const previous = RELEASES.find((release) => release.version === '3.2.0');
     expect(previous?.sections?.map((section) => section.title)).toEqual([
       'Compatibilité et migration',
