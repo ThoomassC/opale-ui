@@ -3095,3 +3095,15 @@ body {
   margin: 0;
   color: var(--opale-text-secondary);
 }
+/* Hors de la carte, la légende prend l'encre de sa scène : sombre sur la
+   surface unie, claire sur la photographie du verre. */
+.tc-doc-svgmap-legend--inline {
+  color: inherit;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-sm);
+  justify-self: start;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}

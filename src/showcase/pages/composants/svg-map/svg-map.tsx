@@ -7,6 +7,7 @@ import type { PropRow } from '../../api';
 import { CATALOG_API } from '../../opale-api-data';
 import { MaterialSwitch, PlainStage } from '../material-switch';
 import { CORSE, FRANCE_DEPARTMENTS, FRANCE_VIEWBOX, ILE_DE_FRANCE } from './france-departments';
+import { CONTINENT_FRAMES, WORLD_COUNTRIES, WORLD_VIEWBOX } from './world';
 
 const USAGE = `import { SvgMap, SvgMapControls, useSvgMapViewport } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -209,6 +210,128 @@ function HeatMap() {
 }
 
 /* =============================================================================
+   LE MONDE — UN CARNET DE VOYAGE, COMME DANS « TRAVELS IN WORLD ».
+
+   Trois états par pays, et chacun se dit de deux façons : une teinte, et un
+   mot dans le nom accessible (« Japon, visité »). La teinte seule ne dirait
+   rien à un lecteur d'écran ni en niveaux de gris.
+   ========================================================================== */
+type TripState = 'visited' | 'wished';
+
+const TRIP_LABEL: Record<TripState, string> = { visited: 'visité', wished: 'à venir' };
+
+const INITIAL_TRIPS: ReadonlyMap<string, TripState> = new Map([
+  ['FR', 'visited'],
+  ['ES', 'visited'],
+  ['IT', 'visited'],
+  ['MA', 'visited'],
+  ['JP', 'visited'],
+  ['CA', 'visited'],
+  ['PE', 'wished'],
+  ['IS', 'wished'],
+  ['NZ', 'wished'],
+]);
+
+const CONTINENT_BUTTONS: readonly {
+  readonly label: string;
+  readonly continent: keyof typeof CONTINENT_FRAMES;
+}[] = [
+  { label: 'Europe', continent: 'europe' },
+  { label: 'Afrique', continent: 'africa' },
+  { label: 'Asie', continent: 'asia' },
+  { label: 'Amériques', continent: 'americas' },
+  { label: 'Océanie', continent: 'oceania' },
+];
+
+/** Un clic fait tourner l'état : non visité, visité, à venir, puis retour. */
+const nextState = (state: TripState | undefined): TripState | undefined =>
+  state === undefined ? 'visited' : state === 'visited' ? 'wished' : undefined;
+
+function WorldMap() {
+  const viewport = useSvgMapViewport(WORLD_VIEWBOX, { maxZoom: 12 });
+  const [trips, setTrips] = useState<ReadonlyMap<string, TripState>>(INITIAL_TRIPS);
+
+  const regions = useMemo(
+    () =>
+      WORLD_COUNTRIES.map((country) => {
+        const state = trips.get(country.id);
+        return state ? { ...country, ariaLabel: `${country.name}, ${TRIP_LABEL[state]}` } : country;
+      }),
+    [trips],
+  );
+
+  const toggle = (id: string) =>
+    setTrips((current) => {
+      const next = new Map(current);
+      const state = nextState(current.get(id));
+      if (state) next.set(id, state);
+      else next.delete(id);
+      return next;
+    });
+
+  const count = (state: TripState) => [...trips.values()].filter((value) => value === state).length;
+
+  return (
+    <MaterialSwitch name="la carte du monde" stack>
+      {(liquidGlass) => {
+        const ground = liquidGlass ? 'transparent' : 'var(--opale-surface)';
+        const tints: Record<TripState, string> = {
+          visited: `color-mix(in srgb, var(--opale-primary) ${liquidGlass ? 78 : 64}%, ${ground})`,
+          wished: `color-mix(in srgb, var(--opale-accent) ${liquidGlass ? 80 : 72}%, ${ground})`,
+        };
+        const fill = (id: string) => {
+          const state = trips.get(id);
+          return state ? tints[state] : undefined;
+        };
+
+        return (
+          <div className="tc-doc-svgmap-demo">
+            <div className="tc-doc-svgmap-demo__bar tc-doc-svgmap-demo__bar--start">
+              {CONTINENT_BUTTONS.map(({ label, continent }) => (
+                <Opale.Button
+                  key={continent}
+                  size="small"
+                  variant="tonal"
+                  liquidGlass={liquidGlass}
+                  onClick={() => viewport.fitBounds(CONTINENT_FRAMES[continent])}
+                >
+                  {label}
+                </Opale.Button>
+              ))}
+            </div>
+            {/* LA LÉGENDE SOUS LES BOUTONS, PAS SUR LA CARTE. Posée dans le coin
+                supérieur, elle recouvrait le Canada et l'Alaska : sur un
+                planisphère, les coins ne sont pas vides. */}
+            <ul className="tc-doc-svgmap-legend tc-doc-svgmap-legend--inline" aria-label="Légende">
+              {(['visited', 'wished'] as const).map((state) => (
+                <li key={state}>
+                  <span
+                    className="tc-doc-svgmap-legend__swatch"
+                    style={{ background: tints[state] }}
+                    aria-hidden="true"
+                  />
+                  {TRIP_LABEL[state]} · {count(state)}
+                </li>
+              ))}
+            </ul>
+            <SvgMap
+              label="Carte du monde, pays visités et à venir"
+              viewBox={WORLD_VIEWBOX}
+              regions={regions}
+              viewport={viewport}
+              selectable
+              onSelect={toggle}
+              fill={fill}
+              liquidGlass={liquidGlass}
+            />
+          </div>
+        );
+      }}
+    </MaterialSwitch>
+  );
+}
+
+/* =============================================================================
    LE CADRAGE PILOTÉ DE L'EXTÉRIEUR.
    ========================================================================== */
 function FramedMap() {
@@ -284,6 +407,12 @@ const VIEWPORT_ROWS: readonly PropRow[] = [
     description: 'Cadre sur un ensemble de régions, en gardant le rapport de la carte.',
   },
   {
+    name: 'fitBounds',
+    type: '({ minX, minY, maxX, maxY }, options?) => void',
+    description:
+      'Cadre sur une zone du dessin. Pour un continent, dont les pays emportent des territoires lointains.',
+  },
+  {
     name: 'zoomBy',
     type: '(factor, origin?, { animate? }) => void',
     description:
@@ -331,6 +460,21 @@ export default function SvgMapContent() {
       </Specimen>
 
       <Specimen
+        title="Le monde — un carnet de voyage"
+        note={
+          <>
+            La carte de <strong>Travels in World</strong>, rendue par <code>SvgMap</code> : les pays
+            de world-atlas projetés en Natural Earth I dans son cadre d’usine de 960 × 500, joints
+            sur leur code ISO numérique et nommés en français par <code>Intl.DisplayNames</code>.
+            Cliquez un pays pour le passer de non visité à visité, puis à venir ; l’état s’entend
+            aussi dans son nom. Les boutons cadrent sur un continent.
+          </>
+        }
+      >
+        <WorldMap />
+      </Specimen>
+
+      <Specimen
         title="Cadrer de l’extérieur"
         note="La vue peut être tenue par l’appelant. Le cadrage garde le rapport de la carte — un ensemble plus haut que large n’est pas coupé — et reste centré même quand l’ensemble est plus petit que le zoom maximal ne l’autorise."
       >
@@ -352,8 +496,10 @@ export default function SvgMapContent() {
       />
 
       <p className="tc-doc-prose tc-doc-svgmap-credit">
-        Tracés des départements : svg-maps de Victor Cazanave, sous licence CC-BY-4.0. Ils ne font
-        pas partie de la librairie — la vitrine les installe pour la démonstration.
+        Tracés des départements : svg-maps de Victor Cazanave, sous licence CC-BY-4.0. Carte du
+        monde : world-atlas (licence ISC), d’après les données Natural Earth, du domaine public. Ni
+        l’un ni l’autre ne font partie de la librairie — la vitrine les installe pour la
+        démonstration.
       </p>
     </PageBody>
   );
