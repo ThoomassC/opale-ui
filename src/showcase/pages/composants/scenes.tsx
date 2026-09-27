@@ -5,7 +5,7 @@ import { UI_VERSION } from '../../version';
 import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../magic';
 import type { OpaleIconName, ToastDefinition } from '../../../magic';
 
-import { PlainStage } from './material-switch';
+import { MaterialSwitch, PlainStage } from './material-switch';
 
 /* =============================================================================
    LES SCÈNES QUI ONT UN ÉTAT.
@@ -54,13 +54,19 @@ function SceneGlyph({ name }: { name: OpaleIconName }) {
 }
 
 /** La barre latérale pliable, contrôlée pour que son état soit affiché. */
+/* L'ÉTAT VIT AU-DESSUS DU COMMUTATEUR DE MATÉRIAU, et c'est ce qui le garde.
+   Passer en verre remonte le rail dans une autre scène : un état tenu par le
+   rail repartirait de zéro à chaque bascule, et l'on comparerait deux
+   matériaux sur deux états différents. */
 export function SidebarCollapsibleScene() {
   const [collapsed, setCollapsed] = useState(false);
   const [active, setActive] = useState('etapes');
 
   return (
-    <PlainStage tall>
-      {/* `onToggle` REÇOIT `setCollapsed` DIRECTEMENT, ET CE N'EST VRAI QUE
+    <MaterialSwitch name="Sidebar pliable" tall>
+      {(liquidGlass) => (
+        <>
+          {/* `onToggle` REÇOIT `setCollapsed` DIRECTEMENT, ET CE N'EST VRAI QUE
           DEPUIS LA CORRECTION DE `SidebarProps`.
 
           Le type étendait `ComponentPropsWithoutRef<'aside'>` EN ENTIER, qui
@@ -75,23 +81,24 @@ export function SidebarCollapsibleScene() {
           (`Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle'>`) et déclare le
           sien, `(collapsed: boolean) => void`. La garde est donc morte, et
           l'appel s'écrit comme il aurait toujours dû s'écrire. */}
-      <Sidebar
-        collapsible
-        collapsed={collapsed}
-        onToggle={setCollapsed}
-        activeItemId={active}
-        onSelectItem={setActive}
-      >
-        <Sidebar.Header>
-          {!collapsed && <strong>Voyage</strong>}
-          <Sidebar.Toggle />
-        </Sidebar.Header>
+          <Sidebar
+            liquidGlass={liquidGlass}
+            collapsible
+            collapsed={collapsed}
+            onToggle={setCollapsed}
+            activeItemId={active}
+            onSelectItem={setActive}
+          >
+            <Sidebar.Header>
+              {!collapsed && <strong>Voyage</strong>}
+              <Sidebar.Toggle />
+            </Sidebar.Header>
 
-        <Sidebar.Items aria-label="Sections du voyage">
-          <Sidebar.Item itemId="etapes" icon={<SceneGlyph name="map-pin" />}>
-            Étapes
-          </Sidebar.Item>
-          {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
+            <Sidebar.Items aria-label="Sections du voyage">
+              <Sidebar.Item itemId="etapes" icon={<SceneGlyph name="map-pin" />}>
+                Étapes
+              </Sidebar.Item>
+              {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
               `<button>` : un `Opale.Badge` sans verre y tiendrait (c'est un
               `<span>`), mais le même sous `liquidGlass` passe par `Glass`, et
               `Glass` — le nôtre — enveloppe TOUJOURS son contenu dans un
@@ -100,27 +107,29 @@ export function SidebarCollapsibleScene() {
               un bouton, c'est du HTML invalide, que ni TypeScript ni React ne
               signalent. Le `<span>` écrit ici ne dépend d'aucune prop. Écrit
               dans la prose de la page. */}
-          <Sidebar.Item itemId="carte" icon={<SceneGlyph name="map" />} badge={<span>3</span>}>
-            Carte
-          </Sidebar.Item>
-          <Sidebar.Item itemId="photos" icon={<SceneGlyph name="image" />}>
-            Photos
-          </Sidebar.Item>
-          <Sidebar.Item itemId="brouillon" icon={<SceneGlyph name="file-text" />} disabled>
-            Brouillon
-          </Sidebar.Item>
-        </Sidebar.Items>
+              <Sidebar.Item itemId="carte" icon={<SceneGlyph name="map" />} badge={<span>3</span>}>
+                Carte
+              </Sidebar.Item>
+              <Sidebar.Item itemId="photos" icon={<SceneGlyph name="image" />}>
+                Photos
+              </Sidebar.Item>
+              <Sidebar.Item itemId="brouillon" icon={<SceneGlyph name="file-text" />} disabled>
+                Brouillon
+              </Sidebar.Item>
+            </Sidebar.Items>
 
-        {/* LE PIED N'EXISTE QUE DÉPLIÉ. Replié, il peignait un point médian
+            {/* LE PIED N'EXISTE QUE DÉPLIÉ. Replié, il peignait un point médian
             seul sous les vignettes : un signe orphelin, sans nom ni
             information, que rien ne rattachait à la version qu'il remplaçait. */}
-        {!collapsed && <Sidebar.Footer>v{UI_VERSION}</Sidebar.Footer>}
-      </Sidebar>
+            {!collapsed && <Sidebar.Footer>v{UI_VERSION}</Sidebar.Footer>}
+          </Sidebar>
 
-      <p className="tc-doc-magicstage__label">
-        Repliée : <code>{String(collapsed)}</code> — entrée retenue : <code>{active}</code>
-      </p>
-    </PlainStage>
+          <p className="tc-doc-magicstage__label">
+            Repliée : <code>{String(collapsed)}</code> — entrée retenue : <code>{active}</code>
+          </p>
+        </>
+      )}
+    </MaterialSwitch>
   );
 }
 
