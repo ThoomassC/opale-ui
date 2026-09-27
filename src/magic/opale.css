@@ -977,11 +977,6 @@
   border: 2px solid var(--opale-glass-ink);
 }
 
-/* LA CARTE SVG EST POSÉE SUR UNE PLAQUE, PAS DÉCOUPÉE DEDANS. */
-.opale-svg-map__plate {
-  display: block;
-  padding: var(--opale-space-md);
-}
 
 /* LA COQUILLE DU CURSEUR EXISTE MAINTENANT DANS LES DEUX ÉTATS, sans quoi la
    piste changerait de boîte au basculement. Sans verre elle ne fait rien
@@ -2532,11 +2527,211 @@
   display: grid;
   gap: var(--opale-space-xs);
 }
+/* =============================================================================
+   LA CARTE SVG.
+
+   TROIS JETONS PORTENT SA PEINTURE, et chaque matière les règle : le
+   remplissage des régions, leur contour, et l'encre des états (survol,
+   sélection). Une couleur calculée par l'appelant passe en style en ligne sur
+   le tracé, et l'emporte donc sur le remplissage par défaut.
+
+   LE CONTOUR PORTE LE DÉCOUPAGE, IL TIENT 3:1. Sur une carte, c'est lui qui
+   dit où finit une région : un objet graphique porteur de sens (WCAG 1.4.11).
+   L'encre du texte à 55 % sur la surface donne 3,6:1 en clair et 4,3:1 en
+   sombre contre le remplissage par défaut — voir `opale-svg-map.test.tsx`.
+   ========================================================================== */
 .opale-svg-map {
-  width: 100%;
-  min-height: 12rem;
+  --opale-svg-map-fill: color-mix(in srgb, var(--opale-primary) 10%, var(--opale-surface));
+  --opale-svg-map-stroke: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
+  --opale-svg-map-ink: var(--opale-text);
+  --opale-svg-map-selected: var(--opale-primary-on-surface);
+
+  position: relative;
+  inline-size: 100%;
+  margin-inline: auto;
+  color: var(--opale-svg-map-ink);
+}
+.opale-svg-map__plate {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--opale-divider);
   border-radius: var(--opale-radius-md);
   background: var(--opale-surface-sunken);
+}
+.opale-svg-map__canvas {
+  position: relative;
+}
+/* LA HAUTEUR SUIT LA LARGEUR, AU RAPPORT DU DESSIN. Le `<svg>` porte le
+   rapport de sa vue d'ensemble : la conversion d'un point de l'écran en point
+   du dessin est alors une simple règle de trois, sans bandes vides à déduire.
+
+   LE DOIGT FAIT DÉFILER LA PAGE TANT QUE LA CARTE N'EST PAS ZOOMÉE. En vue
+   d'ensemble il n'y a rien à déplacer : confisquer le glissement vertical
+   piégerait la page sous une carte qui occupe l'écran d'un téléphone. Zoomée,
+   la carte prend tous les gestes. */
+.opale-svg-map__svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: var(--opale-svg-map-ratio);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* La carte sans régions à choisir prend elle-même le focus : son anneau est
+   tracé à l'intérieur, pour ne pas être rogné par la plaque. */
+.opale-svg-map__svg:focus-visible {
+  outline: 3px solid var(--opale-focus);
+  outline-offset: -3px;
+}
+.opale-svg-map__canvas[data-zoomed='true'] .opale-svg-map__svg {
+  cursor: grab;
+  touch-action: none;
+}
+.opale-svg-map__canvas[data-dragging='true'] .opale-svg-map__svg {
+  cursor: grabbing;
+}
+.opale-svg-map__region {
+  fill: var(--opale-svg-map-fill);
+  stroke: var(--opale-svg-map-stroke);
+  stroke-linejoin: round;
+  stroke-width: 1;
+  transition: fill var(--opale-motion-fast) var(--opale-ease);
+}
+.opale-svg-map__svg[data-selectable='true'] .opale-svg-map__region {
+  cursor: pointer;
+}
+.opale-svg-map__canvas[data-dragging='true'] .opale-svg-map__region {
+  cursor: grabbing;
+}
+/* LE FOCUS EST PEINT PAR LE CALQUE DES ÉTATS, pas par l'anneau du navigateur,
+   qui se dessinerait sur la boîte rectangulaire du tracé et non sur sa forme. */
+.opale-svg-map__region:focus,
+.opale-svg-map__region:focus-visible {
+  outline: none;
+}
+.opale-svg-map__states path {
+  pointer-events: none;
+}
+.opale-svg-map__hover {
+  fill: color-mix(in srgb, var(--opale-svg-map-ink) 14%, transparent);
+  stroke: var(--opale-svg-map-ink);
+  stroke-width: 1.5;
+}
+/* LE CONTOUR DE SÉLECTION A SON HALO, comme le focus. Posé nu sur les teintes
+   que l'appelant calcule, il tombait sous 3:1 — 2,28:1 sur une teinte de
+   danger en thème clair. Le halo de la surface le détache de n'importe
+   quelle teinte. */
+.opale-svg-map__selected-halo {
+  fill: none;
+  stroke: var(--opale-surface);
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+.opale-svg-map__selected {
+  fill: none;
+  stroke: var(--opale-svg-map-selected);
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+/* L'ANNEAU DE FOCUS EST DOUBLE, comme celui du rail : un halo de la surface
+   sous le trait de focus, pour qu'il se lise sur une région claire comme sur
+   une région foncée (WCAG 2.4.11). */
+.opale-svg-map__focus-halo {
+  fill: none;
+  stroke: var(--opale-surface);
+  stroke-linejoin: round;
+  stroke-width: 6;
+}
+.opale-svg-map__focus {
+  fill: none;
+  stroke: var(--opale-focus);
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+.opale-svg-map__overlay {
+  position: absolute;
+  inset-block-start: var(--opale-space-sm);
+  inset-inline-start: var(--opale-space-sm);
+  max-inline-size: calc(100% - 5rem);
+}
+.opale-svg-map__controls,
+.opale-svg-map-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--opale-space-2xs);
+}
+.opale-svg-map__controls {
+  position: absolute;
+  inset-block-start: var(--opale-space-sm);
+  inset-inline-end: var(--opale-space-sm);
+}
+.opale-svg-map-controls [aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+/* L'INFOBULLE DIT LE NOM, et rien d'autre : le nom accessible de la région le
+   dit déjà aux lecteurs d'écran, elle est donc cachée de l'arbre. */
+.opale-svg-map__tooltip {
+  position: absolute;
+  z-index: 2;
+  padding: var(--opale-space-2xs) var(--opale-space-xs);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-text);
+  box-shadow: var(--opale-shadow-2);
+  color: var(--opale-surface);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 0.5rem));
+  white-space: nowrap;
+}
+.opale-svg-map__hint {
+  position: absolute;
+  inset-block-end: var(--opale-space-sm);
+  inset-inline-start: 50%;
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-text) 86%, transparent);
+  color: var(--opale-surface);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity var(--opale-motion) var(--opale-ease);
+  white-space: nowrap;
+}
+.opale-svg-map__hint[data-visible='true'] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .opale-svg-map__region,
+  .opale-svg-map__hint {
+    transition: none;
+  }
+}
+
+/* SOUS VERRE, LA PLAQUE EST LE MATÉRIAU, ET LA CARTE SUIT SON ENCRE. Le
+   remplissage devient un voile de l'encre du verre : un aplat opaque boucherait
+   la réfraction, qui est la matière même de la plaque. Le contour, plus dense,
+   garde le découpage lisible sur la photographie. */
+.opale-svg-map--glass {
+  --opale-svg-map-fill: color-mix(in srgb, var(--opale-glass-ink) 16%, transparent);
+  --opale-svg-map-stroke: color-mix(in srgb, var(--opale-glass-ink) 78%, transparent);
+  --opale-svg-map-ink: var(--opale-glass-ink);
+  --opale-svg-map-selected: var(--opale-glass-ink);
+}
+.opale-svg-map--glass .opale-svg-map__plate {
+  border-color: transparent;
+  background: transparent;
+}
+.opale-svg-map--glass .opale-svg-map__selected {
+  stroke-width: 3.5;
+}
+.opale-svg-map--glass .opale-svg-map__selected-halo {
+  stroke: var(--opale-glass-scrim);
+  stroke-width: 6;
 }
 .opale-legal-links {
   display: flex;

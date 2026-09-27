@@ -18,6 +18,7 @@ import tabsSheet from './components/tabs/style/Tabs.module.css?raw';
 import toastSheet from './components/toast/style/Toast.module.css?raw';
 import topbarSheet from './components/topbar/style/Topbar.module.css?raw';
 import opaleSource from './opale.tsx?raw';
+import { useSvgMapViewport } from './components/svg-map';
 import { OPALE_CATALOG, Opale } from './opale';
 
 afterEach(cleanup);
@@ -216,7 +217,26 @@ const PORTEURS = [
       <Opale.IconActionButton liquidGlass={g} icon="trash" label="Supprimer" />
     ),
   },
-  { nom: 'SvgMap', rendre: (g?: boolean) => <Opale.SvgMap liquidGlass={g} /> },
+  {
+    nom: 'SvgMapControls',
+    rendre: (g?: boolean) => {
+      function Controls() {
+        const viewport = useSvgMapViewport('0 0 100 50');
+        return <Opale.SvgMapControls liquidGlass={g} viewport={viewport} />;
+      }
+      return <Controls />;
+    },
+  },
+  {
+    nom: 'SvgMap',
+    rendre: (g?: boolean) => (
+      <Opale.SvgMap
+        liquidGlass={g}
+        viewBox="0 0 100 50"
+        regions={[{ id: 'a', path: 'M0 0 H50 V50 H0 Z', name: 'A' }]}
+      />
+    ),
+  },
 ] as const;
 
 describe('la matière est une option, jamais le rendu par défaut', () => {

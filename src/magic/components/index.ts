@@ -39,6 +39,18 @@ export * from './page-scaffold';
 export * from './search-bar';
 export * from './sidebar';
 export * from './site-nav';
+/* LA CARTE SVG PUBLIE SA VUE, PAS SON MOTEUR. `SvgMap` et `SvgMapControls`
+   vivent dans `opale.tsx` avec le catalogue ; ce module-ci n'expose que le
+   crochet qui permet de piloter leur vue de l'extérieur. Les gestes et la
+   géométrie restent internes. */
+export { useSvgMapViewport } from './svg-map';
+export type {
+  SvgMapFitOptions,
+  SvgMapMoveOptions,
+  SvgMapViewportOptions,
+  SvgMapWheel,
+  UseSvgMapViewportResult,
+} from './svg-map';
 export * from './tabs';
 export * from './toast';
 export * from './topbar';
