@@ -319,17 +319,7 @@ export function DocShell({ pages }: DocShellProps) {
               (`min-w-0`, l'alignement, la gouttière). */}
           <Topbar.Brand className="tc-doc-topbar__side tc-doc-topbar__brand-container">
             <a className="tc-doc-topbar__brand" href={hrefFor(HOME_SLUG)}>
-              <span className="tc-doc-topbar__glyph" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-              </span>
+              <img className="tc-doc-topbar__glyph" src="/favicon.svg" alt="" aria-hidden="true" />
               <span className="tc-doc-topbar__brand-name" aria-label={SITE_NAME}>
                 <span>opale</span>
                 <span className="tc-doc-topbar__brand-name--accent">UI</span>
