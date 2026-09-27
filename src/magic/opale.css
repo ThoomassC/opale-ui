@@ -2531,8 +2531,8 @@
 .opale-toast {
   display: flex;
   max-inline-size: min(26rem, calc(100vw - 2rem));
-  align-items: flex-start;
-  padding: 0.85rem 0.9rem 0.85rem 1rem;
+  align-items: center;
+  padding: 0.625rem 0.75rem 0.625rem 1rem;
   border: 1px solid var(--opale-toast-fill, var(--opale-divider));
   border-radius: var(--opale-radius-md);
   background: var(--opale-toast-fill, var(--opale-surface));
@@ -2568,7 +2568,6 @@
   inline-size: 1.25rem;
   block-size: 1.25rem;
   flex: 0 0 auto;
-  margin-block-start: 0.1rem;
 
   /* L'ICÔNE PREND L'ENCRE DE LA CARTE. C'est l'indice non textuel du ton : la
      couleur seule ne peut pas être le seul signal (WCAG 1.4.1), et une carte
@@ -2626,30 +2625,46 @@
    composent eux aussi à partir de cette encre — un anneau bleu sur une carte
    rouge ne se verrait pas. */
 .opale-toast__close {
+  position: relative;
   display: grid;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   min-width: 2.75rem;
   min-height: 2.75rem;
   flex: 0 0 auto;
-  margin: -0.5rem -0.4rem -0.5rem 0;
+  margin: -0.5rem -0.5rem -0.5rem 0;
   border: 0;
   border-radius: var(--opale-radius-sm);
   background: transparent;
   color: inherit;
   cursor: pointer;
-  opacity: 0.86;
+  opacity: 0.9;
   place-items: center;
 }
 
+/* La cible reste à 44 px ; seule la pastille visible au survol est réduite. */
+.opale-toast__close::before {
+  position: absolute;
+  inset: 0.5625rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  content: '';
+  pointer-events: none;
+}
+
 .opale-toast__close .opale-icon {
+  position: relative;
   min-width: 0;
   min-height: 0;
   color: inherit;
-  font-size: 1.125rem;
+  font-size: 1rem;
 }
 
 .opale-toast__close:hover {
-  background: color-mix(in srgb, currentColor 16%, transparent);
   opacity: 1;
+}
+.opale-toast__close:hover::before {
+  background: color-mix(in srgb, currentColor 9%, transparent);
 }
 
 .opale-toast__close:focus-visible {
