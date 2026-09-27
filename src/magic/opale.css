@@ -539,6 +539,42 @@
   mask-composite: exclude;
 }
 
+/* Une action uniquement iconique garde une cible carrée et une encre lisible.
+   Le bord masqué du bouton ghost produisait quatre fragments bleus, également
+   visibles sous le verre : cette silhouette ne dessine aucun second contour. */
+.opale-icon-action-button {
+  --opale-icon-action-size: 2.75rem;
+  inline-size: var(--opale-icon-action-size);
+  min-inline-size: var(--opale-icon-action-size);
+  block-size: var(--opale-icon-action-size);
+  min-block-size: var(--opale-icon-action-size);
+  padding: 0;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.opale-icon-action-button.opale-button {
+  min-height: var(--opale-icon-action-size);
+}
+
+.opale-icon-action-button.opale-button--small {
+  --opale-icon-action-size: 2.25rem;
+  font-size: 1rem;
+}
+
+.opale-icon-action-button.opale-button--large {
+  --opale-icon-action-size: 3.25rem;
+  font-size: 1.25rem;
+}
+
+.opale-icon-action-button.opale-button--full {
+  inline-size: 100%;
+}
+
+.opale-icon-action-button::after {
+  display: none;
+}
+
 .opale-button--text {
   --opale-button-background: transparent;
   --opale-button-hover-background: color-mix(in srgb, var(--opale-primary) 8%, transparent);
@@ -959,6 +995,10 @@
 }
 
 @media (max-width: 37.499rem) {
+  .opale-icon-action-button.opale-button--small {
+    --opale-icon-action-size: 2.75rem;
+  }
+
   .opale-button {
     min-height: 3rem;
   }

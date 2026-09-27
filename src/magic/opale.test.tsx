@@ -12,6 +12,7 @@ import {
   Checkbox,
   Dropzone,
   Input,
+  IconActionButton,
   MultiSelect,
   ProgressBar,
   Select,
@@ -53,6 +54,39 @@ describe('Button', () => {
     render(<Button variant="ghost">Action secondaire</Button>);
     expect(screen.getByRole('button', { name: 'Action secondaire' })).toHaveClass(
       'opale-button--ghost',
+    );
+  });
+});
+
+describe('IconActionButton', () => {
+  it('garde une cible nommée, compacte et tonale dans les deux matières', () => {
+    const onClick = vi.fn();
+    const { rerender } = render(
+      <IconActionButton icon="share" label="Partager" onClick={onClick} />,
+    );
+    const button = screen.getByRole('button', { name: 'Partager' });
+    expect(button).toHaveClass('opale-icon-action-button', 'opale-button--tonal');
+    expect(button).not.toHaveClass('opale-button--ghost');
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    rerender(<IconActionButton icon="share" label="Partager" liquidGlass size="small" />);
+    expect(screen.getByRole('button', { name: 'Partager' })).toHaveClass(
+      'opale-icon-action-button',
+      'opale-button--tonal',
+      'opale-button--glass',
+      'opale-button--small',
+    );
+  });
+
+  it('accepte une variante et une classe personnalisées', () => {
+    render(
+      <IconActionButton icon="share" label="Partager" variant="secondary" className="custom" />,
+    );
+    expect(screen.getByRole('button', { name: 'Partager' })).toHaveClass(
+      'opale-button--secondary',
+      'opale-icon-action-button',
+      'custom',
     );
   });
 });

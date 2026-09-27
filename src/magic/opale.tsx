@@ -1266,15 +1266,20 @@ export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement
 export function IconActionButton({
   icon = 'more-horizontal',
   label,
+  variant = 'tonal',
+  className,
   ...props
 }: Omit<ButtonProps, 'children'> & { icon?: OpaleIconName; label: string }) {
-  /* IL RENDAIT LA PREMIÈRE LETTRE DU LIBELLÉ. `label.slice(0, 1)` : un bouton
-     « Partager » affichait « P ». Ce n'était pas une icône, c'était l'aveu
-     qu'il n'y en avait pas — le jeu d'Opale n'existait pas encore. Il en
-     prend une vraie, par son nom ; le libellé reste le nom accessible, et
-     seulement lui. */
+  /* Le nom accessible reste indépendant du glyphe. Le rendu tonal remplace
+     le filet ghost masqué, qui n'apparaissait qu'aux quatre bords du bouton
+     et traversait aussi le verre liquide. La variante reste configurable. */
   return (
-    <Button {...props} aria-label={label} variant="ghost">
+    <Button
+      {...props}
+      variant={variant}
+      className={cx('opale-icon-action-button', className)}
+      aria-label={label}
+    >
       <IconGlyph name={icon} className="opale-icon__glyph" />
     </Button>
   );

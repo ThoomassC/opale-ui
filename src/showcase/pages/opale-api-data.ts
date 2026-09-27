@@ -119,6 +119,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('icon', 'OpaleIconName', 'Dessin de l’action.', 'more-horizontal'),
       prop('label', 'string', 'Nom accessible du bouton.', undefined, true),
+      prop(
+        'variant',
+        "'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text'",
+        'Couleur de l’action. Tonal par défaut pour une icône seule.',
+        'tonal',
+      ),
+      prop('size', "'small' | 'medium' | 'large'", 'Taille de la cible.', 'medium'),
     ],
   },
   Card: {
