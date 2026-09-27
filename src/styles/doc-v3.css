@@ -3000,3 +3000,85 @@ body {
   color: inherit;
   font-size: 1.25rem;
 }
+
+/* --- SvgMap : les scènes de la page ----------------------------------------- */
+.tc-doc-svgmap-demo {
+  display: grid;
+  gap: var(--opale-space-sm);
+  inline-size: 100%;
+}
+.tc-doc-svgmap-demo__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--opale-space-xs);
+}
+.tc-doc-svgmap-demo__bar--start {
+  justify-content: flex-start;
+}
+.tc-doc-svgmap-demo__status {
+  flex: 1 1 12rem;
+  font-weight: 600;
+}
+.tc-doc-svgmap-demo__prompt {
+  margin: 0;
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-surface) 88%, transparent);
+  color: var(--opale-text);
+  font-size: 0.875rem;
+  box-shadow: var(--opale-shadow-1);
+}
+.tc-doc-svgmap-demo__viewbox {
+  margin-inline-start: auto;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.tc-doc-svgmap-legend {
+  display: grid;
+  gap: var(--opale-space-2xs);
+  margin: 0;
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+  border-radius: var(--opale-radius-sm);
+  background: color-mix(in srgb, var(--opale-surface) 90%, transparent);
+  box-shadow: var(--opale-shadow-1);
+  color: var(--opale-text);
+  font-size: 0.8125rem;
+  list-style: none;
+}
+.tc-doc-svgmap-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--opale-space-xs);
+}
+.tc-doc-svgmap-legend__swatch {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  border: 1px solid var(--opale-svg-map-stroke);
+  border-radius: 0.25rem;
+}
+.tc-doc-svgmap-credit {
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+}
+.tc-doc-svgmap-data {
+  inline-size: 100%;
+  font-size: 0.875rem;
+}
+.tc-doc-svgmap-data summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.tc-doc-svgmap-data dl {
+  display: grid;
+  gap: var(--opale-space-xs);
+  margin: var(--opale-space-sm) 0 0;
+}
+.tc-doc-svgmap-data dt {
+  font-weight: 600;
+}
+.tc-doc-svgmap-data dd {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}

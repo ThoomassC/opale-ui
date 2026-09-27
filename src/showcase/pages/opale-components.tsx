@@ -259,11 +259,17 @@ export function ResultsPagination() {
   <Opale.Skeleton width="45%" height="1.5rem" />
   <Opale.Skeleton height="5rem" />
 </div>`,
-  SvgMap: `<Opale.SvgMap>
-  <circle cx="205" cy="75" r="12" fill="currentColor">
-    <title>Étape active</title>
-  </circle>
-</Opale.SvgMap>`,
+  SvgMap: `<Opale.SvgMap
+  label="Trois zones"
+  viewBox="0 0 300 120"
+  selectable
+  onSelect={(id) => console.log(id)}
+  regions={[
+    { id: 'nord', path: 'M10 10 H140 V60 H10 Z', name: 'Nord' },
+    { id: 'est', path: 'M150 10 H290 V110 H150 Z', name: 'Est' },
+    { id: 'sud', path: 'M10 70 H140 V110 H10 Z', name: 'Sud' },
+  ]}
+/>`,
 };
 
 function exampleCode(name: string, liquidGlass = false): string {

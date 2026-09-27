@@ -386,7 +386,60 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [prop('value', 'string', 'Texte à copier.', undefined, true)],
   },
   SvgMap: {
-    states: 'Cadre SVG recevant les tracés et points fournis par l’application.',
-    rows: [prop('children', 'ReactNode', 'Tracés et annotations SVG.')],
+    states:
+      'Carte image par défaut ; groupe de boutons avec `selectable`. Zoom, déplacement et cadrage, au geste comme au clavier.',
+    rows: [
+      prop(
+        'viewBox',
+        'string',
+        'Vue d’ensemble du dessin, au format de l’attribut viewBox.',
+        undefined,
+        true,
+      ),
+      prop(
+        'regions',
+        'readonly SvgMapRegion[]',
+        'Les tracés : un identifiant, un chemin, un nom.',
+        undefined,
+        true,
+      ),
+      prop('label', 'string', 'Nom de la carte, annoncé par les lecteurs d’écran.', "'Carte'"),
+      prop('fill', '(id) => string | undefined', 'Couleur d’une région, appelée à chaque rendu.'),
+      prop('stroke', 'string', 'Couleur du contour. Le défaut tient 3:1 dans les deux thèmes.'),
+      prop(
+        'selectable',
+        'boolean',
+        'Rend les régions cliquables et atteignables au clavier.',
+        'false',
+      ),
+      prop('onSelect', '(id) => void', 'Appelé avec l’identifiant de la région désignée.'),
+      prop(
+        'selected',
+        'readonly string[]',
+        'Régions retenues : soulignées et annoncées aria-pressed.',
+      ),
+      prop('viewport', 'UseSvgMapViewportResult', 'Vue partagée, pour cadrer de l’extérieur.'),
+      prop('maxZoom', 'number', 'Zoom maximal, en facteur de la vue d’ensemble.', '9'),
+      prop(
+        'maxWidth / maxHeight',
+        'string',
+        'Bornes de taille ; la hauteur est traduite en largeur.',
+      ),
+      prop('controls', 'boolean', 'Boutons de zoom intégrés.', 'true'),
+      prop(
+        'tapTolerance',
+        'number',
+        'Pixels au-delà desquels un contact devient un glissement.',
+        '6',
+      ),
+      prop(
+        'wheel',
+        "'modifier' | 'always' | false",
+        'Zoom à la molette : avec Ctrl ou ⌘, toujours, ou jamais.',
+        "'modifier'",
+      ),
+      prop('overlay', 'ReactNode', 'Posé au-dessus de la carte : légende, consigne.'),
+      prop('children', 'ReactNode', 'Dessin supplémentaire, dans les coordonnées de la carte.'),
+    ],
   },
 };

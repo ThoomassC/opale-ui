@@ -51,7 +51,13 @@ export const opaleComponentPages: readonly DocPage[] = OPALE_CATALOG.map((entry)
   group: 'composants',
   title: catalogComponentLabel(entry.name),
   searchTerms: [entry.description, ...(COMPONENT_SEARCH_TERMS[entry.name] ?? [])],
-  render: lazyPage(() => import('./opale-components').then((module) => module.ComponentPage), {
-    entry,
-  }),
+  /* LA CARTE SVG A SA PAGE PROPRE. Refondue en 3.5.0, elle se démontre sur
+     trois scènes et trois tables d'interface, ce que le gabarit commun d'une
+     fiche ne sait pas porter. L'adresse, elle, ne change pas. */
+  render:
+    entry.name === 'SvgMap'
+      ? lazyPage(() => import('./composants/svg-map/svg-map').then((module) => module.default))
+      : lazyPage(() => import('./opale-components').then((module) => module.ComponentPage), {
+          entry,
+        }),
 }));
