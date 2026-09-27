@@ -539,6 +539,42 @@
   mask-composite: exclude;
 }
 
+/* Une action uniquement iconique garde une cible carrée et une encre lisible.
+   Le bord masqué du bouton ghost produisait quatre fragments bleus, également
+   visibles sous le verre : cette silhouette ne dessine aucun second contour. */
+.opale-icon-action-button {
+  --opale-icon-action-size: 2.75rem;
+  inline-size: var(--opale-icon-action-size);
+  min-inline-size: var(--opale-icon-action-size);
+  block-size: var(--opale-icon-action-size);
+  min-block-size: var(--opale-icon-action-size);
+  padding: 0;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.opale-icon-action-button.opale-button {
+  min-height: var(--opale-icon-action-size);
+}
+
+.opale-icon-action-button.opale-button--small {
+  --opale-icon-action-size: 2.25rem;
+  font-size: 1rem;
+}
+
+.opale-icon-action-button.opale-button--large {
+  --opale-icon-action-size: 3.25rem;
+  font-size: 1.25rem;
+}
+
+.opale-icon-action-button.opale-button--full {
+  inline-size: 100%;
+}
+
+.opale-icon-action-button::after {
+  display: none;
+}
+
 .opale-button--text {
   --opale-button-background: transparent;
   --opale-button-hover-background: color-mix(in srgb, var(--opale-primary) 8%, transparent);
@@ -959,6 +995,10 @@
 }
 
 @media (max-width: 37.499rem) {
+  .opale-icon-action-button.opale-button--small {
+    --opale-icon-action-size: 2.75rem;
+  }
+
   .opale-button {
     min-height: 3rem;
   }
@@ -1745,13 +1785,78 @@
   border-radius: var(--opale-radius-md);
   border: 1px solid currentColor;
 }
-/* Les deux choix du bandeau de consentement, sous son texte. Ils passent à la
-   ligne plutôt que de pousser l'encart hors d'un écran étroit. */
+/* Le bandeau se place comme un toast en bas au centre. L'ancre porte la
+   translation horizontale ; son enfant animé garde ainsi sa glissade verticale. */
+.opale-cookie-banner-anchor {
+  position: fixed;
+  z-index: 900;
+  inset-inline-start: 50%;
+  inset-block-end: calc(var(--opale-space-lg) + env(safe-area-inset-bottom, 0px));
+  width: min(44rem, calc(100vw - 2 * var(--opale-space-lg)));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.opale-cookie-banner {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--opale-space-lg);
+  padding: var(--opale-space-lg);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-lg);
+  background: var(--opale-surface);
+  box-shadow: var(--opale-shadow-3);
+  color: var(--opale-text);
+}
+.opale-cookie-banner__copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: var(--opale-space-2xs);
+  line-height: 1.4;
+}
+.opale-cookie-banner__copy strong {
+  font-size: 1rem;
+}
+.opale-cookie-banner__copy > div {
+  color: var(--opale-text-secondary);
+  font-size: 0.875rem;
+}
 .opale-cookie-banner__actions {
   display: flex;
-  flex-wrap: wrap;
+  flex: none;
+  justify-content: flex-end;
   gap: var(--opale-space-sm);
-  margin-block-start: var(--opale-space-sm);
+}
+.opale-cookie-banner__actions .opale-button {
+  min-width: 6.5rem;
+}
+.opale-cookie-banner--glass-root {
+  --opale-glass-width: 100%;
+  --opale-glass-radius: var(--opale-radius-lg);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-surface) 96%, transparent);
+}
+.opale-cookie-banner.opale-cookie-banner--glass {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--opale-text);
+}
+@media (max-width: 42rem) {
+  .opale-cookie-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--opale-space-md);
+  }
+}
+@media (max-width: 22rem) {
+  .opale-cookie-banner__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .opale-cookie-banner__actions .opale-button {
+    min-width: 0;
+  }
 }
 .opale-feedback--success {
   color: var(--opale-success-on-surface);
@@ -1840,6 +1945,19 @@
   content: '';
   background: currentcolor;
 }
+/* Le rail vit sur une photographie assombrie : les couleurs de navigation
+   prévues pour une surface claire perdent leur contraste sous verre. */
+.opale-nav.opale-surface--glass .opale-nav__item {
+  color: var(--opale-glass-ink-muted);
+}
+.opale-nav.opale-surface--glass .opale-nav__item:hover {
+  background: color-mix(in srgb, var(--opale-glass-ink) 12%, transparent);
+  color: var(--opale-glass-ink);
+}
+.opale-nav.opale-surface--glass .opale-nav__item[aria-current='page'] {
+  background: color-mix(in srgb, var(--opale-glass-ink) 18%, transparent);
+  color: var(--opale-glass-ink);
+}
 .opale-breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -1895,6 +2013,25 @@
   color: var(--opale-text-secondary);
   cursor: pointer;
   font-size: 1.5rem;
+}
+
+/* Le corps de Modal peut défiler : une petite gouttière intérieure laisse
+   apparaître les deux bords de la recherche et son état de focus. */
+.opale-command-palette__content {
+  display: grid;
+  min-width: 0;
+  gap: var(--opale-space-md);
+  padding-inline: 0.25rem;
+}
+.opale-command-palette__results {
+  display: grid;
+  min-width: 0;
+  gap: var(--opale-space-xs);
+}
+/* La modale en verre a une surface claire opaque : son libellé reprend l'encre
+   du dialogue, pas l'encre blanche des composants posés sur une photographie. */
+[data-opale-glass] .opale-command-palette__content .opale-field__label {
+  color: var(--opale-text);
 }
 
 /* =============================================================================
@@ -2094,6 +2231,8 @@
   overflow-x: auto;
 }
 .opale-table {
+  --opale-table-stripe: color-mix(in srgb, var(--opale-primary) 4%, transparent);
+  --opale-table-row-hover: color-mix(in srgb, var(--opale-primary) 8%, transparent);
   width: 100%;
   border-collapse: collapse;
 }
@@ -2101,13 +2240,55 @@
 .opale-table td {
   padding: 0.75rem 0.875rem;
   border-bottom: 1px solid var(--opale-divider);
-  text-align: left;
+  text-align: start;
 }
 .opale-table th {
+  background: color-mix(in srgb, var(--opale-primary) 5%, var(--opale-surface));
   color: var(--opale-text-secondary);
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+.opale-table [data-align='center'] {
+  text-align: center;
+}
+.opale-table [data-align='end'] {
+  text-align: end;
+}
+.opale-table--compact th,
+.opale-table--compact td {
+  padding-block: 0.5rem;
+}
+.opale-table--striped tbody tr:nth-child(even) {
+  background: var(--opale-table-stripe);
+}
+.opale-table tbody tr:hover,
+.opale-table tbody tr:focus-within {
+  background: var(--opale-table-row-hover);
+}
+.opale-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.opale-table .opale-table__state-cell {
+  padding-block: 2rem;
+}
+.opale-table__state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--opale-text-secondary);
+  text-align: center;
+}
+.opale-table__state-icon {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .opale-table__state .opale-spinner {
+    animation: none;
+  }
 }
 /* LA LÉGENDE NOMME LA TABLE : c'est elle que le lecteur d'écran annonce en
    y entrant. Alignée au début, comme le reste du texte. */
@@ -2116,6 +2297,19 @@
   color: var(--opale-text);
   font-weight: 600;
   text-align: start;
+}
+.opale-table__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: var(--opale-space-sm);
+}
+.opale-table__count {
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-primary) 10%, var(--opale-surface));
+  color: var(--opale-primary-on-surface);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
 }
 /* L'EN-TÊTE TRIABLE RESTE UN EN-TÊTE. Le bouton hérite de la casse, de la
    graisse et de l'approche de la cellule : seuls le curseur, le survol et la
@@ -2150,6 +2344,42 @@
   inline-size: 0.875rem;
   block-size: 0.875rem;
   flex: none;
+}
+
+/* Le verre est posé sur une image : l'encre sombre de la table ordinaire se
+   perdait dans le paysage. Un bandeau sombre continu porte les en-têtes, puis
+   le blanc et le pictogramme signalent le tri sans filet bleu parasite. */
+.opale-table-panel.opale-surface--glass .opale-table__caption,
+.opale-table-panel.opale-surface--glass .opale-table th,
+.opale-table-panel.opale-surface--glass .opale-table__sort[data-sort] {
+  color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table th {
+  background: rgba(8, 27, 43, 0.68);
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+}
+.opale-table-panel.opale-surface--glass .opale-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.32);
+}
+.opale-table-panel.opale-surface--glass .opale-table__count,
+.opale-table-panel.opale-surface--glass .opale-table__sort[data-sort] {
+  background: rgba(255, 255, 255, 0.16);
+}
+.opale-table-panel.opale-surface--glass .opale-table__count,
+.opale-table-panel.opale-surface--glass .opale-table__state {
+  color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table__state .opale-spinner {
+  border-color: rgba(255, 255, 255, 0.28);
+  border-top-color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table__sort:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table {
+  --opale-table-stripe: rgba(255, 255, 255, 0.065);
+  --opale-table-row-hover: rgba(255, 255, 255, 0.13);
 }
 
 .opale-file-card {
@@ -2398,8 +2628,8 @@
 .opale-toast {
   display: flex;
   max-inline-size: min(26rem, calc(100vw - 2rem));
-  align-items: flex-start;
-  padding: 0.85rem 0.9rem 0.85rem 1rem;
+  align-items: center;
+  padding: 0.625rem 0.75rem 0.625rem 1rem;
   border: 1px solid var(--opale-toast-fill, var(--opale-divider));
   border-radius: var(--opale-radius-md);
   background: var(--opale-toast-fill, var(--opale-surface));
@@ -2435,7 +2665,6 @@
   inline-size: 1.25rem;
   block-size: 1.25rem;
   flex: 0 0 auto;
-  margin-block-start: 0.1rem;
 
   /* L'ICÔNE PREND L'ENCRE DE LA CARTE. C'est l'indice non textuel du ton : la
      couleur seule ne peut pas être le seul signal (WCAG 1.4.1), et une carte
@@ -2493,30 +2722,46 @@
    composent eux aussi à partir de cette encre — un anneau bleu sur une carte
    rouge ne se verrait pas. */
 .opale-toast__close {
+  position: relative;
   display: grid;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   min-width: 2.75rem;
   min-height: 2.75rem;
   flex: 0 0 auto;
-  margin: -0.5rem -0.4rem -0.5rem 0;
+  margin: -0.5rem -0.5rem -0.5rem 0;
   border: 0;
   border-radius: var(--opale-radius-sm);
   background: transparent;
   color: inherit;
   cursor: pointer;
-  opacity: 0.86;
+  opacity: 0.9;
   place-items: center;
 }
 
+/* La cible reste à 44 px ; seule la pastille visible au survol est réduite. */
+.opale-toast__close::before {
+  position: absolute;
+  inset: 0.5625rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  content: '';
+  pointer-events: none;
+}
+
 .opale-toast__close .opale-icon {
+  position: relative;
   min-width: 0;
   min-height: 0;
   color: inherit;
-  font-size: 1.125rem;
+  font-size: 1rem;
 }
 
 .opale-toast__close:hover {
-  background: color-mix(in srgb, currentColor 16%, transparent);
   opacity: 1;
+}
+.opale-toast__close:hover::before {
+  background: color-mix(in srgb, currentColor 9%, transparent);
 }
 
 .opale-toast__close:focus-visible {

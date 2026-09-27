@@ -116,6 +116,8 @@ export interface PlaygroundConfig {
   inputError: boolean;
   inputDisabled: boolean;
   tableMode: 'filled' | 'empty' | 'loading';
+  tableDensity: 'comfortable' | 'compact';
+  tableStriped: boolean;
 }
 
 export function CatalogPreview({
@@ -353,9 +355,12 @@ export function CatalogPreview({
         <Opale.DataTable
           liquidGlass={liquidGlass}
           caption="Composants"
+          showRowCount
+          striped={playground?.tableStriped ?? true}
+          density={playground?.tableDensity}
           columns={[
             { key: 'name', label: 'Nom', sortable: true },
-            { key: 'uses', label: 'Usages', sortable: true },
+            { key: 'uses', label: 'Usages', sortable: true, align: 'end' },
             { key: 'status', label: 'Statut' },
           ]}
           rowKey={(row) => String(row.name)}
@@ -645,11 +650,7 @@ export function CatalogPreview({
             value={text}
             onChange={setText}
             onClose={() => setPaletteOpen(false)}
-          >
-            <Opale.Button variant="text" onClick={() => setPaletteOpen(false)}>
-              Fermer
-            </Opale.Button>
-          </Opale.CommandPalette>
+          />
         </>
       );
       break;

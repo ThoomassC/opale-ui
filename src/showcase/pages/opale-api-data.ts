@@ -119,6 +119,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('icon', 'OpaleIconName', 'Dessin de l’action.', 'more-horizontal'),
       prop('label', 'string', 'Nom accessible du bouton.', undefined, true),
+      prop(
+        'variant',
+        "'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text'",
+        'Couleur de l’action. Tonal par défaut pour une icône seule.',
+        'tonal',
+      ),
+      prop('size', "'small' | 'medium' | 'large'", 'Taille de la cible.', 'medium'),
     ],
   },
   Card: {
@@ -136,8 +143,11 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   DataTable: {
     states: 'Cliquer un en-tête triable alterne les sens du tri.',
     rows: [
-      prop('columns', 'readonly DataTableColumn[]', 'Colonnes et option de tri.'),
+      prop('columns', 'readonly DataTableColumn[]', 'Colonnes, tri et alignement.'),
       prop('rows', 'readonly DataTableRow[]', 'Données affichées.'),
+      prop('density', "'comfortable' | 'compact'", 'Espacement des lignes.', 'comfortable'),
+      prop('striped', 'boolean', 'Alternance discrète des lignes.', 'false'),
+      prop('showRowCount', 'boolean', 'Nombre de lignes visibles sous la table.', 'false'),
       prop('defaultSort', 'DataTableSort', 'Tri initial.'),
       prop('rowKey', '(row, index) => string | number', 'Identité stable des lignes.'),
       prop('loading', 'boolean', 'Affiche un état de chargement.', 'false'),
@@ -300,11 +310,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     ],
   },
   CommandPalette: {
-    states: 'Le champ et les résultats sont pilotés par l’application.',
+    states: 'Recherche dans le contenu fourni ; le bouton Fermer accompagne onClose.',
     rows: [
       prop('open', 'boolean', 'Visibilité de la palette.', 'false'),
       prop('value', 'string', 'Texte saisi.', "''"),
       prop('onChange', '(value: string) => void', 'Nouveau texte saisi.'),
+      prop('onClose', '() => void', 'Ferme la palette avec la croix, le pied ou Échap.'),
+      prop('children', 'ReactNode', 'Résultats ou commandes affichés sous la recherche.'),
     ],
   },
   Breadcrumb: {
@@ -312,8 +324,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [prop('items', 'readonly NavItem[]', 'Étapes du chemin.')],
   },
   CookieBanner: {
-    states: 'Le choix est mémorisé et peut être rouvert par l’application.',
+    states: 'En bas au centre, animé comme un toast ; le choix est mémorisé.',
     rows: [
+      prop('open', 'boolean', 'Force l’affichage ou la fermeture.', 'choix mémorisé'),
       prop('onAccept', '() => void', 'Consentement accepté.'),
       prop('onDecline', '() => void', 'Consentement refusé.'),
       prop('storageKey', 'string | null', 'Clé de persistance.', 'opale-cookie-consent'),

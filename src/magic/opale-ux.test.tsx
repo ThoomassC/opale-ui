@@ -68,6 +68,21 @@ describe('états opérationnels', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Chargement des données');
   });
 
+  it('DataTable met à jour le compteur sans changer le nom accessible de la table', () => {
+    const columns = [{ key: 'name', label: 'Nom' }];
+    const { rerender } = render(
+      <DataTable caption="Composants" columns={columns} rows={[{ name: 'Button' }]} showRowCount />,
+    );
+    expect(screen.getByRole('table', { name: 'Composants' })).toBeInTheDocument();
+    expect(screen.getByText('1 ligne')).toBeInTheDocument();
+
+    rerender(<DataTable caption="Composants" columns={columns} rows={[]} showRowCount />);
+    expect(screen.getByText('0 lignes')).toBeInTheDocument();
+
+    rerender(<DataTable caption="Composants" columns={columns} rows={[]} showRowCount loading />);
+    expect(screen.queryByText('0 lignes')).not.toBeInTheDocument();
+  });
+
   it('Dropzone rejette les fichiers invalides et accepte les fichiers valides', () => {
     const onFiles = vi.fn();
     const onError = vi.fn();

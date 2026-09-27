@@ -1,4 +1,12 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitForElementToBeRemoved,
+  within,
+} from '@testing-library/react';
 import { useState } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
@@ -160,22 +168,25 @@ describe('Clipboard — l’état fugace et l’échec', () => {
    pas de refuser.
    ------------------------------------------------------------------------- */
 describe('CookieBanner — la mémorisation du choix', () => {
-  it('devrait mémoriser l’acceptation et ne plus s’afficher ensuite', () => {
+  it('devrait mémoriser l’acceptation et se retirer après sa sortie animée', async () => {
     const onAccept = vi.fn();
     const { unmount } = render(<CookieBanner onAccept={onAccept} />);
 
+    expect(screen.getByRole('button', { name: 'Refuser' })).toHaveClass('opale-button--danger');
+    expect(screen.getByRole('button', { name: 'Accepter' })).toHaveClass('opale-button--primary');
     fireEvent.click(screen.getByRole('button', { name: 'Accepter' }));
 
     expect(onAccept).toHaveBeenCalledOnce();
     expect(window.localStorage.getItem(COOKIE_CONSENT_KEY)).toBe('accepted');
-    expect(screen.queryByText('Cookies')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Consentement aux cookies' })).toBeNull();
+    await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
 
     unmount();
     render(<CookieBanner />);
     expect(screen.queryByText('Cookies'), 'Le choix doit survivre à la visite.').toBeNull();
   });
 
-  it('devrait proposer de refuser, et mémoriser le refus', () => {
+  it('devrait proposer de refuser, mémoriser le refus et animer sa sortie', async () => {
     const onDecline = vi.fn();
     render(<CookieBanner onDecline={onDecline} />);
 
@@ -183,7 +194,7 @@ describe('CookieBanner — la mémorisation du choix', () => {
 
     expect(onDecline).toHaveBeenCalledOnce();
     expect(window.localStorage.getItem(COOKIE_CONSENT_KEY)).toBe('declined');
-    expect(screen.queryByText('Cookies')).toBeNull();
+    await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
   });
 
   it('devrait lire la clé fournie, et ne rien écrire quand la mémoire est coupée', () => {
@@ -203,7 +214,7 @@ describe('CookieBanner — la mémorisation du choix', () => {
     expect(screen.getByText('Cookies')).toBeInTheDocument();
   });
 
-  it('devrait fonctionner quand le stockage est inaccessible', () => {
+  it('devrait fonctionner quand le stockage est inaccessible', async () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('bloqué');
     });
@@ -213,7 +224,7 @@ describe('CookieBanner — la mémorisation du choix', () => {
     render(<CookieBanner />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Accepter' }));
-    expect(screen.queryByText('Cookies')).toBeNull();
+    await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
     vi.restoreAllMocks();
   });
 });
@@ -562,6 +573,17 @@ describe('CookieBanner — ce que la relecture a trouvé', () => {
   it('devrait se rouvrir quand l’appelant passe open, choix mémorisé ou pas', () => {
     window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
     render(<CookieBanner open />);
+    expect(screen.getByRole('region', { name: 'Consentement aux cookies' })).toBeInTheDocument();
+  });
+
+  it('anime la fermeture pilotée puis permet une nouvelle ouverture', async () => {
+    const { rerender } = render(<CookieBanner open />);
+
+    rerender(<CookieBanner open={false} />);
+    expect(screen.queryByRole('region', { name: 'Consentement aux cookies' })).toBeNull();
+    await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
+
+    rerender(<CookieBanner open />);
     expect(screen.getByRole('region', { name: 'Consentement aux cookies' })).toBeInTheDocument();
   });
 

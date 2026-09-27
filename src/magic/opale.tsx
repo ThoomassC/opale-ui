@@ -40,6 +40,7 @@ import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './c
    `Modal` fait tout cela, et il est déjà testé pour. Les quatre deviennent
    donc ce qu'ils auraient toujours dû être : des PRÉRÉGLAGES. */
 import { Modal } from './components/modal';
+import toastMotion from './components/toast/style/Toast.module.css';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
@@ -1266,15 +1267,20 @@ export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement
 export function IconActionButton({
   icon = 'more-horizontal',
   label,
+  variant = 'tonal',
+  className,
   ...props
 }: Omit<ButtonProps, 'children'> & { icon?: OpaleIconName; label: string }) {
-  /* IL RENDAIT LA PREMIÈRE LETTRE DU LIBELLÉ. `label.slice(0, 1)` : un bouton
-     « Partager » affichait « P ». Ce n'était pas une icône, c'était l'aveu
-     qu'il n'y en avait pas — le jeu d'Opale n'existait pas encore. Il en
-     prend une vraie, par son nom ; le libellé reste le nom accessible, et
-     seulement lui. */
+  /* Le nom accessible reste indépendant du glyphe. Le rendu tonal remplace
+     le filet ghost masqué, qui n'apparaissait qu'aux quatre bords du bouton
+     et traversait aussi le verre liquide. La variante reste configurable. */
   return (
-    <Button {...props} aria-label={label} variant="ghost">
+    <Button
+      {...props}
+      variant={variant}
+      className={cx('opale-icon-action-button', className)}
+      aria-label={label}
+    >
       <IconGlyph name={icon} className="opale-icon__glyph" />
     </Button>
   );
@@ -1993,28 +1999,41 @@ export function CommandPalette({
   children?: ReactNode;
   liquidGlass?: boolean;
 }) {
-  /* LE CHAMP A UNE ÉTIQUETTE, ET PLUS SEULEMENT UN TEXTE INDICATIF. Un
-     placeholder disparaît à la première frappe, ne survit pas à la
-     reconnaissance vocale et n'est pas une étiquette (WCAG 3.3.2) : il était
-     pourtant le seul nom accessible du champ. Sur le composant dont la
-     vocation EST le clavier, l'ironie méritait d'être corrigée.
+  /* La modale donne d'abord le focus au panneau pour annoncer son titre.
+     Au cadre suivant, la palette place le curseur dans sa recherche : on peut
+     lancer une commande sans clic, tout en laissant Modal retenir l'élément
+     à qui rendre le focus à la fermeture. */
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const frame = requestAnimationFrame(() => searchRef.current?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
 
-     `onClose` EST UNE PROP NOUVELLE, et elle est la condition du reste : un
-     dialogue qu'on ne peut pas fermer n'en est pas un. */
   return (
     <Modal
       open={open}
       onClose={onClose}
       liquidGlass={liquidGlass}
-      aria-label="Palette de commandes"
+      title="Palette de commandes"
+      footer={
+        onClose ? (
+          <Button variant="text" onClick={onClose}>
+            Fermer
+          </Button>
+        ) : undefined
+      }
     >
-      <Input
-        label="Rechercher une commande"
-        liquidGlass={liquidGlass}
-        value={value}
-        onChange={(event) => onChange?.(event.currentTarget.value)}
-      />
-      {children}
+      <div className="opale-command-palette__content">
+        <Input
+          ref={searchRef}
+          type="search"
+          label="Rechercher une commande"
+          value={value}
+          onChange={(event) => onChange?.(event.currentTarget.value)}
+        />
+        {children && <div className="opale-command-palette__results">{children}</div>}
+      </div>
     </Modal>
   );
 }
@@ -2089,6 +2108,9 @@ export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
    ========================================================================== */
 export const COOKIE_CONSENT_KEY = 'opale-cookie-consent';
 
+/* Même durée que la sortie « slide-from-bottom » de Toast. */
+const COOKIE_EXIT_MS = 240;
+
 export type CookieConsent = 'accepted' | 'declined';
 
 /** Le choix mémorisé sous `key`, ou `null` s'il n'y en a pas ou que le stockage manque. */
@@ -2137,6 +2159,23 @@ export function CookieBanner({
   );
   const [decided, setDecided] = useState<CookieConsent | null>(null);
   const textId = useId();
+  const visible = open ?? !(decided ?? stored);
+  const [wasVisible, setWasVisible] = useState(visible);
+  const [leaving, setLeaving] = useState(false);
+
+  /* La sortie animée suit un clic ou la fermeture pilotée par `open`. Une
+     préférence déjà mémorisée, découverte après hydratation, se retire tout
+     de suite pour ne pas laisser clignoter un bandeau devenu inutile. */
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    setLeaving(!visible && (decided !== null || open === false));
+  }
+
+  useEffect(() => {
+    if (!leaving) return undefined;
+    const timeout = window.setTimeout(() => setLeaving(false), COOKIE_EXIT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [leaving]);
 
   const decide = (choice: CookieConsent) => {
     if (storageKey) {
@@ -2151,42 +2190,45 @@ export function CookieBanner({
     (choice === 'accepted' ? onAccept : onDecline)?.();
   };
 
-  const visible = open ?? !(decided ?? stored);
-  if (!visible) return null;
+  if (!visible && !leaving) return null;
 
   const Shell = liquidGlass ? Glass : 'section';
   const shellProps = liquidGlass
-    ? ({ as: 'section', rootClassName: 'opale-feedback--glass-root' } as const)
+    ? ({ as: 'section', rootClassName: 'opale-cookie-banner--glass-root' } as const)
     : {};
 
   return (
-    <Shell
-      {...shellProps}
-      className={cx(
-        'opale-feedback',
-        'opale-feedback--info',
-        'opale-cookie-banner',
-        liquidGlass && 'opale-feedback--glass',
-      )}
-      aria-label="Consentement aux cookies"
-      aria-describedby={textId}
-    >
-      <strong>Cookies</strong>
-      <span>
-        <span id={textId}>{children}</span>
-        <span className="opale-cookie-banner__actions">
-          {/* MÊME POIDS POUR LES DEUX. Un refus en lien gris à côté d'un
-              « Accepter » plein pousse la main vers le second : c'est le
-              motif que la CNIL reproche aux bandeaux. */}
-          <Button size="small" liquidGlass={liquidGlass} onClick={() => decide('declined')}>
-            Refuser
-          </Button>
-          <Button size="small" liquidGlass={liquidGlass} onClick={() => decide('accepted')}>
-            Accepter
-          </Button>
-        </span>
-      </span>
-    </Shell>
+    <div className="opale-cookie-banner-anchor">
+      <div
+        className={cx(
+          toastMotion.card,
+          toastMotion.slideFromBottom,
+          leaving && toastMotion.leaving,
+        )}
+        inert={leaving}
+        aria-hidden={leaving ? true : undefined}
+      >
+        <Shell
+          {...shellProps}
+          className={cx('opale-cookie-banner', liquidGlass && 'opale-cookie-banner--glass')}
+          aria-label="Consentement aux cookies"
+          aria-describedby={textId}
+        >
+          <div className="opale-cookie-banner__copy">
+            <strong>Cookies</strong>
+            <div id={textId}>{children}</div>
+          </div>
+          <div className="opale-cookie-banner__actions">
+            <Button variant="danger" size="small" onClick={() => decide('declined')}>
+              Refuser
+            </Button>
+            <Button variant="primary" size="small" onClick={() => decide('accepted')}>
+              Accepter
+            </Button>
+          </div>
+        </Shell>
+      </div>
+    </div>
   );
 }
 
@@ -2552,6 +2594,8 @@ export interface DataTableColumn {
   sortValue?: (row: DataTableRow) => string | number;
   /** Nom annoncé au tri quand `label` n'est pas du texte. */
   sortLabel?: string;
+  /** Alignement de l'en-tête et des cellules ; utile pour les nombres. */
+  align?: 'start' | 'center' | 'end';
 }
 
 export interface DataTableProps {
@@ -2566,6 +2610,12 @@ export interface DataTableProps {
   loading?: boolean;
   emptyMessage?: string;
   liquidGlass?: boolean;
+  /** Réduit l'espacement vertical sans changer la structure de la table. */
+  density?: 'comfortable' | 'compact';
+  /** Ajoute une alternance discrète aux lignes de données. */
+  striped?: boolean;
+  /** Affiche le nombre de lignes visibles sous la table. */
+  showRowCount?: boolean;
 }
 
 const TABLE_COLLATOR = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' });
@@ -2603,6 +2653,9 @@ export function DataTable({
   loading = false,
   emptyMessage = 'Aucune donnée à afficher.',
   liquidGlass = false,
+  density = 'comfortable',
+  striped = false,
+  showRowCount = false,
 }: DataTableProps) {
   const [sort, setSort] = useState<DataTableSort | undefined>(defaultSort);
   const [announcement, setAnnouncement] = useState('');
@@ -2636,16 +2689,22 @@ export function DataTable({
   };
 
   return (
-    <Surface liquidGlass={liquidGlass} className="opale-panel">
+    <Surface liquidGlass={liquidGlass} className="opale-panel opale-table-panel">
       <div className="opale-table-scroll">
-        <table className="opale-table">
+        <table
+          className={cx(
+            'opale-table',
+            density === 'compact' && 'opale-table--compact',
+            striped && 'opale-table--striped',
+          )}
+        >
           {caption && <caption className="opale-table__caption">{caption}</caption>}
           <thead>
             <tr>
               {columns.map((column) => {
                 const active = sort?.key === column.key ? sort.direction : undefined;
                 return (
-                  <th key={column.key} scope="col" aria-sort={active}>
+                  <th key={column.key} scope="col" aria-sort={active} data-align={column.align}>
                     {column.sortable ? (
                       <button
                         type="button"
@@ -2676,17 +2735,29 @@ export function DataTable({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={Math.max(1, columns.length)}>Chargement des données…</td>
+                <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
+                  <div className="opale-table__state">
+                    <span className="opale-spinner" aria-hidden="true" />
+                    <span>Chargement des données…</span>
+                  </div>
+                </td>
               </tr>
             ) : ordered.length === 0 ? (
               <tr>
-                <td colSpan={Math.max(1, columns.length)}>{emptyMessage}</td>
+                <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
+                  <div className="opale-table__state">
+                    <IconGlyph name="archive" className="opale-table__state-icon" />
+                    <span>{emptyMessage}</span>
+                  </div>
+                </td>
               </tr>
             ) : (
               ordered.map(({ row, index }) => (
                 <tr key={rowKey?.(row, index) ?? index}>
                   {columns.map((column) => (
-                    <td key={column.key}>{row[column.key]}</td>
+                    <td key={column.key} data-align={column.align}>
+                      {row[column.key]}
+                    </td>
                   ))}
                 </tr>
               ))
@@ -2694,6 +2765,13 @@ export function DataTable({
           </tbody>
         </table>
       </div>
+      {showRowCount && !loading && (
+        <div className="opale-table__footer">
+          <span className="opale-table__count">
+            {ordered.length} {ordered.length === 1 ? 'ligne' : 'lignes'}
+          </span>
+        </div>
+      )}
       <span className="opale-visually-hidden" role="status">
         {loading ? 'Chargement des données…' : announcement}
       </span>

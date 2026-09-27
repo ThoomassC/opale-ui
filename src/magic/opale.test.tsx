@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -12,6 +12,7 @@ import {
   Checkbox,
   Dropzone,
   Input,
+  IconActionButton,
   MultiSelect,
   ProgressBar,
   Select,
@@ -53,6 +54,39 @@ describe('Button', () => {
     render(<Button variant="ghost">Action secondaire</Button>);
     expect(screen.getByRole('button', { name: 'Action secondaire' })).toHaveClass(
       'opale-button--ghost',
+    );
+  });
+});
+
+describe('IconActionButton', () => {
+  it('garde une cible nommée, compacte et tonale dans les deux matières', () => {
+    const onClick = vi.fn();
+    const { rerender } = render(
+      <IconActionButton icon="share" label="Partager" onClick={onClick} />,
+    );
+    const button = screen.getByRole('button', { name: 'Partager' });
+    expect(button).toHaveClass('opale-icon-action-button', 'opale-button--tonal');
+    expect(button).not.toHaveClass('opale-button--ghost');
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    rerender(<IconActionButton icon="share" label="Partager" liquidGlass size="small" />);
+    expect(screen.getByRole('button', { name: 'Partager' })).toHaveClass(
+      'opale-icon-action-button',
+      'opale-button--tonal',
+      'opale-button--glass',
+      'opale-button--small',
+    );
+  });
+
+  it('accepte une variante et une classe personnalisées', () => {
+    render(
+      <IconActionButton icon="share" label="Partager" variant="secondary" className="custom" />,
+    );
+    expect(screen.getByRole('button', { name: 'Partager' })).toHaveClass(
+      'opale-button--secondary',
+      'opale-icon-action-button',
+      'custom',
     );
   });
 });
@@ -254,17 +288,25 @@ describe('les bloquants de l’audit d’accessibilité', () => {
   /* LA PALETTE DE COMMANDES N'AVAIT QU'UN TEXTE INDICATIF POUR ÉTIQUETTE. Un
      placeholder disparaît à la première frappe et n'est pas une étiquette
      (WCAG 3.3.2) — sur le composant dont la vocation est le clavier. */
-  it('donne une vraie étiquette au champ de la palette', () => {
-    render(<CommandPalette open />);
+  it.each([false, true])(
+    'structure la palette et son action Fermer avec Liquid Glass=%s',
+    async (liquidGlass) => {
+      const onClose = vi.fn();
+      render(<CommandPalette open liquidGlass={liquidGlass} onClose={onClose} />);
 
-    const champ = screen.getByRole('textbox', { name: 'Rechercher une commande' });
+      const dialog = screen.getByRole('dialog', { name: 'Palette de commandes' });
+      const champ = screen.getByRole('searchbox', { name: 'Rechercher une commande' });
+      const closeButton = screen.getByText('Fermer').closest('button');
 
-    expect(champ).toBeInTheDocument();
-    expect(
-      champ.getAttribute('placeholder'),
-      'Le nom du champ ne doit pas reposer sur son texte indicatif.',
-    ).toBeNull();
-  });
+      expect(champ).toHaveAttribute('type', 'search');
+      expect(champ.getAttribute('placeholder')).toBeNull();
+      await waitFor(() => expect(champ).toHaveFocus());
+      expect(dialog.lastElementChild).toContainElement(closeButton);
+      expect(dialog.lastElementChild).not.toContainElement(champ);
+      fireEvent.click(closeButton as HTMLButtonElement);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    },
+  );
 
   /* LA NOTE N'ÉTAIT ANNONCÉE NULLE PART. `aria-label` sur un `<span>` sans
      rôle est ignoré par les API d'accessibilité, et les cinq étoiles sont
