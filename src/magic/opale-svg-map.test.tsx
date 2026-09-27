@@ -342,10 +342,15 @@ describe('SvgMap — les coins de la plaque', () => {
     );
   });
 
+  /* L'ANNEAU GLOBAL DE L'APPLICATION NE DOIT PAS REVENIR SUR LE SVG. La vitrine
+     pose `.tc-doc :focus-visible` (deux classes) et `tokens.css` un
+     `:focus-visible` universel avec son ombre : de même poids que la règle du
+     composant, la première gagnait par l'ordre et redessinait un rectangle
+     autour du dessin. La règle du composant porte donc trois classes. */
   it('trace l’anneau de focus sur la plaque, qui suit ses arrondis, et non sur le svg', () => {
-    expect(ruleBodies(css, '.opale-svg-map__svg:focus-visible').join('')).not.toMatch(
-      /outline:\s*3px/,
-    );
+    const svgRule = ruleBodies(css, '.opale-svg-map .opale-svg-map__svg:focus-visible').join('');
+    expect(svgRule).toMatch(/outline:\s*none/);
+    expect(svgRule).toMatch(/box-shadow:\s*none/);
     expect(
       ruleBodies(css, '.opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible)').join(''),
     ).toMatch(/outline:\s*3px solid var\(--opale-focus\)/);

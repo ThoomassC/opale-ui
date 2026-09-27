@@ -2585,6 +2585,10 @@
    la carte prend tous les gestes. */
 .opale-svg-map__svg {
   display: block;
+  /* Le navigateur rogne un `<svg>` à son cadre : un tracé qui touche le bord
+     du viewBox — la Corse — y perdait la moitié de son contour. Le trait
+     déborde dans le coussin de la plaque, qui est là pour lui. */
+  overflow: visible;
   inline-size: 100%;
   block-size: auto;
   aspect-ratio: var(--opale-svg-map-ratio);
@@ -2593,9 +2597,14 @@
   -webkit-user-select: none;
 }
 /* La carte sans régions à choisir prend elle-même le focus : son anneau est
-   porté par la plaque, plus haut. */
-.opale-svg-map__svg:focus-visible {
+   porté par la plaque, plus haut. TROIS CLASSES, parce qu'une application pose
+   souvent son propre anneau universel — la vitrine en a deux, `tokens.css` et
+   `.tc-doc :focus-visible` — qui, de même poids, gagnait par l'ordre des
+   feuilles et redessinait un rectangle autour du dessin, à l'intérieur de la
+   plaque arrondie. */
+.opale-svg-map .opale-svg-map__svg:focus-visible {
   outline: none;
+  box-shadow: none;
 }
 .opale-svg-map__canvas[data-zoomed='true'] .opale-svg-map__svg {
   cursor: grab;
