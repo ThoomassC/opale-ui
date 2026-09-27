@@ -121,7 +121,7 @@ body {
 }
 .tc-doc-topbar__version {
   border-radius: var(--opale-radius-pill);
-  padding: 0.28rem 0.6rem;
+  padding: 0.25rem 0.47rem;
   background: var(--opale-primary);
   color: #fbfaf9;
   font-size: 0.75rem;
