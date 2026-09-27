@@ -324,6 +324,34 @@ describe('SvgMap', () => {
    l'entoure (WCAG 1.4.11). La référence dont ce composant s'inspire posait le
    filet de séparation des surfaces, qui plafonne à 1,47:1 en thème sombre.
    ========================================================================== */
+/* =============================================================================
+   LE DESSIN NE TOUCHE PAS LES COINS ARRONDIS.
+
+   Un dessin cartographique remplit son viewBox jusqu'aux bords : la Corse est
+   dans le coin inférieur droit de la France de svg-maps, la pointe de la
+   Bretagne sur le bord gauche. Posée dans une plaque arrondie qui rogne ce qui
+   dépasse, la carte perdait ses coins — la Corse amputée —, et l'anneau de
+   focus, tracé sur le `<svg>` rectangulaire, s'arrêtait net aux arrondis.
+   ========================================================================== */
+describe('SvgMap — les coins de la plaque', () => {
+  const css = stripComments(opaleSource);
+
+  it('écarte le dessin des coins arrondis par un coussin de la plaque', () => {
+    expect(ruleBodies(css, '.opale-svg-map__plate').join('\n')).toMatch(
+      /(^|[;{\s])padding:\s*var\(--opale-space-sm\)/,
+    );
+  });
+
+  it('trace l’anneau de focus sur la plaque, qui suit ses arrondis, et non sur le svg', () => {
+    expect(ruleBodies(css, '.opale-svg-map__svg:focus-visible').join('')).not.toMatch(
+      /outline:\s*3px/,
+    );
+    expect(
+      ruleBodies(css, '.opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible)').join(''),
+    ).toMatch(/outline:\s*3px solid var\(--opale-focus\)/);
+  });
+});
+
 describe('SvgMap — contraste du contour', () => {
   const themes = new Map<string, Theme>(parseThemes(opaleSource).map((t) => [t.name, t]));
   const body = ruleBodies(stripComments(opaleSource), '.opale-svg-map').join('\n');
