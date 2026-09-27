@@ -2987,7 +2987,9 @@ export function Dropzone({
         }}
       />
       <strong>{children}</strong>
-      <span>{disabled ? 'Sélection désactivée' : 'Sélectionner des fichiers'}</span>
+      <span className="opale-dropzone__action">
+        {disabled ? 'Sélection désactivée' : 'Sélectionner des fichiers'}
+      </span>
       <span className="opale-dropzone__error" role="alert">
         {error}
       </span>
@@ -3021,7 +3023,11 @@ export function Lightbox({
       aria-label="Aperçu"
       rootClassName="opale-lightbox"
       footer={
-        <Button variant="ghost" liquidGlass={liquidGlass} onClick={onClose}>
+        /* UN BOUTON PLEIN, ET NON LE FANTÔME. `ghost` trace son contour par un
+           masque découpé en squircle : autour d'un libellé court, il ne restait
+           que deux crochets de part et d'autre de « Fermer ». `tonal` est le
+           bouton secondaire du système. */
+        <Button variant="tonal" liquidGlass={liquidGlass} onClick={onClose}>
           Fermer
         </Button>
       }

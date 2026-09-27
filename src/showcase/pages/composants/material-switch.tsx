@@ -29,10 +29,17 @@ export interface MaterialSwitchProps {
   readonly name: string;
   /** La scène est-elle haute ? Reprise de `MagicStage`. */
   readonly tall?: boolean;
+  /** La scène empile-t-elle ses figures en colonne ? Reprise de `MagicStage`. */
+  readonly stack?: boolean;
   readonly children: (liquidGlass: boolean) => ReactNode;
 }
 
-export function MaterialSwitch({ name, tall = false, children }: MaterialSwitchProps) {
+export function MaterialSwitch({
+  name,
+  tall = false,
+  stack = false,
+  children,
+}: MaterialSwitchProps) {
   const [liquidGlass, setLiquidGlass] = useState(false);
 
   return (
@@ -50,9 +57,13 @@ export function MaterialSwitch({ name, tall = false, children }: MaterialSwitchP
       </div>
 
       {liquidGlass ? (
-        <MagicStage tall={tall}>{children(true)}</MagicStage>
+        <MagicStage tall={tall} stack={stack}>
+          {children(true)}
+        </MagicStage>
       ) : (
-        <PlainStage tall={tall}>{children(false)}</PlainStage>
+        <PlainStage tall={tall} stack={stack}>
+          {children(false)}
+        </PlainStage>
       )}
     </>
   );

@@ -73,17 +73,29 @@
   justify-content: space-between;
   gap: var(--opale-space-xs);
   padding-bottom: var(--opale-space-xs);
+  /* LE TITRE S'ALIGNE SUR LES ENTRÉES, pas sur le bord du rail : même retrait
+     que le coussin d'une entrée, pour que le nom et les icônes partagent la
+     même verticale. */
+  padding-inline-start: var(--opale-space-sm);
 }
 
 .headerCollapsed {
   justify-content: center;
+  padding-inline-start: 0;
 }
 
+/* LE PIED EST UNE INFORMATION SECONDAIRE, et il se lit comme telle : un filet
+   le sépare de la liste, son encre est adoucie. L'une et l'autre dérivent de
+   `currentColor`, comme les voiles des entrées — ils suivent le fond du verre. */
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: var(--opale-space-xs);
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  padding-top: var(--opale-space-sm);
+  padding-inline: var(--opale-space-sm);
+  color: color-mix(in srgb, currentColor 68%, transparent);
+  font-size: 0.75rem;
 }
 
 /* --- La liste ------------------------------------------------------------- */
@@ -123,17 +135,32 @@
     color var(--opale-motion) var(--opale-ease);
 }
 
+/* REPLIÉE, UNE ENTRÉE EST UNE VIGNETTE CARRÉE, LA MÊME POUR TOUTES. Elle
+   remplissait auparavant la largeur du rail quand elle était retenue et se
+   réduisait à sa lettre sinon : des boîtes de trois tailles dans une colonne
+   qui n'en demande qu'une. 2,75 rem de côté, la cible de pointeur. */
 .itemCollapsed {
+  width: 2.75rem;
+  height: 2.75rem;
+  align-self: center;
   justify-content: center;
-  padding-inline: var(--opale-space-2xs);
+  padding: 0;
+}
+
+/* UNE ENTRÉE SANS ICÔNE S'ALIGNE SUR LA COLONNE DES LIBELLÉS dès qu'une
+   voisine en porte une : son libellé commençait sinon sous l'icône des autres.
+   Le retrait est exactement celui d'une entrée à icône — coussin, icône de
+   1,5 rem, écart. Une liste sans aucune icône n'est pas touchée. */
+.items:has(> .item > .itemIcon) > .item:not(.itemCollapsed):not(:has(> .itemIcon)) {
+  padding-inline-start: calc(var(--opale-space-sm) * 2 + 1.5rem);
 }
 
 .item:hover:not(:disabled) {
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  background: color-mix(in srgb, currentColor 8%, transparent);
 }
 
 .item:active:not(:disabled) {
-  background: color-mix(in srgb, currentColor 16%, transparent);
+  background: color-mix(in srgb, currentColor 14%, transparent);
 }
 
 /* L'ANNEAU DE FOCUS EST DOUBLE, ET C'EST LE VERRE QUI L'EXIGE.
@@ -161,41 +188,58 @@
 
 /* L'ENTRÉE RETENUE SE DIT DE TROIS FAÇONS, ET PAS SEULEMENT PAR UNE COULEUR.
 
-   Un voile plus dense, une graisse plus forte et un témoin vertical à gauche.
-   La couleur seule ne suffit pas (WCAG 1.4.1), et surtout elle ne suffit pas
-   ICI : le voile dérive de `currentColor`, donc son contraste avec le repos
-   dépend du fond sur lequel le verre est posé — sur un fond très clair l'écart
-   entre 10 % et 18 % est ténu. La graisse et le témoin, eux, se voient partout.
+   Un voile plus dense, une graisse plus forte et un LISERÉ intérieur. La
+   couleur seule ne suffit pas (WCAG 1.4.1), et le voile encore moins : il
+   dérive de `currentColor`, donc son écart avec le repos dépend du fond — sur
+   une surface claire, il ne se détache qu'à 1,2:1. La graisse, elle, disparaît
+   au repli avec le libellé. Le liseré reste : c'est une FORME, un contour
+   d'1,5 px à au moins 3:1 sur la surface (1.4.11), déplié comme replié.
 
-   Le témoin est un pseudo-élément et non une bordure : une bordure changerait
-   la boîte, donc décalerait le libellé de trois pixels au moment où l'entrée
-   devient active. */
-.itemActive {
+   IL REMPLACE LE TÉMOIN VERTICAL. Le témoin était collé au bord gauche de
+   l'entrée : sur une vignette repliée de 2,75 rem, il devenait une encoche au
+   flanc d'un carré. Le liseré épouse l'entrée quelle que soit sa forme.
+
+   C'est une ombre portée vers l'intérieur et non une bordure : une bordure
+   changerait la boîte, donc décalerait le libellé au moment où l'entrée
+   devient active. Sa couleur passe par une variable, que la surface pleine
+   règle sur l'encre primaire et que l'anneau de focus reprend. */
+.itemActive,
+.item.itemActive:hover:not(:disabled) {
+  --opale-sidebar-active-edge: color-mix(in srgb, currentColor 55%, transparent);
   background: color-mix(in srgb, currentColor 18%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--opale-sidebar-active-edge);
   font-weight: 600;
 }
 
-.itemActive::before {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 0.1875rem;
-  height: 1.25rem;
-  border-radius: var(--opale-radius-pill);
-  background: var(--opale-primary);
-  content: '';
-  transform: translateY(-50%);
+/* APPUYER SUR L'ENTRÉE RETENUE LA FONCE. Sans cette règle, la pression
+   retombait sur le voile générique de 14 %, plus clair que les 18 % de l'état
+   retenu : l'entrée pâlissait sous le doigt, ce qui se lit comme une
+   désélection. */
+.item.itemActive:active:not(:disabled) {
+  background: color-mix(in srgb, currentColor 24%, transparent);
 }
 
+/* Le focus d'une entrée retenue garde son liseré : la règle générique de
+   l'anneau remplacerait l'ombre intérieure par le seul halo. */
+.item.itemActive:focus-visible {
+  box-shadow:
+    inset 0 0 0 1.5px var(--opale-sidebar-active-edge),
+    0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
+}
+
+/* L'ICÔNE N'A PLUS DE TUILE. Elle en portait une, grise, posée DANS le voile
+   de l'entrée : deux boîtes emboîtées, et l'entrée retenue devenait un
+   rectangle gris contenant un carré gris. L'entrée est déjà la surface ;
+   l'icône n'en est que le dessin, et elle suit son encre. */
 .itemIcon {
   display: inline-flex;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
   flex: none;
   align-items: center;
   justify-content: center;
-  border-radius: var(--opale-radius-sm);
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .itemContent {
@@ -213,8 +257,11 @@
   white-space: nowrap;
 }
 
+/* Le badge se range au bout de la ligne, sur la même verticale d'une entrée à
+   l'autre, au lieu de coller au libellé et de flotter selon sa longueur. */
 .itemBadge {
   display: inline-flex;
+  margin-inline-start: auto;
   min-width: 1.5rem;
   align-items: center;
   justify-content: center;
@@ -258,18 +305,19 @@
 
 /* La lettre de repli, quand l'entrée n'a pas d'icône : il faut bien peindre
    QUELQUE CHOSE dans un rail de 88 px dont les libellés sont masqués. Elle est
-   `aria-hidden` — c'est une vignette, pas un nom. */
+   `aria-hidden` — c'est une vignette, pas un nom. SANS FOND PROPRE, pour la
+   même raison que l'icône : c'est l'entrée qui porte la surface, et chaque
+   lettre au repos ne doit pas ressembler à un bouton retenu. */
 .itemFallback {
   display: inline-flex;
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   flex: none;
   align-items: center;
   justify-content: center;
-  border-radius: var(--opale-radius-sm);
-  background: color-mix(in srgb, currentColor 12%, transparent);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
+  line-height: 1;
 }
 
 /* --- Le bouton de repli --------------------------------------------------- */
@@ -284,7 +332,9 @@
   border: 0;
   border-radius: var(--opale-radius-pill);
   padding: 0;
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  /* Un voile léger au repos : la bascule se devine sans concurrencer
+     l'entrée retenue, qui reste la surface la plus dense du rail. */
+  background: color-mix(in srgb, currentColor 6%, transparent);
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -292,11 +342,11 @@
 }
 
 .toggle:hover {
-  background: color-mix(in srgb, currentColor 22%, transparent);
+  background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 .toggle:active {
-  background: color-mix(in srgb, currentColor 28%, transparent);
+  background: color-mix(in srgb, currentColor 18%, transparent);
 }
 
 /* Le chevron tourne au lieu d'être remplacé par un autre glyphe : c'est le
@@ -339,4 +389,30 @@
   border-inline-end: 1px solid var(--opale-divider);
   background: var(--opale-surface);
   color: var(--opale-text);
+}
+
+/* SUR LA SURFACE PLEINE, L'ENTRÉE RETENUE PREND LA TEINTE D'OPALE. Le fond est
+   connu ici — c'est `--opale-surface` —, donc l'encre primaire y a un contraste
+   mesurable, ce que le verre, posé sur n'importe quoi, ne garantit pas : lui
+   garde le voile et le liseré dérivés de `currentColor`.
+
+   Mesuré sur les jetons : le libellé à 5,6:1 (clair) et 7,1:1 (sombre) sur la
+   teinte ; le liseré, même encre, aux mêmes ratios — au-delà des 3:1 qu'un
+   repère non textuel doit tenir. */
+.plain .itemActive,
+.plain .item.itemActive:hover:not(:disabled) {
+  --opale-sidebar-active-edge: var(--opale-primary-on-surface);
+  background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
+  color: var(--opale-primary-on-surface);
+}
+
+.plain .item.itemActive:active:not(:disabled) {
+  background: color-mix(in srgb, var(--opale-primary) 20%, transparent);
+}
+
+/* Le fond étant connu, le pied quitte les dérivés de `currentColor` pour les
+   jetons : le même filet que le bord du rail, l'encre secondaire d'Opale. */
+.plain .footer {
+  border-top-color: var(--opale-divider);
+  color: var(--opale-text-secondary);
 }
