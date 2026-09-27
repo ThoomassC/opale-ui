@@ -26,6 +26,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 
+import { releaseBlocker } from './release-guard.mjs';
+
 const DRY_RUN = process.argv.includes('--dry-run');
 
 function git(...args) {
@@ -71,12 +73,14 @@ if (!releases.includes(`version: '${version}'`)) {
   fail(`Aucune entrée « ${version} » dans src/showcase/releases.ts. Écrivez les notes d'abord.`);
 }
 
-/* 4. Un tag ne se réécrit pas. Celui qui existe a peut-être déjà été installé
-      par quelqu'un ; le déplacer changerait le code sous ses pieds. */
-const existing = git('tag', '--list', tag);
+/* 4. Un tag ne se réécrit pas, et une version doit dépasser TOUT ce qui est
+      publié. Celui qui existe a peut-être déjà été installé ; un numéro plus
+      bas que le plus haut tag passerait, pour semver, pour une version plus
+      ancienne — voir `release-guard.mjs`. */
+const blocker = releaseBlocker(version, git('tag', '--list').split('\n'));
 
-if (existing) {
-  fail(`Le tag ${tag} existe déjà. Montez la version plutôt que de réécrire une publication.`);
+if (blocker) {
+  fail(blocker);
 }
 
 if (DRY_RUN) {
