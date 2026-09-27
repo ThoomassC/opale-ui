@@ -10,7 +10,7 @@ Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/por
 > `@apply` qu'ils servaient. Le matériau verre est désormais le nôtre, opt-in composant par
 > composant ; la vitrine propose les thèmes globaux `light` et `dark`.
 
-La branche de recette prépare **3.4.0** : Sidebar retravaillée, SiteNav en verre liquide, et Divider, Dropzone, FileCard et Lightbox corrigés. Son historique est consultable dans l’onglet
+La branche de recette prépare **3.5.0** : SvgMap devient une vraie carte — zoom, déplacement, cadrage et sélection, au geste comme au clavier. Rupture : `viewBox` et `regions` deviennent obligatoires. Son historique est consultable dans l’onglet
 « Notes de versions » ; chaque état antérieur dispose aussi d’un snapshot utilisable sous
 `public/versions/`. Les états antérieurs du paquet, y compris la **2.0** et ses composants
 copiés d'une librairie tierce, sont décrits dans ces notes — et l'héritage lui-même dans
@@ -79,13 +79,13 @@ ce qui ne l'est pas.
 ## Installation
 
 Le paquet s'installe depuis GitHub ; il n'est pas publié sur npm. Le dernier tag est
-`v3.2.0`. Pour essayer **la 3.4.0 sur la branche de recette** :
+`v3.2.0`. Pour essayer **la 3.5.0 sur la branche de recette** :
 
 ```bash
 npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#recette"
 ```
 
-Cette référence de branche évolue avec la recette. Le tag `v3.4.0` sera créé lors de la
+Cette référence de branche évolue avec la recette. Le tag `v3.5.0` sera créé lors de la
 publication ; la documentation ne propose pas de commande vers un tag inexistant.
 
 Le paquet se compile à l'installation (`prepare` → `build:lib`). **Quatre points d'entrée**,
