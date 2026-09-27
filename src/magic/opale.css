@@ -1880,6 +1880,19 @@
   content: '';
   background: currentcolor;
 }
+/* Le rail vit sur une photographie assombrie : les couleurs de navigation
+   prévues pour une surface claire perdent leur contraste sous verre. */
+.opale-nav.opale-surface--glass .opale-nav__item {
+  color: var(--opale-glass-ink-muted);
+}
+.opale-nav.opale-surface--glass .opale-nav__item:hover {
+  background: color-mix(in srgb, var(--opale-glass-ink) 12%, transparent);
+  color: var(--opale-glass-ink);
+}
+.opale-nav.opale-surface--glass .opale-nav__item[aria-current='page'] {
+  background: color-mix(in srgb, var(--opale-glass-ink) 18%, transparent);
+  color: var(--opale-glass-ink);
+}
 .opale-breadcrumb {
   display: flex;
   flex-wrap: wrap;
