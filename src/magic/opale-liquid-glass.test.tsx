@@ -1195,4 +1195,18 @@ describe('les seuils de lisibilité du verre', () => {
       ).toMatch(new RegExp(`\\[data-opale-glass\\][^{]*${piece.replace('.', '\\.')}`));
     }
   });
+
+  it('donne à la vignette d’une carte de fichier une surface qui tient sur la photographie', () => {
+    /* L'encre de l'icône passait au blanc, mais sa vignette gardait le lavis
+       primaire à 12 % pensé pour la carte blanche : sur le cliché il ne restait
+       rien, et le pictogramme flottait sans support. Même remède que la
+       pastille, dont le lavis à 13 % avait le même défaut : une teinte assez
+       dense pour redevenir une surface. */
+    const rule = opaleSource.match(/\[data-opale-glass\] \.opale-file-card__icon \{([^}]*)\}/)?.[1];
+
+    expect(rule, 'aucune règle propre à la vignette sous verre').toBeDefined();
+    expect(rule).toMatch(
+      /background:\s*color-mix\(in srgb, var\(--opale-primary\) 62%, transparent\)/,
+    );
+  });
 });

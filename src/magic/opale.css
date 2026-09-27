@@ -758,6 +758,15 @@
   background: color-mix(in srgb, var(--opale-primary) 62%, transparent);
   color: var(--opale-glass-ink);
 }
+/* LA VIGNETTE D'UNE CARTE DE FICHIER, MÊME DÉFAUT QUE LA PASTILLE. Son lavis
+   primaire à 12 % est pensé pour la carte blanche : sous verre il ne restait
+   rien sur la photographie, et le pictogramme blanc flottait sans support. À
+   62 %, comme la pastille, la vignette redevient une surface ; le liseré
+   intérieur, tiré de l'encre du verre, la détache d'un cliché sombre. */
+[data-opale-glass] .opale-file-card__icon {
+  background: color-mix(in srgb, var(--opale-primary) 62%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--opale-glass-ink) 28%, transparent);
+}
 [data-opale-glass] .opale-badge--accent {
   background: color-mix(in srgb, var(--opale-accent-dark) 90%, transparent);
 }
