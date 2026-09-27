@@ -2,8 +2,8 @@
    LES CODES ISO 3166-1 ET LES CONTINENTS, REPRIS DE « TRAVELS IN WORLD ».
 
    Les deux tables viennent telles quelles du projet Travels in World, où elles
-   ont été vérifiées : chacun des 174 identifiants numériques de
-   `countries-110m.json` y est atteint par exactement un code alpha-2, et chaque
+   ont été vérifiées : chaque identifiant numérique de `countries-50m.json` y
+   est atteint par exactement un code alpha-2 — revérifié ici —, et chaque
    code a un nom connu d'`Intl.DisplayNames`. Recopiées et non réécrites : une
    table de codes se trompe en silence — elle teinte le mauvais pays.
 

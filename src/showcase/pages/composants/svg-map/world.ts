@@ -1,6 +1,6 @@
 import { geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature } from 'topojson-client';
-import topology from 'world-atlas/countries-110m.json';
+import topology from 'world-atlas/countries-50m.json';
 
 import type { SvgMapBounds, SvgMapRegion } from '../../../../magic';
 import { ALPHA2_BY_NUMERIC, continentOf, type Continent } from './world-codes';
@@ -24,10 +24,14 @@ import { ALPHA2_BY_NUMERIC, continentOf, type Continent } from './world-codes';
    3. DES TRACÉS ARRONDIS AU DIXIÈME. Au zoom maximal de la carte, un dixième
       d'unité reste sous le pixel, et le poids des chemins tombe de moitié.
 
-   Le jeu `countries-110m` de world-atlas (licence ISC, données Natural Earth du
-   domaine public) est la résolution légère : 177 formes, assez pour une vue
-   du monde. L'Antarctique est retiré — il occuperait le cinquième bas du cadre
-   pour une zone qu'aucune démonstration ne désigne.
+   LE JEU 50m, COMME DANS TRAVELS IN WORLD. `countries-50m` de world-atlas
+   (licence ISC, données Natural Earth du domaine public) porte 241 formes ;
+   le 110m n'en avait que 177 — ni Singapour, ni Malte, ni Bahreïn, et des
+   côtes taillées à la serpe dès qu'on zoome sur l'Europe. Le coût est au
+   chargement de CETTE page seulement : le jeu n'entre ni dans la librairie ni
+   dans le bundle principal de la vitrine. L'Antarctique est retiré — il
+   occuperait le cinquième bas du cadre pour une zone qu'aucune démonstration
+   ne désigne.
    ========================================================================== */
 
 const WORLD_WIDTH = 960;
@@ -49,6 +53,20 @@ const regionNames = new Intl.DisplayNames(['fr'], { type: 'region' });
    modifiés. */
 const projection = geoNaturalEarth1();
 
+/* UNE RÉGION PAR CODE ISO. Le 50m écrit deux formes sous le numérique 036 —
+   l'Australie et les îles Ashmore-et-Cartier, qui en sont un territoire. Deux
+   régions de même identifiant feraient deux boutons indiscernables pour la
+   sélection et le focus : leurs tracés sont réunis dans un seul `d`, qui
+   accepte plusieurs sous-chemins, sous le nom de la première forme. */
+function mergeById(countries: readonly WorldCountry[]): readonly WorldCountry[] {
+  const byId = new Map<string, WorldCountry>();
+  for (const country of countries) {
+    const known = byId.get(country.id);
+    byId.set(country.id, known ? { ...known, path: `${known.path}${country.path}` } : country);
+  }
+  return [...byId.values()];
+}
+
 function buildWorld(): readonly WorldCountry[] {
   const path = geoPath(projection).digits(1);
   const collection = feature(topology, topology.objects.countries);
@@ -61,9 +79,10 @@ function buildWorld(): readonly WorldCountry[] {
     if (!d) return [];
 
     const alpha2 = numeric === null ? undefined : ALPHA2_BY_NUMERIC.get(numeric);
-    /* Trois formes n'ont pas d'identifiant ISO — Chypre du Nord, Somaliland,
-       Kosovo : elles restent dessinées, c'est la côte, sous leur nom anglais
-       et un identifiant de secours. */
+    /* Cinq formes n'ont pas d'identifiant ISO — Somaliland, Kosovo, Chypre du
+       Nord, les territoires de l'océan Indien et le glacier de Siachen : elles
+       restent dessinées, c'est la côte, sous leur nom anglais et un
+       identifiant de secours. */
     const name = alpha2
       ? (regionNames.of(alpha2) ?? country.properties.name)
       : country.properties.name;
@@ -79,7 +98,7 @@ function buildWorld(): readonly WorldCountry[] {
   });
 }
 
-export const WORLD_COUNTRIES = buildWorld();
+export const WORLD_COUNTRIES = mergeById(buildWorld());
 
 /** Les pays d'un continent. */
 export function countriesOf(continent: Continent): readonly string[] {

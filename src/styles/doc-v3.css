@@ -3107,3 +3107,9 @@ body {
   background: none;
   box-shadow: none;
 }
+.tc-doc-svgmap-loading {
+  margin: 0;
+  padding-block: var(--opale-space-xl);
+  color: var(--opale-text-secondary);
+  text-align: center;
+}

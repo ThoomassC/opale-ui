@@ -2,7 +2,7 @@
    Activer l'option pour la vitrine l'activerait aussi pour la librairie, qui
    hérite de la même configuration — voir `src/showcase/version.ts`. Un seul
    module JSON est importé : on le décrit, Vite l'importe. */
-declare module 'world-atlas/countries-110m.json' {
+declare module 'world-atlas/countries-50m.json' {
   import type { GeometryCollection, Topology } from 'topojson-specification';
 
   const topology: Topology<{ countries: GeometryCollection<{ name: string }> }>;
