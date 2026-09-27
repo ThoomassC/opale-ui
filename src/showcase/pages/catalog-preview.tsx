@@ -796,11 +796,17 @@ export function CatalogPreview({
       break;
     case 'SvgMap':
       preview = (
-        <Opale.SvgMap liquidGlass={liquidGlass}>
-          <circle cx="205" cy="75" r="12" fill="currentColor">
-            <title>Étape active</title>
-          </circle>
-        </Opale.SvgMap>
+        <Opale.SvgMap
+          liquidGlass={liquidGlass}
+          label="Trois zones"
+          viewBox="0 0 300 120"
+          selectable
+          regions={[
+            { id: 'nord', path: 'M10 10 H140 V60 H10 Z', name: 'Nord' },
+            { id: 'est', path: 'M150 10 H290 V110 H150 Z', name: 'Est' },
+            { id: 'sud', path: 'M10 70 H140 V110 H10 Z', name: 'Sud' },
+          ]}
+        />
       );
       break;
     default:

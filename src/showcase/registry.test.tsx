@@ -72,6 +72,10 @@ beforeAll(() => preloadPages());
  */
 const DOCUMENTED_WITH: Readonly<Record<string, string>> = {
   ToastProvider: 'ToastProvider',
+  /* Les commandes de zoom de la carte, rendues par `SvgMap` lui-même et
+     détachables sur une vue partagée : elles n'ont de sens qu'avec une carte,
+     et se documentent sur sa page — comme `useSvgMapViewport`. */
+  SvgMapControls: 'SvgMap',
 };
 
 /** Ce qui doit finir dans une URL : minuscules, chiffres, tirets, barres. */
@@ -197,7 +201,9 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
      l'échéance absolue que sa fiche promettait.
 
    Rupture d'API assumée, à consigner dans les notes de version. */
-const PUBLISHED_COMPONENT_COUNT = 60;
+/* 61 DEPUIS LA 3.5.0 : `SvgMapControls` rejoint le catalogue avec la refonte
+   de la carte SVG. */
+const PUBLISHED_COMPONENT_COUNT = 61;
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {

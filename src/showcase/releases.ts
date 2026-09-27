@@ -49,6 +49,60 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V350_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'SvgMap refondue',
+    changes: [
+      {
+        title: 'Une vraie carte',
+        detail:
+          'L’appelant fournit un viewBox et des régions ; le composant gère la vue, le zoom, le déplacement, le cadrage animé et la sélection. Une couleur par région suffit pour une carte de chaleur ou un quiz.',
+        links: [{ label: 'SvgMap', slug: 'composants/opale-svg-map' }],
+      },
+      {
+        title: 'Des gestes qui ne piègent pas la page',
+        detail:
+          'Pincement, glissement, et molette avec Ctrl ou ⌘ : une molette nue laisse défiler la page et affiche la consigne. Au-delà de six pixels, un contact devient un déplacement et ne vaut plus sélection.',
+      },
+      {
+        title: 'Clavier et lecteurs d’écran',
+        detail:
+          'Un seul arrêt de tabulation, des flèches qui mènent à la région voisine, Maj + flèches pour déplacer la vue, + et − pour zoomer sur la région qui a le focus. Le contour par défaut tient 3:1 dans les deux thèmes, et les états sont peints au-dessus des régions voisines.',
+      },
+      {
+        title: 'Vue pilotable et commandes détachables',
+        detail:
+          'useSvgMapViewport partage la vue avec l’appelant — fitTo, zoomBy, reveal, reset — et SvgMapControls se branche à part. La carte existe en version originale et en verre liquide.',
+      },
+    ],
+  },
+  {
+    title: 'Vitrine',
+    changes: [
+      {
+        title: 'Le nom OpaleUI',
+        detail:
+          'Le nom de la librairie prend un O majuscule et s’écrit plus grand dans l’en-tête, en Chivo 700 ; le titre des onglets suit.',
+      },
+    ],
+  },
+];
+
+/* LA RUPTURE DE LA 3.5.0 : `SvgMap` n'est plus un cadre. `viewBox` et
+   `regions` deviennent obligatoires, et la courbe décorative disparaît ; ce
+   qu'on posait en enfants reste possible, dessiné par-dessus les régions. */
+const V350_RELEASE_MIGRATION = {
+  fromVersion: '3.4.0',
+  steps: [
+    {
+      title: 'Donner le dessin à la carte',
+      before: '<Opale.SvgMap>\n  <path d="…" />\n</Opale.SvgMap>',
+      after:
+        '<Opale.SvgMap\n  viewBox="0 0 613 585"\n  regions={[{ id: "75", path: "…", name: "Paris" }]}\n/>',
+    },
+  ],
+} as const;
+
 const V340_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Navigation',
@@ -343,6 +397,26 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.5.0',
+    publishedAt: '2026-09-27',
+    dateLabel: '27 septembre 2026',
+    summary:
+      'SvgMap devient une vraie carte : zoom, déplacement, cadrage et sélection, au geste comme au clavier, dans les deux matières.',
+    sections: V350_RELEASE_SECTIONS,
+    changes: V350_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'SvgMap : régions, couleurs calculées, sélection et cadrage animé.',
+      'Molette avec Ctrl ou ⌘, clavier complet, contour à 3:1 dans les deux thèmes.',
+      'Rupture : viewBox et regions deviennent obligatoires.',
+    ],
+    migration: V350_RELEASE_MIGRATION,
+    breaking: true,
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.4.0',
     publishedAt: '2026-09-27',
     dateLabel: '27 septembre 2026',
@@ -357,8 +431,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'SiteNav : version originale ajoutée, verre liquide sans aplat.',
       'Divider, Dropzone, FileCard et Lightbox corrigés.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.5.0, sur le commit que la recette servait. */
+    appHref: '/versions/v3.4.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/741a97feecab9b26ccbf7336b13f919744734ac4`,
   },
   {
     version: '3.3.0',

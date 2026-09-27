@@ -20,7 +20,9 @@ describe('Notes de versions — actions', () => {
     expect(
       screen.getByText('<Opale.Lightbox src="/visuel.png" alt="Aperçu du composant" open />'),
     ).toBeVisible();
-    expect(screen.getAllByRole('button', { name: 'Copier le code après' })).toHaveLength(3);
+    /* Trois étapes pour la 3.2.0, une pour la 3.5.0 et la refonte de SvgMap. */
+    expect(screen.getAllByRole('button', { name: 'Copier le code après' })).toHaveLength(4);
+    expect(screen.getByText('Guide de migration depuis la 3.4.0')).toBeVisible();
     fireEvent.click(screen.getByText('Correspondance des 28 exports retirés'));
     expect(screen.getByRole('columnheader', { name: 'Export 3.1.1' })).toBeVisible();
     expect(screen.getByRole('rowheader', { name: /AddButton/ })).toBeVisible();
