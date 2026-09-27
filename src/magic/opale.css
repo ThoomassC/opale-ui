@@ -2102,9 +2102,22 @@
   min-width: 0;
   padding: var(--opale-space-2xl);
 }
+/* LE SÉPARATEUR N'AVAIT NI LARGEUR NI TEINTE À LUI, et il ne se voyait pas.
+
+   LA LARGEUR. Un `<hr>` n'en a pas de propre : dans un parent flex, ou une
+   grille qui aligne ses enfants au début, il tombait à 0 px. `inline-size`
+   le rend indépendant de la mise en page qui l'accueille.
+
+   LA TEINTE. `--opale-divider` est le liseré des cartes : 1,30:1 sur la
+   surface claire, 1,09:1 sur la sombre. Une carte a aussi son fond et son
+   ombre ; un séparateur n'a que son trait. Il prend donc l'encre du texte à
+   26 %, qui suit le thème sans jeton de plus et tient au moins 1,6:1 sur les
+   trois fonds d'Opale, dans les deux thèmes — voir
+   `opale-divider.contract.test.ts`. */
 .opale-divider {
+  inline-size: 100%;
   border: 0;
-  border-top: 1px solid var(--opale-divider);
+  border-top: 1px solid color-mix(in srgb, var(--opale-text) 26%, transparent);
 }
 .opale-opaley-background {
   position: relative;
