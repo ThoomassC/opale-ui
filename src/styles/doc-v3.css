@@ -2099,11 +2099,18 @@ body {
     font-size: 1rem;
   }
 
+  /* LE HAMBURGER REJOINT LES RÉGLAGES. Il occupe sa propre colonne, et
+     l'écart entre colonnes (16 px) le séparait du thème deux fois plus que le
+     thème de la langue (8 px, l'écart interne des réglages) : trois boutons
+     alignés, deux espacements. La marge ne raccourcit QUE ce côté-là — la
+     recherche, posée avant le menu sur la même ligne en largeur moyenne,
+     garde son écart. */
   .tc-doc-topbar__tabs {
     grid-area: menu;
     width: auto;
     justify-content: flex-start !important;
     overflow: visible;
+    margin-inline-end: calc(var(--opale-space-xs) - var(--opale-space-md));
   }
 
   .tc-doc-topbar__tabs-nav {
@@ -2155,6 +2162,11 @@ body {
   .tc-doc-topbar .tc-doc-topbar__bar {
     column-gap: var(--opale-space-sm) !important;
     padding-inline: var(--opale-space-sm) !important;
+  }
+
+  /* L'écart entre colonnes passe ici à 12 px : la marge suit. */
+  .tc-doc-topbar__tabs {
+    margin-inline-end: calc(var(--opale-space-xs) - var(--opale-space-sm));
   }
 
   .tc-doc-topbar__brand {
