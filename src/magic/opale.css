@@ -960,8 +960,21 @@
    d'autre. Sous verre, le liseré du matériau ne suffit pas à dire « déposez
    ici » — il dit la même chose que sur toutes les autres surfaces. Le tiret
    revient donc, en encre de matériau. */
-.opale-dropzone--glass {
+/* LES DEUX CLASSES, ET NON LA SEULE VARIANTE, parce que l'ordre de la feuille
+   jouait contre elle. `.opale-dropzone`, de même spécificité, est déclarée
+   plus bas : elle remettait son fond clair opaque et ses tirets primaires par
+   dessus le verre, sous une encre devenue blanche — texte blanc sur fond
+   blanc. Le groupe ci-dessus perdait pour la même raison. Deux classes
+   gagnent où qu'elles soient écrites. */
+.opale-dropzone.opale-dropzone--glass {
   border: 1px dashed var(--opale-glass-ink);
+  background: transparent;
+  color: var(--opale-glass-ink);
+}
+/* Le survol d'un fichier garde son trait plein et épaissi, mais à l'encre du
+   matériau : le primaire de la zone pleine se perdrait sur la photographie. */
+.opale-dropzone.opale-dropzone--glass[data-dragging='true'] {
+  border: 2px solid var(--opale-glass-ink);
 }
 
 /* LA CARTE SVG EST POSÉE SUR UNE PLAQUE, PAS DÉCOUPÉE DEDANS. */
@@ -2475,11 +2488,15 @@
   outline: 3px solid var(--opale-focus);
   outline-offset: 3px;
 }
+/* `align-content: center` GROUPE LES LIGNES. Sans lui, les rangées de la grille
+   s'étirent pour remplir les 9 rem, et le titre et l'action se retrouvaient
+   séparés par un tiers de la hauteur au lieu de l'écart annoncé. */
 .opale-dropzone {
   display: grid;
   min-height: 9rem;
   place-items: center;
-  gap: var(--opale-space-xs);
+  align-content: center;
+  gap: var(--opale-space-2xs);
   padding: var(--opale-space-lg);
   border: 1px dashed var(--opale-primary);
   border-radius: var(--opale-radius-md);
@@ -2792,6 +2809,11 @@
   opacity: 1;
 }
 
+/* L'ACTION SE LIT COMME UNE INVITATION, PAS COMME UN SECOND TITRE. L'italique
+   la distingue du titre sans ajouter de couleur, donc dans les deux matières. */
+.opale-dropzone__action {
+  font-style: italic;
+}
 .opale-dropzone[data-disabled='true'] {
   opacity: 0.55;
   cursor: not-allowed;

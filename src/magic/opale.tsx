@@ -2987,7 +2987,9 @@ export function Dropzone({
         }}
       />
       <strong>{children}</strong>
-      <span>{disabled ? 'Sélection désactivée' : 'Sélectionner des fichiers'}</span>
+      <span className="opale-dropzone__action">
+        {disabled ? 'Sélection désactivée' : 'Sélectionner des fichiers'}
+      </span>
       <span className="opale-dropzone__error" role="alert">
         {error}
       </span>
