@@ -120,9 +120,8 @@ body {
   color: var(--opale-primary-on-surface);
 }
 .tc-doc-topbar__version {
-  border-radius: 0.5rem;
-  corner-shape: squircle;
-  padding: 0.2rem 0.55rem;
+  border-radius: var(--opale-radius-pill);
+  padding: 0.28rem 0.6rem;
   background: var(--opale-primary);
   color: #fbfaf9;
   font-size: 0.75rem;
