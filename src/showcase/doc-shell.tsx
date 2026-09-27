@@ -30,7 +30,7 @@ import { UI_VERSION } from './version';
    leur contrôle local et le prop `liquidGlass`. */
 
 /** Le nom du paquet, affiché dans la barre du haut et dans `document.title`. */
-const SITE_NAME = 'opaleUI';
+const SITE_NAME = 'OpaleUI';
 const COMPACT_NAV_MEDIA_QUERY = '(max-width: 59.999rem)';
 
 function compactNavViewport() {
@@ -321,7 +321,7 @@ export function DocShell({ pages }: DocShellProps) {
             <a className="tc-doc-topbar__brand" href={hrefFor(HOME_SLUG)}>
               <img className="tc-doc-topbar__glyph" src="/favicon.svg" alt="" aria-hidden="true" />
               <span className="tc-doc-topbar__brand-name" aria-label={SITE_NAME}>
-                <span>opale</span>
+                <span>Opale</span>
                 <span className="tc-doc-topbar__brand-name--accent">UI</span>
               </span>
               <span className="tc-doc-topbar__version">v{UI_VERSION}</span>

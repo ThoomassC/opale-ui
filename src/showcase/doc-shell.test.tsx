@@ -46,7 +46,7 @@ beforeAll(() => preloadPages());
  * pour un test élargirait la surface du module pour rien. Une dérive ici
  * rougit — c'est le titre affiché dans l'onglet.
  */
-const TITLE_SUFFIX = ' — opaleUI';
+const TITLE_SUFFIX = ' — OpaleUI';
 
 /** L'identifiant de `<main>`, cible du lien d'évitement et du focus. */
 
@@ -998,7 +998,7 @@ describe('DocShell — la frontière d’erreur du contenu', () => {
        bloqué dans le thème où il se trouvait. Il n'y en a plus qu'une — l'axe
        du matériau a été retiré avec la feuille qui le lisait. */
     expect(screen.getByRole('button', { name: /Thème sombre/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /opaleUI/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /OpaleUI/ })).toBeInTheDocument();
   });
 
   it('devrait rendre le message d’erreur à la place du contenu de la page', () => {
