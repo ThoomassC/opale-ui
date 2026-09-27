@@ -216,7 +216,10 @@
   justify-content: center;
   padding: 0;
   border: 1px solid transparent;
-  margin: -0.55rem -0.65rem -0.55rem 0;
+  /* `auto` À GAUCHE RANGE LA CROIX AU BOUT DE L'EN-TÊTE, MÊME SEULE. Avec un
+     titre, `space-between` la poussait déjà à droite ; sans titre — une
+     visionneuse d'image —, elle était le seul enfant et tombait à gauche. */
+  margin: -0.55rem -0.65rem -0.55rem auto;
   border-radius: var(--opale-radius-pill);
   background: transparent;
   color: var(--opale-text-secondary);
