@@ -331,9 +331,11 @@ function exampleCode(name: string, liquidGlass = false): string {
 // sortValue : la valeur de tri quand la cellule n'est pas du texte.
 <Opale.DataTable
   caption="Composants"
+  showRowCount
+  striped
   columns={[
     { key: 'name', label: 'Nom', sortable: true },
-    { key: 'uses', label: 'Usages', sortable: true },
+    { key: 'uses', label: 'Usages', sortable: true, align: 'end' },
     { key: 'status', label: 'Statut' },
   ]}
   rows={[
@@ -425,6 +427,8 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const [inputError, setInputError] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [tableMode, setTableMode] = useState<PlaygroundConfig['tableMode']>('filled');
+  const [tableDensity, setTableDensity] = useState<PlaygroundConfig['tableDensity']>('comfortable');
+  const [tableStriped, setTableStriped] = useState(true);
   const playground: PlaygroundConfig = {
     buttonVariant,
     buttonSize,
@@ -432,6 +436,8 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
     inputError,
     inputDisabled,
     tableMode,
+    tableDensity,
+    tableStriped,
   };
   const baseCode = exampleCode(entry.name, liquidGlass);
   const code =
@@ -442,7 +448,7 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
         : entry.name === 'DataTable'
           ? `const columns = [
   { key: 'name', label: 'Nom', sortable: true },
-  { key: 'uses', label: 'Usages', sortable: true },
+  { key: 'uses', label: 'Usages', sortable: true, align: 'end' },
   { key: 'status', label: 'Statut' },
 ];
 const rows = [
@@ -452,6 +458,7 @@ const rows = [
 ];
 <Opale.DataTable
   caption="Composants"
+  showRowCount${tableStriped ? '\n  striped' : ''}${tableDensity === 'compact' ? '\n  density="compact"' : ''}
   columns={columns}
   rowKey={(row) => String(row.name)}
   rows={${tableMode === 'empty' ? '[]' : 'rows'}}${tableMode === 'loading' ? '\n  loading' : ''}${liquidGlass ? '\n  liquidGlass' : ''}
@@ -559,19 +566,39 @@ const rows = [
               </>
             )}
             {entry.name === 'DataTable' && (
-              <label>
-                État{' '}
-                <select
-                  value={tableMode}
-                  onChange={(event) =>
-                    setTableMode(event.currentTarget.value as PlaygroundConfig['tableMode'])
-                  }
-                >
-                  <option value="filled">Avec données</option>
-                  <option value="empty">Vide</option>
-                  <option value="loading">Chargement</option>
-                </select>
-              </label>
+              <>
+                <label>
+                  État{' '}
+                  <select
+                    value={tableMode}
+                    onChange={(event) =>
+                      setTableMode(event.currentTarget.value as PlaygroundConfig['tableMode'])
+                    }
+                  >
+                    <option value="filled">Avec données</option>
+                    <option value="empty">Vide</option>
+                    <option value="loading">Chargement</option>
+                  </select>
+                </label>
+                <label>
+                  Densité{' '}
+                  <select
+                    value={tableDensity}
+                    onChange={(event) =>
+                      setTableDensity(event.currentTarget.value as PlaygroundConfig['tableDensity'])
+                    }
+                  >
+                    <option value="comfortable">Confortable</option>
+                    <option value="compact">Compacte</option>
+                  </select>
+                </label>
+                <Opale.Checkbox
+                  className="tc-doc-opale-playground__check"
+                  label="Lignes alternées"
+                  checked={tableStriped}
+                  onChange={(event) => setTableStriped(event.currentTarget.checked)}
+                />
+              </>
             )}
           </fieldset>
         )}

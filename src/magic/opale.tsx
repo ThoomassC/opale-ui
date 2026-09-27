@@ -2557,6 +2557,8 @@ export interface DataTableColumn {
   sortValue?: (row: DataTableRow) => string | number;
   /** Nom annoncé au tri quand `label` n'est pas du texte. */
   sortLabel?: string;
+  /** Alignement de l'en-tête et des cellules ; utile pour les nombres. */
+  align?: 'start' | 'center' | 'end';
 }
 
 export interface DataTableProps {
@@ -2571,6 +2573,12 @@ export interface DataTableProps {
   loading?: boolean;
   emptyMessage?: string;
   liquidGlass?: boolean;
+  /** Réduit l'espacement vertical sans changer la structure de la table. */
+  density?: 'comfortable' | 'compact';
+  /** Ajoute une alternance discrète aux lignes de données. */
+  striped?: boolean;
+  /** Affiche le nombre de lignes visibles sous la table. */
+  showRowCount?: boolean;
 }
 
 const TABLE_COLLATOR = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' });
@@ -2608,6 +2616,9 @@ export function DataTable({
   loading = false,
   emptyMessage = 'Aucune donnée à afficher.',
   liquidGlass = false,
+  density = 'comfortable',
+  striped = false,
+  showRowCount = false,
 }: DataTableProps) {
   const [sort, setSort] = useState<DataTableSort | undefined>(defaultSort);
   const [announcement, setAnnouncement] = useState('');
@@ -2641,16 +2652,22 @@ export function DataTable({
   };
 
   return (
-    <Surface liquidGlass={liquidGlass} className="opale-panel">
+    <Surface liquidGlass={liquidGlass} className="opale-panel opale-table-panel">
       <div className="opale-table-scroll">
-        <table className="opale-table">
+        <table
+          className={cx(
+            'opale-table',
+            density === 'compact' && 'opale-table--compact',
+            striped && 'opale-table--striped',
+          )}
+        >
           {caption && <caption className="opale-table__caption">{caption}</caption>}
           <thead>
             <tr>
               {columns.map((column) => {
                 const active = sort?.key === column.key ? sort.direction : undefined;
                 return (
-                  <th key={column.key} scope="col" aria-sort={active}>
+                  <th key={column.key} scope="col" aria-sort={active} data-align={column.align}>
                     {column.sortable ? (
                       <button
                         type="button"
@@ -2681,17 +2698,29 @@ export function DataTable({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={Math.max(1, columns.length)}>Chargement des données…</td>
+                <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
+                  <div className="opale-table__state">
+                    <span className="opale-spinner" aria-hidden="true" />
+                    <span>Chargement des données…</span>
+                  </div>
+                </td>
               </tr>
             ) : ordered.length === 0 ? (
               <tr>
-                <td colSpan={Math.max(1, columns.length)}>{emptyMessage}</td>
+                <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
+                  <div className="opale-table__state">
+                    <IconGlyph name="archive" className="opale-table__state-icon" />
+                    <span>{emptyMessage}</span>
+                  </div>
+                </td>
               </tr>
             ) : (
               ordered.map(({ row, index }) => (
                 <tr key={rowKey?.(row, index) ?? index}>
                   {columns.map((column) => (
-                    <td key={column.key}>{row[column.key]}</td>
+                    <td key={column.key} data-align={column.align}>
+                      {row[column.key]}
+                    </td>
                   ))}
                 </tr>
               ))
@@ -2699,6 +2728,13 @@ export function DataTable({
           </tbody>
         </table>
       </div>
+      {showRowCount && !loading && (
+        <div className="opale-table__footer">
+          <span className="opale-table__count">
+            {ordered.length} {ordered.length === 1 ? 'ligne' : 'lignes'}
+          </span>
+        </div>
+      )}
       <span className="opale-visually-hidden" role="status">
         {loading ? 'Chargement des données…' : announcement}
       </span>

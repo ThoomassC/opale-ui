@@ -2134,6 +2134,8 @@
   overflow-x: auto;
 }
 .opale-table {
+  --opale-table-stripe: color-mix(in srgb, var(--opale-primary) 4%, transparent);
+  --opale-table-row-hover: color-mix(in srgb, var(--opale-primary) 8%, transparent);
   width: 100%;
   border-collapse: collapse;
 }
@@ -2141,13 +2143,55 @@
 .opale-table td {
   padding: 0.75rem 0.875rem;
   border-bottom: 1px solid var(--opale-divider);
-  text-align: left;
+  text-align: start;
 }
 .opale-table th {
+  background: color-mix(in srgb, var(--opale-primary) 5%, var(--opale-surface));
   color: var(--opale-text-secondary);
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+.opale-table [data-align='center'] {
+  text-align: center;
+}
+.opale-table [data-align='end'] {
+  text-align: end;
+}
+.opale-table--compact th,
+.opale-table--compact td {
+  padding-block: 0.5rem;
+}
+.opale-table--striped tbody tr:nth-child(even) {
+  background: var(--opale-table-stripe);
+}
+.opale-table tbody tr:hover,
+.opale-table tbody tr:focus-within {
+  background: var(--opale-table-row-hover);
+}
+.opale-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.opale-table .opale-table__state-cell {
+  padding-block: 2rem;
+}
+.opale-table__state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--opale-text-secondary);
+  text-align: center;
+}
+.opale-table__state-icon {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .opale-table__state .opale-spinner {
+    animation: none;
+  }
 }
 /* LA LÉGENDE NOMME LA TABLE : c'est elle que le lecteur d'écran annonce en
    y entrant. Alignée au début, comme le reste du texte. */
@@ -2156,6 +2200,19 @@
   color: var(--opale-text);
   font-weight: 600;
   text-align: start;
+}
+.opale-table__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: var(--opale-space-sm);
+}
+.opale-table__count {
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-primary) 10%, var(--opale-surface));
+  color: var(--opale-primary-on-surface);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
 }
 /* L'EN-TÊTE TRIABLE RESTE UN EN-TÊTE. Le bouton hérite de la casse, de la
    graisse et de l'approche de la cellule : seuls le curseur, le survol et la
@@ -2190,6 +2247,42 @@
   inline-size: 0.875rem;
   block-size: 0.875rem;
   flex: none;
+}
+
+/* Le verre est posé sur une image : l'encre sombre de la table ordinaire se
+   perdait dans le paysage. Un bandeau sombre continu porte les en-têtes, puis
+   le blanc et le pictogramme signalent le tri sans filet bleu parasite. */
+.opale-table-panel.opale-surface--glass .opale-table__caption,
+.opale-table-panel.opale-surface--glass .opale-table th,
+.opale-table-panel.opale-surface--glass .opale-table__sort[data-sort] {
+  color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table th {
+  background: rgba(8, 27, 43, 0.68);
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+}
+.opale-table-panel.opale-surface--glass .opale-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.32);
+}
+.opale-table-panel.opale-surface--glass .opale-table__count,
+.opale-table-panel.opale-surface--glass .opale-table__sort[data-sort] {
+  background: rgba(255, 255, 255, 0.16);
+}
+.opale-table-panel.opale-surface--glass .opale-table__count,
+.opale-table-panel.opale-surface--glass .opale-table__state {
+  color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table__state .opale-spinner {
+  border-color: rgba(255, 255, 255, 0.28);
+  border-top-color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table__sort:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--opale-glass-ink);
+}
+.opale-table-panel.opale-surface--glass .opale-table {
+  --opale-table-stripe: rgba(255, 255, 255, 0.065);
+  --opale-table-row-hover: rgba(255, 255, 255, 0.13);
 }
 
 .opale-file-card {

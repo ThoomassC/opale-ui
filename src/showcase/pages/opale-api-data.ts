@@ -143,8 +143,11 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   DataTable: {
     states: 'Cliquer un en-tête triable alterne les sens du tri.',
     rows: [
-      prop('columns', 'readonly DataTableColumn[]', 'Colonnes et option de tri.'),
+      prop('columns', 'readonly DataTableColumn[]', 'Colonnes, tri et alignement.'),
       prop('rows', 'readonly DataTableRow[]', 'Données affichées.'),
+      prop('density', "'comfortable' | 'compact'", 'Espacement des lignes.', 'comfortable'),
+      prop('striped', 'boolean', 'Alternance discrète des lignes.', 'false'),
+      prop('showRowCount', 'boolean', 'Nombre de lignes visibles sous la table.', 'false'),
       prop('defaultSort', 'DataTableSort', 'Tri initial.'),
       prop('rowKey', '(row, index) => string | number', 'Identité stable des lignes.'),
       prop('loading', 'boolean', 'Affiche un état de chargement.', 'false'),
