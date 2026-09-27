@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -288,17 +288,25 @@ describe('les bloquants de l’audit d’accessibilité', () => {
   /* LA PALETTE DE COMMANDES N'AVAIT QU'UN TEXTE INDICATIF POUR ÉTIQUETTE. Un
      placeholder disparaît à la première frappe et n'est pas une étiquette
      (WCAG 3.3.2) — sur le composant dont la vocation est le clavier. */
-  it('donne une vraie étiquette au champ de la palette', () => {
-    render(<CommandPalette open />);
+  it.each([false, true])(
+    'structure la palette et son action Fermer avec Liquid Glass=%s',
+    async (liquidGlass) => {
+      const onClose = vi.fn();
+      render(<CommandPalette open liquidGlass={liquidGlass} onClose={onClose} />);
 
-    const champ = screen.getByRole('textbox', { name: 'Rechercher une commande' });
+      const dialog = screen.getByRole('dialog', { name: 'Palette de commandes' });
+      const champ = screen.getByRole('searchbox', { name: 'Rechercher une commande' });
+      const closeButton = screen.getByText('Fermer').closest('button');
 
-    expect(champ).toBeInTheDocument();
-    expect(
-      champ.getAttribute('placeholder'),
-      'Le nom du champ ne doit pas reposer sur son texte indicatif.',
-    ).toBeNull();
-  });
+      expect(champ).toHaveAttribute('type', 'search');
+      expect(champ.getAttribute('placeholder')).toBeNull();
+      await waitFor(() => expect(champ).toHaveFocus());
+      expect(dialog.lastElementChild).toContainElement(closeButton);
+      expect(dialog.lastElementChild).not.toContainElement(champ);
+      fireEvent.click(closeButton as HTMLButtonElement);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    },
+  );
 
   /* LA NOTE N'ÉTAIT ANNONCÉE NULLE PART. `aria-label` sur un `<span>` sans
      rôle est ignoré par les API d'accessibilité, et les cinq étoiles sont

@@ -210,11 +210,7 @@ export function Commands() {
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Commandes</Opale.Button>
     <Opale.CommandPalette open={open} value={query} onChange={setQuery}
-      onClose={() => setOpen(false)}>
-      <Opale.Button variant="text" onClick={() => setOpen(false)}>
-        Fermer
-      </Opale.Button>
-    </Opale.CommandPalette>
+      onClose={() => setOpen(false)} />
   </>;
 }`,
   Breadcrumb: `<Opale.Breadcrumb items={[

@@ -310,11 +310,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     ],
   },
   CommandPalette: {
-    states: 'Le champ et les résultats sont pilotés par l’application.',
+    states: 'Recherche dans le contenu fourni ; le bouton Fermer accompagne onClose.',
     rows: [
       prop('open', 'boolean', 'Visibilité de la palette.', 'false'),
       prop('value', 'string', 'Texte saisi.', "''"),
       prop('onChange', '(value: string) => void', 'Nouveau texte saisi.'),
+      prop('onClose', '() => void', 'Ferme la palette avec la croix, le pied ou Échap.'),
+      prop('children', 'ReactNode', 'Résultats ou commandes affichés sous la recherche.'),
     ],
   },
   Breadcrumb: {

@@ -650,11 +650,7 @@ export function CatalogPreview({
             value={text}
             onChange={setText}
             onClose={() => setPaletteOpen(false)}
-          >
-            <Opale.Button variant="text" onClick={() => setPaletteOpen(false)}>
-              Fermer
-            </Opale.Button>
-          </Opale.CommandPalette>
+          />
         </>
       );
       break;

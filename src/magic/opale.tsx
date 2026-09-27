@@ -1998,28 +1998,41 @@ export function CommandPalette({
   children?: ReactNode;
   liquidGlass?: boolean;
 }) {
-  /* LE CHAMP A UNE ÉTIQUETTE, ET PLUS SEULEMENT UN TEXTE INDICATIF. Un
-     placeholder disparaît à la première frappe, ne survit pas à la
-     reconnaissance vocale et n'est pas une étiquette (WCAG 3.3.2) : il était
-     pourtant le seul nom accessible du champ. Sur le composant dont la
-     vocation EST le clavier, l'ironie méritait d'être corrigée.
+  /* La modale donne d'abord le focus au panneau pour annoncer son titre.
+     Au cadre suivant, la palette place le curseur dans sa recherche : on peut
+     lancer une commande sans clic, tout en laissant Modal retenir l'élément
+     à qui rendre le focus à la fermeture. */
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const frame = requestAnimationFrame(() => searchRef.current?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
 
-     `onClose` EST UNE PROP NOUVELLE, et elle est la condition du reste : un
-     dialogue qu'on ne peut pas fermer n'en est pas un. */
   return (
     <Modal
       open={open}
       onClose={onClose}
       liquidGlass={liquidGlass}
-      aria-label="Palette de commandes"
+      title="Palette de commandes"
+      footer={
+        onClose ? (
+          <Button variant="text" onClick={onClose}>
+            Fermer
+          </Button>
+        ) : undefined
+      }
     >
-      <Input
-        label="Rechercher une commande"
-        liquidGlass={liquidGlass}
-        value={value}
-        onChange={(event) => onChange?.(event.currentTarget.value)}
-      />
-      {children}
+      <div className="opale-command-palette__content">
+        <Input
+          ref={searchRef}
+          type="search"
+          label="Rechercher une commande"
+          value={value}
+          onChange={(event) => onChange?.(event.currentTarget.value)}
+        />
+        {children && <div className="opale-command-palette__results">{children}</div>}
+      </div>
     </Modal>
   );
 }

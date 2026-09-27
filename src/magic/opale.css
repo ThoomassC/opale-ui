@@ -1950,6 +1950,25 @@
   font-size: 1.5rem;
 }
 
+/* Le corps de Modal peut défiler : une petite gouttière intérieure laisse
+   apparaître les deux bords de la recherche et son état de focus. */
+.opale-command-palette__content {
+  display: grid;
+  min-width: 0;
+  gap: var(--opale-space-md);
+  padding-inline: 0.25rem;
+}
+.opale-command-palette__results {
+  display: grid;
+  min-width: 0;
+  gap: var(--opale-space-xs);
+}
+/* La modale en verre a une surface claire opaque : son libellé reprend l'encre
+   du dialogue, pas l'encre blanche des composants posés sur une photographie. */
+[data-opale-glass] .opale-command-palette__content .opale-field__label {
+  color: var(--opale-text);
+}
+
 /* =============================================================================
    LE PANNEAU LATÉRAL COULE ENFIN SUR LE CÔTÉ.
 
