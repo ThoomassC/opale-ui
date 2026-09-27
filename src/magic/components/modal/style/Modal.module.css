@@ -63,10 +63,10 @@
    version amont n'avait en pratique ni angle arrondi ni ombre, sa seule
    démarcation étant le voile. Tout ce qui dessine la SILHOUETTE vit ici.
 
-   Les trois jetons de verre sont redéfinis sur cette règle, donc hérités par
-   les couches internes de `Glass` sans que `Glass` ait à connaître la modale :
-   c'est le seul point de couplage entre les deux fichiers, et il passe par des
-   variables publiques. */
+   Le lavis de `Glass` lit `--opale-glass-tint` : l'ancien réglage de
+   `--opale-glass-surface` n'atteignait aucune couche et laissait le texte sombre
+   sur une photographie. La teinte suit la surface du thème tout en gardant
+   visibles la réfraction et le filet du matériau. */
 .shell {
   position: relative;
   display: flex;
@@ -74,7 +74,8 @@
   max-height: 100%;
 
   --opale-glass-radius: var(--opale-radius-lg);
-  --opale-glass-surface: color-mix(in srgb, var(--opale-surface) 88%, transparent);
+  --opale-modal-tint: color-mix(in srgb, var(--opale-surface) 88%, transparent);
+  --opale-glass-tint: var(--opale-modal-tint);
   --opale-glass-highlight: var(--opale-glass-border);
 
   /* Deux ombres et une seule intention : détacher la coquille du voile. Le
@@ -86,6 +87,12 @@
     0 0 0 1px var(--opale-glass-border),
     var(--opale-shadow-4);
   animation: opale-modal-rise var(--opale-motion) var(--opale-ease) both;
+}
+
+/* Le focus du verre assombrit normalement son lavis. Le dialogue conserve sa
+   surface lisible quand le panneau ou l'un de ses boutons reçoit le focus. */
+.shell[data-opale-glass]:has(:focus-visible) {
+  --opale-glass-tint: var(--opale-modal-tint);
 }
 
 /* Les trois crans. Ils gardent les largeurs de l'amont — 28, 36 et 42 rem,
