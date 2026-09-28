@@ -1,3 +1,3 @@
-/** La 3.5.0 est disponible sur recette ; son tag n'est pas encore publié. */
-export const INSTALL_REF = 'recette';
-export const INSTALL_REF_KIND: 'branch' | 'tag' = 'branch';
+/** La 3.5.1 est publiée : la page Installation propose son tag, qui ne bouge plus. */
+export const INSTALL_REF = 'v3.5.1';
+export const INSTALL_REF_KIND: 'branch' | 'tag' = 'tag';

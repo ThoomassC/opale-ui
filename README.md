@@ -82,7 +82,7 @@ Le paquet s'installe depuis GitHub ; il n'est pas publié sur npm. Pour une appl
 production, installez **un tag de version** — le code ne bouge plus sous vos pieds :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.5.0"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.5.1"
 ```
 
 La branche `recette` (`#recette`) porte la version en cours de recette : elle avance à chaque
