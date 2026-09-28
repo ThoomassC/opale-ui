@@ -26,7 +26,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 
-import { releaseBlocker } from './release-guard.mjs';
+import { breakingBlocker, highestTag, isBreakingEntry, releaseBlocker } from './release-guard.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -77,10 +77,19 @@ if (!releases.includes(`version: '${version}'`)) {
       publié. Celui qui existe a peut-être déjà été installé ; un numéro plus
       bas que le plus haut tag passerait, pour semver, pour une version plus
       ancienne — voir `release-guard.mjs`. */
-const blocker = releaseBlocker(version, git('tag', '--list').split('\n'));
+const tags = git('tag', '--list').split('\n');
+const blocker = releaseBlocker(version, tags);
 
 if (blocker) {
   fail(blocker);
+}
+
+/* 5. Une entrée en rupture change la majeure (LIV-07) : sinon une borne ^X.Y
+      installe la rupture sans prévenir. */
+const breaking = breakingBlocker(version, isBreakingEntry(releases, version), highestTag(tags));
+
+if (breaking) {
+  fail(breaking);
 }
 
 if (DRY_RUN) {

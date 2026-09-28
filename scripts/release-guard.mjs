@@ -49,3 +49,37 @@ export function releaseBlocker(version, tags) {
   }
   return null;
 }
+
+/* LIV-07 — UNE RUPTURE CHANGE LA MAJEURE.
+
+   3.1.1, 3.2.0 et 3.5.0 étaient marquées `breaking: true` : une borne ^3.1.0
+   installait des composants retirés et des props devenues obligatoires.
+   Avant 1.0, semver fait porter la rupture par la mineure. */
+
+/** Pourquoi une version en rupture ne peut pas porter ce numéro, ou `null`. */
+export function breakingBlocker(version, breaking, previous) {
+  if (!breaking || !previous) return null;
+  const [major, minor] = parse(version) ?? [];
+  const [prevMajor, prevMinor] = parse(previous) ?? [];
+  if (major === undefined || prevMajor === undefined) {
+    throw new Error(`Version invalide : « ${major === undefined ? version : previous} ».`);
+  }
+  if (major === 0 && prevMajor === 0) {
+    if (minor > prevMinor) return null;
+    return `${version} est marquée en rupture : avant 1.0, elle doit monter la mineure (0.${prevMinor + 1}.0).`;
+  }
+  if (major > prevMajor) return null;
+  return (
+    `${version} est marquée en rupture mais garde la majeure ${prevMajor} : ` +
+    `une borne ^${previous} l'installerait. Publiez ${prevMajor + 1}.0.0.`
+  );
+}
+
+/** `true` si l'entrée `version` de releases.ts porte `breaking: true`. */
+export function isBreakingEntry(releasesSource, version) {
+  const start = releasesSource.indexOf(`version: '${version}'`);
+  if (start === -1) return false;
+  const next = releasesSource.indexOf("version: '", start + 1);
+  const entry = releasesSource.slice(start, next === -1 ? undefined : next);
+  return /\bbreaking:\s*true\b/.test(entry);
+}
