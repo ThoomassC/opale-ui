@@ -49,6 +49,58 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V351_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Prête pour la production',
+    changes: [
+      {
+        title: 'Next.js App Router',
+        detail:
+          'Le bundle porte la directive « use client » : les composants s’importent tels quels depuis un Server Component, sans enveloppe.',
+      },
+      {
+        title: 'Types lisibles en nodenext',
+        detail:
+          'Les déclarations publiées nomment leurs fichiers en entier : un projet en moduleResolution node16 ou nodenext les lit sans erreur.',
+      },
+      {
+        title: 'Polices en fichiers',
+        detail:
+          'Chivo et Bricolage Grotesque ne sont plus incorporées en base64 : opale.css passe de 379 à 232 kB et relie fonts.css, que votre bundler émet en woff2. Aucun import à ajouter.',
+      },
+      {
+        title: 'Version installable et licence',
+        detail:
+          'Les tags v3.3.0, v3.4.0 et v3.5.0 sont publiés et le tag v4.0.0, posé par erreur sur un code antérieur, est retiré. Opale est sous licence MIT.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+    ],
+  },
+  {
+    title: 'Corrections',
+    changes: [
+      {
+        title: 'MultiSelect non contrôlé',
+        detail:
+          'Sans la prop values, la sélection est maintenant affichée et annoncée ; defaultValue est pris en compte.',
+        links: [{ label: 'MultiSelect', slug: 'composants/opale-multi-select' }],
+      },
+      {
+        title: 'Feedback en français',
+        detail:
+          'Sans titre, l’encart affiche Succès, Information, Attention ou Erreur au lieu du nom anglais de sa sévérité.',
+        links: [{ label: 'Feedback', slug: 'composants/opale-feedback' }],
+      },
+      {
+        title: 'Guide d’installation',
+        detail:
+          'La page Installation couvre les prérequis, la compilation à l’installation, les styles, le thème et Next.js.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+    ],
+  },
+];
+
 const V350_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'SvgMap refondue',
@@ -397,6 +449,24 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.5.1',
+    publishedAt: '2026-09-28',
+    dateLabel: '28 septembre 2026',
+    summary:
+      'Opale s’installe en production : tag de version, Next.js App Router, types nodenext, polices en fichiers, licence MIT.',
+    sections: V351_RELEASE_SECTIONS,
+    changes: V351_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'Import direct depuis un Server Component Next.js.',
+      'Types lisibles en nodenext, polices livrées en fichiers woff2.',
+      'MultiSelect non contrôlé et Feedback corrigés.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.5.0',
     publishedAt: '2026-09-27',
     dateLabel: '27 septembre 2026',
@@ -413,8 +483,9 @@ export const RELEASES: readonly ReleaseNote[] = [
     ],
     migration: V350_RELEASE_MIGRATION,
     breaking: true,
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.5.1, sur son tag. */
+    appHref: '/versions/v3.5.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.5.0`,
   },
   {
     version: '3.4.0',
