@@ -4,6 +4,15 @@
   "private": true,
   "description": "Opale — le socle UI commun de portfolio et travels_in_world : jetons mesures, contrat de couleur executable, composants verre liquide.",
   "author": "Thomas Caron",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThoomassC/opale-ui.git"
+  },
+  "homepage": "https://opale-ui-recette.vercel.app",
+  "bugs": {
+    "url": "https://github.com/ThoomassC/opale-ui/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
@@ -11,7 +20,8 @@
   "files": [
     "dist",
     "README.md",
-    "THIRD-PARTY-NOTICES.md"
+    "THIRD-PARTY-NOTICES.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
