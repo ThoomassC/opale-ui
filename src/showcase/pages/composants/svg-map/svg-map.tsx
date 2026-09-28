@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 
-import { Opale, SvgMap, useSvgMapViewport } from '../../../../magic';
+import { Opale, SvgMap, useSvgMapViewport } from '../../../../opale';
 import { Specimen } from '../../../section';
 import { PageBody, PropsTable, UsageBlock } from '../../api';
 import type { PropRow } from '../../api';

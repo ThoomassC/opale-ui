@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
-import { Opale, PageScaffold } from '../../../magic';
+import { Opale, PageScaffold } from '../../../opale';
 import { PageBody, PropsTable, UsageBlock, type PropRow } from '../api';
 
-const USAGE = `import { Opale, PageScaffold } from '@thomascaron/opale-ui';
+const USAGE = `import { Card, PageScaffold } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 const navigation = [
@@ -22,7 +22,7 @@ const navigation = [
   pageDescription="Une introduction que vous pouvez remplacer."
   footerLinks={[{ id: 'legal', href: '/mentions-legales', label: 'Mentions légales' }]}
 >
-  <Opale.Card title="Votre contenu">Une page prête à enrichir.</Opale.Card>
+  <Card title="Votre contenu">Une page prête à enrichir.</Card>
 </PageScaffold>`;
 
 const PROPS: readonly PropRow[] = [
@@ -39,8 +39,8 @@ const PROPS: readonly PropRow[] = [
   },
   {
     name: 'headerSize / showNavigation / navigationLabel / mobileMenuLabel',
-    type: "'compact' | 'comfortable' | 'spacious' / boolean / string / string",
-    defaultValue: "'comfortable' / true / 'Navigation principale' / 'Menu'",
+    type: "'small' | 'medium' | 'large' / boolean / string / string",
+    defaultValue: "'medium' / true / 'Navigation principale' / 'Menu'",
     description: 'Visibilité et noms accessibles de la navigation responsive.',
   },
   {

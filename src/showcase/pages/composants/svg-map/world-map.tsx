@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { Opale, SvgMap, useSvgMapViewport } from '../../../../magic';
+import { Opale, SvgMap, useSvgMapViewport } from '../../../../opale';
 import { MaterialSwitch } from '../material-switch';
 import { CONTINENT_FRAMES, WORLD_COUNTRIES, WORLD_VIEWBOX } from './world';
 

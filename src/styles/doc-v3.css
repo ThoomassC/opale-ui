@@ -186,7 +186,7 @@ body {
    sur leur enveloppe de verre — et le rail le recouvrait déjà d'un
    `font-family: var(--opale-font-body) !important`, c'est-à-dire du Chivo de
    la vitrine. C'est CE Chivo qui gagne : la barre du haut est la seule pièce
-   de la page à parler encore la police des composants vendorés, et elle
+   de la page à parler encore la police des anciens composants en verre, et elle
    s'aligne maintenant sur le reste du site plutôt que sur son enveloppe.
 
    0,92 REM ET NON 0,875 : l'écart entre les deux échelles était trop petit
@@ -2703,7 +2703,7 @@ body {
 .tc-doc-column :not(pre) > code {
   overflow-wrap: anywhere;
 }
-.tc-doc-magicstage__cell {
+.tc-doc-stage__cell {
   min-inline-size: 0;
   max-inline-size: 100%;
 }

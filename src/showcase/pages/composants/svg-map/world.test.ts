@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { pathBounds } from '../../../../magic/components/svg-map/path-bounds';
+import { pathBounds } from '../../../../opale/components/svg-map/path-bounds';
 import { CONTINENT_FRAMES, countriesOf, WORLD_COUNTRIES, WORLD_VIEWBOX } from './world';
 
 describe('la carte du monde de la démonstration', () => {

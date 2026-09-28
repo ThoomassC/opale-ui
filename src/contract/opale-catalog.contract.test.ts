@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { stripComments } from './stylesheet';
-import { OPALE_CATALOG } from '../magic/opale';
-import opaleCss from '../magic/opale.css?raw';
-import opaleSource from '../magic/opale.tsx?raw';
-import extrasSource from '../magic/opale-extras.tsx?raw';
+import { OPALE_CATALOG } from '../opale/opale';
+import opaleCss from '../opale/opale.css?raw';
+import opaleSource from '../opale/opale.tsx?raw';
+import extrasSource from '../opale/opale-extras.tsx?raw';
 
 /* ============================================================================
    UNE FICHE DIT CE QUE LE COMPOSANT FAIT, PAS CE QU'IL POURRAIT FAIRE.

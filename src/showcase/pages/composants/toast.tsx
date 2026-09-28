@@ -4,9 +4,9 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
-import { MagicGroundNote } from './stage';
+import { StageGroundNote } from './stage';
 
-const USAGE = `import { Opale, ToastProvider, useToast } from '@thomascaron/opale-ui';
+const USAGE = `import { Button, ToastProvider, useToast } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 // 1. Le fournisseur, AUTOUR de l'arbre qui déclenchera les toasts.
@@ -19,11 +19,11 @@ function Publish() {
   const { showToast, dismissToast, clearToasts } = useToast();
 
   return (
-    <Opale.Button
-      onClick={() => showToast({ title: 'Étape publiée', variant: 'success' })}
+    <Button
+      onClick={() => showToast({ title: 'Étape publiée', tone: 'success' })}
     >
       Publier
-    </Opale.Button>
+    </Button>
   );
 }`;
 
@@ -92,12 +92,18 @@ const PROPS: readonly PropRow[] = [
     ),
   },
   {
+    name: 'ToastProvider labels',
+    type: 'Partial<ToastLabels>',
+    defaultValue: "{ close: 'Fermer la notification' }",
+    description: 'Les textes des cartes de la file ; une clé omise garde son défaut français.',
+  },
+  {
     name: 'useToast().showToast',
     type: '(toast: ToastDefinition) => string',
     description: (
       <>
         Empile un toast et rend son identifiant. <code>ToastDefinition</code> accepte{' '}
-        <code>id</code>, <code>title</code>, <code>description</code>, <code>variant</code>,{' '}
+        <code>id</code>, <code>title</code>, <code>description</code>, <code>tone</code>,{' '}
         <code>duration</code>, <code>animation</code>, <code>position</code>,{' '}
         <code>enableLiquidAnimation</code> et <code>onClose</code>.{' '}
         <strong>
@@ -127,11 +133,11 @@ const PROPS: readonly PropRow[] = [
 
    ELLE S'APPELAIT « Toast », ET LE SOMMAIRE AFFICHAIT DONC « Toast » DEUX FOIS
    dans FEEDBACK — une fois pour elle, une fois pour `Opale.Toast`. Les sept
-   autres homonymes du sommaire se sont réglés par une fusion : le vendoré est
+   autres homonymes du sommaire se sont réglés par une fusion : l’ancien composant est
    devenu la matière derrière `liquidGlass`, et sa page a disparu.
 
    CELUI-CI NE SE FUSIONNE PAS, ET IL FAUT DIRE POURQUOI PLUTÔT QUE LE FAIRE.
-   Le paquet vendoré N'EXPORTE AUCUN COMPOSANT `Toast` : il exporte
+   Le paquet d’origine N'EXPORTE AUCUN COMPOSANT `Toast` : il exporte
    `ToastProvider` et `useToast`, c'est-à-dire une FILE — les cartes sont
    internes, montées par `createPortal` sur `document.body`, groupées par coin,
    empilées, animées et minutées. `Opale.Toast` est autre chose : un
@@ -165,7 +171,7 @@ export default function ToastContent() {
       </p>
 
       <Specimen
-        title="Les cinq variantes — déclenchez-les"
+        title="Les cinq tons — déclenchez-les"
         note={
           <>
             <strong>
@@ -175,7 +181,7 @@ export default function ToastContent() {
             Ils se ferment seuls au bout de 4 s, à la croix, ou avec « Tout fermer » — et{' '}
             <strong>la minuterie s’arrête tant que le pointeur est dessus</strong>, donc survolez-en
             un pour le garder le temps de le lire. La scène est sombre pour ses boutons, qui sont
-            ceux de la librairie. <MagicGroundNote />
+            ceux de la librairie. <StageGroundNote />
           </>
         }
       >
@@ -198,7 +204,7 @@ export default function ToastContent() {
       </Specimen>
 
       <PropsTable
-        id="magic-toast"
+        id="toast"
         title="L’interface — le fournisseur et le hook"
         note={
           <>

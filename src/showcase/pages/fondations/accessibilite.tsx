@@ -28,7 +28,7 @@ import { PageBody } from '../api';
    qu'un renfort » était une garantie sur des COMPOSANTS : les trois tons de
    `Pill` mesuraient 1,16:1 l'un contre l'autre en simulation deutéranope, et ce
    qui les séparait était le glyphe et le libellé. Rien de tel ne survit. Le
-   redémontrer sur les composants vendorés serait un mensonge : leurs six
+   redémontrer sur les composants actuels serait un mensonge : leurs six
    variantes de badge n'ont ni glyphe imposé ni libellé de repli, et aucun de
    leurs ratios n'a été mesuré. Le spécimen est donc remplacé par le paragraphe
    qui dit ce qui n'est plus garanti — un état vide honnête, pas une
@@ -131,7 +131,7 @@ export default function AccessibiliteContent() {
           </li>
           <li>
             Le double anneau de focus s’applique à <strong>tout</strong> élément focusable de la
-            page, composant vendoré compris : il est déclaré sur un sélecteur nu, pas sur une
+            page, composants compris : il est déclaré sur un sélecteur nu, pas sur une
             classe.
           </li>
           <li>
@@ -152,7 +152,7 @@ export default function AccessibiliteContent() {
             <code>Tag</code> — indiscernables en simulation deutéranope (1,16:1 l’un contre
             l’autre), donc séparés par un glyphe et un libellé obligatoires. Ces composants ne sont
             plus publiés, et les trois tons de{' '}
-            {/* LE LIEN VISAIT LE `Badge` VENDORÉ, dont la page a fusionné avec celle
+            {/* LE LIEN VISAIT LE `Badge` D’ORIGINE, dont la page a fusionné avec celle
               d'Opale. « Les SIX variantes » était son compte à lui
               (`default`, `positive`, `negative`, `warning`, `info`,
               `neutral`) ; `Opale.Badge` en expose TROIS — `primary`,
@@ -172,12 +172,9 @@ export default function AccessibiliteContent() {
             <code>&quot;use client&quot;</code>.
           </li>
           <li>
-            <strong>La sémantique native n’est plus garantie.</strong> La règle était{' '}
-            <code>&lt;button&gt;</code>, <code>&lt;a href&gt;</code>, <code>&lt;label for&gt;</code>{' '}
-            d’abord, ARIA ensuite. Les composants vendorés s’en écartent — la case à cocher est un{' '}
-            <code>&lt;button&gt;</code> sans <code>role</code> ni <code>aria-checked</code>, son
-            libellé est un <code>&lt;span onClick&gt;</code> —, et ces écarts sont documentés page
-            par page au lieu d’être corrigés.
+            <strong>La sémantique native d’abord.</strong> <code>&lt;button&gt;</code>,{' '}
+            <code>&lt;a href&gt;</code>, <code>&lt;label for&gt;</code>, ARIA ensuite : la case à
+            cocher et l’interrupteur sont des <code>&lt;input&gt;</code> natifs.
           </li>
           <li>
             <strong>Aucun ratio de contraste n’est mesuré sur un composant.</strong> Le contrat

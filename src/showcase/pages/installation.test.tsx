@@ -36,9 +36,7 @@ describe('la page Installation', () => {
     );
 
     expect(languages).toEqual(['shell', 'tsx', 'tsx', 'tsx', 'tsx']);
-    expect(container.textContent).toContain(
-      'return <Opale.Button variant="primary">Continuer</Opale.Button>;',
-    );
+    expect(container.textContent).toContain('return <Button variant="primary">Continuer</Button>;');
     expect(screen.getByText('En local')).toBeVisible();
   });
 

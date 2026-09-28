@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ruleBodies, stripComments } from './stylesheet';
-import opaleSource from '../magic/opale.css?raw';
+import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
    UN SEUL ANNEAU DE FOCUS.
@@ -17,7 +17,7 @@ import opaleSource from '../magic/opale.css?raw';
    de focus, l'encre du verre ou `currentColor` sur un remplissage.
    ========================================================================== */
 
-const modules = import.meta.glob('../magic/components/**/*.{css,scss}', {
+const modules = import.meta.glob('../opale/components/**/*.{css,scss}', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -40,7 +40,7 @@ describe('l’anneau de focus', () => {
       .map((m) => m[1].trim())
       .filter((value) => !/^(none|0)$/.test(value));
     const offsets = [...source.matchAll(/outline-offset:\s*([^;]+);/g)].map((m) => m[1].trim());
-    const name = file.replace('../magic/components/', '');
+    const name = file.replace('../opale/components/', '');
 
     if (outlines.length) {
       it(`${name} trace ses anneaux à la largeur commune`, () => {
@@ -55,12 +55,12 @@ describe('l’anneau de focus', () => {
   }
 
   it('dessine un anneau sur les liens de SiteNav', () => {
-    const css = stripComments(modules['../magic/components/site-nav/site-nav.module.css']);
+    const css = stripComments(modules['../opale/components/site-nav/site-nav.module.css']);
     expect(ruleBodies(css, '.link:focus-visible').join('\n')).toMatch(/outline:\s*var\(--opale-focus-ring-width\)/);
   });
 
   it('dessine un anneau autour de SearchBar au clavier', () => {
-    const css = stripComments(modules['../magic/components/search-bar/style/SearchBar.module.scss']);
+    const css = stripComments(modules['../opale/components/search-bar/style/SearchBar.module.scss']);
     expect(ruleBodies(css, '.root:has(.input:focus-visible)').join('\n')).toMatch(
       /outline:\s*var\(--opale-focus-ring-width\)/,
     );

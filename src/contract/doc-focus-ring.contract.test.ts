@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { compositeOver, contrastRatio, withAlpha } from './color';
-import opaleSource from '../magic/opale.css?raw';
+import opaleSource from '../opale/opale.css?raw';
 import docSource from '../styles/doc-v3.css?raw';
 import { ruleBody } from '../test/css-rules';
 

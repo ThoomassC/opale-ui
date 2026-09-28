@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-import { type CatalogEntry, OPALE_CATALOG, Opale } from '../../magic';
+import { Opale } from '../../opale';
+import { CATALOG, type ShowcaseCatalogEntry } from '../../opale/catalog';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import { PropsTable, UsageBlock } from './api';
 import { CATALOG_API } from './opale-api-data';
@@ -23,7 +24,7 @@ import { CatalogPreview, type PlaygroundConfig } from './catalog-preview';
    compare à ce que `catalog-preview.tsx` transmet vraiment.
 
    LES QUATRE DERNIERS VENUS — `Badge`, `Checkbox`, `Select`, `Slider` — sont
-   arrivés avec la suppression des doublons : leur homologue vendoré avait sa
+   arrivés avec la suppression des doublons : leur homologue d’origine avait sa
    propre page, et il est devenu la matière de ce commutateur. */
 /* LA LISTE DES COMPOSANTS QUI PORTENT VRAIMENT LE MATÉRIAU.
 
@@ -125,14 +126,31 @@ function withLiquidGlass(code: string, name: string): string {
     .reduce((result, index) => `${result.slice(0, index)} liquidGlass${result.slice(index)}`, code);
 }
 
+/** Les fonctions du paquet qu'un extrait appelle directement, sans namespace. */
+const PACKAGE_FUNCTIONS = ['readCookieConsent'];
+
+/* L'EXTRAIT AFFICHÉ IMPORTE PAR NOM. Les exemples sont écrits avec `Opale.X`,
+   ce qui permet de viser une balise d'Opale sans ambiguïté (voir
+   `withLiquidGlass`) ; celui qu'on copie importe `X` directement, la forme
+   recommandée. */
+function withNamedImports(code: string): string {
+  const used = new Set([...code.matchAll(/\bOpale\.([A-Z]\w*)/g)].map(([, member]) => member));
+  for (const name of PACKAGE_FUNCTIONS) {
+    if (new RegExp(`\\b${name}\\(`).test(code)) used.add(name);
+  }
+  const body = code.replace(/\bOpale\.([A-Z]\w*)/g, '$1');
+  const names = [...used].sort((a, b) => a.localeCompare(b));
+  return `import { ${names.join(', ')} } from '@thomascaron/opale-ui';\n\n${body}`;
+}
+
 /** Chaque fiche du catalogue possède un exemple qui montre son usage réel. */
 const REPRESENTATIVE_EXAMPLES: Readonly<Record<string, string>> = {
   Pressable: '<Opale.Pressable onClick={() => alert("Action")}>Ouvrir</Opale.Pressable>',
   MultiSelect: `<Opale.MultiSelect
   label="Domaines"
-  values={['design']}
+  defaultValue={['design']}
   options={[{ value: 'design', label: 'Design' }, { value: 'code', label: 'Code' }]}
-  onChange={(event) => console.log([...event.currentTarget.selectedOptions].map((item) => item.value))}
+  onValueChange={(value) => console.log(value)}
 />`,
   Select: `<Opale.Select
   label="Domaine"
@@ -172,7 +190,7 @@ export function DeleteAction() {
   return <>
     <Opale.Button variant="danger" onClick={() => setOpen(true)}>Supprimer</Opale.Button>
     <Opale.ConfirmDialog open={open} title="Supprimer ce projet ?"
-      onCancel={() => setOpen(false)}
+      onOpenChange={setOpen}
       onConfirm={() => { setOpen(false); console.log('Projet supprimé'); }}>
       Cette action est irréversible.
     </Opale.ConfirmDialog>
@@ -186,7 +204,7 @@ export function DeleteAction() {
   Navbar: `<Opale.Navbar items={[
   { id: 'home', label: 'Accueil', href: '/' },
   { id: 'projects', label: 'Projets', href: '/projets' },
-]} activeId="projects" />`,
+]} value="projects" />`,
   Menu: `<Opale.Menu label="Actions" items={[
   { id: 'duplicate', label: 'Dupliquer' },
   { id: 'archive', label: 'Archiver' },
@@ -197,7 +215,7 @@ export function SettingsPanel() {
   const [open, setOpen] = useState(false);
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Réglages</Opale.Button>
-    <Opale.SidePanel open={open} title="Réglages" onClose={() => setOpen(false)}>
+    <Opale.SidePanel open={open} title="Réglages" onOpenChange={setOpen}>
       <Opale.Toggle label="Notifications" defaultChecked />
     </Opale.SidePanel>
   </>;
@@ -209,8 +227,8 @@ export function Commands() {
   const [query, setQuery] = useState('');
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Commandes</Opale.Button>
-    <Opale.CommandPalette open={open} value={query} onChange={setQuery}
-      onClose={() => setOpen(false)} />
+    <Opale.CommandPalette open={open} value={query} onValueChange={setQuery}
+      onOpenChange={setOpen} />
   </>;
 }`,
   Breadcrumb: `<Opale.Breadcrumb items={[
@@ -230,9 +248,9 @@ export function Commands() {
   Divider: `<Opale.Text>Avant</Opale.Text>
 <Opale.Divider />
 <Opale.Text>Après</Opale.Text>`,
-  BackgroundSurface: `<Opale.Background>
+  BackgroundSurface: `<Opale.BackgroundSurface>
   <Opale.Card title="Contenu au premier plan">Bienvenue</Opale.Card>
-</Opale.Background>`,
+</Opale.BackgroundSurface>`,
   Lightbox: `import { useState } from 'react';
 
 export function ImagePreview() {
@@ -240,20 +258,20 @@ export function ImagePreview() {
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Voir l’image</Opale.Button>
     <Opale.Lightbox src="/visuel.png" alt="Aperçu du projet" open={open}
-      onClose={() => setOpen(false)} />
+      onOpenChange={setOpen} />
   </>;
 }`,
   RatingInput: `import { useState } from 'react';
 
 export function ReviewRating() {
   const [rating, setRating] = useState(3);
-  return <Opale.RatingInput label="Qualité de l’expérience" value={rating} onChange={setRating} />;
+  return <Opale.RatingInput label="Qualité de l’expérience" value={rating} onValueChange={setRating} />;
 }`,
   Pagination: `import { useState } from 'react';
 
 export function ResultsPagination() {
   const [page, setPage] = useState(2);
-  return <Opale.Pagination page={page} pageCount={8} onChange={setPage} />;
+  return <Opale.Pagination value={page} pageCount={8} onValueChange={setPage} />;
 }`,
   Skeleton: `<div role="status" aria-label="Chargement de la fiche">
   <Opale.Skeleton width="45%" height="1.5rem" />
@@ -301,7 +319,7 @@ function exampleCode(name: string, liquidGlass = false): string {
       return decorate('<Opale.Slider label="Volume" defaultValue={64} min={0} max={100} />');
     case 'SegmentedControl':
       return decorate(`<Opale.SegmentedControl
-  value="all"
+  defaultValue="all"
   options={[
     { value: 'all', label: 'Tout' },
     { value: 'active', label: 'Actifs' },
@@ -315,7 +333,7 @@ function exampleCode(name: string, liquidGlass = false): string {
 </Opale.Card>`);
     case 'CardGrid':
       return decorate(`<Opale.CardGrid>
-  <Opale.StatCard label="Composants" value="${OPALE_CATALOG.length}" delta="Catalogue Opale" />
+  <Opale.StatCard label="Composants" value="${CATALOG.length}" delta="Catalogue Opale" />
   <Opale.StatCard label="Thèmes" value="2 globaux + 1 matériau" />
 </Opale.CardGrid>`);
     case 'Badge':
@@ -347,7 +365,7 @@ function exampleCode(name: string, liquidGlass = false): string {
   onSortChange={({ key, direction }) => console.log(key, direction)}
 />`);
     case 'Feedback':
-      return decorate(`<Opale.Feedback severity="success" title="En production">
+      return decorate(`<Opale.Feedback tone="success" title="En production">
   La dernière version est disponible.
 </Opale.Feedback>`);
     case 'Rating':
@@ -368,7 +386,7 @@ function exampleCode(name: string, liquidGlass = false): string {
   tone="success"
   position="bottom-right"
   message="Étape publiée sur le carnet"
-  onClose={() => setOpen(false)}
+  onOpenChange={setOpen}
 />`);
     case 'ProgressBar':
       return decorate('<Opale.ProgressBar label="Progression" value={72} />');
@@ -390,8 +408,7 @@ export function FileSelection() {
 // Sans open, le bandeau ne revient plus une fois le choix fait ;
 // open={true} le rouvre, pour un lien « Gérer mes cookies ».
 
-// Au démarrage : onAccept ne part qu'au clic, le choix mémorisé se lit ici
-// (import { readCookieConsent } from '@thomascaron/opale-ui').
+// Au démarrage : onAccept ne part qu'au clic, le choix mémorisé se lit ici.
 if (readCookieConsent() === 'accepted') enableAnalytics();
 
 <Opale.CookieBanner
@@ -419,7 +436,7 @@ if (readCookieConsent() === 'accepted') enableAnalytics();
   }
 }
 
-export function ComponentPage({ entry }: { entry: CatalogEntry }) {
+export function ComponentPage({ entry }: { entry: ShowcaseCatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
   const supportsLiquidGlass = FORWARDS_LIQUID_GLASS.includes(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
@@ -429,7 +446,7 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const [inputError, setInputError] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [tableMode, setTableMode] = useState<PlaygroundConfig['tableMode']>('filled');
-  const [tableDensity, setTableDensity] = useState<PlaygroundConfig['tableDensity']>('comfortable');
+  const [tableSize, setTableSize] = useState<PlaygroundConfig['tableSize']>('medium');
   const [tableStriped, setTableStriped] = useState(true);
   const playground: PlaygroundConfig = {
     buttonVariant,
@@ -438,7 +455,7 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
     inputError,
     inputDisabled,
     tableMode,
-    tableDensity,
+    tableSize,
     tableStriped,
   };
   const baseCode = exampleCode(entry.name, liquidGlass);
@@ -460,7 +477,7 @@ const rows = [
 ];
 <Opale.DataTable
   caption="Composants"
-  showRowCount${tableStriped ? '\n  striped' : ''}${tableDensity === 'compact' ? '\n  density="compact"' : ''}
+  showRowCount${tableStriped ? '\n  striped' : ''}${tableSize === 'small' ? '\n  size="small"' : ''}
   columns={columns}
   rowKey={(row) => String(row.name)}
   rows={${tableMode === 'empty' ? '[]' : 'rows'}}${tableMode === 'loading' ? '\n  loading' : ''}${liquidGlass ? '\n  liquidGlass' : ''}
@@ -585,13 +602,13 @@ const rows = [
                 <label>
                   Densité{' '}
                   <select
-                    value={tableDensity}
+                    value={tableSize}
                     onChange={(event) =>
-                      setTableDensity(event.currentTarget.value as PlaygroundConfig['tableDensity'])
+                      setTableSize(event.currentTarget.value as PlaygroundConfig['tableSize'])
                     }
                   >
-                    <option value="comfortable">Confortable</option>
-                    <option value="compact">Compacte</option>
+                    <option value="medium">Confortable</option>
+                    <option value="small">Compacte</option>
                   </select>
                 </label>
                 <Opale.Checkbox
@@ -617,10 +634,7 @@ const rows = [
             l'`import`. Sans lui, un extrait copié ne compile pas chez qui le
             colle. Il part donc avec le reste plutôt que de disparaître avec la
             plaque. */}
-        <UsageBlock
-          label={`Exemple ${displayName}`}
-          code={`import { Opale } from '@thomascaron/opale-ui';\n\n${code}`}
-        />
+        <UsageBlock label={`Exemple ${displayName}`} code={withNamedImports(code)} />
       </section>
       <PropsTable
         id={catalogComponentSlug(entry.name).replace('/', '-')}

@@ -2,8 +2,8 @@ import { useState } from 'react';
 
 import { UI_VERSION } from '../../version';
 
-import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../magic';
-import type { OpaleIconName, ToastDefinition } from '../../../magic';
+import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../opale';
+import type { OpaleIconName, OpaleSize, ToastDefinition } from '../../../opale';
 
 import { MaterialSwitch, PlainStage } from './material-switch';
 
@@ -33,7 +33,7 @@ import { MaterialSwitch, PlainStage } from './material-switch';
    IL Y EN AVAIT HUIT, IL EN RESTE CINQ, ET LES TROIS PARTIES N'ONT PAS ÉTÉ
    PERDUES. `CheckboxSizeScene`, `SelectSizeScene`, `SwitchSizeScene`,
    `SliderSizeScene` et `SliderStepScene` mettaient en scène des composants
-   vendorés dont la page a fusionné avec celle du jumeau Opale : plus aucune
+   d’origine dont la page a fusionné avec celle du jumeau Opale : plus aucune
    page ne les appelait, et une scène qu'aucune page ne joue n'est pas une
    réserve, c'est du code mort qui continue d'importer sa dépendance. Ce que
    ces composants montrent se voit désormais sur `composants/opale-checkbox`,
@@ -66,28 +66,16 @@ export function SidebarCollapsibleScene() {
     <MaterialSwitch name="Sidebar pliable" tall>
       {(liquidGlass) => (
         <>
-          {/* `onToggle` REÇOIT `setCollapsed` DIRECTEMENT, ET CE N'EST VRAI QUE
-          DEPUIS LA CORRECTION DE `SidebarProps`.
-
-          Le type étendait `ComponentPropsWithoutRef<'aside'>` EN ENTIER, qui
-          apporte le `onToggle` du DOM — celui de `<details>`,
-          `ToggleEventHandler`. TypeScript intersectait les deux signatures et
-          le paramètre arrivait en `boolean | ToggleEvent<HTMLElement>` : il
-          fallait le resserrer par un `typeof next === 'boolean'` avant de
-          pouvoir brancher le `setState`, et cette garde n'était pas
-          défensive — sans elle le corps ne compilait pas.
-
-          `SidebarProps` retire désormais le `onToggle` du DOM
-          (`Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle'>`) et déclare le
-          sien, `(collapsed: boolean) => void`. La garde est donc morte, et
-          l'appel s'écrit comme il aurait toujours dû s'écrire. */}
+          {/* `onCollapsedChange` et `onValueChange` reçoivent chacun un
+          `setState` tel quel : le pli arrive en `boolean`, l'entrée en
+          identifiant. */}
           <Sidebar
             liquidGlass={liquidGlass}
             collapsible
             collapsed={collapsed}
-            onToggle={setCollapsed}
-            activeItemId={active}
-            onSelectItem={setActive}
+            onCollapsedChange={setCollapsed}
+            value={active}
+            onValueChange={setActive}
           >
             <Sidebar.Header>
               {!collapsed && <strong>Voyage</strong>}
@@ -124,7 +112,7 @@ export function SidebarCollapsibleScene() {
             {!collapsed && <Sidebar.Footer>v{UI_VERSION}</Sidebar.Footer>}
           </Sidebar>
 
-          <p className="tc-doc-magicstage__label">
+          <p className="tc-doc-stage__label">
             Repliée : <code>{String(collapsed)}</code> — entrée retenue : <code>{active}</code>
           </p>
         </>
@@ -139,7 +127,7 @@ export function TabsControlledScene() {
 
   return (
     <PlainStage stack>
-      <p className="tc-doc-magicstage__label">
+      <p className="tc-doc-stage__label">
         Onglet retenu par l’appelant : <code>{value}</code>
       </p>
       <Tabs value={value} onValueChange={setValue} activationMode="manual">
@@ -158,7 +146,7 @@ export function TabsControlledScene() {
 }
 
 export interface ModalSceneProps {
-  readonly size?: 'sm' | 'md' | 'lg';
+  readonly size?: OpaleSize;
   /** La matière du panneau. Originale par défaut, comme partout ailleurs. */
   readonly liquidGlass?: boolean;
   readonly closeOnOverlay?: boolean;
@@ -173,7 +161,7 @@ export interface ModalSceneProps {
  * LE MODAL SE PORTAILLE DANS `document.body`, DONC HORS DE LA SCÈNE. Il ne se
  * peint pas sur le dégradé de la page mais par-dessus la vitrine entière :
  * c'est son propre voile qui lui fait un fond sombre. C'est le seul composant
- * de `/magic` dont la lisibilité ne dépende pas de la mise en scène.
+ * de ces pages dont la lisibilité ne dépende pas de la mise en scène.
  */
 export function ModalScene({
   size,
@@ -190,7 +178,7 @@ export function ModalScene({
 
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
+        onOpenChange={setOpen}
         liquidGlass={liquidGlass}
         size={size}
         closeOnOverlay={closeOnOverlay}
@@ -261,28 +249,28 @@ export function ToastVariantScene({ liquidGlass = false }: { liquidGlass?: boole
     <ToastProvider duration={4000} liquidGlass={liquidGlass}>
       <div className="tc-doc-opale-scenerow">
         <ToastTrigger
-          label="default"
+          label="neutral"
           toast={{ title: 'Brouillon enregistré', description: 'Il y a un instant.' }}
         />
         <ToastTrigger
           label="success"
-          toast={{ variant: 'success', title: 'Étape publiée', description: 'Kyoto, 3 jours.' }}
+          toast={{ tone: 'success', title: 'Étape publiée', description: 'Kyoto, 3 jours.' }}
         />
         <ToastTrigger
           label="warning"
           toast={{
-            variant: 'warning',
+            tone: 'warning',
             title: 'Carte non régénérée',
             description: 'Les étapes ont bougé depuis.',
           }}
         />
         <ToastTrigger
           label="error"
-          toast={{ variant: 'error', title: 'Publication refusée', description: 'Titre manquant.' }}
+          toast={{ tone: 'error', title: 'Publication refusée', description: 'Titre manquant.' }}
         />
         <ToastTrigger
           label="info"
-          toast={{ variant: 'info', title: 'Carte régénérée', description: '12 étapes.' }}
+          toast={{ tone: 'info', title: 'Carte régénérée', description: '12 étapes.' }}
         />
         <ToastClear />
       </div>

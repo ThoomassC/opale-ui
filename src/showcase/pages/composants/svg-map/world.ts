@@ -2,7 +2,7 @@ import { geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature } from 'topojson-client';
 import topology from 'world-atlas/countries-50m.json';
 
-import type { SvgMapBounds, SvgMapRegion } from '../../../../magic';
+import type { SvgMapBounds, SvgMapRegion } from '../../../../opale';
 import { ALPHA2_BY_NUMERIC, continentOf, type Continent } from './world-codes';
 
 /* =============================================================================

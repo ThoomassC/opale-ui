@@ -1,4 +1,4 @@
-import { SiteNav } from '../../../magic';
+import { SiteNav } from '../../../opale';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -12,7 +12,7 @@ import '@thomascaron/opale-ui/opale.css';
     { id: 'example-1', href: '#', label: 'Exemple 1' },
     { id: 'example-2', href: '#', label: 'Exemple 2' },
   ]}
-  activeItem="example-1"
+  value="example-1"
   navLabel="Navigation principale"
   onNavigate={() => undefined}
 />`;
@@ -31,12 +31,14 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'items',
     type: 'readonly SiteNavItem[]',
-    description: 'Optionnel : Carte, Pays, Villes et À propos par défaut.',
+    description:
+      'Les destinations, pensées pour quatre entrées. À passer toujours : le défaut hérité n’est gardé que pour les appels existants.',
   },
   {
-    name: 'activeItem',
+    name: 'value',
     type: 'string',
-    description: 'Identifiant de l’entrée qui porte l’unique bulle active.',
+    description:
+      'Identifiant de l’entrée qui porte l’unique bulle active. Remplace activeItem, déprécié depuis 3.6.',
   },
   {
     name: 'navLabel',
@@ -69,7 +71,7 @@ export default function SiteNavContent() {
             <SiteNav
               liquidGlass={liquidGlass}
               items={DEMO_ITEMS}
-              activeItem="example-1"
+              value="example-1"
               /* PAS « Navigation principale » ICI : c'est déjà le nom de la
                  barre du site, et deux repères de même nom sur une page ne se
                  distinguent pas dans la liste d'un lecteur d'écran. */

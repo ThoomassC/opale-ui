@@ -38,7 +38,7 @@ Les 28 noms sont déjà absents du catalogue 3.2.0 de départ ; aucune suppressi
 
 `doc-v3.css` accumule des règles de reprise et des `!important`. La présente branche nettoie uniquement un sélecteur mobile redondant. Une consolidation plus large doit comparer les styles calculés et les captures de la recette aux largeurs 320, 375 et 1280 px, en thèmes clair et sombre, y compris les états de focus, avant de supprimer chaque règle. Les nouveaux styles restent regroupés en fin de feuille pour une revue ciblée.
 
-Les polices Bricolage Grotesque et Chivo sont désormais embarquées dans la feuille publiée. Leurs licences complètes figurent dans `THIRD-PARTY-NOTICES.md`. Le build de bibliothèque intègre les WOFF2 dans `dist/magic/magic.css` et n’émet plus de requête Google Fonts.
+Les polices Bricolage Grotesque et Chivo sont désormais embarquées dans la feuille publiée. Leurs licences complètes figurent dans `THIRD-PARTY-NOTICES.md`. Le build de bibliothèque intègre les WOFF2 dans `dist/opale/opale.css` et n’émet plus de requête Google Fonts.
 
 ## Publication
 

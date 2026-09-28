@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { ruleBody } from '../test/css-rules';
-import opaleSource from '../magic/opale.css?raw';
-import fontsSource from '../magic/fonts.css?raw';
-import searchBarSource from '../magic/components/search-bar/style/SearchBar.module.scss?raw';
+import opaleSource from '../opale/opale.css?raw';
+import fontsSource from '../opale/fonts.css?raw';
+import searchBarSource from '../opale/components/search-bar/style/SearchBar.module.scss?raw';
 import docSource from './doc-v3.css?raw';
 import tokensSource from '../tokens/tokens.css?raw';
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { contrastRatio } from './color';
 import { parseThemes, resolveToken, stripComments } from './stylesheet';
 import type { Theme } from './stylesheet';
-import opaleSource from '../magic/opale.css?raw';
+import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
    L'ENCRE DES REMPLISSAGES SUIT LE THÈME OÙ ELLE EST POSÉE.

@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// Extension-ful on purpose, for the same reason as in `vite.magic.config.ts`:
+// Extension-ful on purpose, for the same reason as in `vite.lib.config.ts`:
 // Vite's forthcoming native config loader cannot resolve an extensionless
 // TypeScript import and warns on every build.
 
@@ -13,14 +13,14 @@ import { defineConfig } from 'vite';
  *
  * NO `resolve.alias` FOR `@thomascaron/opale-ui`, AND THAT IS A MEASURED CHOICE.
  * The showcase pages import the fourteen published components through the
- * relative specifier `'../../../magic'`, not through the package name a
+ * relative specifier `'../../../opale'`, not through the package name a
  * consumer would write. The package is self-referenceable — `package.json` has
  * both a `name` and an `exports` map — so `@thomascaron/opale-ui` DOES resolve
  * from inside the repo; it just resolves to the wrong thing. Measured, not
  * assumed, with `tsc --traceResolution`:
  *
- *     Using 'exports' subpath '.' with target './dist/magic/index.js'
- *     resolved to '.../dist/magic/index.d.ts'
+ *     Using 'exports' subpath '.' with target './dist/opale/index.js'
+ *     resolved to '.../dist/opale/index.d.ts'
  *
  * That is the BUILD OUTPUT. Aliasing it here would fix the bundler only:
  * `tsc -b --noEmit` and `vitest` read their own configs, and `tsconfig.app.json`
@@ -63,13 +63,13 @@ export default defineConfig({
      ==================================================================== */
   css: {
     modules: {
-      // UN CONTRAT AVEC `src/magic/magic.scss`, et le même que celui de
-      // `vite.magic.config.ts` : cette feuille porte trois règles en
-      // `:where([class*='opale-magic-'])` — la police Nunito, le reste du
+      // UN CONTRAT AVEC `src/opale/motion.scss`, et le même que celui de
+      // `vite.lib.config.ts` : cette feuille porte trois règles en
+      // `:where([class*='opale-mod-'])` — la police Nunito, le reste du
       // Preflight dont leurs composants dépendent, et leurs neuf couleurs de
       // thème. Renommer le préfixe ici ne casse rien de visible au build : les
       // trois règles cessent simplement de s'appliquer à quoi que ce soit.
-      generateScopedName: 'opale-magic-[local]-[hash:base64:5]',
+      generateScopedName: 'opale-mod-[local]-[hash:base64:5]',
     },
   },
 

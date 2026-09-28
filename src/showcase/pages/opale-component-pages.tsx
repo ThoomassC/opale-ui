@@ -1,4 +1,4 @@
-import { OPALE_CATALOG } from '../../magic';
+import { CATALOG } from '../../opale/catalog';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import type { DocPage } from '../doc-model';
 import { lazyPage } from './lazy-page';
@@ -19,7 +19,7 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
   CardGrid: ['Carousel'],
   DataTable: ['sortable', 'sortValue', 'tri'],
   Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
-  Feedback: ['Http', 'Validation', 'severity'],
+  Feedback: ['Http', 'Validation', 'tone', 'severity'],
   IconActionButton: ['icon', 'share', 'bouton icône'],
   Lightbox: ['alt', 'texte alternatif'],
   Menu: ['SettingsMenu'],
@@ -45,7 +45,7 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
    c'est-à-dire un type de composant distinct par page : React remonte donc la
    page à chaque changement, et la clé n'a plus d'objet.
    ========================================================================== */
-export const opaleComponentPages: readonly DocPage[] = OPALE_CATALOG.map((entry) => ({
+export const opaleComponentPages: readonly DocPage[] = CATALOG.map((entry) => ({
   slug: catalogComponentSlug(entry.name),
   label: catalogComponentLabel(entry.name),
   group: 'composants',

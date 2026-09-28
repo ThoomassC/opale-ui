@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { compositeOver, contrastRatio, withAlpha } from './color';
 import { parseThemes, resolveToken, ruleBodies, stripComments } from './stylesheet';
 import type { Theme } from './stylesheet';
-import opaleSource from '../magic/opale.css?raw';
+import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
    LE SÉPARATEUR SE VOIT.

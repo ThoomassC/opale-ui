@@ -47,10 +47,10 @@ export default function Page() {
   return <Button variant="primary">Continuer</Button>;
 }`;
 
-const FIRST_COMPONENT = `import { Opale } from '@thomascaron/opale-ui';
+const FIRST_COMPONENT = `import { Button } from '@thomascaron/opale-ui';
 
 export function App() {
-  return <Opale.Button variant="primary">Continuer</Opale.Button>;
+  return <Button variant="primary">Continuer</Button>;
 }`;
 
 export const installationPage: DocPage = {
@@ -139,7 +139,7 @@ export const installationPage: DocPage = {
 
       <Specimen
         title="5. Afficher un premier composant"
-        note="Chaque composant existe en export nommé (Button) et dans l’espace de noms Opale (Opale.Button) : les deux désignent le même composant."
+        note="Chaque composant s’importe par son nom (Button). L’espace de noms Opale (Opale.Button) désigne le même composant ; l’export nommé est la forme recommandée."
       >
         <UsageBlock label="Premier composant Opale" code={FIRST_COMPONENT} defaultOpen />
         <ul className="tc-doc-checklist">

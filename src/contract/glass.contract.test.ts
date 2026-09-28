@@ -456,7 +456,7 @@ const WORST_CASES: readonly WorstCase[] = [
       'lettres un emploi licite. L’exemple qui l’avait fait tomber était ' +
       '`.tc-btn--secondary:hover`, qui posait `border-color: var(--text-accent)` sur un lavis ' +
       'd’appui ; cette feuille a été SUPPRIMÉE en 2.0 avec les dix-huit composants d’Opale, et ' +
-      'aucun composant du paquet n’exerce plus ce couple — `/magic` n’emploie aucun jeton. Le ' +
+      'aucun composant du paquet n’exerce plus ce couple — `src/opale` n’emploie aucun jeton. Le ' +
       'plancher reste celui du TEXTE : il tient le jeton, pas son unique usage passé.',
   },
   {

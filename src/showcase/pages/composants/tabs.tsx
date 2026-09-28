@@ -1,4 +1,4 @@
-import { Tabs } from '../../../magic';
+import { Tabs } from '../../../opale';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -186,7 +186,7 @@ export default function TabsContent() {
       </Specimen>
 
       <PropsTable
-        id="magic-tabs"
+        id="tabs"
         note={
           <>
             <code>TabsProps</code> étend{' '}

@@ -10,8 +10,8 @@ export const accessibilitePage: DocPage = {
     <>
       Deux engagements portés par les jetons, vérifiables sur cette page : le focus se voit sur
       n’importe quel fond, et rien de cliquable ne descend sous la taille du doigt.{' '}
-      <strong>Ce contrat ne couvre pas les quatorze composants publiés</strong> — ils sont vendorés
-      et n’emploient aucun de ces jetons.
+      Les composants publiés portent leur propre anneau de focus, sur les jetons{' '}
+      <code>--opale-*</code>.
     </>
   ),
   render: lazyPage(() => import('./accessibilite').then((module) => module.default)),

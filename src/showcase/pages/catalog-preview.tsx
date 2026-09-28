@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
-import { OPALE_CATALOG, Opale } from '../../magic';
-import type { ToastPlacement, ToastTone } from '../../magic';
+import { Opale } from '../../opale';
+import { CATALOG } from '../../opale/catalog';
+import type { DataTableSize, OpalePlacement, OpaleTone } from '../../opale';
 
 const OPTIONS = [
   { value: 'design', label: 'Design system' },
@@ -37,7 +38,7 @@ const TOAST_PLACEMENTS = [
   'bottom-right',
 ] as const;
 
-const TOAST_MESSAGES: Record<ToastTone, string> = {
+const TOAST_MESSAGES: Record<OpaleTone, string> = {
   neutral: 'Modifications enregistrées',
   success: 'Étape publiée sur le carnet',
   warning: 'La carte n’a pas été régénérée',
@@ -116,7 +117,7 @@ export interface PlaygroundConfig {
   inputError: boolean;
   inputDisabled: boolean;
   tableMode: 'filled' | 'empty' | 'loading';
-  tableDensity: 'comfortable' | 'compact';
+  tableSize: DataTableSize;
   tableStriped: boolean;
 }
 
@@ -135,8 +136,8 @@ export function CatalogPreview({
   const [multiSelected, setMultiSelected] = useState<string[]>(['design', 'docs']);
   const [slider, setSlider] = useState(64);
   const [toastOpen, setToastOpen] = useState(true);
-  const [toastTone, setToastTone] = useState<ToastTone>('success');
-  const [toastPlacement, setToastPlacement] = useState<ToastPlacement>('bottom-right');
+  const [toastTone, setToastTone] = useState<OpaleTone>('success');
+  const [toastPlacement, setToastPlacement] = useState<OpalePlacement>('bottom-right');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -252,13 +253,9 @@ export function CatalogPreview({
         <Opale.MultiSelect
           liquidGlass={liquidGlass}
           label="Domaines"
-          values={multiSelected}
+          value={multiSelected}
           options={OPTIONS}
-          onChange={(event) =>
-            setMultiSelected(
-              Array.from(event.currentTarget.selectedOptions, (option) => option.value),
-            )
-          }
+          onValueChange={setMultiSelected}
         />
       );
       break;
@@ -303,7 +300,7 @@ export function CatalogPreview({
           liquidGlass={liquidGlass}
           options={OPTIONS}
           value={selected}
-          onChange={setSelected}
+          onValueChange={setSelected}
         />
       );
       break;
@@ -338,7 +335,7 @@ export function CatalogPreview({
           <Opale.StatCard
             liquidGlass={liquidGlass}
             label="Composants"
-            value={String(OPALE_CATALOG.length)}
+            value={String(CATALOG.length)}
             delta="Catalogue complet"
           />
           <Opale.StatCard
@@ -357,7 +354,7 @@ export function CatalogPreview({
           caption="Composants"
           showRowCount
           striped={playground?.tableStriped ?? true}
-          density={playground?.tableDensity}
+          size={playground?.tableSize}
           columns={[
             { key: 'name', label: 'Nom', sortable: true },
             { key: 'uses', label: 'Usages', sortable: true, align: 'end' },
@@ -416,12 +413,12 @@ export function CatalogPreview({
         <Opale.RatingInput
           label="Qualité de l’expérience"
           value={ratingValue}
-          onChange={setRatingValue}
+          onValueChange={setRatingValue}
         />
       );
       break;
     case 'Pagination':
-      preview = <Opale.Pagination page={page} pageCount={8} onChange={setPage} />;
+      preview = <Opale.Pagination value={page} pageCount={8} onValueChange={setPage} />;
       break;
     case 'Skeleton':
       preview = (
@@ -495,7 +492,7 @@ export function CatalogPreview({
       break;
     case 'Feedback':
       preview = (
-        <Opale.Feedback liquidGlass={liquidGlass} severity="success" title="En production">
+        <Opale.Feedback liquidGlass={liquidGlass} tone="success" title="En production">
           La dernière version est disponible.
         </Opale.Feedback>
       );
@@ -515,13 +512,13 @@ export function CatalogPreview({
             <Opale.Select
               label="Ton"
               value={toastTone}
-              onChange={(event) => setToastTone(event.currentTarget.value as ToastTone)}
+              onChange={(event) => setToastTone(event.currentTarget.value as OpaleTone)}
               options={TOAST_TONES.map((value) => ({ value, label: value }))}
             />
             <Opale.Select
               label="Place à l’écran"
               value={toastPlacement}
-              onChange={(event) => setToastPlacement(event.currentTarget.value as ToastPlacement)}
+              onChange={(event) => setToastPlacement(event.currentTarget.value as OpalePlacement)}
               options={TOAST_PLACEMENTS.map((value) => ({ value, label: value }))}
             />
           </div>
@@ -558,7 +555,7 @@ export function CatalogPreview({
             tone={toastTone}
             position={toastPlacement}
             message={TOAST_MESSAGES[toastTone]}
-            onClose={() => setToastOpen(false)}
+            onOpenChange={setToastOpen}
           />
         </DemoFrame>
       );
@@ -579,7 +576,7 @@ export function CatalogPreview({
             open={dialogOpen}
             liquidGlass={liquidGlass}
             title="Supprimer le fichier ?"
-            onCancel={() => setDialogOpen(false)}
+            onOpenChange={setDialogOpen}
             onConfirm={() => {
               setDialogOpen(false);
               setMessage('Fichier supprimé');
@@ -605,8 +602,8 @@ export function CatalogPreview({
         <Opale.Navbar
           liquidGlass={liquidGlass}
           items={NAV_ITEMS}
-          activeId={activeNav}
-          onSelect={setActiveNav}
+          value={activeNav}
+          onValueChange={setActiveNav}
         />
       );
       break;
@@ -633,7 +630,7 @@ export function CatalogPreview({
             open={panelOpen}
             liquidGlass={liquidGlass}
             title="Réglages"
-            onClose={() => setPanelOpen(false)}
+            onOpenChange={setPanelOpen}
           >
             <Opale.Toggle label="Notifications" defaultChecked />
           </Opale.SidePanel>
@@ -648,8 +645,8 @@ export function CatalogPreview({
             open={paletteOpen}
             liquidGlass={liquidGlass}
             value={text}
-            onChange={setText}
-            onClose={() => setPaletteOpen(false)}
+            onValueChange={setText}
+            onOpenChange={setPaletteOpen}
           />
         </>
       );
@@ -719,7 +716,7 @@ export function CatalogPreview({
       preview = (
         <Opale.Layout
           className="tc-doc-opale-demo__layout"
-          navigation={<Opale.Navbar items={NAV_ITEMS.slice(0, 2)} activeId="overview" />}
+          navigation={<Opale.Navbar items={NAV_ITEMS.slice(0, 2)} value="overview" />}
         >
           <Opale.Heading level={3}>Contenu principal</Opale.Heading>
           <Opale.Text>Une grille navigation-contenu responsive.</Opale.Text>
@@ -782,7 +779,7 @@ export function CatalogPreview({
             src={PREVIEW_IMAGE}
             alt="Aperçu abstrait Opale"
             open={lightboxOpen}
-            onClose={() => setLightboxOpen(false)}
+            onOpenChange={setLightboxOpen}
           />
         </>
       );
@@ -811,7 +808,7 @@ export function CatalogPreview({
       break;
     default:
       preview = (
-        <Opale.Feedback severity="error" title="Démonstration manquante">
+        <Opale.Feedback tone="error" title="Démonstration manquante">
           Le composant {name} n’a pas encore de spécimen.
         </Opale.Feedback>
       );

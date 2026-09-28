@@ -149,7 +149,7 @@ body {
    LA COQUILLE EST SOMBRE DANS LES DEUX THÈMES, ET CE N'EST PAS UN GOÛT.
 
    La barre du haut est un `Topbar` et le sommaire un `Sidebar` : deux
-   composants de `src/magic/**`. Leurs feuilles posaient toutes deux une encre
+   composants de `src/opale/**`. Leurs feuilles posaient toutes deux une encre
    BLANCHE en dur sur leur élément racine ; réécrites par Opale, elles n'en
    imposent plus aucune et héritent. La règle ci-dessous reste néanmoins utile —
    elle pose l'encre de la vitrine plutôt que de compter sur l'héritage d'un
@@ -1631,7 +1631,7 @@ body {
    de `Glass` est émise après celle des composants : cette déclaration battait
    donc `.collapsed { width: 88px }` que `Sidebar` pose lui-même sur
    l'enveloppe par `rootClassName`. Mesuré, replié, l'enveloppe portait bien
-   `opale-magic-collapsed-YDT-N` et sortait quand même à 260 px. L'écart
+   `opale-mod-collapsed-YDT-N` et sortait quand même à 260 px. L'écart
    désactivait en silence les classes de largeur de TOUT composant — chez un
    consommateur aussi, pas seulement ici.
 
@@ -2275,15 +2275,15 @@ body {
 
 /* La scène Liquid Glass expose trois variantes : elles respirent sur toute la
    largeur disponible, et chaque nom reste centré sous l’objet qu’il décrit. */
-.tc-doc-magicstage:has(.tc-doc-squire-circle__root) {
+.tc-doc-stage:has(.tc-doc-squire-circle__root) {
   justify-content: space-between;
 }
 
-.tc-doc-magicstage:has(.tc-doc-squire-circle__root) .tc-doc-magicstage__cell {
+.tc-doc-stage:has(.tc-doc-squire-circle__root) .tc-doc-stage__cell {
   align-items: center;
 }
 
-.tc-doc-magicstage:has(.tc-doc-squire-circle__root) .tc-doc-magicstage__label {
+.tc-doc-stage:has(.tc-doc-squire-circle__root) .tc-doc-stage__label {
   inline-size: 100%;
   text-align: center;
 }
@@ -3364,28 +3364,28 @@ body {
    pixels et les six se répartissent. Cette scène-ci, plus haute, est celle qui
    ressemble à ce que verra un consommateur. */
 
-/* --- Scène de /magic ---------------------------------------------------------
+/* --- Scène des composants en verre -------------------------------------------
    La plaque de spécimen d'Opale est un aplat CLAIR (`--surface`, rgb(235,244,246)
    en thème clair, sur un sol `--doc-ground` blanc). Les quatorze composants de
-   `src/magic/**` écrivent leur libellé en `#ffffff` EN DUR : posés sur cette
+   `src/opale/**` écrivent leur libellé en `#ffffff` EN DUR : posés sur cette
    plaque, ils y disparaissent. Mesuré : blanc sur `--surface` = 1,12:1, blanc
-   sur le sol blanc de la vitrine = 1,00:1. Chaque spécimen de `/magic` porte
+   sur le sol blanc de la vitrine = 1,00:1. Chaque spécimen de ces composants porte
    donc sa propre scène sombre, et ce n'est pas une préférence de mise en scène :
    c'est la condition sans laquelle le composant ne se voit pas.
 
    LE FOND N'EST PAS ICI, ET C'EST DÉLIBÉRÉ. Ces règles ne portent que la mise
    en page ; le dégradé est un `style` en ligne posé par
-   `showcase/pages/magic/stage.tsx`, avec ses trois hexadécimaux et ses trois
+   `showcase/pages/composants/stage.tsx`, avec ses trois hexadécimaux et ses trois
    ratios mesurés en commentaire. C'est la MÊME dérogation que les plaques de la
    page palette, pour la même raison : une scène qui documente le thème d'un
    autre projet ne suit pas celui du lecteur, et `doc.css` garde sa règle
-   « aucune couleur littérale ». `/magic` est par ailleurs hors du contrat de
+   « aucune couleur littérale ». Ces composants sont par ailleurs hors du contrat de
    couleur d'Opale et n'emploie aucun jeton `--tc-*` — peindre sa scène avec un
    jeton publié affirmerait le contraire.
 
    `--tc-white` sur les LÉGENDES est l'exception qui confirme la frontière : ce
    texte-là est de la prose de vitrine posée sur la scène, pas du composant
-   vendoré. C'est Opale qui l'écrit, donc c'est un jeton d'Opale qui le peint.
+   d’origine. C'est Opale qui l'écrit, donc c'est un jeton d'Opale qui le peint.
    -------------------------------------------------------------------------- */
 
 /* L'OMBRE PORTÉE N'EST PAS UN EFFET, C'EST CE QUI REND LE TEXTE LISIBLE.
@@ -3442,8 +3442,8 @@ body {
 /* LE LIBELLÉ D'UNE FIGURE SUIT LA SCÈNE QUI LE PORTE. Écrit pour la
    photographie, il est clair et ombré ; sur la surface unie, il doit reprendre
    l'encre de la page, sans quoi il devient blanc sur gris pâle. */
-.tc-doc-opale-plainstage .tc-doc-magicstage__label,
-.tc-doc-opale-plainstage .tc-doc-magicstage__cell {
+.tc-doc-opale-plainstage .tc-doc-stage__label,
+.tc-doc-opale-plainstage .tc-doc-stage__cell {
   color: var(--opale-text);
   text-shadow: none;
 }
@@ -3453,7 +3453,7 @@ body {
   align-items: flex-start;
 }
 
-.tc-doc-magicstage {
+.tc-doc-stage {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -3478,20 +3478,20 @@ body {
    scène qui redéclare l'encre de ce qu'elle accueille — et elle épaissit le
    lavis, sans quoi le blanc se retrouverait sur la photo plutôt que sur la
    pastille. Mesuré après correction : blanc sur le lavis épaissi, 5,1:1. */
-.tc-doc-magicstage .opale-badge {
+.tc-doc-stage .opale-badge {
   background: color-mix(in srgb, var(--opale-primary) 62%, transparent);
   color: var(--tc-white);
 }
-.tc-doc-magicstage .opale-badge--accent {
+.tc-doc-stage .opale-badge--accent {
   background: color-mix(in srgb, var(--opale-accent-dark) 90%, transparent);
 }
-.tc-doc-magicstage .opale-badge--danger {
+.tc-doc-stage .opale-badge--danger {
   background: color-mix(in srgb, var(--opale-danger) 72%, transparent);
 }
 
 /* Les scènes d'un composant qui prend toute la largeur — `Topbar`, `Tabs`,
    `Modal` — s'empilent au lieu de s'aligner. */
-.tc-doc-magicstage--stack {
+.tc-doc-stage--stack {
   flex-direction: column;
   align-items: stretch;
 }
@@ -3499,12 +3499,12 @@ body {
 /* `Sidebar` et `Modal` ont besoin de hauteur pour se juger : une barre latérale
    haute de son seul contenu ne ressemble pas à une barre latérale, et un modal
    se peint par-dessus la page entière. 256 px = quatre pas de `--space-8`. */
-.tc-doc-magicstage--tall {
+.tc-doc-stage--tall {
   min-block-size: calc(var(--space-8) * 4);
 }
 
 /* La rangée d'une scène : plusieurs variantes d'affilée, chacune légendée. */
-.tc-doc-magicstage__cell {
+.tc-doc-stage__cell {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -3514,7 +3514,7 @@ body {
 
 /* La légende d'une figure de scène. En mono et en `--text-xs` comme les
    légendes de `.tc-doc-states__label`, mais en blanc : le fond est sombre. */
-.tc-doc-magicstage__label {
+.tc-doc-stage__label {
   color: var(--tc-white);
   font-family: var(--font-mono);
   font-size: var(--text-xs);

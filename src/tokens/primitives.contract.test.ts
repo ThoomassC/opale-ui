@@ -154,7 +154,7 @@ describe('la direction de dépendance entre couches', () => {
   /*
    * `styles/glass.css` ET `styles/lens.css` FIGURAIENT DANS CETTE LISTE ET
    * N'EXISTENT PLUS. La 2.0 ne publie plus que les composants verre liquide de
-   * `src/magic/**` ; les deux feuilles de matière de l'ancienne charte sont
+   * `src/opale/**` ; les deux feuilles de matière de l'ancienne charte sont
    * supprimées avec les composants qu'elles coiffaient.
    *
    * CE QUI N'EST DONC PLUS GARANTI, dit précisément : plus rien ne vérifie
@@ -164,9 +164,9 @@ describe('la direction de dépendance entre couches', () => {
    * d'être ici : leur masque de liseré peint en `currentColor`, parce qu'un
    * masque ne lit que le canal alpha et qu'une teinte arbitraire n'a aucune
    * raison d'être écrite en dur. La garde n'a plus de sujet dans ce dépôt : il
-   * ne reste aucune feuille de matière, et `src/magic/**` est hors du contrat
+   * ne reste aucune feuille de matière, et `src/opale/**` est hors du contrat
    * de couleur d'Opale par construction (ses couleurs sont des littéraux
-   * assumés, voir `src/magic/README.md`) — l'y soumettre serait affirmer le
+   * assumés, voir `src/opale/README.md`) — l'y soumettre serait affirmer le
    * contraire de ce que le paquet annonce.
    *
    * LA COUVERTURE DES JETONS PRIMITIFS EST INTACTE, et c'est vérifiable : les

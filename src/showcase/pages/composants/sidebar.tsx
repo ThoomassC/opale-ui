@@ -1,4 +1,4 @@
-import { Sidebar } from '../../../magic';
+import { Sidebar } from '../../../opale';
 import { hrefFor } from '../../doc-model';
 import { UI_VERSION } from '../../version';
 import { Specimen } from '../../section';
@@ -11,7 +11,7 @@ const USAGE = `import { Sidebar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 // \`collapsible\` est OBLIGATOIRE pour que Sidebar.Toggle rende quoi que ce soit.
-<Sidebar collapsible defaultActiveItemId="etapes">
+<Sidebar collapsible defaultValue="etapes">
   <Sidebar.Header>
     <strong>Voyage</strong>
     <Sidebar.Toggle />
@@ -47,31 +47,30 @@ const PROPS: readonly PropRow[] = [
     defaultValue: '— / false',
     description: (
       <>
-        Contrôlé / non contrôlé. <code>onToggle</code> est appelée dans les deux cas et reçoit
-        l’état <em>suivant</em>.
+        Contrôlé / non contrôlé. <code>onCollapsedChange</code> est appelée dans les deux cas et
+        reçoit l’état <em>suivant</em>.
       </>
     ),
   },
   {
-    name: 'onToggle',
+    name: 'onCollapsedChange',
     type: '(collapsed: boolean) => void',
     description: (
       <>
-        L’état <em>suivant</em>, et rien d’autre. Ce type était{' '}
-        <strong>pollué par une collision</strong> jusqu’à la réécriture —{' '}
-        <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> apportait le{' '}
-        <code>onToggle</code> du DOM, celui de <code>&lt;details&gt;</code>. Voir plus bas ce que la
-        correction coûte.
+        L’état <em>suivant</em>, et rien d’autre. Remplace <code>onToggle</code>, déprécié depuis
+        3.6 et toujours appelé, après lui.
       </>
     ),
   },
   {
-    name: 'activeItemId / defaultActiveItemId',
-    type: 'string',
+    name: 'value / defaultValue',
+    type: 'string | null',
     description: (
       <>
-        L’entrée retenue, contrôlée ou non. <code>onSelectItem(itemId, event)</code> est appelée
-        dans les deux cas.
+        L’entrée retenue, contrôlée ou non ; <code>null</code> n’en retient aucune.{' '}
+        <code>onValueChange(itemId)</code> est appelée dans les deux cas. Remplacent{' '}
+        <code>activeItemId</code>, <code>defaultActiveItemId</code> et <code>onSelectItem</code>,
+        dépréciés depuis 3.6.
       </>
     ),
   },
@@ -92,8 +91,8 @@ const PROPS: readonly PropRow[] = [
     required: true,
     description: (
       <>
-        L’identité de l’entrée : ce que reçoit <code>onSelectItem</code>, et ce que{' '}
-        <code>activeItemId</code> compare. L’entrée retenue porte{' '}
+        L’identité de l’entrée : ce que reçoit <code>onValueChange</code>, et ce que{' '}
+        <code>value</code> compare. L’entrée retenue porte{' '}
         <code>aria-current=&quot;page&quot;</code>. Le{' '}
         <strong>nom accessible du bouton est son libellé</strong>, lu dans le contenu — plus aucun{' '}
         <code>aria-label</code> n’est calculé à votre place, et passer le vôtre l’emporte comme sur
@@ -117,7 +116,7 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'Sidebar.Items aria-label',
     type: 'string',
-    defaultValue: "'Sidebar'",
+    defaultValue: "'Navigation latérale'",
     description: (
       <>
         Le <code>&lt;nav&gt;</code> est un <strong>point de repère nommé</strong>. Le défaut est
@@ -135,6 +134,18 @@ const PROPS: readonly PropRow[] = [
         Porte <code>aria-expanded</code> et <code>aria-controls</code> vers l’
         <code>&lt;aside&gt;</code>, dont l’<code>id</code> est généré si vous n’en passez pas. Ses{' '}
         <code>children</code> remplacent le chevron par défaut.
+      </>
+    ),
+  },
+  {
+    name: 'labels',
+    type: 'Partial<SidebarLabels>',
+    defaultValue: "{ items: 'Navigation latérale', expand: 'Déplier le rail', collapse: 'Replier le rail' }",
+    description: (
+      <>
+        Les textes du rail, transmis par le contexte à <code>Sidebar.Items</code> et à{' '}
+        <code>Sidebar.Toggle</code>. Une clé omise garde son défaut français ; l’
+        <code>aria-label</code> passé à <code>Sidebar.Items</code> gagne encore.
       </>
     ),
   },
@@ -180,7 +191,7 @@ export default function SidebarContent() {
       >
         <MaterialSwitch name="Sidebar non pliable" tall>
           {(liquidGlass) => (
-            <Sidebar liquidGlass={liquidGlass} defaultActiveItemId="carte" size="small">
+            <Sidebar liquidGlass={liquidGlass} defaultValue="carte" size="small">
               <Sidebar.Header>
                 <strong>Voyage</strong>
                 <Sidebar.Toggle />
@@ -196,7 +207,7 @@ export default function SidebarContent() {
       </Specimen>
 
       <PropsTable
-        id="magic-sidebar"
+        id="sidebar"
         note={
           <>
             <code>SidebarProps</code> étend{' '}
@@ -236,7 +247,7 @@ export default function SidebarContent() {
         <strong>Ce qui reste, et qui n’est pas un oubli.</strong> Les entrées sont des boutons : pas
         de <code>href</code>, donc ni clic du milieu, ni « ouvrir dans un nouvel onglet », ni
         glisser vers la barre d’adresse. C’est le contrat public du composant —{' '}
-        <code>SidebarItemProps</code> étend <code>&lt;button&gt;</code> et <code>onSelectItem</code>{' '}
+        <code>SidebarItemProps</code> étend <code>&lt;button&gt;</code> et son <code>onClick</code>{' '}
         reçoit un <code>MouseEvent&lt;HTMLButtonElement&gt;</code> —, et en faire un composant
         polymorphe serait une autre interface, pas une correction. Le badge, lui, est{' '}
         <code>aria-hidden</code> : le laisser dans l’arbre ferait du nom du bouton « Analytics 4 »,
@@ -278,7 +289,7 @@ export default function SidebarContent() {
           Le piège de <code>badge</code>, mesuré en écrivant cette page.
         </strong>{' '}
         {/* LE MÉCANISME A ÉTÉ RÉÉCRIT, PAS LE PIÈGE. La phrase disait que
-          `liquidGlass` « délègue au composant vendoré » : ce n'est plus vrai,
+          `liquidGlass` « délègue au ancien composant en verre » : ce n'est plus vrai,
           il n'y a plus de composant tiers derrière la prop. `Opale.Badge`
           rend lui-même `<Glass as="span">`, et c'est `Glass` — le nôtre — qui
           enveloppe toujours son contenu dans un `<div>`. Le HTML invalide est

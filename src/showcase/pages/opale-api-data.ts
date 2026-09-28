@@ -78,7 +78,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('label', 'ReactNode', 'Nom visible du groupe.'),
       prop('options', 'readonly { value: string; label: ReactNode }[]', 'Choix proposés.'),
-      prop('values', 'readonly string[]', 'Valeurs actuellement sélectionnées.'),
+      prop('value', 'readonly string[]', 'Valeurs sélectionnées, contrôlées.'),
+      prop('defaultValue', 'readonly string[]', 'Sélection de départ, non contrôlée.'),
+      prop(
+        'onValueChange',
+        '(value: string[]) => void',
+        'Sélection complète après chaque bascule.',
+      ),
     ],
   },
   Select: {
@@ -110,8 +116,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
         undefined,
         true,
       ),
-      prop('value', 'string', 'Segment actif.'),
-      prop('onChange', '(value: string) => void', 'Signale le nouveau segment.'),
+      prop('value', 'string | null', 'Segment actif, contrôlé.'),
+      prop('defaultValue', 'string | null', 'Segment actif de départ, non contrôlé.'),
+      prop('onValueChange', '(value: string) => void', 'Signale le segment choisi.'),
     ],
   },
   IconActionButton: {
@@ -145,18 +152,21 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('columns', 'readonly DataTableColumn[]', 'Colonnes, tri et alignement.'),
       prop('rows', 'readonly DataTableRow[]', 'Données affichées.'),
-      prop('density', "'comfortable' | 'compact'", 'Espacement des lignes.', 'comfortable'),
+      prop('size', "'small' | 'medium'", 'Espacement des lignes.', 'medium'),
       prop('striped', 'boolean', 'Alternance discrète des lignes.', 'false'),
       prop('showRowCount', 'boolean', 'Nombre de lignes visibles sous la table.', 'false'),
-      prop('defaultSort', 'DataTableSort', 'Tri initial.'),
+      prop('sort', 'DataTableSort | null', 'Tri contrôlé ; null : sans tri.'),
+      prop('defaultSort', 'DataTableSort', 'Tri initial, non contrôlé.'),
+      prop('onSortChange', '(sort: DataTableSort) => void', 'Tri demandé par un clic d’en-tête.'),
       prop('rowKey', '(row, index) => string | number', 'Identité stable des lignes.'),
       prop('loading', 'boolean', 'Affiche un état de chargement.', 'false'),
       prop(
-        'emptyMessage',
-        'string',
-        'Message quand il n’y a aucune ligne.',
-        'Aucune donnée à afficher.',
+        'labels',
+        'Partial<DataTableLabels>',
+        'Chargement, table vide, compte et annonce du tri ; remplace emptyMessage.',
+        "{ empty: 'Aucune donnée à afficher.', … }",
       ),
+      prop('locale', 'string | readonly string[]', 'Langue(s) du tri alphabétique.', "'fr'"),
     ],
   },
   DescriptionList: {
@@ -188,15 +198,23 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('label', 'string', 'Nom du groupe de notation.', undefined, true),
       prop('value', 'number', 'Note contrôlée.'),
-      prop('onChange', '(value: number) => void', 'Nouvelle note.'),
+      prop('defaultValue', 'number', 'Note de départ, non contrôlée.', '0'),
+      prop('onValueChange', '(value: number) => void', 'Nouvelle note.'),
     ],
   },
   Pagination: {
     states: 'La page courante et les bornes sont annoncées.',
     rows: [
-      prop('page', 'number', 'Page courante.', undefined, true),
       prop('pageCount', 'number', 'Nombre de pages.', undefined, true),
-      prop('onChange', '(page: number) => void', 'Changement demandé.', undefined, true),
+      prop('value', 'number', 'Page courante, contrôlée.'),
+      prop('defaultValue', 'number', 'Page de départ, non contrôlée.', '1'),
+      prop('onValueChange', '(page: number) => void', 'Changement demandé.'),
+      prop(
+        'labels',
+        'Partial<PaginationLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ previous: 'Page précédente', … }",
+      ),
     ],
   },
   Skeleton: {
@@ -209,8 +227,8 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   StatCard: {
     states: 'Métrique, valeur et variation sur une même surface.',
     rows: [
-      prop('label', 'ReactNode', 'Nom de la métrique.'),
-      prop('value', 'ReactNode', 'Valeur principale.'),
+      prop('label', 'ReactNode', 'Nom de la métrique.', undefined, true),
+      prop('value', 'ReactNode', 'Valeur principale.', undefined, true),
       prop('delta', 'ReactNode', 'Variation ou contexte.'),
     ],
   },
@@ -245,16 +263,24 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   Feedback: {
     states: 'Les erreurs sont annoncées de façon prioritaire.',
     rows: [
-      prop('severity', "'success' | 'info' | 'warning' | 'error'", 'Nature du message.', 'info'),
+      prop('tone', "'success' | 'info' | 'warning' | 'error'", 'Nature du message.', 'info'),
       prop('title', 'ReactNode', 'Titre du retour.'),
     ],
   },
   Toast: {
     states: 'Notification pilotée par l’application dans le coin choisi de l’écran.',
     rows: [
+      prop('message', 'ReactNode', 'Contenu de la notification.', undefined, true),
       prop('open', 'boolean', 'Affiche ou masque le message.', 'true'),
-      prop('tone', 'ToastTone', 'Sens et couleur du message.', 'neutral'),
-      prop('position', 'ToastPlacement', 'Position dans la fenêtre.', 'bottom-right'),
+      prop('onOpenChange', '(open: boolean) => void', 'Fermeture demandée par la croix.'),
+      prop('tone', 'OpaleTone', 'Sens et couleur du message.', 'neutral'),
+      prop('position', 'OpalePlacement', 'Position dans la fenêtre.', 'bottom-right'),
+      prop(
+        'labels',
+        'Partial<ToastLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ close: 'Fermer la notification' }",
+      ),
     ],
   },
   Spinner: {
@@ -273,7 +299,17 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('open', 'boolean', 'État de la boîte.', 'false'),
       prop('onConfirm', '() => void', 'Action confirmée.'),
-      prop('onCancel', '() => void', 'Fermeture sans action.'),
+      prop(
+        'onOpenChange',
+        '(open: boolean) => void',
+        'false sur Annuler, Échap, le voile ou la croix ; jamais sur Confirmer.',
+      ),
+      prop(
+        'labels',
+        'Partial<ConfirmDialogLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ cancel: 'Annuler', confirm: 'Confirmer', … }",
+      ),
     ],
   },
   EmptyState: {
@@ -288,7 +324,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Un seul élément est signalé comme page courante.',
     rows: [
       prop('items', 'readonly NavItem[]', 'Liens ou actions de navigation.'),
-      prop('activeId', 'string', 'Identifiant de la page courante.'),
+      prop('value', 'string | null', 'Identifiant de la page courante, contrôlé.'),
+      prop('defaultValue', 'string | null', 'Page courante de départ, non contrôlée.'),
+      prop('onValueChange', '(id: string) => void', 'Choix d’une entrée sans href.'),
     ],
   },
   Menu: {
@@ -306,17 +344,34 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Panneau latéral contrôlé, fermé par son appelant.',
     rows: [
       prop('open', 'boolean', 'Visibilité du panneau.', 'false'),
-      prop('onClose', '() => void', 'Demande de fermeture.'),
+      prop('onOpenChange', '(open: boolean) => void', 'Demande de fermeture.'),
+      prop(
+        'labels',
+        'Partial<SidePanelLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ close: 'Fermer', title: 'Panneau' }",
+      ),
     ],
   },
   CommandPalette: {
-    states: 'Recherche dans le contenu fourni ; le bouton Fermer accompagne onClose.',
+    states: 'Recherche dans le contenu fourni ; le bouton Fermer accompagne onOpenChange.',
     rows: [
       prop('open', 'boolean', 'Visibilité de la palette.', 'false'),
-      prop('value', 'string', 'Texte saisi.', "''"),
-      prop('onChange', '(value: string) => void', 'Nouveau texte saisi.'),
-      prop('onClose', '() => void', 'Ferme la palette avec la croix, le pied ou Échap.'),
+      prop('value', 'string', 'Texte saisi, contrôlé.'),
+      prop('defaultValue', 'string', 'Texte de départ, non contrôlé.', "''"),
+      prop('onValueChange', '(value: string) => void', 'Nouveau texte saisi.'),
+      prop(
+        'onOpenChange',
+        '(open: boolean) => void',
+        'Ferme la palette avec la croix, le pied ou Échap.',
+      ),
       prop('children', 'ReactNode', 'Résultats ou commandes affichés sous la recherche.'),
+      prop(
+        'labels',
+        'Partial<CommandPaletteLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ search: 'Rechercher une commande', … }",
+      ),
     ],
   },
   Breadcrumb: {
@@ -327,9 +382,16 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'En bas au centre, animé comme un toast ; le choix est mémorisé.',
     rows: [
       prop('open', 'boolean', 'Force l’affichage ou la fermeture.', 'choix mémorisé'),
+      prop('onOpenChange', '(open: boolean) => void', 'false quand l’utilisateur choisit.'),
       prop('onAccept', '() => void', 'Consentement accepté.'),
       prop('onDecline', '() => void', 'Consentement refusé.'),
       prop('storageKey', 'string | null', 'Clé de persistance.', 'opale-cookie-consent'),
+      prop(
+        'labels',
+        'Partial<CookieBannerLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ accept: 'Accepter', decline: 'Refuser', … }",
+      ),
     ],
   },
   SelectionBar: {
@@ -371,6 +433,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('maxFiles', 'number', 'Nombre maximal par sélection.'),
       prop('maxSizeBytes', 'number', 'Taille maximale par fichier.'),
       prop('disabled', 'boolean', 'Désactive le dépôt et le sélecteur.', 'false'),
+      prop(
+        'labels',
+        'Partial<DropzoneLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ select: 'Sélectionner des fichiers', … }",
+      ),
     ],
   },
   Lightbox: {
@@ -379,6 +447,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('src', 'string', 'Adresse de l’image.'),
       prop('alt', 'string', 'Description de l’image.', undefined, true),
       prop('open', 'boolean', 'Affiche la visionneuse.', 'false'),
+      prop('onOpenChange', '(open: boolean) => void', 'Demande de fermeture.'),
+      prop(
+        'labels',
+        'Partial<LightboxLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ close: 'Fermer', dialog: 'Aperçu' }",
+      ),
     ],
   },
   Clipboard: {
@@ -420,11 +495,8 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       ),
       prop('viewport', 'UseSvgMapViewportResult', 'Vue partagée, pour cadrer de l’extérieur.'),
       prop('maxZoom', 'number', 'Zoom maximal, en facteur de la vue d’ensemble.', '9'),
-      prop(
-        'maxWidth / maxHeight',
-        'string',
-        'Bornes de taille ; la hauteur est traduite en largeur.',
-      ),
+      prop('maxWidth', 'string', 'Largeur maximale ; la carte se centre au-delà.'),
+      prop('maxHeight', 'string', 'Hauteur maximale, traduite en largeur au rapport du viewBox.'),
       prop('controls', 'boolean', 'Boutons de zoom intégrés.', 'true'),
       prop(
         'tapTolerance',
@@ -440,6 +512,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       ),
       prop('overlay', 'ReactNode', 'Posé au-dessus de la carte : légende, consigne.'),
       prop('children', 'ReactNode', 'Dessin supplémentaire, dans les coordonnées de la carte.'),
+      prop(
+        'labels',
+        'Partial<SvgMapLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ zoomIn: 'Zoomer', … }",
+      ),
     ],
   },
 };

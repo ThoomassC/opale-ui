@@ -10,7 +10,7 @@
    complétés après le build : `./x` devient `./x.js`, un dossier `./dir`
    devient `./dir/index.js`.
 
-   Usage : node scripts/fix-dts-extensions.mjs dist/magic dist/contract
+   Usage : node scripts/fix-dts-extensions.mjs dist/opale dist/contract
    ========================================================================== */
 
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';

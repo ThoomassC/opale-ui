@@ -3,7 +3,7 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { ModalScene } from './scenes';
 import { MaterialSwitch, PlainStage } from './material-switch';
-import { MagicGroundNote } from './stage';
+import { StageGroundNote } from './stage';
 
 const USAGE = `import { Modal } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -14,7 +14,7 @@ const [open, setOpen] = useState(false);
 
 <Modal
   open={open}
-  onClose={() => setOpen(false)}
+  onOpenChange={setOpen}
   title="Supprimer l'étape ?"
   description="Cette action est définitive."
   footer={<Button variant="negative" text="Supprimer" />}
@@ -35,14 +35,13 @@ const PROPS: readonly PropRow[] = [
     ),
   },
   {
-    name: 'onClose / onOpenChange',
-    type: '() => void / (open: boolean) => void',
+    name: 'onOpenChange',
+    type: '(open: boolean) => void',
     description: (
       <>
-        Les deux sont appelées à la fermeture, dans cet ordre : <code>onOpenChange(false)</code>{' '}
-        puis <code>onClose()</code>.{' '}
-        <strong>La présence de l’une des deux conditionne le bouton de fermeture</strong> — sans
-        aucune des deux, la croix n’est pas rendue.
+        Appelée avec <code>false</code> sur Échap, le voile ou la croix.{' '}
+        <strong>Sa présence conditionne le bouton de fermeture</strong> — sans elle, la croix n’est
+        pas rendue. <code>onClose()</code>, déprécié depuis 3.6, est encore appelé après elle.
       </>
     ),
   },
@@ -68,13 +67,12 @@ const PROPS: readonly PropRow[] = [
   },
   {
     name: 'size',
-    type: "'sm' | 'md' | 'lg'",
-    defaultValue: "'md'",
+    type: "'small' | 'medium' | 'large'",
+    defaultValue: "'medium'",
     description: (
       <>
-        La largeur maximale. Noter que les crans s’écrivent ici <code>sm</code>/<code>md</code>/
-        <code>lg</code> et non <code>small</code>/<code>medium</code>/<code>large</code> comme
-        partout ailleurs dans la librairie.
+        La largeur maximale, sur l’échelle commune de la librairie. Les anciens crans{' '}
+        <code>sm</code>/<code>md</code>/<code>lg</code> restent acceptés.
       </>
     ),
   },
@@ -113,6 +111,17 @@ const PROPS: readonly PropRow[] = [
       </>
     ),
   },
+  {
+    name: 'labels',
+    type: 'Partial<ModalLabels>',
+    defaultValue: "{ close: 'Fermer' }",
+    description: (
+      <>
+        Les textes de l’interface, clé par clé : une clé omise garde son défaut français. Un{' '}
+        <code>aria-label</code> passé au composant l’emporte toujours.
+      </>
+    ),
+  },
 ];
 
 /* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
@@ -133,16 +142,16 @@ export default function ModalContent() {
               voile qui lui fait un fond sombre.
             </strong>{' '}
             La scène ne porte ici que les déclencheurs — et elle est sombre pour la même raison que
-            les autres, parce que ce sont des boutons de la librairie. <MagicGroundNote />
+            les autres, parce que ce sont des boutons de la librairie. <StageGroundNote />
           </>
         }
       >
         <MaterialSwitch name="Modal">
           {(liquidGlass) => (
             <>
-              <ModalScene liquidGlass={liquidGlass} size="sm" label="Ouvrir — sm" />
-              <ModalScene liquidGlass={liquidGlass} size="md" label="Ouvrir — md" />
-              <ModalScene liquidGlass={liquidGlass} size="lg" label="Ouvrir — lg" />
+              <ModalScene liquidGlass={liquidGlass} size="small" label="Ouvrir — small" />
+              <ModalScene liquidGlass={liquidGlass} size="medium" label="Ouvrir — medium" />
+              <ModalScene liquidGlass={liquidGlass} size="large" label="Ouvrir — large" />
             </>
           )}
         </MaterialSwitch>
@@ -153,8 +162,8 @@ export default function ModalContent() {
         note={
           <>
             Ce modal refuse <kbd>Échap</kbd> et le clic sur le voile. Il reste la croix, et elle
-            n’est là que parce qu’un <code>onClose</code> est passé : les trois portes de sortie
-            sont toutes optionnelles, et rien n’empêche d’en fermer les trois.
+            n’est là que parce qu’un <code>onOpenChange</code> est passé : les trois portes de
+            sortie sont toutes optionnelles, et rien n’empêche d’en fermer les trois.
           </>
         }
       >
@@ -164,7 +173,7 @@ export default function ModalContent() {
       </Specimen>
 
       <PropsTable
-        id="magic-modal"
+        id="modal"
         note={
           <>
             <code>ComponentPropsWithoutRef&lt;&apos;div&apos;&gt;</code> plus onze props propres,

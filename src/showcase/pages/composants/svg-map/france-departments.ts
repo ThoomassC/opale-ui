@@ -1,6 +1,6 @@
 import source from '@svg-maps/france.departments';
 
-import type { SvgMapRegion } from '../../../../magic';
+import type { SvgMapRegion } from '../../../../opale';
 
 /* =============================================================================
    LES DÉPARTEMENTS FRANÇAIS, POUR LA DÉMONSTRATION SEULEMENT.

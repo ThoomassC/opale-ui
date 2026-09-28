@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OPALE_CATALOG } from '../magic';
+import { OPALE_CATALOG } from '../opale';
 import type { DocNavEntry, DocPage } from './doc-model';
 import { GROUPS, HOME_SLUG, hrefFor, navEntriesForPages } from './doc-model';
 import { DocShell } from './doc-shell';
@@ -81,7 +81,7 @@ const PALETTE_FIXTURE: DocPage = {
  * Ils ne sont jamais passés qu'à `<DocShell pages={FIXTURE_PAGES} />`, donc ce
  * que la coquille en fait ne dépend que de ce qui est écrit ici. `composants/
  * button` et `composants/card` étaient de vrais slugs quand ils ont été
- * choisis ; les pages vendorées correspondantes ont depuis fusionné avec leur
+ * choisis ; les anciennes pages du verre correspondantes ont depuis fusionné avec leur
  * jumeau Opale. Rien à corriger : un spécimen dont l'adresse ne croise aucune
  * vraie page est PLUS sûr, puisqu'il ne peut pas se mettre à passer — ou à
  * rougir — pour une raison qui vient du registre réel. Ils sont laissés tels
@@ -691,7 +691,7 @@ describe('DocShell — le rendu de la page', () => {
 
     expect(
       screen.getByRole('group', { name: 'Exemple Button, défilement horizontal' }).textContent,
-    ).toContain("import { Opale } from '@thomascaron/opale-ui';");
+    ).toContain("import { Button } from '@thomascaron/opale-ui';");
     expect(screen.queryByRole('heading', { name: 'API' })).toBeNull();
     expect(screen.queryByText(/Explorer/i)).toBeNull();
   });

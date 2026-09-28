@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
-import { Topbar } from '../magic';
-import { HeaderNavigation } from '../magic/components/header-controls/HeaderNavigation';
+import { Topbar } from '../opale';
+import { HeaderNavigation } from '../opale/components/header-controls/HeaderNavigation';
 import type { DocPage } from './doc-model';
 import { HOME_SLUG, findPage, hrefFor } from './doc-model';
 import {
@@ -306,7 +306,7 @@ export function DocShell({ pages }: DocShellProps) {
         <Topbar
           className="tc-doc-topbar__bar"
           rootClassName="tc-doc-topbar__glass"
-          size="spacious"
+          size="large"
           elevated={false}
         >
           {/* `Topbar.Brand` EST EMPLOYÉ, MAIS NI `icon`, NI `title`, NI

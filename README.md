@@ -4,7 +4,7 @@ Le socle d'interface partagé par [`portfolio`](https://github.com/ThoomassC/por
 [`travels_in_world`](https://github.com/ThoomassC/travels_in_world).
 
 > **La 3.1 rend le paquet entièrement à lui-même.** Le code d'une librairie tierce qui
-> occupait `src/magic/` a été supprimé ou réécrit : huit composants qui n'étaient plus que
+> occupait `src/opale/` a été supprimé ou réécrit : huit composants qui n'étaient plus que
 > des peaux sous `liquidGlass` ont disparu au profit de leur jumeau d'Opale, six ont été
 > réécrits, et **Tailwind, PostCSS et Autoprefixer sont sortis des dépendances** avec les
 > `@apply` qu'ils servaient. Le matériau verre est désormais le nôtre, opt-in composant par
@@ -14,7 +14,7 @@ La branche de recette prépare **3.5.0** : SvgMap devient une vraie carte — zo
 « Notes de versions » ; chaque état antérieur dispose aussi d’un snapshot utilisable sous
 `public/versions/`. Les états antérieurs du paquet, y compris la **2.0** et ses composants
 copiés d'une librairie tierce, sont décrits dans ces notes — et l'héritage lui-même dans
-[`src/magic/README.md`](./src/magic/README.md).
+[`src/opale/README.md`](./src/opale/README.md).
 
 Ce qui reste d'Opale, et qui est le cœur du dépôt : **la charte** — les jetons OKLab, les
 trois thèmes — et **le contrat de couleur exécutable** qui la garde.
@@ -72,7 +72,7 @@ trois arrêts (`#17314f`, `#2a2350`, `#101a2c`), plancher mesuré 13,22:1 contre
 rattraper des libellés illisibles, c'est parce qu'un verre a besoin de quelque chose à
 réfracter. Flouter du blanc donne du blanc, et le matériau disparaît sur un fond uni clair.
 
-[`src/magic/README.md`](./src/magic/README.md) reste le fichier à lire avant d'employer un
+[`src/opale/README.md`](./src/opale/README.md) reste le fichier à lire avant d'employer un
 de ces composants : il donne le matériau, les huit composants composés, ce qui est mesuré et
 ce qui ne l'est pas.
 
@@ -93,8 +93,11 @@ et les deux premiers suffisent :
 
 ```js
 import '@thomascaron/opale-ui/opale.css'; // les jetons, les composants et leurs polices, une fois par app
-import { Button, Modal, Opale } from '@thomascaron/opale-ui';
+import { Button, Modal } from '@thomascaron/opale-ui';
 ```
+
+Chaque composant s'importe par son nom. Le namespace `Opale` (`Opale.Button`) désigne les
+mêmes composants ; l'export nommé est la forme recommandée.
 
 Le bundle porte la directive `"use client"` : ses composants s'importent tels quels depuis un
 Server Component de Next.js (App Router). Les déclarations de types se lisent en
@@ -108,25 +111,25 @@ La forme exacte, telle qu'elle est déclarée dans `package.json` :
 
 | Spécifieur      | Cible                       | Ce que c'est                                     |
 | --------------- | --------------------------- | ------------------------------------------------ |
-| `.`             | `dist/magic/index.js`       | Les composants composés et le catalogue V3       |
+| `.`             | `dist/opale/index.js`       | Les composants composés et le catalogue V3       |
 | `./contract`    | `dist/contract/index.js`    | Le contrat de couleur — dépendance de dev, zéro octet à l'exécution |
 | `./tokens.css`  | `dist/tokens/tokens.css`    | La charte : primitives, rôles, matériaux         |
-| `./opale.css`   | `dist/magic/magic.css`      | La feuille des composants ; relie `fonts.css`    |
-| `./fonts.css`   | `dist/magic/fonts.css`      | Chivo et Bricolage Grotesque, en fichiers woff2  |
+| `./opale.css`   | `dist/opale/opale.css`      | La feuille des composants ; relie `fonts.css`    |
+| `./fonts.css`   | `dist/opale/fonts.css`      | Chivo et Bricolage Grotesque, en fichiers woff2  |
 | `./package.json`| `package.json`              |                                                  |
 
-**Cinq spécifieurs de la 1.x ont disparu** : `./ui.css`, `./glass.css`, `./lens.css`,
-`./magic` et `./magic.css`. Les trois premiers n'ont plus de feuille derrière eux ; les deux
-derniers sont devenus la racine et `./opale.css`. Un consommateur de la 1.x ne se met pas à
+**Cinq spécifieurs de la 1.x ont disparu** : `./ui.css`, `./glass.css`, `./lens.css` et les
+deux anciennes entrées des composants en verre. Les trois premiers n'ont plus de feuille derrière
+eux ; les deux derniers sont devenus la racine et `./opale.css`. Un consommateur de la 1.x ne se met pas à
 jour en changeant un numéro — c'est une réécriture de ses imports, et c'est ce que le majeur
 annonce.
 
 `sideEffects` vaut `["**/*.css"]` — le double astérisque est nécessaire pour que
-`dist/magic/magic.css` et `dist/tokens/*.css` soient tous les deux couverts, `"*.css"` ne
+`dist/opale/opale.css` et `dist/tokens/*.css` soient tous les deux couverts, `"*.css"` ne
 décrivant que la racine du paquet.
 
 `./tokens.css` reste **facultative** pour qui n'emploie que les composants : ils ne citent
-aucun jeton `--tc-*` — vérifié, `grep -rn -- '--tc-' src/magic/` ne rend rien. Leur
+aucun jeton `--tc-*` — vérifié, `grep -rn -- '--tc-' src/opale/` ne rend rien. Leur
 vocabulaire est celui des jetons `--opale-*`, que `./opale.css` porte avec eux. `tokens.css`
 est en revanche la charte elle-même, donc indispensable à qui écrit ses propres surfaces dans
 la palette d'Opale.
@@ -145,7 +148,7 @@ La recherche soumet un formulaire GET vers `/search` par défaut :
 prévoyez cette route ou fournissez `searchAction` / `onSearch`.
 
 ```tsx
-import { PageScaffold, Opale } from '@thomascaron/opale-ui';
+import { Card, PageScaffold } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 <PageScaffold
@@ -155,7 +158,7 @@ import '@thomascaron/opale-ui/opale.css';
   searchAction="/recherche"
   footerLinks={[{ id: 'legal', href: '/mentions-legales', label: 'Mentions légales' }]}
 >
-  <Opale.Card title="Bienvenue">Votre contenu.</Opale.Card>
+  <Card title="Bienvenue">Votre contenu.</Card>
 </PageScaffold>;
 ```
 
@@ -175,19 +178,24 @@ La fiche `#/composants/page-scaffold` dans la vitrine de cette branche documente
 
 ## Le catalogue de composants
 
-Tout est publié à la racine, exporté par `src/magic/index.ts`, et le catalogue a **deux
+Tout est publié à la racine, exporté par `src/opale/index.ts`, et le catalogue a **deux
 étages qui ne se ressemblent pas**.
 
-**Huit composants composés**, un dossier chacun sous `src/magic/components/` : `Glass`,
+**Huit composants composés**, un dossier chacun sous `src/opale/components/` : `Glass`,
 `Modal`, `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` (plus le hook
 `useToast`), `Topbar`. Ce sont les pièces qui ont une structure interne, un état, ou les
 deux.
 
-**Le catalogue plat**, dans `src/magic/opale.tsx` : **77 entrées** déclarées par
-`OPALE_CATALOG` — primitives, champs, cartes, données, retour d'information, navigation,
-disposition et modules —, dont la vitrine génère une page de démonstration chacune. Le
-namespace `OpaleUI` les réexpose sous un second jeu de noms, sans écraser les exports
-directs. Les composants qui portent `liquidGlass` activent le matériau un par un.
+**Le catalogue plat**, dans `src/opale/opale.tsx` : primitives, champs, cartes, données,
+retour d'information, navigation, disposition et modules. Ses fiches vivent dans
+`src/opale/catalog.ts`, dont la vitrine génère une page de démonstration chacune. Le namespace
+`Opale` réunit tous les composants, composés compris, sous un seul nom ; les exports nommés
+restent la forme recommandée. Les composants qui portent `liquidGlass` activent le matériau
+un par un.
+
+**Dépréciés depuis 3.6, toujours fonctionnels** : `OpaleUI` (utilisez les exports nommés),
+`Opale.Background` (utilisez `BackgroundSurface`), `OPALE_CATALOG` et `CatalogEntry`
+(métadonnées de la vitrine, sans remplaçant public).
 
 `Glass` est la primitive de matériau, et **six des sept autres composants composés la
 montent**. La seule exception, vérifiée dans le code, est **`SiteNav`** : sa bulle est un
@@ -200,11 +208,11 @@ en Next.js App Router, et ils coûtent au budget JavaScript de leur hôte. C'est
 de la promesse que portait la 1.x, et il valait mieux l'écrire.
 
 **Sept des huit composants composés ont un fichier de test à côté d'eux.** Mesuré :
-`npx vitest run src/magic` → `Test Files 10 passed (10) · Tests 115 passed (115)`. `Glass`
+`npx vitest run src/opale` → `Test Files 10 passed (10) · Tests 115 passed (115)`. `Glass`
 est celui qui n'en a pas en propre : il est exercé à travers ses consommateurs par
 `opale-liquid-glass.test.tsx` (33 tests), ce qui n'est pas la même chose qu'un test du
 matériau lui-même. Le détail par fichier est dans
-[`src/magic/README.md`](./src/magic/README.md).
+[`src/opale/README.md`](./src/opale/README.md).
 
 ## La charte, et le contrat qui la garde
 
@@ -357,7 +365,7 @@ domaine mesuré, et aucune assertion de ce dépôt ne doit prétendre le contrai
 4. **Ce qu'un navigateur peint vraiment sur un élément donné.** Le contrat prouve qu'une pile
    nommée est arithmétiquement juste ; l'appariement d'une pile avec une règle CSS reste une
    affirmation humaine.
-5. **Tout `src/magic/`.** C'est la limite la plus large : les composants publiés à la racine
+5. **Tout `src/opale/`.** C'est la limite la plus large : les composants publiés à la racine
    ne sont pas dans le domaine du contrat. Ils ont cessé d'écrire leurs couleurs en dur et
    lisent désormais des jetons, ce qui est une garantie bien meilleure qu'en 2.0 — mais c'est
    la garantie du **jeton**, et le contrat ne mesure pas la pile que le composant en compose.
@@ -375,7 +383,7 @@ main, une fois. **Elles ne sont pas rejouées en CI**, et rien ne les surveille.
 ## Les règles, en sept lignes
 
 Une règle qu'on ne peut pas citer de mémoire n'est pas appliquée. Elles s'appliquent à la
-charte et à ce qu'un consommateur écrit avec elle. `src/magic/` les suit désormais dans
+charte et à ce qu'un consommateur écrit avec elle. `src/opale/` les suit désormais dans
 l'esprit — ses composants nomment des rôles et n'écrivent plus de couleur en dur —, mais le
 point 2 reste hors de sa portée : **ses valeurs ne sont pas recalculées en CI**.
 
@@ -411,7 +419,7 @@ qu'il documente** : le document est une instance de lui-même, et si une règle 
 se dégrade avec elle.
 
 Les pages de composants sont l'exception, et pour la raison donnée plus haut : les composants
-sont posés sur des **scènes sombres** (`MAGIC_STAGE_GROUND`, plancher mesuré 13,22:1) plutôt
+sont posés sur des **scènes sombres** (`STAGE_GROUND`, plancher mesuré 13,22:1) plutôt
 que sur le sol de la vitrine. Ce n'est plus, comme en 2.0, pour rattraper des libellés blancs
 en dur qui seraient illisibles ailleurs — c'est parce que le **verre a besoin d'un fond à
 réfracter** : flouter un aplat clair uni donne le même aplat clair, et le matériau disparaît.
@@ -447,9 +455,9 @@ src/
 │   ├── stylesheet.ts        ← lire une feuille en texte, reconstruire ses thèmes
 │   ├── backdrop.ts          ← les supports composés, nommés une fois
 │   └── *.test.ts            ← 1 096 assertions
-├── magic/                   ← LES COMPOSANTS, publiés à la racine
+├── opale/                   ← LES COMPOSANTS, publiés à la racine
 │   ├── README.md            ← le matériau, les composants, ce qui est mesuré
-│   ├── magic.scss           ← le filet anti-mouvement, publié avec ./opale.css
+│   ├── motion.scss          ← le filet anti-mouvement, publié avec ./opale.css
 │   ├── opale.css            ← les jetons --opale-* et le catalogue plat
 │   ├── opale.tsx            ← 77 entrées de catalogue, un seul fichier
 │   └── components/…         ← huit dossiers composés, un module de style chacun
@@ -457,12 +465,12 @@ src/
 └── styles/doc.css           ← la feuille de la vitrine, hors paquet
 ```
 
-`src/magic/` **garde son nom de dossier**, alors qu'il ne contient plus rien de la librairie
+`src/opale/` **garde son nom de dossier**, alors qu'il ne contient plus rien de la librairie
 dont ce nom vient. La raison est mécanique : le préfixe de classe produit par le build est
-`opale-magic-`, et le sélecteur du filet anti-mouvement de `magic.scss` en dépend. Renommer
+`opale-mod-`, et le sélecteur du filet anti-mouvement de `motion.scss` en dépend. Renommer
 le dossier ne casserait pas le build — cela rendrait cette règle **inerte, en silence**, ce
 qui est bien pire. L'héritage lui-même est raconté dans
-[`src/magic/README.md`](./src/magic/README.md).
+[`src/opale/README.md`](./src/opale/README.md).
 
 ## Scripts
 
@@ -474,7 +482,7 @@ qui est bien pire. L'héritage lui-même est raconté dans
 | `npm run coverage`    | La suite avec le rapport `v8`                                       |
 | `npm run build:lib`   | `rm -rf dist`, puis les trois passes ci-dessous                     |
 | `npm run build:css`   | Copie `src/tokens/*.css` dans `dist/tokens/`                        |
-| `npm run build:magic` | Les `.d.ts` par `tsc`, puis le JS et `magic.css` par Vite           |
+| `npm run build:opale` | Les `.d.ts` par `tsc`, puis le JS et `opale.css` par Vite           |
 | `npm run build`       | Construit la vitrine statique dans `dist-showcase/`                 |
 | `npm run typecheck`   | `tsc -b --noEmit`                                                   |
 | `npm run lint`        | ESLint, `jsx-a11y` compris                                          |
@@ -496,9 +504,9 @@ dans le script, jamais en appauvrissant la source.
   `#c4d8de` vers `#deedf0`, donc de remesurer les remplissages de sa carte du monde — c'est
   un chantier réel, pas un chercher-remplacer. La 2.0 l'a rendu plus lourd, pas plus léger :
   les deux sites employaient les dix-huit composants qui viennent de disparaître.
-- Il **ne mesure aucune couleur rendue de `src/magic/`.** Aucun ratio recalculé, aucun audit
+- Il **ne mesure aucune couleur rendue de `src/opale/`.** Aucun ratio recalculé, aucun audit
   `axe`, aucun test de lecteur d'écran, aucun rendu Firefox ni WebKit. Les composants ont en
-  revanche leurs propres tests de comportement : `npx vitest run src/magic` rend
+  revanche leurs propres tests de comportement : `npx vitest run src/opale` rend
   `Test Files 10 passed (10) · Tests 115 passed (115)`.
 - Il **ne vérifie pas le rendu du verre.** Aucun harnais navigateur, aucune capture.
 - Il **ne dépend plus de Google Fonts à l’exécution**. Bricolage Grotesque et Chivo sont

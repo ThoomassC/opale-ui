@@ -4,9 +4,9 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import opaleComponentsSource from './opale-components.tsx?raw';
 import catalogPreviewSource from './catalog-preview.tsx?raw';
-import { OPALE_CATALOG, Opale } from '../../magic';
+import { OPALE_CATALOG, Opale } from '../../opale';
 import { catalogComponentLabel } from '../doc-model';
-import opaleMagicSource from '../../magic/opale.tsx?raw';
+import opaleLibrarySource from '../../opale/opale.tsx?raw';
 import { CatalogPreview } from './catalog-preview';
 import { CATALOG_API } from './opale-api-data';
 import { opaleComponentPages } from './opale-component-pages';
@@ -54,8 +54,42 @@ describe('la page V3 de Button', () => {
     const code = screen.getByRole('group', {
       name: 'Exemple Button, défilement horizontal',
     });
-    expect(code).toHaveTextContent('<Opale.Button variant="primary">Primaire</Opale.Button>');
-    expect(code).toHaveTextContent('<Opale.Button variant="danger">Danger</Opale.Button>');
+    expect(code).toHaveTextContent("import { Button } from '@thomascaron/opale-ui';");
+    expect(code).toHaveTextContent('<Button variant="primary">Primaire</Button>');
+    expect(code).toHaveTextContent('<Button variant="danger">Danger</Button>');
+  });
+});
+
+describe('les extraits copiables du catalogue', () => {
+  /* L'extrait importe chaque composant par son nom : il ne reste aucun
+     `Opale.X`, et chaque nom utilisé figure dans l'import. */
+  /* SvgMap a sa page propre, sans le gabarit commun ni son extrait généré. */
+  it.each(opaleComponentPages.filter((page) => page.label !== 'SvgMap'))('$label importe ses composants par leur nom', async (page) => {
+    const { label } = page;
+    const user = userEvent.setup();
+    render(<>{page.render()}</>);
+    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+    const code =
+      screen.getByRole('group', { name: `Exemple ${label}, défilement horizontal` }).textContent ??
+      '';
+
+    expect(code).not.toMatch(/\bOpale\./);
+    const imported = /^import \{ ([^}]+) \} from '@thomascaron\/opale-ui';/.exec(code)?.[1];
+    expect(imported, 'ligne d’import absente').toBeDefined();
+    for (const name of imported?.split(', ') ?? []) {
+      expect(code.split('\n').slice(1).join('\n')).toMatch(new RegExp(`\\b${name}\\b`));
+    }
+  });
+
+  it('importe aussi readCookieConsent quand l’extrait l’appelle', async () => {
+    const user = userEvent.setup();
+    const page = opaleComponentPages.find((entry) => entry.label === 'CookieBanner');
+    if (!page) throw new Error('CookieBanner manquant');
+    render(<>{page.render()}</>);
+    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+    expect(
+      screen.getByRole('group', { name: 'Exemple CookieBanner, défilement horizontal' }),
+    ).toHaveTextContent("import { CookieBanner, readCookieConsent } from '@thomascaron/opale-ui';");
   });
 });
 
@@ -282,14 +316,14 @@ describe('les exemples du catalogue', () => {
     const rendersMaterial = (name: string): boolean => {
       const start = new RegExp(
         `export (?:function ${name}\\(|const ${name} = (?:forwardRef|function))`,
-      ).exec(opaleMagicSource)?.index;
+      ).exec(opaleLibrarySource)?.index;
 
       if (start === undefined) return false;
 
       const next = /\nexport (?:function|const|interface) /.exec(
-        opaleMagicSource.slice(start + 10),
+        opaleLibrarySource.slice(start + 10),
       );
-      const body = opaleMagicSource.slice(start, next ? start + 10 + next.index : undefined);
+      const body = opaleLibrarySource.slice(start, next ? start + 10 + next.index : undefined);
 
       /* LA DÉLÉGATION N'EST PAS COMPTÉE ICI, ET C'EST UNE LIMITE ASSUMÉE.
          Une vingtaine de composants rendent un `Button` ou un `Input` et
@@ -387,9 +421,7 @@ describe('API et exemples du catalogue', () => {
     expect(screen.getByRole('button', { name: 'Essai configuré' })).toBeDisabled();
     expect(
       screen.getByRole('group', { name: 'Exemple Button, défilement horizontal' }),
-    ).toHaveTextContent(
-      '<Opale.Button variant="danger" size="large" loading>Essai configuré</Opale.Button>',
-    );
+    ).toHaveTextContent('<Button variant="danger" size="large" loading>Essai configuré</Button>');
   });
 
   it('insère liquidGlass après un callback fléché complet', async () => {
@@ -417,8 +449,8 @@ describe('API et exemples du catalogue', () => {
     const code =
       screen.getByRole('group', { name: 'Exemple CardGrid, défilement horizontal' }).textContent ??
       '';
-    expect(code).toContain('<Opale.StatCard label="Composants"');
+    expect(code).toContain('<StatCard label="Composants"');
     expect(code).toContain('liquidGlass');
-    expect(code).not.toContain('<Opale.CardGrid liquidGlass>');
+    expect(code).not.toContain('<CardGrid liquidGlass>');
   });
 });

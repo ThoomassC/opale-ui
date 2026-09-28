@@ -18,7 +18,7 @@ describe('SiteNavContent', () => {
 
     const header = specimenHeader();
     expect(header?.closest('.tc-doc-opale-plainstage')).not.toBeNull();
-    expect(header?.closest('.tc-doc-magicstage')).toBeNull();
+    expect(header?.closest('.tc-doc-stage')).toBeNull();
     /* LE COMPOSANT TEL QU'IL EST LIVRÉ. La vitrine repeignait la barre en bleu
        pour masquer l'accent teal de l'ancien jeu de jetons ; SiteNav porte
        désormais le primaire d'Opale, il n'y a plus rien à masquer. */
@@ -32,7 +32,7 @@ describe('SiteNavContent', () => {
     await user.click(screen.getByRole('checkbox', { name: 'Liquid Glass pour SiteNav' }));
 
     const header = specimenHeader();
-    expect(header?.closest('.tc-doc-magicstage')).not.toBeNull();
+    expect(header?.closest('.tc-doc-stage')).not.toBeNull();
     expect(header?.style.background).toBe('');
   });
 });

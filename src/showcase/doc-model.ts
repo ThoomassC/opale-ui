@@ -158,7 +158,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Form', 'Form'),
       opaleEntry('SegmentedControl', 'SegmentedControl'),
       opaleEntry('RatingInput', 'RatingInput'),
-      /* SIX ENTRÉES VENDORÉES ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
+      /* SIX ENTRÉES DU VERRE D’ORIGINE ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
          `Checkbox`, `Slider`, `Select` et `Switch`. Chacune doublonnait la
          `opaleEntry` qui la précède : le rail affichait « Input » puis
          « Input » sans dire lequel prendre. Leurs composants sont désormais la
@@ -199,7 +199,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Heading', 'Heading'),
       opaleEntry('Text', 'Text'),
       opaleEntry('Icon', 'Icon'),
-      /* `Badge` et `Card` vendorés sont partis pour la même raison que les six
+      /* `Badge` et `Card` d’origine sont partis pour la même raison que les six
          d'INPUTS : ils doublonnaient `opaleEntry('Badge')` et
          `opaleEntry('Card')` juste au-dessus. `Glass` est parti à son tour :
          ce n'est pas un composant mais le matériau des autres, et la page
@@ -219,7 +219,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('EmptyState', 'EmptyState'),
       { label: 'Modal', slug: 'composants/modal' },
       /* « ToastProvider » ET NON « Toast » : le doublon de cette section
-         n'était pas un composant mais un NOM. Le vendoré n'expose pas de
+         n'était pas un composant mais un NOM. L’ancien composant n'expose pas de
          `Toast` — il expose une file (`ToastProvider` + `useToast`) portaillée
          sur `document.body`, là où `opaleEntry('Toast')` ci-dessus
          documente une notification rendue en place. Les deux restent, sous

@@ -1,4 +1,4 @@
-import { HeaderThemeToggle } from '../magic/components/header-controls/HeaderThemeToggle';
+import { HeaderThemeToggle } from '../opale/components/header-controls/HeaderThemeToggle';
 import { useTheme } from './use-theme';
 
 /** Contrôle du thème de la vitrine, habillé comme celui de PageScaffold. */

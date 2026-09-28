@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { stripComments } from './stylesheet';
-import opaleSheet from '../magic/opale.css?raw';
+import opaleSheet from '../opale/opale.css?raw';
 
 /* ============================================================================
    UN SEUL JEU DE JETONS DANS LES COMPOSANTS.
@@ -17,7 +17,7 @@ import opaleSheet from '../magic/opale.css?raw';
    `--opale-*` ou une variable déclarée dans le même fichier.
    ========================================================================== */
 
-const sheets = import.meta.glob('../magic/components/**/*.{css,scss}', {
+const sheets = import.meta.glob('../opale/components/**/*.{css,scss}', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -29,7 +29,7 @@ describe('les modules de composants', () => {
   });
 
   for (const [file, raw] of Object.entries(sheets)) {
-    it(`${file.replace('../magic/components/', '')} ne lit que des jetons --opale-* ou les siens`, () => {
+    it(`${file.replace('../opale/components/', '')} ne lit que des jetons --opale-* ou les siens`, () => {
       const source = stripComments(raw);
       const declared = new Set([...source.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
       const foreign = [...new Set([...source.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]))]

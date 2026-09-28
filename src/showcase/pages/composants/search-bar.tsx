@@ -1,13 +1,13 @@
-import { Opale } from '../../../magic';
+import { Opale } from '../../../opale';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MaterialSwitch } from './material-switch';
 
-const USAGE = `import { Opale } from '@thomascaron/opale-ui';
+const USAGE = `import { SearchBar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
-<Opale.SearchBar placeholder="Un voyage, un lieu, un pays…" />`;
+<SearchBar placeholder="Un voyage, un lieu, un pays…" />`;
 
 const PROPS: readonly PropRow[] = [
   {
@@ -47,7 +47,7 @@ const PROPS: readonly PropRow[] = [
 export default function SearchBarContent() {
   return (
     <PageBody>
-      <UsageBlock label="Import et appel d’Opale.SearchBar" code={USAGE} />
+      <UsageBlock label="Import et appel de SearchBar" code={USAGE} />
 
       <Specimen title="Barre de recherche">
         <MaterialSwitch name="SearchBar">
@@ -63,7 +63,7 @@ export default function SearchBarContent() {
         </MaterialSwitch>
       </Specimen>
 
-      <PropsTable id="magic-search-bar" rows={PROPS} />
+      <PropsTable id="search-bar" rows={PROPS} />
     </PageBody>
   );
 }
