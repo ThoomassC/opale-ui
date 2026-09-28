@@ -20,8 +20,7 @@ import { PageBody, UsageBlock } from './api';
 const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${INSTALL_REF}"`;
 
 const STYLES = `// Une seule fois, à la racine de l'application.
-import '@thomascaron/opale-ui/fonts.css'; // Chivo et Bricolage Grotesque, en fichiers woff2
-import '@thomascaron/opale-ui/opale.css'; // les jetons --opale-* et tous les composants`;
+import '@thomascaron/opale-ui/opale.css'; // les jetons --opale-*, les composants et leurs polices`;
 
 const THEME = `// Clair par défaut. Le thème sombre se pose sur <html> :
 document.documentElement.dataset.theme = 'dark';
@@ -30,7 +29,6 @@ document.documentElement.dataset.theme = 'dark';
 // <html lang="fr" data-theme="dark">`;
 
 const NEXT = `// app/layout.tsx — un Server Component
-import '@thomascaron/opale-ui/fonts.css';
 import '@thomascaron/opale-ui/opale.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -120,7 +118,7 @@ export const installationPage: DocPage = {
 
       <Specimen
         title="3. Charger les styles et les polices"
-        note="Les deux feuilles sont indépendantes : fonts.css ne contient que les polices, livrées en fichiers que le navigateur met en cache. Sans elle, les composants retombent sur la police système."
+        note="opale.css relie ses polices (Chivo et Bricolage Grotesque) par un @import vers fonts.css : votre bundler les émet en fichiers woff2, que le navigateur charge à part et met en cache. Importez fonts.css vous-même seulement si vous voulez placer ce chargement ailleurs."
       >
         <UsageBlock label="Imports CSS" code={STYLES} defaultOpen />
       </Specimen>
@@ -134,7 +132,7 @@ export const installationPage: DocPage = {
 
       <Specimen
         title="Avec Next.js (App Router)"
-        note="Les feuilles s’importent dans le layout racine, un Server Component. Les composants portent déjà la directive « use client » : inutile de les envelopper."
+        note="La feuille s’importe dans le layout racine, un Server Component. Les composants portent déjà la directive « use client » : inutile de les envelopper."
       >
         <UsageBlock label="Next.js App Router" code={NEXT} defaultOpen />
       </Specimen>

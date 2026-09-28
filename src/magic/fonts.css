@@ -8,10 +8,10 @@
 
    Ici, elles restent des fichiers : le bundler de l'application les résout à
    côté de cette feuille, et le navigateur les charge et les met en cache
-   comme n'importe quelle ressource. À importer une fois, avec `opale.css` :
-
-     import '@thomascaron/opale-ui/fonts.css';
-     import '@thomascaron/opale-ui/opale.css';
+   comme n'importe quelle ressource. La feuille livrée `opale.css` commence par
+   `@import './fonts.css'` (voir `scripts/link-fonts.mjs`) : importer
+   `opale.css` suffit. Importer celle-ci à part ne sert qu'à placer le
+   chargement des polices ailleurs.
 
    Licences : OFL, voir `fonts/OFL-*.txt`.
    ========================================================================== */

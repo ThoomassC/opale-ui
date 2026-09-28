@@ -44,7 +44,7 @@
     "build:lib": "rm -rf dist && tsc -p tsconfig.lib.json && npm run build:css && npm run build:magic && node scripts/fix-dts-extensions.mjs dist/magic dist/contract",
     "check:dist": "node scripts/check-dist.mjs",
     "build:css": "rm -rf dist/tokens && mkdir -p dist/tokens && cp src/tokens/*.css dist/tokens/",
-    "build:magic": "rm -rf dist/magic && tsc -p tsconfig.magic.json && vite build --config vite.magic.config.ts && mkdir -p dist/magic/fonts && cp src/magic/fonts.css dist/magic/fonts.css && cp src/magic/fonts/* dist/magic/fonts/",
+    "build:magic": "rm -rf dist/magic && tsc -p tsconfig.magic.json && vite build --config vite.magic.config.ts && mkdir -p dist/magic/fonts && cp src/magic/fonts.css dist/magic/fonts.css && cp src/magic/fonts/* dist/magic/fonts/ && node scripts/link-fonts.mjs",
     "prepare": "npm run build:lib",
     "lint": "eslint .",
     "format": "prettier --write .",

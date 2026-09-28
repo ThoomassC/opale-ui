@@ -28,6 +28,11 @@ check(
 const css = readFileSync('dist/magic/magic.css', 'utf8');
 check(!css.includes('data:font/'), 'dist/magic/magic.css contient encore des polices en base64.');
 check(existsSync('dist/magic/fonts.css'), 'dist/magic/fonts.css est absent.');
+/* Une application qui n'importe qu'`opale.css` doit garder ses polices. */
+check(
+  /^(@charset "[^"]+";\r?\n)?@import '\.\/fonts\.css';/.test(css),
+  "dist/magic/magic.css ne relie pas ses polices (@import './fonts.css' en tête).",
+);
 for (const font of ['bricolage-grotesque-latin.woff2', 'chivo-latin.woff2']) {
   check(existsSync(join('dist/magic/fonts', font)), `dist/magic/fonts/${font} est absent.`);
 }

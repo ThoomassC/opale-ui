@@ -52,7 +52,9 @@ describe('la page Installation', () => {
 
     expect(text).toMatch(/React 19/);
     expect(text).toMatch(/Node 20\.19/);
-    expect(text).toContain("import '@thomascaron/opale-ui/fonts.css';");
+    /* Une seule feuille à importer : elle relie ses polices, livrées en fichiers. */
+    expect(text).not.toContain("import '@thomascaron/opale-ui/fonts.css';");
+    expect(text).toMatch(/fonts\.css/);
     expect(text).toContain("import '@thomascaron/opale-ui/opale.css';");
     expect(text).toContain('data-theme');
     expect(text).toMatch(/App Router/);
