@@ -6,16 +6,50 @@ import { INSTALL_REF, INSTALL_REF_KIND } from '../install-ref';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
 
+/* =============================================================================
+   DÉMARRER AVEC OPALE, EN CINQ ÉTAPES QUI SE SUIVENT.
+
+   La page ne donnait que la commande d'installation et deux imports : ni les
+   prérequis, ni les polices, ni le thème, ni la frontière client de Next.js,
+   ni le fait que le paquet se compile à l'installation. Assez pour un essai,
+   pas pour une application de production. Les étapes sont numérotées parce
+   qu'elles ont un ordre : on ne peut pas afficher un composant avant d'avoir
+   chargé ses styles.
+   ========================================================================== */
+
 const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${INSTALL_REF}"`;
 
-const IMPORTS = `import '@thomascaron/opale-ui/tokens.css';
+const STYLES = `// Une seule fois, à la racine de l'application.
+import '@thomascaron/opale-ui/fonts.css'; // Chivo et Bricolage Grotesque, en fichiers woff2
+import '@thomascaron/opale-ui/opale.css'; // les jetons --opale-* et tous les composants`;
+
+const THEME = `// Clair par défaut. Le thème sombre se pose sur <html> :
+document.documentElement.dataset.theme = 'dark';
+
+// ou directement dans le HTML servi :
+// <html lang="fr" data-theme="dark">`;
+
+const NEXT = `// app/layout.tsx — un Server Component
+import '@thomascaron/opale-ui/fonts.css';
 import '@thomascaron/opale-ui/opale.css';
 
-import { Button, Opale } from '@thomascaron/opale-ui';`;
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="fr" data-theme="light">
+      <body>{children}</body>
+    </html>
+  );
+}
 
-const FIRST_COMPONENT = `import '@thomascaron/opale-ui/tokens.css';
-import '@thomascaron/opale-ui/opale.css';
-import { Opale } from '@thomascaron/opale-ui';
+// app/page.tsx — Opale porte déjà "use client" :
+// ses composants s'importent tels quels, même depuis un Server Component.
+import { Button } from '@thomascaron/opale-ui';
+
+export default function Page() {
+  return <Button variant="primary">Continuer</Button>;
+}`;
+
+const FIRST_COMPONENT = `import { Opale } from '@thomascaron/opale-ui';
 
 export function App() {
   return <Opale.Button variant="primary">Continuer</Opale.Button>;
@@ -26,11 +60,21 @@ export const installationPage: DocPage = {
   label: 'Installation',
   group: 'introduction',
   title: 'Installation',
-  searchTerms: ['npm', 'import', 'tokens.css', 'opale.css', 'premier composant'],
+  searchTerms: [
+    'npm',
+    'import',
+    'fonts.css',
+    'opale.css',
+    'thème',
+    'Next.js',
+    'App Router',
+    'use client',
+    'premier composant',
+  ],
   lede: (
     <>
-      Installez Opale UI, chargez ses feuilles de style, puis utilisez les composants historiques ou
-      le catalogue de composants Opale de la V3.
+      De l’installation au premier composant, tout ce qu’une application de production doit mettre
+      en place : prérequis, styles et polices, thème, et Next.js.
     </>
   ),
   render: () => (
@@ -38,34 +82,68 @@ export const installationPage: DocPage = {
       <p className="tc-doc-install-status">
         <span className="tc-doc-release__status">{currentDeploymentLabel()}</span>
       </p>
+
+      <Specimen title="1. Prérequis">
+        <ul className="tc-doc-checklist">
+          <li>
+            <strong>React 19</strong> et <strong>react-dom 19</strong>, déclarés en dépendances
+            paires : Opale ne les embarque pas.
+          </li>
+          <li>
+            <strong>Node 20.19</strong> (ou 22.12 et plus) sur la machine qui installe : le paquet
+            se compile à l’installation.
+          </li>
+          <li>
+            Un bundler qui résout les imports CSS et les polices : Vite, Next.js, webpack ou
+            équivalent.
+          </li>
+        </ul>
+      </Specimen>
+
       <Specimen
-        title={`Installer Opale UI ${UI_VERSION}`}
+        title={`2. Installer Opale UI ${UI_VERSION}`}
         note={
           INSTALL_REF_KIND === 'branch'
-            ? 'Version de recette : installez la branche recette. Le tag v3.5.0 sera créé lors de la publication.'
-            : 'Cette version est installable depuis le tag GitHub correspondant.'
+            ? 'Version de recette : cette commande installe la branche recette, qui avance. Pour une application de production, installez un tag de version.'
+            : 'Cette commande installe un tag de version : le code ne bouge plus sous vos pieds.'
         }
       >
         <UsageBlock label="Commande d'installation" code={INSTALL} language="shell" defaultOpen />
-      </Specimen>
-
-      <Specimen title="Charger les styles">
-        <UsageBlock label="Imports CSS et composants" code={IMPORTS} defaultOpen />
+        <p className="tc-doc-prose">
+          Opale n’est pas publié sur npm : il s’installe depuis GitHub et se compile à
+          l’installation par son script <code>prepare</code>. Deux cas l’empêchent de tourner, et le
+          paquet arrive alors sans son dossier <code>dist</code> :{' '}
+          <code>npm ci --ignore-scripts</code>, et pnpm 10, qui bloque par défaut les scripts des
+          dépendances — autorisez-le dans <code>onlyBuiltDependencies</code>.
+        </p>
       </Specimen>
 
       <Specimen
-        title="Afficher un premier composant"
-        note="Un exemple minimal prêt à copier dans un composant React."
+        title="3. Charger les styles et les polices"
+        note="Les deux feuilles sont indépendantes : fonts.css ne contient que les polices, livrées en fichiers que le navigateur met en cache. Sans elle, les composants retombent sur la police système."
       >
-        <UsageBlock label="Premier composant Opale" code={FIRST_COMPONENT} defaultOpen />
+        <UsageBlock label="Imports CSS" code={STYLES} defaultOpen />
       </Specimen>
 
-      <Specimen title="Choisir une brique">
-        <p className="tc-doc-prose">
-          Les exports historiques comme <code>Button</code> restent disponibles. Pour le catalogue
-          V3 présenté ici, utilisez <code>Opale.Button</code> et les autres composants du namespace{' '}
-          <code>Opale</code>.
-        </p>
+      <Specimen
+        title="4. Choisir le thème"
+        note="Les jetons --opale-* basculent tous ensemble. Pour une seule section de page dans l’autre thème, PageScaffold accepte sa propre prop theme."
+      >
+        <UsageBlock label="Thème clair ou sombre" code={THEME} defaultOpen />
+      </Specimen>
+
+      <Specimen
+        title="Avec Next.js (App Router)"
+        note="Les feuilles s’importent dans le layout racine, un Server Component. Les composants portent déjà la directive « use client » : inutile de les envelopper."
+      >
+        <UsageBlock label="Next.js App Router" code={NEXT} defaultOpen />
+      </Specimen>
+
+      <Specimen
+        title="5. Afficher un premier composant"
+        note="Chaque composant existe en export nommé (Button) et dans l’espace de noms Opale (Opale.Button) : les deux désignent le même composant."
+      >
+        <UsageBlock label="Premier composant Opale" code={FIRST_COMPONENT} defaultOpen />
         <ul className="tc-doc-checklist">
           <li>
             <a className="tc-doc-link" href={hrefFor('composants/opale-button')}>
@@ -74,8 +152,8 @@ export const installationPage: DocPage = {
             pour les variantes principales.
           </li>
           <li>
-            Activez Liquid Glass uniquement sur le spécimen du composant que vous souhaitez
-            comparer.
+            <code>liquidGlass</code> s’active composant par composant ; prévoyez un fond riche
+            derrière, le verre n’a rien à réfracter sur un aplat.
           </li>
         </ul>
       </Specimen>

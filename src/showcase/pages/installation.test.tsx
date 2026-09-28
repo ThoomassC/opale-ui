@@ -15,12 +15,12 @@ describe('la page Installation', () => {
     );
     expect(container.textContent).not.toContain('npm install opale');
   });
-  it('montre ses trois extraits dès le premier rendu', () => {
+  it('montre ses cinq extraits dès le premier rendu', () => {
     const { container } = render(<>{installationPage.render()}</>);
     const reveals = container.querySelectorAll('.tc-doc-codeexample__reveal');
 
-    expect(reveals).toHaveLength(3);
-    expect(screen.getAllByRole('button', { name: 'Masquer le code' })).toHaveLength(3);
+    expect(reveals).toHaveLength(5);
+    expect(screen.getAllByRole('button', { name: 'Masquer le code' })).toHaveLength(5);
     expect(screen.queryByRole('button', { name: 'Afficher le code' })).not.toBeInTheDocument();
 
     for (const reveal of reveals) {
@@ -35,10 +35,31 @@ describe('la page Installation', () => {
       (code) => code.dataset.language,
     );
 
-    expect(languages).toEqual(['shell', 'tsx', 'tsx']);
+    expect(languages).toEqual(['shell', 'tsx', 'tsx', 'tsx', 'tsx']);
     expect(container.textContent).toContain(
       'return <Opale.Button variant="primary">Continuer</Opale.Button>;',
     );
     expect(screen.getByText('En local')).toBeVisible();
+  });
+
+  /* LE PARCOURS SUFFIT À MONTER UNE VRAIE APPLICATION. La page ne donnait que
+     la commande et deux imports : ni les prérequis, ni les polices, ni le
+     thème, ni la frontière client de Next.js, ni le fait que le paquet se
+     compile à l'installation. */
+  it('dit tout ce qu’il faut pour une application de production', () => {
+    const { container } = render(<>{installationPage.render()}</>);
+    const text = container.textContent ?? '';
+
+    expect(text).toMatch(/React 19/);
+    expect(text).toMatch(/Node 20\.19/);
+    expect(text).toContain("import '@thomascaron/opale-ui/fonts.css';");
+    expect(text).toContain("import '@thomascaron/opale-ui/opale.css';");
+    expect(text).toContain('data-theme');
+    expect(text).toMatch(/App Router/);
+    expect(text).toMatch(/--ignore-scripts/);
+    expect(screen.getByRole('heading', { name: /1\. Prérequis/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /5\. Afficher un premier composant/ }),
+    ).toBeInTheDocument();
   });
 });
