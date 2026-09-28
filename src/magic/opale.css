@@ -8,6 +8,11 @@
      local de PageScaffold : texte des boutons à 2,82:1 dans une section
      sombre. Redéfinis dans chaque bloc, ils héritent comme le reste. */
   --opale-on-fill: #fbfaf9;
+  /* LE BORD D'UN CONTRÔLE N'EST PAS LE LISERÉ D'UNE CARTE. `--opale-divider`
+     sépare deux surfaces (1,30:1) ; un champ, lui, doit se voir pour qu'on
+     sache où saisir (WCAG 1.4.11). L'encre à 55 % tient 4,16:1 sur la surface,
+     3,79:1 sur le fond de page, 3,50:1 sur la surface creusée. */
+  --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
   --opale-fill-success: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
   --opale-fill-warning: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
   --opale-fill-danger: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
@@ -94,7 +99,9 @@
      les deux jetons coïncident. */
   --opale-success-on-surface: var(--opale-success);
   --opale-info-on-surface: var(--opale-info);
-  --opale-warning-on-surface: var(--opale-warning);
+  /* PLUS SOMBRE QUE LE TON, parce qu'il écrit du texte : l'ambre du ton tenait
+     3,81:1 sur le lavis du Feedback, #9a5a00 y tient 4,92:1. */
+  --opale-warning-on-surface: #9a5a00;
   --opale-danger-on-surface: var(--opale-danger);
   --opale-danger: #b3261e;
   --opale-info: #1a4f8b;
@@ -299,6 +306,7 @@
      tombait sous 3,5:1. Les tons de toast passent par le jeton clair
      *-on-surface : un remplissage assombri serait noir sur un sol noir. */
   --opale-on-fill: #0c0f0d;
+  --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
   --opale-fill-success: var(--opale-success-on-surface);
   --opale-fill-warning: var(--opale-warning-on-surface);
   --opale-fill-danger: var(--opale-danger-on-surface);
@@ -1172,6 +1180,7 @@
   align-items: center;
   gap: var(--opale-space-xs);
   padding: 0 var(--opale-space-md);
+  border-color: var(--opale-field-border);
 }
 .opale-input-shell:focus-within {
   border-color: var(--opale-primary);
@@ -1251,7 +1260,7 @@
   display: grid;
   gap: 0.15rem;
   padding: var(--opale-space-2xs);
-  border: 1px solid var(--opale-divider);
+  border: 1px solid var(--opale-field-border);
   border-radius: var(--opale-radius-md);
   background: var(--opale-surface);
 }
@@ -1408,7 +1417,9 @@
   height: 1.75rem;
   align-items: center;
   border-radius: var(--opale-radius-pill);
-  background: color-mix(in srgb, var(--opale-primary) 32%, var(--opale-divider));
+  /* ÉTEINTE, LA PISTE PREND LE BORD DES CHAMPS : 4,16:1 sur la surface, là où
+     le lavis bleu-gris tenait 2,05:1 et se confondait avec le fond. */
+  background: var(--opale-field-border);
   cursor: pointer;
 }
 .opale-toggle-thumb {
@@ -1416,7 +1427,9 @@
   height: 1.25rem;
   margin-left: 0.25rem;
   border-radius: 50%;
-  background: #fff;
+  /* La surface et non #fff : en sombre, une poignée blanche sur une piste
+     claire ne se détacherait plus. */
+  background: var(--opale-surface);
   box-shadow: var(--opale-shadow-1);
   transition: transform var(--opale-motion) var(--opale-ease);
 }
