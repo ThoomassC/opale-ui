@@ -49,6 +49,85 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V360_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Une API unique, sans rupture',
+    changes: [
+      {
+        title: 'Valeurs',
+        detail:
+          'Chaque composant à valeur accepte value, defaultValue et onValueChange : SegmentedControl, CommandPalette, Pagination, RatingInput, MultiSelect, Navbar, Sidebar et SiteNav. DataTable accepte un tri contrôlé.',
+        links: [{ label: 'SegmentedControl', slug: 'composants/opale-segmented-control' }],
+      },
+      {
+        title: 'Ouverture',
+        detail:
+          'Modal, ConfirmDialog, SidePanel, Lightbox, CommandPalette, Toast et CookieBanner signalent leur fermeture par onOpenChange(false). ConfirmDialog ne le fait jamais sur Confirmer.',
+        links: [{ label: 'Modal', slug: 'composants/modal' }],
+      },
+      {
+        title: 'Tailles et tons',
+        detail:
+          'Une seule échelle small, medium, large pour Modal, Topbar, PageScaffold et DataTable, et un seul tone pour Feedback et les toasts.',
+      },
+      {
+        title: 'ref et attributs natifs',
+        detail:
+          'Chaque composant accepte ref, className, style, id, data-* et aria-*. Les champs les transmettent au contrôle natif, ce qui les rend utilisables avec react-hook-form.',
+        links: [{ label: 'Input', slug: 'composants/opale-input' }],
+      },
+      {
+        title: 'Libellés et langue',
+        detail:
+          'Treize composants acceptent labels pour traduire leurs textes d’interface, avec les libellés français par défaut. DataTable trie selon locale.',
+        links: [{ label: 'DataTable', slug: 'composants/opale-data-table' }],
+      },
+      {
+        title: 'Types et imports',
+        detail:
+          'Chaque composant exporte son type de props, et la documentation importe par nom. Le namespace Opale gagne Modal, Tabs, Sidebar, Topbar, SiteNav et ToastProvider.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+    ],
+  },
+  {
+    title: 'Compatibilité',
+    changes: [
+      {
+        title: 'Anciens noms conservés',
+        detail:
+          'onChange, page, values, activeItemId, onClose, onCancel, severity, density, OpaleUI et les autres restent acceptés et fonctionnent comme en 3.5 ; l’éditeur les barre et indique le nouveau nom.',
+      },
+      {
+        title: 'Corrections visibles',
+        detail:
+          'CommandPalette accepte la saisie sans value, et MultiSelect affiche la value qu’on lui passe.',
+      },
+      {
+        title: 'Opale ne doit rien à personne',
+        detail:
+          'Les composants vivent désormais dans leur propre dossier et leurs classes générées portent le préfixe opale-mod-. Les points d’entrée du paquet ne changent pas.',
+      },
+    ],
+  },
+];
+
+const V360_RELEASE_MIGRATION = {
+  fromVersion: '3.5.2',
+  steps: [
+    {
+      title: 'Passer aux nouveaux noms (facultatif)',
+      before: '<Pagination page={page} onChange={setPage} pageCount={8} />',
+      after: '<Pagination value={page} onValueChange={setPage} pageCount={8} />',
+    },
+    {
+      title: 'Fermer avec onOpenChange (facultatif)',
+      before: '<Modal open={open} onClose={() => setOpen(false)} />',
+      after: '<Modal open={open} onOpenChange={setOpen} />',
+    },
+  ],
+} as const;
+
 const V352_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Un seul langage visuel',
@@ -503,6 +582,25 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.6.0',
+    publishedAt: '2026-09-28',
+    dateLabel: '28 septembre 2026',
+    summary:
+      'Une seule convention d’API pour les valeurs, l’ouverture, les tailles, les tons, les libellés et les refs, sans casser aucune application en 3.5.',
+    sections: V360_RELEASE_SECTIONS,
+    changes: V360_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'value, defaultValue et onValueChange partout.',
+      'onOpenChange sur toutes les surimpressions.',
+      'ref, labels et attributs natifs sur chaque composant.',
+    ],
+    migration: V360_RELEASE_MIGRATION,
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.5.2',
     publishedAt: '2026-09-28',
     dateLabel: '28 septembre 2026',
@@ -517,8 +615,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Six tailles de texte, un seul anneau de focus.',
       'Toasts annoncés même sous une modale ouverte.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.6.0, sur son tag. */
+    appHref: '/versions/v3.5.2/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.5.2`,
   },
   {
     version: '3.5.1',
