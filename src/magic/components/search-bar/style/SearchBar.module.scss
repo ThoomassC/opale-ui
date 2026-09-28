@@ -30,6 +30,17 @@
   box-shadow: none;
 }
 
+/* Au clavier, l'anneau commun cerne la barre : sur le verre, dont le halo est
+   éteint ci-dessus, le contour bleu seul ne se distinguait pas du repos. */
+.root:has(.input:focus-visible) {
+  outline: var(--opale-focus-ring-width) solid var(--opale-glass-ink);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+
+.plain:has(.input:focus-visible) {
+  outline-color: var(--opale-focus);
+}
+
 .icon {
   flex: none;
   width: 1.1rem;

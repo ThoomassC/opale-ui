@@ -118,6 +118,14 @@
   color: var(--site-nav-ink);
 }
 
+/* La couleur seule ne suffit pas à signaler le focus (WCAG 2.4.7) : l'anneau
+   prend l'encre de la barre, lisible sur la matière pleine comme sur le verre. */
+.link:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--site-nav-ink);
+  outline-offset: var(--opale-focus-ring-offset);
+  border-radius: var(--opale-radius-pill);
+}
+
 .link[aria-current='page'] {
   cursor: grab;
 }

@@ -162,8 +162,8 @@
    elle, et on ne verrait du focus que les coins. Décalé vers l'intérieur, il
    longe le bord de la capsule et reste entier. */
 .tabsTrigger:focus-visible {
-  outline: 2px solid var(--opale-tabs-focus);
-  outline-offset: -3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-tabs-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 
 .tabsTrigger:disabled {
@@ -194,8 +194,8 @@
    recevoir le focus : il lui faut son anneau. Rien ne le rogne ici, il reste
    donc à l'extérieur, comme partout ailleurs dans Opale. */
 .tabsContent:focus-visible {
-  outline: 2px solid var(--opale-tabs-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-tabs-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 
 /* `[hidden]` vaut `display: none` dans la feuille du navigateur, mais cette

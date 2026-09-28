@@ -136,8 +136,8 @@
 }
 
 .panel:focus-visible {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: -4px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 
 /* L'EN-TÊTE EST SÉPARÉ DU CORPS PAR UN FILET, ET IL LE FALLAIT. Titre, texte
@@ -243,8 +243,8 @@
 }
 
 .close:focus-visible {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 
 .body {

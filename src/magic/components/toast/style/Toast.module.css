@@ -206,8 +206,8 @@
 }
 
 .close:focus-visible {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 
 /* LES QUATRE ENTRÉES, ET LEURS QUATRE SORTIES.

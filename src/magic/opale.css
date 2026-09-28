@@ -109,6 +109,10 @@
   --opale-warning: #b26a00;
   --opale-divider: #e6e1d8;
   --opale-focus: #315c9e;
+  /* Un seul anneau de focus : largeur et décalage communs, seule la couleur
+     suit la matière (bleu de focus, encre du verre, `currentColor`). */
+  --opale-focus-ring-width: 3px;
+  --opale-focus-ring-offset: 3px;
   --opale-radius-sm: 0.75rem;
   --opale-radius-md: 1.375rem;
   --opale-radius-lg: 2.25rem;
@@ -414,8 +418,8 @@
 .opale-table__sort:focus-visible,
 .opale-checkbox:focus-visible + .opale-checkbox-mark,
 .opale-toggle:focus-visible + .opale-toggle-track {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 
 .opale-button {
@@ -1223,8 +1227,8 @@
   box-shadow: none;
 }
 .opale-input-shell:has(> .opale-input:focus-visible, > .opale-select:focus-visible) {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-input::placeholder {
   color: var(--opale-text-secondary);
@@ -1306,8 +1310,8 @@
   box-shadow: none;
 }
 .opale-multiselect:has(> .opale-multiselect__list:focus-visible) {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-multiselect:focus-within,
 .opale-multiselect:focus {
@@ -1392,8 +1396,8 @@
    voyait pas où il était. Le lavis reste, pour le survol ; le liseré s'y
    ajoute, et lui ne dépend pas de la couleur. */
 .opale-multiselect:focus-within .opale-multiselect__option[data-active='true'] {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: -2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 .opale-multiselect--glass:focus-within .opale-multiselect__option[data-active='true'] {
   outline-color: var(--opale-glass-ink);
@@ -2500,8 +2504,8 @@
    le sélecteur de fichiers sans avoir su qu'on y était. L'anneau se dessine
    donc sur la ZONE, qui est ce que l'on voit. */
 .opale-dropzone:focus-within {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 /* `align-content: center` GROUPE LES LIGNES. Sans lui, les rangées de la grille
    s'étirent pour remplir les 9 rem, et le titre et l'action se retrouvaient
@@ -2589,8 +2593,8 @@
    rectangle du dessin, il était rogné par les arrondis et s'arrêtait net aux
    coins ; la plaque, elle, porte l'arrondi, et `outline` le suit. */
 .opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible) {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-svg-map__canvas {
   position: relative;
@@ -3035,8 +3039,8 @@
 }
 
 .opale-toast__close:focus-visible {
-  outline: 3px solid currentColor;
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid currentColor;
+  outline-offset: var(--opale-focus-ring-offset);
   opacity: 1;
 }
 
@@ -3140,8 +3144,8 @@
   cursor: inherit;
 }
 .opale-rating-input__option:has(input:focus-visible) {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
   border-radius: var(--opale-radius-sm);
 }
 .opale-rating-input__option svg {
