@@ -1,13 +1,15 @@
 .bubble {
-  --liquid-bubble-fill: var(--glass-surface-strong, rgba(255, 255, 255, 0.16));
-  --liquid-bubble-ink: var(--text-accent, #0e5968);
-  --liquid-bubble-edge: var(--glass-border, rgba(255, 255, 255, 0.42));
-  --liquid-bubble-highlight: var(--glass-highlight, #ffffff);
-  --liquid-bubble-shadow-ink: var(--shadow-ink, rgba(15, 23, 42, 0.3));
+  /* Les réglages par défaut de la bulle, tirés du matériau d'Opale et non plus
+     de l'ancien jeu `--glass-*` ; la barre de navigation les surcharge. */
+  --liquid-bubble-fill: color-mix(in srgb, var(--opale-glass-ink) 16%, transparent);
+  --liquid-bubble-ink: var(--opale-primary-on-surface);
+  --liquid-bubble-edge: color-mix(in srgb, var(--opale-glass-ink) 42%, transparent);
+  --liquid-bubble-highlight: var(--opale-glass-ink);
+  --liquid-bubble-shadow-ink: rgba(15, 23, 42, 0.3);
 
   box-sizing: border-box;
   border: 1px solid var(--liquid-bubble-edge);
-  border-radius: var(--radius-pill, 999px);
+  border-radius: var(--opale-radius-pill);
   background:
     radial-gradient(
       ellipse 70% 55% at 28% 0%,
@@ -29,7 +31,7 @@
     inset 0 1px 0 color-mix(in srgb, var(--liquid-bubble-highlight) 72%, transparent),
     inset 0 -0.35rem 0.75rem color-mix(in srgb, var(--liquid-bubble-shadow-ink) 16%, transparent),
     0 0.5rem 1.25rem color-mix(in srgb, var(--liquid-bubble-shadow-ink) 24%, transparent);
-  backdrop-filter: blur(var(--glass-blur-control, 12px)) saturate(145%);
-  -webkit-backdrop-filter: blur(10px) saturate(145%);
+  backdrop-filter: blur(12px) saturate(145%);
+  -webkit-backdrop-filter: blur(12px) saturate(145%);
   color: var(--liquid-bubble-ink);
 }
