@@ -48,13 +48,17 @@ describe('registre des notes de versions', () => {
     }
   });
 
-  it('présente la 3.5.1 et archive les versions précédentes sur leur tag ou leur commit', () => {
-    expect(CURRENT_RELEASE.version).toBe('3.5.1');
+  it('présente la 3.5.2 et archive les versions précédentes sur leur tag ou leur commit', () => {
+    expect(CURRENT_RELEASE.version).toBe('3.5.2');
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
-      'Prête pour la production',
-      'Corrections',
+      'Un seul langage visuel',
+      'Accessibilité',
     ]);
     expect(CURRENT_RELEASE.changes).toHaveLength(7);
+
+    const v351 = RELEASES.find((release) => release.version === '3.5.1');
+    expect(v351?.appHref).toBe('/versions/v3.5.1/index.html');
+    expect(v351?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.5.1');
 
     const v350 = RELEASES.find((release) => release.version === '3.5.0');
     expect(v350?.appHref).toBe('/versions/v3.5.0/index.html');

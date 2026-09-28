@@ -49,6 +49,60 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V352_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Un seul langage visuel',
+    changes: [
+      {
+        title: 'Un seul jeu de jetons',
+        detail:
+          'SiteNav, sa bulle et SearchBar ne lisent plus que les jetons --opale-* : plus de barre teal au milieu d’une interface bleue, et la police d’Opale est posée sur chaque composant, quelle que soit celle de la page.',
+        links: [{ label: 'SiteNav', slug: 'composants/site-nav' }],
+      },
+      {
+        title: 'Encres qui suivent le thème',
+        detail:
+          'Le texte des boutons, des toasts et de la pagination reste lisible dans une section sombre d’une page claire, et inversement.',
+        links: [{ label: 'Button', slug: 'composants/opale-button' }],
+      },
+      {
+        title: 'Hauteurs communes',
+        detail:
+          'Boutons, champs, selects, boutons-icônes, pagination et SearchBar partagent --opale-control-sm, md et lg : un champ et le bouton voisin font tous deux 44 px.',
+        links: [{ label: 'Form', slug: 'composants/opale-form' }],
+      },
+      {
+        title: 'Échelle typographique',
+        detail:
+          'Six tailles --opale-text-* et trois interlignes --opale-leading-* remplacent vingt tailles écrites en dur.',
+        links: [{ label: 'Typographie', slug: 'typographie' }],
+      },
+    ],
+  },
+  {
+    title: 'Accessibilité',
+    changes: [
+      {
+        title: 'Un seul anneau de focus',
+        detail:
+          'Même largeur et même décalage partout ; les liens de SiteNav et SearchBar ont désormais un anneau visible au clavier.',
+      },
+      {
+        title: 'Contrastes au seuil',
+        detail:
+          'Bordure des champs, interrupteur éteint et texte d’avertissement atteignent les ratios WCAG sur les deux thèmes.',
+        links: [{ label: 'Toggle', slug: 'composants/opale-toggle' }],
+      },
+      {
+        title: 'Toasts sous une modale',
+        detail:
+          'Un toast lancé depuis une modale ouverte est annoncé et refermable. L’attribut data-opale-modal-exempt garde toute autre région vivante.',
+        links: [{ label: 'Modal', slug: 'composants/modal' }],
+      },
+    ],
+  },
+];
+
 const V351_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Prête pour la production',
@@ -449,6 +503,24 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.5.2',
+    publishedAt: '2026-09-28',
+    dateLabel: '28 septembre 2026',
+    summary:
+      'Un seul langage visuel : jetons, hauteurs, texte et focus communs à tous les composants, contrastes au seuil.',
+    sections: V352_RELEASE_SECTIONS,
+    changes: V352_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'Champs et boutons alignés au pixel, sur une échelle de hauteurs commune.',
+      'Six tailles de texte, un seul anneau de focus.',
+      'Toasts annoncés même sous une modale ouverte.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.5.1',
     publishedAt: '2026-09-28',
     dateLabel: '28 septembre 2026',
@@ -463,8 +535,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Types lisibles en nodenext, polices livrées en fichiers woff2.',
       'MultiSelect non contrôlé et Feedback corrigés.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.5.2, sur son tag. */
+    appHref: '/versions/v3.5.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.5.1`,
   },
   {
     version: '3.5.0',
