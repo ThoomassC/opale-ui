@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { ICON_GROUPS, ICON_KEYWORDS, ICON_NAMES, Opale } from '../../magic';
+import { ICON_GROUPS, ICON_KEYWORDS, ICON_NAMES, Opale } from '../../opale';
 import type { DocPage } from '../doc-model';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';

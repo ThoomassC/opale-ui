@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import opaleSource from '../magic/opale.css?raw';
+import opaleSource from '../opale/opale.css?raw';
 import { ruleBody } from '../test/css-rules';
 import { contrastRatio } from '../contract/color';
 import { OPALE_PLATES, OPALE_TEXT_PAIRS } from './opale-palette-data';

@@ -1,4 +1,4 @@
-import { OPALE_CATALOG } from '../../magic';
+import { OPALE_CATALOG } from '../../opale';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import type { DocPage } from '../doc-model';
 import { lazyPage } from './lazy-page';

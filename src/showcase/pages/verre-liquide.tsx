@@ -1,4 +1,4 @@
-import Glass from '../../magic/components/glass/Glass';
+import Glass from '../../opale/components/glass/Glass';
 
 /* CETTE PAGE DOCUMENTE LE MATÉRIAU, donc elle appelle `Glass` directement —
    c'est la seule qui en ait besoin, pour montrer ses crochets propres
@@ -17,7 +17,7 @@ import type { CSSProperties } from 'react';
 import type { DocPage } from '../doc-model';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
-import { MagicCell, MagicStage } from './composants/stage';
+import { StageCell, Stage } from './composants/stage';
 
 const LANDSCAPE_GROUND =
   "linear-gradient(0deg, rgba(7, 28, 43, 0.65), rgba(7, 28, 43, 0.65)), url('/glass-landscape.jpg') center / cover no-repeat";
@@ -72,10 +72,10 @@ export const verreLiquidePage: DocPage = {
   render: () => (
     <PageBody>
       <Specimen title="Verre liquide">
-        <MagicStage background={LANDSCAPE_GROUND}>
+        <Stage background={LANDSCAPE_GROUND}>
           <LiquidGlassFilter />
 
-          <MagicCell label="Modale + déformation">
+          <StageCell label="Modale + déformation">
             <Glass
               enableLiquidAnimation={false}
               rootClassName="tc-doc-liquid-modal"
@@ -93,9 +93,9 @@ export const verreLiquidePage: DocPage = {
                 <span>Une surface nette, légèrement déformée.</span>
               </div>
             </Glass>
-          </MagicCell>
+          </StageCell>
 
-          <MagicCell label="Bouton + déformation">
+          <StageCell label="Bouton + déformation">
             <div
               style={{
                 display: 'grid',
@@ -118,9 +118,9 @@ export const verreLiquidePage: DocPage = {
                 Continuer
               </Glass>
             </div>
-          </MagicCell>
+          </StageCell>
 
-          <MagicCell label="squire-circle">
+          <StageCell label="squire-circle">
             <div className="tc-doc-squire-circle__stage">
               <Glass
                 as="button"
@@ -206,8 +206,8 @@ export const verreLiquidePage: DocPage = {
                 </svg>
               </Glass>
             </div>
-          </MagicCell>
-        </MagicStage>
+          </StageCell>
+        </Stage>
       </Specimen>
 
       <UsageBlock label="Activer le matériau" code={USAGE} />

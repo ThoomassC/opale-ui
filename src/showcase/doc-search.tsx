@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 
-import { Opale } from '../magic';
+import { Opale } from '../opale';
 
 import type { DocPage } from './doc-model';
 import { hrefFor } from './doc-model';

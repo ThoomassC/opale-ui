@@ -2830,7 +2830,7 @@
 
      La durée reste quasi nulle plutôt que `none` : une animation de durée
      infime SE TERMINE, donc `animationend` est bien émis et le code qui
-     l'attend ne reste pas suspendu. C'est le même choix que `magic.scss`,
+     l'attend ne reste pas suspendu. C'est le même choix que `motion.scss`,
      dont ce bloc n'avait pas repris la seconde ligne. */
   *,
   *::before,

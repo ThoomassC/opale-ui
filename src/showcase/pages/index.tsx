@@ -36,21 +36,21 @@ import { opaleComponentPages } from './opale-component-pages';
    échelles, l'accessibilité en fin de chapitre. Les composants sont ALPHABÉTIQUES
    et pas thématiques : c'est une colonne où l'on vient chercher un nom qu'on
    connaît déjà, jamais une progression pédagogique. Elle comptait quatorze
-   entrées vendorées ; il en reste sept, les autres ayant fusionné avec leur
+   entrées du verre d’origine ; il en reste sept, les autres ayant fusionné avec leur
    jumeau Opale — voir le bloc du milieu.
 
    CE QUI A CHANGÉ EN 2.0, ET CE QUE LE REGISTRE EN GARDE. Ce tableau comptait
    cinq familles et vingt-quatre entrées : dix-sept pages de composants d'Opale,
    deux compositions, et quatorze pages reléguées dans un cinquième groupe
-   « Magic » parce qu'elles ne documentaient pas Opale. Les dix-sept composants
-   et les deux compositions sont supprimés ; les quatorze pages de `magic/` sont
-   MONTÉES dans `composants/`, parce que ces composants sont désormais ceux que
-   publie l'entrée racine. Leurs adresses ont donc changé — `#/magic/button`
-   est devenu `#/composants/button` —, et rien ne redirige l'ancienne : la
+   parce qu'elles ne documentaient pas encore Opale. Les dix-sept composants
+   et les deux compositions sont supprimés ; les quatorze pages de ce groupe
+   sont MONTÉES dans `composants/`, parce que ces composants sont désormais
+   ceux que publie l'entrée racine. Leurs adresses ont donc changé — elles
+   vivent toutes sous `#/composants/…` —, et rien ne redirige l'ancienne : la
    vitrine est servie en statique, un fragment inconnu se replie sur l'accueil.
 
    `registry.test.tsx` garde deux promesses sur ce tableau : chaque composant
-   exporté par l'entrée racine (`src/magic/index.ts`) y a sa page, et chaque
+   exporté par l'entrée racine (`src/opale/index.ts`) y a sa page, et chaque
    page se rend sans jeter ni écrire dans `console.error`. Un composant publié
    sans page fait rougir la suite — c'est le seul moyen que « une entrée de nav
    par composant » reste vrai au quinzième composant. Il garde aussi, depuis

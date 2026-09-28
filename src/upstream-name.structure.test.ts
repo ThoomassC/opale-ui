@@ -34,19 +34,44 @@ import { describe, expect, it } from 'vitest';
    deux points qu'il revendiquait. L'exemple est parti, l'exception avec.
    ========================================================================== */
 
-/** Le mot interdit, recomposé pour que ce fichier ne se dénonce pas lui-même. */
-const FORBIDDEN = ['can', 'op'].join('');
+/* LA DEUXIÈME LIBRAIRIE AMONT, AJOUTÉE LE 28/09. Le dossier des composants,
+   leur feuille, le préfixe des classes produites et la bannière du bundle
+   portaient encore le nom de la librairie d'où venaient les premiers
+   composants en verre — alors que plus une ligne de son code n'était
+   distribuée. Le propriétaire veut qu'Opale ne doive rien à aucune des deux.
+   Les deux mots sont recomposés, pour la raison du point 1. */
+
+/** Les mots interdits, recomposés pour que ce fichier ne se dénonce pas lui-même. */
+const FORBIDDEN = [
+  ['can', 'op'].join(''),
+  ['ma', 'gic'].join(''),
+  ['twee', 'edlex'].join(''),
+  ['ven', 'dor'].join(''),
+];
 
 /* `import.meta.glob` est résolu par Vite À LA COMPILATION : la liste des
    fichiers est figée dans le bundle de test, donc le balayage ne dépend pas
    d'un accès disque au moment où il tourne. */
-const SOURCES = import.meta.glob('./**/*.{ts,tsx,css,scss}', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-}) as Record<string, string>;
+const SOURCES = {
+  ...import.meta.glob('./**/*.{ts,tsx,css,scss,md}', { query: '?raw', import: 'default', eager: true }),
+  /* La racine aussi : configurations de build, scripts, README et notices.
+     `package-lock.json` est exclu : il nomme les dépendances de Vite, dont
+     une porte le mot dans son nom sans rien devoir à personne ici. */
+  ...import.meta.glob(
+    [
+      '../*.{ts,md,json}',
+      '../scripts/*.{mjs,mts}',
+      '../docs/**/*.md',
+      '../index.html',
+      '!../package-lock.json',
+    ],
+    { query: '?raw', import: 'default', eager: true },
+  ),
+} as Record<string, string>;
 
-describe('le nom de la librairie amont', () => {
+const offending = (text: string) => FORBIDDEN.some((word) => text.toLowerCase().includes(word));
+
+describe('le nom des librairies amont', () => {
   it('balaie bien tout l’arbre source', () => {
     /* Sans cette borne, un motif de glob cassé rendrait un objet vide et les
        deux tests suivants passeraient sur rien. */
@@ -55,7 +80,7 @@ describe('le nom de la librairie amont', () => {
 
   it('n’apparaît dans le contenu d’aucun fichier', () => {
     const guilty = Object.entries(SOURCES)
-      .filter(([, source]) => source.toLowerCase().includes(FORBIDDEN))
+      .filter(([, source]) => offending(source))
       .map(([path]) => path);
 
     expect(
@@ -67,7 +92,7 @@ describe('le nom de la librairie amont', () => {
   });
 
   it('n’apparaît dans le nom d’aucun fichier', () => {
-    const guilty = Object.keys(SOURCES).filter((path) => path.toLowerCase().includes(FORBIDDEN));
+    const guilty = Object.keys(SOURCES).filter((path) => offending(path));
 
     expect(
       guilty,

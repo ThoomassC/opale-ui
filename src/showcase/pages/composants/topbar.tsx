@@ -1,4 +1,4 @@
-import { Opale, Topbar } from '../../../magic';
+import { Opale, Topbar } from '../../../opale';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
@@ -117,11 +117,11 @@ export default function TopbarContent() {
               />
               <Topbar.Divider />
               <Topbar.Section grow>
-                {/* `Opale.Badge` ET NON LE `Badge` VENDORÉ, qui n'est plus une
+                {/* `Opale.Badge` ET NON LE `Badge` D’ORIGINE, qui n'est plus une
                 porte publique : il est la matière derrière
                 `Opale.Badge liquidGlass`. Le ton par défaut remplace son
                 `variant="info"`, qui n'a pas d'équivalent — Opale en expose
-                trois (`primary`, `accent`, `danger`) là où le vendoré en
+                trois (`primary`, `accent`, `danger`) là où l’ancien composant en
                 proposait six. Un `accent` aurait dit « attention » sur une
                 pastille qui ne fait qu'étiqueter un brouillon. */}
                 <Opale.Badge>brouillon</Opale.Badge>
@@ -169,7 +169,7 @@ export default function TopbarContent() {
       </Specimen>
 
       <PropsTable
-        id="magic-topbar"
+        id="topbar"
         note={
           <>
             <code>TopbarProps</code> étend{' '}

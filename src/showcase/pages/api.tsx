@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
-import { Button } from '../../magic';
+import { Button } from '../../opale';
 
 /* =============================================================================
    LES TROIS BRIQUES QUE TOUTE PAGE DE COMPOSANT RÉEMPLOIE.

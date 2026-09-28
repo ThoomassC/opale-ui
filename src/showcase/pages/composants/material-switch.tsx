@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from 'react';
 
-import { Opale } from '../../../magic';
+import { Opale } from '../../../opale';
 
-import { MagicStage } from './stage';
+import { Stage } from './stage';
 
 /* =============================================================================
    LE COMMUTATEUR DE MATIÈRE, POUR LES PAGES ÉCRITES À LA MAIN.
@@ -27,9 +27,9 @@ import { MagicStage } from './stage';
 export interface MaterialSwitchProps {
   /** Le nom affiché du composant, pour le libellé du commutateur. */
   readonly name: string;
-  /** La scène est-elle haute ? Reprise de `MagicStage`. */
+  /** La scène est-elle haute ? Reprise de `Stage`. */
   readonly tall?: boolean;
-  /** La scène empile-t-elle ses figures en colonne ? Reprise de `MagicStage`. */
+  /** La scène empile-t-elle ses figures en colonne ? Reprise de `Stage`. */
   readonly stack?: boolean;
   readonly children: (liquidGlass: boolean) => ReactNode;
 }
@@ -57,9 +57,9 @@ export function MaterialSwitch({
       </div>
 
       {liquidGlass ? (
-        <MagicStage tall={tall} stack={stack}>
+        <Stage tall={tall} stack={stack}>
           {children(true)}
-        </MagicStage>
+        </Stage>
       ) : (
         <PlainStage tall={tall} stack={stack}>
           {children(false)}
@@ -79,7 +79,7 @@ export function MaterialSwitch({
    photographie, c'est-à-dire à cacher le cliché sans rien montrer du
    composant.
 
-   MÊME API QUE `MagicStage` pour que la bascule d'une figure de l'une à
+   MÊME API QUE `Stage` pour que la bascule d'une figure de l'une à
    l'autre reste une substitution de nom.
    ========================================================================== */
 export function PlainStage({

@@ -1,4 +1,4 @@
-import { Sidebar } from '../../../magic';
+import { Sidebar } from '../../../opale';
 import { hrefFor } from '../../doc-model';
 import { UI_VERSION } from '../../version';
 import { Specimen } from '../../section';
@@ -196,7 +196,7 @@ export default function SidebarContent() {
       </Specimen>
 
       <PropsTable
-        id="magic-sidebar"
+        id="sidebar"
         note={
           <>
             <code>SidebarProps</code> étend{' '}
@@ -278,7 +278,7 @@ export default function SidebarContent() {
           Le piège de <code>badge</code>, mesuré en écrivant cette page.
         </strong>{' '}
         {/* LE MÉCANISME A ÉTÉ RÉÉCRIT, PAS LE PIÈGE. La phrase disait que
-          `liquidGlass` « délègue au composant vendoré » : ce n'est plus vrai,
+          `liquidGlass` « délègue au ancien composant en verre » : ce n'est plus vrai,
           il n'y a plus de composant tiers derrière la prop. `Opale.Badge`
           rend lui-même `<Glass as="span">`, et c'est `Glass` — le nôtre — qui
           enveloppe toujours son contenu dans un `<div>`. Le HTML invalide est

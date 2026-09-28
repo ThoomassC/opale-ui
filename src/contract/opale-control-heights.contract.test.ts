@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { ruleBodies, stripComments } from './stylesheet';
-import opaleSource from '../magic/opale.css?raw';
-import searchBarSource from '../magic/components/search-bar/style/SearchBar.module.scss?raw';
+import opaleSource from '../opale/opale.css?raw';
+import searchBarSource from '../opale/components/search-bar/style/SearchBar.module.scss?raw';
 
 /* ============================================================================
    UNE SEULE ÉCHELLE DE HAUTEURS POUR LES CONTRÔLES.

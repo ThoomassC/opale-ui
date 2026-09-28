@@ -3,7 +3,7 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { ModalScene } from './scenes';
 import { MaterialSwitch, PlainStage } from './material-switch';
-import { MagicGroundNote } from './stage';
+import { StageGroundNote } from './stage';
 
 const USAGE = `import { Modal } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
@@ -133,7 +133,7 @@ export default function ModalContent() {
               voile qui lui fait un fond sombre.
             </strong>{' '}
             La scène ne porte ici que les déclencheurs — et elle est sombre pour la même raison que
-            les autres, parce que ce sont des boutons de la librairie. <MagicGroundNote />
+            les autres, parce que ce sont des boutons de la librairie. <StageGroundNote />
           </>
         }
       >
@@ -164,7 +164,7 @@ export default function ModalContent() {
       </Specimen>
 
       <PropsTable
-        id="magic-modal"
+        id="modal"
         note={
           <>
             <code>ComponentPropsWithoutRef&lt;&apos;div&apos;&gt;</code> plus onze props propres,

@@ -191,7 +191,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
    UN SEUL BOUTON, ET `liquidGlass` CHOISIT SA MATIÈRE.
 
    IL Y EN AVAIT DEUX, ET C'EST CE QUI EST CORRIGÉ ICI. Le paquet exportait un
-   `Button` vendoré — celui qui passe par `<Glass>`, avec ses filtres SVG de
+   `Button` d’origine — celui qui passe par `<Glass>`, avec ses filtres SVG de
    déplacement et son onde au clic — ET ce `Button`, dont la prop
    `liquidGlass` ne posait qu'une classe CSS : deux dégradés radiaux sur
    `--opale-glass-surface`. Deux composants du même nom, dont l'un imitait
@@ -206,21 +206,21 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
    d'embarquer ou non le matériau, composant par composant, sans changer
    d'import.
 
-   LE VERRE PORTE LA PALETTE D'OPALE, PAS CELLE DU COMPOSANT VENDORÉ.
+   LE VERRE PORTE LA PALETTE D'OPALE, PAS CELLE DU COMPOSANT D’ORIGINE.
 
    Une première version faisait correspondre les sept rôles Opale aux quatre
-   teintes du vendoré — `danger` sur `negative`, `accent` sur `warning`. Elle
+   teintes de l’ancien composant — `danger` sur `negative`, `accent` sur `warning`. Elle
    s'est démentie toute seule le jour où le secondaire est passé de l'olive au
    bleu : sous verre il restait VERT, parce qu'il empruntait la teinte
    `positive` d'une autre palette. Une correspondance arbitraire ne survit pas
    au premier changement de marque.
 
-   Le composant vendoré est donc rendu SANS variante, et la teinte vient d'une
+   Le ancien composant en verre est donc rendu SANS variante, et la teinte vient d'une
    classe par rôle Opale, tirée des jetons. Basculer le commutateur ne change
    plus la couleur du bouton, seulement sa matière — ce qui était le propos.
 
    CE QUI SE PERD, ET IL FAUT LE SAVOIR : `loading`, `startIcon`, `endIcon` et
-   `fullWidth` n'existent pas sur le composant vendoré. Ils sont ignorés sous
+   `fullWidth` n'existent pas sur le ancien composant en verre. Ils sont ignorés sous
    verre, et c'est préférable à une seconde implémentation qui les simulerait
    mal. `opale.tsx` cesse par ailleurs d'être une feuille autonome : c'est le
    prix d'un composant unique, et il est moins cher que le doublon.

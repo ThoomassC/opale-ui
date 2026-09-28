@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Opale, PageScaffold } from '../../../magic';
+import { Opale, PageScaffold } from '../../../opale';
 import { PageBody, PropsTable, UsageBlock, type PropRow } from '../api';
 
 const USAGE = `import { Opale, PageScaffold } from '@thomascaron/opale-ui';

@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react';
 
 /* =============================================================================
-   L'IMPORT DE `magic.scss` A ÉTÉ RETIRÉ D'ICI, ET IL FAUT DIRE POURQUOI.
+   L'IMPORT DE `motion.scss` A ÉTÉ RETIRÉ D'ICI, ET IL FAUT DIRE POURQUOI.
 
-   Ce fichier portait `import '../../../magic/magic.scss';`, posé comme
+   Ce fichier portait `import '../../../opale/motion.scss';`, posé comme
    correctif : mesuré sur la vitrine construite, la feuille était ABSENTE du
    bundle — pas de Nunito, pas le reste du Preflight, aucune des neuf couleurs
    de thème, et pas même la couche `@tailwind utilities` d'où sortent
@@ -12,7 +12,7 @@ import type { CSSProperties, ReactNode } from 'react';
    par l'import de son propre composant.
 
    La cause a depuis été mesurée et elle n'est pas celle qu'on croyait — ce
-   n'est pas la feuille qui est élaguée, c'est le baril `src/magic/index.ts`,
+   n'est pas la feuille qui est élaguée, c'est le baril `src/opale/index.ts`,
    dont Rollup a le droit de jeter les instructions de premier niveau dès que
    `sideEffects` est un tableau. Le raisonnement complet, avec les sept
    variantes de `sideEffects` essayées, est en tête de `src/main.tsx`, qui porte
@@ -33,7 +33,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
    `pages/api.tsx` sert les trois briques de toute page de composant — `PageBody`,
    `UsageBlock`, `PropsTable`. Ce fichier sert celles qui ne valent que pour les
-   huit composants composés de `src/magic/components` : la scène, et ses
+   huit composants composés de `src/opale/components` : la scène, et ses
    cellules légendées.
 
    LA SCÈNE EST SOMBRE POUR UNE RAISON QUI A CHANGÉ. Elle l'était parce que ces
@@ -44,22 +44,18 @@ import type { CSSProperties, ReactNode } from 'react';
    raison qui fait poser un paysage derrière les démonstrations de verre du
    catalogue.
 
-   LE PRÉFIXE `Magic` EST GARDÉ, ET IL NE NOMME PLUS RIEN D'EXTÉRIEUR. Il
-   nommait la provenance de ces composants, qui venaient d'ailleurs ; ils sont
-   désormais écrits par Opale. Ce qui le retient est mécanique : les six classes
-   `.tc-doc-magicstage*` de `doc.css`, et surtout le préfixe `opale-magic-` des
-   modules CSS, dont dépend le sélecteur du filet anti-mouvement de
-   `magic.scss`. Renommer sans y toucher rendrait cette règle inerte en
-   silence.
+   LE PRÉFIXE `opale-mod-` DES MODULES CSS est un contrat : le sélecteur du
+   filet anti-mouvement de `motion.scss` en dépend. Le changer sans toucher à
+   cette feuille rendrait la règle inerte en silence.
 
-   Aucune classe nouvelle inventée ici : `doc.css` porte `.tc-doc-magicstage*`,
+   Aucune classe nouvelle inventée ici : `doc.css` porte `.tc-doc-stage*`,
    et tout le reste réemploie le vocabulaire existant de la vitrine.
    ========================================================================== */
 
 /**
  * LE SOL DES SCÈNES, ET LA SEULE COULEUR LITTÉRALE DE CE DOSSIER.
  *
- * Trois arrêts, et ils ne sont pas un goût. Les composants de `src/magic/**`
+ * Trois arrêts, et ils ne sont pas un goût. Les composants de `src/opale/**`
  * écrivent leur libellé en `#ffffff` EN DUR : le fond doit donc être sombre,
  * sans quoi le composant est illisible — mesuré, blanc sur la plaque de
  * spécimen d'Opale (`--surface`, rgb(235,244,246)) vaut 1,12:1, et blanc sur le
@@ -109,10 +105,10 @@ import type { CSSProperties, ReactNode } from 'react';
  * pas sur la luminosité. Un paysage de crépuscule réfracte aussi bien qu'un
  * paysage de midi.
  */
-export const MAGIC_STAGE_GROUND =
+export const STAGE_GROUND =
   "linear-gradient(0deg, rgba(7, 28, 43, 0.65), rgba(7, 28, 43, 0.65)), url('/glass-landscape.jpg') center / cover no-repeat";
 
-export interface MagicStageProps {
+export interface StageProps {
   /** Empile les enfants au lieu de les aligner — pour un composant pleine largeur. */
   readonly stack?: boolean;
   /** Impose 256 px de hauteur — pour `Sidebar` et `Modal`, qui n'en ont pas. */
@@ -122,24 +118,24 @@ export interface MagicStageProps {
   readonly children: ReactNode;
 }
 
-/** La scène sombre sur laquelle un composant vendoré se voit. */
-export function MagicStage({ stack = false, tall = false, background, children }: MagicStageProps) {
+/** La scène sombre sur laquelle un ancien composant en verre se voit. */
+export function Stage({ stack = false, tall = false, background, children }: StageProps) {
   const classNames = [
-    'tc-doc-magicstage',
-    stack ? 'tc-doc-magicstage--stack' : '',
-    tall ? 'tc-doc-magicstage--tall' : '',
+    'tc-doc-stage',
+    stack ? 'tc-doc-stage--stack' : '',
+    tall ? 'tc-doc-stage--tall' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <div className={classNames} style={{ background: background ?? MAGIC_STAGE_GROUND }}>
+    <div className={classNames} style={{ background: background ?? STAGE_GROUND }}>
       {children}
     </div>
   );
 }
 
-export interface MagicCellProps {
+export interface StageCellProps {
   /** La légende — ce que la figure MONTRE, pas le libellé du composant. */
   readonly label: ReactNode;
   readonly children: ReactNode;
@@ -152,11 +148,11 @@ export interface MagicCellProps {
  * sur la page de `Button` d'Opale : cinq contrôles au libellé identique sont
  * indiscernables dans une liste, et un texte posé à côté n'est relié à rien.
  */
-export function MagicCell({ label, children }: MagicCellProps) {
+export function StageCell({ label, children }: StageCellProps) {
   return (
-    <figure className="tc-doc-magicstage__cell">
+    <figure className="tc-doc-stage__cell">
       {children}
-      <figcaption className="tc-doc-magicstage__label">{label}</figcaption>
+      <figcaption className="tc-doc-stage__label">{label}</figcaption>
     </figure>
   );
 }
@@ -169,7 +165,7 @@ export function MagicCell({ label, children }: MagicCellProps) {
  * bas de page. Elle tient dans une phrase parce qu'elle est répétée quatorze
  * fois ; la page « Installation » porte seule la commande d'installation.
  */
-export function MagicGroundNote() {
+export function StageGroundNote() {
   return (
     <>
       Fond sombre <strong>obligatoire</strong> : le libellé de ce composant est <code>#ffffff</code>{' '}

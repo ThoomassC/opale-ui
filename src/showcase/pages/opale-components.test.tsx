@@ -4,9 +4,9 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import opaleComponentsSource from './opale-components.tsx?raw';
 import catalogPreviewSource from './catalog-preview.tsx?raw';
-import { OPALE_CATALOG, Opale } from '../../magic';
+import { OPALE_CATALOG, Opale } from '../../opale';
 import { catalogComponentLabel } from '../doc-model';
-import opaleMagicSource from '../../magic/opale.tsx?raw';
+import opaleLibrarySource from '../../opale/opale.tsx?raw';
 import { CatalogPreview } from './catalog-preview';
 import { CATALOG_API } from './opale-api-data';
 import { opaleComponentPages } from './opale-component-pages';
@@ -282,14 +282,14 @@ describe('les exemples du catalogue', () => {
     const rendersMaterial = (name: string): boolean => {
       const start = new RegExp(
         `export (?:function ${name}\\(|const ${name} = (?:forwardRef|function))`,
-      ).exec(opaleMagicSource)?.index;
+      ).exec(opaleLibrarySource)?.index;
 
       if (start === undefined) return false;
 
       const next = /\nexport (?:function|const|interface) /.exec(
-        opaleMagicSource.slice(start + 10),
+        opaleLibrarySource.slice(start + 10),
       );
-      const body = opaleMagicSource.slice(start, next ? start + 10 + next.index : undefined);
+      const body = opaleLibrarySource.slice(start, next ? start + 10 + next.index : undefined);
 
       /* LA DÉLÉGATION N'EST PAS COMPTÉE ICI, ET C'EST UNE LIMITE ASSUMÉE.
          Une vingtaine de composants rendent un `Button` ou un `Input` et

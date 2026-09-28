@@ -1,4 +1,4 @@
-import { SiteNav } from '../../../magic';
+import { SiteNav } from '../../../opale';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';

@@ -7,21 +7,21 @@ import { defineConfig, type Plugin } from 'vite';
 // Extension-ful on purpose: Vite's forthcoming native config loader cannot
 // resolve an extensionless TypeScript import and warns on every build.
 
-const MAGIC_OUT_DIR = 'dist/magic';
-const TYPES_ENTRY = `${MAGIC_OUT_DIR}/index.d.ts`;
+const LIB_OUT_DIR = 'dist/opale';
+const TYPES_ENTRY = `${LIB_OUT_DIR}/index.d.ts`;
 const STYLE_SIDE_EFFECT_IMPORT = /^\s*import\s+['"]\.\/[\w.-]+\.s?css['"];?[ \t]*\r?\n/gm;
 
 /**
- * Strips the `import './magic.scss';` line out of the emitted types entry.
+ * Strips the `import './motion.scss';` line out of the emitted types entry.
  *
- * `src/magic/index.ts` opens with that side-effect import, and `tsc` faithfully
- * carries it into `dist/magic/index.d.ts`. But `dist/` never contains a
- * `magic.scss`: Sass compiles it, Vite emits it as `dist/magic/magic.css`, and
+ * `src/opale/index.ts` opens with that side-effect import, and `tsc` faithfully
+ * carries it into `dist/opale/index.d.ts`. But `dist/` never contains a
+ * `motion.scss`: Sass compiles it, Vite emits it as `dist/opale/opale.css`, and
  * the JavaScript bundle drops the import entirely. The declaration is therefore
  * pointing at a file that does not ship, and a consumer's own `tsc` refuses it:
  *
- *   dist/magic/index.d.ts(1,8): error TS2882: Cannot find module or type
- *   declarations for side-effect import of './magic.scss'.
+ *   dist/opale/index.d.ts(1,8): error TS2882: Cannot find module or type
+ *   declarations for side-effect import of './motion.scss'.
  *
  * Measured against a probe consumer on `moduleResolution: "bundler"` before
  * this plugin existed. Removing the line makes the declaration agree with the
@@ -29,11 +29,11 @@ const STYLE_SIDE_EFFECT_IMPORT = /^\s*import\s+['"]\.\/[\w.-]+\.s?css['"];?[ \t]
  * exactly why `exports["./opale.css"]` exists and must be imported by hand.
  *
  * The hook throws rather than skipping when the file is missing, so a
- * reordering of `build:magic` that leaves the types entry unwritten fails the
+ * reordering of `build:opale` that leaves the types entry unwritten fails the
  * build instead of silently publishing broken types.
  */
 const stripStyleImportFromTypes = (): Plugin => ({
-  name: 'opale-magic-strip-style-import-from-types',
+  name: 'opale-strip-style-import-from-types',
   apply: 'build',
   closeBundle() {
     const file = resolve(import.meta.dirname, TYPES_ENTRY);
@@ -50,7 +50,7 @@ const stripStyleImportFromTypes = (): Plugin => ({
  *
  *   - `npm run build:lib`  → the whole chain below, in order
  *   - `npm run build`      → `vite.config.ts`         (`dist-showcase/`, a site)
- *   - `npm run build:magic`→ this file                (`dist/magic/**`)
+ *   - `npm run build:opale`→ this file                (`dist/opale/**`)
  *
  * WHAT `tsc` STILL OWNS, IN 2.0: the colour contract, and only it.
  * `tsc -p tsconfig.lib.json` emits `dist/contract/**` — pure TypeScript with no
@@ -61,8 +61,8 @@ const stripStyleImportFromTypes = (): Plugin => ({
  * a `tsc`-built re-export of these components would not resolve a
  * `*.module.scss` at all.
  *
- * Type declarations are NOT produced here. `tsc -p tsconfig.magic.json` emits
- * them BEFORE this build (see the `build:magic` script) rather than pulling in
+ * Type declarations are NOT produced here. `tsc -p tsconfig.opale.json` emits
+ * them BEFORE this build (see the `build:opale` script) rather than pulling in
  * `vite-plugin-dts`, which would drag api-extractor along and pin itself
  * against a TypeScript version this repo is ahead of. `tsc` runs first so that
  * the plugin above can correct its output on the way out.
@@ -93,25 +93,25 @@ export default defineConfig({
      ==================================================================== */
   css: {
     modules: {
-      // A CONTRACT with `src/magic/magic.scss`. That sheet scopes the font
-      // family with `:where([class*='opale-magic-'])`, a selector that matches
+      // A CONTRACT with `src/opale/motion.scss`. That sheet scopes the font
+      // family with `:where([class*='opale-mod-'])`, a selector that matches
       // nothing unless every CSS-module class carries this prefix. Rename the
       // prefix here and the rule silently stops applying — it will not error.
-      generateScopedName: 'opale-magic-[local]-[hash:base64:5]',
+      generateScopedName: 'opale-mod-[local]-[hash:base64:5]',
     },
   },
 
   // `public/` belongs to the showcase. Left at its default, Vite copies it
-  // into `outDir` and `dist/magic/` ships the showcase's `favicon.svg` and
+  // into `outDir` and `dist/opale/` ships the showcase's `favicon.svg` and
   // `icons.svg` to every consumer of the package. Measured, not assumed: the
   // first run of this build emitted both.
   publicDir: false,
 
   build: {
-    outDir: MAGIC_OUT_DIR,
-    // NOT emptied here, and that is deliberate: `tsc -p tsconfig.magic.json`
+    outDir: LIB_OUT_DIR,
+    // NOT emptied here, and that is deliberate: `tsc -p tsconfig.opale.json`
     // has already written the `.d.ts` tree into this directory by the time
-    // Vite runs. The `rm -rf dist/magic` at the head of the `build:magic`
+    // Vite runs. The `rm -rf dist/opale` at the head of the `build:opale`
     // script is what guarantees a clean directory.
     //
     // It used to do a second job that it no longer has to: discarding the
@@ -126,11 +126,11 @@ export default defineConfig({
     sourcemap: true,
     // Left unminified, like the `tsc` output in `dist/`. A library ships
     // readable code and lets the consumer's bundler minify; it also keeps the
-    // "no React inlined here" check on `dist/magic/index.js` verifiable by
+    // "no React inlined here" check on `dist/opale/index.js` verifiable by
     // eye rather than by bundle-size guesswork.
     minify: false,
     lib: {
-      entry: 'src/magic/index.ts',
+      entry: 'src/opale/index.ts',
       formats: ['es'],
       fileName: () => 'index.js',
     },
@@ -151,24 +151,13 @@ export default defineConfig({
         /^react-dom\//,
       ],
       output: {
-        // Names the single emitted stylesheet `magic.css`. Without this, Vite
+        // Names the single emitted stylesheet `opale.css`. Without this, Vite
         // library mode calls it `style.css`.
-        assetFileNames: 'magic.[ext]',
+        assetFileNames: 'opale.[ext]',
 
-        // THE MIT NOTICE, PUT BACK ON THE EMITTED JAVASCRIPT.
-        //
-        // All 53 vendored sources carry a provenance banner, and the bundle
-        // carried NONE of them: measured, `grep -c tweeedlex dist/magic/index.js`
-        // returned 0 while `magic.css` kept 29. Rollup drops a plain block
-        // comment; only `/*!` (or an `@license`/`@preserve` annotation) survives
-        // minification and tree-shaking, and the vendored banners use neither.
-        //
-        // This is not housekeeping. The MIT licence requires its copyright
-        // notice to be included "in all copies or substantial portions of the
-        // Software", and `dist/magic/index.js` is the substantial portion — it
-        // is the whole library. `THIRD-PARTY-NOTICES.md` now ships in the
-        // tarball too, but a notice that travels WITH the file also covers the
-        // case where only the bundle is copied out.
+        // LA NOTICE DE LICENCE VOYAGE AVEC LE FICHIER. Seul un commentaire
+        // `/*!` survit au regroupement : il porte la licence MIT d'Opale, pour
+        // le cas où le bundle serait copié seul, hors du paquet.
         /* `"use client";` D'ABORD, ET C'EST UNE CONDITION D'USAGE. Le bundle
            unique appelle useState, createContext et createPortal : sans la
            directive, un Server Component de Next.js qui importe un Button
@@ -176,7 +165,7 @@ export default defineConfig({
            bannière la remet une fois, en tête du fichier, là où React
            l'exige — avant tout commentaire qui ne serait pas une directive. */
         banner:
-          '"use client";\n/*! Opale components, vendored from react-magic-ui (https://github.com/tweeedlex/react-magic-ui) — MIT License, Copyright (c) 2025 tweeedlex. Full text in THIRD-PARTY-NOTICES.md. */',
+          '"use client";\n/*! @thomascaron/opale-ui — MIT License, Copyright (c) 2026 Thomas Caron. */',
       },
     },
   },

@@ -16,7 +16,7 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const SHEET = 'dist/magic/magic.css';
+const SHEET = 'dist/opale/opale.css';
 const IMPORT = "@import './fonts.css';\n";
 
 const css = readFileSync(SHEET, 'utf8');

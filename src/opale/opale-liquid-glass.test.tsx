@@ -10,7 +10,7 @@ import { Opale } from './opale';
 /* =============================================================================
    LE COMMUTATEUR NE DOIT CHANGER QUE LA MATIÈRE.
 
-   Sept composants d'Opale rendent désormais leur homologue vendoré quand
+   Sept composants d'Opale rendent désormais leur homologue d’origine quand
    `liquidGlass` est vrai — c'est ce qui a permis de supprimer sept doublons. La
    tentation, à chaque fois, était de substituer le composant ENTIER. Elle est
    coûteuse d'une façon qui ne se voit pas à l'écran :
@@ -136,7 +136,7 @@ describe('les sept fusions original / liquid glass', () => {
     ).toHaveLength(before);
   });
 
-  /* L'ÉVÉNEMENT NATIF, UN PAR CONTRÔLE. Ce que le vendoré ne sait pas émettre.
+  /* L'ÉVÉNEMENT NATIF, UN PAR CONTRÔLE. Ce que l’ancien composant ne sait pas émettre.
      `event.target` est vérifié parce que c'est lui qui distingue un VRAI
      `ChangeEvent` d'un objet fabriqué pour faire passer le test. */
   it('Checkbox remonte un ChangeEvent natif sous verre', async () => {
@@ -231,7 +231,7 @@ describe('les sept fusions original / liquid glass', () => {
 
   /* LA RÉFÉRENCE DE `Input`, dont la perte est la plus silencieuse de
      toutes : le champ s'affiche, et `ref.current` vaut `null`. Le composant
-     vendoré ne DÉCLARE pas de `ref` — React 19 la transmet quand même, et
+     d’origine ne DÉCLARE pas de `ref` — React 19 la transmet quand même, et
      c'est ce que ce test épingle, car un recast qui saute ne fait rougir
      personne d'autre. */
   it('Input transmet toujours sa ref sous verre', () => {
@@ -242,7 +242,7 @@ describe('les sept fusions original / liquid glass', () => {
   });
 
   /* Le libellé et le texte d'aide appartiennent à Opale et n'ont pas
-     d'équivalent chez le vendoré : la frontière passe sous eux. S'ils
+     d'équivalent chez l’ancien composant : la frontière passe sous eux. S'ils
      disparaissaient, le champ deviendrait anonyme pour un lecteur d'écran. */
   it.each([
     { name: 'Input', node: <Opale.Input liquidGlass label="Email" helperText="Adresse valide." /> },
@@ -270,7 +270,7 @@ describe('les sept fusions original / liquid glass', () => {
 
    Ce garde existe parce que le défaut s'est déjà produit deux fois. Sur le
    bouton, une correspondance entre les rôles d'Opale et les variantes du
-   vendoré envoyait le « secondaire » sur leur teinte `positive` : il restait
+   d’origine envoyait le « secondaire » sur leur teinte `positive` : il restait
    VERT à côté d'un primaire bleu. Sur l'interrupteur, leur module code
    `#34d399` en dur — vert lui aussi — et la bascule le faisait apparaître au
    milieu d'une interface saphir.

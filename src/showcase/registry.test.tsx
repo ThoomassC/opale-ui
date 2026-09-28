@@ -3,8 +3,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 /* L'ENTRÉE RACINE DU PAQUET, ET ELLE A CHANGÉ DE FICHIER EN 2.0.
    C'était `src/index.ts`, qui réexportait dix-huit composants écrits ici ;
-   c'est désormais `src/magic/index.ts`, que `package.json` déclare en
-   `exports["."] -> ./dist/magic/index.js`. Le test lit donc la MÊME chose
+   c'est désormais `src/opale/index.ts`, que `package.json` déclare en
+   `exports["."] -> ./dist/opale/index.js`. Le test lit donc la MÊME chose
    qu'avant — les exports réels de ce qu'un consommateur installe — à un chemin
    près.
 
@@ -12,12 +12,12 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
    auto-référençable (son `package.json` a un `name` et un `exports`), donc
    `@thomascaron/opale-ui` RÉSOUT — mais vers `dist/`, le produit du build :
    `tsc --traceResolution` le confirme (« successfully resolved to
-   .../dist/magic/index.d.ts »), et Vitest y charge `dist/magic/index.js`. La
+   .../dist/opale/index.d.ts »), et Vitest y charge `dist/opale/index.js`. La
    suite éprouverait alors un artefact de build au lieu de la source, et
    passerait au vert sur une source cassée tant que `dist/` est encore frais.
    Le spécimen relatif désigne la source, dans les trois outils, sans
    configuration. Voir la note de `vite.config.ts`. */
-import * as library from '../magic';
+import * as library from '../opale';
 
 import type { DocPage } from './doc-model';
 import { GROUPS, HOME_SLUG, catalogComponentLabel, parseSlug } from './doc-model';
@@ -119,7 +119,7 @@ function isComponent(value: unknown): boolean {
 }
 
 /**
- * Les composants publiés par l'entrée racine, `src/magic/index.ts`.
+ * Les composants publiés par l'entrée racine, `src/opale/index.ts`.
  *
  * Reconnus par la FORME de l'export et non par une liste recopiée : un export
  * dont le nom commence par une majuscule et dont la valeur est un composant.
@@ -136,7 +136,7 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
  *
  * Une borne large (« plus de dix ») tolérerait une perte silencieuse de
  * détection : le fichier passerait au vert en ne regardant plus que la moitié
- * des exports. En ajoutant un composant à `src/magic/index.ts`, ce chiffre
+ * des exports. En ajoutant un composant à `src/opale/index.ts`, ce chiffre
  * monte d'un — et il faut aussi lui écrire une page, ce que le test suivant
  * exige.
  *
@@ -149,8 +149,8 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    doublons — `Badge`, `Card`, `Checkbox`, `Input`, `Select`, `Slider` et
    `Switch` — le mettent à 85.
 
-   POURQUOI IL BAISSE : ce garde compte les exports de `src/magic/index.ts`, et
-   ces sept-là ne sont plus réexportés par `src/magic/components/index.ts`. Ils
+   POURQUOI IL BAISSE : ce garde compte les exports de `src/opale/index.ts`, et
+   ces sept-là ne sont plus réexportés par `src/opale/components/index.ts`. Ils
    sont devenus la matière derrière la prop `liquidGlass` de leur jumeau Opale,
    que `opale.tsx` importe par chemin direct. Les sept MODULES existent
    toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
@@ -285,7 +285,7 @@ describe('Le registre des pages', () => {
         PUBLISHED_COMPONENTS,
         `${PUBLISHED_COMPONENTS.length} composants reconnus au lieu de ` +
           `${PUBLISHED_COMPONENT_COUNT} : ${PUBLISHED_COMPONENTS.join(', ')}\n` +
-          `— si vous venez d'AJOUTER un composant à src/magic/index.ts, montez ` +
+          `— si vous venez d'AJOUTER un composant à src/opale/index.ts, montez ` +
           `PUBLISHED_COMPONENT_COUNT d'un et écrivez-lui sa page ;\n` +
           `— si vous n'avez rien ajouté, c'est la détection qui a cassé (memo, ` +
           `forwardRef et lazy rendent des objets, pas des fonctions).`,
@@ -422,7 +422,7 @@ describe('Le registre des pages', () => {
          signaler un emploi fautif — `Pill` sans libellé lisible, `TimelineItem`
          à un niveau de titre qu'il ne déclare pas, `Button` mal appelé — ne
          sont plus publiés, donc CE GARDE NE COUVRE PLUS CE QU'IL COUVRAIT :
-         aucun des quatorze composants vendorés ne rapporte un emploi fautif,
+         aucun des quatorze anciens composants en verre ne rapporte un emploi fautif,
          ni par `console.error` ni autrement. Ce qu'il attrape encore est ce que
          React écrit lui-même — clé manquante, prop inconnue sur un élément
          du DOM, mise à jour hors du rendu —, et c'est la raison qui le garde. */
@@ -486,14 +486,14 @@ describe('Le registre des pages', () => {
        « l'équivalent d'Opale », par un lien vers sa page : `composants/tag`,
        `composants/pill`, `composants/field`, `composants/backdrop`,
        `composants/message`, `composants/date-range`, `composants/timeline`,
-       `composants/glass-lens`, plus les quatre pages `magic/*` liées entre
-       elles. La 2.0 supprime les dix-sept pages d'Opale et déplace les
+       `composants/glass-lens`, plus les quatre pages de l'ancien groupe du verre
+       liées entre elles. La 2.0 supprime les dix-sept pages d'Opale et déplace les
        quatorze autres : chacun de ces liens serait tombé sur un fragment
        inconnu, donc — la vitrine étant servie en statique — sur l'ACCUEIL,
        silencieusement, sans 404 et sans rien de rouge.
 
        Deux d'entre eux étaient pires qu'un lien mort : la page du `Card`
-       vendoré liait `composants/card` et celle de l'`Input` vendoré
+       d’origine liait `composants/card` et celle de l'`Input` d’origine
        `composants/input` pour désigner le composant d'Opale du même nom. Après
        le déplacement, ces adresses existent — et désignent LA PAGE ELLE-MÊME.
        Un lien « voir l'équivalent d'Opale » qui ramène où l'on est déjà ne
@@ -530,7 +530,7 @@ describe('Le registre des pages', () => {
     /* Le second cas, celui qu'un test d'existence laisse passer : un lien qui
        pointe sur la page qui le porte. Il ne casse rien et ne mène nulle part —
        et c'est exactement ce qu'ont produit `composants/card` et
-       `composants/input` quand les pages vendorées ont pris l'adresse des
+       `composants/input` quand les anciennes pages du verre ont pris l'adresse des
        composants d'Opale auxquels elles renvoyaient. */
     it.each(PAGE_CASES)('la page « %s » ne devrait pas se lier à elle-même', (_slug, page) => {
       const { container } = render(<>{page.render()}</>);

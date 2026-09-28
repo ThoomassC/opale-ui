@@ -1,4 +1,4 @@
-import { OPALE_CATALOG } from '../../magic';
+import { OPALE_CATALOG } from '../../opale';
 import { currentDeploymentLabel } from '../deployment-environment';
 import type { DocPage } from '../doc-model';
 import { hrefFor } from '../doc-model';

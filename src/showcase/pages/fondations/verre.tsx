@@ -15,7 +15,7 @@ import { PageBody } from '../api';
       `Message`, `Pill`, `Tag`). Tout cela est supprimé : la feuille n'existe
       plus, les composants non plus, et le porteur n'a plus AUCUN consommateur —
       vérifié, `data-material` n'apparaît nulle part dans `src/tokens/**`, dans
-      `src/magic/**` ni dans `doc.css`. La bascule « Verre liquide » de la barre
+      `src/opale/**` ni dans `doc.css`. La bascule « Verre liquide » de la barre
       du haut a donc été retirée avec le reste : un bouton `aria-pressed` qui
       n'allume rien est un défaut, pas une commodité.
 
@@ -220,7 +220,7 @@ export default function VerreContent() {
               Le porteur <code>data-material=&quot;glass&quot;</code> n’a plus aucun lecteur.
             </strong>{' '}
             Vérifié : l’attribut n’apparaît ni dans <code>src/tokens/**</code>, ni dans{' '}
-            <code>src/magic/**</code>, ni dans <code>doc.css</code>. La bascule « Verre liquide » de
+            <code>src/opale/**</code>, ni dans <code>doc.css</code>. La bascule « Verre liquide » de
             la barre du haut a donc été retirée de cette vitrine — un bouton qui annonce un état
             sans rien changer est un défaut d’accessibilité, pas une commodité.
           </li>
@@ -298,7 +298,7 @@ export default function VerreContent() {
 
       <p className="tc-doc-prose tc-doc-aside">
         Le verre des composants publiés n’a <strong>rien à voir</strong> avec celui-ci : il est
-        écrit dans <code>src/magic/**</code>, n’emploie aucun de ces jetons, et n’est couvert par
+        écrit dans <code>src/opale/**</code>, n’emploie aucun de ces jetons, et n’est couvert par
         aucun contrat — voir{' '}
         <a className="tc-doc-link" href={hrefFor('verre-liquide')}>
           Le verre liquide

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import docSheet from './doc.css?raw';
-import glassSheet from '../magic/components/glass/style/Glass.module.css?raw';
-import glassOpale from '../magic/opale.css?raw';
+import glassSheet from '../opale/components/glass/style/Glass.module.css?raw';
+import glassOpale from '../opale/opale.css?raw';
 
 /* =============================================================================
    LA SCÈNE DU MATÉRIAU : LE BOUTON DOIT GARDER SA TAILLE.

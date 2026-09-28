@@ -51,15 +51,15 @@
    colonne est l'autre moitié de la preuve — hors préférence, rien n'est
    touché, les 0,8 s reviennent.
 
-   LE SÉLECTEUR VISE LE PRÉFIXE DES MODULES (`opale-magic-`, posé par
+   LE SÉLECTEUR VISE LE PRÉFIXE DES MODULES (`opale-mod-`, posé par
    `css.modules.generateScopedName` dans la configuration de build) et non `*` :
    cette feuille est publiée, et un `*` réinitialiserait les animations de
    toute la page du consommateur, pas seulement celles d'Opale.
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  [class*='opale-magic-'],
-  [class*='opale-magic-']::before,
-  [class*='opale-magic-']::after {
+  [class*='opale-mod-'],
+  [class*='opale-mod-']::before,
+  [class*='opale-mod-']::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-property:

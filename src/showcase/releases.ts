@@ -685,7 +685,7 @@ export const RELEASES: readonly ReleaseNote[] = [
     version: '2.0.0',
     publishedAt: '2026-09-14',
     dateLabel: '14 septembre 2026',
-    summary: 'Le paquet devient Opale et adopte les composants verre liquide vendorés.',
+    summary: 'Le paquet devient Opale et adopte ses composants en verre liquide.',
     changes: [
       'Quatorze composants verre liquide sont publiés à la racine.',
       'La vitrine passe d’une charte unique à une documentation navigable.',

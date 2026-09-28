@@ -11,14 +11,14 @@ import packageJson from '../../package.json';
    LE MÉCANISME, DÉJÀ DÉMONTÉ DANS `main.tsx`. `package.json` déclare
    `sideEffects` sous forme de TABLEAU. Dès lors, Vite marque
    `moduleSideEffects: false` sur tout module qui ne correspond à aucun motif —
-   `src/magic/index.ts` compris, qui est un `.ts` et ne correspondra jamais à un
+   `src/opale/index.ts` compris, qui est un `.ts` et ne correspondra jamais à un
    motif de feuille de style. Rollup a alors le droit de jeter les instructions
    de premier niveau de ce baril quand seuls ses ré-exports sont consommés, et
    ses `import './…'` de feuilles en font partie. Élargir le motif ne change
    rien : le module élagué n'est pas la feuille, c'est le baril.
 
    CE QUE CE GARDE AJOUTE À CE COMMENTAIRE. `main.tsx` raconte la panne et la
-   corrige POUR UNE FEUILLE. Le baril en importait DEUX — `magic.scss`, traitée,
+   corrige POUR UNE FEUILLE. Le baril en importait DEUX — `motion.scss`, traitée,
    et `opale.css`, oubliée — et rien ne rapprochait les deux listes. La seconde
    est donc tombée de la vitrine construite pendant des semaines sans qu'un
    test, un avertissement ou une erreur de console ne le dise : le serveur de
@@ -35,8 +35,8 @@ import packageJson from '../../package.json';
    écrire. C'est le seul endroit où les deux se regardent.
 
    POURQUOI PAS UNE CORRECTION DANS `package.json`. `main.tsx` l'explique :
-   marquer `src/magic/index.ts` porteur d'effets de bord obligerait à en dire
-   autant de `dist/magic/index.js`, son équivalent publié, qui est le bundle des
+   marquer `src/opale/index.ts` porteur d'effets de bord obligerait à en dire
+   autant de `dist/opale/index.js`, son équivalent publié, qui est le bundle des
    composants et n'importe AUCUNE feuille — un consommateur qui n'importe qu'un
    composant les embarquerait tous. L'entrée de la vitrine est le bon endroit,
    et ce test est ce qui empêche d'en oublier une.
@@ -47,7 +47,7 @@ function stylesheetImports(source: string): readonly string[] {
   return [...source.matchAll(/^import\s+'(\.[^']*\.(?:css|scss))';$/gm)].map((match) => match[1]);
 }
 
-describe('les feuilles du baril `src/magic/index.ts`', () => {
+describe('les feuilles du baril `src/opale/index.ts`', () => {
   it('devrait voir son élagage rendu possible par un `sideEffects` en tableau', () => {
     /* LA PRÉMISSE DU GARDE, VÉRIFIÉE PLUTÔT QUE SUPPOSÉE. Si `sideEffects`
        disparaissait ou passait à `true`, le baril cesserait d'être élagable et
@@ -63,7 +63,7 @@ describe('les feuilles du baril `src/magic/index.ts`', () => {
   it('devrait importer chacune de ses feuilles depuis `src/main.tsx`', () => {
     const fromBarrel = stylesheetImports(barrelSource);
     const fromEntry = stylesheetImports(entrySource).map((path) =>
-      path.replace(/^\.\/magic\//, './'),
+      path.replace(/^\.\/opale\//, './'),
     );
 
     /* Le baril DOIT continuer d'importer ses feuilles : c'est ce qui les sert
@@ -75,10 +75,10 @@ describe('les feuilles du baril `src/magic/index.ts`', () => {
 
     expect(
       missing,
-      `Ces feuilles sont importées par \`src/magic/index.ts\` mais PAS par \`src/main.tsx\` : ` +
+      `Ces feuilles sont importées par \`src/opale/index.ts\` mais PAS par \`src/main.tsx\` : ` +
         `${missing.join(', ')}. Rollup jette les instructions de tête du baril, donc elles ` +
         `tomberont de la vitrine CONSTRUITE sans tomber de la vitrine servie en développement — ` +
-        `la panne ne se verra qu'en production. Ajouter \`import './magic/<feuille>';\` dans ` +
+        `la panne ne se verra qu'en production. Ajouter \`import './opale/<feuille>';\` dans ` +
         `\`src/main.tsx\`.`,
     ).toEqual([]);
   });

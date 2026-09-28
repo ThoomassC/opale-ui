@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
-import { OPALE_CATALOG, Opale } from '../../magic';
-import type { ToastPlacement, ToastTone } from '../../magic';
+import { OPALE_CATALOG, Opale } from '../../opale';
+import type { ToastPlacement, ToastTone } from '../../opale';
 
 const OPTIONS = [
   { value: 'design', label: 'Design system' },

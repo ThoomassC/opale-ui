@@ -124,10 +124,10 @@ describe('DocNav — groupes du sommaire', () => {
       'accessibilite',
     ]);
     /* LES HUIT DOUBLONS ONT DISPARU, ET C'EST LE BUT. Chaque page de composant
-       vendoré doublonnait celle de son jumeau Opale : un seul `Button`, un seul
+       d’origine doublonnait celle de son jumeau Opale : un seul `Button`, un seul
        `Input`, un seul `Badge`… subsistent, dont la prop `liquidGlass` rend la
        matière de l'autre. Le garde vérifie donc les DEUX moitiés de chaque
-       fusion — la page Opale est là, la page vendorée n'y est plus.
+       fusion — la page Opale est là, la ancienne page du verre n'y est plus.
 
        LES DEUX ASSERTIONS SONT NÉCESSAIRES, et la seconde plus que la première.
        `navSectionsForPages` résout chaque slug de `OPALE_NAV_SECTIONS` par un
@@ -140,29 +140,29 @@ describe('DocNav — groupes du sommaire', () => {
     const affichage = () =>
       sectionFor('affichage-de-donnees')?.entries.map((entry) => entry.page.slug) ?? [];
 
-    for (const [opale, vendore] of [
+    for (const [opale, legacy] of [
       ['composants/opale-button', 'composants/button'],
       ['composants/opale-input', 'composants/input'],
       ['composants/opale-checkbox', 'composants/checkbox'],
       ['composants/opale-slider', 'composants/slider'],
       ['composants/opale-select', 'composants/select'],
       /* Le seul dont les deux noms diffèrent : Opale appelle `Toggle` ce que le
-         vendoré appelait `Switch`. Le doublon est bien le même. */
+         d’origine appelait `Switch`. Le doublon est bien le même. */
       ['composants/opale-toggle', 'composants/switch'],
     ] as const) {
       expect(inputs(), `${opale} devrait être servi`).toContain(opale);
-      expect(inputs(), `${vendore} ne devrait plus être servi`).not.toContain(vendore);
+      expect(inputs(), `${legacy} ne devrait plus être servi`).not.toContain(legacy);
     }
 
-    for (const [opale, vendore] of [
+    for (const [opale, legacy] of [
       ['composants/opale-badge', 'composants/badge'],
       ['composants/opale-card', 'composants/card'],
     ] as const) {
       expect(affichage(), `${opale} devrait être servi`).toContain(opale);
-      expect(affichage(), `${vendore} ne devrait plus être servi`).not.toContain(vendore);
+      expect(affichage(), `${legacy} ne devrait plus être servi`).not.toContain(legacy);
     }
 
-    /* `Toast` NE FUSIONNE PAS : le vendoré ne publie pas de composant `Toast`
+    /* `Toast` NE FUSIONNE PAS : l’ancien composant ne publie pas de composant `Toast`
        mais une file (`ToastProvider` + `useToast`) portaillée sur
        `document.body`, quand `Opale.Toast` est une notification rendue en
        place. C'était le LIBELLÉ qui doublonnait, d'où le renommage du slug —

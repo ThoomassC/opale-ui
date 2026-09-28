@@ -1,4 +1,4 @@
-# `src/magic` — les composants d'Opale et leur matériau
+# `src/opale` — les composants d'Opale et leur matériau
 
 Ce dossier est le **point d'entrée racine du paquet**. `import { Button } from
 '@thomascaron/opale-ui'` sert ce code, et `@thomascaron/opale-ui/opale.css` sert
@@ -91,7 +91,7 @@ un vestige — le dossier était intégralement en SCSS, et chaque composant ré
 est reparti en CSS simple. `sass` reste une dépendance de développement tant que
 ce module unique existe.
 
-**`magic.scss` ne contient plus qu'une chose** : le filet
+**`motion.scss` ne contient plus qu'une chose** : le filet
 `prefers-reduced-motion`. Tout le reste — `@tailwind components`,
 `@tailwind utilities`, une famille de police universelle, trois classes globales
 `.small` / `.medium` / `.large` — a disparu avec les `@apply` qu'il servait.
@@ -116,60 +116,12 @@ aucun d'eux n'écrit une couleur en dur pour son texte.
 Les deux feuilles sont importées par `index.ts` et non seulement déclarées —
 `barrel-side-effects.structure.test.ts` tient cette paire.
 
-## D'où vient ce dossier, et pourquoi il s'appelle encore `magic`
-
-C'est l'information que ce fichier existait pour porter, et elle reste vraie même
-si tout le code a changé.
-
-**Jusqu'à la 3.1, ce dossier était la copie d'une librairie tierce** :
-[`react-magic-ui`](https://github.com/tweeedlex/react-magic-ui) de `@tweeedlex`,
-version 1.0.9, sous licence MIT. Quatorze composants recopiés au caractère, leurs
-modules SCSS, et un échafaudage Tailwind pour servir les centaines de `@apply`
-qu'ils contenaient. Le nom du dossier est celui de cette librairie.
-
-Le commit qui l'a introduite (`7a384e8`) ajoutait **5 060 lignes**, dont environ
-**4 270 de code copié** — le reste étant le README de provenance, les notices, la
-feuille d'échafaudage et les déclarations de types, écrits par Opale. Le chiffre
-est donné parce qu'il dit l'ordre de grandeur de ce qui a disparu, pas parce
-qu'il est un inventaire : la répartition exacte n'est pas rejouable, la source
-amont n'étant pas présente dans ce dépôt.
-
-**Il n'en reste rien.** Huit composants — `Badge`, `Button`, `Card`, `Checkbox`,
-`Input`, `Select`, `Slider`, `Switch` — n'étaient plus que des « peaux » posées
-sous la prop `liquidGlass` et ont été **supprimés**, leurs doublons d'Opale
-devenant l'unique composant du nom. Les six autres — `Glass`, `Modal`, `Tabs`,
-`Toast`, `Topbar`, `Sidebar` — ont été **réécrits**. `SearchBar` et `SiteNav`
-étaient déjà les nôtres. `func.ts` et l'échafaudage Tailwind sont partis avec le
-reste.
-
-**Le dossier garde son nom pour une raison mécanique, pas sentimentale.** Le
-préfixe des classes produit par le build est `opale-magic-`
-(`css.modules.generateScopedName` dans la configuration de build), et le
-sélecteur du filet anti-mouvement de `magic.scss` en dépend. Renommer le dossier
-ne casserait pas le build ; cela rendrait cette règle **inerte**, silencieusement.
-C'est exactement le mode de panne contre lequel ce dépôt se bat ailleurs, alors
-autant ne pas l'inviter pour une question d'esthétique de nommage.
-
-**Ce que la réécriture a changé pour un consommateur**, et qui est le vrai gain :
-ce dossier n'est plus hors du système de design. L'ancienne copie peignait ses
-libellés en **blanc pur, en dur**, dans onze de ses quatorze modules : posée sur
-un fond clair, elle donnait du texte invisible (1,00:1 sur blanc), et la vitrine
-devait la présenter sur des scènes sombres pour qu'elle se lise. Les composants
-d'aujourd'hui lisent `--opale-text` et ses voisins comme le reste du paquet.
-
-> **Attribution.** `THIRD-PARTY-NOTICES.md`, à la racine, garde la notice MIT de
-> `react-magic-ui` en **note historique**. Plus aucune ligne de ce code n'est
-> distribuée, donc l'obligation de la clause MIT ne s'applique plus ; la note
-> reste parce que la réécriture s'est faite en regardant l'original et que le
-> dossier porte encore son nom. Le fichier le dit dans ces termes, sans inventer
-> une obligation qui n'existe plus.
-
 ## Ce qui est mesuré
 
 Ce dépôt en fait un principe : ce qui n'est pas mesuré est nommé comme tel. Voici
 donc les deux listes, dans cet ordre.
 
-**La suite de tests.** `npx vitest run src/magic` rend **10 fichiers, 115 tests,
+**La suite de tests.** `npx vitest run src/opale` rend **10 fichiers, 115 tests,
 tous verts**. Sept des huit composants ont un fichier de test à côté d'eux :
 
 | Fichier | Tests |
@@ -192,7 +144,7 @@ et c'est là que vivent ses 33 assertions. Un test unitaire du matériau
 lui-même — montage et démontage du filtre partagé, compteur d'instances, présence
 des quatre couches — reste à écrire.
 
-**Le linter.** `npx eslint src/magic` rend **0 erreur et 6 avertissements**. Plus
+**Le linter.** `npx eslint src/opale` rend **0 erreur et 6 avertissements**. Plus
 aucun fichier de ce dossier ne porte d'`eslint-disable` en tête : les deux
 derniers, dans `Modal` et `ToastProvider`, masquaient un `setState` en corps
 d'effet que la réécriture a supprimé. Il subsiste deux
@@ -226,7 +178,7 @@ interrupteur de fichier.
 - **Un seul module en SCSS.** `SearchBar.module.scss` est le dernier, et il tient
   `sass` dans les dépendances de développement à lui seul. Le convertir en CSS
   simple alignerait le dossier et retirerait une dépendance.
-- **Les commentaires sont publiés.** Ils survivent dans `dist/magic/magic.css`. Sans
+- **Les commentaires sont publiés.** Ils survivent dans `dist/opale/opale.css`. Sans
   conséquence fonctionnelle, mais si la feuille doit être minifiée, c'est côté
   configuration de build — jamais en appauvrissant la source.
 - **Le poids du paquet n'a pas été remesuré** après la réécriture. La suppression

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { type CatalogEntry, OPALE_CATALOG, Opale } from '../../magic';
+import { type CatalogEntry, OPALE_CATALOG, Opale } from '../../opale';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import { PropsTable, UsageBlock } from './api';
 import { CATALOG_API } from './opale-api-data';
@@ -23,7 +23,7 @@ import { CatalogPreview, type PlaygroundConfig } from './catalog-preview';
    compare à ce que `catalog-preview.tsx` transmet vraiment.
 
    LES QUATRE DERNIERS VENUS — `Badge`, `Checkbox`, `Select`, `Slider` — sont
-   arrivés avec la suppression des doublons : leur homologue vendoré avait sa
+   arrivés avec la suppression des doublons : leur homologue d’origine avait sa
    propre page, et il est devenu la matière de ce commutateur. */
 /* LA LISTE DES COMPOSANTS QUI PORTENT VRAIMENT LE MATÉRIAU.
 

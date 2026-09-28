@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { pathBounds } from '../../../../magic/components/svg-map/path-bounds';
+import { pathBounds } from '../../../../opale/components/svg-map/path-bounds';
 import { CORSE, FRANCE_DEPARTMENTS, FRANCE_VIEWBOX, ILE_DE_FRANCE } from './france-departments';
 
 describe('les départements de la démonstration', () => {

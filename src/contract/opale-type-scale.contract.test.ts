@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ruleBodies, stripComments } from './stylesheet';
-import opaleSource from '../magic/opale.css?raw';
+import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
    UNE ÉCHELLE TYPOGRAPHIQUE.
@@ -15,7 +15,7 @@ import opaleSource from '../magic/opale.css?raw';
    `--opale-leading-*`, ou `1` pour une boîte de glyphe.
    ========================================================================== */
 
-const modules = import.meta.glob('../magic/components/**/*.{css,scss}', {
+const modules = import.meta.glob('../opale/components/**/*.{css,scss}', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -45,7 +45,7 @@ describe('l’échelle typographique', () => {
 
   for (const [file, raw] of Object.entries(sheets)) {
     const source = stripComments(raw);
-    const name = file.replace('../magic/components/', '');
+    const name = file.replace('../opale/components/', '');
     const declared = new Set([...source.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
     const sizes: string[] = [];
     const leadings: string[] = [];

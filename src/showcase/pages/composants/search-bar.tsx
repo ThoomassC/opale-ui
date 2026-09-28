@@ -1,4 +1,4 @@
-import { Opale } from '../../../magic';
+import { Opale } from '../../../opale';
 import { Specimen } from '../../section';
 import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -63,7 +63,7 @@ export default function SearchBarContent() {
         </MaterialSwitch>
       </Specimen>
 
-      <PropsTable id="magic-search-bar" rows={PROPS} />
+      <PropsTable id="search-bar" rows={PROPS} />
     </PageBody>
   );
 }

@@ -19,22 +19,22 @@ const check = (ok, message) => {
   if (!ok) failures.push(message);
 };
 
-const bundle = readFileSync('dist/magic/index.js', 'utf8');
+const bundle = readFileSync('dist/opale/index.js', 'utf8');
 check(
   /^\s*["']use client["'];/.test(bundle),
-  'dist/magic/index.js ne commence pas par "use client";',
+  'dist/opale/index.js ne commence pas par "use client";',
 );
 
-const css = readFileSync('dist/magic/magic.css', 'utf8');
-check(!css.includes('data:font/'), 'dist/magic/magic.css contient encore des polices en base64.');
-check(existsSync('dist/magic/fonts.css'), 'dist/magic/fonts.css est absent.');
+const css = readFileSync('dist/opale/opale.css', 'utf8');
+check(!css.includes('data:font/'), 'dist/opale/opale.css contient encore des polices en base64.');
+check(existsSync('dist/opale/fonts.css'), 'dist/opale/fonts.css est absent.');
 /* Une application qui n'importe qu'`opale.css` doit garder ses polices. */
 check(
   /^(@charset "[^"]+";\r?\n)?@import '\.\/fonts\.css';/.test(css),
-  "dist/magic/magic.css ne relie pas ses polices (@import './fonts.css' en tête).",
+  "dist/opale/opale.css ne relie pas ses polices (@import './fonts.css' en tête).",
 );
 for (const font of ['bricolage-grotesque-latin.woff2', 'chivo-latin.woff2']) {
-  check(existsSync(join('dist/magic/fonts', font)), `dist/magic/fonts/${font} est absent.`);
+  check(existsSync(join('dist/opale/fonts', font)), `dist/opale/fonts/${font} est absent.`);
 }
 
 const declarations = (directory) =>
@@ -45,7 +45,7 @@ const declarations = (directory) =>
   });
 
 const BARE_RELATIVE = /\bfrom\s+['"](\.{1,2}\/[^'"]*?)(?<!\.js|\.css|\.scss)['"]/g;
-for (const file of [...declarations('dist/magic'), ...declarations('dist/contract')]) {
+for (const file of [...declarations('dist/opale'), ...declarations('dist/contract')]) {
   for (const [, specifier] of readFileSync(file, 'utf8').matchAll(BARE_RELATIVE)) {
     failures.push(`${file} : import relatif sans extension « ${specifier} ».`);
   }

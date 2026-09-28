@@ -31,7 +31,7 @@ describe('la vitrine à 320 px', () => {
   });
 
   it('devrait borner les cellules de scène à leur conteneur', () => {
-    expect(rule('.tc-doc-magicstage__cell')).toMatch(/max-inline-size:\s*100%/);
+    expect(rule('.tc-doc-stage__cell')).toMatch(/max-inline-size:\s*100%/);
   });
 
   it('devrait laisser passer à la ligne le commutateur de matériau', () => {

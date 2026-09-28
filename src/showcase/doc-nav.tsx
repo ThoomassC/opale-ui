@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 
-import { Sidebar } from '../magic';
+import { Sidebar } from '../opale';
 import type { DocPage } from './doc-model';
 import { hrefFor, navSectionsForPages } from './doc-model';
 import { copyFor, pageLabelFor, sectionLabelFor, type Language } from './localization';
@@ -82,7 +82,7 @@ const INITIAL_SCROLLBAR_STATE: ScrollbarState = {
  * La colonne était du HTML natif habillé par `doc.css`. Elle est désormais un
  * `Sidebar` — `Sidebar`, `.Header` et `.Items` — parce que la vitrine doit
  * manger sa propre cuisine. Le rail reste une navigation statique, toujours
- * visible, et le composant vendoré conserve la surface qu'il sait rendre.
+ * visible, et le ancien composant en verre conserve la surface qu'il sait rendre.
  *
  * `Sidebar.Item` N'EST PAS EMPLOYÉ, ET C'EST LA SEULE PIÈCE NON ADOPTÉE.
  * Il est câblé sur `<button>` — `ComponentPropsWithoutRef<"button">`,
@@ -92,7 +92,7 @@ const INITIAL_SCROLLBAR_STATE: ScrollbarState = {
  * « bouton » là où un lecteur d'écran doit dire « lien ». `Sidebar.Items` est un
  * `<nav>` nu qui rend ses enfants : les vrais `<a href>` y vivent, et `doc.css`
  * les accorde au reste. Corriger `Sidebar.Item` demanderait de toucher du code
- * vendoré, ce qui n'est pas une décision de ce fichier.
+ * d’origine, ce qui n'est pas une décision de ce fichier.
  *
  * AUCUN TITRE DE SECTION ICI, ET C'EST DÉLIBÉRÉ. La nav précède le contenu
  * dans le DOM ; un `<h2>` par groupe placerait plusieurs titres de niveau 2 avant
