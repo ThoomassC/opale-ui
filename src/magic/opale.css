@@ -113,6 +113,11 @@
   --opale-radius-md: 1.375rem;
   --opale-radius-lg: 2.25rem;
   --opale-radius-pill: 999rem;
+  /* Une seule échelle de hauteurs : un bouton et un champ posés côte à côte
+     s'alignent sans retouche. */
+  --opale-control-sm: 2.25rem;
+  --opale-control-md: 2.75rem;
+  --opale-control-lg: 3rem;
   --opale-squircle-radius: min(var(--opale-radius-md), 50%);
   --opale-squircle-clip: polygon(
     0% var(--opale-squircle-radius),
@@ -420,7 +425,7 @@
   isolation: isolate;
   display: inline-flex;
   min-width: 4rem;
-  min-height: 2.75rem;
+  min-height: var(--opale-control-md);
   align-items: center;
   justify-content: center;
   gap: var(--opale-space-xs);
@@ -551,7 +556,7 @@
    Le bord masqué du bouton ghost produisait quatre fragments bleus, également
    visibles sous le verre : cette silhouette ne dessine aucun second contour. */
 .opale-icon-action-button {
-  --opale-icon-action-size: 2.75rem;
+  --opale-icon-action-size: var(--opale-control-md);
   inline-size: var(--opale-icon-action-size);
   min-inline-size: var(--opale-icon-action-size);
   block-size: var(--opale-icon-action-size);
@@ -566,12 +571,12 @@
 }
 
 .opale-icon-action-button.opale-button--small {
-  --opale-icon-action-size: 2.25rem;
+  --opale-icon-action-size: var(--opale-control-sm);
   font-size: 1rem;
 }
 
 .opale-icon-action-button.opale-button--large {
-  --opale-icon-action-size: 3.25rem;
+  --opale-icon-action-size: var(--opale-control-lg);
   font-size: 1.25rem;
 }
 
@@ -590,13 +595,13 @@
 }
 
 .opale-button--small {
-  min-height: 2.25rem;
+  min-height: var(--opale-control-sm);
   padding: 0.25rem 0.875rem;
   font-size: 0.8125rem;
 }
 
 .opale-button--large {
-  min-height: 3rem;
+  min-height: var(--opale-control-lg);
   padding: 0.5rem 1.625rem;
   font-size: 1rem;
 }
@@ -1023,14 +1028,12 @@
     --opale-icon-action-size: 2.75rem;
   }
 
-  .opale-button {
-    min-height: 3rem;
-  }
-  .opale-button--small {
-    min-height: 2.5rem;
-  }
-  .opale-button--large {
-    min-height: 3.25rem;
+  /* Au doigt, toute l'échelle grandit d'un cran : boutons et champs restent
+     alignés entre eux. */
+  :root {
+    --opale-control-sm: 2.5rem;
+    --opale-control-md: 3rem;
+    --opale-control-lg: 3.25rem;
   }
 }
 
@@ -1188,7 +1191,11 @@
   color: var(--opale-danger);
 }
 .opale-input-shell {
+  /* La coquille porte la hauteur, bordure comprise : le champ s'aligne au
+     pixel sur le bouton voisin. */
+  box-sizing: border-box;
   display: flex;
+  min-height: var(--opale-control-md);
   align-items: center;
   gap: var(--opale-space-xs);
   padding: 0 var(--opale-space-md);
@@ -1201,7 +1208,8 @@
 .opale-input,
 .opale-select {
   width: 100%;
-  min-height: 3rem;
+  min-height: 0;
+  align-self: stretch;
   border: 0;
   outline: 0;
   background: transparent;
@@ -3080,8 +3088,8 @@
   gap: 0.375rem;
 }
 .opale-pagination button {
-  min-inline-size: 2.75rem;
-  min-block-size: 2.75rem;
+  min-inline-size: var(--opale-control-md);
+  min-block-size: var(--opale-control-md);
   border: 1px solid var(--opale-divider);
   border-radius: var(--opale-radius-sm);
   background: var(--opale-surface);
@@ -3155,8 +3163,8 @@
     gap: 0.25rem;
   }
   .opale-pagination button {
-    min-inline-size: 2.5rem;
-    min-block-size: 2.5rem;
+    min-inline-size: var(--opale-control-sm);
+    min-block-size: var(--opale-control-sm);
   }
   .opale-pagination button[data-neighbor='true'] {
     display: none;
