@@ -204,13 +204,32 @@ export function declarations(
       if (!sameContext) continue;
       for (const child of node.nodes) {
         if (child.type !== 'decl') continue;
-        result.set(child.prop, child.important ? `${child.value} !important` : child.value);
+        const value = child.value.replace(/\s+/g, ' ').trim();
+        result.set(child.prop, child.important ? `${value} !important` : value);
       }
     }
   };
 
   walk(postcss.parse(stripComments(source)), []);
   return result;
+}
+
+/**
+ * Chaque sélecteur, tous contextes confondus, dont une règle déclare
+ * `property` — dans l'ordre de la feuille, listes de sélecteurs dépliées.
+ *
+ * C'est la forme juste d'un garde négatif (« aucune règle `.header` ne tire de
+ * filet ») : une expression rationnelle sur la feuille entière ne voyait pas
+ * les règles d'un `@media`, et lisait parfois un commentaire.
+ */
+export function selectorsDeclaring(source: string, property: string): readonly string[] {
+  const found: string[] = [];
+  postcss.parse(stripComments(source)).walkRules((rule) => {
+    if (rule.nodes.some((child) => child.type === 'decl' && child.prop === property)) {
+      found.push(...rule.selectors.map(normalizeSelector));
+    }
+  });
+  return found;
 }
 
 /** La valeur retenue d'une propriété, ou `undefined`. Voir `declarations`. */

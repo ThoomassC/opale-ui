@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { ruleBodies, stripComments } from '../contract/stylesheet';
+import { declaration } from '../test/css-rules';
 import modalStyles from './components/modal/style/Modal.module.css?raw';
 import { Lightbox } from './opale';
 
@@ -29,8 +29,6 @@ describe('Lightbox', () => {
      `space-between` : avec un titre, la croix va au bout ; sans titre — une
      visionneuse —, elle est le seul enfant et tombait à gauche. */
   it('pousse la croix à droite quand l’en-tête n’a pas de titre', () => {
-    const close = ruleBodies(stripComments(modalStyles), '.close').join('\n');
-
-    expect(close).toMatch(/margin:\s*-0\.55rem -0\.65rem -0\.55rem auto/);
+    expect(declaration(modalStyles, '.close', 'margin')).toBe('-0.55rem -0.65rem -0.55rem auto');
   });
 });

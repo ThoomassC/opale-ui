@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import docSource from '../styles/doc.css?raw';
-import { declaration, declarations, parseRules, ruleBody } from './css-rules';
+import { declaration, declarations, parseRules, ruleBody, selectorsDeclaring } from './css-rules';
 
 /* =============================================================================
    LE LECTEUR DE CSS SE TESTE, PARCE QUE TROIS GARDES EN DÉPENDENT.
@@ -186,5 +186,19 @@ describe('les déclarations retenues pour un sélecteur', () => {
 
   it('ne devrait pas lire une valeur citée en commentaire', () => {
     expect(declaration('.a { /* color: faux; */ color: vrai; }', '.a', 'color')).toBe('vrai');
+  });
+
+  it('devrait ramener une valeur écrite sur plusieurs lignes à une seule', () => {
+    const feuille = `.a {\n  box-shadow: inset 0 1px 0 red,\n    0 0 0 1px blue;\n}`;
+
+    expect(declaration(feuille, '.a', 'box-shadow')).toBe('inset 0 1px 0 red, 0 0 0 1px blue');
+  });
+});
+
+describe('les sélecteurs qui déclarent une propriété', () => {
+  it('devrait les lister tous contextes confondus, listes de sélecteurs dépliées', () => {
+    const feuille = `.a { color: x; }\n.b, .c { margin: 0; }\n@media (x) { .d, .e { color: y; } }`;
+
+    expect(selectorsDeclaring(feuille, 'color')).toEqual(['.a', '.d', '.e']);
   });
 });

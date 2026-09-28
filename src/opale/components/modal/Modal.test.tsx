@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import Modal, { type ModalProps } from './Modal';
 import { ToastProvider, useToast } from '../toast';
+import { declarations, selectorsDeclaring } from '../../../test/css-rules';
 
 /* =============================================================================
    LES SIX CAS D'ORIGINE SONT TOUS LÀ, ET AUCUN N'A ÉTÉ AFFAIBLI.
@@ -379,26 +380,22 @@ describe('Modal — restitution du focus et inertie, par chaque sortie', () => {
    feuille peut porter ce garde.
    ========================================================================== */
 describe('les contours du panneau original', () => {
-  /** Le corps de la règle `.plain`, commentaires retirés. */
-  const plain = (() => {
-    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
-    const debut = sans.indexOf('.plain {');
-    return sans.slice(debut, sans.indexOf('}', debut));
-  })();
+  /** Ce que la feuille retient pour `.plain`, au premier niveau. */
+  const plain = declarations(modalStyles, '.plain');
 
   it('devrait écrire son propre rayon plutôt que de l’hériter', () => {
-    expect(plain).toMatch(/border-radius:\s*var\(--opale-radius-lg\)/);
+    expect(plain.get('border-radius')).toBe('var(--opale-radius-lg)');
   });
 
   /* `--opale-divider` SEUL NE DESSINE PAS D'ARÊTE : mesuré, il tient 1,09:1
-     contre la surface blanche. Le panneau doit donc porter un anneau tiré de
-     l'encre du texte, qui suit les deux thèmes. */
+     contre la surface blanche. Le panneau doit donc porter une bordure tirée
+     de l'encre du texte, qui suit les deux thèmes. */
   it('devrait porter une arête tirée de l’encre et non du seul filet de séparation', () => {
-    expect(plain).toMatch(/color-mix\(in srgb, var\(--opale-text\)/);
+    expect(plain.get('border')).toMatch(/^1px solid color-mix\(in srgb, var\(--opale-text\) /);
   });
 
   it('devrait garder son ombre portée', () => {
-    expect(plain).toMatch(/var\(--opale-shadow-4\)/);
+    expect(plain.get('box-shadow')).toMatch(/var\(--opale-shadow-4\)$/);
   });
 });
 
@@ -454,18 +451,17 @@ describe('l’en-tête sans titre', () => {
   /* MÊME RAISON POUR LE PIED. Sans corps — une confirmation, depuis que sa
      phrase est passée en description —, les deux filets se retrouvaient face à
      face autour d'une bande vide. */
-  it('devrait conditionner le filet du pied à la présence d’un corps', () => {
-    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
+  /** Les sélecteurs qui tirent un filet, `@media` compris. */
+  const filets = selectorsDeclaring(modalStyles, 'box-shadow');
 
-    expect(sans).toMatch(/\.body \+ \.footer\s*\{[^}]*box-shadow/);
-    expect(sans).not.toMatch(/(^|\n)\.footer\s*\{[^}]*box-shadow/);
+  it('devrait conditionner le filet du pied à la présence d’un corps', () => {
+    expect(filets).toContain('.body + .footer');
+    expect(filets).not.toContain('.footer');
   });
 
   it('devrait conditionner le filet d’en-tête à la présence d’un titre', () => {
-    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
-
-    expect(sans).toMatch(/\.header:has\(\.heading\)\s*\{[^}]*box-shadow/);
-    expect(sans).not.toMatch(/\.header\s*\{[^}]*box-shadow/);
+    expect(filets).toContain('.header:has(.heading)');
+    expect(filets.filter((selector) => selector.endsWith('.header'))).toEqual([]);
   });
 });
 
