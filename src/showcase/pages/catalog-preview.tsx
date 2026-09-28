@@ -252,13 +252,9 @@ export function CatalogPreview({
         <Opale.MultiSelect
           liquidGlass={liquidGlass}
           label="Domaines"
-          values={multiSelected}
+          value={multiSelected}
           options={OPTIONS}
-          onChange={(event) =>
-            setMultiSelected(
-              Array.from(event.currentTarget.selectedOptions, (option) => option.value),
-            )
-          }
+          onValueChange={setMultiSelected}
         />
       );
       break;
@@ -303,7 +299,7 @@ export function CatalogPreview({
           liquidGlass={liquidGlass}
           options={OPTIONS}
           value={selected}
-          onChange={setSelected}
+          onValueChange={setSelected}
         />
       );
       break;
@@ -416,12 +412,12 @@ export function CatalogPreview({
         <Opale.RatingInput
           label="Qualité de l’expérience"
           value={ratingValue}
-          onChange={setRatingValue}
+          onValueChange={setRatingValue}
         />
       );
       break;
     case 'Pagination':
-      preview = <Opale.Pagination page={page} pageCount={8} onChange={setPage} />;
+      preview = <Opale.Pagination value={page} pageCount={8} onValueChange={setPage} />;
       break;
     case 'Skeleton':
       preview = (
@@ -605,8 +601,8 @@ export function CatalogPreview({
         <Opale.Navbar
           liquidGlass={liquidGlass}
           items={NAV_ITEMS}
-          activeId={activeNav}
-          onSelect={setActiveNav}
+          value={activeNav}
+          onValueChange={setActiveNav}
         />
       );
       break;
@@ -648,7 +644,7 @@ export function CatalogPreview({
             open={paletteOpen}
             liquidGlass={liquidGlass}
             value={text}
-            onChange={setText}
+            onValueChange={setText}
             onClose={() => setPaletteOpen(false)}
           />
         </>
@@ -719,7 +715,7 @@ export function CatalogPreview({
       preview = (
         <Opale.Layout
           className="tc-doc-opale-demo__layout"
-          navigation={<Opale.Navbar items={NAV_ITEMS.slice(0, 2)} activeId="overview" />}
+          navigation={<Opale.Navbar items={NAV_ITEMS.slice(0, 2)} value="overview" />}
         >
           <Opale.Heading level={3}>Contenu principal</Opale.Heading>
           <Opale.Text>Une grille navigation-contenu responsive.</Opale.Text>

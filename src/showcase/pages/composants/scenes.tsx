@@ -66,28 +66,16 @@ export function SidebarCollapsibleScene() {
     <MaterialSwitch name="Sidebar pliable" tall>
       {(liquidGlass) => (
         <>
-          {/* `onToggle` REÇOIT `setCollapsed` DIRECTEMENT, ET CE N'EST VRAI QUE
-          DEPUIS LA CORRECTION DE `SidebarProps`.
-
-          Le type étendait `ComponentPropsWithoutRef<'aside'>` EN ENTIER, qui
-          apporte le `onToggle` du DOM — celui de `<details>`,
-          `ToggleEventHandler`. TypeScript intersectait les deux signatures et
-          le paramètre arrivait en `boolean | ToggleEvent<HTMLElement>` : il
-          fallait le resserrer par un `typeof next === 'boolean'` avant de
-          pouvoir brancher le `setState`, et cette garde n'était pas
-          défensive — sans elle le corps ne compilait pas.
-
-          `SidebarProps` retire désormais le `onToggle` du DOM
-          (`Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle'>`) et déclare le
-          sien, `(collapsed: boolean) => void`. La garde est donc morte, et
-          l'appel s'écrit comme il aurait toujours dû s'écrire. */}
+          {/* `onCollapsedChange` et `onValueChange` reçoivent chacun un
+          `setState` tel quel : le pli arrive en `boolean`, l'entrée en
+          identifiant. */}
           <Sidebar
             liquidGlass={liquidGlass}
             collapsible
             collapsed={collapsed}
-            onToggle={setCollapsed}
-            activeItemId={active}
-            onSelectItem={setActive}
+            onCollapsedChange={setCollapsed}
+            value={active}
+            onValueChange={setActive}
           >
             <Sidebar.Header>
               {!collapsed && <strong>Voyage</strong>}

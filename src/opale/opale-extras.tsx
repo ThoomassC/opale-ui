@@ -1,6 +1,7 @@
-import { useId, useState, type CSSProperties } from 'react';
+import { useId, type CSSProperties } from 'react';
 
 import { IconGlyph } from './components/icon';
+import { useControllableState } from './shared/use-controllable-state';
 
 export interface SkeletonProps {
   width?: string | number;
@@ -28,23 +29,45 @@ export function Skeleton({
 }
 
 export interface PaginationProps {
-  page: number;
   pageCount: number;
-  onChange: (page: number) => void;
+  /** La page courante, à partir de 1. Présente, l'appelant tient la page. */
+  value?: number;
+  /** La page de départ quand `value` est absente. Défaut : 1. */
+  defaultValue?: number;
+  /** Appelée à chaque choix de page, même la page courante. */
+  onValueChange?: (page: number) => void;
+  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  page?: number;
+  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  onChange?: (page: number) => void;
   disabled?: boolean;
   label?: string;
 }
 
-/** Pagination contrôlée, utilisable au clavier avec des boutons natifs. */
+/** Pagination contrôlable, utilisable au clavier avec des boutons natifs. */
 export function Pagination({
+  value,
+  defaultValue = 1,
+  onValueChange,
   page,
   pageCount,
   onChange,
   disabled = false,
   label = 'Pagination',
 }: PaginationProps) {
+  const [requested, setRequested] = useControllableState<number>(
+    value ?? page,
+    defaultValue,
+    onValueChange,
+  );
+  const choose = (next: number) => {
+    setRequested(next);
+    onChange?.(next);
+  };
   const total = Number.isFinite(pageCount) ? Math.max(0, Math.floor(pageCount)) : 0;
-  const current = Number.isFinite(page) ? Math.max(1, Math.min(total || 1, Math.floor(page))) : 1;
+  const current = Number.isFinite(requested)
+    ? Math.max(1, Math.min(total || 1, Math.floor(requested)))
+    : 1;
   const visible = [...new Set([1, current - 1, current, current + 1, total])]
     .filter((number) => number >= 1 && number <= total)
     .sort((a, b) => a - b);
@@ -53,7 +76,7 @@ export function Pagination({
       <button
         type="button"
         disabled={disabled || current <= 1}
-        onClick={() => onChange(current - 1)}
+        onClick={() => choose(current - 1)}
         aria-label="Page précédente"
       >
         ‹
@@ -79,7 +102,7 @@ export function Pagination({
                 : undefined
             }
             aria-label={`Page ${number}`}
-            onClick={() => onChange(number)}
+            onClick={() => choose(number)}
           >
             {number}
           </button>,
@@ -88,7 +111,7 @@ export function Pagination({
       <button
         type="button"
         disabled={disabled || total === 0 || current >= total}
-        onClick={() => onChange(current + 1)}
+        onClick={() => choose(current + 1)}
         aria-label="Page suivante"
       >
         ›
@@ -102,6 +125,9 @@ export interface RatingInputProps {
   value?: number;
   defaultValue?: number;
   max?: number;
+  /** Appelée à chaque choix d'une note. */
+  onValueChange?: (value: number) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (value: number) => void;
   disabled?: boolean;
   name?: string;
@@ -113,14 +139,14 @@ export function RatingInput({
   value,
   defaultValue = 0,
   max = 5,
+  onValueChange,
   onChange,
   disabled = false,
   name,
 }: RatingInputProps) {
-  const [internal, setInternal] = useState(defaultValue);
+  const [selected, setSelected] = useControllableState<number>(value, defaultValue, onValueChange);
   const generatedName = useId();
   const total = Math.max(1, Math.min(10, Math.floor(max)));
-  const selected = value ?? internal;
   return (
     <fieldset className="opale-rating-input" disabled={disabled}>
       <legend>{label}</legend>
@@ -137,7 +163,7 @@ export function RatingInput({
               value={number}
               checked={selected === number}
               onChange={() => {
-                if (value === undefined) setInternal(number);
+                setSelected(number);
                 onChange?.(number);
               }}
               aria-label={`${number} sur ${total}`}

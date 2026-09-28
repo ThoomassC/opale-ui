@@ -52,6 +52,7 @@ import { parseViewBox as parseSvgViewBox } from './components/svg-map/viewport';
 import toastMotion from './components/toast/style/Toast.module.css';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
 import type { OpaleSize } from './shared';
+import { useControllableState } from './shared/use-controllable-state';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
 
@@ -854,7 +855,24 @@ export function Select({
 }
 
 export interface MultiSelectProps extends SelectProps {
+  /**
+   * La sélection. Présente, l'appelant la tient. Un tableau est la forme
+   * attendue ; une valeur seule vaut une sélection d'un élément.
+   */
+  value?: SelectProps['value'];
+  /** Appelée après chaque bascule, avec la sélection complète. `onChange` natif part aussi. */
+  onValueChange?: (value: string[]) => void;
+  /** @deprecated Depuis 3.6 — utilisez `value`. */
   values?: readonly string[];
+}
+
+/* Une sélection multiple se lit toujours en tableau. Le type hérité du
+   `<select>` natif admet aussi une chaîne ou un nombre : ils valent une
+   sélection d'un élément. */
+function toSelection(value: SelectProps['value']): readonly string[] | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === 'string' || typeof value === 'number') return [String(value)];
+  return value;
 }
 
 /**
@@ -893,6 +911,8 @@ export interface MultiSelectProps extends SelectProps {
  * ================================================================
  */
 export function MultiSelect({
+  value,
+  onValueChange,
   values,
   label,
   helperText,
@@ -908,15 +928,15 @@ export function MultiSelect({
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
   const selectRef = useRef<HTMLSelectElement>(null);
-  /* LE MODE NON CONTRÔLÉ TIENT SA PROPRE SÉLECTION. Sans `values`, la liste
+  /* LE MODE NON CONTRÔLÉ TIENT SA PROPRE SÉLECTION. Sans `value`, la liste
      visible lisait un ensemble vide recréé à chaque rendu : le clic cochait
      l'option du `<select>` caché, mais ni la coche ni `aria-selected` ne
      bougeaient. L'état part de `defaultValue` et suit chaque `change` du natif ;
-     en mode contrôlé, `values` reste seul maître. */
-  const [uncontrolled, setUncontrolled] = useState<readonly string[]>(() =>
-    defaultValue === undefined ? [] : ([] as string[]).concat(defaultValue as string | string[]),
+     en mode contrôlé, `value` (ou l'ancien `values`) reste seul maître. */
+  const [current, setCurrent] = useControllableState<readonly string[]>(
+    toSelection(value) ?? values,
+    () => toSelection(defaultValue) ?? [],
   );
-  const current = values ?? uncontrolled;
   const selected = new Set(current);
 
   /* `activeIndex` est l'option DÉSIGNÉE au clavier, distincte des options
@@ -983,13 +1003,11 @@ export function MultiSelect({
         id={fieldId}
         className="opale-visually-hidden"
         multiple
-        value={current as string[]}
+        value={[...current]}
         onChange={(event) => {
-          if (values === undefined) {
-            setUncontrolled(
-              Array.from(event.currentTarget.selectedOptions, (option) => option.value),
-            );
-          }
+          const next = Array.from(event.currentTarget.selectedOptions, (option) => option.value);
+          setCurrent(next);
+          onValueChange?.(next);
           onChange?.(event);
         }}
         aria-hidden="true"
@@ -1183,7 +1201,13 @@ export function InlineInput({
 
 export interface SegmentedControlProps {
   options: readonly SelectOption[];
-  value?: string;
+  /** L'option pressée. Présente, l'appelant la tient ; `null` : aucune. */
+  value?: string | null;
+  /** L'option pressée au montage quand `value` est absente. */
+  defaultValue?: string | null;
+  /** Appelée à chaque appui, même sur l'option déjà pressée. */
+  onValueChange?: (value: string) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (value: string) => void;
   className?: string;
   liquidGlass?: boolean;
@@ -1211,11 +1235,14 @@ export interface SegmentedControlProps {
  */
 export function SegmentedControl({
   options,
-  value,
+  value: valueProp,
+  defaultValue = null,
+  onValueChange,
   onChange,
   className,
   liquidGlass = false,
 }: SegmentedControlProps) {
+  const [value, setValue] = useControllableState<string | null>(valueProp, defaultValue);
   const groupRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
 
@@ -1293,7 +1320,11 @@ export function SegmentedControl({
           type="button"
           className="opale-segmented__item"
           aria-pressed={value === option.value}
-          onClick={() => onChange?.(option.value)}
+          onClick={() => {
+            setValue(option.value);
+            onValueChange?.(option.value);
+            onChange?.(option.value);
+          }}
         >
           {option.label}
         </button>
@@ -1929,7 +1960,15 @@ export interface NavItem {
 
 export interface NavbarProps {
   items?: readonly NavItem[];
+  /** L'entrée courante. Présente, l'appelant la tient ; `null` : aucune. */
+  value?: string | null;
+  /** L'entrée courante au montage quand `value` est absente. */
+  defaultValue?: string | null;
+  /** Ne part que des entrées sans `href` (boutons) ; un lien navigue. */
+  onValueChange?: (id: string) => void;
+  /** @deprecated Depuis 3.6 — utilisez `value`. */
   activeId?: string;
+  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onSelect?: (id: string) => void;
   className?: string;
   liquidGlass?: boolean;
@@ -1937,11 +1976,23 @@ export interface NavbarProps {
 
 export function Navbar({
   items = [],
-  activeId,
+  value,
+  defaultValue = null,
+  onValueChange,
+  activeId: activeIdProp,
   onSelect,
   className,
   liquidGlass = false,
 }: NavbarProps) {
+  const [activeId, setActiveId] = useControllableState<string | null>(
+    value !== undefined ? value : activeIdProp,
+    defaultValue,
+  );
+  const select = (id: string) => {
+    setActiveId(id);
+    onValueChange?.(id);
+    onSelect?.(id);
+  };
   const Rail = liquidGlass ? Glass : 'nav';
   const railProps = liquidGlass
     ? ({ as: 'nav', rootClassName: 'opale-surface--glass-root' } as const)
@@ -1973,7 +2024,7 @@ export function Navbar({
             type="button"
             className="opale-nav__item"
             aria-current={activeId === item.id ? 'page' : undefined}
-            onClick={() => onSelect?.(item.id)}
+            onClick={() => select(item.id)}
           >
             {item.icon}
             {item.label}
@@ -2069,7 +2120,13 @@ export function SidePanel({
 
 export interface CommandPaletteProps {
   open?: boolean;
+  /** Le texte de la recherche. Présent, l'appelant le tient. */
   value?: string;
+  /** Le texte de départ quand `value` est absente. */
+  defaultValue?: string;
+  /** Appelée à chaque frappe dans la recherche. */
+  onValueChange?: (value: string) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (value: string) => void;
   onClose?: () => void;
   children?: ReactNode;
@@ -2078,7 +2135,9 @@ export interface CommandPaletteProps {
 
 export function CommandPalette({
   open = false,
-  value = '',
+  value,
+  defaultValue = '',
+  onValueChange,
   onChange,
   onClose,
   children,
@@ -2088,6 +2147,7 @@ export function CommandPalette({
      Au cadre suivant, la palette place le curseur dans sa recherche : on peut
      lancer une commande sans clic, tout en laissant Modal retenir l'élément
      à qui rendre le focus à la fermeture. */
+  const [query, setQuery] = useControllableState<string>(value, defaultValue, onValueChange);
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (!open) return undefined;
@@ -2114,8 +2174,12 @@ export function CommandPalette({
           ref={searchRef}
           type="search"
           label="Rechercher une commande"
-          value={value}
-          onChange={(event) => onChange?.(event.currentTarget.value)}
+          value={query}
+          onChange={(event) => {
+            const next = event.currentTarget.value;
+            setQuery(next);
+            onChange?.(next);
+          }}
         />
         {children && <div className="opale-command-palette__results">{children}</div>}
       </div>
@@ -2723,7 +2787,11 @@ export interface DataTableProps {
   rows?: readonly DataTableRow[];
   /** Nom de la table, rendu en `<caption>`. */
   caption?: ReactNode;
+  /** Présent, l'appelant tient le tri ; `null` : contrôlé sans tri. */
+  sort?: DataTableSort | null;
+  /** Le tri au montage quand `sort` est absent. */
   defaultSort?: DataTableSort;
+  /** Appelée à chaque clic d'en-tête, avec le tri demandé. */
   onSortChange?: (sort: DataTableSort) => void;
   /** Stable identity when rows are inserted, removed or sorted. */
   rowKey?: (row: DataTableRow, index: number) => string | number;
@@ -2744,6 +2812,10 @@ const SORT_WORDING: Record<DataTableSortDirection, string> = {
   ascending: 'ordre croissant',
   descending: 'ordre décroissant',
 };
+
+function sortNameOf(column: DataTableColumn): string {
+  return column.sortLabel ?? (typeof column.label === 'string' ? column.label : column.key);
+}
 
 function sortKeyOf(row: DataTableRow, column: DataTableColumn): string | number | undefined {
   if (column.sortValue) return column.sortValue(row);
@@ -2767,6 +2839,7 @@ export function DataTable({
   columns = [],
   rows = [],
   caption,
+  sort: sortProp,
   defaultSort,
   onSortChange,
   rowKey,
@@ -2777,10 +2850,21 @@ export function DataTable({
   striped = false,
   showRowCount = false,
 }: DataTableProps) {
-  const [sort, setSort] = useState<DataTableSort | undefined>(defaultSort);
-  const [announcement, setAnnouncement] = useState('');
+  const [sort, setSort] = useControllableState<DataTableSort | null>(
+    sortProp,
+    defaultSort ?? null,
+  );
+  /* L'ANNONCE DÉCRIT LE TRI RÉSOLU, PAS LE TRI DEMANDÉ. En mode contrôlé,
+     l'appelant peut refuser un clic ou trier d'ailleurs : l'annonce se calcule
+     donc au rendu depuis le tri effectif. Elle reste muette tant qu'aucun
+     en-tête n'a été actionné, pour ne pas lire le tri initial au montage. */
+  const [hasSorted, setHasSorted] = useState(false);
 
-  const sortedColumn = sort && columns.find((column) => column.key === sort.key);
+  const sortedColumn = sort ? columns.find((column) => column.key === sort.key) : undefined;
+  const announcement =
+    hasSorted && sort && sortedColumn
+      ? `Trié par ${sortNameOf(sortedColumn)}, ${SORT_WORDING[sort.direction]}`
+      : '';
 
   /* L'indice d'origine sert de clé : quand le tri déplace une ligne, React la
      déplace au lieu de la reconstruire. Il ne vaut que pour des `rows` stables
@@ -2803,8 +2887,7 @@ export function DataTable({
       sort?.key === column.key && sort.direction === 'ascending' ? 'descending' : 'ascending';
     const next = { key: column.key, direction };
     setSort(next);
-    const name = column.sortLabel ?? (typeof column.label === 'string' ? column.label : column.key);
-    setAnnouncement(`Trié par ${name}, ${SORT_WORDING[direction]}`);
+    setHasSorted(true);
     onSortChange?.(next);
   };
 

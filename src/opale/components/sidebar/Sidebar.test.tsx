@@ -248,3 +248,104 @@ describe('Sidebar — ce que la réécriture corrige', () => {
     ).not.toBeNull();
   });
 });
+
+/* =============================================================================
+   LE TRIPLET CANONIQUE. `value / defaultValue / onValueChange` pour l'entrée
+   retenue, `onCollapsedChange` pour le pli. Les cas ci-dessus, écrits avec
+   `activeItemId`, `onSelectItem` et `onToggle`, prouvent que les anciens noms
+   marchent encore.
+   ========================================================================== */
+
+describe('Sidebar — value, defaultValue, onValueChange, onCollapsedChange', () => {
+  it('devrait retenir defaultValue puis suivre le clic sans parent', () => {
+    const onValueChange = vi.fn();
+    renderSidebar({ defaultValue: 'dashboard', onValueChange });
+
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+    expect(onValueChange).toHaveBeenCalledWith('settings');
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('devrait garder value contrôlée, et null ne retenir aucune entrée', () => {
+    const { rerender } = render(
+      <Sidebar value="analytics">
+        <Sidebar.Items>
+          <Sidebar.Item itemId="dashboard">Dashboard</Sidebar.Item>
+          <Sidebar.Item itemId="analytics">Analytics</Sidebar.Item>
+        </Sidebar.Items>
+      </Sidebar>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dashboard' }));
+    expect(screen.getByRole('button', { name: 'Analytics' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    rerender(
+      <Sidebar value={null} defaultValue="dashboard">
+        <Sidebar.Items>
+          <Sidebar.Item itemId="dashboard">Dashboard</Sidebar.Item>
+          <Sidebar.Item itemId="analytics">Analytics</Sidebar.Item>
+        </Sidebar.Items>
+      </Sidebar>,
+    );
+    expect(screen.getByRole('button', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Analytics' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('devrait faire gagner value sur activeItemId, et appeler onValueChange avant onSelectItem', () => {
+    const calls: string[] = [];
+    renderSidebar({
+      value: 'dashboard',
+      activeItemId: 'analytics',
+      onValueChange: (id) => calls.push(`onValueChange:${id}`),
+      onSelectItem: (id) => calls.push(`onSelectItem:${id}`),
+    });
+
+    expect(screen.getByRole('button', { name: 'Dashboard' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+    expect(calls).toEqual(['onValueChange:settings', 'onSelectItem:settings']);
+  });
+
+  it('devrait appeler onCollapsedChange puis l’onToggle déprécié', () => {
+    const calls: string[] = [];
+    renderSidebar({
+      onCollapsedChange: (collapsed) => calls.push(`onCollapsedChange:${collapsed}`),
+      onToggle: (collapsed) => calls.push(`onToggle:${collapsed}`),
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Replier le rail' }));
+
+    expect(calls).toEqual(['onCollapsedChange:true', 'onToggle:true']);
+    expect(screen.getByRole('button', { name: 'Déplier le rail' })).toBeInTheDocument();
+  });
+
+  it('devrait exposer value dans le contexte', () => {
+    function Probe() {
+      const { value, activeItemId } = Sidebar.useSidebar();
+      return <output>{`${value ?? '-'}/${activeItemId ?? '-'}`}</output>;
+    }
+    render(
+      <Sidebar value="dashboard">
+        <Probe />
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('dashboard/dashboard');
+  });
+});

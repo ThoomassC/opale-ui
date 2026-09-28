@@ -130,9 +130,9 @@ const REPRESENTATIVE_EXAMPLES: Readonly<Record<string, string>> = {
   Pressable: '<Opale.Pressable onClick={() => alert("Action")}>Ouvrir</Opale.Pressable>',
   MultiSelect: `<Opale.MultiSelect
   label="Domaines"
-  values={['design']}
+  defaultValue={['design']}
   options={[{ value: 'design', label: 'Design' }, { value: 'code', label: 'Code' }]}
-  onChange={(event) => console.log([...event.currentTarget.selectedOptions].map((item) => item.value))}
+  onValueChange={(value) => console.log(value)}
 />`,
   Select: `<Opale.Select
   label="Domaine"
@@ -186,7 +186,7 @@ export function DeleteAction() {
   Navbar: `<Opale.Navbar items={[
   { id: 'home', label: 'Accueil', href: '/' },
   { id: 'projects', label: 'Projets', href: '/projets' },
-]} activeId="projects" />`,
+]} value="projects" />`,
   Menu: `<Opale.Menu label="Actions" items={[
   { id: 'duplicate', label: 'Dupliquer' },
   { id: 'archive', label: 'Archiver' },
@@ -209,7 +209,7 @@ export function Commands() {
   const [query, setQuery] = useState('');
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Commandes</Opale.Button>
-    <Opale.CommandPalette open={open} value={query} onChange={setQuery}
+    <Opale.CommandPalette open={open} value={query} onValueChange={setQuery}
       onClose={() => setOpen(false)} />
   </>;
 }`,
@@ -247,13 +247,13 @@ export function ImagePreview() {
 
 export function ReviewRating() {
   const [rating, setRating] = useState(3);
-  return <Opale.RatingInput label="Qualité de l’expérience" value={rating} onChange={setRating} />;
+  return <Opale.RatingInput label="Qualité de l’expérience" value={rating} onValueChange={setRating} />;
 }`,
   Pagination: `import { useState } from 'react';
 
 export function ResultsPagination() {
   const [page, setPage] = useState(2);
-  return <Opale.Pagination page={page} pageCount={8} onChange={setPage} />;
+  return <Opale.Pagination value={page} pageCount={8} onValueChange={setPage} />;
 }`,
   Skeleton: `<div role="status" aria-label="Chargement de la fiche">
   <Opale.Skeleton width="45%" height="1.5rem" />
@@ -301,7 +301,7 @@ function exampleCode(name: string, liquidGlass = false): string {
       return decorate('<Opale.Slider label="Volume" defaultValue={64} min={0} max={100} />');
     case 'SegmentedControl':
       return decorate(`<Opale.SegmentedControl
-  value="all"
+  defaultValue="all"
   options={[
     { value: 'all', label: 'Tout' },
     { value: 'active', label: 'Actifs' },

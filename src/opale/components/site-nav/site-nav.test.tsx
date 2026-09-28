@@ -143,3 +143,18 @@ describe('SiteNav', () => {
     expect(screen.getByRole('list')).toHaveAttribute('data-active-index', '1');
   });
 });
+
+describe('SiteNav — value', () => {
+  it('devrait placer la bulle sur value', () => {
+    renderNav({ activeItem: undefined, value: 'cities' });
+
+    expect(screen.getByRole('link', { name: 'Cities' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('devrait faire gagner value sur activeItem', () => {
+    renderNav({ activeItem: 'map', value: 'about' });
+
+    expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Map' })).not.toHaveAttribute('aria-current');
+  });
+});

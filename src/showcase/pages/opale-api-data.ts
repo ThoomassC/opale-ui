@@ -78,7 +78,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('label', 'ReactNode', 'Nom visible du groupe.'),
       prop('options', 'readonly { value: string; label: ReactNode }[]', 'Choix proposés.'),
-      prop('values', 'readonly string[]', 'Valeurs actuellement sélectionnées.'),
+      prop('value', 'readonly string[]', 'Valeurs sélectionnées, contrôlées.'),
+      prop('defaultValue', 'readonly string[]', 'Sélection de départ, non contrôlée.'),
+      prop('onValueChange', '(value: string[]) => void', 'Sélection complète après chaque bascule.'),
     ],
   },
   Select: {
@@ -110,8 +112,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
         undefined,
         true,
       ),
-      prop('value', 'string', 'Segment actif.'),
-      prop('onChange', '(value: string) => void', 'Signale le nouveau segment.'),
+      prop('value', 'string | null', 'Segment actif, contrôlé.'),
+      prop('defaultValue', 'string | null', 'Segment actif de départ, non contrôlé.'),
+      prop('onValueChange', '(value: string) => void', 'Signale le segment choisi.'),
     ],
   },
   IconActionButton: {
@@ -148,7 +151,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('density', "'comfortable' | 'compact'", 'Espacement des lignes.', 'comfortable'),
       prop('striped', 'boolean', 'Alternance discrète des lignes.', 'false'),
       prop('showRowCount', 'boolean', 'Nombre de lignes visibles sous la table.', 'false'),
-      prop('defaultSort', 'DataTableSort', 'Tri initial.'),
+      prop('sort', 'DataTableSort | null', 'Tri contrôlé ; null : sans tri.'),
+      prop('defaultSort', 'DataTableSort', 'Tri initial, non contrôlé.'),
+      prop('onSortChange', '(sort: DataTableSort) => void', 'Tri demandé par un clic d’en-tête.'),
       prop('rowKey', '(row, index) => string | number', 'Identité stable des lignes.'),
       prop('loading', 'boolean', 'Affiche un état de chargement.', 'false'),
       prop(
@@ -188,15 +193,17 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('label', 'string', 'Nom du groupe de notation.', undefined, true),
       prop('value', 'number', 'Note contrôlée.'),
-      prop('onChange', '(value: number) => void', 'Nouvelle note.'),
+      prop('defaultValue', 'number', 'Note de départ, non contrôlée.', '0'),
+      prop('onValueChange', '(value: number) => void', 'Nouvelle note.'),
     ],
   },
   Pagination: {
     states: 'La page courante et les bornes sont annoncées.',
     rows: [
-      prop('page', 'number', 'Page courante.', undefined, true),
       prop('pageCount', 'number', 'Nombre de pages.', undefined, true),
-      prop('onChange', '(page: number) => void', 'Changement demandé.', undefined, true),
+      prop('value', 'number', 'Page courante, contrôlée.'),
+      prop('defaultValue', 'number', 'Page de départ, non contrôlée.', '1'),
+      prop('onValueChange', '(page: number) => void', 'Changement demandé.'),
     ],
   },
   Skeleton: {
@@ -289,7 +296,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Un seul élément est signalé comme page courante.',
     rows: [
       prop('items', 'readonly NavItem[]', 'Liens ou actions de navigation.'),
-      prop('activeId', 'string', 'Identifiant de la page courante.'),
+      prop('value', 'string | null', 'Identifiant de la page courante, contrôlé.'),
+      prop('defaultValue', 'string | null', 'Page courante de départ, non contrôlée.'),
+      prop('onValueChange', '(id: string) => void', 'Choix d’une entrée sans href.'),
     ],
   },
   Menu: {
@@ -314,8 +323,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Recherche dans le contenu fourni ; le bouton Fermer accompagne onClose.',
     rows: [
       prop('open', 'boolean', 'Visibilité de la palette.', 'false'),
-      prop('value', 'string', 'Texte saisi.', "''"),
-      prop('onChange', '(value: string) => void', 'Nouveau texte saisi.'),
+      prop('value', 'string', 'Texte saisi, contrôlé.'),
+      prop('defaultValue', 'string', 'Texte de départ, non contrôlé.', "''"),
+      prop('onValueChange', '(value: string) => void', 'Nouveau texte saisi.'),
       prop('onClose', '() => void', 'Ferme la palette avec la croix, le pied ou Échap.'),
       prop('children', 'ReactNode', 'Résultats ou commandes affichés sous la recherche.'),
     ],

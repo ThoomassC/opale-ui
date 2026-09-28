@@ -15,7 +15,10 @@ export type SiteNavItem = {
   readonly label: ReactNode;
 };
 
-/** Default destinations for the compact site navigation. */
+/**
+ * Default destinations for the compact site navigation.
+ * @deprecated Depuis 3.6 — utilisez `items`.
+ */
 export const DEFAULT_SITE_NAV_ITEMS: readonly SiteNavItem[] = [
   { id: 'map', href: '/', label: 'Carte' },
   { id: 'countries', href: '/countries', label: 'Pays' },
@@ -26,9 +29,14 @@ export const DEFAULT_SITE_NAV_ITEMS: readonly SiteNavItem[] = [
 export type SiteNavProps = Omit<ComponentPropsWithoutRef<'header'>, 'children'> & {
   /** Optional brand lock-up supplied by the consuming application. */
   readonly brand?: ReactNode;
-  /** Main destinations. The liquid navigation is designed for four items. */
+  /**
+   * Les destinations principales, pensées pour quatre entrées. Passez-les
+   * toujours : le défaut n'est gardé que pour les appels existants.
+   */
   readonly items?: readonly SiteNavItem[];
-  /** Identifier of the destination that owns the active bubble. */
+  /** L'identifiant de la destination qui porte la bulle active. */
+  readonly value?: string;
+  /** @deprecated Depuis 3.6 — utilisez `value`. */
   readonly activeItem?: string;
   /** Accessible name of the navigation landmark. */
   readonly navLabel?: string;
@@ -58,6 +66,7 @@ export type SiteNavProps = Omit<ComponentPropsWithoutRef<'header'>, 'children'> 
 export function SiteNav({
   brand,
   items = DEFAULT_SITE_NAV_ITEMS,
+  value,
   activeItem,
   navLabel = 'Navigation principale',
   onNavigate,
@@ -74,7 +83,7 @@ export function SiteNav({
 
       <div className={styles.inner}>
         <nav aria-label={navLabel}>
-          <NavBubble items={items} activeKey={activeItem} onNavigate={onNavigate} />
+          <NavBubble items={items} activeKey={value ?? activeItem} onNavigate={onNavigate} />
         </nav>
       </div>
     </>

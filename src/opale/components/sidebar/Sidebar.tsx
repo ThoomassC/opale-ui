@@ -5,7 +5,6 @@ import {
   useContext,
   useId,
   useMemo,
-  useState,
   type ComponentPropsWithoutRef,
   type ForwardRefExoticComponent,
   type MouseEvent,
@@ -16,6 +15,7 @@ import clsx from 'clsx';
 
 import Glass, { type GlassSurfaceProps } from '../glass/Glass';
 import type { OpaleSize } from '../../shared';
+import { useControllableState } from '../../shared/use-controllable-state';
 import styles from './style/Sidebar.module.css';
 
 /* =============================================================================
@@ -79,6 +79,9 @@ export type SidebarContextValue = {
   collapsible: boolean;
   toggleCollapsed: () => void;
   handleItemSelect: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
+  /** L'entrée retenue, absente quand aucune ne l'est. */
+  value?: string;
+  /** @deprecated Depuis 3.6 — utilisez `value`. */
   activeItemId?: string;
   /** L'identifiant de l'`<aside>`, pour l'`aria-controls` de la bascule. */
   sidebarId: string;
@@ -96,14 +99,29 @@ const useSidebarContext = (component: string) => {
   return context;
 };
 
-export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle'> & {
+export type SidebarProps = Omit<
+  ComponentPropsWithoutRef<'aside'>,
+  'onToggle' | 'defaultValue'
+> & {
   size?: SidebarSize;
   collapsed?: boolean;
   defaultCollapsed?: boolean;
   collapsible?: boolean;
+  /** Appelée à chaque bascule du pli, avec le nouvel état. */
+  onCollapsedChange?: (collapsed: boolean) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onCollapsedChange`. */
   onToggle?: (collapsed: boolean) => void;
+  /** L'entrée retenue. Présente, l'appelant la tient ; `null` : aucune. */
+  value?: string | null;
+  /** L'entrée retenue au montage quand `value` est absente. */
+  defaultValue?: string | null;
+  /** Appelée à chaque sélection d'une entrée, même celle déjà retenue. */
+  onValueChange?: (itemId: string) => void;
+  /** @deprecated Depuis 3.6 — utilisez `value`. */
   activeItemId?: string;
+  /** @deprecated Depuis 3.6 — utilisez `defaultValue`. */
   defaultActiveItemId?: string;
+  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onSelectItem?: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Rend le rail dans le matériau « verre liquide ».
@@ -128,7 +146,11 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       collapsed: collapsedProp,
       defaultCollapsed = false,
       collapsible = false,
+      onCollapsedChange,
       onToggle,
+      value: valueProp,
+      defaultValue,
+      onValueChange,
       activeItemId: activeItemIdProp,
       defaultActiveItemId,
       onSelectItem,
@@ -146,18 +168,15 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
        laisse le composant se souvenir. Le rappel part dans les DEUX cas — un
        appelant non contrôlé veut savoir ce qui s'est passé, même s'il n'a rien
        à ranger. */
-    const isCollapsedControlled = collapsedProp !== undefined;
-    const [collapsedState, setCollapsedState] = useState(defaultCollapsed);
-    const collapsed = isCollapsedControlled ? collapsedProp : collapsedState;
+    const [collapsed, setCollapsedState] = useControllableState(collapsedProp, defaultCollapsed);
 
     const setCollapsed = useCallback(
       (next: boolean) => {
-        if (!isCollapsedControlled) {
-          setCollapsedState(next);
-        }
+        setCollapsedState(next);
+        onCollapsedChange?.(next);
         onToggle?.(next);
       },
-      [isCollapsedControlled, onToggle],
+      [setCollapsedState, onCollapsedChange, onToggle],
     );
 
     const handleToggle = useCallback(() => {
@@ -168,21 +187,21 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       setCollapsed(!collapsed);
     }, [collapsible, collapsed, setCollapsed]);
 
-    const isActiveControlled = activeItemIdProp !== undefined;
-    const [activeItemIdState, setActiveItemIdState] = useState<string | undefined>(
-      defaultActiveItemId,
+    /* Le nom canonique gagne : `value` d'abord, puis l'ancien `activeItemId`.
+       `null` est une valeur contrôlée, d'où la comparaison à `undefined`. */
+    const [active, setActive] = useControllableState<string | null>(
+      valueProp !== undefined ? valueProp : activeItemIdProp,
+      defaultValue !== undefined ? defaultValue : (defaultActiveItemId ?? null),
     );
-    const activeItemId = isActiveControlled ? activeItemIdProp : activeItemIdState;
+    const activeItemId = active ?? undefined;
 
     const handleItemSelect = useCallback(
       (itemId: string, event: MouseEvent<HTMLButtonElement>) => {
-        if (!isActiveControlled) {
-          setActiveItemIdState(itemId);
-        }
-
+        setActive(itemId);
+        onValueChange?.(itemId);
         onSelectItem?.(itemId, event);
       },
-      [isActiveControlled, onSelectItem],
+      [setActive, onValueChange, onSelectItem],
     );
 
     /* `useId` EST APPELÉ INCONDITIONNELLEMENT, et l'`id` de l'appelant gagne
@@ -199,6 +218,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         collapsible,
         toggleCollapsed: handleToggle,
         handleItemSelect,
+        value: activeItemId,
         activeItemId,
         sidebarId,
       }),
@@ -353,9 +373,9 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
     { itemId, icon, badge, collapsedFallback, disabled, className, children, onClick, ...rest },
     ref,
   ) => {
-    const { collapsed, handleItemSelect, activeItemId } = useSidebarContext('Sidebar.Item');
+    const { collapsed, handleItemSelect, value } = useSidebarContext('Sidebar.Item');
 
-    const isActive = activeItemId === itemId;
+    const isActive = value === itemId;
 
     const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
       /* LA GARDE EST REDONDANTE AVEC L'ATTRIBUT `disabled`, ET ELLE RESTE.
