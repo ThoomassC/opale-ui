@@ -94,7 +94,7 @@
 .brandName {
   overflow: hidden;
   font-family: var(--opale-font-display);
-  font-size: 1.35rem;
+  font-size: var(--opale-text-lg);
   font-weight: 800;
   letter-spacing: -0.04em;
   text-overflow: ellipsis;
@@ -195,7 +195,7 @@
 .searchSuggestionGroup {
   flex: none;
   color: var(--opale-text-secondary);
-  font-size: 0.8rem;
+  font-size: var(--opale-text-xs);
 }
 
 .searchSuggestion[aria-selected='true'] .searchSuggestionGroup {
@@ -349,7 +349,7 @@
   padding: 0.35rem 0.75rem;
   background: color-mix(in srgb, var(--opale-primary) 12%, var(--opale-surface));
   color: var(--opale-primary-on-surface);
-  font-size: 0.78rem;
+  font-size: var(--opale-text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -361,7 +361,7 @@
   font-size: clamp(2.6rem, 6vw, 4.5rem);
   font-weight: 800;
   letter-spacing: -0.06em;
-  line-height: 1.04;
+  line-height: var(--opale-leading-tight);
 }
 
 .intro p {
@@ -369,7 +369,7 @@
   margin: 1.25rem 0 0;
   color: var(--opale-text-secondary);
   font-size: clamp(1rem, 2vw, 1.18rem);
-  line-height: 1.6;
+  line-height: var(--opale-leading-relaxed);
 }
 
 .footer {
@@ -392,14 +392,14 @@
 
 .footerTop strong {
   font-family: var(--opale-font-display);
-  font-size: 1.25rem;
+  font-size: var(--opale-text-lg);
   letter-spacing: -0.03em;
 }
 
 .footerTop p {
   margin: 0.6rem 0 0;
   color: var(--opale-text-secondary);
-  line-height: 1.5;
+  line-height: var(--opale-leading-snug);
 }
 
 .footerLinks {
@@ -424,7 +424,7 @@
   padding-block-start: 1rem;
   border-top: 1px solid var(--opale-divider);
   color: var(--opale-text-secondary);
-  font-size: 0.82rem;
+  font-size: var(--opale-text-sm);
 }
 
 @container (max-width: 56rem) {

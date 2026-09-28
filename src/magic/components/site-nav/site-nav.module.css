@@ -22,7 +22,7 @@
   --site-nav-space-4: var(--opale-space-md);
   --site-nav-space-5: var(--opale-space-lg);
   --site-nav-radius-pill: var(--opale-radius-pill);
-  --site-nav-text-sm: 0.875rem;
+  --site-nav-text-sm: var(--opale-text-sm);
   --site-nav-weight-semibold: 600;
   --site-nav-motion-color: var(--opale-motion-fast);
   --site-nav-motion-ease: var(--opale-ease);
@@ -272,7 +272,7 @@
 
   .link {
     padding-inline: var(--site-nav-space-2);
-    font-size: 0.75rem;
+    font-size: var(--opale-text-xs);
     letter-spacing: 0.05em;
   }
 }

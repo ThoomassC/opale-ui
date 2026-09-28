@@ -178,17 +178,17 @@
   margin: 0;
   color: var(--opale-text);
   font-family: var(--opale-font-title);
-  font-size: 1.5rem;
+  font-size: var(--opale-text-xl);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--opale-leading-tight);
   letter-spacing: -0.01em;
 }
 
 .description {
   margin: 0;
   color: var(--opale-text-secondary);
-  font-size: 1rem;
-  line-height: 1.4;
+  font-size: var(--opale-text-md);
+  line-height: var(--opale-leading-snug);
 }
 
 /* LA CROIX NE CONCURRENCE PLUS LE TITRE.
@@ -254,8 +254,8 @@
   overflow-y: auto;
   padding-right: var(--opale-space-2xs);
   color: var(--opale-text);
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: var(--opale-text-md);
+  line-height: var(--opale-leading-relaxed);
 }
 
 .footer {

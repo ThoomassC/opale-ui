@@ -79,15 +79,15 @@
 }
 
 .small {
-  font-size: 0.75rem;
+  font-size: var(--opale-text-xs);
 }
 
 .medium {
-  font-size: 0.9375rem;
+  font-size: var(--opale-text-sm);
 }
 
 .large {
-  font-size: 1.125rem;
+  font-size: var(--opale-text-md);
 }
 
 .disabled {

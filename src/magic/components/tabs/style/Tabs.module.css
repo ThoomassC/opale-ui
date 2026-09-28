@@ -148,9 +148,9 @@
   padding: var(--opale-space-xs) var(--opale-space-md);
   color: inherit;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
   font-weight: 600;
-  line-height: 1.25;
+  line-height: var(--opale-leading-tight);
   white-space: nowrap;
   cursor: pointer;
   transition: opacity var(--opale-motion-fast) var(--opale-ease);
@@ -186,8 +186,8 @@
   padding: var(--opale-space-md);
   background: var(--opale-tabs-surface);
   box-shadow: inset 0 1px 0 var(--opale-tabs-highlight);
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: var(--opale-text-sm);
+  line-height: var(--opale-leading-relaxed);
 }
 
 /* Le panneau est atteignable à la tabulation (voir `Tabs.tsx`), donc il peut
