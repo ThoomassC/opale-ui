@@ -148,9 +148,9 @@
   padding: var(--opale-space-xs) var(--opale-space-md);
   color: inherit;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
   font-weight: 600;
-  line-height: 1.25;
+  line-height: var(--opale-leading-tight);
   white-space: nowrap;
   cursor: pointer;
   transition: opacity var(--opale-motion-fast) var(--opale-ease);
@@ -162,8 +162,8 @@
    elle, et on ne verrait du focus que les coins. Décalé vers l'intérieur, il
    longe le bord de la capsule et reste entier. */
 .tabsTrigger:focus-visible {
-  outline: 2px solid var(--opale-tabs-focus);
-  outline-offset: -3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-tabs-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 
 .tabsTrigger:disabled {
@@ -186,16 +186,16 @@
   padding: var(--opale-space-md);
   background: var(--opale-tabs-surface);
   box-shadow: inset 0 1px 0 var(--opale-tabs-highlight);
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: var(--opale-text-sm);
+  line-height: var(--opale-leading-relaxed);
 }
 
 /* Le panneau est atteignable à la tabulation (voir `Tabs.tsx`), donc il peut
    recevoir le focus : il lui faut son anneau. Rien ne le rogne ici, il reste
    donc à l'extérieur, comme partout ailleurs dans Opale. */
 .tabsContent:focus-visible {
-  outline: 2px solid var(--opale-tabs-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-tabs-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 
 /* `[hidden]` vaut `display: none` dans la feuille du navigateur, mais cette

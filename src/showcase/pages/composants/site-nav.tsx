@@ -22,17 +22,6 @@ const DEMO_ITEMS = [
   { id: 'example-2', href: '#', label: 'Exemple 2' },
 ] as const;
 
-/* L'APLAT DE LA BARRE ORIGINALE, ÉCRIT EN DUR ET POUR LA SEULE VERSION
-   ORIGINALE. Le défaut du composant est l'accent teal du site ; la vitrine le
-   remplace par le bleu d'Opale. Aucun jeton primaire ne convient : ils
-   s'éclaircissent en thème sombre, et l'encre blanche de la barre y tomberait
-   sous 4,5:1. Celui-ci porte le blanc à plus de 9:1 dans les deux thèmes.
-
-   LE VERRE, LUI, N'EN REÇOIT AUCUN. Un aplat opaque posé sur le matériau le
-   masque entièrement : on voyait un bandeau bleu sur la photographie, pas du
-   verre. */
-const ORIGINAL_BAR_BACKGROUND = '#31466b';
-
 const PROPS: readonly PropRow[] = [
   {
     name: 'brand',
@@ -86,7 +75,6 @@ export default function SiteNavContent() {
                  distinguent pas dans la liste d'un lecteur d'écran. */
               navLabel="Navigation de l’exemple"
               onNavigate={() => undefined}
-              style={liquidGlass ? undefined : { background: ORIGINAL_BAR_BACKGROUND }}
             />
           )}
         </MaterialSwitch>

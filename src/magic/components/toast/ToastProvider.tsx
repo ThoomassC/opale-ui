@@ -12,6 +12,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import Glass from '../glass/Glass';
+import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 
 import styles from './style/Toast.module.css';
 
@@ -499,7 +500,13 @@ export const ToastProvider = ({
       {children}
       {portalNode &&
         createPortal(
-          <div className={styles.root} data-testid="toast-portal">
+          <div
+            className={styles.root}
+            data-testid="toast-portal"
+            /* Une modale ouverte rend le reste de la page inerte ; les toasts
+               lancés depuis elle doivent rester annoncés et refermables. */
+            {...{ [MODAL_EXEMPT_ATTRIBUTE]: '' }}
+          >
             {POSITIONS.map((key) => (
               <div key={key} className={cx(styles.stack, positionClass[key])}>
                 {/* `role="status"` implique `aria-atomic="true"`, ce qui ferait

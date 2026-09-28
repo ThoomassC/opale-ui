@@ -3,6 +3,20 @@
    without translating a second vocabulary. */
 :root,
 [data-opale-page-theme='light'] {
+  /* L'ENCRE ET LES REMPLISSAGES PLEINS SONT DES JETONS DE THÈME. Écrits en dur
+     et corrigés sous `:root[data-theme='dark']`, ils ne suivaient pas le thème
+     local de PageScaffold : texte des boutons à 2,82:1 dans une section
+     sombre. Redéfinis dans chaque bloc, ils héritent comme le reste. */
+  --opale-on-fill: #fbfaf9;
+  /* LE BORD D'UN CONTRÔLE N'EST PAS LE LISERÉ D'UNE CARTE. `--opale-divider`
+     sépare deux surfaces (1,30:1) ; un champ, lui, doit se voir pour qu'on
+     sache où saisir (WCAG 1.4.11). L'encre à 55 % tient 4,16:1 sur la surface,
+     3,79:1 sur le fond de page, 3,50:1 sur la surface creusée. */
+  --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
+  --opale-fill-success: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
+  --opale-fill-warning: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
+  --opale-fill-danger: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
+  --opale-fill-info: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
   --opale-background: #f7f4ef;
   --opale-surface: #ffffff;
   --opale-surface-base: #fbfaf9;
@@ -85,7 +99,9 @@
      les deux jetons coïncident. */
   --opale-success-on-surface: var(--opale-success);
   --opale-info-on-surface: var(--opale-info);
-  --opale-warning-on-surface: var(--opale-warning);
+  /* PLUS SOMBRE QUE LE TON, parce qu'il écrit du texte : l'ambre du ton tenait
+     3,81:1 sur le lavis du Feedback, #9a5a00 y tient 4,92:1. */
+  --opale-warning-on-surface: #9a5a00;
   --opale-danger-on-surface: var(--opale-danger);
   --opale-danger: #b3261e;
   --opale-info: #1a4f8b;
@@ -93,10 +109,30 @@
   --opale-warning: #b26a00;
   --opale-divider: #e6e1d8;
   --opale-focus: #315c9e;
+  /* Un seul anneau de focus : largeur et décalage communs, seule la couleur
+     suit la matière (bleu de focus, encre du verre, `currentColor`). */
+  --opale-focus-ring-width: 3px;
+  --opale-focus-ring-offset: 3px;
   --opale-radius-sm: 0.75rem;
   --opale-radius-md: 1.375rem;
   --opale-radius-lg: 2.25rem;
   --opale-radius-pill: 999rem;
+  /* Une seule échelle de hauteurs : un bouton et un champ posés côte à côte
+     s'alignent sans retouche. */
+  --opale-control-sm: 2.25rem;
+  --opale-control-md: 2.75rem;
+  --opale-control-lg: 3rem;
+  /* Six tailles de texte et trois interlignes : deux composants voisins
+     tombent sur les mêmes valeurs. */
+  --opale-text-xs: 0.75rem;
+  --opale-text-sm: 0.875rem;
+  --opale-text-md: 1rem;
+  --opale-text-lg: 1.25rem;
+  --opale-text-xl: 1.5rem;
+  --opale-text-2xl: 2rem;
+  --opale-leading-tight: 1.1;
+  --opale-leading-snug: 1.4;
+  --opale-leading-relaxed: 1.6;
   --opale-squircle-radius: min(var(--opale-radius-md), 50%);
   --opale-squircle-clip: polygon(
     0% var(--opale-squircle-radius),
@@ -285,6 +321,16 @@
 
 :root[data-theme='dark'],
 [data-opale-page-theme='dark'] {
+  /* Les fonds pleins du sombre sont des tons MOYENS : l'encre sombre y tient
+     5,23:1 (primaire), 8,71:1 (secondaire), 6,18:1 (danger), là où la claire
+     tombait sous 3,5:1. Les tons de toast passent par le jeton clair
+     *-on-surface : un remplissage assombri serait noir sur un sol noir. */
+  --opale-on-fill: #0c0f0d;
+  --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
+  --opale-fill-success: var(--opale-success-on-surface);
+  --opale-fill-warning: var(--opale-warning-on-surface);
+  --opale-fill-danger: var(--opale-danger-on-surface);
+  --opale-fill-info: var(--opale-info-on-surface);
   --opale-background: #0c0f0d;
   --opale-surface: #262c27;
   --opale-surface-base: #1d221e;
@@ -341,6 +387,19 @@
   --opale-danger-on-surface: #f09a94;
 }
 
+/* LA POLICE D'OPALE EST POSÉE SUR CHAQUE RACINE DE COMPOSANT.
+
+   Chivo n'était déclarée que sur les boutons, les champs et la navigation : une
+   carte, un tableau ou un toast héritaient de la police de la page — system-ui,
+   ou celle du navigateur si rien d'autre n'était importé. Le sélecteur vise
+   les éléments Opale LES PLUS EXTÉRIEURS (sans ancêtre Opale) : leurs
+   descendants héritent ensuite normalement. `:where` le laisse sans
+   spécificité, donc toute règle qui choisit une autre police — les titres en
+   Bricolage Grotesque, le code en mono — l'emporte. */
+:where([class^='opale-'], [class*=' opale-']):not(:where([class^='opale-'], [class*=' opale-']) *) {
+  font-family: var(--opale-font-body);
+}
+
 .opale-surface,
 .opale-card,
 .opale-input-shell,
@@ -370,8 +429,8 @@
 .opale-table__sort:focus-visible,
 .opale-checkbox:focus-visible + .opale-checkbox-mark,
 .opale-toggle:focus-visible + .opale-toggle-track {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 
 .opale-button {
@@ -381,7 +440,7 @@
   isolation: isolate;
   display: inline-flex;
   min-width: 4rem;
-  min-height: 2.75rem;
+  min-height: var(--opale-control-md);
   align-items: center;
   justify-content: center;
   gap: var(--opale-space-xs);
@@ -389,9 +448,9 @@
   border-radius: 0;
   padding: 0.375rem 1.25rem;
   background: transparent;
-  color: #fbfaf9;
+  color: var(--opale-on-fill);
   cursor: pointer;
-  font: 600 0.875rem/1.75 var(--opale-font-body);
+  font: 600 var(--opale-text-sm) / var(--opale-leading-relaxed) var(--opale-font-body);
   text-transform: none;
   transition:
     transform var(--opale-motion-fast) var(--opale-ease),
@@ -443,35 +502,19 @@
   --opale-button-hover-background: var(--opale-primary-dark);
 }
 
-/* LES TROIS BOUTONS PLEINS, ET NON LE SEUL PRIMAIRE.
-
-   La règle ne visait que `--primary`. Or les trois fonds pleins du thème
-   sombre sont des tons MOYENS, et l'encre claire y échoue de la même façon :
-   mesuré sur les jetons, l'encre #fbfaf9 donne 3,48:1 sur le primaire,
-   2,09:1 sur le secondaire et 2,94:1 sur le danger. L'encre sombre, elle,
-   donne 5,23 / 8,71 / 6,18:1 — sans toucher à une seule couleur de fond.
-
-   C'est ce que fait déjà le bouton `accent` dans les deux thèmes : de l'encre
-   sombre sur de l'ambre. L'incohérence n'était pas le principe, c'était sa
-   portée. */
-:root[data-theme='dark'] .opale-button--primary,
-:root[data-theme='dark'] .opale-button--secondary,
-:root[data-theme='dark'] .opale-button--danger,
-:root[data-theme='dark'] .opale-checkbox:checked + .opale-checkbox-mark {
-  color: #0c0f0d;
-}
-
 /* SAUF SOUS VERRE, ET LA RAISON EST DANS LA RÈGLE CI-DESSUS.
 
-   En thème sombre, le primaire devient un bleu CLAIR : une encre sombre y est
+   En thème sombre, le primaire devient un bleu CLAIR : `--opale-on-fill` y est
+   sombre, ce qui est juste sur un bouton plein. Une encre sombre y est
    donc la bonne, sur un bouton plein. Sous verre, ce même bleu n'est plus un
    aplat mais un lavis à 26 % posé sur une photographie — l'encre sombre s'y
    retrouve sur l'image, pas sur le bouton. Mesuré avant correction :
    **3,47:1**, le seul défaut que le thème sombre ait produit.
 
-   La spécificité est délibérément portée à (0,3,0) : la règle du thème pèse
-   (0,2,0) et gagnerait autrement, quel que soit l'ordre des feuilles. */
-:root[data-theme='dark'] .opale-button--glass.opale-button--primary {
+   L'encre du verre vaut dans les deux thèmes : en clair, elle rejoint l'encre
+   claire du bouton plein ; en sombre, elle remplace l'encre sombre de
+   `--opale-on-fill`, qui serait posée sur la photographie. */
+.opale-button--glass.opale-button--primary {
   color: var(--opale-glass-ink);
 }
 
@@ -528,13 +571,13 @@
    Le bord masqué du bouton ghost produisait quatre fragments bleus, également
    visibles sous le verre : cette silhouette ne dessine aucun second contour. */
 .opale-icon-action-button {
-  --opale-icon-action-size: 2.75rem;
+  --opale-icon-action-size: var(--opale-control-md);
   inline-size: var(--opale-icon-action-size);
   min-inline-size: var(--opale-icon-action-size);
   block-size: var(--opale-icon-action-size);
   min-block-size: var(--opale-icon-action-size);
   padding: 0;
-  font-size: 1.125rem;
+  font-size: var(--opale-text-lg);
   line-height: 1;
 }
 
@@ -543,13 +586,13 @@
 }
 
 .opale-icon-action-button.opale-button--small {
-  --opale-icon-action-size: 2.25rem;
-  font-size: 1rem;
+  --opale-icon-action-size: var(--opale-control-sm);
+  font-size: var(--opale-text-md);
 }
 
 .opale-icon-action-button.opale-button--large {
-  --opale-icon-action-size: 3.25rem;
-  font-size: 1.25rem;
+  --opale-icon-action-size: var(--opale-control-lg);
+  font-size: var(--opale-text-xl);
 }
 
 .opale-icon-action-button.opale-button--full {
@@ -567,15 +610,15 @@
 }
 
 .opale-button--small {
-  min-height: 2.25rem;
+  min-height: var(--opale-control-sm);
   padding: 0.25rem 0.875rem;
-  font-size: 0.8125rem;
+  font-size: var(--opale-text-xs);
 }
 
 .opale-button--large {
-  min-height: 3rem;
+  min-height: var(--opale-control-lg);
   padding: 0.5rem 1.625rem;
-  font-size: 1rem;
+  font-size: var(--opale-text-md);
 }
 
 .opale-button--full {
@@ -962,7 +1005,6 @@
   border: 2px solid var(--opale-glass-ink);
 }
 
-
 /* LA COQUILLE DU CURSEUR EXISTE MAINTENANT DANS LES DEUX ÉTATS, sans quoi la
    piste changerait de boîte au basculement. Sans verre elle ne fait rien
    d'autre que porter la largeur. */
@@ -984,7 +1026,7 @@
 .opale-checkbox:checked + .opale-checkbox-mark::before,
 .opale-checkbox:checked + * .opale-checkbox-mark::before {
   content: '✓';
-  font-size: 0.75rem;
+  font-size: var(--opale-text-xs);
   font-weight: 700;
 }
 .opale-toggle:checked + .opale-toggle-track,
@@ -1001,14 +1043,12 @@
     --opale-icon-action-size: 2.75rem;
   }
 
-  .opale-button {
-    min-height: 3rem;
-  }
-  .opale-button--small {
-    min-height: 2.5rem;
-  }
-  .opale-button--large {
-    min-height: 3.25rem;
+  /* Au doigt, toute l'échelle grandit d'un cran : boutons et champs restent
+     alignés entre eux. */
+  :root {
+    --opale-control-sm: 2.5rem;
+    --opale-control-md: 3rem;
+    --opale-control-lg: 3.25rem;
   }
 }
 
@@ -1074,7 +1114,7 @@
 }
 
 .opale-card__title {
-  font-size: 1.2rem;
+  font-size: var(--opale-text-lg);
 }
 .opale-card__subtitle {
   margin: 0;
@@ -1106,18 +1146,18 @@
   color: var(--opale-text);
 }
 .opale-text--label {
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
   font-weight: 600;
 }
 .opale-text--caption {
   color: var(--opale-text-secondary);
-  font-size: 0.8125rem;
+  font-size: var(--opale-text-xs);
 }
 .opale-text--metric {
   font-family: var(--opale-font-display);
-  font-size: 2rem;
+  font-size: var(--opale-text-2xl);
   font-weight: 400;
-  line-height: 1.05;
+  line-height: var(--opale-leading-tight);
 }
 .opale-icon {
   display: inline-grid;
@@ -1125,7 +1165,7 @@
   min-height: 2.5rem;
   place-items: center;
   color: var(--opale-primary-on-surface);
-  font-size: 1.5rem;
+  font-size: var(--opale-text-xl);
 }
 
 /* LE TRACÉ SUIT LA TAILLE DU TEXTE, PAS UNE TAILLE EN DUR. `1em` fait que
@@ -1154,22 +1194,27 @@
 }
 .opale-field__label {
   color: var(--opale-text);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
   font-weight: 600;
 }
 .opale-field__helper {
   margin: 0;
   color: var(--opale-text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
 }
 .opale-field__helper--error {
   color: var(--opale-danger);
 }
 .opale-input-shell {
+  /* La coquille porte la hauteur, bordure comprise : le champ s'aligne au
+     pixel sur le bouton voisin. */
+  box-sizing: border-box;
   display: flex;
+  min-height: var(--opale-control-md);
   align-items: center;
   gap: var(--opale-space-xs);
   padding: 0 var(--opale-space-md);
+  border-color: var(--opale-field-border);
 }
 .opale-input-shell:focus-within {
   border-color: var(--opale-primary);
@@ -1178,12 +1223,13 @@
 .opale-input,
 .opale-select {
   width: 100%;
-  min-height: 3rem;
+  min-height: 0;
+  align-self: stretch;
   border: 0;
   outline: 0;
   background: transparent;
   color: var(--opale-text);
-  font: 400 1rem/1.5 var(--opale-font-body);
+  font: 400 var(--opale-text-md) / var(--opale-leading-snug) var(--opale-font-body);
 }
 /* Le champ intérieur est rectangulaire ; le focus suit la coquille arrondie. */
 .opale-input:focus-visible,
@@ -1192,8 +1238,8 @@
   box-shadow: none;
 }
 .opale-input-shell:has(> .opale-input:focus-visible, > .opale-select:focus-visible) {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-input::placeholder {
   color: var(--opale-text-secondary);
@@ -1249,7 +1295,7 @@
   display: grid;
   gap: 0.15rem;
   padding: var(--opale-space-2xs);
-  border: 1px solid var(--opale-divider);
+  border: 1px solid var(--opale-field-border);
   border-radius: var(--opale-radius-md);
   background: var(--opale-surface);
 }
@@ -1275,8 +1321,8 @@
   box-shadow: none;
 }
 .opale-multiselect:has(> .opale-multiselect__list:focus-visible) {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-multiselect:focus-within,
 .opale-multiselect:focus {
@@ -1293,7 +1339,7 @@
   border-radius: var(--opale-radius-sm);
   color: var(--opale-text);
   cursor: pointer;
-  font: 400 0.9375rem/1.4 var(--opale-font-body);
+  font: 400 var(--opale-text-sm) / var(--opale-leading-snug) var(--opale-font-body);
   transition: background var(--opale-motion) var(--opale-ease);
 }
 /* LE LAVIS DE LA DÉSIGNATION NE SE PEINT QUE SI LA LISTE A LE FOCUS, et c'est
@@ -1361,8 +1407,8 @@
    voyait pas où il était. Le lavis reste, pour le survol ; le liseré s'y
    ajoute, et lui ne dépend pas de la couleur. */
 .opale-multiselect:focus-within .opale-multiselect__option[data-active='true'] {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: -2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 .opale-multiselect--glass:focus-within .opale-multiselect__option[data-active='true'] {
   outline-color: var(--opale-glass-ink);
@@ -1392,11 +1438,11 @@
 }
 .opale-checkbox:checked + .opale-checkbox-mark {
   background: var(--opale-primary);
-  color: #fff;
+  color: var(--opale-on-fill);
 }
 .opale-checkbox:checked + .opale-checkbox-mark::before {
   content: '✓';
-  font-size: 0.75rem;
+  font-size: var(--opale-text-xs);
   font-weight: 700;
 }
 .opale-toggle-track {
@@ -1406,7 +1452,9 @@
   height: 1.75rem;
   align-items: center;
   border-radius: var(--opale-radius-pill);
-  background: color-mix(in srgb, var(--opale-primary) 32%, var(--opale-divider));
+  /* ÉTEINTE, LA PISTE PREND LE BORD DES CHAMPS : 4,16:1 sur la surface, là où
+     le lavis bleu-gris tenait 2,05:1 et se confondait avec le fond. */
+  background: var(--opale-field-border);
   cursor: pointer;
 }
 .opale-toggle-thumb {
@@ -1414,7 +1462,9 @@
   height: 1.25rem;
   margin-left: 0.25rem;
   border-radius: 50%;
-  background: #fff;
+  /* La surface et non #fff : en sombre, une poignée blanche sur une piste
+     claire ne se détacherait plus. */
+  background: var(--opale-surface);
   box-shadow: var(--opale-shadow-1);
   transition: transform var(--opale-motion) var(--opale-ease);
 }
@@ -1712,7 +1762,7 @@
   background: transparent;
   color: var(--opale-text-secondary);
   cursor: pointer;
-  font: 500 0.875rem var(--opale-font-body);
+  font: 500 var(--opale-text-sm) var(--opale-font-body);
   transition: color var(--opale-motion) var(--opale-ease);
 }
 .opale-segmented__item[aria-pressed='true'] {
@@ -1735,7 +1785,7 @@
   padding: 0.25rem 0.65rem;
   background: color-mix(in srgb, var(--opale-primary) 13%, transparent);
   color: var(--opale-primary-on-surface);
-  font-size: 0.8125rem;
+  font-size: var(--opale-text-xs);
   font-weight: 600;
 }
 .opale-badge--accent {
@@ -1815,14 +1865,14 @@
   flex: 1;
   min-width: 0;
   gap: var(--opale-space-2xs);
-  line-height: 1.4;
+  line-height: var(--opale-leading-snug);
 }
 .opale-cookie-banner__copy strong {
-  font-size: 1rem;
+  font-size: var(--opale-text-md);
 }
 .opale-cookie-banner__copy > div {
   color: var(--opale-text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
 }
 .opale-cookie-banner__actions {
   display: flex;
@@ -1915,7 +1965,7 @@
   text-align: left;
   text-decoration: none;
   cursor: pointer;
-  font: 500 0.9375rem var(--opale-font-body);
+  font: 500 var(--opale-text-sm) var(--opale-font-body);
 }
 .opale-nav__item:hover,
 .opale-nav__item[aria-current='page'] {
@@ -1966,7 +2016,7 @@
   align-items: center;
   gap: var(--opale-space-xs);
   color: var(--opale-text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
 }
 /* LE LIEN NE SE DISTINGUE PLUS PAR LA SEULE COULEUR. Contre le texte gris qui
    l'entoure, le primaire ne donne que 1,08:1 : en niveaux de gris ou en vision
@@ -2014,7 +2064,7 @@
   background: transparent;
   color: var(--opale-text-secondary);
   cursor: pointer;
-  font-size: 1.5rem;
+  font-size: var(--opale-text-xl);
 }
 
 /* Le corps de Modal peut défiler : une petite gouttière intérieure laisse
@@ -2171,10 +2221,10 @@
 }
 .opale-stat-card__label {
   color: var(--opale-text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
 }
 .opale-stat-card__value {
-  font-size: 2.369rem;
+  font-size: var(--opale-text-2xl);
 }
 .opale-stat-card__delta {
   color: var(--opale-primary-on-surface);
@@ -2260,7 +2310,7 @@
 .opale-table th {
   background: color-mix(in srgb, var(--opale-primary) 5%, var(--opale-surface));
   color: var(--opale-text-secondary);
-  font-size: 0.8125rem;
+  font-size: var(--opale-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -2323,8 +2373,8 @@
   border-radius: var(--opale-radius-pill);
   background: color-mix(in srgb, var(--opale-primary) 10%, var(--opale-surface));
   color: var(--opale-primary-on-surface);
-  font-size: 0.75rem;
-  line-height: 1.25rem;
+  font-size: var(--opale-text-xs);
+  line-height: var(--opale-leading-relaxed);
 }
 /* L'EN-TÊTE TRIABLE RESTE UN EN-TÊTE. Le bouton hérite de la casse, de la
    graisse et de l'approche de la cellule : seuls le curseur, le survol et la
@@ -2424,8 +2474,8 @@
   border-radius: 50%;
   content: '✓';
   background: var(--opale-primary);
-  color: #fff;
-  font-size: 0.75rem;
+  color: var(--opale-on-fill);
+  font-size: var(--opale-text-xs);
   line-height: 1;
 }
 /* LA VIGNETTE EST UN TRACÉ, PLUS UN GLYPHE. Elle affichait « ⌁ » — le signe
@@ -2465,8 +2515,8 @@
    le sélecteur de fichiers sans avoir su qu'on y était. L'anneau se dessine
    donc sur la ZONE, qui est ce que l'on voit. */
 .opale-dropzone:focus-within {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 3px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 /* `align-content: center` GROUPE LES LIGNES. Sans lui, les rangées de la grille
    s'étirent pour remplir les 9 rem, et le titre et l'action se retrouvaient
@@ -2554,8 +2604,8 @@
    rectangle du dessin, il était rogné par les arrondis et s'arrêtait net aux
    coins ; la plaque, elle, porte l'arrondi, et `outline` le suit. */
 .opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible) {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-svg-map__canvas {
   position: relative;
@@ -2687,7 +2737,7 @@
   background: var(--opale-text);
   box-shadow: var(--opale-shadow-2);
   color: var(--opale-surface);
-  font-size: 0.8125rem;
+  font-size: var(--opale-text-xs);
   font-weight: 600;
   pointer-events: none;
   transform: translate(-50%, calc(-100% - 0.5rem));
@@ -2701,7 +2751,7 @@
   border-radius: var(--opale-radius-pill);
   background: color-mix(in srgb, var(--opale-text) 86%, transparent);
   color: var(--opale-surface);
-  font-size: 0.8125rem;
+  font-size: var(--opale-text-xs);
   font-weight: 600;
   opacity: 0;
   pointer-events: none;
@@ -2745,7 +2795,7 @@
   flex-wrap: wrap;
   gap: var(--opale-space-md);
   color: var(--opale-text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
 }
 .opale-legal-links a {
   color: inherit;
@@ -2919,42 +2969,36 @@
    jeton de REMPLISSAGE du thème clair, assombri pour porter une encre claire. */
 .opale-toast--success {
   --opale-toast-tone: var(--opale-success-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-success);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 .opale-toast--warning {
   --opale-toast-tone: var(--opale-warning-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-warning);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 .opale-toast--error {
   --opale-toast-tone: var(--opale-danger-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-danger);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 .opale-toast--info {
   --opale-toast-tone: var(--opale-info-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-info);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 
-/* EN THÈME SOMBRE LES DEUX RÔLES S'ÉCHANGENT, en une règle plutôt qu'en
-   quatre. Les jetons de remplissage — `--opale-success`, `--opale-info` — ne
-   sont pas redéfinis pour le sombre : une carte remplie avec eux, déjà
-   assombrie de 20 %, serait un vert presque noir posé sur un sol noir. C'est
-   le `*-on-surface`, clair, qui devient le remplissage, et l'encre qui
-   s'assombrit — mesuré, l'encre y tient de 8,95 à 10,41:1 et la carte se
-   détache du sol de 8,43 à 9,80:1. */
-:root[data-theme='dark'] .opale-toast {
-  --opale-toast-fill: var(--opale-toast-tone);
-  --opale-toast-fill-ink: #0c0f0d;
-}
+/* EN THÈME SOMBRE LES DEUX RÔLES S'ÉCHANGENT, par les jetons `--opale-fill-*`
+   et `--opale-on-fill` du bloc de thème : le remplissage devient le ton clair
+   *-on-surface et l'encre s'assombrit — mesuré, l'encre y tient de 8,95 à
+   10,41:1. Portés par le thème et non par un sélecteur de racine, ils suivent
+   aussi le thème local d'une section de page. */
 
 .opale-toast__message {
   flex: 1 1 auto;
   min-inline-size: 0;
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: var(--opale-text-sm);
+  line-height: var(--opale-leading-snug);
 }
 
 /* LA CROIX EST SUR LA COULEUR, donc elle hérite de l'encre de la carte :
@@ -2995,7 +3039,7 @@
   min-width: 0;
   min-height: 0;
   color: inherit;
-  font-size: 1rem;
+  font-size: var(--opale-text-md);
 }
 
 .opale-toast__close:hover {
@@ -3006,8 +3050,8 @@
 }
 
 .opale-toast__close:focus-visible {
-  outline: 3px solid currentColor;
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid currentColor;
+  outline-offset: var(--opale-focus-ring-offset);
   opacity: 1;
 }
 
@@ -3059,8 +3103,8 @@
   gap: 0.375rem;
 }
 .opale-pagination button {
-  min-inline-size: 2.75rem;
-  min-block-size: 2.75rem;
+  min-inline-size: var(--opale-control-md);
+  min-block-size: var(--opale-control-md);
   border: 1px solid var(--opale-divider);
   border-radius: var(--opale-radius-sm);
   background: var(--opale-surface);
@@ -3071,7 +3115,7 @@
 .opale-pagination button[aria-current='page'] {
   border-color: var(--opale-primary);
   background: var(--opale-primary);
-  color: white;
+  color: var(--opale-on-fill);
 }
 .opale-pagination button:disabled {
   opacity: 0.5;
@@ -3111,8 +3155,8 @@
   cursor: inherit;
 }
 .opale-rating-input__option:has(input:focus-visible) {
-  outline: 3px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
   border-radius: var(--opale-radius-sm);
 }
 .opale-rating-input__option svg {
@@ -3128,17 +3172,14 @@
 .opale-rating-input__option[data-selected='true'] svg {
   fill: currentColor;
 }
-:root[data-theme='dark'] .opale-pagination button[aria-current='page'] {
-  color: #0c0f0d;
-}
 
 @media (max-width: 30rem) {
   .opale-pagination {
     gap: 0.25rem;
   }
   .opale-pagination button {
-    min-inline-size: 2.5rem;
-    min-block-size: 2.5rem;
+    min-inline-size: var(--opale-control-sm);
+    min-block-size: var(--opale-control-sm);
   }
   .opale-pagination button[data-neighbor='true'] {
     display: none;

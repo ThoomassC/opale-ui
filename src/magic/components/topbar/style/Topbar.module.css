@@ -68,21 +68,21 @@
   min-height: 3.25rem;
   padding: var(--opale-space-xs) var(--opale-space-sm);
   gap: var(--opale-space-sm);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
 }
 
 .comfortable {
   min-height: 4rem;
   padding: var(--opale-space-sm) var(--opale-space-md);
   gap: var(--opale-space-md);
-  font-size: 1rem;
+  font-size: var(--opale-text-md);
 }
 
 .spacious {
   min-height: 4.5rem;
   padding: var(--opale-space-md) var(--opale-space-lg);
   gap: var(--opale-space-lg);
-  font-size: 1rem;
+  font-size: var(--opale-text-md);
 }
 
 /* --- Les sections ---------------------------------------------------------
@@ -163,19 +163,19 @@
 .brandIconCompact {
   width: 2.25rem;
   height: 2.25rem;
-  font-size: 1rem;
+  font-size: var(--opale-text-md);
 }
 
 .brandIconComfortable {
   width: 2.5rem;
   height: 2.5rem;
-  font-size: 1.125rem;
+  font-size: var(--opale-text-md);
 }
 
 .brandIconSpacious {
   width: 2.75rem;
   height: 2.75rem;
-  font-size: 1.25rem;
+  font-size: var(--opale-text-lg);
 }
 
 .brandContent {
@@ -201,7 +201,7 @@
      texte courant. Le premier palier qui tient 4,5:1 est 85 % ; 86 % laisse une
      marge d'un point. La hiérarchie visuelle survit très bien à cet écart. */
   color: color-mix(in srgb, currentColor 86%, transparent);
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
   font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -210,7 +210,7 @@
 /* --- Les actions --------------------------------------------------------- */
 
 .actions {
-  font-size: 0.875rem;
+  font-size: var(--opale-text-sm);
   font-weight: 500;
 }
 

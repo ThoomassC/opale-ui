@@ -37,12 +37,15 @@ describe('la forme interactive OpaleUI', () => {
     expect(root).toContain('0.0057');
     expect(root).toContain('0.7427');
 
-    expect(button).toMatch(/min-height:\s*2\.75rem/);
+    expect(button).toMatch(/min-height:\s*var\(--opale-control-md\)/);
+    expect(opaleSource).toMatch(/--opale-control-md:\s*2\.75rem/);
     expect(button).toMatch(/padding:\s*0\.375rem\s+1\.25rem/);
-    expect(button).toMatch(/font:\s*600\s+0\.875rem\/1\.75/);
+    expect(button).toMatch(/font:\s*600\s+var\(--opale-text-sm\)\s*\/\s*var\(--opale-leading-relaxed\)/);
     expect(button).toMatch(/border-radius:\s*0/);
-    expect(small).toMatch(/min-height:\s*2\.25rem/);
-    expect(large).toMatch(/min-height:\s*3rem/);
+    expect(small).toMatch(/min-height:\s*var\(--opale-control-sm\)/);
+    expect(large).toMatch(/min-height:\s*var\(--opale-control-lg\)/);
+    expect(root).toMatch(/--opale-control-sm:\s*2\.25rem/);
+    expect(root).toMatch(/--opale-control-lg:\s*3rem/);
   });
 
   /* CE GARDE A CHANGÉ D'INTENTION, ET C'EST DÉLIBÉRÉ. Il épinglait une graisse
@@ -66,7 +69,7 @@ describe('la forme interactive OpaleUI', () => {
        sujet, et aucun autre test ne le verrait. */
     expect(homeTitle).toMatch(/font-weight:\s*600/);
     expect(stats).toMatch(/font:\s*600\s+clamp\(1\.4rem,\s*2\.5vw,\s*2rem\)/);
-    expect(ruleBody(opaleSource, '.opale-text--metric') ?? '').toMatch(/font-size:\s*2rem/);
+    expect(ruleBody(opaleSource, '.opale-text--metric') ?? '').toMatch(/font-size:\s*var\(--opale-text-2xl\)/);
   });
 
   /* LA POLICE DE TITRE EST SERVIE PAR LA MÊME REQUÊTE QUE CHIVO, et c'est la
@@ -153,9 +156,10 @@ describe('la forme interactive OpaleUI', () => {
     expect(shape).toMatch(/clip-path:\s*var\(--opale-squircle-clip\)/);
     expect(shape).toMatch(/background:\s*var\(--opale-button-background\)/);
     expect(opaleSource).toMatch(
-      /\.opale-button:focus-visible,[\s\S]{0,240}outline:\s*3px\s+solid\s+var\(--opale-focus\)/,
+      /\.opale-button:focus-visible,[\s\S]{0,240}outline:\s*var\(--opale-focus-ring-width\)\s+solid\s+var\(--opale-focus\)/,
     );
-    expect(opaleSource).toMatch(/outline-offset:\s*3px/);
+    expect(opaleSource).toMatch(/--opale-focus-ring-width:\s*3px/);
+    expect(opaleSource).toMatch(/--opale-focus-ring-offset:\s*3px/);
   });
 
   it.each([

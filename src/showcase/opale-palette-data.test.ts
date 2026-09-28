@@ -56,6 +56,8 @@ function resolve(theme: 'light' | 'dark', token: string): string | undefined {
    exclusion dont le jeton n'existe plus fait rougir le test : une exclusion
    périmée est un mensonge silencieux. */
 const NOT_PLATED: Readonly<Record<string, string>> = {
+  '--opale-on-fill':
+    'encre posée sur les remplissages pleins — claire en thème clair, sombre en thème sombre ; elle n’a de sens que sur un bouton, et le contrat de contraste la mesure',
   '--opale-focus':
     'anneau de focus — dans la vitrine, un graphite tiré de --opale-text : il n’a pas de teinte propre à montrer',
   '--opale-glass-surface':

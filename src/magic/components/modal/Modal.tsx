@@ -131,6 +131,10 @@ const sizeClass: Record<ModalSize, string> = {
    de focus deviendrait intestable, et un test qui ne teste rien est pire que
    pas de test. Un élément caché à l'intérieur d'un dialogue ouvert reste par
    ailleurs un cas rare ; l'arrière-plan, lui, est traité par `inert`. */
+/** Un élément qui porte cet attribut échappe à l'inertie posée par la modale :
+ *  les régions live des toasts, ou toute annonce qu'un hôte veut garder audible. */
+export const MODAL_EXEMPT_ATTRIBUTE = 'data-opale-modal-exempt';
+
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'area[href]',
@@ -319,13 +323,29 @@ const Modal = ({
 
     const restore: Array<[HTMLElement, string | null, string | null]> = [];
 
+    /* UNE RÉGION EXEMPTÉE RESTE VIVANTE. Les toasts se rendent dans `<body>` :
+       rendus inertes, un « Enregistré » lancé depuis la modale n'était jamais
+       annoncé et sa croix ne répondait plus. Un frère qui CONTIENT une région
+       exemptée n'est donc pas neutralisé en bloc : on descend dans ses enfants,
+       et seule la branche de la région est épargnée. */
+    const neutralize = (element: HTMLElement) => {
+      if (element.hasAttribute(MODAL_EXEMPT_ATTRIBUTE)) return;
+      if (element.querySelector(`[${MODAL_EXEMPT_ATTRIBUTE}]`)) {
+        for (const child of element.children) {
+          if (child instanceof HTMLElement) neutralize(child);
+        }
+        return;
+      }
+      restore.push([element, element.getAttribute('inert'), element.getAttribute('aria-hidden')]);
+      element.setAttribute('inert', '');
+      element.setAttribute('aria-hidden', 'true');
+    };
+
     let level: HTMLElement | null = node;
     while (level && level !== document.body && level.parentElement) {
       for (const sibling of level.parentElement.children) {
         if (sibling === level || !(sibling instanceof HTMLElement)) continue;
-        restore.push([sibling, sibling.getAttribute('inert'), sibling.getAttribute('aria-hidden')]);
-        sibling.setAttribute('inert', '');
-        sibling.setAttribute('aria-hidden', 'true');
+        neutralize(sibling);
       }
       level = level.parentElement;
     }

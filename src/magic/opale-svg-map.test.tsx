@@ -353,7 +353,7 @@ describe('SvgMap — les coins de la plaque', () => {
     expect(svgRule).toMatch(/box-shadow:\s*none/);
     expect(
       ruleBodies(css, '.opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible)').join(''),
-    ).toMatch(/outline:\s*3px solid var\(--opale-focus\)/);
+    ).toMatch(/outline:\s*var\(--opale-focus-ring-width\) solid var\(--opale-focus\)/);
   });
 });
 

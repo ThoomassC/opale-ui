@@ -95,7 +95,7 @@
   padding-top: var(--opale-space-sm);
   padding-inline: var(--opale-space-sm);
   color: color-mix(in srgb, currentColor 68%, transparent);
-  font-size: 0.75rem;
+  font-size: var(--opale-text-xs);
 }
 
 /* --- La liste ------------------------------------------------------------- */
@@ -176,8 +176,8 @@
    donc l'entrée ne se décale pas d'un pixel au moment où on l'atteint. */
 .item:focus-visible,
 .toggle:focus-visible {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
   box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
 }
 
@@ -238,7 +238,7 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: var(--opale-text-lg);
   line-height: 1;
 }
 
@@ -268,7 +268,7 @@
   border-radius: var(--opale-radius-pill);
   padding: 0.0625rem var(--opale-space-xs);
   background: color-mix(in srgb, currentColor 20%, transparent);
-  font-size: 0.75rem;
+  font-size: var(--opale-text-xs);
   font-weight: 600;
 }
 
@@ -315,7 +315,7 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: var(--opale-text-md);
   font-weight: 600;
   line-height: 1;
 }

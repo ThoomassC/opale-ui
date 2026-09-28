@@ -19,6 +19,10 @@ describe('SiteNavContent', () => {
     const header = specimenHeader();
     expect(header?.closest('.tc-doc-opale-plainstage')).not.toBeNull();
     expect(header?.closest('.tc-doc-magicstage')).toBeNull();
+    /* LE COMPOSANT TEL QU'IL EST LIVRÉ. La vitrine repeignait la barre en bleu
+       pour masquer l'accent teal de l'ancien jeu de jetons ; SiteNav porte
+       désormais le primaire d'Opale, il n'y a plus rien à masquer. */
+    expect(header?.style.background).toBe('');
   });
 
   it('passe au verre liquide sur la photographie, sans aplat imposé', async () => {

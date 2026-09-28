@@ -102,6 +102,11 @@ export const OPALE_PLATES: readonly Plate[] = [
           { token: '--opale-info', hex: '#1a4f8b', against: 'information' },
           { token: '--opale-success', hex: '#2e7d32', against: 'succès' },
           { token: '--opale-warning', hex: '#b26a00', against: 'avertissement' },
+          {
+            token: '--opale-warning-on-surface',
+            hex: '#9a5a00',
+            against: 'texte d’avertissement — plus sombre que le ton, pour tenir 4,5:1',
+          },
           { token: '--opale-danger', hex: '#b3261e', against: 'erreur, action destructrice' },
         ],
       },
@@ -170,6 +175,11 @@ export const OPALE_PLATES: readonly Plate[] = [
           { token: '--opale-info', hex: '#1a4f8b', against: 'information — hérité du clair' },
           { token: '--opale-success', hex: '#2e7d32', against: 'succès — hérité du clair' },
           { token: '--opale-warning', hex: '#b26a00', against: 'avertissement — hérité du clair' },
+          {
+            token: '--opale-warning-on-surface',
+            hex: '#f0b366',
+            against: 'texte d’avertissement sur le sol sombre',
+          },
           { token: '--opale-danger', hex: '#e2726b', against: 'erreur, action destructrice' },
         ],
       },

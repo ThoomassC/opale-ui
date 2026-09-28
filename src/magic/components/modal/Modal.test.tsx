@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import Modal, { type ModalProps } from './Modal';
+import { ToastProvider, useToast } from '../toast';
 
 /* =============================================================================
    LES SIX CAS D'ORIGINE SONT TOUS LÀ, ET AUCUN N'A ÉTÉ AFFAIBLI.
@@ -196,6 +197,60 @@ describe('Modal', () => {
     rerender(<Harness open={false} />);
     expect(background).not.toHaveAttribute('inert');
     expect(background).not.toHaveAttribute('aria-hidden');
+  });
+
+  /* A11Y-02 — un « Enregistré » lancé depuis la modale n'était pas annoncé :
+     les régions live des toasts, portées dans `<body>`, recevaient `inert` et
+     `aria-hidden` comme le reste de l'arrière-plan. */
+  it('laisse les toasts audibles et cliquables pendant l’ouverture', () => {
+    const Emit = () => {
+      const { showToast } = useToast();
+      return (
+        <button type="button" onClick={() => showToast({ title: 'Enregistré', duration: 0 })}>
+          Enregistrer
+        </button>
+      );
+    };
+
+    const { baseElement } = render(
+      <ToastProvider>
+        <button type="button">Derrière</button>
+        <Modal open onClose={() => {}} title="Glass modal">
+          <Emit />
+        </Modal>
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    const portal = screen.getByTestId('toast-portal');
+    for (let node: HTMLElement | null = portal; node && node !== baseElement; node = node.parentElement) {
+      expect(node).not.toHaveAttribute('inert');
+      expect(node).not.toHaveAttribute('aria-hidden');
+    }
+    expect(
+      screen.getAllByRole('status').some((region) => region.textContent?.includes('Enregistré')),
+    ).toBe(true);
+    expect(baseElement.querySelector('div')).toHaveAttribute('inert');
+  });
+
+  it('épargne une région exemptée même rendue au fond d’un arrière-plan', () => {
+    const { baseElement } = render(
+      <>
+        <div data-testid="app">
+          <p>Contenu</p>
+          <div data-opale-modal-exempt="" data-testid="live" />
+        </div>
+        <Modal open onClose={() => {}} title="Glass modal">
+          <p>Modal body content</p>
+        </Modal>
+      </>,
+    );
+
+    expect(screen.getByTestId('live')).not.toHaveAttribute('inert');
+    expect(screen.getByTestId('app')).not.toHaveAttribute('inert');
+    expect(screen.getByText('Contenu')).toHaveAttribute('inert');
+    expect(baseElement).not.toHaveAttribute('inert');
   });
 
   it('n’expose aucun dialogue quand il est fermé', () => {

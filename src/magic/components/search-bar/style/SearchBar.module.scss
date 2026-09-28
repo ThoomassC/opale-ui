@@ -7,15 +7,15 @@
   box-sizing: border-box;
   display: flex;
   width: 100%;
-  min-height: var(--target-min, 44px);
+  min-height: var(--opale-control-md);
   align-items: center;
   gap: var(--opale-space-xs, 0.5rem);
   padding-inline: var(--opale-space-sm, 0.75rem);
   border: 1px solid color-mix(in srgb, #ffffff 72%, transparent);
   border-radius: inherit;
   background: transparent;
-  color: var(--lg-text, #ffffff);
-  transition: border-color var(--motion-color, 160ms) var(--motion-ease, ease);
+  color: var(--opale-glass-ink);
+  transition: border-color var(--opale-motion-fast) var(--opale-ease);
 }
 
 .searchBar:focus-within {
@@ -28,6 +28,17 @@
   --opale-glass-edge: var(--opale-primary-light, #a9c7f4);
   --opale-glass-tint: rgba(255, 255, 255, 0.06);
   box-shadow: none;
+}
+
+/* Au clavier, l'anneau commun cerne la barre : sur le verre, dont le halo est
+   éteint ci-dessus, le contour bleu seul ne se distinguait pas du repos. */
+.root:has(.input:focus-visible) {
+  outline: var(--opale-focus-ring-width) solid var(--opale-glass-ink);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+
+.plain:has(.input:focus-visible) {
+  outline-color: var(--opale-focus);
 }
 
 .icon {
@@ -68,15 +79,15 @@
 }
 
 .small {
-  font-size: 0.75rem;
+  font-size: var(--opale-text-xs);
 }
 
 .medium {
-  font-size: 0.9375rem;
+  font-size: var(--opale-text-sm);
 }
 
 .large {
-  font-size: 1.125rem;
+  font-size: var(--opale-text-md);
 }
 
 .disabled {

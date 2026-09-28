@@ -136,8 +136,8 @@
 }
 
 .panel:focus-visible {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: -4px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 
 /* L'EN-TÊTE EST SÉPARÉ DU CORPS PAR UN FILET, ET IL LE FALLAIT. Titre, texte
@@ -178,17 +178,17 @@
   margin: 0;
   color: var(--opale-text);
   font-family: var(--opale-font-title);
-  font-size: 1.5rem;
+  font-size: var(--opale-text-xl);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--opale-leading-tight);
   letter-spacing: -0.01em;
 }
 
 .description {
   margin: 0;
   color: var(--opale-text-secondary);
-  font-size: 1rem;
-  line-height: 1.4;
+  font-size: var(--opale-text-md);
+  line-height: var(--opale-leading-snug);
 }
 
 /* LA CROIX NE CONCURRENCE PLUS LE TITRE.
@@ -243,8 +243,8 @@
 }
 
 .close:focus-visible {
-  outline: 2px solid var(--opale-focus);
-  outline-offset: 2px;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }
 
 .body {
@@ -254,8 +254,8 @@
   overflow-y: auto;
   padding-right: var(--opale-space-2xs);
   color: var(--opale-text);
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: var(--opale-text-md);
+  line-height: var(--opale-leading-relaxed);
 }
 
 .footer {
