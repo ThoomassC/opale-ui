@@ -3,6 +3,15 @@
    without translating a second vocabulary. */
 :root,
 [data-opale-page-theme='light'] {
+  /* L'ENCRE ET LES REMPLISSAGES PLEINS SONT DES JETONS DE THÈME. Écrits en dur
+     et corrigés sous `:root[data-theme='dark']`, ils ne suivaient pas le thème
+     local de PageScaffold : texte des boutons à 2,82:1 dans une section
+     sombre. Redéfinis dans chaque bloc, ils héritent comme le reste. */
+  --opale-on-fill: #fbfaf9;
+  --opale-fill-success: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
+  --opale-fill-warning: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
+  --opale-fill-danger: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
+  --opale-fill-info: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
   --opale-background: #f7f4ef;
   --opale-surface: #ffffff;
   --opale-surface-base: #fbfaf9;
@@ -285,6 +294,15 @@
 
 :root[data-theme='dark'],
 [data-opale-page-theme='dark'] {
+  /* Les fonds pleins du sombre sont des tons MOYENS : l'encre sombre y tient
+     5,23:1 (primaire), 8,71:1 (secondaire), 6,18:1 (danger), là où la claire
+     tombait sous 3,5:1. Les tons de toast passent par le jeton clair
+     *-on-surface : un remplissage assombri serait noir sur un sol noir. */
+  --opale-on-fill: #0c0f0d;
+  --opale-fill-success: var(--opale-success-on-surface);
+  --opale-fill-warning: var(--opale-warning-on-surface);
+  --opale-fill-danger: var(--opale-danger-on-surface);
+  --opale-fill-info: var(--opale-info-on-surface);
   --opale-background: #0c0f0d;
   --opale-surface: #262c27;
   --opale-surface-base: #1d221e;
@@ -389,7 +407,7 @@
   border-radius: 0;
   padding: 0.375rem 1.25rem;
   background: transparent;
-  color: #fbfaf9;
+  color: var(--opale-on-fill);
   cursor: pointer;
   font: 600 0.875rem/1.75 var(--opale-font-body);
   text-transform: none;
@@ -443,35 +461,19 @@
   --opale-button-hover-background: var(--opale-primary-dark);
 }
 
-/* LES TROIS BOUTONS PLEINS, ET NON LE SEUL PRIMAIRE.
-
-   La règle ne visait que `--primary`. Or les trois fonds pleins du thème
-   sombre sont des tons MOYENS, et l'encre claire y échoue de la même façon :
-   mesuré sur les jetons, l'encre #fbfaf9 donne 3,48:1 sur le primaire,
-   2,09:1 sur le secondaire et 2,94:1 sur le danger. L'encre sombre, elle,
-   donne 5,23 / 8,71 / 6,18:1 — sans toucher à une seule couleur de fond.
-
-   C'est ce que fait déjà le bouton `accent` dans les deux thèmes : de l'encre
-   sombre sur de l'ambre. L'incohérence n'était pas le principe, c'était sa
-   portée. */
-:root[data-theme='dark'] .opale-button--primary,
-:root[data-theme='dark'] .opale-button--secondary,
-:root[data-theme='dark'] .opale-button--danger,
-:root[data-theme='dark'] .opale-checkbox:checked + .opale-checkbox-mark {
-  color: #0c0f0d;
-}
-
 /* SAUF SOUS VERRE, ET LA RAISON EST DANS LA RÈGLE CI-DESSUS.
 
-   En thème sombre, le primaire devient un bleu CLAIR : une encre sombre y est
+   En thème sombre, le primaire devient un bleu CLAIR : `--opale-on-fill` y est
+   sombre, ce qui est juste sur un bouton plein. Une encre sombre y est
    donc la bonne, sur un bouton plein. Sous verre, ce même bleu n'est plus un
    aplat mais un lavis à 26 % posé sur une photographie — l'encre sombre s'y
    retrouve sur l'image, pas sur le bouton. Mesuré avant correction :
    **3,47:1**, le seul défaut que le thème sombre ait produit.
 
-   La spécificité est délibérément portée à (0,3,0) : la règle du thème pèse
-   (0,2,0) et gagnerait autrement, quel que soit l'ordre des feuilles. */
-:root[data-theme='dark'] .opale-button--glass.opale-button--primary {
+   L'encre du verre vaut dans les deux thèmes : en clair, elle rejoint l'encre
+   claire du bouton plein ; en sombre, elle remplace l'encre sombre de
+   `--opale-on-fill`, qui serait posée sur la photographie. */
+.opale-button--glass.opale-button--primary {
   color: var(--opale-glass-ink);
 }
 
@@ -1392,7 +1394,7 @@
 }
 .opale-checkbox:checked + .opale-checkbox-mark {
   background: var(--opale-primary);
-  color: #fff;
+  color: var(--opale-on-fill);
 }
 .opale-checkbox:checked + .opale-checkbox-mark::before {
   content: '✓';
@@ -2424,7 +2426,7 @@
   border-radius: 50%;
   content: '✓';
   background: var(--opale-primary);
-  color: #fff;
+  color: var(--opale-on-fill);
   font-size: 0.75rem;
   line-height: 1;
 }
@@ -2919,36 +2921,30 @@
    jeton de REMPLISSAGE du thème clair, assombri pour porter une encre claire. */
 .opale-toast--success {
   --opale-toast-tone: var(--opale-success-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-success);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 .opale-toast--warning {
   --opale-toast-tone: var(--opale-warning-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-warning);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 .opale-toast--error {
   --opale-toast-tone: var(--opale-danger-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-danger);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 .opale-toast--info {
   --opale-toast-tone: var(--opale-info-on-surface);
-  --opale-toast-fill: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
-  --opale-toast-fill-ink: #fbfaf9;
+  --opale-toast-fill: var(--opale-fill-info);
+  --opale-toast-fill-ink: var(--opale-on-fill);
 }
 
-/* EN THÈME SOMBRE LES DEUX RÔLES S'ÉCHANGENT, en une règle plutôt qu'en
-   quatre. Les jetons de remplissage — `--opale-success`, `--opale-info` — ne
-   sont pas redéfinis pour le sombre : une carte remplie avec eux, déjà
-   assombrie de 20 %, serait un vert presque noir posé sur un sol noir. C'est
-   le `*-on-surface`, clair, qui devient le remplissage, et l'encre qui
-   s'assombrit — mesuré, l'encre y tient de 8,95 à 10,41:1 et la carte se
-   détache du sol de 8,43 à 9,80:1. */
-:root[data-theme='dark'] .opale-toast {
-  --opale-toast-fill: var(--opale-toast-tone);
-  --opale-toast-fill-ink: #0c0f0d;
-}
+/* EN THÈME SOMBRE LES DEUX RÔLES S'ÉCHANGENT, par les jetons `--opale-fill-*`
+   et `--opale-on-fill` du bloc de thème : le remplissage devient le ton clair
+   *-on-surface et l'encre s'assombrit — mesuré, l'encre y tient de 8,95 à
+   10,41:1. Portés par le thème et non par un sélecteur de racine, ils suivent
+   aussi le thème local d'une section de page. */
 
 .opale-toast__message {
   flex: 1 1 auto;
@@ -3071,7 +3067,7 @@
 .opale-pagination button[aria-current='page'] {
   border-color: var(--opale-primary);
   background: var(--opale-primary);
-  color: white;
+  color: var(--opale-on-fill);
 }
 .opale-pagination button:disabled {
   opacity: 0.5;
@@ -3127,9 +3123,6 @@
 
 .opale-rating-input__option[data-selected='true'] svg {
   fill: currentColor;
-}
-:root[data-theme='dark'] .opale-pagination button[aria-current='page'] {
-  color: #0c0f0d;
 }
 
 @media (max-width: 30rem) {

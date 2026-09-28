@@ -4,6 +4,9 @@ import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import opaleSheet from './opale.css?raw';
+import { compositeOver, contrastRatio, withAlpha } from '../contract/color';
+import { parseThemes, resolveToken } from '../contract/stylesheet';
+import type { Theme } from '../contract/stylesheet';
 import { Opale } from './index';
 import { CatalogPreview } from '../showcase/pages/catalog-preview';
 
@@ -274,30 +277,46 @@ describe('le ton plein', () => {
     expect(carte?.querySelector('svg')).toBeNull();
   });
 
-  /* L'ASSOMBRISSEMENT EST LA CONDITION DE LISIBILITÉ. Sans lui, l'ambre sous
-     une encre claire tient 4,07:1 — sous le seuil du texte. Le mélange porte
-     le pire des quatre à 5,57:1. */
-  it.each(['success', 'warning', 'error', 'info'] as const)(
-    'devrait assombrir le remplissage du ton %s pour porter une encre claire',
-    (tone) => {
+  /* LE TON PASSE PAR LES JETONS DE THÈME. Le remplissage et son encre étaient
+     écrits dans chaque ton, puis corrigés sous `:root[data-theme='dark']` :
+     un toast dans une section sombre d'une page claire gardait l'encre du
+     clair. `--opale-fill-*` et `--opale-on-fill` sont redéfinis dans chaque
+     bloc de thème, local compris. */
+  const TONES = { success: 'success', warning: 'warning', error: 'danger', info: 'info' } as const;
+
+  it.each(Object.entries(TONES))(
+    'devrait remplir le ton %s par son jeton de thème et écrire avec l’encre des remplissages',
+    (tone, token) => {
       const corps = rule(`.opale-toast--${tone}`);
 
-      expect(corps).toMatch(
-        /--opale-toast-fill:\s*color-mix\(in srgb, var\(--opale-\w+\) 80%, var\(--opale-text\)\)/,
-      );
-      expect(corps).toMatch(/--opale-toast-fill-ink:\s*#fbfaf9/);
+      expect(corps).toMatch(new RegExp(`--opale-toast-fill:\\s*var\\(--opale-fill-${token}\\)`));
+      expect(corps).toMatch(/--opale-toast-fill-ink:\s*var\(--opale-on-fill\)/);
     },
   );
 
-  /* LES DEUX RÔLES S'ÉCHANGENT D'UN THÈME À L'AUTRE. Les jetons de
-     remplissage ne sont pas redéfinis pour le sombre : une carte remplie avec
-     eux, déjà assombrie de 20 %, serait un vert presque noir sur un sol noir. */
-  it('devrait échanger le remplissage et l’encre en thème sombre', () => {
-    const sombre = rule(":root[data-theme='dark'] .opale-toast");
+  /* L'ASSOMBRISSEMENT EST LA CONDITION DE LISIBILITÉ, ET IL SE MESURE. En clair,
+     le ton assombri de 20 % porte l'encre claire (l'ambre seul tiendrait
+     4,07:1) ; en sombre, le ton clair *-on-surface porte l'encre sombre. */
+  const themes = new Map<string, Theme>(parseThemes(opaleSheet).map((t) => [t.name, t]));
 
-    expect(sombre).toMatch(/--opale-toast-fill:\s*var\(--opale-toast-tone\)/);
-    expect(sombre).toMatch(/--opale-toast-fill-ink:\s*#0c0f0d/);
-  });
+  /** Un jeton résolu, `color-mix(in srgb, A N%, B)` composé comme le peint le navigateur. */
+  function paint(theme: Theme, token: string): string {
+    const value = resolveToken(theme, token);
+    const mix = /^color-mix\(in srgb,\s*(.+?)\s+(\d+)%,\s*(.+)\)$/.exec(value);
+    return mix ? compositeOver(withAlpha(mix[1], Number(mix[2]) / 100), mix[3]) : value;
+  }
+
+  for (const name of ['light', 'dark-explicit'] as const) {
+    it.each(Object.values(TONES))(
+      `devrait tenir 4,5:1 sur le remplissage %s en ${name}`,
+      (token) => {
+        const theme = themes.get(name) as Theme;
+        expect(
+          contrastRatio(paint(theme, '--opale-on-fill'), paint(theme, `--opale-fill-${token}`)),
+        ).toBeGreaterThanOrEqual(4.5);
+      },
+    );
+  }
 
   /* LA CROIX EST POSÉE SUR LA COULEUR. Une encre secondaire y serait un gris
      sur du vert, et un anneau de focus bleu sur une carte rouge ne se verrait
