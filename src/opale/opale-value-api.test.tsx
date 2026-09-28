@@ -226,9 +226,7 @@ describe('MultiSelect', () => {
             calls.push(`onValueChange:${next.join(',')}`);
             setValue(next);
           }}
-          onChange={(event) =>
-            calls.push(`onChange:${event.currentTarget.selectedOptions.length}`)
-          }
+          onChange={(event) => calls.push(`onChange:${event.currentTarget.selectedOptions.length}`)}
         />
       );
     }

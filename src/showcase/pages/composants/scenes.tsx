@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { UI_VERSION } from '../../version';
 
 import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../opale';
-import type { OpaleIconName, ToastDefinition } from '../../../opale';
+import type { OpaleIconName, OpaleSize, ToastDefinition } from '../../../opale';
 
 import { MaterialSwitch, PlainStage } from './material-switch';
 
@@ -146,7 +146,7 @@ export function TabsControlledScene() {
 }
 
 export interface ModalSceneProps {
-  readonly size?: 'sm' | 'md' | 'lg';
+  readonly size?: OpaleSize;
   /** La matière du panneau. Originale par défaut, comme partout ailleurs. */
   readonly liquidGlass?: boolean;
   readonly closeOnOverlay?: boolean;
@@ -178,7 +178,7 @@ export function ModalScene({
 
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
+        onOpenChange={setOpen}
         liquidGlass={liquidGlass}
         size={size}
         closeOnOverlay={closeOnOverlay}
@@ -249,28 +249,28 @@ export function ToastVariantScene({ liquidGlass = false }: { liquidGlass?: boole
     <ToastProvider duration={4000} liquidGlass={liquidGlass}>
       <div className="tc-doc-opale-scenerow">
         <ToastTrigger
-          label="default"
+          label="neutral"
           toast={{ title: 'Brouillon enregistré', description: 'Il y a un instant.' }}
         />
         <ToastTrigger
           label="success"
-          toast={{ variant: 'success', title: 'Étape publiée', description: 'Kyoto, 3 jours.' }}
+          toast={{ tone: 'success', title: 'Étape publiée', description: 'Kyoto, 3 jours.' }}
         />
         <ToastTrigger
           label="warning"
           toast={{
-            variant: 'warning',
+            tone: 'warning',
             title: 'Carte non régénérée',
             description: 'Les étapes ont bougé depuis.',
           }}
         />
         <ToastTrigger
           label="error"
-          toast={{ variant: 'error', title: 'Publication refusée', description: 'Titre manquant.' }}
+          toast={{ tone: 'error', title: 'Publication refusée', description: 'Titre manquant.' }}
         />
         <ToastTrigger
           label="info"
-          toast={{ variant: 'info', title: 'Carte régénérée', description: '12 étapes.' }}
+          toast={{ tone: 'info', title: 'Carte régénérée', description: '12 étapes.' }}
         />
         <ToastClear />
       </div>

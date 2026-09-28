@@ -48,6 +48,7 @@ const EXPORT_NAMES = [
   'DataTableColumn',
   'DataTableProps',
   'DataTableRow',
+  'DataTableSize',
   'DataTableSort',
   'DataTableSortDirection',
   'DescriptionList',

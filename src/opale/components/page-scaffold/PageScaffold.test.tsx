@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Opale } from '../../opale';
 import { PageScaffold } from './PageScaffold';
+import topbarClasses from '../topbar/style/Topbar.module.css';
 
 describe('PageScaffold', () => {
   it('est le même composant depuis l’export nommé et le namespace Opale', () => {
@@ -308,5 +309,17 @@ describe('PageScaffold', () => {
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: 'Introduction libre' })).toBeVisible();
     expect(screen.getByText('Contenu libre')).toBeVisible();
+  });
+});
+
+describe('PageScaffold — headerSize', () => {
+  it.each([
+    ['small', 'compact'],
+    ['medium', 'comfortable'],
+    ['large', 'spacious'],
+  ] as const)('devrait accepter headerSize="%s" comme "%s"', (size, legacy) => {
+    render(<PageScaffold headerSize={size}>Contenu</PageScaffold>);
+
+    expect(screen.getByRole('banner')).toHaveClass(topbarClasses[legacy]);
   });
 });

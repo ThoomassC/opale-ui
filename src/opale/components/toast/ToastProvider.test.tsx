@@ -7,6 +7,7 @@ import {
   type ToastDefinition,
   type ToastProviderProps,
 } from './ToastProvider';
+import toastClasses from './style/Toast.module.css';
 
 /* =============================================================================
    CE QUE CETTE SUITE TIENT, ET POURQUOI ELLE N'EXISTAIT PAS.
@@ -338,5 +339,65 @@ describe('ToastProvider', () => {
 
     expect(returned).toBeTypeOf('string');
     expect(returned).not.toHaveLength(0);
+  });
+});
+
+/* =============================================================================
+   `tone`, LE VOCABULAIRE PARTAGÉ. `variant` reste accepté ; `'default'` y vaut
+   `'neutral'`. Les cas ci-dessus, écrits avec `variant`, prouvent l'alias.
+   ========================================================================== */
+
+describe('ToastProvider — tone', () => {
+  const surfaceOf = (title: string) => {
+    const card = screen
+      .getAllByTestId('toast')
+      .find((element) => element.contains(screen.getByText(title)));
+    return card?.firstElementChild;
+  };
+
+  it('devrait porter le ton passé par tone, et l’annoncer au bon niveau', () => {
+    renderWithProvider(
+      <Trigger label="Erreur" toast={{ title: 'Publication refusée', tone: 'error' }} />,
+      { duration: Infinity },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Erreur' }));
+
+    expect(surfaceOf('Publication refusée')).toHaveClass(toastClasses.error);
+    const region = screen
+      .getAllByRole('alert')
+      .find((element) => element.contains(screen.getByText('Publication refusée')));
+    expect(region).toBeDefined();
+  });
+
+  it('devrait traiter variant "default" comme tone "neutral"', () => {
+    renderWithProvider(
+      <>
+        <Trigger label="Ancien" toast={{ title: 'Toast ancien', variant: 'default' }} />
+        <Trigger label="Neutre" toast={{ title: 'Toast neutre', tone: 'neutral' }} />
+        <Trigger label="Rien" toast={{ title: 'Toast sans ton' }} />
+      </>,
+      { duration: Infinity },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ancien' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Neutre' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Rien' }));
+
+    expect(surfaceOf('Toast ancien')).toHaveClass(toastClasses.default);
+    expect(surfaceOf('Toast neutre')?.className).toBe(surfaceOf('Toast ancien')?.className);
+    expect(surfaceOf('Toast sans ton')?.className).toBe(surfaceOf('Toast ancien')?.className);
+  });
+
+  it('devrait faire gagner tone sur variant', () => {
+    renderWithProvider(
+      <Trigger label="Mixte" toast={{ title: 'Toast mixte', tone: 'success', variant: 'error' }} />,
+      { duration: Infinity },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mixte' }));
+
+    expect(surfaceOf('Toast mixte')).toHaveClass(toastClasses.success);
+    expect(surfaceOf('Toast mixte')).not.toHaveClass(toastClasses.error);
   });
 });

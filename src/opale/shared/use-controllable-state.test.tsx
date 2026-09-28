@@ -52,9 +52,7 @@ describe('useControllableState', () => {
 
   it('devrait traiter null comme une valeur contrôlée', () => {
     const onChange = vi.fn();
-    const { result } = renderHook(() =>
-      useControllableState<string | null>(null, 'a', onChange),
-    );
+    const { result } = renderHook(() => useControllableState<string | null>(null, 'a', onChange));
 
     expect(result.current[0]).toBeNull();
     expect(result.current[2]).toBe(true);

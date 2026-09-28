@@ -99,10 +99,7 @@ const useSidebarContext = (component: string) => {
   return context;
 };
 
-export type SidebarProps = Omit<
-  ComponentPropsWithoutRef<'aside'>,
-  'onToggle' | 'defaultValue'
-> & {
+export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 'defaultValue'> & {
   size?: SidebarSize;
   collapsed?: boolean;
   defaultCollapsed?: boolean;

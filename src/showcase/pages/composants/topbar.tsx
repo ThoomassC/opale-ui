@@ -8,7 +8,7 @@ import { MaterialSwitch, PlainStage } from './material-switch';
 const USAGE = `import { Opale, Topbar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
-<Topbar size="comfortable">
+<Topbar size="medium">
   <Topbar.Brand icon={<Logo />} title="Voyages" subtitle="12 étapes" />
   <Topbar.Divider />
   <Topbar.Section grow>
@@ -22,13 +22,15 @@ import '@thomascaron/opale-ui/opale.css';
 const PROPS: readonly PropRow[] = [
   {
     name: 'size',
-    type: "'compact' | 'comfortable' | 'spacious'",
-    defaultValue: "'comfortable'",
+    type: "'small' | 'medium' | 'large'",
+    defaultValue: "'medium'",
     description: (
       <>
         Hauteur et coussin. Passée dans le contexte, donc <code>Topbar.Brand</code> et{' '}
         <code>Topbar.Divider</code> s’y accordent — et les deux <strong>jettent</strong> si on les
-        rend hors d’un <code>Topbar</code>.
+        rend hors d’un <code>Topbar</code>. Les anciens noms <code>compact</code>,{' '}
+        <code>comfortable</code> et <code>spacious</code> restent acceptés, et{' '}
+        <code>Topbar.useTopbar().size</code> les rend toujours.
       </>
     ),
   },
@@ -145,13 +147,13 @@ export default function TopbarContent() {
         }
       >
         <PlainStage stack>
-          {(['compact', 'comfortable', 'spacious'] as const).map((size) => (
+          {(['small', 'medium', 'large'] as const).map((size) => (
             <Topbar key={size} size={size}>
               <Topbar.Brand icon={<span aria-hidden="true">◈</span>} title={size} />
               <Topbar.Divider />
               <Topbar.Section grow>
                 {/* `<code>` ET NON `<span>` : c'est du code, et le code en ligne de
-                  la vitrine se coupe — `size="comfortable"` d'un seul tenant
+                  la vitrine se coupe — un `size="…"` d'un seul tenant
                   débordait la barre à 320 px. */}
                 <code>size=&quot;{size}&quot;</code>
               </Topbar.Section>

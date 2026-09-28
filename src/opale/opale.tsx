@@ -51,7 +51,7 @@ import { useSvgMapGestures } from './components/svg-map/useSvgMapGestures';
 import { parseViewBox as parseSvgViewBox } from './components/svg-map/viewport';
 import toastMotion from './components/toast/style/Toast.module.css';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
-import type { OpaleSize } from './shared';
+import type { OpalePlacement, OpaleSize, OpaleTone } from './shared';
 import { useControllableState } from './shared/use-controllable-state';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
@@ -1500,6 +1500,9 @@ const FEEDBACK_TITLES = {
 export type FeedbackTone = 'success' | 'info' | 'warning' | 'error';
 
 export interface FeedbackProps {
+  /** Le ton de l'encart : sa couleur, son titre par défaut et son rôle. Défaut : `info`. */
+  tone?: FeedbackTone;
+  /** @deprecated Depuis 3.6 — utilisez `tone`. */
   severity?: FeedbackTone;
   title?: ReactNode;
   children: ReactNode;
@@ -1508,22 +1511,24 @@ export interface FeedbackProps {
 }
 
 export function Feedback({
-  severity = 'info',
+  tone,
+  severity,
   title,
   children,
   className,
   liquidGlass = false,
 }: FeedbackProps) {
+  const resolvedTone = tone ?? severity ?? 'info';
   const classes = cx(
     'opale-feedback',
-    `opale-feedback--${severity}`,
+    `opale-feedback--${resolvedTone}`,
     liquidGlass && 'opale-feedback--glass',
     className,
   );
-  const role = severity === 'error' ? 'alert' : 'status';
+  const role = resolvedTone === 'error' ? 'alert' : 'status';
   const content = (
     <>
-      <strong>{title ?? FEEDBACK_TITLES[severity]}</strong>
+      <strong>{title ?? FEEDBACK_TITLES[resolvedTone]}</strong>
       <span>{children}</span>
     </>
   );
@@ -1587,12 +1592,17 @@ export function Feedback({
    peut y entrer, ouvert ou fermé — la condition pour qu'il soit annoncé.
    ========================================================================== */
 
-/** Les six places possibles à l'écran. Mêmes valeurs que `ToastProvider`. */
-export type ToastPlacement =
-  'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+/**
+ * Les six places possibles à l'écran.
+ * @deprecated Depuis 3.6 — utilisez `OpalePlacement`.
+ */
+export type ToastPlacement = OpalePlacement;
 
-/** Les tons, et leur couleur. `neutral` n'en porte aucune. */
-export type ToastTone = 'neutral' | 'success' | 'warning' | 'error' | 'info';
+/**
+ * Les tons, et leur couleur. `neutral` n'en porte aucune.
+ * @deprecated Depuis 3.6 — utilisez `OpaleTone`.
+ */
+export type ToastTone = OpaleTone;
 
 /**
  * Les tons qui doivent INTERROMPRE la lecture.
@@ -1602,7 +1612,7 @@ export type ToastTone = 'neutral' | 'success' | 'warning' | 'error' | 'info';
  * annoncé de façon assertive coupe la parole pour rien. Le découpage est le
  * même que celui de `ToastProvider`, et il tient à la même raison.
  */
-const ASSERTIVE_TONES = new Set<ToastTone>(['error', 'warning']);
+const ASSERTIVE_TONES = new Set<OpaleTone>(['error', 'warning']);
 
 /**
  * L'icône de chaque ton.
@@ -1618,7 +1628,7 @@ const ASSERTIVE_TONES = new Set<ToastTone>(['error', 'warning']);
  * `neutral` N'EN A PAS, et c'est cohérent : il n'a pas de couleur non plus. Il
  * n'y a rien à doubler.
  */
-const TONE_ICON: Record<ToastTone, OpaleIconName | null> = {
+const TONE_ICON: Record<OpaleTone, OpaleIconName | null> = {
   neutral: null,
   success: 'check-circle',
   warning: 'alert-triangle',
@@ -1633,14 +1643,14 @@ interface ToastAnchor {
   users: number;
 }
 
-const TOAST_ANCHORS = new Map<ToastPlacement, ToastAnchor>();
+const TOAST_ANCHORS = new Map<OpalePlacement, ToastAnchor>();
 const toastAnchorListeners = new Set<() => void>();
 
 function notifyToastAnchors() {
   toastAnchorListeners.forEach((listener) => listener());
 }
 
-function acquireToastAnchor(position: ToastPlacement) {
+function acquireToastAnchor(position: OpalePlacement) {
   let anchor = TOAST_ANCHORS.get(position);
   if (!anchor) {
     const root = document.createElement('div');
@@ -1665,7 +1675,7 @@ function acquireToastAnchor(position: ToastPlacement) {
    entrait dans une région live née dans la même tâche, dont l'annonce peut se
    perdre. Le retrait est donc remis à une micro-tâche, et n'a lieu que si
    personne n'a repris l'ancre entre-temps. */
-function releaseToastAnchor(position: ToastPlacement) {
+function releaseToastAnchor(position: OpalePlacement) {
   const anchor = TOAST_ANCHORS.get(position);
   if (!anchor) return;
   anchor.users -= 1;
@@ -1683,7 +1693,7 @@ function releaseToastAnchor(position: ToastPlacement) {
    le premier — et se désabonner, la libérer. React relit l'instantané aussitôt
    après l'abonnement et rend le portail dans la foulée. Côté serveur,
    l'instantané est `null` : pas d'ancre, pas de portail, et rien à hydrater. */
-function useToastAnchor(position: ToastPlacement): ToastAnchor | null {
+function useToastAnchor(position: OpalePlacement): ToastAnchor | null {
   const subscribe = useCallback(
     (listener: () => void) => {
       toastAnchorListeners.add(listener);
@@ -1705,20 +1715,25 @@ function useToastAnchor(position: ToastPlacement): ToastAnchor | null {
 
 export interface ToastProps {
   message: ReactNode;
+  /** Affiché par défaut ; l'appelant tient l'état ouvert. */
   open?: boolean;
+  /** Appelée avec `false` sur la croix. Sa présence rend la croix. */
+  onOpenChange?: (open: boolean) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   /** Rend la carte dans le matériau « verre liquide ». Originale par défaut. */
   liquidGlass?: boolean;
   /** Le ton, qui choisit la couleur du filet et de l'icône. */
-  tone?: ToastTone;
+  tone?: OpaleTone;
   /** La place à l'écran. Le message est rendu dans un portail, pas en flux. */
-  position?: ToastPlacement;
+  position?: OpalePlacement;
   className?: string;
 }
 
 export function Toast({
   message,
   open = true,
+  onOpenChange,
   onClose,
   tone = 'neutral',
   position = 'bottom-right',
@@ -1738,6 +1753,7 @@ export function Toast({
      rôle d'une région ne peut pas changer en cours de route sans la remonter,
      ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
      posées d'avance, vides, et le message entre dans celle de son ton. */
+  const close = closeHandler(onOpenChange, onClose);
   const assertive = ASSERTIVE_TONES.has(tone);
   const classes = cx(
     'opale-toast',
@@ -1773,11 +1789,11 @@ export function Toast({
           doubler. */}
       {TONE_ICON[tone] && <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />}
       <span className="opale-toast__message">{message}</span>
-      {onClose && (
+      {close && (
         <button
           className="opale-toast__close"
           type="button"
-          onClick={onClose}
+          onClick={() => close(false)}
           aria-label="Fermer la notification"
         >
           <Icon name="close" />
@@ -1876,11 +1892,29 @@ export function ProgressBar({
   );
 }
 
+/* LA FERMETURE DES SURIMPRESSIONS. Le rappel canonique part d'abord, l'ancien
+   ensuite et seulement pour une fermeture. Sans aucun des deux, il n'y a pas
+   de rappel, donc ni croix ni bouton Fermer. */
+function closeHandler(
+  onOpenChange: ((open: boolean) => void) | undefined,
+  onClose: (() => void) | undefined,
+): ((open: boolean) => void) | undefined {
+  if (!onOpenChange && !onClose) return undefined;
+  return (open) => {
+    onOpenChange?.(open);
+    if (!open) onClose?.();
+  };
+}
+
 export interface ConfirmDialogProps {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
+  /** Appelée sur Confirmer. Le dialogue ne se ferme pas seul : l'appelant ferme après son action. */
   onConfirm?: () => void;
+  /** `false` sur Annuler, Échap, le voile ou la croix. Jamais sur Confirmer. */
+  onOpenChange?: (open: boolean) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onCancel?: () => void;
   liquidGlass?: boolean;
 }
@@ -1890,9 +1924,11 @@ export function ConfirmDialog({
   title = 'Confirmer',
   children,
   onConfirm,
+  onOpenChange,
   onCancel,
   liquidGlass = false,
 }: ConfirmDialogProps) {
+  const close = closeHandler(onOpenChange, onCancel);
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
      faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
      confirmations coexistaient. `Modal` le dérive d'un `useId`.
@@ -1909,13 +1945,13 @@ export function ConfirmDialog({
   return (
     <Modal
       open={open}
-      onClose={onCancel}
+      onOpenChange={close}
       liquidGlass={liquidGlass}
       title={title}
       description={children}
       footer={
         <>
-          <Button variant="text" onClick={onCancel}>
+          <Button variant="text" onClick={close ? () => close(false) : undefined}>
             Annuler
           </Button>
           <Button onClick={onConfirm}>Confirmer</Button>
@@ -2090,6 +2126,9 @@ export interface SidePanelProps {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
+  /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
+  onOpenChange?: (open: boolean) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   liquidGlass?: boolean;
 }
@@ -2098,6 +2137,7 @@ export function SidePanel({
   open = false,
   title = 'Panneau',
   children,
+  onOpenChange,
   onClose,
   liquidGlass = false,
 }: SidePanelProps) {
@@ -2108,7 +2148,7 @@ export function SidePanel({
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onOpenChange={closeHandler(onOpenChange, onClose)}
       liquidGlass={liquidGlass}
       title={title}
       rootClassName="opale-side-panel"
@@ -2128,6 +2168,9 @@ export interface CommandPaletteProps {
   onValueChange?: (value: string) => void;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (value: string) => void;
+  /** Appelée avec `false` sur Échap, le voile, la croix ou Fermer. Sa présence rend Fermer. */
+  onOpenChange?: (open: boolean) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   children?: ReactNode;
   liquidGlass?: boolean;
@@ -2139,10 +2182,12 @@ export function CommandPalette({
   defaultValue = '',
   onValueChange,
   onChange,
+  onOpenChange,
   onClose,
   children,
   liquidGlass = false,
 }: CommandPaletteProps) {
+  const close = closeHandler(onOpenChange, onClose);
   /* La modale donne d'abord le focus au panneau pour annoncer son titre.
      Au cadre suivant, la palette place le curseur dans sa recherche : on peut
      lancer une commande sans clic, tout en laissant Modal retenir l'élément
@@ -2158,12 +2203,12 @@ export function CommandPalette({
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onOpenChange={close}
       liquidGlass={liquidGlass}
       title="Palette de commandes"
       footer={
-        onClose ? (
-          <Button variant="text" onClick={onClose}>
+        close ? (
+          <Button variant="text" onClick={() => close(false)}>
             Fermer
           </Button>
         ) : undefined
@@ -2291,6 +2336,8 @@ function subscribeConsent(listener: () => void) {
 export interface CookieBannerProps {
   /** Passé, il décide seul de l'affichage ; omis, le bandeau suit le choix mémorisé. */
   open?: boolean;
+  /** Appelée avec `false` quand l'utilisateur choisit. Le bandeau ne s'ouvre jamais de lui-même. */
+  onOpenChange?: (open: boolean) => void;
   children?: ReactNode;
   onAccept?: () => void;
   onDecline?: () => void;
@@ -2301,6 +2348,7 @@ export interface CookieBannerProps {
 
 export function CookieBanner({
   open,
+  onOpenChange,
   children = 'Nous utilisons des cookies pour améliorer votre expérience.',
   onAccept,
   onDecline,
@@ -2342,6 +2390,7 @@ export function CookieBanner({
     }
     setDecided(choice);
     consentListeners.forEach((listener) => listener());
+    onOpenChange?.(false);
     (choice === 'accepted' ? onAccept : onDecline)?.();
   };
 
@@ -2782,6 +2831,9 @@ export interface DataTableColumn {
   align?: 'start' | 'center' | 'end';
 }
 
+/** Les tailles d'une table : `small` resserre les lignes. */
+export type DataTableSize = Extract<OpaleSize, 'small' | 'medium'>;
+
 export interface DataTableProps {
   columns?: readonly DataTableColumn[];
   rows?: readonly DataTableRow[];
@@ -2798,7 +2850,9 @@ export interface DataTableProps {
   loading?: boolean;
   emptyMessage?: string;
   liquidGlass?: boolean;
-  /** Réduit l'espacement vertical sans changer la structure de la table. */
+  /** L'espacement des lignes : `small` resserre sans changer la structure. Défaut : `medium`. */
+  size?: DataTableSize;
+  /** @deprecated Depuis 3.6 — utilisez `size` (`compact` → `small`). */
   density?: 'comfortable' | 'compact';
   /** Ajoute une alternance discrète aux lignes de données. */
   striped?: boolean;
@@ -2846,14 +2900,14 @@ export function DataTable({
   loading = false,
   emptyMessage = 'Aucune donnée à afficher.',
   liquidGlass = false,
-  density = 'comfortable',
+  size,
+  density,
   striped = false,
   showRowCount = false,
 }: DataTableProps) {
-  const [sort, setSort] = useControllableState<DataTableSort | null>(
-    sortProp,
-    defaultSort ?? null,
-  );
+  /* `size` gagne ; l'ancien `density` ne sert que s'il est seul. */
+  const compact = (size ?? (density === 'compact' ? 'small' : 'medium')) === 'small';
+  const [sort, setSort] = useControllableState<DataTableSort | null>(sortProp, defaultSort ?? null);
   /* L'ANNONCE DÉCRIT LE TRI RÉSOLU, PAS LE TRI DEMANDÉ. En mode contrôlé,
      l'appelant peut refuser un clic ou trier d'ailleurs : l'annonce se calcule
      donc au rendu depuis le tri effectif. Elle reste muette tant qu'aucun
@@ -2897,7 +2951,7 @@ export function DataTable({
         <table
           className={cx(
             'opale-table',
-            density === 'compact' && 'opale-table--compact',
+            compact && 'opale-table--compact',
             striped && 'opale-table--striped',
           )}
         >
@@ -3216,15 +3270,26 @@ export interface LightboxProps {
      vide dit « ce n'est pas grave ». Rupture d'API assumée. */
   alt: string;
   open?: boolean;
+  /** Appelée avec `false` sur Échap, le voile, la croix ou Fermer. */
+  onOpenChange?: (open: boolean) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   liquidGlass?: boolean;
 }
 
-export function Lightbox({ src, alt, open = false, onClose, liquidGlass = false }: LightboxProps) {
+export function Lightbox({
+  src,
+  alt,
+  open = false,
+  onOpenChange,
+  onClose,
+  liquidGlass = false,
+}: LightboxProps) {
+  const close = closeHandler(onOpenChange, onClose);
   return (
     <Modal
       open={open && Boolean(src)}
-      onClose={onClose}
+      onOpenChange={close}
       liquidGlass={liquidGlass}
       aria-label="Aperçu"
       rootClassName="opale-lightbox"
@@ -3233,7 +3298,11 @@ export function Lightbox({ src, alt, open = false, onClose, liquidGlass = false 
            masque découpé en squircle : autour d'un libellé court, il ne restait
            que deux crochets de part et d'autre de « Fermer ». `tonal` est le
            bouton secondaire du système. */
-        <Button variant="tonal" liquidGlass={liquidGlass} onClick={onClose}>
+        <Button
+          variant="tonal"
+          liquidGlass={liquidGlass}
+          onClick={close ? () => close(false) : undefined}
+        >
           Fermer
         </Button>
       }

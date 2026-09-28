@@ -13,7 +13,7 @@ import { createPortal } from 'react-dom';
 
 import Glass from '../glass/Glass';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
-import type { OpalePlacement } from '../../shared';
+import type { OpalePlacement, OpaleTone } from '../../shared';
 
 import styles from './style/Toast.module.css';
 
@@ -85,7 +85,11 @@ import styles from './style/Toast.module.css';
 type ToastVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
 /** Les tons qui doivent INTERROMPRE la lecture plutôt que l'attendre. */
-const ASSERTIVE_VARIANTS = new Set<ToastVariant>(['error', 'warning']);
+const ASSERTIVE_TONES = new Set<OpaleTone>(['error', 'warning']);
+
+/* Le nom canonique gagne ; l'ancien `variant` écrit `default` pour `neutral`. */
+const resolveTone = ({ tone, variant }: ToastDefinition): OpaleTone =>
+  tone ?? (variant === 'default' ? 'neutral' : variant) ?? 'neutral';
 
 /** L'entrée en scène d'une notification. */
 export type ToastAnimation = 'slide-from-right' | 'slide-from-left' | 'slide-from-bottom' | 'scale';
@@ -97,6 +101,9 @@ export type ToastDefinition = {
   id?: string;
   title?: ReactNode;
   description?: ReactNode;
+  /** Le ton : couleur de la carte et urgence de l'annonce. Défaut : `neutral`. */
+  tone?: OpaleTone;
+  /** @deprecated Depuis 3.6 — utilisez `tone` (`default` → `neutral`). */
   variant?: ToastVariant;
   duration?: number;
   animation?: ToastAnimation;
@@ -119,7 +126,7 @@ type ToastRecord = ToastDefinition & {
   duration: number;
   animation: ToastAnimation;
   position: ToastPosition;
-  variant: ToastVariant;
+  tone: OpaleTone;
   enableLiquidAnimation: boolean;
   liquidGlass: boolean;
 };
@@ -166,8 +173,8 @@ const POSITIONS: readonly ToastPosition[] = [
   'bottom-right',
 ];
 
-const variantClass: Record<ToastVariant, string> = {
-  default: styles.default,
+const toneClass: Record<OpaleTone, string> = {
+  neutral: styles.default,
   success: styles.success,
   warning: styles.warning,
   error: styles.error,
@@ -277,7 +284,7 @@ function ToastCard({ toast, onDismiss, onRemove }: ToastCardProps) {
     liquidGlass,
     onClose,
     title,
-    variant,
+    tone,
   } = toast;
 
   const [paused, setPaused] = useState(false);
@@ -352,7 +359,7 @@ function ToastCard({ toast, onDismiss, onRemove }: ToastCardProps) {
     >
       <Carte
         liquidGlass={liquidGlass}
-        rootClassName={cx(styles.surface, variantClass[variant])}
+        rootClassName={cx(styles.surface, toneClass[tone])}
         className={styles.body}
         enableLiquidAnimation={enableLiquidAnimation}
         triggerAnimation={entered}
@@ -403,7 +410,7 @@ export const ToastProvider = ({
       const record: ToastRecord = {
         ...toast,
         id,
-        variant: toast.variant ?? 'default',
+        tone: resolveTone(toast),
         duration: toast.duration ?? duration,
         animation: toast.animation ?? animation,
         position: toast.position ?? position,
@@ -476,7 +483,7 @@ export const ToastProvider = ({
 
     for (const toast of toasts) {
       const bucket = byPosition[toast.position] ?? byPosition['top-right'];
-      (ASSERTIVE_VARIANTS.has(toast.variant) ? bucket.assertive : bucket.polite).push(toast);
+      (ASSERTIVE_TONES.has(toast.tone) ? bucket.assertive : bucket.polite).push(toast);
     }
 
     for (const key of POSITIONS) {

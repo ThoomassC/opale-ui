@@ -39,8 +39,8 @@ const PROPS: readonly PropRow[] = [
   },
   {
     name: 'headerSize / showNavigation / navigationLabel / mobileMenuLabel',
-    type: "'compact' | 'comfortable' | 'spacious' / boolean / string / string",
-    defaultValue: "'comfortable' / true / 'Navigation principale' / 'Menu'",
+    type: "'small' | 'medium' | 'large' / boolean / string / string",
+    defaultValue: "'medium' / true / 'Navigation principale' / 'Menu'",
     description: 'Visibilité et noms accessibles de la navigation responsive.',
   },
   {

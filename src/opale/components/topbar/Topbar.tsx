@@ -11,6 +11,7 @@ import {
 import clsx from 'clsx';
 
 import Glass, { type GlassSurfaceProps } from '../glass/Glass';
+import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 import styles from './style/Topbar.module.css';
 
 /* =============================================================================
@@ -54,7 +55,16 @@ import styles from './style/Topbar.module.css';
    rien à synchroniser, aucune valeur à remonter.
    ========================================================================== */
 
+/** Le vocabulaire de taille que lisent la marque, le séparateur et `useTopbar`. */
 type TopbarSize = 'compact' | 'comfortable' | 'spacious';
+
+/* `useTopbar().size` garde les noms historiques : ses lecteurs comparent à
+   `compact`, `comfortable` ou `spacious`. */
+const TOPBAR_SIZE: Readonly<Record<OpaleSize, TopbarSize>> = {
+  small: 'compact',
+  medium: 'comfortable',
+  large: 'spacious',
+};
 
 export type TopbarContextValue = {
   size: TopbarSize;
@@ -85,7 +95,8 @@ const useTopbarContext = (component: string) => {
 export type TopbarGap = 'tight' | 'regular' | 'relaxed';
 
 export type TopbarProps = ComponentPropsWithoutRef<'header'> & {
-  size?: TopbarSize;
+  /** La hauteur de la barre. `compact`, `comfortable` et `spacious` valent `small`, `medium` et `large`. */
+  size?: OpaleSize | TopbarSize;
   elevated?: boolean;
   /**
    * Rend la barre dans le matériau « verre liquide ».
@@ -106,7 +117,7 @@ const sizeClassMap: Record<TopbarSize, string> = {
 const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
   (
     {
-      size = 'comfortable',
+      size: sizeProp,
       elevated = true,
       liquidGlass = false,
       className,
@@ -116,6 +127,7 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     },
     ref,
   ) => {
+    const size = TOPBAR_SIZE[normalizeSize(sizeProp, 'medium')];
     const value = useMemo<TopbarContextValue>(() => ({ size }), [size]);
 
     const enveloppe = clsx(styles.topbarRoot, elevated && styles.elevated, rootClassName);

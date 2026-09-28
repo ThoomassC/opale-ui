@@ -1,5 +1,6 @@
 import modalSource from './Modal.tsx?raw';
 import modalStyles from './style/Modal.module.css?raw';
+import modalClasses from './style/Modal.module.css';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -412,5 +413,61 @@ describe('l’en-tête sans titre', () => {
 
     expect(sans).toMatch(/\.header:has\(\.heading\)\s*\{[^}]*box-shadow/);
     expect(sans).not.toMatch(/\.header\s*\{[^}]*box-shadow/);
+  });
+});
+
+/* =============================================================================
+   `open` + `onOpenChange`, ET L'ÉCHELLE `small | medium | large`.
+   `onClose` et `sm | md | lg` restent acceptés : les cas ci-dessus qui les
+   emploient prouvent que les anciens noms marchent encore.
+   ========================================================================== */
+
+describe('Modal — onOpenChange et taille', () => {
+  it('devrait rendre la croix avec onOpenChange seul, et fermer par elle et par Échap', () => {
+    const onOpenChange = vi.fn();
+    render(<Modal open onOpenChange={onOpenChange} title="Réglages" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(onOpenChange).toHaveBeenNthCalledWith(1, false);
+    expect(onOpenChange).toHaveBeenNthCalledWith(2, false);
+  });
+
+  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
+    const calls: string[] = [];
+    render(
+      <Modal
+        open
+        title="Réglages"
+        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
+        onClose={() => calls.push('onClose')}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
+
+    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
+  });
+
+  it.each([
+    ['small', 'sm'],
+    ['medium', 'md'],
+    ['large', 'lg'],
+  ] as const)('devrait poser la même classe pour size="%s" et size="%s"', (size, legacy) => {
+    const { unmount } = render(<Modal open title="Canonique" size={size} />);
+    const canonical = screen.getByRole('dialog').className;
+    unmount();
+
+    render(<Modal open title="Hérité" size={legacy} />);
+
+    expect(screen.getByRole('dialog').className).toBe(canonical);
+    expect(screen.getByRole('dialog')).toHaveClass(modalClasses[legacy]);
+  });
+
+  it('devrait garder medium par défaut', () => {
+    render(<Modal open title="Défaut" />);
+
+    expect(screen.getByRole('dialog')).toHaveClass(modalClasses.md);
   });
 });

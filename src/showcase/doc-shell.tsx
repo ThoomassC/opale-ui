@@ -306,7 +306,7 @@ export function DocShell({ pages }: DocShellProps) {
         <Topbar
           className="tc-doc-topbar__bar"
           rootClassName="tc-doc-topbar__glass"
-          size="spacious"
+          size="large"
           elevated={false}
         >
           {/* `Topbar.Brand` EST EMPLOYÉ, MAIS NI `icon`, NI `title`, NI

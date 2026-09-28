@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom';
 import Glass, { type GlassProps } from '../glass/Glass';
 
 import { IconGlyph } from '../icon';
+import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 
 import styles from './style/Modal.module.css';
 
@@ -83,7 +84,8 @@ import styles from './style/Modal.module.css';
      surchargeables, parce que là c'est l'appelant qui sait.
    ========================================================================== */
 
-type ModalSize = 'sm' | 'md' | 'lg';
+/** Les tailles du panneau. `sm`, `md` et `lg` valent `small`, `medium` et `large`. */
+type ModalSize = OpaleSize | 'sm' | 'md' | 'lg';
 
 /* `Omit<…, 'title'>` N'EST PAS UNE COQUETTERIE DE TYPAGE.
 
@@ -95,8 +97,10 @@ type ModalSize = 'sm' | 'md' | 'lg';
    à passer un titre composé a échoué à la compilation. */
 export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   open: boolean;
-  onClose?: () => void;
+  /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
+  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
+  onClose?: () => void;
   title?: ReactNode;
   description?: ReactNode;
   footer?: ReactNode;
@@ -118,10 +122,10 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
      côtés, sans quoi l'intersection le ramène à une chaîne. */
 } & Omit<GlassProps, 'title'>;
 
-const sizeClass: Record<ModalSize, string> = {
-  sm: styles.sm,
-  md: styles.md,
-  lg: styles.lg,
+const sizeClass: Record<OpaleSize, string> = {
+  small: styles.sm,
+  medium: styles.md,
+  large: styles.lg,
 };
 
 /* LA LISTE DES ÉLÉMENTS FOCUSABLES, ET SES DEUX LIMITES ASSUMÉES.
@@ -211,7 +215,7 @@ const Modal = ({
   closeOnOverlay = true,
   closeOnEsc = true,
   lockScroll = true,
-  size = 'md',
+  size,
   enableLiquidAnimation = true,
   liquidGlass = false,
   className,
@@ -478,7 +482,7 @@ const Modal = ({
         ref={panelRef}
         liquidGlass={liquidGlass}
         triggerAnimation={openRipple}
-        rootClassName={cx(styles.shell, sizeClass[size], rootClassName)}
+        rootClassName={cx(styles.shell, sizeClass[normalizeSize(size, 'medium')], rootClassName)}
         className={cx(styles.panel, className)}
         role="dialog"
         aria-modal="true"

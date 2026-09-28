@@ -14,6 +14,7 @@ import { HeaderNavigation } from '../header-controls/HeaderNavigation';
 import { HeaderThemeToggle } from '../header-controls/HeaderThemeToggle';
 import { LanguageSelector } from '../header-controls/LanguageSelector';
 import Topbar from '../topbar/Topbar';
+import type { OpaleSize } from '../../shared';
 import type { SearchBarProps } from '../search-bar/SearchBar';
 import { PageScaffoldSearch } from './PageScaffoldSearch';
 import styles from './PageScaffold.module.css';
@@ -59,7 +60,8 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithoutRef<'div'>,
   homeHref?: string;
   logo?: ReactNode;
   brandLabel?: string;
-  headerSize?: 'compact' | 'comfortable' | 'spacious';
+  /** La hauteur de l'en-tête. `compact`, `comfortable` et `spacious` valent `small`, `medium` et `large`. */
+  headerSize?: OpaleSize | 'compact' | 'comfortable' | 'spacious';
   navigation?: readonly PageScaffoldLink[];
   activeId?: string;
   onNavigate?: (link: PageScaffoldLink, event: MouseEvent<HTMLAnchorElement>) => void;

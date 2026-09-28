@@ -19,7 +19,7 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
   CardGrid: ['Carousel'],
   DataTable: ['sortable', 'sortValue', 'tri'],
   Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
-  Feedback: ['Http', 'Validation', 'severity'],
+  Feedback: ['Http', 'Validation', 'tone', 'severity'],
   IconActionButton: ['icon', 'share', 'bouton icône'],
   Lightbox: ['alt', 'texte alternatif'],
   Menu: ['SettingsMenu'],

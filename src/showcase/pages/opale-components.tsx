@@ -172,7 +172,7 @@ export function DeleteAction() {
   return <>
     <Opale.Button variant="danger" onClick={() => setOpen(true)}>Supprimer</Opale.Button>
     <Opale.ConfirmDialog open={open} title="Supprimer ce projet ?"
-      onCancel={() => setOpen(false)}
+      onOpenChange={setOpen}
       onConfirm={() => { setOpen(false); console.log('Projet supprimé'); }}>
       Cette action est irréversible.
     </Opale.ConfirmDialog>
@@ -197,7 +197,7 @@ export function SettingsPanel() {
   const [open, setOpen] = useState(false);
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Réglages</Opale.Button>
-    <Opale.SidePanel open={open} title="Réglages" onClose={() => setOpen(false)}>
+    <Opale.SidePanel open={open} title="Réglages" onOpenChange={setOpen}>
       <Opale.Toggle label="Notifications" defaultChecked />
     </Opale.SidePanel>
   </>;
@@ -210,7 +210,7 @@ export function Commands() {
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Commandes</Opale.Button>
     <Opale.CommandPalette open={open} value={query} onValueChange={setQuery}
-      onClose={() => setOpen(false)} />
+      onOpenChange={setOpen} />
   </>;
 }`,
   Breadcrumb: `<Opale.Breadcrumb items={[
@@ -240,7 +240,7 @@ export function ImagePreview() {
   return <>
     <Opale.Button onClick={() => setOpen(true)}>Voir l’image</Opale.Button>
     <Opale.Lightbox src="/visuel.png" alt="Aperçu du projet" open={open}
-      onClose={() => setOpen(false)} />
+      onOpenChange={setOpen} />
   </>;
 }`,
   RatingInput: `import { useState } from 'react';
@@ -347,7 +347,7 @@ function exampleCode(name: string, liquidGlass = false): string {
   onSortChange={({ key, direction }) => console.log(key, direction)}
 />`);
     case 'Feedback':
-      return decorate(`<Opale.Feedback severity="success" title="En production">
+      return decorate(`<Opale.Feedback tone="success" title="En production">
   La dernière version est disponible.
 </Opale.Feedback>`);
     case 'Rating':
@@ -368,7 +368,7 @@ function exampleCode(name: string, liquidGlass = false): string {
   tone="success"
   position="bottom-right"
   message="Étape publiée sur le carnet"
-  onClose={() => setOpen(false)}
+  onOpenChange={setOpen}
 />`);
     case 'ProgressBar':
       return decorate('<Opale.ProgressBar label="Progression" value={72} />');
@@ -429,7 +429,7 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
   const [inputError, setInputError] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
   const [tableMode, setTableMode] = useState<PlaygroundConfig['tableMode']>('filled');
-  const [tableDensity, setTableDensity] = useState<PlaygroundConfig['tableDensity']>('comfortable');
+  const [tableSize, setTableSize] = useState<PlaygroundConfig['tableSize']>('medium');
   const [tableStriped, setTableStriped] = useState(true);
   const playground: PlaygroundConfig = {
     buttonVariant,
@@ -438,7 +438,7 @@ export function ComponentPage({ entry }: { entry: CatalogEntry }) {
     inputError,
     inputDisabled,
     tableMode,
-    tableDensity,
+    tableSize,
     tableStriped,
   };
   const baseCode = exampleCode(entry.name, liquidGlass);
@@ -460,7 +460,7 @@ const rows = [
 ];
 <Opale.DataTable
   caption="Composants"
-  showRowCount${tableStriped ? '\n  striped' : ''}${tableDensity === 'compact' ? '\n  density="compact"' : ''}
+  showRowCount${tableStriped ? '\n  striped' : ''}${tableSize === 'small' ? '\n  size="small"' : ''}
   columns={columns}
   rowKey={(row) => String(row.name)}
   rows={${tableMode === 'empty' ? '[]' : 'rows'}}${tableMode === 'loading' ? '\n  loading' : ''}${liquidGlass ? '\n  liquidGlass' : ''}
@@ -585,13 +585,13 @@ const rows = [
                 <label>
                   Densité{' '}
                   <select
-                    value={tableDensity}
+                    value={tableSize}
                     onChange={(event) =>
-                      setTableDensity(event.currentTarget.value as PlaygroundConfig['tableDensity'])
+                      setTableSize(event.currentTarget.value as PlaygroundConfig['tableSize'])
                     }
                   >
-                    <option value="comfortable">Confortable</option>
-                    <option value="compact">Compacte</option>
+                    <option value="medium">Confortable</option>
+                    <option value="small">Compacte</option>
                   </select>
                 </label>
                 <Opale.Checkbox

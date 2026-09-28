@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Topbar from "./Topbar";
+import topbarClasses from "./style/Topbar.module.css";
 
 describe("Topbar component", () => {
   it("renders brand content with icon, title, and subtitle", () => {
@@ -101,3 +102,37 @@ describe('Topbar — ce que la réécriture verrouille', () => {
 });
 
 
+
+/* =============================================================================
+   L'ÉCHELLE `small | medium | large`. Les anciens noms restent acceptés, et
+   `useTopbar().size` garde le vocabulaire hérité pour ses lecteurs existants.
+   ========================================================================== */
+
+describe('Topbar — échelle de taille partagée', () => {
+  it.each([
+    ['small', 'compact'],
+    ['medium', 'comfortable'],
+    ['large', 'spacious'],
+  ] as const)('devrait poser la même classe pour size="%s" et size="%s"', (size, legacy) => {
+    const { unmount } = render(<Topbar size={size} />);
+    const canonical = screen.getByRole('banner').className;
+    unmount();
+
+    render(<Topbar size={legacy} />);
+
+    expect(screen.getByRole('banner').className).toBe(canonical);
+    expect(screen.getByRole('banner')).toHaveClass(topbarClasses[legacy]);
+  });
+
+  it('devrait exposer la taille héritée dans useTopbar quand size est canonique', () => {
+    const ReadSize = () => <span>size:{Topbar.useTopbar().size}</span>;
+
+    render(
+      <Topbar size="small">
+        <ReadSize />
+      </Topbar>,
+    );
+
+    expect(screen.getByText('size:compact')).toBeInTheDocument();
+  });
+});

@@ -80,7 +80,11 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('options', 'readonly { value: string; label: ReactNode }[]', 'Choix proposés.'),
       prop('value', 'readonly string[]', 'Valeurs sélectionnées, contrôlées.'),
       prop('defaultValue', 'readonly string[]', 'Sélection de départ, non contrôlée.'),
-      prop('onValueChange', '(value: string[]) => void', 'Sélection complète après chaque bascule.'),
+      prop(
+        'onValueChange',
+        '(value: string[]) => void',
+        'Sélection complète après chaque bascule.',
+      ),
     ],
   },
   Select: {
@@ -148,7 +152,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('columns', 'readonly DataTableColumn[]', 'Colonnes, tri et alignement.'),
       prop('rows', 'readonly DataTableRow[]', 'Données affichées.'),
-      prop('density', "'comfortable' | 'compact'", 'Espacement des lignes.', 'comfortable'),
+      prop('size', "'small' | 'medium'", 'Espacement des lignes.', 'medium'),
       prop('striped', 'boolean', 'Alternance discrète des lignes.', 'false'),
       prop('showRowCount', 'boolean', 'Nombre de lignes visibles sous la table.', 'false'),
       prop('sort', 'DataTableSort | null', 'Tri contrôlé ; null : sans tri.'),
@@ -252,7 +256,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   Feedback: {
     states: 'Les erreurs sont annoncées de façon prioritaire.',
     rows: [
-      prop('severity', "'success' | 'info' | 'warning' | 'error'", 'Nature du message.', 'info'),
+      prop('tone', "'success' | 'info' | 'warning' | 'error'", 'Nature du message.', 'info'),
       prop('title', 'ReactNode', 'Titre du retour.'),
     ],
   },
@@ -261,8 +265,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('message', 'ReactNode', 'Contenu de la notification.', undefined, true),
       prop('open', 'boolean', 'Affiche ou masque le message.', 'true'),
-      prop('tone', 'ToastTone', 'Sens et couleur du message.', 'neutral'),
-      prop('position', 'ToastPlacement', 'Position dans la fenêtre.', 'bottom-right'),
+      prop('onOpenChange', '(open: boolean) => void', 'Fermeture demandée par la croix.'),
+      prop('tone', 'OpaleTone', 'Sens et couleur du message.', 'neutral'),
+      prop('position', 'OpalePlacement', 'Position dans la fenêtre.', 'bottom-right'),
     ],
   },
   Spinner: {
@@ -281,7 +286,11 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('open', 'boolean', 'État de la boîte.', 'false'),
       prop('onConfirm', '() => void', 'Action confirmée.'),
-      prop('onCancel', '() => void', 'Fermeture sans action.'),
+      prop(
+        'onOpenChange',
+        '(open: boolean) => void',
+        'false sur Annuler, Échap, le voile ou la croix ; jamais sur Confirmer.',
+      ),
     ],
   },
   EmptyState: {
@@ -316,17 +325,21 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Panneau latéral contrôlé, fermé par son appelant.',
     rows: [
       prop('open', 'boolean', 'Visibilité du panneau.', 'false'),
-      prop('onClose', '() => void', 'Demande de fermeture.'),
+      prop('onOpenChange', '(open: boolean) => void', 'Demande de fermeture.'),
     ],
   },
   CommandPalette: {
-    states: 'Recherche dans le contenu fourni ; le bouton Fermer accompagne onClose.',
+    states: 'Recherche dans le contenu fourni ; le bouton Fermer accompagne onOpenChange.',
     rows: [
       prop('open', 'boolean', 'Visibilité de la palette.', 'false'),
       prop('value', 'string', 'Texte saisi, contrôlé.'),
       prop('defaultValue', 'string', 'Texte de départ, non contrôlé.', "''"),
       prop('onValueChange', '(value: string) => void', 'Nouveau texte saisi.'),
-      prop('onClose', '() => void', 'Ferme la palette avec la croix, le pied ou Échap.'),
+      prop(
+        'onOpenChange',
+        '(open: boolean) => void',
+        'Ferme la palette avec la croix, le pied ou Échap.',
+      ),
       prop('children', 'ReactNode', 'Résultats ou commandes affichés sous la recherche.'),
     ],
   },
@@ -338,6 +351,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'En bas au centre, animé comme un toast ; le choix est mémorisé.',
     rows: [
       prop('open', 'boolean', 'Force l’affichage ou la fermeture.', 'choix mémorisé'),
+      prop('onOpenChange', '(open: boolean) => void', 'false quand l’utilisateur choisit.'),
       prop('onAccept', '() => void', 'Consentement accepté.'),
       prop('onDecline', '() => void', 'Consentement refusé.'),
       prop('storageKey', 'string | null', 'Clé de persistance.', 'opale-cookie-consent'),
@@ -390,6 +404,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('src', 'string', 'Adresse de l’image.'),
       prop('alt', 'string', 'Description de l’image.', undefined, true),
       prop('open', 'boolean', 'Affiche la visionneuse.', 'false'),
+      prop('onOpenChange', '(open: boolean) => void', 'Demande de fermeture.'),
     ],
   },
   Clipboard: {

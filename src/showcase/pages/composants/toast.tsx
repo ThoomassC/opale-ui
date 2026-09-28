@@ -20,7 +20,7 @@ function Publish() {
 
   return (
     <Opale.Button
-      onClick={() => showToast({ title: 'Étape publiée', variant: 'success' })}
+      onClick={() => showToast({ title: 'Étape publiée', tone: 'success' })}
     >
       Publier
     </Opale.Button>
@@ -97,7 +97,7 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         Empile un toast et rend son identifiant. <code>ToastDefinition</code> accepte{' '}
-        <code>id</code>, <code>title</code>, <code>description</code>, <code>variant</code>,{' '}
+        <code>id</code>, <code>title</code>, <code>description</code>, <code>tone</code>,{' '}
         <code>duration</code>, <code>animation</code>, <code>position</code>,{' '}
         <code>enableLiquidAnimation</code> et <code>onClose</code>.{' '}
         <strong>
@@ -165,7 +165,7 @@ export default function ToastContent() {
       </p>
 
       <Specimen
-        title="Les cinq variantes — déclenchez-les"
+        title="Les cinq tons — déclenchez-les"
         note={
           <>
             <strong>
