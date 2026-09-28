@@ -289,7 +289,7 @@ describe('le catalogue interactif V3', () => {
 /* =============================================================================
    LA VITRINE NE DOIT PAS MONTRER UN COMMUTATEUR QUI NE FAIT RIEN.
 
-   LE DÉFAUT OBSERVÉ. La page de chaque composant affiche « Liquid Glass pour
+   LE DÉFAUT OBSERVÉ. La page de chaque composant affiche « Verre liquide pour
    X ». Pour l'autocomplétion et la liste multiple, la démonstration ne
    transmettait pas la prop : le commutateur basculait, et rien ne changeait.
    Le composant, lui, la gère parfaitement — c'est l'exemple qui l'oubliait.
@@ -342,7 +342,7 @@ describe('les exemples du catalogue', () => {
 
     expect(
       manquants,
-      'Ces exemples affichent le commutateur « Liquid Glass » sans transmettre ' +
+      'Ces exemples affichent le commutateur « verre liquide » sans transmettre ' +
         `la prop : il bascule et rien ne change — ${manquants.join(', ')}.`,
     ).toEqual([]);
   });
@@ -351,7 +351,7 @@ describe('les exemples du catalogue', () => {
 /* =============================================================================
    LE COMMUTATEUR DE MATIÈRE NE S'AFFICHE QUE LÀ OÙ IL AGIT.
 
-   LE DÉFAUT. La page posait « Liquid Glass pour X » sur les quatre-vingt-cinq
+   LE DÉFAUT. La page posait « Verre liquide pour X » sur les quatre-vingt-cinq
    composants du catalogue. Onze rendent le matériau. Pour les autres,
    basculer l'interrupteur posait la photographie et le voile sous un composant
    qui ne changeait pas : une quarantaine se retrouvaient avec leur encre
@@ -384,7 +384,7 @@ describe('le commutateur de matière', () => {
     /* TOUS LES COMMUTATEURS, ET NON LE SEUL. Une page propre peut en porter
        plusieurs — une par démonstration, comme celle de SvgMap. */
     const toggles = within(container).queryAllByRole('checkbox', {
-      name: new RegExp(`^Liquid Glass pour `),
+      name: new RegExp(`^Verre liquide pour `),
     });
     const toggle = toggles[0] ?? null;
 
@@ -429,7 +429,7 @@ describe('API et exemples du catalogue', () => {
     const page = opaleComponentPages.find((entry) => entry.label === 'FileCard');
     if (!page) throw new Error('FileCard manquant');
     render(<>{page.render()}</>);
-    await user.click(screen.getByRole('checkbox', { name: 'Liquid Glass pour FileCard' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour FileCard' }));
     await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
     const code =
       screen.getByRole('group', { name: 'Exemple FileCard, défilement horizontal' }).textContent ??
@@ -444,7 +444,7 @@ describe('API et exemples du catalogue', () => {
     const page = opaleComponentPages.find((entry) => entry.label === 'CardGrid');
     if (!page) throw new Error('CardGrid manquant');
     render(<>{page.render()}</>);
-    await user.click(screen.getByRole('checkbox', { name: 'Liquid Glass pour CardGrid' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour CardGrid' }));
     await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
     const code =
       screen.getByRole('group', { name: 'Exemple CardGrid, défilement horizontal' }).textContent ??

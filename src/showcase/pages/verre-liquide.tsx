@@ -61,7 +61,7 @@ function LiquidGlassFilter() {
 const USAGE = `import { Button, Card } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
-<Card liquidGlass title="Liquid Glass" />
+<Card liquidGlass title="Verre liquide" />
 <Button liquidGlass>Continuer</Button>`;
 
 export const verreLiquidePage: DocPage = {
@@ -89,7 +89,7 @@ export const verreLiquidePage: DocPage = {
                   padding: '22px 26px',
                 }}
               >
-                <strong style={{ fontSize: '18px' }}>Liquid Glass</strong>
+                <strong style={{ fontSize: '18px' }}>Verre liquide</strong>
                 <span>Une surface nette, légèrement déformée.</span>
               </div>
             </Glass>

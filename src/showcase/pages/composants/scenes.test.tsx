@@ -36,7 +36,7 @@ describe('SidebarCollapsibleScene', () => {
 
     await user.click(screen.getByRole('button', { name: 'Photos' }));
     await user.click(screen.getByRole('button', { name: 'Replier le rail' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Liquid Glass pour Sidebar pliable' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour Sidebar pliable' }));
 
     expect(screen.getByRole('button', { name: 'Déplier le rail' })).toHaveAttribute(
       'aria-expanded',

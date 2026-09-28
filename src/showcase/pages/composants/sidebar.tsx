@@ -168,7 +168,7 @@ export default function SidebarContent() {
               La scène impose 256 px de hauteur : une barre latérale haute de son seul contenu ne
               ressemble pas à une barre latérale. Le pli est <strong>contrôlé ici</strong>, pour que
               l’état soit affiché à côté de la barre — et il survit au changement de matériau :
-              passez en Liquid Glass rail replié, il le reste. Sur la photographie, le rail n’écrit
+              passez au verre liquide rail replié, il le reste. Sur la photographie, le rail n’écrit
               aucune encre en dur, il hérite de celle de la scène, et l’entrée retenue se lit par un
               liseré plutôt que par la teinte primaire, dont le contraste dépendrait de ce qu’il y a
               derrière. Repliez la barre et vérifiez au clavier : les libellés restent des noms de

@@ -550,13 +550,7 @@ const rows = [
           <>
             <p className="tc-doc-lede">{entry.description}</p>
             <div className="tc-doc-opale-meta">
-              <Opale.Badge>
-                {entry.category === 'Inputs'
-                  ? 'Saisie'
-                  : entry.category === 'Feedback'
-                    ? 'Retours'
-                    : entry.category}
-              </Opale.Badge>
+              <Opale.Badge>{entry.category}</Opale.Badge>
               <span>Composant Opale · TypeScript strict</span>
             </div>
           </>

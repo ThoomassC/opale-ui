@@ -33,7 +33,7 @@ const PROPS: readonly PropRow[] = [
     name: 'liquidGlass',
     type: 'boolean',
     defaultValue: 'false',
-    description: 'Active le matériau Liquid Glass.',
+    description: 'Active le matériau verre liquide.',
   },
   {
     name: '…ComponentPropsWithoutRef<"input">',

@@ -26,7 +26,7 @@ const HOME_FEATURES = [
     icon: '☾',
     title: '2 thèmes, 1 matériau',
     description:
-      'Clair et sombre sont les deux thèmes ; Liquid Glass est un matériau optionnel, activé composant par composant.',
+      'Clair et sombre sont les deux thèmes ; le verre liquide est un matériau optionnel, activé composant par composant.',
   },
   {
     icon: '◆',
@@ -47,7 +47,7 @@ export const introductionPage: DocPage = {
   label: 'Présentation',
   group: 'introduction',
   title: 'Le design system de l’écosystème Opale.',
-  lede: 'Opale UI réunit des composants React élégants, accessibles et strictement typés, enrichis du matériau Liquid Glass.',
+  lede: 'Opale UI réunit des composants React élégants, accessibles et strictement typés, enrichis du matériau verre liquide.',
   render: () => (
     <PageBody>
       <div className="tc-doc-home">
@@ -55,7 +55,7 @@ export const introductionPage: DocPage = {
 
         <p className="tc-doc-home__intro">
           Opale UI réunit des composants React élégants, accessibles et strictement typés, enrichis
-          du matériau Liquid Glass. Concentrez-vous sur vos interfaces, Opale s’occupe du socle.
+          du matériau verre liquide. Concentrez-vous sur vos interfaces, Opale s’occupe du socle.
         </p>
 
         <div className="tc-doc-home__actions">
@@ -81,7 +81,7 @@ export const introductionPage: DocPage = {
           </a>
           <a href={hrefFor('theming')}>
             <strong>Adapter le thème</strong>
-            <span>Clair, sombre et Liquid Glass ›</span>
+            <span>Clair, sombre et verre liquide ›</span>
           </a>
         </nav>
 
@@ -135,7 +135,7 @@ export const introductionPage: DocPage = {
 
         <footer className="tc-doc-home__footer">
           <p>Opale UI — design system de l’écosystème Opale.</p>
-          <p>Version {UI_VERSION} · Liquid Glass composant par composant</p>
+          <p>Version {UI_VERSION} · verre liquide composant par composant</p>
         </footer>
       </div>
     </PageBody>

@@ -2708,7 +2708,7 @@ body {
   max-inline-size: 100%;
 }
 /* Le commutateur de matériau passe sous son texte plutôt que de sortir du
-   cadre : « Liquid Glass pour SegmentedControl » ne tient pas à côté. */
+   cadre : « Verre liquide pour SegmentedControl » ne tient pas à côté. */
 .tc-doc-opale-material-toggle {
   flex-wrap: wrap;
 }

@@ -21,11 +21,11 @@ export function MaterialToggle({ name, checked, onCheckedChange }: MaterialToggl
   return (
     <div className="tc-doc-opale-material-toggle">
       <div className="tc-doc-opale-material-toggle__text">
-        <strong>Rendu Liquid Glass</strong>
+        <strong>Rendu verre liquide</strong>
         <span>Appliquer le matériau uniquement à ce composant.</span>
       </div>
       <Opale.Toggle
-        label={`Liquid Glass pour ${name}`}
+        label={`Verre liquide pour ${name}`}
         checked={checked}
         onChange={(event) => onCheckedChange(event.currentTarget.checked)}
       />

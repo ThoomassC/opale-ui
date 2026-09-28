@@ -2116,7 +2116,7 @@ body {
   }
 }
 
-/* --- Démonstration Liquid Glass -------------------------------------------
+/* --- Démonstration du verre liquide --------------------------------------
    Cette couche documente la recette globale de `Glass` sur la scène paysage :
    transparence basse, relief de bulle, filet spéculaire et filtre de
    déplacement doux. Les composants de la librairie l'emploient désormais
@@ -2273,7 +2273,7 @@ body {
   overflow: visible;
 }
 
-/* La scène Liquid Glass expose trois variantes : elles respirent sur toute la
+/* La scène du verre liquide expose trois variantes : elles respirent sur toute la
    largeur disponible, et chaque nom reste centré sous l’objet qu’il décrit. */
 .tc-doc-stage:has(.tc-doc-squire-circle__root) {
   justify-content: space-between;

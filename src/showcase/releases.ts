@@ -396,7 +396,7 @@ const V320_RELEASE_SECTIONS: readonly ReleaseSection[] = [
     title: 'Composants et interactions',
     changes: [
       {
-        title: 'Liquid Glass reste optionnel',
+        title: 'Le verre liquide reste optionnel',
         detail:
           'Les composants qui peignent une surface acceptent liquidGlass ; ils gardent leur matériau d’origine par défaut.',
         links: [{ label: 'Voir Card', slug: 'composants/opale-card' }],
@@ -754,7 +754,7 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Opale adopte un langage visuel unifié et étend son catalogue sans retirer les composants historiques.',
     changes: [
       'Ajout des tokens, layouts et primitives visuelles du catalogue Opale.',
-      'Ajout des thèmes clair et sombre, avec Liquid Glass activable composant par composant.',
+      'Ajout des thèmes clair et sombre, avec le verre liquide activable composant par composant.',
       'Ajout de nouveaux composants Opale en conservant les exports existants.',
     ],
     breaking: true,

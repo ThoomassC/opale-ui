@@ -200,7 +200,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Text', 'Text'),
       opaleEntry('Icon', 'Icon'),
       /* `Badge` et `Card` d’origine sont partis pour la même raison que les six
-         d'INPUTS : ils doublonnaient `opaleEntry('Badge')` et
+         de SAISIE : ils doublonnaient `opaleEntry('Badge')` et
          `opaleEntry('Card')` juste au-dessus. `Glass` est parti à son tour :
          ce n'est pas un composant mais le matériau des autres, et la page
          « Le verre liquide » le documente en tant que tel. */
@@ -263,7 +263,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Dropzone', 'Dropzone'),
       opaleEntry('Lightbox', 'Lightbox'),
       opaleEntry('Clipboard', 'Clipboard'),
-      opaleEntry('SvgMap', 'SVG map'),
+      opaleEntry('SvgMap', 'SvgMap'),
     ],
   },
 ];

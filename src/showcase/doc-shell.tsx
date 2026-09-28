@@ -26,7 +26,7 @@ import { UI_VERSION } from './version';
 
 /* La coquille conserve les composants historiques de navigation, mais son
    habillage V3 suit désormais les tokens Opale. Le thème global est limité au
-   clair/sombre ; les composants Opale activent leur surface Liquid Glass avec
+   clair/sombre ; les composants Opale activent leur surface en verre liquide avec
    leur contrôle local et le prop `liquidGlass`. */
 
 /** Le nom du paquet, affiché dans la barre du haut et dans `document.title`. */
