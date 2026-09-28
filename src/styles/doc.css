@@ -2625,10 +2625,10 @@ body {
   margin: 0;
 }
 
-/* Les pages de composants vont droit à l'essentiel : installation, import et
-   démonstration. Les détails d'API, les chapeaux et les commentaires restent
-   dans le source, mais ne prennent plus de place dans la vitrine. */
-.tc-doc-main--components .tc-doc-prose,
+/* Les pages de composants vont droit à l'essentiel ; hors du gabarit
+   (`doc-v3.css`), titres et notes de spécimen restent discrets. La prose
+   n'est plus masquée : ce qui en reste est un contrat ou une attribution de
+   licence, et doit se lire. */
 .tc-doc-main--components .tc-doc-specimen__note,
 .tc-doc-main--components .tc-doc-specimen__title,
 .tc-doc-main--components .tc-doc-props {

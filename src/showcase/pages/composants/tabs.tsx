@@ -209,19 +209,6 @@ export default function TabsContent() {
             }
             rows={PROPS}
           />
-          <p className="tc-doc-prose">
-            <strong>
-              Deux réserves, et elles sont écrites ici faute de pouvoir être corrigées.
-            </strong>{' '}
-            Chaque déclencheur est enveloppé par le conteneur du matériau, si bien qu’un{' '}
-            <code>&lt;div&gt;</code> sans rôle s’intercale entre{' '}
-            <code>role=&quot;tablist&quot;</code> et ses <code>role=&quot;tab&quot;</code> : les
-            restitutions vocales et les vérificateurs traversent un élément générique, mais la
-            parenté n’est plus directe. La supprimer demanderait de renoncer au verre sur les
-            onglets — c’est pourtant lui qui laisse voir la pastille à travers la capsule. Et
-            l’encre par défaut est claire : posé sur un fond clair sans redéfinir{' '}
-            <code>--opale-tabs-ink</code>, le composant est illisible.
-          </p>
         </>
       }
       states={[

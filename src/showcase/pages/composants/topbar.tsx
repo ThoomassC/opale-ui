@@ -1,5 +1,4 @@
 import { Opale, Topbar } from '../../../opale';
-import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -196,39 +195,6 @@ export default function TopbarContent() {
             }
             rows={PROPS}
           />
-          <p className="tc-doc-prose">
-            <strong>Deux remarques d’emploi.</strong> Un <code>&lt;header&gt;</code> n’est un point
-            de repère « banner » que s’il n’est pas imbriqué dans un <code>&lt;article&gt;</code> ou
-            une <code>&lt;section&gt;</code> — sur les scènes de cette page il ne l’est donc pas, et
-            c’est normal. Et rien dans ce composant ne pose <code>position: sticky</code> : le
-            collage en haut de fenêtre est à votre charge, comme l’est le décalage de défilement qui
-            empêche la barre de manger l’anneau de focus (WCAG 2.4.11) — la barre de cette vitrine
-            le fait dans <code>doc.css</code>.
-          </p>
-
-          <p className="tc-doc-prose">
-            <strong>
-              La barre n’impose plus son encre, et c’est ce qui change le plus à l’usage.
-            </strong>{' '}
-            La version d’où ce composant vient écrivait <code>text-white</code> sur la barre et sur
-            la marque. Un verre est transparent : son texte se lit sur ce qu’il y a derrière, donc
-            une encre blanche en dur est juste au-dessus d’une photographie et invisible au-dessus
-            d’une carte blanche — <strong>1,00:1</strong>, mesuré sur le sol clair de cette vitrine.
-            La barre hérite désormais la couleur de son contexte, et les deux nuances dont elle a
-            besoin — le sous-titre, le fond de la pastille de marque — se dérivent de{' '}
-            <code>currentColor</code> par <code>color-mix</code> : elles suivent l’encre, donc elles
-            suivent le fond. Aucune couleur n’est écrite dans sa feuille ; les rayons, les coussins,
-            l’ombre et le filet viennent des jetons <code>--opale-*</code>.
-          </p>
-
-          <p className="tc-doc-prose">
-            L’équivalent d’Opale n’est pas publié : la barre du haut de ce site vit dans{' '}
-            <code>src/showcase/doc-shell.tsx</code>. Voir aussi{' '}
-            <a className="tc-doc-link" href={hrefFor('composants/sidebar')}>
-              Sidebar
-            </a>{' '}
-            pour l’autre moitié du chrome.
-          </p>
         </>
       }
       accessibility={{
