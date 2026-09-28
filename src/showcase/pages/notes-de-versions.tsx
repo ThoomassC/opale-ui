@@ -22,6 +22,7 @@ export const notesVersionsPage: DocPage = {
     '3.4.0',
     '3.5.0',
     '3.5.1',
+    '3.5.2',
     'SvgMap',
     'PageScaffold',
     'changelog',
