@@ -1,3 +1,3 @@
-/** La 3.5.2 est publiée : la page Installation propose son tag, qui ne bouge plus. */
-export const INSTALL_REF = 'v3.5.2';
+/** La 3.6.0 est publiée : la page Installation propose son tag, qui ne bouge plus. */
+export const INSTALL_REF = 'v3.6.0';
 export const INSTALL_REF_KIND: 'branch' | 'tag' = 'tag';
