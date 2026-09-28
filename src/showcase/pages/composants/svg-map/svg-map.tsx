@@ -2,8 +2,9 @@ import { lazy, Suspense, useMemo, useState } from 'react';
 
 import { Opale, SvgMap, useSvgMapViewport } from '../../../../opale';
 import { Specimen } from '../../../section';
-import { PageBody, PropsTable, UsageBlock } from '../../api';
+import { PropsTable, UsageBlock } from '../../api';
 import type { PropRow } from '../../api';
+import { ComponentPageLayout } from '../../component-page';
 import { CATALOG_API } from '../../opale-api-data';
 import { MaterialSwitch, PlainStage } from '../material-switch';
 
@@ -312,82 +313,158 @@ export default function SvgMapContent() {
   const api = CATALOG_API.SvgMap;
 
   return (
-    <PageBody>
-      <UsageBlock label="Import et appels représentatifs de SvgMap" code={USAGE} />
-
-      <Specimen
-        title="Trouvez le département"
-        note={
-          <>
-            Pincez, glissez, cliquez — ou <strong>Ctrl / ⌘ + molette</strong> : une molette nue
-            laisse défiler la page et le dit. Un glissement se termine forcément sur une région,
-            donc au-delà de six pixels le contact devient un déplacement et le clic qui suit est
-            ignoré. Au clavier, la carte n’est qu’<strong>un arrêt de tabulation</strong> : les
-            flèches mènent à la région voisine dans leur direction, <kbd>Maj</kbd> + flèches
-            déplacent la vue, <kbd>+</kbd> et <kbd>−</kbd> zooment sur la région qui a le focus,{' '}
-            <kbd>0</kbd> revient à la vue d’ensemble. Ce jeu-ci reste{' '}
-            <strong>visuel par nature</strong> : les zones sont annoncées « Zone 12 » pour ne pas
-            souffler la réponse, si bien qu’un lecteur d’écran peut les parcourir mais pas y jouer.
-          </>
-        }
-      >
-        <FindTheDepartment />
-      </Specimen>
-
-      <Specimen
-        title="Colorier — une couleur par région"
-        note="La fonction de remplissage est appelée à chaque rendu, pour chaque région : carte de chaleur, résultat de partie ou sélection s’écrivent sans que le composant connaisse la moindre règle métier. Survolez une région pour lire son nom ; les mêmes niveaux sont repris en texte sous la carte, et la prop description le dit aux lecteurs d’écran."
-      >
-        <HeatMap />
-      </Specimen>
-
-      <Specimen
-        title="Le monde — un carnet de voyage"
-        note={
-          <>
-            La carte de <strong>Travels in World</strong>, rendue par <code>SvgMap</code> : les 239
-            pays du jeu 50m de world-atlas — la résolution de Travels in World — projetés en Natural
-            Earth I dans son cadre d’usine de 960 × 500, joints sur leur code ISO numérique et
-            nommés en français par <code>Intl.DisplayNames</code>. Cliquez un pays pour le passer de
-            non visité à visité, puis à venir ; l’état s’entend aussi dans son nom. Les boutons
-            cadrent sur un continent.
-          </>
-        }
-      >
-        <Suspense
-          fallback={<p className="tc-doc-svgmap-loading">Chargement de la carte du monde…</p>}
+    <ComponentPageLayout
+      id="svg-map"
+      imports={['SvgMap', 'SvgMapControls', 'useSvgMapViewport']}
+      demo={
+        <Specimen
+          title="Trouvez le département"
+          note={
+            <>
+              Pincez, glissez, cliquez — ou <strong>Ctrl / ⌘ + molette</strong> : une molette nue
+              laisse défiler la page et le dit. Un glissement se termine forcément sur une région,
+              donc au-delà de six pixels le contact devient un déplacement et le clic qui suit est
+              ignoré. Au clavier, la carte n’est qu’<strong>un arrêt de tabulation</strong> : les
+              flèches mènent à la région voisine dans leur direction, <kbd>Maj</kbd> + flèches
+              déplacent la vue, <kbd>+</kbd> et <kbd>−</kbd> zooment sur la région qui a le focus,{' '}
+              <kbd>0</kbd> revient à la vue d’ensemble. Ce jeu-ci reste{' '}
+              <strong>visuel par nature</strong> : les zones sont annoncées « Zone 12 » pour ne pas
+              souffler la réponse, si bien qu’un lecteur d’écran peut les parcourir mais pas y
+              jouer.
+            </>
+          }
         >
-          <WorldMap />
-        </Suspense>
-      </Specimen>
+          <FindTheDepartment />
+        </Specimen>
+      }
+      examples={
+        <>
+          <UsageBlock label="Import et appels représentatifs de SvgMap" code={USAGE} />
+          <Specimen
+            title="Colorier — une couleur par région"
+            note="La fonction de remplissage est appelée à chaque rendu, pour chaque région : carte de chaleur, résultat de partie ou sélection s’écrivent sans que le composant connaisse la moindre règle métier. Survolez une région pour lire son nom ; les mêmes niveaux sont repris en texte sous la carte, et la prop description le dit aux lecteurs d’écran."
+          >
+            <HeatMap />
+          </Specimen>
 
-      <Specimen
-        title="Cadrer de l’extérieur"
-        note="La vue peut être tenue par l’appelant. Le cadrage garde le rapport de la carte — un ensemble plus haut que large n’est pas coupé — et reste centré même quand l’ensemble est plus petit que le zoom maximal ne l’autorise."
-      >
-        <FramedMap />
-      </Specimen>
+          <Specimen
+            title="Le monde — un carnet de voyage"
+            note={
+              <>
+                La carte de <strong>Travels in World</strong>, rendue par <code>SvgMap</code> : les
+                239 pays du jeu 50m de world-atlas — la résolution de Travels in World — projetés en
+                Natural Earth I dans son cadre d’usine de 960 × 500, joints sur leur code ISO
+                numérique et nommés en français par <code>Intl.DisplayNames</code>. Cliquez un pays
+                pour le passer de non visité à visité, puis à venir ; l’état s’entend aussi dans son
+                nom. Les boutons cadrent sur un continent.
+              </>
+            }
+          >
+            <Suspense
+              fallback={<p className="tc-doc-svgmap-loading">Chargement de la carte du monde…</p>}
+            >
+              <WorldMap />
+            </Suspense>
+          </Specimen>
 
-      <PropsTable id="svg-map" note={api.states} rows={api.rows} />
-      <PropsTable id="svg-map-region" title="SvgMapRegion" rows={REGION_ROWS} />
-      <PropsTable
-        id="svg-map-viewport"
-        title="useSvgMapViewport(viewBox, { maxZoom })"
-        note={
+          <Specimen
+            title="Cadrer de l’extérieur"
+            note="La vue peut être tenue par l’appelant. Le cadrage garde le rapport de la carte — un ensemble plus haut que large n’est pas coupé — et reste centré même quand l’ensemble est plus petit que le zoom maximal ne l’autorise."
+          >
+            <FramedMap />
+          </Specimen>
+        </>
+      }
+      props={
+        <>
+          <PropsTable id="svg-map" note={api.states} rows={api.rows} />
+          <PropsTable id="svg-map-region" title="SvgMapRegion" rows={REGION_ROWS} />
+          <PropsTable
+            id="svg-map-viewport"
+            title="useSvgMapViewport(viewBox, { maxZoom })"
+            note={
+              <>
+                Passée à <code>SvgMap</code> et à <code>SvgMapControls</code>, la vue est partagée :
+                la carte, ses commandes et l’appelant voient la même.
+              </>
+            }
+            rows={VIEWPORT_ROWS}
+          />
+          <p className="tc-doc-prose tc-doc-svgmap-credit">
+            Tracés des départements : svg-maps de Victor Cazanave, sous licence CC-BY-4.0. Carte du
+            monde : world-atlas (licence ISC), d’après les données Natural Earth, du domaine public.
+            Ni l’un ni l’autre ne font partie de la librairie — la vitrine les installe pour la
+            démonstration.
+          </p>
+        </>
+      }
+      states={[
+        {
+          state: 'disabled',
+          description: (
+            <>
+              Les commandes indisponibles — zoom maximal atteint, rien à dézoomer ou à réinitialiser
+              — portent <code>aria-disabled=&quot;true&quot;</code> : elles restent focusables et le
+              clic est sans effet.
+            </>
+          ),
+        },
+      ]}
+      accessibility={{
+        keyboard: [
           <>
-            Passée à <code>SvgMap</code> et à <code>SvgMapControls</code>, la vue est partagée : la
-            carte, ses commandes et l’appelant voient la même.
-          </>
-        }
-        rows={VIEWPORT_ROWS}
-      />
-
-      <p className="tc-doc-prose tc-doc-svgmap-credit">
-        Tracés des départements : svg-maps de Victor Cazanave, sous licence CC-BY-4.0. Carte du
-        monde : world-atlas (licence ISC), d’après les données Natural Earth, du domaine public. Ni
-        l’un ni l’autre ne font partie de la librairie — la vitrine les installe pour la
-        démonstration.
-      </p>
-    </PageBody>
+            Avec <code>selectable</code>, la carte est un seul arrêt de tabulation (tabindex
+            roulant) : les flèches mènent à la région voisine dans leur direction,{' '}
+            <kbd>Origine</kbd> et <kbd>Fin</kbd> suivent l’ordre du tableau, <kbd>Entrée</kbd> et{' '}
+            <kbd>Espace</kbd> appellent <code>onSelect</code>.
+          </>,
+          <>
+            <kbd>Maj</kbd> + flèches déplacent la vue ; sans <code>selectable</code>, le{' '}
+            <code>&lt;svg&gt;</code> prend le focus et les flèches seules la déplacent.
+          </>,
+          <>
+            <kbd>+</kbd> zoome sur la région qui a le focus, <kbd>−</kbd> dézoome, <kbd>0</kbd>{' '}
+            revient à la vue d’ensemble ; jamais avec <kbd>Ctrl</kbd>, <kbd>⌘</kbd> ou{' '}
+            <kbd>Alt</kbd>, pour laisser le zoom du navigateur.
+          </>,
+          <>
+            <kbd>Échap</kbd> masque l’infobulle jusqu’au prochain survol ou focus. Une région
+            atteinte au clavier est ramenée dans la vue.
+          </>,
+        ],
+        semantics: [
+          <>
+            Le <code>&lt;svg&gt;</code> porte <code>role=&quot;img&quot;</code>, ou{' '}
+            <code>role=&quot;group&quot;</code> avec <code>selectable</code>, nommé par{' '}
+            <code>label</code> et décrit par <code>description</code> suivie des consignes clavier.
+          </>,
+          <>
+            Une région sélectionnable est un <code>&lt;path role=&quot;button&quot;&gt;</code> nommé
+            par <code>ariaLabel</code>, puis <code>name</code>, puis <code>id</code> ;{' '}
+            <code>aria-pressed</code> n’est posé que si <code>selected</code> est fourni.
+          </>,
+          <>
+            <code>SvgMapControls</code> est un <code>role=&quot;group&quot;</code> nommé « Zoom »,
+            de boutons « Zoomer », « Dézoomer » et « Vue d’ensemble ».
+          </>,
+          <>
+            L’infobulle et la consigne de molette sont <code>aria-hidden</code>. Sous{' '}
+            <code>prefers-reduced-motion</code>, les cadrages ne sont pas animés.
+          </>,
+        ],
+      }}
+      limits={[
+        <>Aucune région live n’annonce le niveau de zoom ni le déplacement de la vue.</>,
+        <>
+          L’infobulle (le <code>name</code>) est seulement visuelle ; une carte de chaleur doit
+          reprendre ses valeurs en texte.
+        </>,
+        <>
+          Une molette sans <kbd>Ctrl</kbd> ou <kbd>⌘</kbd> fait défiler la page ; un contact qui
+          bouge de plus de six pixels ne vaut plus un clic.
+        </>,
+        <>Une région dont le tracé n’a pas de boîte est exclue des flèches et du cadrage.</>,
+      ]}
+    />
   );
 }

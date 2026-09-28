@@ -1,7 +1,8 @@
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
-import { PageBody, PropsTable, UsageBlock } from '../api';
+import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { ComponentPageLayout } from '../component-page';
 import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
 import { StageGroundNote } from './stage';
@@ -156,129 +157,193 @@ const PROPS: readonly PropRow[] = [
    rien charger. */
 export default function ToastContent() {
   return (
-    <PageBody>
-      <UsageBlock label="Le montage de ToastProvider, en deux temps" code={USAGE} />
+    <ComponentPageLayout
+      id="toast"
+      imports={['ToastProvider', 'useToast']}
+      demo={
+        <Specimen
+          title="Les cinq tons — déclenchez-les"
+          note={
+            <>
+              <strong>
+                Les toasts sont portaillés dans <code>document.body</code> : ils apparaissent en
+                haut à droite de la fenêtre, pas dans la scène.
+              </strong>{' '}
+              Ils se ferment seuls au bout de 4 s, à la croix, ou avec « Tout fermer » — et{' '}
+              <strong>la minuterie s’arrête tant que le pointeur est dessus</strong>, donc
+              survolez-en un pour le garder le temps de le lire. La scène est sombre pour ses
+              boutons, qui sont ceux de la librairie. <StageGroundNote />
+            </>
+          }
+        >
+          <MaterialSwitch name="ToastProvider">
+            {(liquidGlass) => <ToastVariantScene liquidGlass={liquidGlass} />}
+          </MaterialSwitch>
+        </Specimen>
+      }
+      examples={
+        <>
+          <UsageBlock label="Le montage de ToastProvider, en deux temps" code={USAGE} />
+          <p className="tc-doc-prose">
+            <strong>Ce que son montage exige, et l’ordre compte.</strong> Un{' '}
+            <code>ToastProvider</code> doit envelopper <em>tout</em> l’arbre qui déclenchera des
+            toasts, et <code>useToast()</code> doit être appelé <em>à l’intérieur</em> de cet arbre
+            — hors du fournisseur, le hook <strong>jette</strong> «{' '}
+            <code>useToast must be used within ToastProvider</code> ». Corollaire de conception : le
+            déclencheur ne peut pas être le composant qui rend le fournisseur, puisqu’un fournisseur
+            ne se consomme pas lui-même. Chaque scène de cette page monte donc son propre{' '}
+            <code>ToastProvider</code>, et ses boutons sont des composants séparés — c’est la
+            contrainte, écrite en code.
+          </p>
+          <Specimen
+            title="Positions, animations, et une durée infinie"
+            note={
+              <>
+                Ce fournisseur est réglé sur <code>duration={'{Infinity}'}</code> : rien ne se ferme
+                tout seul, il faut la croix ou « Tout fermer ». Les trois boutons visent trois coins
+                différents — les piles sont indépendantes.
+              </>
+            }
+          >
+            <ToastPositionScene />
+          </Specimen>
+        </>
+      }
+      props={
+        <>
+          <PropsTable
+            id="toast"
+            title="L’interface — le fournisseur et le hook"
+            note={
+              <>
+                <code>ToastProvider</code> est un composant de configuration : ses cinq props sont
+                les <em>défauts</em> de la file, et chaque appel à <code>showToast</code> peut les
+                surcharger.{' '}
+                <strong>
+                  Cette file n’exporte aucun composant <code>Toast</code>
+                </strong>{' '}
+                — sa carte est interne et n’est atteignable que par <code>showToast</code>. Le{' '}
+                <code>Opale.Toast</code> que publie le paquet est un composant à part, rendu en
+                place : il n’est pas la carte de cette file.
+              </>
+            }
+            rows={PROPS}
+          />
+          <p className="tc-doc-prose">
+            <strong>Ses régions live sont permanentes, et c’est tout le changement.</strong> La
+            version d’avant posait <code>role=&quot;status&quot;</code> sur{' '}
+            <em>la carte elle-même</em>, c’est-à-dire sur le nœud qui venait d’apparaître. Or une
+            région live insérée en même temps que son contenu peut, selon le lecteur d’écran, n’être
+            pas annoncée du tout : la technologie d’assistance surveille les régions qu’elle connaît
+            déjà, et celle-là naissait avec son texte dedans. Le seul dispositif d’accessibilité du
+            composant avait donc une chance sérieuse de ne rien faire. Chacun des six coins porte
+            désormais <strong>deux régions vides montées avec le fournisseur</strong>, et les cartes
+            sont insérées dedans.
+          </p>
 
-      <p className="tc-doc-prose">
-        <strong>Ce que son montage exige, et l’ordre compte.</strong> Un <code>ToastProvider</code>{' '}
-        doit envelopper <em>tout</em> l’arbre qui déclenchera des toasts, et <code>useToast()</code>{' '}
-        doit être appelé <em>à l’intérieur</em> de cet arbre — hors du fournisseur, le hook{' '}
-        <strong>jette</strong> « <code>useToast must be used within ToastProvider</code> ».
-        Corollaire de conception : le déclencheur ne peut pas être le composant qui rend le
-        fournisseur, puisqu’un fournisseur ne se consomme pas lui-même. Chaque scène de cette page
-        monte donc son propre <code>ToastProvider</code>, et ses boutons sont des composants séparés
-        — c’est la contrainte, écrite en code.
-      </p>
+          <p className="tc-doc-prose">
+            <strong>Deux régions et non une, parce que tout ne se dit pas sur le même ton.</strong>{' '}
+            Une erreur de publication était annoncée aussi poliment qu’un brouillon enregistré,
+            c’est-à-dire à la fin de ce que l’utilisateur était en train de lire.{' '}
+            <code>default</code>, <code>success</code> et <code>info</code> vont dans une région{' '}
+            <code>role=&quot;status&quot;</code> polie ; <code>warning</code> et <code>error</code>{' '}
+            vont dans une région <code>role=&quot;alert&quot;</code> assertive, qui interrompt.{' '}
+            <strong>Ce que ce découpage coûte</strong> : à l’intérieur d’un coin, les messages
+            urgents se groupent entre eux au lieu de s’intercaler par ordre d’arrivée avec le reste.
+            Deux niveaux de politesse ne tiennent pas dans une seule région, et entre un empilement
+            chronologique parfait et une urgence correctement annoncée, c’est l’urgence qui gagne.
+            Les deux régions portent <code>aria-atomic=&quot;false&quot;</code> :{' '}
+            <code>role=&quot;status&quot;</code> implique l’inverse, et sans cette remise à faux
+            toute la pile serait relue à chaque arrivée.
+          </p>
 
-      <Specimen
-        title="Les cinq tons — déclenchez-les"
-        note={
-          <>
+          <p className="tc-doc-prose">
+            <strong>Un message ne s’efface plus avant d’avoir pu être lu — WCAG 2.2.1.</strong>{' '}
+            C’était la faute la plus sérieuse de la version d’avant : la minuterie courait quoi
+            qu’il arrive. Quelqu’un qui lit lentement, qui traduit, ou qui vient tout juste
+            d’atteindre la croix au clavier voyait la carte disparaître sous le curseur. La
+            minuterie se met maintenant en pause au survol <em>et</em> dès que le focus entre dans
+            la carte — les deux, parce que la souris et le doigt passent par le pointeur et le
+            clavier par le focus —, puis reprend le temps qui restait plutôt que de rejouer la durée
+            entière, ce qui punirait un survol accidentel. <code>duration: Infinity</code> reste la
+            façon de la désarmer complètement. Le bouton de fermeture, lui, annonce désormais
+            «&nbsp;Fermer la notification&nbsp;», en français comme le reste de la librairie.
+          </p>
+
+          <p className="tc-doc-prose">
             <strong>
-              Les toasts sont portaillés dans <code>document.body</code> : ils apparaissent en haut
-              à droite de la fenêtre, pas dans la scène.
+              Ce n’est pas le message d’état dans le flux, et il ne faut pas les confondre.
             </strong>{' '}
-            Ils se ferment seuls au bout de 4 s, à la croix, ou avec « Tout fermer » — et{' '}
-            <strong>la minuterie s’arrête tant que le pointeur est dessus</strong>, donc survolez-en
-            un pour le garder le temps de le lire. La scène est sombre pour ses boutons, qui sont
-            ceux de la librairie. <StageGroundNote />
-          </>
-        }
-      >
-        <MaterialSwitch name="ToastProvider">
-          {(liquidGlass) => <ToastVariantScene liquidGlass={liquidGlass} />}
-        </MaterialSwitch>
-      </Specimen>
-
-      <Specimen
-        title="Positions, animations, et une durée infinie"
-        note={
+            La 1.0 publiait un <code>Message</code> posé <em>à côté</em> de ce qui l’avait produit —
+            lisible sans limite de temps, retrouvable en relisant la page. Cette file-ci fait
+            l’inverse : elle sort la carte du flux pour la porter dans un coin de la fenêtre, et
+            l’efface au bout de quatre secondes — sauf pendant qu’on la lit. Le composant qui
+            reprend le rôle du message en place est <code>Opale.Toast</code> — voir{' '}
+            <a className="tc-doc-link" href={hrefFor('composants/opale-toast')}>
+              Toast
+            </a>{' '}
+            —, un <code>&lt;div role=&quot;status&quot;&gt;</code> rendu là où on l’écrit, ouvert et
+            fermé par une prop <code>open</code>. Même mot, deux mécanismes : l’un interrompt,
+            l’autre accompagne.
+          </p>
+        </>
+      }
+      states={[
+        {
+          state: 'error',
+          description: (
+            <>
+              Les tons <code>warning</code> et <code>error</code> entrent dans la région assertive{' '}
+              <code>role=&quot;alert&quot;</code> de leur coin ; les autres dans la région polie{' '}
+              <code>role=&quot;status&quot;</code>.
+            </>
+          ),
+        },
+      ]}
+      accessibility={{
+        keyboard: [
           <>
-            Ce fournisseur est réglé sur <code>duration={'{Infinity}'}</code> : rien ne se ferme
-            tout seul, il faut la croix ou « Tout fermer ». Les trois boutons visent trois coins
-            différents — les piles sont indépendantes.
-          </>
-        }
-      >
-        <ToastPositionScene />
-      </Specimen>
-
-      <PropsTable
-        id="toast"
-        title="L’interface — le fournisseur et le hook"
-        note={
+            Le focus n’est jamais déplacé vers un toast. La croix est un <code>&lt;button&gt;</code>{' '}
+            natif.
+          </>,
           <>
-            <code>ToastProvider</code> est un composant de configuration : ses cinq props sont les{' '}
-            <em>défauts</em> de la file, et chaque appel à <code>showToast</code> peut les
-            surcharger.{' '}
-            <strong>
-              Cette file n’exporte aucun composant <code>Toast</code>
-            </strong>{' '}
-            — sa carte est interne et n’est atteignable que par <code>showToast</code>. Le{' '}
-            <code>Opale.Toast</code> que publie le paquet est un composant à part, rendu en place :
-            il n’est pas la carte de cette file.
-          </>
-        }
-        rows={PROPS}
-      />
-
-      <p className="tc-doc-prose">
-        <strong>Ses régions live sont permanentes, et c’est tout le changement.</strong> La version
-        d’avant posait <code>role=&quot;status&quot;</code> sur <em>la carte elle-même</em>,
-        c’est-à-dire sur le nœud qui venait d’apparaître. Or une région live insérée en même temps
-        que son contenu peut, selon le lecteur d’écran, n’être pas annoncée du tout : la technologie
-        d’assistance surveille les régions qu’elle connaît déjà, et celle-là naissait avec son texte
-        dedans. Le seul dispositif d’accessibilité du composant avait donc une chance sérieuse de ne
-        rien faire. Chacun des six coins porte désormais{' '}
-        <strong>deux régions vides montées avec le fournisseur</strong>, et les cartes sont insérées
-        dedans.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>Deux régions et non une, parce que tout ne se dit pas sur le même ton.</strong> Une
-        erreur de publication était annoncée aussi poliment qu’un brouillon enregistré, c’est-à-dire
-        à la fin de ce que l’utilisateur était en train de lire. <code>default</code>,{' '}
-        <code>success</code> et <code>info</code> vont dans une région{' '}
-        <code>role=&quot;status&quot;</code> polie ; <code>warning</code> et <code>error</code> vont
-        dans une région <code>role=&quot;alert&quot;</code> assertive, qui interrompt.{' '}
-        <strong>Ce que ce découpage coûte</strong> : à l’intérieur d’un coin, les messages urgents
-        se groupent entre eux au lieu de s’intercaler par ordre d’arrivée avec le reste. Deux
-        niveaux de politesse ne tiennent pas dans une seule région, et entre un empilement
-        chronologique parfait et une urgence correctement annoncée, c’est l’urgence qui gagne. Les
-        deux régions portent <code>aria-atomic=&quot;false&quot;</code> :{' '}
-        <code>role=&quot;status&quot;</code> implique l’inverse, et sans cette remise à faux toute
-        la pile serait relue à chaque arrivée.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>Un message ne s’efface plus avant d’avoir pu être lu — WCAG 2.2.1.</strong> C’était
-        la faute la plus sérieuse de la version d’avant : la minuterie courait quoi qu’il arrive.
-        Quelqu’un qui lit lentement, qui traduit, ou qui vient tout juste d’atteindre la croix au
-        clavier voyait la carte disparaître sous le curseur. La minuterie se met maintenant en pause
-        au survol <em>et</em> dès que le focus entre dans la carte — les deux, parce que la souris
-        et le doigt passent par le pointeur et le clavier par le focus —, puis reprend le temps qui
-        restait plutôt que de rejouer la durée entière, ce qui punirait un survol accidentel.{' '}
-        <code>duration: Infinity</code> reste la façon de la désarmer complètement. Le bouton de
-        fermeture, lui, annonce désormais «&nbsp;Fermer la notification&nbsp;», en français comme le
-        reste de la librairie.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>
-          Ce n’est pas le message d’état dans le flux, et il ne faut pas les confondre.
-        </strong>{' '}
-        La 1.0 publiait un <code>Message</code> posé <em>à côté</em> de ce qui l’avait produit —
-        lisible sans limite de temps, retrouvable en relisant la page. Cette file-ci fait l’inverse
-        : elle sort la carte du flux pour la porter dans un coin de la fenêtre, et l’efface au bout
-        de quatre secondes — sauf pendant qu’on la lit. Le composant qui reprend le rôle du message
-        en place est <code>Opale.Toast</code> — voir{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/opale-toast')}>
-          Toast
-        </a>{' '}
-        —, un <code>&lt;div role=&quot;status&quot;&gt;</code> rendu là où on l’écrit, ouvert et
-        fermé par une prop <code>open</code>. Même mot, deux mécanismes : l’un interrompt, l’autre
-        accompagne.
-      </p>
-    </PageBody>
+            La minuterie se met en pause au survol et dès que le focus entre dans la carte, puis
+            reprend le temps restant.
+          </>,
+        ],
+        semantics: [
+          <>
+            Chaque coin porte deux régions live vides, montées avec le fournisseur :{' '}
+            <code>role=&quot;status&quot;</code> (<code>aria-live=&quot;polite&quot;</code>) et{' '}
+            <code>role=&quot;alert&quot;</code> (<code>aria-live=&quot;assertive&quot;</code>),
+            toutes deux <code>aria-atomic=&quot;false&quot;</code>.
+          </>,
+          <>
+            La croix est nommée « Fermer la notification » (<code>labels.close</code>) ; son glyphe
+            est <code>aria-hidden</code>.
+          </>,
+          <>
+            Le portail reste actif et audible pendant qu’une <code>Modal</code> est ouverte.
+          </>,
+          <>
+            Sous <code>prefers-reduced-motion</code>, glissements et mise à l’échelle deviennent des
+            fondus.
+          </>,
+        ],
+      }}
+      limits={[
+        <>
+          Dans un même coin, les messages urgents se groupent entre eux au lieu de suivre l’ordre
+          d’arrivée.
+        </>,
+        <>
+          <kbd>Échap</kbd> ne ferme pas un toast ; seule la croix, la minuterie ou{' '}
+          <code>dismissToast</code> le font.
+        </>,
+        <>
+          <code>useToast</code> jette hors d’un <code>ToastProvider</code>.
+        </>,
+      ]}
+    />
   );
 }

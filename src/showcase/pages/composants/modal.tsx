@@ -1,23 +1,24 @@
 import { Specimen } from '../../section';
-import { PageBody, PropsTable, UsageBlock } from '../api';
+import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { ComponentPageLayout } from '../component-page';
 import { ModalScene } from './scenes';
 import { MaterialSwitch, PlainStage } from './material-switch';
 import { StageGroundNote } from './stage';
 
-const USAGE = `import { Modal } from '@thomascaron/opale-ui';
+const USAGE = `import { Button, Modal } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 const [open, setOpen] = useState(false);
 
-<Button text="Ouvrir" onClick={() => setOpen(true)} />
+<Button onClick={() => setOpen(true)}>Ouvrir</Button>
 
 <Modal
   open={open}
   onOpenChange={setOpen}
   title="Supprimer l'étape ?"
   description="Cette action est définitive."
-  footer={<Button variant="negative" text="Supprimer" />}
+  footer={<Button variant="danger">Supprimer</Button>}
 >
   Kyoto, trois jours, douze photos.
 </Modal>`;
@@ -129,104 +130,160 @@ const PROPS: readonly PropRow[] = [
    rien charger. */
 export default function ModalContent() {
   return (
-    <PageBody>
-      <UsageBlock label="Import et appels représentatifs de Modal" code={USAGE} />
-
-      <Specimen
-        title="Ce qu’il faut pour le monter — et les trois crans"
-        note={
-          <>
-            <strong>
-              Le modal est portaillé dans <code>document.body</code>, donc il ne se peint pas sur la
-              scène ci-dessous : il se peint par-dessus la vitrine entière, et c’est son propre
-              voile qui lui fait un fond sombre.
-            </strong>{' '}
-            La scène ne porte ici que les déclencheurs — et elle est sombre pour la même raison que
-            les autres, parce que ce sont des boutons de la librairie. <StageGroundNote />
-          </>
-        }
-      >
-        <MaterialSwitch name="Modal">
-          {(liquidGlass) => (
+    <ComponentPageLayout
+      id="modal"
+      imports={['Modal']}
+      demo={
+        <Specimen
+          title="Les trois tailles"
+          note={
             <>
-              <ModalScene liquidGlass={liquidGlass} size="small" label="Ouvrir — small" />
-              <ModalScene liquidGlass={liquidGlass} size="medium" label="Ouvrir — medium" />
-              <ModalScene liquidGlass={liquidGlass} size="large" label="Ouvrir — large" />
+              Le modal est portaillé dans <code>document.body</code> : il se peint par-dessus la
+              vitrine entière, sur son propre voile. La scène ne porte que les déclencheurs.{' '}
+              <StageGroundNote />
             </>
-          )}
-        </MaterialSwitch>
-      </Specimen>
+          }
+        >
+          <MaterialSwitch name="Modal">
+            {(liquidGlass) => (
+              <>
+                <ModalScene liquidGlass={liquidGlass} size="small" label="Ouvrir — small" />
+                <ModalScene liquidGlass={liquidGlass} size="medium" label="Ouvrir — medium" />
+                <ModalScene liquidGlass={liquidGlass} size="large" label="Ouvrir — large" />
+              </>
+            )}
+          </MaterialSwitch>
+        </Specimen>
+      }
+      examples={
+        <>
+          <UsageBlock label="Import et appels représentatifs de Modal" code={USAGE} />
+          <Specimen
+            title="Sans Échap, sans voile — la croix seule"
+            note={
+              <>
+                Ce modal refuse <kbd>Échap</kbd> et le clic sur le voile. La croix reste, parce
+                qu’un <code>onOpenChange</code> est passé : les trois sorties sont optionnelles.
+              </>
+            }
+          >
+            <PlainStage>
+              <ModalScene closeOnEsc={false} closeOnOverlay={false} label="Ouvrir — croix seule" />
+            </PlainStage>
+          </Specimen>
+        </>
+      }
+      props={
+        <>
+          <PropsTable
+            id="modal"
+            note={
+              <>
+                <code>ComponentPropsWithoutRef&lt;&apos;div&apos;&gt;</code> plus onze props
+                propres, plus <code>GlassProps</code>. Le composant intercepte <code>onClick</code>{' '}
+                et <code>onKeyDown</code> puis rappelle les vôtres. <code>role</code>,{' '}
+                <code>aria-modal</code> et <code>tabIndex</code> sont appliqués <em>après</em> vos
+                props et ne se surchargent pas ; le nom accessible reste à vous.
+              </>
+            }
+            rows={PROPS}
+          />
+          <p className="tc-doc-prose">
+            <strong>Le piège du montage a disparu, et c’est ce qui a motivé la réécriture.</strong>{' '}
+            La version d’avant attendait <em>deux</em> effets avant de rendre quoi que ce soit — un
+            pour un drapeau <code>mounted</code>, un pour le conteneur de portail —, donc{' '}
+            <code>open</code> à <code>true</code> au premier rendu n’affichait rien avant le premier
+            passage des effets. Ce n’était pas un détail de cycle de vie : sous un test qui rendait
+            puis assérait aussitôt, le modal était simplement absent. Le conteneur se résout
+            désormais pendant le rendu, et les deux <code>setState</code> en corps d’effet — avec l’
+            <code>eslint-disable</code> qui les couvrait — n’existent plus.
+          </p>
 
-      <Specimen
-        title="Sans Échap, sans voile — la porte de sortie qui reste"
-        note={
+          <p className="tc-doc-prose">
+            <strong>
+              Le motif de dialogue est maintenant complet, et voici ce que ça recouvre.
+            </strong>{' '}
+            Le focus part au panneau à l’ouverture, il y est <em>piégé</em> — <kbd>Tab</kbd> depuis
+            le dernier élément revient au premier, <kbd>Maj+Tab</kbd> depuis le premier repart au
+            dernier — et il est <strong>rendu au déclencheur</strong> à la fermeture comme au
+            démontage. Un dialogue qui ne le rend pas renvoie le focus sur <code>&lt;body&gt;</code>{' '}
+            : la tabulation suivante repart du haut de la page, et qui navigue au clavier perd sa
+            place à chaque fermeture. Enfin, <code>aria-modal</code> <em>déclare</em> que le reste
+            de la page est hors-jeu sans le <em>faire</em> : les frères du conteneur de portail, à
+            chaque niveau jusqu’à <code>&lt;body&gt;</code>, reçoivent donc <code>inert</code> et{' '}
+            <code>aria-hidden</code> le temps de l’ouverture, et retrouvent exactement leur valeur
+            précédente ensuite.
+          </p>
+
+          <p className="tc-doc-prose">
+            <strong>
+              Ce n’est toujours pas un <code>&lt;dialog&gt;</code> natif, et il faut dire ce qui
+              reste en moins.
+            </strong>{' '}
+            <code>showModal()</code> donne gratuitement la couche supérieure du navigateur — un
+            modal s’y peint au-dessus de tout, quels que soient les <code>z-index</code> et les
+            contextes d’empilement de l’hôte —, l’annulation par <kbd>Échap</kbd> gérée par la
+            plateforme, et une inertie que rien dans la page ne peut contourner. Ici tout cela est
+            reconstruit en JavaScript, donc tout cela peut être défait par l’hôte : un ancêtre
+            transformé déplace le portail, un <code>z-index</code> plus haut passe devant. Le motif
+            d’accessibilité, lui, n’est plus à la charge de l’appelant.
+          </p>
+        </>
+      }
+      accessibility={{
+        keyboard: [
           <>
-            Ce modal refuse <kbd>Échap</kbd> et le clic sur le voile. Il reste la croix, et elle
-            n’est là que parce qu’un <code>onOpenChange</code> est passé : les trois portes de
-            sortie sont toutes optionnelles, et rien n’empêche d’en fermer les trois.
-          </>
-        }
-      >
-        <PlainStage>
-          <ModalScene closeOnEsc={false} closeOnOverlay={false} label="Ouvrir — croix seule" />
-        </PlainStage>
-      </Specimen>
-
-      <PropsTable
-        id="modal"
-        note={
+            <kbd>Échap</kbd> ferme le modal (<code>onOpenChange(false)</code>) tant que{' '}
+            <code>closeOnEsc</code> est vrai ; l’écoute est posée sur <code>window</code>.
+          </>,
           <>
-            <code>ComponentPropsWithoutRef&lt;&apos;div&apos;&gt;</code> plus onze props propres,
-            plus <code>GlassProps</code>. Le composant intercepte <code>onClick</code> et{' '}
-            <code>onKeyDown</code> — le premier pour arrêter la propagation sur le panneau, le
-            second pour le piège de focus — puis rappelle les vôtres.{' '}
-            <strong>Les attributs qui portent le contrat de dialogue sont inécrasables :</strong>{' '}
-            <code>role</code>, <code>aria-modal</code> et <code>tabIndex</code> sont appliqués{' '}
-            <em>après</em> vos props et ne se surchargent plus — les poser cassait le motif entier
-            en silence. Le nom accessible, lui, reste à vous.
-          </>
-        }
-        rows={PROPS}
-      />
-
-      <p className="tc-doc-prose">
-        <strong>Le piège du montage a disparu, et c’est ce qui a motivé la réécriture.</strong> La
-        version d’avant attendait <em>deux</em> effets avant de rendre quoi que ce soit — un pour un
-        drapeau <code>mounted</code>, un pour le conteneur de portail —, donc <code>open</code> à{' '}
-        <code>true</code> au premier rendu n’affichait rien avant le premier passage des effets. Ce
-        n’était pas un détail de cycle de vie : sous un test qui rendait puis assérait aussitôt, le
-        modal était simplement absent. Le conteneur se résout désormais pendant le rendu, et les
-        deux <code>setState</code> en corps d’effet — avec l’<code>eslint-disable</code> qui les
-        couvrait — n’existent plus.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>Le motif de dialogue est maintenant complet, et voici ce que ça recouvre.</strong>{' '}
-        Le focus part au panneau à l’ouverture, il y est <em>piégé</em> — <kbd>Tab</kbd> depuis le
-        dernier élément revient au premier, <kbd>Maj+Tab</kbd> depuis le premier repart au dernier —
-        et il est <strong>rendu au déclencheur</strong> à la fermeture comme au démontage. Un
-        dialogue qui ne le rend pas renvoie le focus sur <code>&lt;body&gt;</code> : la tabulation
-        suivante repart du haut de la page, et qui navigue au clavier perd sa place à chaque
-        fermeture. Enfin, <code>aria-modal</code> <em>déclare</em> que le reste de la page est
-        hors-jeu sans le <em>faire</em> : les frères du conteneur de portail, à chaque niveau
-        jusqu’à <code>&lt;body&gt;</code>, reçoivent donc <code>inert</code> et{' '}
-        <code>aria-hidden</code> le temps de l’ouverture, et retrouvent exactement leur valeur
-        précédente ensuite.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>
-          Ce n’est toujours pas un <code>&lt;dialog&gt;</code> natif, et il faut dire ce qui reste
-          en moins.
-        </strong>{' '}
-        <code>showModal()</code> donne gratuitement la couche supérieure du navigateur — un modal
-        s’y peint au-dessus de tout, quels que soient les <code>z-index</code> et les contextes
-        d’empilement de l’hôte —, l’annulation par <kbd>Échap</kbd> gérée par la plateforme, et une
-        inertie que rien dans la page ne peut contourner. Ici tout cela est reconstruit en
-        JavaScript, donc tout cela peut être défait par l’hôte : un ancêtre transformé déplace le
-        portail, un <code>z-index</code> plus haut passe devant. Le motif d’accessibilité, lui,
-        n’est plus à la charge de l’appelant.
-      </p>
-    </PageBody>
+            Le focus est piégé : <kbd>Tab</kbd> depuis le dernier élément revient au premier,{' '}
+            <kbd>Maj+Tab</kbd> depuis le premier repart au dernier.
+          </>,
+          <>
+            Le focus va au panneau à l’ouverture, et revient à l’élément qui l’avait à la fermeture
+            comme au démontage.
+          </>,
+        ],
+        semantics: [
+          <>
+            Le panneau porte <code>role=&quot;dialog&quot;</code>,{' '}
+            <code>aria-modal=&quot;true&quot;</code> et <code>tabIndex={'{-1}'}</code>.
+          </>,
+          <>
+            <code>aria-labelledby</code> vise le <code>&lt;h2&gt;</code> de <code>title</code>,{' '}
+            <code>aria-describedby</code> le <code>&lt;p&gt;</code> de <code>description</code> ; un{' '}
+            <code>aria-label</code> ou un <code>aria-labelledby</code> passé l’emporte.
+          </>,
+          <>
+            La croix est nommée « Fermer » (<code>labels.close</code>) et n’est rendue qu’avec{' '}
+            <code>onOpenChange</code>.
+          </>,
+          <>
+            Pendant l’ouverture, les frères du portail, jusqu’à <code>&lt;body&gt;</code>, reçoivent{' '}
+            <code>inert</code> et <code>aria-hidden</code>, puis retrouvent leur valeur ; les toasts
+            de <code>ToastProvider</code> restent actifs.
+          </>,
+          <>
+            Le voile est <code>aria-hidden</code>. Sous <code>prefers-reduced-motion</code>,
+            l’entrée du panneau devient un simple fondu.
+          </>,
+        ],
+      }}
+      limits={[
+        <>
+          Ce n’est pas un <code>&lt;dialog&gt;</code> natif : couche supérieure, annulation par{' '}
+          <kbd>Échap</kbd> et inertie sont reconstruites en JavaScript. Un ancêtre transformé ou un{' '}
+          <code>z-index</code> plus haut chez l’hôte peut passer devant.
+        </>,
+        <>
+          Le titre est toujours un <code>&lt;h2&gt;</code>. Sans <code>title</code> ni nom passé, le
+          dialogue est anonyme.
+        </>,
+        <>
+          Le piège de focus ne filtre ni les éléments masqués ni les éléments <code>inert</code>.
+        </>,
+      ]}
+    />
   );
 }

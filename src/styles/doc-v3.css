@@ -3125,3 +3125,63 @@ body {
   color: var(--opale-text-secondary);
   text-align: center;
 }
+
+/* =============================================================================
+   LE GABARIT DES PAGES DE COMPOSANT.
+
+   Import, Démo, Exemples, Props, États, Accessibilité, Limites connues : même
+   ordre et même rythme sur toutes les fiches (`component-page.tsx`). Le
+   raccourci de `doc.css` qui masque titres et notes sur les pages de
+   composants ne vaut pas à l'intérieur du gabarit : un spécimen y garde son
+   titre, un tableau de props sa note.
+   ========================================================================== */
+.tc-doc-component-page {
+  display: grid;
+  gap: var(--opale-space-xl);
+}
+.tc-doc-component-section {
+  display: grid;
+  gap: var(--opale-space-md);
+  padding-block-start: var(--opale-space-lg);
+  border-block-start: 1px solid var(--opale-divider);
+}
+.tc-doc-component-section__title {
+  margin: 0;
+  color: var(--opale-text);
+  font-family: var(--opale-font-display);
+  font-size: var(--opale-text-xl);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: var(--opale-leading-tight);
+}
+.tc-doc-component-section__subtitle {
+  margin: 0;
+  color: var(--opale-text);
+  font-size: var(--opale-text-md);
+  font-weight: 600;
+}
+.tc-doc-component-section__list {
+  display: grid;
+  gap: var(--opale-space-xs);
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  color: var(--opale-text);
+  line-height: var(--opale-leading-relaxed);
+}
+.tc-doc-component-section__states {
+  display: grid;
+  gap: var(--opale-space-sm);
+  margin: 0;
+}
+.tc-doc-component-section__states dt {
+  font-weight: 600;
+}
+.tc-doc-component-section__states dd {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}
+.tc-doc-main--components .tc-doc-component-page .tc-doc-specimen__title,
+.tc-doc-main--components .tc-doc-component-page .tc-doc-specimen__note,
+.tc-doc-main--components .tc-doc-component-page .tc-doc-props {
+  display: block;
+}
