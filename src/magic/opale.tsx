@@ -1427,6 +1427,16 @@ export function Icon({
  * Ce comportement dépend du couple navigateur/lecteur d'écran et n'a pas été
  * vérifié ici faute de lecteur d'écran.
  */
+/* LE TITRE PAR DÉFAUT EST UN MOT FRANÇAIS, PAS LE NOM DE LA PROP. L'encart
+   écrivait `severity` tel quel : « info », « error », en anglais et en bas de
+   casse, lu ainsi par les lecteurs d'écran (WCAG 3.1.2). */
+const FEEDBACK_TITLES = {
+  success: 'Succès',
+  info: 'Information',
+  warning: 'Attention',
+  error: 'Erreur',
+} as const;
+
 export function Feedback({
   severity = 'info',
   title,
@@ -1449,7 +1459,7 @@ export function Feedback({
   const role = severity === 'error' ? 'alert' : 'status';
   const content = (
     <>
-      <strong>{title ?? severity}</strong>
+      <strong>{title ?? FEEDBACK_TITLES[severity]}</strong>
       <span>{children}</span>
     </>
   );
