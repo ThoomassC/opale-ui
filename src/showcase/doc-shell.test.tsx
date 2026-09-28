@@ -691,7 +691,7 @@ describe('DocShell — le rendu de la page', () => {
 
     expect(
       screen.getByRole('group', { name: 'Exemple Button, défilement horizontal' }).textContent,
-    ).toContain("import { Opale } from '@thomascaron/opale-ui';");
+    ).toContain("import { Button } from '@thomascaron/opale-ui';");
     expect(screen.queryByRole('heading', { name: 'API' })).toBeNull();
     expect(screen.queryByText(/Explorer/i)).toBeNull();
   });

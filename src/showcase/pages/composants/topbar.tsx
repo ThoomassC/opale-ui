@@ -5,17 +5,17 @@ import { PageBody, PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { MaterialSwitch, PlainStage } from './material-switch';
 
-const USAGE = `import { Opale, Topbar } from '@thomascaron/opale-ui';
+const USAGE = `import { Badge, Button, Topbar } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 <Topbar size="medium">
   <Topbar.Brand icon={<Logo />} title="Voyages" subtitle="12 étapes" />
   <Topbar.Divider />
   <Topbar.Section grow>
-    <Opale.Badge>brouillon</Opale.Badge>
+    <Badge>brouillon</Badge>
   </Topbar.Section>
   <Topbar.Actions>
-    <Opale.Button size="small">Publier</Opale.Button>
+    <Button size="small">Publier</Button>
   </Topbar.Actions>
 </Topbar>`;
 

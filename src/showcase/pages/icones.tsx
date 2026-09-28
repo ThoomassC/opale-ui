@@ -25,18 +25,18 @@ import { PageBody, UsageBlock } from './api';
    parce qu'une grille vide se lit comme un défaut d'affichage.
    ========================================================================== */
 
-const USAGE = `import { Opale } from '@thomascaron/opale-ui';
+const USAGE = `import { Icon } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 // Décorative : le libellé voisin porte le sens, l'icône est masquée.
-<Opale.Icon name="map-pin" />
+<Icon name="map-pin" />
 
 // Porteuse de sens : elle reçoit un nom accessible.
-<Opale.Icon name="alert-triangle" label="Attention" />
+<Icon name="alert-triangle" label="Attention" />
 
 // La taille suit celle du texte.
 <span style={{ fontSize: '2rem' }}>
-  <Opale.Icon name="compass" />
+  <Icon name="compass" />
 </span>`;
 
 const POINTS = [

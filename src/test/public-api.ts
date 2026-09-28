@@ -27,6 +27,10 @@ export interface PublicApi {
   readonly exportNames: readonly string[];
   /** Les props d'un type exporté (`ButtonProps`…), ou `undefined` s'il n'est pas exporté. */
   propsOfType(typeName: string): readonly PublicProp[] | undefined;
+  /** Vrai si l'export porte `@deprecated` ; `undefined` s'il n'est pas exporté. */
+  isDeprecated(exportName: string): boolean | undefined;
+  /** Les membres de la valeur exportée (`Opale.Background`…) qui portent `@deprecated`, triés. */
+  deprecatedMembersOf(exportName: string): readonly string[] | undefined;
 }
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -34,7 +38,7 @@ const ENTRY = join(ROOT, 'src/opale/index.ts');
 
 /* Les options de l'application, et ses déclarations ambiantes (`*.module.scss`,
    `vite/client`) : sans elles, les imports de feuilles ne se résolvent pas. */
-function readConfig(): { options: ts.CompilerOptions; ambient: string[] } {
+export function readConfig(): { options: ts.CompilerOptions; ambient: string[] } {
   const configPath = join(ROOT, 'tsconfig.app.json');
   const { config, error } = ts.readConfigFile(configPath, ts.sys.readFile);
   if (error) throw new Error(ts.flattenDiagnosticMessageText(error.messageText, '\n'));
@@ -50,6 +54,9 @@ function readConfig(): { options: ts.CompilerOptions; ambient: string[] } {
 function resolveAlias(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol {
   return symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 }
+
+const isDeprecatedSymbol = (checker: ts.TypeChecker, symbol: ts.Symbol) =>
+  symbol.getJsDocTags(checker).some((tag) => tag.name === 'deprecated');
 
 let cached: PublicApi | undefined;
 
@@ -79,8 +86,22 @@ export function loadPublicApi(): PublicApi {
       return checker.getPropertiesOfType(type).map((prop) => ({
         name: prop.getName(),
         required: !(prop.flags & ts.SymbolFlags.Optional),
-        deprecated: prop.getJsDocTags(checker).some((tag) => tag.name === 'deprecated'),
+        deprecated: isDeprecatedSymbol(checker, prop),
       }));
+    },
+    isDeprecated(exportName) {
+      const exported = exports.get(exportName);
+      return exported ? isDeprecatedSymbol(checker, resolveAlias(checker, exported)) : undefined;
+    },
+    deprecatedMembersOf(exportName) {
+      const exported = exports.get(exportName);
+      if (!exported) return undefined;
+      const type = checker.getTypeOfSymbol(resolveAlias(checker, exported));
+      return checker
+        .getPropertiesOfType(type)
+        .filter((member) => isDeprecatedSymbol(checker, member))
+        .map((member) => member.getName())
+        .sort();
     },
   };
   return cached;

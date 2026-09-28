@@ -223,3 +223,18 @@ describe('la surface publique de `src/opale/index.ts`', () => {
     expect(loadPublicApi().exportNames).toEqual(EXPORT_NAMES);
   }, 60_000);
 });
+
+describe('les alias dépréciés de 3.6', () => {
+  it.each(['OpaleUI', 'OPALE_CATALOG', 'CatalogEntry', 'DEFAULT_SITE_NAV_ITEMS'])(
+    'devrait marquer %s `@deprecated` sans le retirer',
+    (name) => {
+      expect(loadPublicApi().isDeprecated(name)).toBe(true);
+    },
+    60_000,
+  );
+
+  it('ne devrait déprécier que `Background` dans le namespace `Opale`', () => {
+    expect(loadPublicApi().isDeprecated('Opale')).toBe(false);
+    expect(loadPublicApi().deprecatedMembersOf('Opale')).toEqual(['Background']);
+  }, 60_000);
+});

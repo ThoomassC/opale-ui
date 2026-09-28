@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-import { type CatalogEntry, OPALE_CATALOG, Opale } from '../../opale';
+import { Opale } from '../../opale';
+import { CATALOG, type ShowcaseCatalogEntry } from '../../opale/catalog';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import { PropsTable, UsageBlock } from './api';
 import { CATALOG_API } from './opale-api-data';
@@ -125,6 +126,23 @@ function withLiquidGlass(code: string, name: string): string {
     .reduce((result, index) => `${result.slice(0, index)} liquidGlass${result.slice(index)}`, code);
 }
 
+/** Les fonctions du paquet qu'un extrait appelle directement, sans namespace. */
+const PACKAGE_FUNCTIONS = ['readCookieConsent'];
+
+/* L'EXTRAIT AFFICHÉ IMPORTE PAR NOM. Les exemples sont écrits avec `Opale.X`,
+   ce qui permet de viser une balise d'Opale sans ambiguïté (voir
+   `withLiquidGlass`) ; celui qu'on copie importe `X` directement, la forme
+   recommandée. */
+function withNamedImports(code: string): string {
+  const used = new Set([...code.matchAll(/\bOpale\.([A-Z]\w*)/g)].map(([, member]) => member));
+  for (const name of PACKAGE_FUNCTIONS) {
+    if (new RegExp(`\\b${name}\\(`).test(code)) used.add(name);
+  }
+  const body = code.replace(/\bOpale\.([A-Z]\w*)/g, '$1');
+  const names = [...used].sort((a, b) => a.localeCompare(b));
+  return `import { ${names.join(', ')} } from '@thomascaron/opale-ui';\n\n${body}`;
+}
+
 /** Chaque fiche du catalogue possède un exemple qui montre son usage réel. */
 const REPRESENTATIVE_EXAMPLES: Readonly<Record<string, string>> = {
   Pressable: '<Opale.Pressable onClick={() => alert("Action")}>Ouvrir</Opale.Pressable>',
@@ -230,9 +248,9 @@ export function Commands() {
   Divider: `<Opale.Text>Avant</Opale.Text>
 <Opale.Divider />
 <Opale.Text>Après</Opale.Text>`,
-  BackgroundSurface: `<Opale.Background>
+  BackgroundSurface: `<Opale.BackgroundSurface>
   <Opale.Card title="Contenu au premier plan">Bienvenue</Opale.Card>
-</Opale.Background>`,
+</Opale.BackgroundSurface>`,
   Lightbox: `import { useState } from 'react';
 
 export function ImagePreview() {
@@ -315,7 +333,7 @@ function exampleCode(name: string, liquidGlass = false): string {
 </Opale.Card>`);
     case 'CardGrid':
       return decorate(`<Opale.CardGrid>
-  <Opale.StatCard label="Composants" value="${OPALE_CATALOG.length}" delta="Catalogue Opale" />
+  <Opale.StatCard label="Composants" value="${CATALOG.length}" delta="Catalogue Opale" />
   <Opale.StatCard label="Thèmes" value="2 globaux + 1 matériau" />
 </Opale.CardGrid>`);
     case 'Badge':
@@ -390,8 +408,7 @@ export function FileSelection() {
 // Sans open, le bandeau ne revient plus une fois le choix fait ;
 // open={true} le rouvre, pour un lien « Gérer mes cookies ».
 
-// Au démarrage : onAccept ne part qu'au clic, le choix mémorisé se lit ici
-// (import { readCookieConsent } from '@thomascaron/opale-ui').
+// Au démarrage : onAccept ne part qu'au clic, le choix mémorisé se lit ici.
 if (readCookieConsent() === 'accepted') enableAnalytics();
 
 <Opale.CookieBanner
@@ -419,7 +436,7 @@ if (readCookieConsent() === 'accepted') enableAnalytics();
   }
 }
 
-export function ComponentPage({ entry }: { entry: CatalogEntry }) {
+export function ComponentPage({ entry }: { entry: ShowcaseCatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
   const supportsLiquidGlass = FORWARDS_LIQUID_GLASS.includes(entry.name);
   const [liquidGlass, setLiquidGlass] = useState(false);
@@ -617,10 +634,7 @@ const rows = [
             l'`import`. Sans lui, un extrait copié ne compile pas chez qui le
             colle. Il part donc avec le reste plutôt que de disparaître avec la
             plaque. */}
-        <UsageBlock
-          label={`Exemple ${displayName}`}
-          code={`import { Opale } from '@thomascaron/opale-ui';\n\n${code}`}
-        />
+        <UsageBlock label={`Exemple ${displayName}`} code={withNamedImports(code)} />
       </section>
       <PropsTable
         id={catalogComponentSlug(entry.name).replace('/', '-')}

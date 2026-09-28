@@ -62,7 +62,7 @@ export const utilisationPage = guidePage({
   lede: 'Composez une page Opale en partant des primitives et des composants dont vous avez besoin.',
   overview:
     'Chaque composant peut être utilisé indépendamment. Les exemples de la documentation restent interactifs afin de comparer les états et les variantes directement dans la page.',
-  code: `import { Opale } from '@thomascaron/opale-ui';
+  code: `import { Button, Card, Form, Heading, Input, Stack } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';`,
   points: [
     'Commencez par une primitive de mise en page, puis ajoutez les composants métier.',
@@ -73,21 +73,21 @@ import '@thomascaron/opale-ui/opale.css';`,
     {
       title: 'Une première page',
       description: 'Assemblez les composants puis gardez les actions nommées.',
-      code: `<Opale.Stack>
-  <Opale.Heading level={1}>Mes projets</Opale.Heading>
-  <Opale.Card title="Dernier projet" subtitle="Mis à jour aujourd’hui">
-    <Opale.Button onClick={ouvrirProjet}>Ouvrir</Opale.Button>
-  </Opale.Card>
-</Opale.Stack>`,
+      code: `<Stack>
+  <Heading level={1}>Mes projets</Heading>
+  <Card title="Dernier projet" subtitle="Mis à jour aujourd’hui">
+    <Button onClick={ouvrirProjet}>Ouvrir</Button>
+  </Card>
+</Stack>`,
     },
     {
       title: 'Un formulaire',
       description:
         'La validation native reste disponible ; affichez aussi les erreurs près du champ.',
-      code: `<Opale.Form onSubmit={enregistrer}>
-  <Opale.Input label="Nom du projet" name="nom" required />
-  <Opale.Button type="submit">Enregistrer</Opale.Button>
-</Opale.Form>`,
+      code: `<Form onSubmit={enregistrer}>
+  <Input label="Nom du projet" name="nom" required />
+  <Button type="submit">Enregistrer</Button>
+</Form>`,
     },
   ],
 });
@@ -105,7 +105,7 @@ export const themingPage = guidePage({
   lede: 'Le thème clair, le thème sombre et le matériau Liquid Glass partagent les mêmes composants.',
   overview:
     'Le thème global règle la lumière de l’interface. Le matériau Liquid Glass reste un choix local : il se déclenche composant par composant dans les spécimens de la vitrine.',
-  code: '<Opale.Card liquidGlass title="Surface locale" />',
+  code: '<Card liquidGlass title="Surface locale" />',
   points: [
     'Le soleil et la lune changent uniquement le thème global de la documentation.',
     'Le mode Liquid Glass ne modifie pas les autres composants de la page.',
@@ -133,9 +133,9 @@ document.documentElement.dataset.theme = 'light';`,
     {
       title: 'Activer le matériau localement',
       description: 'Le verre concerne seulement le composant qui reçoit la propriété.',
-      code: `<Opale.Card title="Projet" liquidGlass>
-  <Opale.Text>Une surface sur un arrière-plan riche.</Opale.Text>
-</Opale.Card>`,
+      code: `<Card title="Projet" liquidGlass>
+  <Text>Une surface sur un arrière-plan riche.</Text>
+</Card>`,
     },
   ],
 });

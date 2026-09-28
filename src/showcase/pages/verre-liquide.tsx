@@ -58,11 +58,11 @@ function LiquidGlassFilter() {
   );
 }
 
-const USAGE = `import { Opale } from '@thomascaron/opale-ui';
+const USAGE = `import { Button, Card } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
-<Opale.Card liquidGlass title="Liquid Glass" />
-<Opale.Button liquidGlass>Continuer</Opale.Button>`;
+<Card liquidGlass title="Liquid Glass" />
+<Button liquidGlass>Continuer</Button>`;
 
 export const verreLiquidePage: DocPage = {
   slug: 'verre-liquide',

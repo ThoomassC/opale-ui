@@ -36,10 +36,13 @@ réduisent pas à un élément natif habillé.
 **`opale.tsx` — le catalogue plat.** Un seul fichier, et c'est un choix
 défendable : ce sont des composants courts — une vingtaine de lignes en moyenne
 sur les 1 923 du fichier —, dont la valeur est d'être **cohérents entre eux**
-plutôt qu'isolables. `OPALE_CATALOG` en
-déclare **77 entrées** (compté sur le tableau), réparties en catégories
-— primitives, champs, données, retour d'information, navigation, disposition,
-modules. Le namespace `OpaleUI` les réexpose sous un second jeu de noms.
+plutôt qu'isolables. Leurs fiches — nom, catégorie, phrase de présentation —
+vivent dans `catalog.ts`, réparties en catégories — primitives, champs, données,
+retour d'information, navigation, disposition, modules. Le namespace `Opale`
+réunit tous les composants du paquet, composés compris ; les exemples importent
+par nom (`import { Button } from '@thomascaron/opale-ui'`). `OpaleUI`,
+`Opale.Background`, `OPALE_CATALOG` et `CatalogEntry` restent exportés, dépréciés
+depuis 3.6.
 
 La règle qui gouverne ce fichier est écrite en tête, et elle mérite d'être
 répétée ici : **le verre est la peau, le contrôle natif reste le moteur.** Là où

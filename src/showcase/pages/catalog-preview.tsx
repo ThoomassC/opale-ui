@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
-import { OPALE_CATALOG, Opale } from '../../opale';
+import { Opale } from '../../opale';
+import { CATALOG } from '../../opale/catalog';
 import type { DataTableSize, OpalePlacement, OpaleTone } from '../../opale';
 
 const OPTIONS = [
@@ -334,7 +335,7 @@ export function CatalogPreview({
           <Opale.StatCard
             liquidGlass={liquidGlass}
             label="Composants"
-            value={String(OPALE_CATALOG.length)}
+            value={String(CATALOG.length)}
             delta="Catalogue complet"
           />
           <Opale.StatCard

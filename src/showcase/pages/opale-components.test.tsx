@@ -54,8 +54,42 @@ describe('la page V3 de Button', () => {
     const code = screen.getByRole('group', {
       name: 'Exemple Button, défilement horizontal',
     });
-    expect(code).toHaveTextContent('<Opale.Button variant="primary">Primaire</Opale.Button>');
-    expect(code).toHaveTextContent('<Opale.Button variant="danger">Danger</Opale.Button>');
+    expect(code).toHaveTextContent("import { Button } from '@thomascaron/opale-ui';");
+    expect(code).toHaveTextContent('<Button variant="primary">Primaire</Button>');
+    expect(code).toHaveTextContent('<Button variant="danger">Danger</Button>');
+  });
+});
+
+describe('les extraits copiables du catalogue', () => {
+  /* L'extrait importe chaque composant par son nom : il ne reste aucun
+     `Opale.X`, et chaque nom utilisé figure dans l'import. */
+  /* SvgMap a sa page propre, sans le gabarit commun ni son extrait généré. */
+  it.each(opaleComponentPages.filter((page) => page.label !== 'SvgMap'))('$label importe ses composants par leur nom', async (page) => {
+    const { label } = page;
+    const user = userEvent.setup();
+    render(<>{page.render()}</>);
+    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+    const code =
+      screen.getByRole('group', { name: `Exemple ${label}, défilement horizontal` }).textContent ??
+      '';
+
+    expect(code).not.toMatch(/\bOpale\./);
+    const imported = /^import \{ ([^}]+) \} from '@thomascaron\/opale-ui';/.exec(code)?.[1];
+    expect(imported, 'ligne d’import absente').toBeDefined();
+    for (const name of imported?.split(', ') ?? []) {
+      expect(code.split('\n').slice(1).join('\n')).toMatch(new RegExp(`\\b${name}\\b`));
+    }
+  });
+
+  it('importe aussi readCookieConsent quand l’extrait l’appelle', async () => {
+    const user = userEvent.setup();
+    const page = opaleComponentPages.find((entry) => entry.label === 'CookieBanner');
+    if (!page) throw new Error('CookieBanner manquant');
+    render(<>{page.render()}</>);
+    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+    expect(
+      screen.getByRole('group', { name: 'Exemple CookieBanner, défilement horizontal' }),
+    ).toHaveTextContent("import { CookieBanner, readCookieConsent } from '@thomascaron/opale-ui';");
   });
 });
 
@@ -387,9 +421,7 @@ describe('API et exemples du catalogue', () => {
     expect(screen.getByRole('button', { name: 'Essai configuré' })).toBeDisabled();
     expect(
       screen.getByRole('group', { name: 'Exemple Button, défilement horizontal' }),
-    ).toHaveTextContent(
-      '<Opale.Button variant="danger" size="large" loading>Essai configuré</Opale.Button>',
-    );
+    ).toHaveTextContent('<Button variant="danger" size="large" loading>Essai configuré</Button>');
   });
 
   it('insère liquidGlass après un callback fléché complet', async () => {
@@ -417,8 +449,8 @@ describe('API et exemples du catalogue', () => {
     const code =
       screen.getByRole('group', { name: 'Exemple CardGrid, défilement horizontal' }).textContent ??
       '';
-    expect(code).toContain('<Opale.StatCard label="Composants"');
+    expect(code).toContain('<StatCard label="Composants"');
     expect(code).toContain('liquidGlass');
-    expect(code).not.toContain('<Opale.CardGrid liquidGlass>');
+    expect(code).not.toContain('<CardGrid liquidGlass>');
   });
 });

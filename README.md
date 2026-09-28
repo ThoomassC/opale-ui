@@ -93,8 +93,11 @@ et les deux premiers suffisent :
 
 ```js
 import '@thomascaron/opale-ui/opale.css'; // les jetons, les composants et leurs polices, une fois par app
-import { Button, Modal, Opale } from '@thomascaron/opale-ui';
+import { Button, Modal } from '@thomascaron/opale-ui';
 ```
+
+Chaque composant s'importe par son nom. Le namespace `Opale` (`Opale.Button`) désigne les
+mêmes composants ; l'export nommé est la forme recommandée.
 
 Le bundle porte la directive `"use client"` : ses composants s'importent tels quels depuis un
 Server Component de Next.js (App Router). Les déclarations de types se lisent en
@@ -145,7 +148,7 @@ La recherche soumet un formulaire GET vers `/search` par défaut :
 prévoyez cette route ou fournissez `searchAction` / `onSearch`.
 
 ```tsx
-import { PageScaffold, Opale } from '@thomascaron/opale-ui';
+import { Card, PageScaffold } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 <PageScaffold
@@ -155,7 +158,7 @@ import '@thomascaron/opale-ui/opale.css';
   searchAction="/recherche"
   footerLinks={[{ id: 'legal', href: '/mentions-legales', label: 'Mentions légales' }]}
 >
-  <Opale.Card title="Bienvenue">Votre contenu.</Opale.Card>
+  <Card title="Bienvenue">Votre contenu.</Card>
 </PageScaffold>;
 ```
 
@@ -183,11 +186,16 @@ Tout est publié à la racine, exporté par `src/opale/index.ts`, et le catalogu
 `useToast`), `Topbar`. Ce sont les pièces qui ont une structure interne, un état, ou les
 deux.
 
-**Le catalogue plat**, dans `src/opale/opale.tsx` : **77 entrées** déclarées par
-`OPALE_CATALOG` — primitives, champs, cartes, données, retour d'information, navigation,
-disposition et modules —, dont la vitrine génère une page de démonstration chacune. Le
-namespace `OpaleUI` les réexpose sous un second jeu de noms, sans écraser les exports
-directs. Les composants qui portent `liquidGlass` activent le matériau un par un.
+**Le catalogue plat**, dans `src/opale/opale.tsx` : primitives, champs, cartes, données,
+retour d'information, navigation, disposition et modules. Ses fiches vivent dans
+`src/opale/catalog.ts`, dont la vitrine génère une page de démonstration chacune. Le namespace
+`Opale` réunit tous les composants, composés compris, sous un seul nom ; les exports nommés
+restent la forme recommandée. Les composants qui portent `liquidGlass` activent le matériau
+un par un.
+
+**Dépréciés depuis 3.6, toujours fonctionnels** : `OpaleUI` (utilisez les exports nommés),
+`Opale.Background` (utilisez `BackgroundSurface`), `OPALE_CATALOG` et `CatalogEntry`
+(métadonnées de la vitrine, sans remplaçant public).
 
 `Glass` est la primitive de matériau, et **six des sept autres composants composés la
 montent**. La seule exception, vérifiée dans le code, est **`SiteNav`** : sa bulle est un

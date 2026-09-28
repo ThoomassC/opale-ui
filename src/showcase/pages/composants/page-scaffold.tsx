@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Opale, PageScaffold } from '../../../opale';
 import { PageBody, PropsTable, UsageBlock, type PropRow } from '../api';
 
-const USAGE = `import { Opale, PageScaffold } from '@thomascaron/opale-ui';
+const USAGE = `import { Card, PageScaffold } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 const navigation = [
@@ -22,7 +22,7 @@ const navigation = [
   pageDescription="Une introduction que vous pouvez remplacer."
   footerLinks={[{ id: 'legal', href: '/mentions-legales', label: 'Mentions légales' }]}
 >
-  <Opale.Card title="Votre contenu">Une page prête à enrichir.</Opale.Card>
+  <Card title="Votre contenu">Une page prête à enrichir.</Card>
 </PageScaffold>`;
 
 const PROPS: readonly PropRow[] = [

@@ -6,7 +6,7 @@ import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
 import { StageGroundNote } from './stage';
 
-const USAGE = `import { Opale, ToastProvider, useToast } from '@thomascaron/opale-ui';
+const USAGE = `import { Button, ToastProvider, useToast } from '@thomascaron/opale-ui';
 import '@thomascaron/opale-ui/opale.css';
 
 // 1. Le fournisseur, AUTOUR de l'arbre qui déclenchera les toasts.
@@ -19,11 +19,11 @@ function Publish() {
   const { showToast, dismissToast, clearToasts } = useToast();
 
   return (
-    <Opale.Button
+    <Button
       onClick={() => showToast({ title: 'Étape publiée', tone: 'success' })}
     >
       Publier
-    </Opale.Button>
+    </Button>
   );
 }`;
 
