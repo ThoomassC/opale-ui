@@ -885,13 +885,23 @@ export function MultiSelect({
   className,
   id,
   onChange,
+  defaultValue,
   ...props
 }: MultiSelectProps) {
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
   const selectRef = useRef<HTMLSelectElement>(null);
-  const selected = new Set(values ?? []);
+  /* LE MODE NON CONTRÔLÉ TIENT SA PROPRE SÉLECTION. Sans `values`, la liste
+     visible lisait un ensemble vide recréé à chaque rendu : le clic cochait
+     l'option du `<select>` caché, mais ni la coche ni `aria-selected` ne
+     bougeaient. L'état part de `defaultValue` et suit chaque `change` du natif ;
+     en mode contrôlé, `values` reste seul maître. */
+  const [uncontrolled, setUncontrolled] = useState<readonly string[]>(() =>
+    defaultValue === undefined ? [] : ([] as string[]).concat(defaultValue as string | string[]),
+  );
+  const current = values ?? uncontrolled;
+  const selected = new Set(current);
 
   /* `activeIndex` est l'option DÉSIGNÉE au clavier, distincte des options
      COCHÉES : dans une `listbox` multi-sélection, on parcourt sans choisir et
@@ -957,8 +967,15 @@ export function MultiSelect({
         id={fieldId}
         className="opale-visually-hidden"
         multiple
-        value={values}
-        onChange={onChange}
+        value={current as string[]}
+        onChange={(event) => {
+          if (values === undefined) {
+            setUncontrolled(
+              Array.from(event.currentTarget.selectedOptions, (option) => option.value),
+            );
+          }
+          onChange?.(event);
+        }}
         aria-hidden="true"
         tabIndex={-1}
         {...props}
