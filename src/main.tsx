@@ -81,6 +81,7 @@ import './magic/magic.scss';
    casse pas la feuille, il invalide une déclaration à la fois. La page se
    peignait, mal, sans une erreur de console.
    ========================================================================== */
+import './magic/fonts.css';
 import './magic/opale.css';
 
 // Hack est embarquée avec la vitrine : les exemples restent identiques sur

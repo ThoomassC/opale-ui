@@ -885,13 +885,23 @@ export function MultiSelect({
   className,
   id,
   onChange,
+  defaultValue,
   ...props
 }: MultiSelectProps) {
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
   const selectRef = useRef<HTMLSelectElement>(null);
-  const selected = new Set(values ?? []);
+  /* LE MODE NON CONTRÔLÉ TIENT SA PROPRE SÉLECTION. Sans `values`, la liste
+     visible lisait un ensemble vide recréé à chaque rendu : le clic cochait
+     l'option du `<select>` caché, mais ni la coche ni `aria-selected` ne
+     bougeaient. L'état part de `defaultValue` et suit chaque `change` du natif ;
+     en mode contrôlé, `values` reste seul maître. */
+  const [uncontrolled, setUncontrolled] = useState<readonly string[]>(() =>
+    defaultValue === undefined ? [] : ([] as string[]).concat(defaultValue as string | string[]),
+  );
+  const current = values ?? uncontrolled;
+  const selected = new Set(current);
 
   /* `activeIndex` est l'option DÉSIGNÉE au clavier, distincte des options
      COCHÉES : dans une `listbox` multi-sélection, on parcourt sans choisir et
@@ -957,8 +967,15 @@ export function MultiSelect({
         id={fieldId}
         className="opale-visually-hidden"
         multiple
-        value={values}
-        onChange={onChange}
+        value={current as string[]}
+        onChange={(event) => {
+          if (values === undefined) {
+            setUncontrolled(
+              Array.from(event.currentTarget.selectedOptions, (option) => option.value),
+            );
+          }
+          onChange?.(event);
+        }}
         aria-hidden="true"
         tabIndex={-1}
         {...props}
@@ -1410,6 +1427,16 @@ export function Icon({
  * Ce comportement dépend du couple navigateur/lecteur d'écran et n'a pas été
  * vérifié ici faute de lecteur d'écran.
  */
+/* LE TITRE PAR DÉFAUT EST UN MOT FRANÇAIS, PAS LE NOM DE LA PROP. L'encart
+   écrivait `severity` tel quel : « info », « error », en anglais et en bas de
+   casse, lu ainsi par les lecteurs d'écran (WCAG 3.1.2). */
+const FEEDBACK_TITLES = {
+  success: 'Succès',
+  info: 'Information',
+  warning: 'Attention',
+  error: 'Erreur',
+} as const;
+
 export function Feedback({
   severity = 'info',
   title,
@@ -1432,7 +1459,7 @@ export function Feedback({
   const role = severity === 'error' ? 'alert' : 'status';
   const content = (
     <>
-      <strong>{title ?? severity}</strong>
+      <strong>{title ?? FEEDBACK_TITLES[severity]}</strong>
       <span>{children}</span>
     </>
   );

@@ -78,24 +78,27 @@ ce qui ne l'est pas.
 
 ## Installation
 
-Le paquet s'installe depuis GitHub ; il n'est pas publié sur npm. Le dernier tag est
-`v3.2.0`. Pour essayer **la 3.5.0 sur la branche de recette** :
+Le paquet s'installe depuis GitHub ; il n'est pas publié sur npm. Pour une application de
+production, installez **un tag de version** — le code ne bouge plus sous vos pieds :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#recette"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.5.0"
 ```
 
-Cette référence de branche évolue avec la recette. Le tag `v3.5.0` sera créé lors de la
-publication ; la documentation ne propose pas de commande vers un tag inexistant.
+La branche `recette` (`#recette`) porte la version en cours de recette : elle avance à chaque
+fusion, à réserver aux essais.
 
 Le paquet se compile à l'installation (`prepare` → `build:lib`). **Quatre points d'entrée**,
 et les deux premiers suffisent :
 
 ```js
-import '@thomascaron/opale-ui/tokens.css'; // la palette, les échelles, le focus, le mouvement
-import '@thomascaron/opale-ui/opale.css'; // les jetons et les styles des composants, une fois par app
+import '@thomascaron/opale-ui/opale.css'; // les jetons, les composants et leurs polices, une fois par app
 import { Button, Modal, Opale } from '@thomascaron/opale-ui';
 ```
+
+Le bundle porte la directive `"use client"` : ses composants s'importent tels quels depuis un
+Server Component de Next.js (App Router). Les déclarations de types se lisent en
+`moduleResolution` `bundler` comme en `node16`/`nodenext`.
 
 ```ts
 import { contrastRatio, parseThemes } from '@thomascaron/opale-ui/contract'; // dev seulement
@@ -108,7 +111,8 @@ La forme exacte, telle qu'elle est déclarée dans `package.json` :
 | `.`             | `dist/magic/index.js`       | Les composants composés et le catalogue V3       |
 | `./contract`    | `dist/contract/index.js`    | Le contrat de couleur — dépendance de dev, zéro octet à l'exécution |
 | `./tokens.css`  | `dist/tokens/tokens.css`    | La charte : primitives, rôles, matériaux         |
-| `./opale.css`   | `dist/magic/magic.css`      | La feuille des composants                        |
+| `./opale.css`   | `dist/magic/magic.css`      | La feuille des composants ; relie `fonts.css`    |
+| `./fonts.css`   | `dist/magic/fonts.css`      | Chivo et Bricolage Grotesque, en fichiers woff2  |
 | `./package.json`| `package.json`              |                                                  |
 
 **Cinq spécifieurs de la 1.x ont disparu** : `./ui.css`, `./glass.css`, `./lens.css`,
@@ -127,9 +131,11 @@ vocabulaire est celui des jetons `--opale-*`, que `./opale.css` porte avec eux. 
 est en revanche la charte elle-même, donc indispensable à qui écrit ses propres surfaces dans
 la palette d'Opale.
 
-> **Point de vigilance en déploiement.** Si l'hôte n'exécute pas le script `prepare` (cache
-> npm, image de build minimale), `dist/` sera absent et le build cassera en production sans
-> avoir cassé en local. À vérifier par un déploiement de préversion.
+> **Point de vigilance en déploiement.** Le paquet se compile chez vous, par son script
+> `prepare`. S'il ne tourne pas, `dist/` est absent et le build casse en production sans avoir
+> cassé en local : c'est le cas avec `npm ci --ignore-scripts`, et avec pnpm 10, qui bloque par
+> défaut les scripts des dépendances (autorisez `@thomascaron/opale-ui` dans
+> `onlyBuiltDependencies`). Node 20.19 ou 22.12 et plus est requis pour cette compilation.
 
 ## PageScaffold — une page Opale prête à adapter
 

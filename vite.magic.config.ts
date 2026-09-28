@@ -169,8 +169,14 @@ export default defineConfig({
         // is the whole library. `THIRD-PARTY-NOTICES.md` now ships in the
         // tarball too, but a notice that travels WITH the file also covers the
         // case where only the bundle is copied out.
+        /* `"use client";` D'ABORD, ET C'EST UNE CONDITION D'USAGE. Le bundle
+           unique appelle useState, createContext et createPortal : sans la
+           directive, un Server Component de Next.js qui importe un Button
+           échoue. Rollup retire celles des sources en les regroupant ; la
+           bannière la remet une fois, en tête du fichier, là où React
+           l'exige — avant tout commentaire qui ne serait pas une directive. */
         banner:
-          '/*! Opale components, vendored from react-magic-ui (https://github.com/tweeedlex/react-magic-ui) — MIT License, Copyright (c) 2025 tweeedlex. Full text in THIRD-PARTY-NOTICES.md. */',
+          '"use client";\n/*! Opale components, vendored from react-magic-ui (https://github.com/tweeedlex/react-magic-ui) — MIT License, Copyright (c) 2025 tweeedlex. Full text in THIRD-PARTY-NOTICES.md. */',
       },
     },
   },
