@@ -55,8 +55,8 @@ describe('SegmentedControl', () => {
     expect(screen.getByRole('button', { name: 'Jour' })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('devrait ne rien presser quand value vaut null', () => {
-    render(<SegmentedControl options={OPTIONS} value={null} defaultValue="jour" />);
+  it('devrait ne rien presser quand value ne désigne aucune option', () => {
+    render(<SegmentedControl options={OPTIONS} value="" defaultValue="jour" />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Mois' }));
 

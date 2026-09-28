@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { useControllableState } from './use-controllable-state';
+import { useControllableState, useOptionalState } from './use-controllable-state';
 
 describe('useControllableState', () => {
   it('devrait suivre le setter quand la valeur n’est pas contrôlée', () => {
@@ -71,5 +71,40 @@ describe('useControllableState', () => {
     act(() => result.current[1]('a'));
 
     expect(onChange).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('useOptionalState', () => {
+  it('ne devrait rien retenir sans valeur par défaut', () => {
+    const { result } = renderHook(() => useOptionalState<string>(undefined, undefined));
+
+    act(() => result.current[1]('b'));
+
+    expect(result.current[0]).toBeUndefined();
+  });
+
+  it('devrait retenir le setter à partir de la valeur par défaut', () => {
+    const { result } = renderHook(() => useOptionalState<string>(undefined, 'a'));
+
+    expect(result.current[0]).toBe('a');
+
+    act(() => result.current[1]('b'));
+
+    expect(result.current[0]).toBe('b');
+  });
+
+  it('devrait rendre la valeur contrôlée, et rien quand elle redevient undefined', () => {
+    const initialProps: { value: string | undefined } = { value: 'a' };
+    const { result, rerender } = renderHook(
+      ({ value }: { value: string | undefined }) => useOptionalState(value, undefined),
+      { initialProps },
+    );
+
+    act(() => result.current[1]('b'));
+    expect(result.current[0]).toBe('a');
+
+    rerender({ value: undefined });
+
+    expect(result.current[0]).toBeUndefined();
   });
 });

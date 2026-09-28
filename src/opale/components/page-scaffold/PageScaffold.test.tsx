@@ -11,6 +11,12 @@ describe('PageScaffold', () => {
     expect(Opale.PageScaffold).toBe(PageScaffold);
   });
 
+  it('laisse l’appelant remplacer data-opale-page-theme, comme en 3.5', () => {
+    const { container } = render(<PageScaffold data-opale-page-theme="dark">Contenu</PageScaffold>);
+
+    expect(container.firstElementChild).toHaveAttribute('data-opale-page-theme', 'dark');
+  });
+
   it('fournit une page complète et des repères accessibles par défaut', () => {
     const { container } = render(
       <PageScaffold copyrightYear={2026}>Contenu personnalisé</PageScaffold>,

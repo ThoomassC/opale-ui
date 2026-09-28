@@ -482,9 +482,9 @@ export function PageScaffold({
   return (
     <div
       className={clsx(styles.root, className)}
+      data-opale-page-theme={activeTheme}
       lang={activeLanguage}
       {...rootProps}
-      data-opale-page-theme={activeTheme}
     >
       {header}
       <Main

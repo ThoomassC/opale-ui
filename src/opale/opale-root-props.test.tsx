@@ -612,12 +612,6 @@ const CONTRACTS: readonly ContractRow[] = [
     target: '.opale-segmented',
     expected: { role: 'group' },
   },
-  {
-    name: 'PageScaffold',
-    element: <PageScaffold data-opale-page-theme="dark">Contenu</PageScaffold>,
-    target: '[data-opale-page-theme]',
-    expected: { 'data-opale-page-theme': 'light' },
-  },
 ];
 
 describe('les attributs de contrat', () => {

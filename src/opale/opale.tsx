@@ -1,4 +1,5 @@
 import {
+  forwardRef,
   useCallback,
   useEffect,
   useId,
@@ -14,6 +15,7 @@ import {
   type FocusEvent,
   type HTMLAttributes,
   type KeyboardEvent,
+  type MouseEventHandler,
   type ReactNode,
   type Ref,
   type RefCallback,
@@ -58,7 +60,7 @@ import { Pagination, RatingInput, Skeleton } from './opale-extras';
 import type { OpalePlacement, OpaleSize, OpaleTone } from './shared';
 import { resolveLabels } from './shared/labels';
 import { mergeRefs } from './shared/merge-refs';
-import { useControllableState } from './shared/use-controllable-state';
+import { useControllableState, useOptionalState } from './shared/use-controllable-state';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type {
   PaginationLabels,
@@ -245,21 +247,23 @@ export interface ButtonProps extends ComponentPropsWithRef<'button'> {
    mal. `opale.tsx` cesse par ailleurs d'être une feuille autonome : c'est le
    prix d'un composant unique, et il est moins cher que le doublon.
    ========================================================================== */
-export function Button({
-  variant = 'primary',
-  size = 'medium',
-  loading = false,
-  startIcon,
-  endIcon,
-  fullWidth = false,
-  liquidGlass = false,
-  className,
-  children,
-  disabled,
-  type = 'button',
+export const Button = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'ref'>>(function Button(
+  {
+    variant = 'primary',
+    size = 'medium',
+    loading = false,
+    startIcon,
+    endIcon,
+    fullWidth = false,
+    liquidGlass = false,
+    className,
+    children,
+    disabled,
+    type = 'button',
+    ...props
+  },
   ref,
-  ...props
-}: ButtonProps) {
+) {
   /* LE MÊME CONTENU DANS LES DEUX ÉTATS, et c'est ce qui garantit que le
      commutateur ne change QUE la matière. Une version précédente déléguait à
      un composant tiers qui n'avait ni `loading`, ni `startIcon`, ni
@@ -319,14 +323,18 @@ export function Button({
       {content}
     </button>
   );
-}
+});
+Button.displayName = 'Button';
 
 /** Les props de `Pressable` : celles de `Button`, dont la variante `text` est le défaut. */
 export type PressableProps = ButtonProps;
 
-export function Pressable(props: PressableProps) {
-  return <Button variant="text" {...props} />;
-}
+export const Pressable = forwardRef<HTMLButtonElement, Omit<PressableProps, 'ref'>>(
+  function Pressable(props, ref) {
+    return <Button variant="text" {...props} ref={ref} />;
+  },
+);
+Pressable.displayName = 'Pressable';
 
 export interface CardProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   title?: ReactNode;
@@ -416,17 +424,10 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'>
 /** @deprecated Depuis 3.6 — utilisez `InputProps`. */
 export type FieldProps = InputProps;
 
-export function Input({
-  label,
-  helperText,
-  error,
-  icon,
-  liquidGlass = false,
-  className,
-  id,
+export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
+  { label, helperText, error, icon, liquidGlass = false, className, id, ...props },
   ref,
-  ...props
-}: InputProps) {
+) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const messageId = `${inputId}-message`;
@@ -504,7 +505,8 @@ export function Input({
       )}
     </div>
   );
-}
+});
+Input.displayName = 'Input';
 
 export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
@@ -1230,10 +1232,10 @@ export interface SegmentedControlProps extends Omit<
   'onChange' | 'defaultValue' | 'children'
 > {
   options: readonly SelectOption[];
-  /** L'option pressée. Présente, l'appelant la tient ; `null` : aucune. */
-  value?: string | null;
-  /** L'option pressée au montage quand `value` est absente. */
-  defaultValue?: string | null;
+  /** L'option pressée. Présente, l'appelant la tient ; absente et sans `defaultValue`, aucune. */
+  value?: string;
+  /** L'option pressée au montage quand `value` est absente. Seule elle fait retenir l'appui. */
+  defaultValue?: string;
   /** Appelée à chaque appui, même sur l'option déjà pressée. */
   onValueChange?: (value: string) => void;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
@@ -1265,7 +1267,7 @@ export interface SegmentedControlProps extends Omit<
 export function SegmentedControl({
   options,
   value: valueProp,
-  defaultValue = null,
+  defaultValue,
   onValueChange,
   onChange,
   className,
@@ -1273,7 +1275,7 @@ export function SegmentedControl({
   ref,
   ...rest
 }: SegmentedControlProps) {
-  const [value, setValue] = useControllableState<string | null>(valueProp, defaultValue);
+  const [value, setValue] = useOptionalState(valueProp, defaultValue);
   const groupRef = useRef<HTMLDivElement>(null);
   /* Le groupe mesuré est aussi celui que reçoit l'appelant. */
   const trackRef = useCallback(
@@ -1814,7 +1816,7 @@ export function Toast({
      rôle d'une région ne peut pas changer en cours de route sans la remonter,
      ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
      posées d'avance, vides, et le message entre dans celle de son ton. */
-  const close = closeHandler(onOpenChange, onClose);
+  const closeClick = closeClickHandler(onOpenChange, onClose);
   const labels = resolveLabels(DEFAULT_TOAST_LABELS, labelsProp);
   const assertive = ASSERTIVE_TONES.has(tone);
   const classes = cx(
@@ -1851,11 +1853,11 @@ export function Toast({
           doubler. */}
       {TONE_ICON[tone] && <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />}
       <span className="opale-toast__message">{message}</span>
-      {close && (
+      {closeClick && (
         <button
           className="opale-toast__close"
           type="button"
-          onClick={() => close(false)}
+          onClick={closeClick}
           aria-label={labels.close}
         >
           <Icon name="close" />
@@ -1971,6 +1973,20 @@ function closeHandler(
   };
 }
 
+/* LE BOUTON QUI FERME. L'ancien rappel reçoit l'événement du clic, comme
+   lorsqu'il était lui-même le gestionnaire du bouton ; le canonique reçoit
+   `false`. */
+function closeClickHandler(
+  onOpenChange: ((open: boolean) => void) | undefined,
+  onClose: MouseEventHandler<HTMLButtonElement> | undefined,
+): MouseEventHandler<HTMLButtonElement> | undefined {
+  if (!onOpenChange && !onClose) return undefined;
+  return (event) => {
+    onOpenChange?.(false);
+    onClose?.(event);
+  };
+}
+
 /** Les textes de `ConfirmDialog`. `close` nomme la croix. */
 export interface ConfirmDialogLabels extends ModalLabels {
   /** Le titre, quand `title` n'est pas passé. Défaut : « Confirmer ». */
@@ -2041,7 +2057,7 @@ export function ConfirmDialog({
       description={children}
       footer={
         <>
-          <Button variant="text" onClick={close ? () => close(false) : undefined}>
+          <Button variant="text" onClick={closeClickHandler(onOpenChange, onCancel)}>
             {labels.cancel}
           </Button>
           <Button onClick={onConfirm}>{labels.confirm}</Button>
@@ -2092,10 +2108,10 @@ export interface NavbarProps extends Omit<
   'onSelect' | 'onChange' | 'defaultValue' | 'children'
 > {
   items?: readonly NavItem[];
-  /** L'entrée courante. Présente, l'appelant la tient ; `null` : aucune. */
-  value?: string | null;
-  /** L'entrée courante au montage quand `value` est absente. */
-  defaultValue?: string | null;
+  /** L'entrée courante. Présente, l'appelant la tient ; absente et sans `defaultValue`, aucune. */
+  value?: string;
+  /** L'entrée courante au montage quand `value` est absente. Seule elle fait retenir le clic. */
+  defaultValue?: string;
   /** Ne part que des entrées sans `href` (boutons) ; un lien navigue. */
   onValueChange?: (id: string) => void;
   /** @deprecated Depuis 3.6 — utilisez `value`. */
@@ -2109,7 +2125,7 @@ export interface NavbarProps extends Omit<
 export function Navbar({
   items = [],
   value,
-  defaultValue = null,
+  defaultValue,
   onValueChange,
   activeId: activeIdProp,
   onSelect,
@@ -2117,10 +2133,7 @@ export function Navbar({
   liquidGlass = false,
   ...rest
 }: NavbarProps) {
-  const [activeId, setActiveId] = useControllableState<string | null>(
-    value !== undefined ? value : activeIdProp,
-    defaultValue,
-  );
+  const [activeId, setActiveId] = useOptionalState(value ?? activeIdProp, defaultValue);
   const select = (id: string) => {
     setActiveId(id);
     onValueChange?.(id);
@@ -2352,7 +2365,7 @@ export function CommandPalette({
       title={labels.title}
       footer={
         close ? (
-          <Button variant="text" onClick={() => close(false)}>
+          <Button variant="text" onClick={closeClickHandler(onOpenChange, onClose)}>
             {labels.close}
           </Button>
         ) : undefined
@@ -3058,7 +3071,10 @@ export interface DataTableProps extends Omit<ComponentPropsWithRef<'div'>, 'chil
   emptyMessage?: string;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<DataTableLabels>;
-  /** Langue(s) du tri alphabétique. Défaut `'fr'` ; une étiquette invalide retombe sur `'fr'`. */
+  /**
+   * Langue(s) du tri alphabétique. Défaut `'fr'`. Seules les étiquettes prises en
+   * charge sont gardées ; si aucune ne l'est, le tri se fait en `'fr'`.
+   */
   locale?: string | readonly string[];
   liquidGlass?: boolean;
   /** L'espacement des lignes : `small` resserre sans changer la structure. Défaut : `medium`. */
@@ -3073,13 +3089,20 @@ export interface DataTableProps extends Omit<ComponentPropsWithRef<'div'>, 'chil
 
 const TABLE_COLLATOR_OPTIONS: Intl.CollatorOptions = { numeric: true, sensitivity: 'base' };
 
-/** Le collateur du tri ; une étiquette de langue invalide retombe sur le français. */
+/**
+ * Le collateur du tri, sur les seules langues que le moteur prend en charge.
+ * Une étiquette mal formée ou inconnue est écartée ; sans aucune restante, `'fr'`.
+ */
 function createTableCollator(locales: readonly string[]): Intl.Collator {
-  try {
-    return new Intl.Collator([...locales], TABLE_COLLATOR_OPTIONS);
-  } catch {
-    return new Intl.Collator('fr', TABLE_COLLATOR_OPTIONS);
+  const supported: string[] = [];
+  for (const locale of locales) {
+    try {
+      supported.push(...Intl.Collator.supportedLocalesOf(locale));
+    } catch {
+      /* Étiquette mal formée : écartée seule, les autres restent. */
+    }
   }
+  return new Intl.Collator(supported.length > 0 ? supported : ['fr'], TABLE_COLLATOR_OPTIONS);
 }
 
 const SORT_WORDING: Record<DataTableSortDirection, string> = {
@@ -3626,7 +3649,7 @@ export function Lightbox({
         <Button
           variant="tonal"
           liquidGlass={liquidGlass}
-          onClick={close ? () => close(false) : undefined}
+          onClick={closeClickHandler(onOpenChange, onClose)}
         >
           {labels.close}
         </Button>

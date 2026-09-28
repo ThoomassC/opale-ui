@@ -25,3 +25,27 @@ export function useControllableState<T>(
 
   return [current, setValue, isControlled];
 }
+
+/**
+ * La valeur facultative d'Opale : présente, `value` rend l'appelant maître ;
+ * absente, le composant ne se souvient que si `defaultValue` est fournie.
+ * Sans l'une ni l'autre, rien n'est retenu et la valeur reste `undefined`.
+ * Interne : non réexporté.
+ */
+export function useOptionalState<T>(
+  value: T | undefined,
+  defaultValue: T | undefined,
+): readonly [current: T | undefined, setValue: (next: T) => void] {
+  const [internal, setInternal] = useState<T | undefined>(() => defaultValue);
+  const remembers = value === undefined && defaultValue !== undefined;
+  const current = remembers ? internal : value;
+
+  const setValue = useCallback(
+    (next: T) => {
+      if (remembers) setInternal(() => next);
+    },
+    [remembers],
+  );
+
+  return [current, setValue];
+}

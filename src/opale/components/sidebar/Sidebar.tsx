@@ -104,8 +104,8 @@ export type SidebarContextValue = {
   activeItemId?: string;
   /** L'identifiant de l'`<aside>`, pour l'`aria-controls` de la bascule. */
   sidebarId: string;
-  /** Les textes effectifs du rail, défauts français compris. */
-  labels: SidebarLabels;
+  /** Les textes effectifs du rail ; absents, les défauts français s'appliquent. */
+  labels?: SidebarLabels;
 };
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
@@ -368,7 +368,7 @@ const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ..
        `aria-labelledby`. */
     <nav
       ref={ref}
-      aria-label={context?.labels.items ?? DEFAULT_SIDEBAR_LABELS.items}
+      aria-label={context?.labels?.items ?? DEFAULT_SIDEBAR_LABELS.items}
       className={clsx(styles.items, className)}
       {...rest}
     />
@@ -514,8 +514,13 @@ const ToggleChevron = ({ collapsed }: { collapsed: boolean }) => (
 
 const SidebarToggle = forwardRef<HTMLButtonElement, SidebarToggleProps>(
   ({ className, onClick, children, ...rest }, ref) => {
-    const { collapsible, collapsed, toggleCollapsed, sidebarId, labels } =
-      useSidebarContext('Sidebar.Toggle');
+    const {
+      collapsible,
+      collapsed,
+      toggleCollapsed,
+      sidebarId,
+      labels = DEFAULT_SIDEBAR_LABELS,
+    } = useSidebarContext('Sidebar.Toggle');
 
     /* SANS `collapsible`, LA BASCULE NE REND RIEN. Ce n'est pas un oubli : un
        bouton qui ne peut rien faire est pire qu'un bouton absent — il est dans
