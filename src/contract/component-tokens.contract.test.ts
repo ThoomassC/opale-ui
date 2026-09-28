@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { stripComments } from './stylesheet';
+import opaleSheet from '../magic/opale.css?raw';
 
 /* ============================================================================
    UN SEUL JEU DE JETONS DANS LES COMPOSANTS.
@@ -38,4 +39,24 @@ describe('les modules de composants', () => {
       expect(foreign, 'jetons étrangers à Opale').toEqual([]);
     });
   }
+});
+
+/* ============================================================================
+   LA POLICE D'OPALE NE DÉPEND PAS DE LA PAGE QUI L'ACCUEILLE.
+
+   Chivo n'était posée que sur les boutons, les champs et la navigation : une
+   carte, un tableau ou un toast héritaient de la police de `body` — system-ui
+   si `tokens.css` était importé, la police par défaut du navigateur sinon.
+   ========================================================================== */
+describe('la police des composants', () => {
+  it('pose la police d’Opale sur chaque racine de composant, sans spécificité', () => {
+    const css = stripComments(opaleSheet);
+    const rule =
+      /(:where\(\[class\^='opale-'\], \[class\*=' opale-'\]\):not\(:where\(\[class\^='opale-'\], \[class\*=' opale-'\]\) \*\))\s*\{([^}]*)\}/.exec(
+        css,
+      );
+
+    expect(rule, 'règle de police des racines absente').not.toBeNull();
+    expect(rule?.[2]).toMatch(/font-family:\s*var\(--opale-font-body\)/);
+  });
 });

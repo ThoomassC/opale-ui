@@ -367,6 +367,19 @@
   --opale-danger-on-surface: #f09a94;
 }
 
+/* LA POLICE D'OPALE EST POSÉE SUR CHAQUE RACINE DE COMPOSANT.
+
+   Chivo n'était déclarée que sur les boutons, les champs et la navigation : une
+   carte, un tableau ou un toast héritaient de la police de la page — system-ui,
+   ou celle du navigateur si rien d'autre n'était importé. Le sélecteur vise
+   les éléments Opale LES PLUS EXTÉRIEURS (sans ancêtre Opale) : leurs
+   descendants héritent ensuite normalement. `:where` le laisse sans
+   spécificité, donc toute règle qui choisit une autre police — les titres en
+   Bricolage Grotesque, le code en mono — l'emporte. */
+:where([class^='opale-'], [class*=' opale-']):not(:where([class^='opale-'], [class*=' opale-']) *) {
+  font-family: var(--opale-font-body);
+}
+
 .opale-surface,
 .opale-card,
 .opale-input-shell,
@@ -971,7 +984,6 @@
 .opale-dropzone.opale-dropzone--glass[data-dragging='true'] {
   border: 2px solid var(--opale-glass-ink);
 }
-
 
 /* LA COQUILLE DU CURSEUR EXISTE MAINTENANT DANS LES DEUX ÉTATS, sans quoi la
    piste changerait de boîte au basculement. Sans verre elle ne fait rien
