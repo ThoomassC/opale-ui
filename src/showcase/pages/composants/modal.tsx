@@ -111,6 +111,17 @@ const PROPS: readonly PropRow[] = [
       </>
     ),
   },
+  {
+    name: 'labels',
+    type: 'Partial<ModalLabels>',
+    defaultValue: "{ close: 'Fermer' }",
+    description: (
+      <>
+        Les textes de l’interface, clé par clé : une clé omise garde son défaut français. Un{' '}
+        <code>aria-label</code> passé au composant l’emporte toujours.
+      </>
+    ),
+  },
 ];
 
 /* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,

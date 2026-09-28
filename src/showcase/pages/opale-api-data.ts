@@ -161,11 +161,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('rowKey', '(row, index) => string | number', 'Identité stable des lignes.'),
       prop('loading', 'boolean', 'Affiche un état de chargement.', 'false'),
       prop(
-        'emptyMessage',
-        'string',
-        'Message quand il n’y a aucune ligne.',
-        'Aucune donnée à afficher.',
+        'labels',
+        'Partial<DataTableLabels>',
+        'Chargement, table vide, compte et annonce du tri ; remplace emptyMessage.',
+        "{ empty: 'Aucune donnée à afficher.', … }",
       ),
+      prop('locale', 'string | readonly string[]', 'Langue(s) du tri alphabétique.', "'fr'"),
     ],
   },
   DescriptionList: {
@@ -208,6 +209,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('value', 'number', 'Page courante, contrôlée.'),
       prop('defaultValue', 'number', 'Page de départ, non contrôlée.', '1'),
       prop('onValueChange', '(page: number) => void', 'Changement demandé.'),
+      prop(
+        'labels',
+        'Partial<PaginationLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ previous: 'Page précédente', … }",
+      ),
     ],
   },
   Skeleton: {
@@ -268,6 +275,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('onOpenChange', '(open: boolean) => void', 'Fermeture demandée par la croix.'),
       prop('tone', 'OpaleTone', 'Sens et couleur du message.', 'neutral'),
       prop('position', 'OpalePlacement', 'Position dans la fenêtre.', 'bottom-right'),
+      prop(
+        'labels',
+        'Partial<ToastLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ close: 'Fermer la notification' }",
+      ),
     ],
   },
   Spinner: {
@@ -290,6 +303,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
         'onOpenChange',
         '(open: boolean) => void',
         'false sur Annuler, Échap, le voile ou la croix ; jamais sur Confirmer.',
+      ),
+      prop(
+        'labels',
+        'Partial<ConfirmDialogLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ cancel: 'Annuler', confirm: 'Confirmer', … }",
       ),
     ],
   },
@@ -326,6 +345,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('open', 'boolean', 'Visibilité du panneau.', 'false'),
       prop('onOpenChange', '(open: boolean) => void', 'Demande de fermeture.'),
+      prop(
+        'labels',
+        'Partial<SidePanelLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ close: 'Fermer', title: 'Panneau' }",
+      ),
     ],
   },
   CommandPalette: {
@@ -341,6 +366,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
         'Ferme la palette avec la croix, le pied ou Échap.',
       ),
       prop('children', 'ReactNode', 'Résultats ou commandes affichés sous la recherche.'),
+      prop(
+        'labels',
+        'Partial<CommandPaletteLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ search: 'Rechercher une commande', … }",
+      ),
     ],
   },
   Breadcrumb: {
@@ -355,6 +386,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('onAccept', '() => void', 'Consentement accepté.'),
       prop('onDecline', '() => void', 'Consentement refusé.'),
       prop('storageKey', 'string | null', 'Clé de persistance.', 'opale-cookie-consent'),
+      prop(
+        'labels',
+        'Partial<CookieBannerLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ accept: 'Accepter', decline: 'Refuser', … }",
+      ),
     ],
   },
   SelectionBar: {
@@ -396,6 +433,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('maxFiles', 'number', 'Nombre maximal par sélection.'),
       prop('maxSizeBytes', 'number', 'Taille maximale par fichier.'),
       prop('disabled', 'boolean', 'Désactive le dépôt et le sélecteur.', 'false'),
+      prop(
+        'labels',
+        'Partial<DropzoneLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ select: 'Sélectionner des fichiers', … }",
+      ),
     ],
   },
   Lightbox: {
@@ -405,6 +448,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('alt', 'string', 'Description de l’image.', undefined, true),
       prop('open', 'boolean', 'Affiche la visionneuse.', 'false'),
       prop('onOpenChange', '(open: boolean) => void', 'Demande de fermeture.'),
+      prop(
+        'labels',
+        'Partial<LightboxLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ close: 'Fermer', dialog: 'Aperçu' }",
+      ),
     ],
   },
   Clipboard: {
@@ -463,6 +512,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       ),
       prop('overlay', 'ReactNode', 'Posé au-dessus de la carte : légende, consigne.'),
       prop('children', 'ReactNode', 'Dessin supplémentaire, dans les coordonnées de la carte.'),
+      prop(
+        'labels',
+        'Partial<SvgMapLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ zoomIn: 'Zoomer', … }",
+      ),
     ],
   },
 };

@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom';
 import Glass, { type GlassProps } from '../glass/Glass';
 
 import { IconGlyph } from '../icon';
+import { resolveLabels } from '../../shared/labels';
 import { mergeRefs } from '../../shared/merge-refs';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 
@@ -85,6 +86,14 @@ import styles from './style/Modal.module.css';
      surchargeables, parce que là c'est l'appelant qui sait.
    ========================================================================== */
 
+/** Les textes de la modale. */
+export interface ModalLabels {
+  /** Le nom de la croix. Défaut : « Fermer ». */
+  close: string;
+}
+
+const DEFAULT_MODAL_LABELS: ModalLabels = { close: 'Fermer' };
+
 /** Les tailles du panneau. `sm`, `md` et `lg` valent `small`, `medium` et `large`. */
 type ModalSize = OpaleSize | 'sm' | 'md' | 'lg';
 
@@ -111,6 +120,8 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   size?: ModalSize;
   enableLiquidAnimation?: boolean;
   portalContainer?: HTMLElement | null;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<ModalLabels>;
   /**
    * Rend le panneau dans le matériau « verre liquide ».
    *
@@ -224,6 +235,7 @@ const Modal = ({
   className,
   rootClassName,
   portalContainer,
+  labels: labelsProp,
   onClick,
   onKeyDown,
   'aria-label': ariaLabel,
@@ -246,6 +258,7 @@ const Modal = ({
   );
   const titleId = useId();
   const descriptionId = useId();
+  const labels = resolveLabels(DEFAULT_MODAL_LABELS, labelsProp);
 
   /* L'ONDE D'OUVERTURE SE DEMANDE UNE IMAGE APRÈS LE MONTAGE, ET ELLE N'A PAS
      LE CHOIX. `Glass` lit désormais `triggerAnimation` comme un FRONT — elle
@@ -530,7 +543,7 @@ const Modal = ({
               <button
                 type="button"
                 className={styles.close}
-                aria-label="Fermer"
+                aria-label={labels.close}
                 onClick={handleClose}
               >
                 {/* LA CROIX EST UN TRACÉ, PLUS UN CARACTÈRE. « × » est le signe

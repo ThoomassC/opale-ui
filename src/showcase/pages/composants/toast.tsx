@@ -92,6 +92,12 @@ const PROPS: readonly PropRow[] = [
     ),
   },
   {
+    name: 'ToastProvider labels',
+    type: 'Partial<ToastLabels>',
+    defaultValue: "{ close: 'Fermer la notification' }",
+    description: 'Les textes des cartes de la file ; une clé omise garde son défaut français.',
+  },
+  {
     name: 'useToast().showToast',
     type: '(toast: ToastDefinition) => string',
     description: (

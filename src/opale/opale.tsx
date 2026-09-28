@@ -37,7 +37,7 @@ import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from './c
 
    `Modal` fait tout cela, et il est déjà testé pour. Les quatre deviennent
    donc ce qu'ils auraient toujours dû être : des PRÉRÉGLAGES. */
-import { Modal } from './components/modal';
+import { Modal, type ModalLabels } from './components/modal';
 import {
   useSvgMapViewport,
   type SvgMapWheel,
@@ -47,12 +47,19 @@ import { pathBounds, type Bounds } from './components/svg-map/path-bounds';
 import { useSvgMapGestures } from './components/svg-map/useSvgMapGestures';
 import { parseViewBox as parseSvgViewBox } from './components/svg-map/viewport';
 import toastMotion from './components/toast/style/Toast.module.css';
+import type { ToastLabels } from './components/toast';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
 import type { OpalePlacement, OpaleSize, OpaleTone } from './shared';
+import { resolveLabels } from './shared/labels';
 import { mergeRefs } from './shared/merge-refs';
 import { useControllableState } from './shared/use-controllable-state';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
-export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
+export type {
+  PaginationLabels,
+  PaginationProps,
+  RatingInputProps,
+  SkeletonProps,
+} from './opale-extras';
 
 /* =============================================================================
    LE VERRE EST LA PEAU, LE CONTRÔLE NATIF RESTE LE MOTEUR.
@@ -1769,8 +1776,12 @@ export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   tone?: OpaleTone;
   /** La place à l'écran. Le message est rendu dans un portail, pas en flux. */
   position?: OpalePlacement;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<ToastLabels>;
   className?: string;
 }
+
+const DEFAULT_TOAST_LABELS: ToastLabels = { close: 'Fermer la notification' };
 
 export function Toast({
   message,
@@ -1780,6 +1791,7 @@ export function Toast({
   tone = 'neutral',
   position = 'bottom-right',
   liquidGlass = false,
+  labels: labelsProp,
   className,
   ...rest
 }: ToastProps) {
@@ -1797,6 +1809,7 @@ export function Toast({
      ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
      posées d'avance, vides, et le message entre dans celle de son ton. */
   const close = closeHandler(onOpenChange, onClose);
+  const labels = resolveLabels(DEFAULT_TOAST_LABELS, labelsProp);
   const assertive = ASSERTIVE_TONES.has(tone);
   const classes = cx(
     'opale-toast',
@@ -1837,7 +1850,7 @@ export function Toast({
           className="opale-toast__close"
           type="button"
           onClick={() => close(false)}
-          aria-label="Fermer la notification"
+          aria-label={labels.close}
         >
           <Icon name="close" />
         </button>
@@ -1952,6 +1965,16 @@ function closeHandler(
   };
 }
 
+/** Les textes de `ConfirmDialog`. `close` nomme la croix. */
+export interface ConfirmDialogLabels extends ModalLabels {
+  /** Le titre, quand `title` n'est pas passé. Défaut : « Confirmer ». */
+  title: string;
+  /** Défaut : « Annuler ». */
+  cancel: string;
+  /** Défaut : « Confirmer ». */
+  confirm: string;
+}
+
 /** Les props de `ConfirmDialog`. `ref` et les attributs vont au panneau du dialogue. */
 export interface ConfirmDialogProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   open?: boolean;
@@ -1963,20 +1986,31 @@ export interface ConfirmDialogProps extends Omit<ComponentPropsWithRef<'div'>, '
   onOpenChange?: (open: boolean) => void;
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onCancel?: () => void;
+  /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
+  labels?: Partial<ConfirmDialogLabels>;
   liquidGlass?: boolean;
 }
 
+const DEFAULT_CONFIRM_DIALOG_LABELS: ConfirmDialogLabels = {
+  close: 'Fermer',
+  title: 'Confirmer',
+  cancel: 'Annuler',
+  confirm: 'Confirmer',
+};
+
 export function ConfirmDialog({
   open = false,
-  title = 'Confirmer',
+  title,
   children,
   onConfirm,
   onOpenChange,
   onCancel,
+  labels: labelsProp,
   liquidGlass = false,
   ...rest
 }: ConfirmDialogProps) {
   const close = closeHandler(onOpenChange, onCancel);
+  const labels = resolveLabels(DEFAULT_CONFIRM_DIALOG_LABELS, labelsProp);
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
      faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
      confirmations coexistaient. `Modal` le dérive d'un `useId`.
@@ -1996,14 +2030,15 @@ export function ConfirmDialog({
       open={open}
       onOpenChange={close}
       liquidGlass={liquidGlass}
-      title={title}
+      labels={{ close: labels.close }}
+      title={title === undefined ? labels.title : title}
       description={children}
       footer={
         <>
           <Button variant="text" onClick={close ? () => close(false) : undefined}>
-            Annuler
+            {labels.cancel}
           </Button>
-          <Button onClick={onConfirm}>Confirmer</Button>
+          <Button onClick={onConfirm}>{labels.confirm}</Button>
         </>
       }
     />
@@ -2184,6 +2219,12 @@ export function Link({ children, className, ...props }: LinkProps) {
   );
 }
 
+/** Les textes de `SidePanel`. `close` nomme la croix. */
+export interface SidePanelLabels extends ModalLabels {
+  /** Le titre, quand `title` n'est pas passé. Défaut : « Panneau ». */
+  title: string;
+}
+
 /** Les props de `SidePanel`. `ref` et les attributs vont au panneau. */
 export interface SidePanelProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   open?: boolean;
@@ -2193,18 +2234,24 @@ export interface SidePanelProps extends Omit<ComponentPropsWithRef<'div'>, 'titl
   onOpenChange?: (open: boolean) => void;
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
+  /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
+  labels?: Partial<SidePanelLabels>;
   liquidGlass?: boolean;
 }
 
+const DEFAULT_SIDE_PANEL_LABELS: SidePanelLabels = { close: 'Fermer', title: 'Panneau' };
+
 export function SidePanel({
   open = false,
-  title = 'Panneau',
+  title,
   children,
   onOpenChange,
   onClose,
+  labels: labelsProp,
   liquidGlass = false,
   ...rest
 }: SidePanelProps) {
+  const labels = resolveLabels(DEFAULT_SIDE_PANEL_LABELS, labelsProp);
   /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
      coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
      même position. La coquille le plaque désormais contre le bord de fin sur
@@ -2215,13 +2262,28 @@ export function SidePanel({
       open={open}
       onOpenChange={closeHandler(onOpenChange, onClose)}
       liquidGlass={liquidGlass}
-      title={title}
+      labels={{ close: labels.close }}
+      title={title === undefined ? labels.title : title}
       rootClassName="opale-side-panel"
     >
       {children}
     </Modal>
   );
 }
+
+/** Les textes de `CommandPalette`. `close` nomme la croix et le bouton Fermer. */
+export interface CommandPaletteLabels extends ModalLabels {
+  /** Défaut : « Palette de commandes ». */
+  title: string;
+  /** Le libellé du champ de recherche. Défaut : « Rechercher une commande ». */
+  search: string;
+}
+
+const DEFAULT_COMMAND_PALETTE_LABELS: CommandPaletteLabels = {
+  close: 'Fermer',
+  title: 'Palette de commandes',
+  search: 'Rechercher une commande',
+};
 
 /** Les props de `CommandPalette`. `ref` et les attributs vont au panneau. */
 export interface CommandPaletteProps extends Omit<
@@ -2242,6 +2304,8 @@ export interface CommandPaletteProps extends Omit<
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   children?: ReactNode;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<CommandPaletteLabels>;
   liquidGlass?: boolean;
 }
 
@@ -2254,10 +2318,12 @@ export function CommandPalette({
   onOpenChange,
   onClose,
   children,
+  labels: labelsProp,
   liquidGlass = false,
   ...rest
 }: CommandPaletteProps) {
   const close = closeHandler(onOpenChange, onClose);
+  const labels = resolveLabels(DEFAULT_COMMAND_PALETTE_LABELS, labelsProp);
   /* La modale donne d'abord le focus au panneau pour annoncer son titre.
      Au cadre suivant, la palette place le curseur dans sa recherche : on peut
      lancer une commande sans clic, tout en laissant Modal retenir l'élément
@@ -2276,11 +2342,12 @@ export function CommandPalette({
       open={open}
       onOpenChange={close}
       liquidGlass={liquidGlass}
-      title="Palette de commandes"
+      labels={{ close: labels.close }}
+      title={labels.title}
       footer={
         close ? (
           <Button variant="text" onClick={() => close(false)}>
-            Fermer
+            {labels.close}
           </Button>
         ) : undefined
       }
@@ -2289,7 +2356,7 @@ export function CommandPalette({
         <Input
           ref={searchRef}
           type="search"
-          label="Rechercher une commande"
+          label={labels.search}
           value={query}
           onChange={(event) => {
             const next = event.currentTarget.value;
@@ -2404,6 +2471,28 @@ function subscribeConsent(listener: () => void) {
   };
 }
 
+/** Les textes de `CookieBanner`. */
+export interface CookieBannerLabels {
+  /** Le nom de la région, quand `aria-label` n'est pas passé. Défaut : « Consentement aux cookies ». */
+  region: string;
+  /** Défaut : « Cookies ». */
+  title: string;
+  /** Le message, quand `children` n'est pas passé. */
+  message: string;
+  /** Défaut : « Refuser ». */
+  decline: string;
+  /** Défaut : « Accepter ». */
+  accept: string;
+}
+
+const DEFAULT_COOKIE_BANNER_LABELS: CookieBannerLabels = {
+  region: 'Consentement aux cookies',
+  title: 'Cookies',
+  message: 'Nous utilisons des cookies pour améliorer votre expérience.',
+  decline: 'Refuser',
+  accept: 'Accepter',
+};
+
 /** Les props de `CookieBanner`. `ref` et les attributs vont à la `<section>` nommée. */
 export interface CookieBannerProps extends ComponentPropsWithRef<'section'> {
   /** Passé, il décide seul de l'affichage ; omis, le bandeau suit le choix mémorisé. */
@@ -2415,16 +2504,19 @@ export interface CookieBannerProps extends ComponentPropsWithRef<'section'> {
   onDecline?: () => void;
   /** Clé de `localStorage` où le choix est mémorisé ; `null` coupe la mémoire. */
   storageKey?: string | null;
+  /** Remplace les textes français par défaut, clé par clé. `children` gagne sur `labels.message`. */
+  labels?: Partial<CookieBannerLabels>;
   liquidGlass?: boolean;
 }
 
 export function CookieBanner({
   open,
   onOpenChange,
-  children = 'Nous utilisons des cookies pour améliorer votre expérience.',
+  children,
   onAccept,
   onDecline,
   storageKey = COOKIE_CONSENT_KEY,
+  labels: labelsProp,
   liquidGlass = false,
   className,
   ...rest
@@ -2436,6 +2528,7 @@ export function CookieBanner({
   );
   const [decided, setDecided] = useState<CookieConsent | null>(null);
   const textId = useId();
+  const labels = resolveLabels(DEFAULT_COOKIE_BANNER_LABELS, labelsProp);
   const visible = open ?? !(decided ?? stored);
   const [wasVisible, setWasVisible] = useState(visible);
   const [leaving, setLeaving] = useState(false);
@@ -2487,7 +2580,7 @@ export function CookieBanner({
         aria-hidden={leaving ? true : undefined}
       >
         <Shell
-          aria-label="Consentement aux cookies"
+          aria-label={labels.region}
           aria-describedby={textId}
           {...rest}
           {...shellProps}
@@ -2498,15 +2591,15 @@ export function CookieBanner({
           )}
         >
           <div className="opale-cookie-banner__copy">
-            <strong>Cookies</strong>
-            <div id={textId}>{children}</div>
+            <strong>{labels.title}</strong>
+            <div id={textId}>{children === undefined ? labels.message : children}</div>
           </div>
           <div className="opale-cookie-banner__actions">
             <Button variant="danger" size="small" onClick={() => decide('declined')}>
-              Refuser
+              {labels.decline}
             </Button>
             <Button variant="primary" size="small" onClick={() => decide('accepted')}>
-              Accepter
+              {labels.accept}
             </Button>
           </div>
         </Shell>
@@ -2929,6 +3022,18 @@ export interface DataTableColumn {
 /** Les tailles d'une table : `small` resserre les lignes. */
 export type DataTableSize = Extract<OpaleSize, 'small' | 'medium'>;
 
+/** Les textes d'une table. */
+export interface DataTableLabels {
+  /** Affiché et annoncé pendant le chargement. Défaut : « Chargement des données… ». */
+  loading: string;
+  /** Défaut : « Aucune donnée à afficher. ». */
+  empty: string;
+  /** Le compte sous la table. Défaut : « 1 ligne », « 3 lignes ». */
+  rowCount: (count: number) => string;
+  /** L'annonce d'un tri. Défaut : « Trié par Nom, ordre croissant ». */
+  sorted: (column: string, direction: DataTableSortDirection) => string;
+}
+
 export interface DataTableProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   columns?: readonly DataTableColumn[];
   rows?: readonly DataTableRow[];
@@ -2943,7 +3048,12 @@ export interface DataTableProps extends Omit<ComponentPropsWithRef<'div'>, 'chil
   /** Stable identity when rows are inserted, removed or sorted. */
   rowKey?: (row: DataTableRow, index: number) => string | number;
   loading?: boolean;
+  /** @deprecated Depuis 3.6 — utilisez `labels.empty`. */
   emptyMessage?: string;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<DataTableLabels>;
+  /** Langue(s) du tri alphabétique. Défaut `'fr'` ; une étiquette invalide retombe sur `'fr'`. */
+  locale?: string | readonly string[];
   liquidGlass?: boolean;
   /** L'espacement des lignes : `small` resserre sans changer la structure. Défaut : `medium`. */
   size?: DataTableSize;
@@ -2955,11 +3065,27 @@ export interface DataTableProps extends Omit<ComponentPropsWithRef<'div'>, 'chil
   showRowCount?: boolean;
 }
 
-const TABLE_COLLATOR = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' });
+const TABLE_COLLATOR_OPTIONS: Intl.CollatorOptions = { numeric: true, sensitivity: 'base' };
+
+/** Le collateur du tri ; une étiquette de langue invalide retombe sur le français. */
+function createTableCollator(locales: readonly string[]): Intl.Collator {
+  try {
+    return new Intl.Collator([...locales], TABLE_COLLATOR_OPTIONS);
+  } catch {
+    return new Intl.Collator('fr', TABLE_COLLATOR_OPTIONS);
+  }
+}
 
 const SORT_WORDING: Record<DataTableSortDirection, string> = {
   ascending: 'ordre croissant',
   descending: 'ordre décroissant',
+};
+
+const DEFAULT_DATA_TABLE_LABELS: DataTableLabels = {
+  loading: 'Chargement des données…',
+  empty: 'Aucune donnée à afficher.',
+  rowCount: (count) => `${count} ${count === 1 ? 'ligne' : 'lignes'}`,
+  sorted: (column, direction) => `Trié par ${column}, ${SORT_WORDING[direction]}`,
 };
 
 function sortNameOf(column: DataTableColumn): string {
@@ -2977,11 +3103,11 @@ function sortKeyOf(row: DataTableRow, column: DataTableColumn): string | number 
    cycles — `1.5 < "1.10" < 1.25 < 1.5` — et l'ordre produit dépendait de
    l'ordre d'arrivée. Les nombres passent donc d'abord, entre eux, puis les
    textes, entre eux. */
-function compareKeys(a: string | number, b: string | number): number {
+function compareKeys(collator: Intl.Collator, a: string | number, b: string | number): number {
   if (typeof a === 'number' && typeof b === 'number') return a - b;
   if (typeof a === 'number') return -1;
   if (typeof b === 'number') return 1;
-  return TABLE_COLLATOR.compare(a, b);
+  return collator.compare(a, b);
 }
 
 export function DataTable({
@@ -2993,7 +3119,9 @@ export function DataTable({
   onSortChange,
   rowKey,
   loading = false,
-  emptyMessage = 'Aucune donnée à afficher.',
+  emptyMessage,
+  labels: labelsProp,
+  locale = 'fr',
   liquidGlass = false,
   size,
   density,
@@ -3010,11 +3138,20 @@ export function DataTable({
      donc au rendu depuis le tri effectif. Elle reste muette tant qu'aucun
      en-tête n'a été actionné, pour ne pas lire le tri initial au montage. */
   const [hasSorted, setHasSorted] = useState(false);
+  /* `labels.empty` gagne ; l'ancien `emptyMessage` ne sert que s'il est seul. */
+  const labels = resolveLabels(
+    resolveLabels(DEFAULT_DATA_TABLE_LABELS, { empty: emptyMessage }),
+    labelsProp,
+  );
+  /* Le collateur ne se recrée que si la langue change : la clé est une
+     chaîne, donc une liste littérale recréée à chaque rendu ne compte pas. */
+  const localeKey = typeof locale === 'string' ? locale : locale.join(',');
+  const collator = useMemo(() => createTableCollator(localeKey.split(',')), [localeKey]);
 
   const sortedColumn = sort ? columns.find((column) => column.key === sort.key) : undefined;
   const announcement =
     hasSorted && sort && sortedColumn
-      ? `Trié par ${sortNameOf(sortedColumn)}, ${SORT_WORDING[sort.direction]}`
+      ? labels.sorted(sortNameOf(sortedColumn), sort.direction)
       : '';
 
   /* L'indice d'origine sert de clé : quand le tri déplace une ligne, React la
@@ -3029,7 +3166,7 @@ export function DataTable({
       if (a === undefined || b === undefined) {
         return a === b ? 0 : a === undefined ? 1 : -1;
       }
-      return sign * compareKeys(a, b);
+      return sign * compareKeys(collator, a, b);
     });
   }
 
@@ -3096,7 +3233,7 @@ export function DataTable({
                 <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
                   <div className="opale-table__state">
                     <span className="opale-spinner" aria-hidden="true" />
-                    <span>Chargement des données…</span>
+                    <span>{labels.loading}</span>
                   </div>
                 </td>
               </tr>
@@ -3105,7 +3242,7 @@ export function DataTable({
                 <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
                   <div className="opale-table__state">
                     <IconGlyph name="archive" className="opale-table__state-icon" />
-                    <span>{emptyMessage}</span>
+                    <span>{labels.empty}</span>
                   </div>
                 </td>
               </tr>
@@ -3125,13 +3262,11 @@ export function DataTable({
       </div>
       {showRowCount && !loading && (
         <div className="opale-table__footer">
-          <span className="opale-table__count">
-            {ordered.length} {ordered.length === 1 ? 'ligne' : 'lignes'}
-          </span>
+          <span className="opale-table__count">{labels.rowCount(ordered.length)}</span>
         </div>
       )}
       <span className="opale-visually-hidden" role="status">
-        {loading ? 'Chargement des données…' : announcement}
+        {loading ? labels.loading : announcement}
       </span>
     </Surface>
   );
@@ -3265,6 +3400,33 @@ function FileCardShell({
     </div>
   );
 }
+/** Les textes de `Dropzone`. */
+export interface DropzoneLabels {
+  /** L'invite, quand `children` n'est pas passé. Défaut : « Ajoutez vos fichiers ». */
+  prompt: string;
+  /** Défaut : « Sélectionner des fichiers ». */
+  select: string;
+  /** Défaut : « Sélection désactivée ». */
+  disabled: string;
+  /** Défaut : « Sélectionnez au maximum 2 fichiers. ». */
+  tooManyFiles: (maxFiles: number) => string;
+  /** Défaut : « Un fichier dépasse la taille maximale de 1024 octets. ». */
+  fileTooLarge: (maxSizeBytes: number) => string;
+  /** Défaut : « Le type d’un fichier n’est pas accepté. ». */
+  typeRejected: string;
+}
+
+const DEFAULT_DROPZONE_LABELS: DropzoneLabels = {
+  prompt: 'Ajoutez vos fichiers',
+  select: 'Sélectionner des fichiers',
+  disabled: 'Sélection désactivée',
+  tooManyFiles: (maxFiles) =>
+    `Sélectionnez au maximum ${maxFiles} fichier${maxFiles > 1 ? 's' : ''}.`,
+  fileTooLarge: (maxSizeBytes) =>
+    `Un fichier dépasse la taille maximale de ${maxSizeBytes} octets.`,
+  typeRejected: 'Le type d’un fichier n’est pas accepté.',
+};
+
 /** Les props de `Dropzone`. `ref` et les attributs vont au `<label>` qui porte la zone. */
 export interface DropzoneProps extends Omit<
   ComponentPropsWithRef<'label'>,
@@ -3278,6 +3440,8 @@ export interface DropzoneProps extends Omit<
   maxSizeBytes?: number;
   disabled?: boolean;
   liquidGlass?: boolean;
+  /** Remplace les textes français par défaut, clé par clé. `children` gagne sur `labels.prompt`. */
+  labels?: Partial<DropzoneLabels>;
 }
 
 function fileMatchesAccept(file: File, accept: string): boolean {
@@ -3300,12 +3464,13 @@ function fileMatchesAccept(file: File, accept: string): boolean {
 export function Dropzone({
   onFiles,
   onError,
-  children = 'Ajoutez vos fichiers',
+  children,
   accept,
   maxFiles,
   maxSizeBytes,
   disabled = false,
   liquidGlass = false,
+  labels: labelsProp,
   className,
   onDragEnter,
   onDragOver,
@@ -3320,19 +3485,20 @@ export function Dropzone({
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
   const depth = useRef(0);
+  const labels = resolveLabels(DEFAULT_DROPZONE_LABELS, labelsProp);
 
   const receive = (files: FileList) => {
     if (disabled || files.length === 0) return;
     let message = '';
     if (maxFiles !== undefined && files.length > maxFiles) {
-      message = `Sélectionnez au maximum ${maxFiles} fichier${maxFiles > 1 ? 's' : ''}.`;
+      message = labels.tooManyFiles(maxFiles);
     } else if (
       maxSizeBytes !== undefined &&
       Array.from(files).some((file) => file.size > maxSizeBytes)
     ) {
-      message = `Un fichier dépasse la taille maximale de ${maxSizeBytes} octets.`;
+      message = labels.fileTooLarge(maxSizeBytes);
     } else if (accept && Array.from(files).some((file) => !fileMatchesAccept(file, accept))) {
-      message = 'Le type d’un fichier n’est pas accepté.';
+      message = labels.typeRejected;
     }
     setError(message);
     if (message) onError?.(message);
@@ -3388,16 +3554,22 @@ export function Dropzone({
           event.currentTarget.value = '';
         }}
       />
-      <strong>{children}</strong>
-      <span className="opale-dropzone__action">
-        {disabled ? 'Sélection désactivée' : 'Sélectionner des fichiers'}
-      </span>
+      <strong>{children === undefined ? labels.prompt : children}</strong>
+      <span className="opale-dropzone__action">{disabled ? labels.disabled : labels.select}</span>
       <span className="opale-dropzone__error" role="alert">
         {error}
       </span>
     </Zone>
   );
 }
+
+/** Les textes de `Lightbox`. `close` nomme la croix et le bouton Fermer. */
+export interface LightboxLabels extends ModalLabels {
+  /** Le nom du dialogue, quand `aria-label` n'est pas passé. Défaut : « Aperçu ». */
+  dialog: string;
+}
+
+const DEFAULT_LIGHTBOX_LABELS: LightboxLabels = { close: 'Fermer', dialog: 'Aperçu' };
 
 /** Les props de `Lightbox`. `ref` et les attributs vont au panneau. */
 export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title' | 'children'> {
@@ -3414,6 +3586,8 @@ export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title
   onOpenChange?: (open: boolean) => void;
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<LightboxLabels>;
   liquidGlass?: boolean;
 }
 
@@ -3423,14 +3597,17 @@ export function Lightbox({
   open = false,
   onOpenChange,
   onClose,
+  labels: labelsProp,
   liquidGlass = false,
   ...rest
 }: LightboxProps) {
   const close = closeHandler(onOpenChange, onClose);
+  const labels = resolveLabels(DEFAULT_LIGHTBOX_LABELS, labelsProp);
   return (
     <Modal
-      aria-label="Aperçu"
+      aria-label={labels.dialog}
       {...rest}
+      labels={{ close: labels.close }}
       open={open && Boolean(src)}
       onOpenChange={close}
       liquidGlass={liquidGlass}
@@ -3445,7 +3622,7 @@ export function Lightbox({
           liquidGlass={liquidGlass}
           onClick={close ? () => close(false) : undefined}
         >
-          Fermer
+          {labels.close}
         </Button>
       }
     >
@@ -3587,11 +3764,52 @@ export interface SvgMapRegion {
   readonly ariaLabel?: string;
 }
 
+/** Les textes des boutons de zoom. */
+export interface SvgMapControlsLabels {
+  /** Le nom du groupe, quand `aria-label` n'est pas passé. Défaut : « Zoom ». */
+  group: string;
+  /** Défaut : « Zoomer ». */
+  zoomIn: string;
+  /** Défaut : « Dézoomer ». */
+  zoomOut: string;
+  /** Défaut : « Vue d’ensemble ». */
+  reset: string;
+}
+
+/** Les textes d'une carte ; les clés des commandes vont aux boutons de zoom intégrés. */
+export interface SvgMapLabels extends SvgMapControlsLabels {
+  /** Le nom de la carte, quand `label` n'est pas passé. Défaut : « Carte ». */
+  map: string;
+  /** La consigne affichée à la molette sans modificateur. */
+  wheelHint: string;
+  /** La consigne clavier d'une carte illustrative, annoncée après la description. */
+  instructions: string;
+  /** La consigne clavier d'une carte sélectionnable. */
+  instructionsSelectable: string;
+}
+
+const DEFAULT_SVG_MAP_CONTROLS_LABELS: SvgMapControlsLabels = {
+  group: 'Zoom',
+  zoomIn: 'Zoomer',
+  zoomOut: 'Dézoomer',
+  reset: 'Vue d’ensemble',
+};
+
+const DEFAULT_SVG_MAP_LABELS: SvgMapLabels = {
+  ...DEFAULT_SVG_MAP_CONTROLS_LABELS,
+  map: 'Carte',
+  wheelHint: 'Ctrl ou ⌘ + molette pour zoomer',
+  instructions:
+    'Flèches pour déplacer la vue, plus et moins pour zoomer, zéro pour revenir à la vue d’ensemble.',
+  instructionsSelectable:
+    'Flèches pour aller à la région voisine, Entrée pour choisir, Maj et flèches pour déplacer la vue, plus et moins pour zoomer, zéro pour revenir à la vue d’ensemble.',
+};
+
 export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelect' | 'children'> {
   /** Vue d'ensemble du dessin, au format de l'attribut `viewBox`. */
   readonly viewBox: string;
   readonly regions: readonly SvgMapRegion[];
-  /** Nom de la carte, annoncé par les lecteurs d'écran. */
+  /** Nom de la carte, annoncé par les lecteurs d'écran ; gagne sur `labels.map`. */
   readonly label?: string;
   /**
    * Description de la carte, annoncée après son nom : ce qu'elle montre, ou où
@@ -3634,6 +3852,8 @@ export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelec
   readonly overlay?: ReactNode;
   /** Dessin supplémentaire, dans les coordonnées de la carte : repères, tracés. */
   readonly children?: ReactNode;
+  /** Remplace les textes français par défaut, clé par clé. */
+  readonly labels?: Partial<SvgMapLabels>;
   readonly liquidGlass?: boolean;
   readonly className?: string;
 }
@@ -3651,7 +3871,7 @@ const SVG_MAP_ARROWS: Readonly<Record<string, readonly [number, number]>> = {
 export function SvgMap({
   viewBox,
   regions,
-  label = 'Carte',
+  label,
   description,
   fill,
   stroke,
@@ -3667,12 +3887,14 @@ export function SvgMap({
   wheel = 'modifier',
   overlay,
   children,
+  labels: labelsProp,
   liquidGlass = false,
   className,
   style: styleProp,
   onKeyDown,
   ...rest
 }: SvgMapProps) {
+  const labels = resolveLabels(DEFAULT_SVG_MAP_LABELS, labelsProp);
   /* LE CROCHET EST TOUJOURS APPELÉ, et la vue de l'appelant l'emporte : l'ordre
      des crochets ne peut pas dépendre d'une prop. */
   const ownViewport = useSvgMapViewport(viewBox, { maxZoom });
@@ -3909,7 +4131,7 @@ export function SvgMap({
            sous-arbre décoratif : les régions y disparaîtraient des lecteurs
            d'écran, alors qu'elles sont justement ce qu'on désigne. */
         role={selectable ? 'group' : 'img'}
-        aria-label={label}
+        aria-label={label ?? labels.map}
         aria-describedby={descriptionId}
         /* Sans régions à choisir, c'est la carte elle-même qui prend le focus :
            c'est par elle que le clavier zoome et se déplace. */
@@ -3991,6 +4213,7 @@ export function SvgMap({
         <SvgMapControls
           viewport={viewport}
           liquidGlass={liquidGlass}
+          labels={labels}
           className="opale-svg-map__controls"
         />
       )}
@@ -4012,14 +4235,12 @@ export function SvgMap({
         aria-hidden="true"
         data-visible={hint ? 'true' : undefined}
       >
-        Ctrl ou ⌘ + molette pour zoomer
+        {labels.wheelHint}
       </span>
 
       <span id={descriptionId} className="opale-visually-hidden">
         {description ? <>{description} </> : null}
-        {selectable
-          ? 'Flèches pour aller à la région voisine, Entrée pour choisir, Maj et flèches pour déplacer la vue, plus et moins pour zoomer, zéro pour revenir à la vue d’ensemble.'
-          : 'Flèches pour déplacer la vue, plus et moins pour zoomer, zéro pour revenir à la vue d’ensemble.'}
+        {selectable ? labels.instructionsSelectable : labels.instructions}
       </span>
     </div>
   );
@@ -4054,6 +4275,8 @@ export interface SvgMapControlsProps extends Omit<ComponentPropsWithRef<'div'>, 
    * qu'on clique doit se voir agir.
    */
   readonly step?: number;
+  /** Remplace les textes français par défaut, clé par clé. */
+  readonly labels?: Partial<SvgMapControlsLabels>;
   readonly liquidGlass?: boolean;
   readonly className?: string;
 }
@@ -4061,24 +4284,26 @@ export interface SvgMapControlsProps extends Omit<ComponentPropsWithRef<'div'>, 
 export function SvgMapControls({
   viewport,
   step = SVG_MAP_DEFAULT_STEP,
+  labels: labelsProp,
   liquidGlass = false,
   className,
   ...rest
 }: SvgMapControlsProps) {
+  const labels = resolveLabels(DEFAULT_SVG_MAP_CONTROLS_LABELS, labelsProp);
   const act = (enabled: boolean, run: () => void) => () => {
     if (enabled) run();
   };
 
   return (
     <div
-      aria-label="Zoom"
+      aria-label={labels.group}
       {...rest}
       className={cx('opale-svg-map-controls', className)}
       role="group"
     >
       <IconActionButton
         icon="zoom-in"
-        label="Zoomer"
+        label={labels.zoomIn}
         size="small"
         liquidGlass={liquidGlass}
         aria-disabled={viewport.canZoomIn ? undefined : true}
@@ -4086,7 +4311,7 @@ export function SvgMapControls({
       />
       <IconActionButton
         icon="zoom-out"
-        label="Dézoomer"
+        label={labels.zoomOut}
         size="small"
         liquidGlass={liquidGlass}
         aria-disabled={viewport.zoomed ? undefined : true}
@@ -4096,7 +4321,7 @@ export function SvgMapControls({
       />
       <IconActionButton
         icon="home"
-        label="Vue d’ensemble"
+        label={labels.reset}
         size="small"
         liquidGlass={liquidGlass}
         aria-disabled={viewport.zoomed ? undefined : true}

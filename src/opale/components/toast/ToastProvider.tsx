@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom';
 import Glass from '../glass/Glass';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
+import { resolveLabels } from '../../shared/labels';
 
 import styles from './style/Toast.module.css';
 
@@ -131,6 +132,14 @@ type ToastRecord = ToastDefinition & {
   liquidGlass: boolean;
 };
 
+/** Les textes d'une notification. */
+export interface ToastLabels {
+  /** Le nom de la croix. Défaut : « Fermer la notification ». */
+  close: string;
+}
+
+const DEFAULT_TOAST_LABELS: ToastLabels = { close: 'Fermer la notification' };
+
 export type ToastProviderProps = PropsWithChildren<{
   duration?: number;
   animation?: ToastAnimation;
@@ -145,6 +154,8 @@ export type ToastProviderProps = PropsWithChildren<{
    */
   liquidGlass?: boolean;
   portalContainer?: HTMLElement | null;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<ToastLabels>;
 }>;
 
 type ToastContextValue = {
@@ -272,9 +283,10 @@ type ToastCardProps = {
   readonly toast: ToastRecord;
   readonly onDismiss: (id: string) => void;
   readonly onRemove: (id: string) => void;
+  readonly labels: ToastLabels;
 };
 
-function ToastCard({ toast, onDismiss, onRemove }: ToastCardProps) {
+function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
   const {
     animation,
     description,
@@ -372,7 +384,7 @@ function ToastCard({ toast, onDismiss, onRemove }: ToastCardProps) {
         <button
           type="button"
           className={styles.close}
-          aria-label="Fermer la notification"
+          aria-label={labels.close}
           onClick={() => onDismiss(id)}
         >
           <span aria-hidden="true">×</span>
@@ -400,6 +412,7 @@ export const ToastProvider = ({
   enableLiquidAnimation = true,
   liquidGlass = false,
   portalContainer,
+  labels: labelsProp,
 }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
 
@@ -500,8 +513,16 @@ export const ToastProvider = ({
      `setState`, ce qui retardait le portail d'un tour de rendu pour rien. */
   const portalNode = portalContainer ?? (typeof document === 'undefined' ? null : document.body);
 
+  const labels = resolveLabels(DEFAULT_TOAST_LABELS, labelsProp);
+
   const renderCard = (toast: ToastRecord) => (
-    <ToastCard key={toast.id} toast={toast} onDismiss={dismissToast} onRemove={removeToast} />
+    <ToastCard
+      key={toast.id}
+      toast={toast}
+      onDismiss={dismissToast}
+      onRemove={removeToast}
+      labels={labels}
+    />
   );
 
   return (

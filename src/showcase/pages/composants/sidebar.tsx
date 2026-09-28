@@ -116,7 +116,7 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'Sidebar.Items aria-label',
     type: 'string',
-    defaultValue: "'Sidebar'",
+    defaultValue: "'Navigation latérale'",
     description: (
       <>
         Le <code>&lt;nav&gt;</code> est un <strong>point de repère nommé</strong>. Le défaut est
@@ -134,6 +134,18 @@ const PROPS: readonly PropRow[] = [
         Porte <code>aria-expanded</code> et <code>aria-controls</code> vers l’
         <code>&lt;aside&gt;</code>, dont l’<code>id</code> est généré si vous n’en passez pas. Ses{' '}
         <code>children</code> remplacent le chevron par défaut.
+      </>
+    ),
+  },
+  {
+    name: 'labels',
+    type: 'Partial<SidebarLabels>',
+    defaultValue: "{ items: 'Navigation latérale', expand: 'Déplier le rail', collapse: 'Replier le rail' }",
+    description: (
+      <>
+        Les textes du rail, transmis par le contexte à <code>Sidebar.Items</code> et à{' '}
+        <code>Sidebar.Toggle</code>. Une clé omise garde son défaut français ; l’
+        <code>aria-label</code> passé à <code>Sidebar.Items</code> gagne encore.
       </>
     ),
   },

@@ -15,6 +15,7 @@ import clsx from 'clsx';
 
 import Glass, { type GlassSurfaceProps } from '../glass/Glass';
 import type { OpaleSize } from '../../shared';
+import { resolveLabels } from '../../shared/labels';
 import { useControllableState } from '../../shared/use-controllable-state';
 import styles from './style/Sidebar.module.css';
 
@@ -73,6 +74,24 @@ import styles from './style/Sidebar.module.css';
 
 type SidebarSize = OpaleSize;
 
+/** Les textes du rail, transmis par le contexte à `Sidebar.Items` et `Sidebar.Toggle`. */
+export interface SidebarLabels {
+  /** Le nom du repère `Sidebar.Items`. Défaut : « Navigation latérale ». */
+  items: string;
+  /** Le nom de la bascule quand le rail est replié. Défaut : « Déplier le rail ». */
+  expand: string;
+  /** Le nom de la bascule quand le rail est déplié. Défaut : « Replier le rail ». */
+  collapse: string;
+}
+
+/* EN FRANÇAIS, COMME LE RESTE DE LA BIBLIOTHÈQUE : lu avec la voix française
+   du document, un nom anglais devient inintelligible (WCAG 3.1.2). */
+const DEFAULT_SIDEBAR_LABELS: SidebarLabels = {
+  items: 'Navigation latérale',
+  expand: 'Déplier le rail',
+  collapse: 'Replier le rail',
+};
+
 export type SidebarContextValue = {
   size: SidebarSize;
   collapsed: boolean;
@@ -85,6 +104,8 @@ export type SidebarContextValue = {
   activeItemId?: string;
   /** L'identifiant de l'`<aside>`, pour l'`aria-controls` de la bascule. */
   sidebarId: string;
+  /** Les textes effectifs du rail, défauts français compris. */
+  labels: SidebarLabels;
 };
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
@@ -120,6 +141,8 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
   defaultActiveItemId?: string;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onSelectItem?: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<SidebarLabels>;
   /**
    * Rend le rail dans le matériau « verre liquide ».
    *
@@ -151,6 +174,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       activeItemId: activeItemIdProp,
       defaultActiveItemId,
       onSelectItem,
+      labels: labelsProp,
       liquidGlass = false,
       className,
       rootClassName,
@@ -207,6 +231,13 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
        enfin son propre identifiant. */
     const generatedId = useId();
     const sidebarId = id ?? generatedId;
+    const { items, expand, collapse } = resolveLabels(DEFAULT_SIDEBAR_LABELS, labelsProp);
+    /* Mémorisé sur les chaînes : un `labels` littéral recréé à chaque rendu ne
+       doit pas renouveler le contexte. */
+    const labels = useMemo<SidebarLabels>(
+      () => ({ items, expand, collapse }),
+      [items, expand, collapse],
+    );
 
     const contextValue = useMemo<SidebarContextValue>(
       () => ({
@@ -218,8 +249,18 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         value: activeItemId,
         activeItemId,
         sidebarId,
+        labels,
       }),
-      [size, collapsed, collapsible, handleToggle, handleItemSelect, activeItemId, sidebarId],
+      [
+        size,
+        collapsed,
+        collapsible,
+        handleToggle,
+        handleItemSelect,
+        activeItemId,
+        sidebarId,
+        labels,
+      ],
     );
 
     const enveloppe = clsx(
@@ -299,8 +340,8 @@ SidebarFooter.displayName = 'Sidebar.Footer';
 
 export type SidebarItemsProps = ComponentPropsWithoutRef<'nav'>;
 
-/**
- * Le nom par défaut du point de repère de navigation.
+/*
+ * Le nom par défaut du point de repère de navigation (`labels.items`).
  *
  * POURQUOI UN DÉFAUT PLUTÔT QUE RIEN. Un `<nav>` sans nom s'annonce
  * « navigation », point ; dans une page qui en porte trois — le sommaire, le
@@ -310,31 +351,29 @@ export type SidebarItemsProps = ComponentPropsWithoutRef<'nav'>;
  *
  * POURQUOI CELUI-CI. Le rôle `navigation` est déjà annoncé par le repère ;
  * l'écrire dans le nom donnerait « navigation navigation ». Le mot restant est
- * donc le nom du composant, en anglais comme les deux libellés de la bascule —
+ * donc le nom du composant, dans la langue des deux libellés de la bascule —
  * mêler deux langues dans un même composant serait pire que de n'en parler
- * qu'une. Ces trois chaînes sont les seules du paquet, et les traduire demande
- * une prop de libellé, c'est-à-dire un changement d'interface.
+ * qu'une. Les trois se traduisent ensemble par `labels`.
  *
  * DÈS QU'IL Y A DEUX RAILS DANS UNE PAGE, IL FAUT LE REMPLACER : deux repères
  * de même nom ne se distinguent pas davantage que deux repères sans nom.
  */
-/* EN FRANÇAIS, COMME LE RESTE DE LA BIBLIOTHÈQUE. C'était le dernier texte
-   d'interface anglais : lu avec la voix française du document, « Sidebar »
-   devient inintelligible (WCAG 3.1.2). `Modal` dit « Fermer », `SearchBar`
-   « Rechercher », et la bascule de ce même rail « Replier le rail ». */
-const DEFAULT_ITEMS_LABEL = 'Navigation latérale';
-
-const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ...rest }, ref) => (
-  /* `aria-label` EST POSÉ AVANT `{...rest}`, donc l'appelant l'emporte — y
-     compris pour l'effacer avec `aria-label={undefined}` s'il préfère un
-     `aria-labelledby`. */
-  <nav
-    ref={ref}
-    aria-label={DEFAULT_ITEMS_LABEL}
-    className={clsx(styles.items, className)}
-    {...rest}
-  />
-));
+const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ...rest }, ref) => {
+  /* Hors d'un `Sidebar`, la liste garde son nom français : elle ne l'exigeait
+     pas avant, elle ne l'exige pas davantage. */
+  const context = useContext(SidebarContext);
+  return (
+    /* `aria-label` EST POSÉ AVANT `{...rest}`, donc l'appelant l'emporte — y
+       compris pour l'effacer avec `aria-label={undefined}` s'il préfère un
+       `aria-labelledby`. */
+    <nav
+      ref={ref}
+      aria-label={context?.labels.items ?? DEFAULT_SIDEBAR_LABELS.items}
+      className={clsx(styles.items, className)}
+      {...rest}
+    />
+  );
+});
 
 SidebarItems.displayName = 'Sidebar.Items';
 
@@ -475,7 +514,7 @@ const ToggleChevron = ({ collapsed }: { collapsed: boolean }) => (
 
 const SidebarToggle = forwardRef<HTMLButtonElement, SidebarToggleProps>(
   ({ className, onClick, children, ...rest }, ref) => {
-    const { collapsible, collapsed, toggleCollapsed, sidebarId } =
+    const { collapsible, collapsed, toggleCollapsed, sidebarId, labels } =
       useSidebarContext('Sidebar.Toggle');
 
     /* SANS `collapsible`, LA BASCULE NE REND RIEN. Ce n'est pas un oubli : un
@@ -509,7 +548,7 @@ const SidebarToggle = forwardRef<HTMLButtonElement, SidebarToggleProps>(
            n'ayant plus un mot en commun (WCAG 2.5.3). Et ces libellés anglais
            étaient lus avec la voix du document — le défaut que `Modal` déclare
            avoir corrigé chez lui. */
-        aria-label={children ? undefined : collapsed ? 'Déplier le rail' : 'Replier le rail'}
+        aria-label={children ? undefined : collapsed ? labels.expand : labels.collapse}
         aria-expanded={!collapsed}
         aria-controls={sidebarId}
         onClick={handleClick}

@@ -1,6 +1,7 @@
 import { useId, type ComponentPropsWithRef } from 'react';
 
 import { IconGlyph } from './components/icon';
+import { resolveLabels } from './shared/labels';
 import { useControllableState } from './shared/use-controllable-state';
 
 export interface SkeletonProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
@@ -33,6 +34,25 @@ export function Skeleton({
   );
 }
 
+/** Les textes de la pagination. */
+export interface PaginationLabels {
+  /** Le nom du repère, quand ni `aria-label` ni `label` ne sont passés. Défaut : « Pagination ». */
+  navigation: string;
+  /** Défaut : « Page précédente ». */
+  previous: string;
+  /** Défaut : « Page suivante ». */
+  next: string;
+  /** Le nom du bouton d'une page. Défaut : « Page 3 ». */
+  page: (page: number) => string;
+}
+
+const DEFAULT_PAGINATION_LABELS: PaginationLabels = {
+  navigation: 'Pagination',
+  previous: 'Page précédente',
+  next: 'Page suivante',
+  page: (page) => `Page ${page}`,
+};
+
 export interface PaginationProps extends Omit<
   ComponentPropsWithRef<'nav'>,
   'onChange' | 'defaultValue' | 'children'
@@ -49,7 +69,10 @@ export interface PaginationProps extends Omit<
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (page: number) => void;
   disabled?: boolean;
+  /** Le nom du repère ; gagne sur `labels.navigation`. */
   label?: string;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<PaginationLabels>;
 }
 
 /** Pagination contrôlable, utilisable au clavier avec des boutons natifs. */
@@ -61,7 +84,8 @@ export function Pagination({
   pageCount,
   onChange,
   disabled = false,
-  label = 'Pagination',
+  label,
+  labels: labelsProp,
   className,
   ...rest
 }: PaginationProps) {
@@ -70,6 +94,7 @@ export function Pagination({
     defaultValue,
     onValueChange,
   );
+  const labels = resolveLabels(DEFAULT_PAGINATION_LABELS, labelsProp);
   const choose = (next: number) => {
     setRequested(next);
     onChange?.(next);
@@ -83,7 +108,7 @@ export function Pagination({
     .sort((a, b) => a - b);
   return (
     <nav
-      aria-label={label}
+      aria-label={label ?? labels.navigation}
       {...rest}
       className={['opale-pagination', className].filter(Boolean).join(' ')}
     >
@@ -91,7 +116,7 @@ export function Pagination({
         type="button"
         disabled={disabled || current <= 1}
         onClick={() => choose(current - 1)}
-        aria-label="Page précédente"
+        aria-label={labels.previous}
       >
         ‹
       </button>
@@ -115,7 +140,7 @@ export function Pagination({
                 ? 'true'
                 : undefined
             }
-            aria-label={`Page ${number}`}
+            aria-label={labels.page(number)}
             onClick={() => choose(number)}
           >
             {number}
@@ -126,7 +151,7 @@ export function Pagination({
         type="button"
         disabled={disabled || total === 0 || current >= total}
         onClick={() => choose(current + 1)}
-        aria-label="Page suivante"
+        aria-label={labels.next}
       >
         ›
       </button>
