@@ -59,7 +59,6 @@ function LiquidGlassFilter() {
 }
 
 const USAGE = `import { Button, Card } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 <Card liquidGlass title="Verre liquide" />
 <Button liquidGlass>Continuer</Button>`;

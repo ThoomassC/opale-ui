@@ -281,9 +281,9 @@ const V350_RELEASE_MIGRATION = {
   steps: [
     {
       title: 'Donner le dessin à la carte',
-      before: '<Opale.SvgMap>\n  <path d="…" />\n</Opale.SvgMap>',
+      before: '<SvgMap>\n  <path d="…" />\n</SvgMap>',
       after:
-        '<Opale.SvgMap\n  viewBox="0 0 613 585"\n  regions={[{ id: "75", path: "…", name: "Paris" }]}\n/>',
+        '<SvgMap\n  viewBox="0 0 613 585"\n  regions={[{ id: "75", path: "…", name: "Paris" }]}\n/>',
     },
   ],
 } as const;
@@ -558,18 +558,18 @@ const V320_RELEASE_MIGRATION = {
   steps: [
     {
       title: 'Activer le verre sur le composant',
-      before: '<Glass><Opale.Card>Contenu</Opale.Card></Glass>',
-      after: '<Opale.Card liquidGlass>Contenu</Opale.Card>',
+      before: '<Glass><Card>Contenu</Card></Glass>',
+      after: '<Card liquidGlass>Contenu</Card>',
     },
     {
       title: 'Nommer l’icône d’action',
-      before: '<Opale.IconActionButton label="Partager" />',
-      after: '<Opale.IconActionButton icon="share" label="Partager" />',
+      before: '<IconActionButton label="Partager" />',
+      after: '<IconActionButton icon="share" label="Partager" />',
     },
     {
       title: 'Décrire l’image de la visionneuse',
-      before: '<Opale.Lightbox src="/visuel.png" open />',
-      after: '<Opale.Lightbox src="/visuel.png" alt="Aperçu du composant" open />',
+      before: '<Lightbox src="/visuel.png" open />',
+      after: '<Lightbox src="/visuel.png" alt="Aperçu du composant" open />',
     },
   ],
 } as const;

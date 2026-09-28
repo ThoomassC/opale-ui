@@ -6,7 +6,6 @@ import { ComponentPageLayout } from '../component-page';
 import { MaterialSwitch } from './material-switch';
 
 const USAGE = `import { SiteNav } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 <SiteNav
   items={[

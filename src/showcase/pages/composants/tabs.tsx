@@ -7,7 +7,6 @@ import { TabsControlledScene } from './scenes';
 import { MaterialSwitch, PlainStage } from './material-switch';
 
 const USAGE = `import { Tabs } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 // Non contrôlé : \`defaultValue\`, et l'état vit dans le composant.
 <Tabs defaultValue="etapes">

@@ -149,7 +149,6 @@ prévoyez cette route ou fournissez `searchAction` / `onSearch`.
 
 ```tsx
 import { Card, PageScaffold } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 <PageScaffold
   siteName="Atelier"

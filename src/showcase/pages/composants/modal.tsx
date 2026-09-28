@@ -7,7 +7,6 @@ import { MaterialSwitch, PlainStage } from './material-switch';
 import { StageGroundNote } from './stage';
 
 const USAGE = `import { Button, Modal } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 const [open, setOpen] = useState(false);
 

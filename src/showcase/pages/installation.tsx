@@ -81,6 +81,27 @@ export const installationPage: DocPage = {
         <span className="tc-doc-release__status">{currentDeploymentLabel()}</span>
       </p>
 
+      <Specimen title="Une seule convention d’import">
+        <ul className="tc-doc-checklist">
+          <li>
+            Les composants, leurs types et leurs crochets s’importent <strong>par leur nom</strong>{' '}
+            depuis <code>@thomascaron/opale-ui</code> :{' '}
+            <code>
+              import {'{'} Button, Modal {'}'} from '@thomascaron/opale-ui';
+            </code>
+          </li>
+          <li>
+            La feuille <code>@thomascaron/opale-ui/opale.css</code> s’importe{' '}
+            <strong>une seule fois</strong>, à la racine de l’application (étape 3). Les exemples
+            des autres pages la supposent chargée et ne la répètent pas.
+          </li>
+          <li>
+            Les exemples de la documentation suivent tous cette convention : un nom importé, une
+            balise du même nom.
+          </li>
+        </ul>
+      </Specimen>
+
       <Specimen title="1. Prérequis">
         <ul className="tc-doc-checklist">
           <li>
@@ -139,7 +160,7 @@ export const installationPage: DocPage = {
 
       <Specimen
         title="5. Afficher un premier composant"
-        note="Chaque composant s’importe par son nom (Button). L’espace de noms Opale (Opale.Button) désigne le même composant ; l’export nommé est la forme recommandée."
+        note="Le composant s’importe par son nom, la feuille est déjà chargée à la racine."
       >
         <UsageBlock label="Premier composant Opale" code={FIRST_COMPONENT} defaultOpen />
         <ul className="tc-doc-checklist">

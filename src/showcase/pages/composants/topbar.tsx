@@ -6,7 +6,6 @@ import { ComponentPageLayout } from '../component-page';
 import { MaterialSwitch, PlainStage } from './material-switch';
 
 const USAGE = `import { Badge, Button, Topbar } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 <Topbar size="medium">
   <Topbar.Brand icon={<Logo />} title="Voyages" subtitle="12 étapes" />

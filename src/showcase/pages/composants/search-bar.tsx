@@ -6,7 +6,6 @@ import { ComponentPageLayout } from '../component-page';
 import { MaterialSwitch, PlainStage } from './material-switch';
 
 const USAGE = `import { SearchBar } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 <SearchBar placeholder="Un voyage, un lieu, un pays…" />`;
 

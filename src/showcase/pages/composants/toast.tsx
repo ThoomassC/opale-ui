@@ -7,7 +7,6 @@ import { ToastPositionScene, ToastVariantScene } from './scenes';
 import { StageGroundNote } from './stage';
 
 const USAGE = `import { Button, ToastProvider, useToast } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 // 1. Le fournisseur, AUTOUR de l'arbre qui déclenchera les toasts.
 <ToastProvider position="bottom-right" duration={4000}>

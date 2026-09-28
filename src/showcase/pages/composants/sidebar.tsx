@@ -8,7 +8,6 @@ import { SidebarCollapsibleScene } from './scenes';
 import { MaterialSwitch } from './material-switch';
 
 const USAGE = `import { Badge, Sidebar } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 // \`collapsible\` est OBLIGATOIRE pour que Sidebar.Toggle rende quoi que ce soit.
 <Sidebar collapsible defaultValue="etapes">

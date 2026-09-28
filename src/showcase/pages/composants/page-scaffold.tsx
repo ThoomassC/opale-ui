@@ -7,7 +7,6 @@ import { ComponentPageLayout } from '../component-page';
 import { MaterialSwitch } from './material-switch';
 
 const USAGE = `import { Card, PageScaffold } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 const navigation = [
   { id: 'home', href: '/', label: 'Accueil' },

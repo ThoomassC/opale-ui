@@ -15,7 +15,6 @@ const WorldMap = lazy(() => import('./world-map'));
 import { CORSE, FRANCE_DEPARTMENTS, FRANCE_VIEWBOX, ILE_DE_FRANCE } from './france-departments';
 
 const USAGE = `import { SvgMap, SvgMapControls, useSvgMapViewport } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 // Le dessin vient de l'application : un viewBox et des régions.
 <SvgMap
