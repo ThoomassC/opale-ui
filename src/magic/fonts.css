@@ -1,0 +1,31 @@
+/* =============================================================================
+   LES POLICES D'OPALE, LIVRÉES À PART.
+
+   Elles vivaient en tête d'`opale.css`, et le build de la librairie incorpore
+   tout ce que cette feuille référence : les deux woff2 partaient en base64
+   dans la feuille bloquante — ~110 kB gzip de plus sur le chemin critique — et
+   `font-display: swap` n'y servait plus à rien, la police arrivant avec le CSS.
+
+   Ici, elles restent des fichiers : le bundler de l'application les résout à
+   côté de cette feuille, et le navigateur les charge et les met en cache
+   comme n'importe quelle ressource. À importer une fois, avec `opale.css` :
+
+     import '@thomascaron/opale-ui/fonts.css';
+     import '@thomascaron/opale-ui/opale.css';
+
+   Licences : OFL, voir `fonts/OFL-*.txt`.
+   ========================================================================== */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('./fonts/bricolage-grotesque-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Chivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/chivo-latin.woff2') format('woff2');
+}

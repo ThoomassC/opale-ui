@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ruleBody } from '../test/css-rules';
 import opaleSource from '../magic/opale.css?raw';
+import fontsSource from '../magic/fonts.css?raw';
 import searchBarSource from '../magic/components/search-bar/style/SearchBar.module.scss?raw';
 import docSource from './doc-v3.css?raw';
 import tokensSource from '../tokens/tokens.css?raw';
@@ -129,10 +130,16 @@ describe('la forme interactive OpaleUI', () => {
     const root = ruleBody(opaleSource, ':root') ?? '';
 
     expect(imports).toHaveLength(0);
-    expect(opaleSource).toMatch(
+    /* LES POLICES VIVENT DANS `fonts.css`, PAS DANS `opale.css`. Le build de la
+       librairie incorpore tout ce qu'`opale.css` référence : les deux woff2
+       partaient en base64 dans la feuille bloquante (~110 kB gzip) et
+       `font-display: swap` n'y servait plus à rien. Livrées à part, elles se
+       chargent et se mettent en cache comme des fichiers. */
+    expect(opaleSource).not.toMatch(/@font-face/);
+    expect(fontsSource).toMatch(
       /font-family: 'Bricolage Grotesque'[\s\S]*?fonts\/bricolage-grotesque-latin\.woff2/,
     );
-    expect(opaleSource).toMatch(/font-family: 'Chivo'[\s\S]*?fonts\/chivo-latin\.woff2/);
+    expect(fontsSource).toMatch(/font-family: 'Chivo'[\s\S]*?fonts\/chivo-latin\.woff2/);
     expect(root).toMatch(/--opale-font-title:\s*'Bricolage Grotesque'/);
     /* `--opale-font-display` NE BOUGE PAS : il habille le titre du rail, les
        titres de plaques, la métrique, le donut et le compte à rebours, qui

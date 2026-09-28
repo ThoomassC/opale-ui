@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+/* =============================================================================
+   CE QUE LE BUILD LIVRE, VÉRIFIÉ SUR LE BUILD LUI-MÊME.
+
+   Trois défauts de livraison ne se voient ni aux tests ni au typecheck, parce
+   qu'ils n'existent que dans `dist/` :
+   - la directive "use client" retirée par le regroupement (Next.js casse) ;
+   - des imports relatifs sans extension dans les `.d.ts` (nodenext casse) ;
+   - des polices incorporées en base64 dans la feuille bloquante.
+   À lancer après `npm run build:lib`.
+   ========================================================================== */
+
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import process from 'node:process';
+
+const failures = [];
+const check = (ok, message) => {
+  if (!ok) failures.push(message);
+};
+
+const bundle = readFileSync('dist/magic/index.js', 'utf8');
+check(
+  /^\s*["']use client["'];/.test(bundle),
+  'dist/magic/index.js ne commence pas par "use client";',
+);
+
+const css = readFileSync('dist/magic/magic.css', 'utf8');
+check(!css.includes('data:font/'), 'dist/magic/magic.css contient encore des polices en base64.');
+check(existsSync('dist/magic/fonts.css'), 'dist/magic/fonts.css est absent.');
+for (const font of ['bricolage-grotesque-latin.woff2', 'chivo-latin.woff2']) {
+  check(existsSync(join('dist/magic/fonts', font)), `dist/magic/fonts/${font} est absent.`);
+}
+
+const declarations = (directory) =>
+  readdirSync(directory).flatMap((name) => {
+    const path = join(directory, name);
+    if (statSync(path).isDirectory()) return declarations(path);
+    return name.endsWith('.d.ts') ? [path] : [];
+  });
+
+const BARE_RELATIVE = /\bfrom\s+['"](\.{1,2}\/[^'"]*?)(?<!\.js|\.css|\.scss)['"]/g;
+for (const file of [...declarations('dist/magic'), ...declarations('dist/contract')]) {
+  for (const [, specifier] of readFileSync(file, 'utf8').matchAll(BARE_RELATIVE)) {
+    failures.push(`${file} : import relatif sans extension « ${specifier} ».`);
+  }
+}
+
+if (failures.length > 0) {
+  console.error(`\n✗ dist/ n'est pas livrable :\n  - ${failures.join('\n  - ')}\n`);
+  process.exit(1);
+}
+console.log('✓ dist/ livrable : "use client", déclarations nodenext, polices à part.');

@@ -36,5 +36,11 @@ jobs:
       - name: Build de la librairie
         run: npm run build:lib
 
+      # Ce que le build livre : "use client" en tête du bundle, déclarations
+      # lisibles en nodenext, polices hors de la feuille bloquante. Rien de
+      # cela n'existe avant `dist/`, donc aucun test ne le voit.
+      - name: Contrôle de ce qui est livré
+        run: npm run check:dist
+
       - name: Build de la charte
         run: npm run build
