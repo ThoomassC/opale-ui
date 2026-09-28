@@ -1,9 +1,9 @@
-import { useId, type CSSProperties } from 'react';
+import { useId, type ComponentPropsWithRef } from 'react';
 
 import { IconGlyph } from './components/icon';
 import { useControllableState } from './shared/use-controllable-state';
 
-export interface SkeletonProps {
+export interface SkeletonProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   width?: string | number;
   height?: string | number;
   rounded?: boolean;
@@ -16,19 +16,27 @@ export function Skeleton({
   height = '1rem',
   rounded = false,
   className,
+  style,
+  ...rest
 }: SkeletonProps) {
+  /* `aria-hidden` est le contrat : il passe après les attributs de l'appelant.
+     Le `style` de l'appelant, lui, l'emporte sur `width` et `height`. */
   return (
     <span
+      {...rest}
       aria-hidden="true"
       className={['opale-skeleton', rounded && 'opale-skeleton--rounded', className]
         .filter(Boolean)
         .join(' ')}
-      style={{ width, height } as CSSProperties}
+      style={{ width, height, ...style }}
     />
   );
 }
 
-export interface PaginationProps {
+export interface PaginationProps extends Omit<
+  ComponentPropsWithRef<'nav'>,
+  'onChange' | 'defaultValue' | 'children'
+> {
   pageCount: number;
   /** La page courante, à partir de 1. Présente, l'appelant tient la page. */
   value?: number;
@@ -54,6 +62,8 @@ export function Pagination({
   onChange,
   disabled = false,
   label = 'Pagination',
+  className,
+  ...rest
 }: PaginationProps) {
   const [requested, setRequested] = useControllableState<number>(
     value ?? page,
@@ -72,7 +82,11 @@ export function Pagination({
     .filter((number) => number >= 1 && number <= total)
     .sort((a, b) => a - b);
   return (
-    <nav className="opale-pagination" aria-label={label}>
+    <nav
+      aria-label={label}
+      {...rest}
+      className={['opale-pagination', className].filter(Boolean).join(' ')}
+    >
       <button
         type="button"
         disabled={disabled || current <= 1}
@@ -120,7 +134,11 @@ export function Pagination({
   );
 }
 
-export interface RatingInputProps {
+/** Les props de `RatingInput`. `ref` et les attributs vont au `<fieldset>` ; `name` reste aux radios. */
+export interface RatingInputProps extends Omit<
+  ComponentPropsWithRef<'fieldset'>,
+  'onChange' | 'defaultValue' | 'children' | 'name'
+> {
   label: string;
   value?: number;
   defaultValue?: number;
@@ -143,12 +161,18 @@ export function RatingInput({
   onChange,
   disabled = false,
   name,
+  className,
+  ...rest
 }: RatingInputProps) {
   const [selected, setSelected] = useControllableState<number>(value, defaultValue, onValueChange);
   const generatedName = useId();
   const total = Math.max(1, Math.min(10, Math.floor(max)));
   return (
-    <fieldset className="opale-rating-input" disabled={disabled}>
+    <fieldset
+      {...rest}
+      className={['opale-rating-input', className].filter(Boolean).join(' ')}
+      disabled={disabled}
+    >
       <legend>{label}</legend>
       <div className="opale-rating-input__options">
         {Array.from({ length: total }, (_, index) => index + 1).map((number) => (

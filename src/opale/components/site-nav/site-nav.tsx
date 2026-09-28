@@ -1,6 +1,6 @@
 'use client';
 
-import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from 'react';
+import type { ComponentPropsWithRef, MouseEvent, ReactNode } from 'react';
 import { NavBubble } from './nav-bubble';
 import Glass from '../glass/Glass';
 
@@ -26,7 +26,7 @@ export const DEFAULT_SITE_NAV_ITEMS: readonly SiteNavItem[] = [
   { id: 'about', href: '/about', label: 'À propos' },
 ];
 
-export type SiteNavProps = Omit<ComponentPropsWithoutRef<'header'>, 'children'> & {
+export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
   /** Optional brand lock-up supplied by the consuming application. */
   readonly brand?: ReactNode;
   /**

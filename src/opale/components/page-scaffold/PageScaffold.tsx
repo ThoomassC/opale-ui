@@ -3,7 +3,7 @@ import {
   useId,
   useRef,
   useState,
-  type ComponentPropsWithoutRef,
+  type ComponentPropsWithRef,
   type FormEvent,
   type MouseEvent,
   type ReactNode,
@@ -54,7 +54,7 @@ export interface PageScaffoldSlots {
   readonly footerExtra?: ReactNode;
 }
 
-export interface PageScaffoldProps extends Omit<ComponentPropsWithoutRef<'div'>, 'title'> {
+export interface PageScaffoldProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** Nom repris dans la marque, le titre initial et le copyright. */
   siteName?: string;
   homeHref?: string;
@@ -482,9 +482,9 @@ export function PageScaffold({
   return (
     <div
       className={clsx(styles.root, className)}
-      data-opale-page-theme={activeTheme}
       lang={activeLanguage}
       {...rootProps}
+      data-opale-page-theme={activeTheme}
     >
       {header}
       <Main

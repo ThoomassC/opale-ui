@@ -1,5 +1,4 @@
 import {
-  forwardRef,
   useCallback,
   useEffect,
   useId,
@@ -8,18 +7,16 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
-  type AnchorHTMLAttributes,
-  type ButtonHTMLAttributes,
   type ChangeEvent,
+  type ComponentPropsWithRef,
   type CSSProperties,
   type DragEvent,
   type FocusEvent,
-  type FormHTMLAttributes,
   type HTMLAttributes,
-  type InputHTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
-  type SelectHTMLAttributes,
+  type Ref,
+  type RefCallback,
 } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -52,6 +49,7 @@ import { parseViewBox as parseSvgViewBox } from './components/svg-map/viewport';
 import toastMotion from './components/toast/style/Toast.module.css';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
 import type { OpalePlacement, OpaleSize, OpaleTone } from './shared';
+import { mergeRefs } from './shared/merge-refs';
 import { useControllableState } from './shared/use-controllable-state';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
@@ -155,7 +153,7 @@ function FieldShell({
   );
 }
 
-interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
+interface SurfaceProps extends ComponentPropsWithRef<'div'> {
   liquidGlass?: boolean;
 }
 
@@ -186,7 +184,7 @@ function Surface({ liquidGlass = false, className, children, ...props }: Surface
   );
 }
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ComponentPropsWithRef<'button'> {
   variant?: ButtonVariant;
   size?: OpaleSize;
   loading?: boolean;
@@ -234,96 +232,90 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
    mal. `opale.tsx` cesse par ailleurs d'être une feuille autonome : c'est le
    prix d'un composant unique, et il est moins cher que le doublon.
    ========================================================================== */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = 'primary',
-      size = 'medium',
-      loading = false,
-      startIcon,
-      endIcon,
-      fullWidth = false,
-      liquidGlass = false,
-      className,
-      children,
-      disabled,
-      type = 'button',
-      ...props
-    },
-    ref,
-  ) => {
-    /* LE MÊME CONTENU DANS LES DEUX ÉTATS, et c'est ce qui garantit que le
-       commutateur ne change QUE la matière. Une version précédente déléguait à
-       un composant tiers qui n'avait ni `loading`, ni `startIcon`, ni
-       `endIcon`, ni `fullWidth` : ces quatre props étaient silencieusement
-       ignorées sous verre. Elles fonctionnent maintenant des deux côtés,
-       puisqu'il n'y a plus qu'un seul balisage. */
-    const content = (
-      <>
-        {/* L'ICÔNE EST DÉCORATIVE, ET ELLE DOIT LE DIRE. Rendue nue, la
-            glyphe entrait dans le nom du bouton : « × Supprimer », « ✎
-            Modifier », « ✓ Approuver ». La commande vocale ne retrouvait plus
-            « Supprimer », et le lecteur d'écran lisait un caractère avant
-            chaque libellé (WCAG 2.5.3). Un bouton SANS texte, lui, passe par
-            `aria-label` — voir `IconActionButton`. */}
-        {loading ? (
-          <span className="opale-spinner" aria-hidden="true" />
-        ) : (
-          startIcon && <span aria-hidden="true">{startIcon}</span>
-        )}
-        <span>{children}</span>
-        {!loading && endIcon}
-      </>
-    );
+export function Button({
+  variant = 'primary',
+  size = 'medium',
+  loading = false,
+  startIcon,
+  endIcon,
+  fullWidth = false,
+  liquidGlass = false,
+  className,
+  children,
+  disabled,
+  type = 'button',
+  ref,
+  ...props
+}: ButtonProps) {
+  /* LE MÊME CONTENU DANS LES DEUX ÉTATS, et c'est ce qui garantit que le
+     commutateur ne change QUE la matière. Une version précédente déléguait à
+     un composant tiers qui n'avait ni `loading`, ni `startIcon`, ni
+     `endIcon`, ni `fullWidth` : ces quatre props étaient silencieusement
+     ignorées sous verre. Elles fonctionnent maintenant des deux côtés,
+     puisqu'il n'y a plus qu'un seul balisage. */
+  const content = (
+    <>
+      {/* L'ICÔNE EST DÉCORATIVE, ET ELLE DOIT LE DIRE. Rendue nue, la
+          glyphe entrait dans le nom du bouton : « × Supprimer », « ✎
+          Modifier », « ✓ Approuver ». La commande vocale ne retrouvait plus
+          « Supprimer », et le lecteur d'écran lisait un caractère avant
+          chaque libellé (WCAG 2.5.3). Un bouton SANS texte, lui, passe par
+          `aria-label` — voir `IconActionButton`. */}
+      {loading ? (
+        <span className="opale-spinner" aria-hidden="true" />
+      ) : (
+        startIcon && <span aria-hidden="true">{startIcon}</span>
+      )}
+      <span>{children}</span>
+      {!loading && endIcon}
+    </>
+  );
 
-    const classes = cx(
-      'opale-button',
-      `opale-button--${variant}`,
-      size !== 'medium' && `opale-button--${size}`,
-      fullWidth && 'opale-button--full',
-      liquidGlass && 'opale-button--glass',
-      className,
-    );
+  const classes = cx(
+    'opale-button',
+    `opale-button--${variant}`,
+    size !== 'medium' && `opale-button--${size}`,
+    fullWidth && 'opale-button--full',
+    liquidGlass && 'opale-button--glass',
+    className,
+  );
 
-    /* LE DÉCOUPAGE EN SQUIRCLE APPARTIENT À L'ENVELOPPE, pas au contenu. Les
-       trois couches du verre vivent DERRIÈRE le bouton, dans le conteneur : ne
-       découper que le contenu laissait la réfraction et le filet spéculaire
-       dépasser en rectangle tout autour de la silhouette. */
-    if (liquidGlass) {
-      return (
-        <Glass
-          as="button"
-          ref={ref}
-          className={classes}
-          rootClassName={cx('opale-button--glass-root', fullWidth && 'opale-button--full')}
-          enableLiquidAnimation
-          disabled={disabled || loading}
-          type={type}
-          {...props}
-        >
-          {content}
-        </Glass>
-      );
-    }
-
+  /* LE DÉCOUPAGE EN SQUIRCLE APPARTIENT À L'ENVELOPPE, pas au contenu. Les
+     trois couches du verre vivent DERRIÈRE le bouton, dans le conteneur : ne
+     découper que le contenu laissait la réfraction et le filet spéculaire
+     dépasser en rectangle tout autour de la silhouette. */
+  if (liquidGlass) {
     return (
-      <button ref={ref} className={classes} disabled={disabled || loading} type={type} {...props}>
+      <Glass
+        as="button"
+        ref={ref}
+        className={classes}
+        rootClassName={cx('opale-button--glass-root', fullWidth && 'opale-button--full')}
+        enableLiquidAnimation
+        disabled={disabled || loading}
+        type={type}
+        {...props}
+      >
         {content}
-      </button>
+      </Glass>
     );
-  },
-);
-Button.displayName = 'Button';
+  }
+
+  return (
+    <button ref={ref} className={classes} disabled={disabled || loading} type={type} {...props}>
+      {content}
+    </button>
+  );
+}
 
 /** Les props de `Pressable` : celles de `Button`, dont la variante `text` est le défaut. */
 export type PressableProps = ButtonProps;
 
-export const Pressable = forwardRef<HTMLButtonElement, PressableProps>((props, ref) => (
-  <Button ref={ref} variant="text" {...props} />
-));
-Pressable.displayName = 'Pressable';
+export function Pressable(props: PressableProps) {
+  return <Button variant="text" {...props} />;
+}
 
-export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+export interface CardProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   title?: ReactNode;
   subtitle?: ReactNode;
   actions?: ReactNode;
@@ -390,7 +382,7 @@ export function Card({
   );
 }
 
-export type CardGridProps = HTMLAttributes<HTMLDivElement>;
+export type CardGridProps = ComponentPropsWithRef<'div'>;
 
 export function CardGrid({ className, children, ...props }: CardGridProps) {
   return (
@@ -400,7 +392,7 @@ export function CardGrid({ className, children, ...props }: CardGridProps) {
   );
 }
 
-export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'> {
   label?: ReactNode;
   helperText?: ReactNode;
   error?: ReactNode;
@@ -411,90 +403,97 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
 /** @deprecated Depuis 3.6 — utilisez `InputProps`. */
 export type FieldProps = InputProps;
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, helperText, error, icon, liquidGlass = false, className, id, ...props }, ref) => {
-    const generatedId = useId();
-    const inputId = id ?? generatedId;
-    const messageId = `${inputId}-message`;
-    const message = error || helperText;
+export function Input({
+  label,
+  helperText,
+  error,
+  icon,
+  liquidGlass = false,
+  className,
+  id,
+  ref,
+  ...props
+}: InputProps) {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const messageId = `${inputId}-message`;
+  const message = error || helperText;
 
-    /* LE MESSAGE SORT DU `<label>`, ET C'EST TOUT L'OBJET DE CE REMANIEMENT.
+  /* LE MESSAGE SORT DU `<label>`, ET C'EST TOUT L'OBJET DE CE REMANIEMENT.
 
-       L'ensemble du champ était enveloppé dans un `<label>` : le texte d'aide
-       et le message d'erreur se retrouvaient donc DANS le nom accessible.
-       « E-mail » devenait « E-mail Adresse invalide » — ce qui casse la
-       commande vocale, qui ne retrouve plus « E-mail », et noie l'erreur dans
-       l'étiquette au lieu d'en faire une description.
+     L'ensemble du champ était enveloppé dans un `<label>` : le texte d'aide
+     et le message d'erreur se retrouvaient donc DANS le nom accessible.
+     « E-mail » devenait « E-mail Adresse invalide » — ce qui casse la
+     commande vocale, qui ne retrouve plus « E-mail », et noie l'erreur dans
+     l'étiquette au lieu d'en faire une description.
 
-       Pire : rien ne l'ANNONÇAIT. Ni `aria-describedby`, ni `aria-invalid`,
-       ni région live. On validait, le message apparaissait, et il ne se
-       passait rien d'audible (WCAG 4.1.3 et 3.3.1).
+     Pire : rien ne l'ANNONÇAIT. Ni `aria-describedby`, ni `aria-invalid`,
+     ni région live. On validait, le message apparaissait, et il ne se
+     passait rien d'audible (WCAG 4.1.3 et 3.3.1).
 
-       Le libellé redevient donc un `<label htmlFor>` — le clic dessus focalise
-       toujours le champ —, et le message devient une description annoncée. */
-    return (
-      <div className={cx('opale-field', className)}>
-        {label && (
-          <label className="opale-field__label" htmlFor={inputId}>
-            {label}
-          </label>
-        )}
-        {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
+     Le libellé redevient donc un `<label htmlFor>` — le clic dessus focalise
+     toujours le champ —, et le message devient une description annoncée. */
+  return (
+    <div className={cx('opale-field', className)}>
+      {label && (
+        <label className="opale-field__label" htmlFor={inputId}>
+          {label}
+        </label>
+      )}
+      {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
 
-            Ce qui porte du TEXTE reste hors du verre — le libellé, le texte
-            d'aide, le message d'erreur, et l'association `htmlFor`/`id` qui les
-            relie. Seule la BOÎTE du champ devient du verre.
+          Ce qui porte du TEXTE reste hors du verre — le libellé, le texte
+          d'aide, le message d'erreur, et l'association `htmlFor`/`id` qui les
+          relie. Seule la BOÎTE du champ devient du verre.
 
-            `icon` FONCTIONNE MAINTENANT SOUS VERRE. Le champ tiers n'avait
-            aucun emplacement où la poser, donc la prop était silencieusement
-            ignorée dès qu'on basculait le commutateur. La coquille étant
-            désormais la nôtre, l'icône y reste. */}
-        {props.type === 'search' ? (
-          <SearchBar
-            {...props}
+          `icon` FONCTIONNE MAINTENANT SOUS VERRE. Le champ tiers n'avait
+          aucun emplacement où la poser, donc la prop était silencieusement
+          ignorée dès qu'on basculait le commutateur. La coquille étant
+          désormais la nôtre, l'icône y reste. */}
+      {props.type === 'search' ? (
+        <SearchBar
+          {...props}
+          ref={ref}
+          id={inputId}
+          icon={icon}
+          liquidGlass={liquidGlass}
+          aria-invalid={error ? true : props['aria-invalid']}
+          aria-describedby={message ? messageId : props['aria-describedby']}
+        />
+      ) : (
+        <FieldShell
+          liquidGlass={liquidGlass}
+          className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
+          rootClassName="opale-input--glass-root"
+        >
+          {icon}
+          <input
             ref={ref}
             id={inputId}
-            icon={icon}
-            liquidGlass={liquidGlass}
-            aria-invalid={error ? true : props['aria-invalid']}
-            aria-describedby={message ? messageId : props['aria-describedby']}
+            className="opale-input"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={message ? messageId : undefined}
+            {...props}
           />
-        ) : (
-          <FieldShell
-            liquidGlass={liquidGlass}
-            className={cx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
-            rootClassName="opale-input--glass-root"
-          >
-            {icon}
-            <input
-              ref={ref}
-              id={inputId}
-              className="opale-input"
-              aria-invalid={error ? true : undefined}
-              aria-describedby={message ? messageId : undefined}
-              {...props}
-            />
-          </FieldShell>
-        )}
-        {message && (
-          <span
-            id={messageId}
-            /* `role="alert"` SUR LA SEULE ERREUR. Un texte d'aide est là dès
-               le départ : l'annoncer d'autorité couperait la parole au reste
-               de la page pour redire ce que la description dit déjà. */
-            role={error ? 'alert' : undefined}
-            className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
-          >
-            {message}
-          </span>
-        )}
-      </div>
-    );
-  },
-);
-Input.displayName = 'Input';
+        </FieldShell>
+      )}
+      {message && (
+        <span
+          id={messageId}
+          /* `role="alert"` SUR LA SEULE ERREUR. Un texte d'aide est là dès
+             le départ : l'annoncer d'autorité couperait la parole au reste
+             de la page pour redire ce que la description dit déjà. */
+          role={error ? 'alert' : undefined}
+          className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
+        >
+          {message}
+        </span>
+      )}
+    </div>
+  );
+}
 
-export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   description?: ReactNode;
   liquidGlass?: boolean;
@@ -560,7 +559,7 @@ export function Checkbox({
   );
 }
 
-export interface ToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   liquidGlass?: boolean;
 }
@@ -585,7 +584,7 @@ export function Toggle({ label, liquidGlass = false, className, onChange, ...pro
   );
 }
 
-export interface SliderProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface SliderProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   valueLabel?: ReactNode;
   liquidGlass?: boolean;
@@ -627,6 +626,7 @@ export function Slider({
   liquidGlass = false,
   className,
   onChange,
+  ref,
   ...props
 }: SliderProps) {
   const generatedSliderId = useId();
@@ -654,6 +654,12 @@ export function Slider({
      composant à chaque pixel d'un glissement, et — surtout — évite de rendre
      contrôlé un curseur que l'appelant avait laissé libre. */
   const inputRef = useRef<HTMLInputElement>(null);
+  /* La ref de l'appelant reçoit le même natif : un formulaire l'enregistre
+     sans priver le curseur de celle qui pose sa progression. */
+  const controlRef = useCallback(
+    (node: HTMLInputElement | null) => mergeRefs(inputRef, ref)(node),
+    [ref],
+  );
   const previous = useRef<number | null>(null);
   const relax = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -713,7 +719,7 @@ export function Slider({
      branches de diverger sans qu'on le voie. */
   const control = (
     <input
-      ref={inputRef}
+      ref={controlRef}
       id={sliderId}
       type="range"
       className="opale-range"
@@ -777,7 +783,7 @@ export function Slider({
   );
 }
 
-export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends ComponentPropsWithRef<'select'> {
   label?: ReactNode;
   helperText?: ReactNode;
   options?: readonly SelectOption[];
@@ -922,12 +928,19 @@ export function MultiSelect({
   id,
   onChange,
   defaultValue,
+  ref,
   ...props
 }: MultiSelectProps) {
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
   const selectRef = useRef<HTMLSelectElement>(null);
+  /* La ref de l'appelant désigne le `<select>` porteur de valeur, comme pour
+     un champ natif ; la liste visible garde la sienne pour les bascules. */
+  const nativeRef = useCallback(
+    (node: HTMLSelectElement | null) => mergeRefs(selectRef, ref)(node),
+    [ref],
+  );
   /* LE MODE NON CONTRÔLÉ TIENT SA PROPRE SÉLECTION. Sans `value`, la liste
      visible lisait un ensemble vide recréé à chaque rendu : le clic cochait
      l'option du `<select>` caché, mais ni la coche ni `aria-selected` ne
@@ -999,7 +1012,7 @@ export function MultiSelect({
       )}
 
       <select
-        ref={selectRef}
+        ref={nativeRef}
         id={fieldId}
         className="opale-visually-hidden"
         multiple
@@ -1199,7 +1212,10 @@ export function InlineInput({
   return <Input {...props} onFocus={handleFocus} onBlur={handleBlur} onKeyDown={handleKeyDown} />;
 }
 
-export interface SegmentedControlProps {
+export interface SegmentedControlProps extends Omit<
+  ComponentPropsWithRef<'div'>,
+  'onChange' | 'defaultValue' | 'children'
+> {
   options: readonly SelectOption[];
   /** L'option pressée. Présente, l'appelant la tient ; `null` : aucune. */
   value?: string | null;
@@ -1241,9 +1257,16 @@ export function SegmentedControl({
   onChange,
   className,
   liquidGlass = false,
+  ref,
+  ...rest
 }: SegmentedControlProps) {
   const [value, setValue] = useControllableState<string | null>(valueProp, defaultValue);
   const groupRef = useRef<HTMLDivElement>(null);
+  /* Le groupe mesuré est aussi celui que reçoit l'appelant. */
+  const trackRef = useCallback(
+    (node: HTMLDivElement | null) => mergeRefs(groupRef, ref)(node),
+    [ref],
+  );
   const indicatorRef = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
@@ -1308,8 +1331,9 @@ export function SegmentedControl({
 
   return (
     <Track
+      {...rest}
       {...trackProps}
-      ref={groupRef}
+      ref={trackRef}
       className={cx('opale-segmented', liquidGlass && 'opale-segmented--glass', className)}
       role="group"
     >
@@ -1333,7 +1357,7 @@ export function SegmentedControl({
   );
 }
 
-export type FormProps = FormHTMLAttributes<HTMLFormElement>;
+export type FormProps = ComponentPropsWithRef<'form'>;
 
 export function Form({ className, ...props }: FormProps) {
   return <form className={cx('opale-stack', 'opale-stack--column', className)} {...props} />;
@@ -1369,7 +1393,7 @@ export function IconActionButton({
 /** L'emphase de marque d'une pastille. */
 export type BadgeTone = 'primary' | 'accent' | 'danger';
 
-export interface BadgeProps {
+export interface BadgeProps extends ComponentPropsWithRef<'span'> {
   tone?: BadgeTone;
   /** Un point de notification : le texte est masqué à l'œil, lu à l'oreille. */
   dot?: boolean;
@@ -1384,6 +1408,7 @@ export function Badge({
   liquidGlass = false,
   children,
   className,
+  ...rest
 }: BadgeProps) {
   /* LE BADGE EST LE MÊME DES DEUX CÔTÉS. La pastille tierce forçait ses
      libellés en CAPITALES, imposait sa propre graisse et ignorait le ton
@@ -1406,43 +1431,55 @@ export function Badge({
 
   if (liquidGlass) {
     return (
-      <Glass as="span" className={classes} rootClassName="opale-badge--glass-root">
+      <Glass {...rest} as="span" className={classes} rootClassName="opale-badge--glass-root">
         {content}
       </Glass>
     );
   }
 
-  return <span className={classes}>{content}</span>;
+  return (
+    <span {...rest} className={classes}>
+      {content}
+    </span>
+  );
 }
 
 /** Le niveau HTML d'un titre, qui fixe sa place dans le plan de la page. */
 export type HeadingLevel = 1 | 2 | 3 | 4;
 
-export interface HeadingProps {
+export interface HeadingProps extends ComponentPropsWithRef<'h2'> {
   level?: HeadingLevel;
   children: ReactNode;
   className?: string;
 }
 
-export function Heading({ level = 2, children, className }: HeadingProps) {
+export function Heading({ level = 2, children, className, ...rest }: HeadingProps) {
   const Heading = `h${level}` as 'h1';
-  return <Heading className={cx('opale-heading', className)}>{children}</Heading>;
+  return (
+    <Heading {...rest} className={cx('opale-heading', className)}>
+      {children}
+    </Heading>
+  );
 }
 
 /** Le rôle typographique d'un texte. */
 export type TextVariant = 'body' | 'label' | 'caption' | 'metric';
 
-export interface TextProps {
+export interface TextProps extends ComponentPropsWithRef<'p'> {
   variant?: TextVariant;
   children: ReactNode;
   className?: string;
 }
 
-export function Text({ variant = 'body', children, className }: TextProps) {
-  return <p className={cx('opale-text', `opale-text--${variant}`, className)}>{children}</p>;
+export function Text({ variant = 'body', children, className, ...rest }: TextProps) {
+  return (
+    <p {...rest} className={cx('opale-text', `opale-text--${variant}`, className)}>
+      {children}
+    </p>
+  );
 }
 
-export interface IconProps {
+export interface IconProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   /**
    * Le nom d'une icône du jeu d'Opale — voir `ICON_NAMES` et la page « Icônes »
    * — ou n'importe quel nœud à rendre tel quel.
@@ -1457,12 +1494,16 @@ export interface IconProps {
   className?: string;
 }
 
-export function Icon({ name = 'sparkle', label, className }: IconProps) {
+export function Icon({ name = 'sparkle', label, className, ...rest }: IconProps) {
+  /* Un nom passé par `aria-label` vaut `label` : il faut le rôle `img` pour
+     qu'un `<span>` soit annoncé. */
+  const named = Boolean(label ?? rest['aria-label']);
   return (
     <span
-      className={cx('opale-icon', className)}
       aria-label={label}
-      role={label ? 'img' : undefined}
+      {...rest}
+      className={cx('opale-icon', className)}
+      role={named ? 'img' : undefined}
     >
       {isOpaleIconName(name) ? <IconGlyph name={name} className="opale-icon__glyph" /> : name}
     </span>
@@ -1499,7 +1540,7 @@ const FEEDBACK_TITLES = {
 /** La nature d'un retour : sa couleur, son titre par défaut et l'urgence de son annonce. */
 export type FeedbackTone = 'success' | 'info' | 'warning' | 'error';
 
-export interface FeedbackProps {
+export interface FeedbackProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** Le ton de l'encart : sa couleur, son titre par défaut et son rôle. Défaut : `info`. */
   tone?: FeedbackTone;
   /** @deprecated Depuis 3.6 — utilisez `tone`. */
@@ -1517,6 +1558,7 @@ export function Feedback({
   children,
   className,
   liquidGlass = false,
+  ...rest
 }: FeedbackProps) {
   const resolvedTone = tone ?? severity ?? 'info';
   const classes = cx(
@@ -1539,14 +1581,14 @@ export function Feedback({
      live reste là où elle était. */
   if (liquidGlass) {
     return (
-      <Glass className={classes} rootClassName="opale-feedback--glass-root" role={role}>
+      <Glass {...rest} className={classes} rootClassName="opale-feedback--glass-root" role={role}>
         {content}
       </Glass>
     );
   }
 
   return (
-    <div className={classes} role={role}>
+    <div {...rest} className={classes} role={role}>
       {content}
     </div>
   );
@@ -1713,7 +1755,7 @@ function useToastAnchor(position: OpalePlacement): ToastAnchor | null {
   );
 }
 
-export interface ToastProps {
+export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   message: ReactNode;
   /** Affiché par défaut ; l'appelant tient l'état ouvert. */
   open?: boolean;
@@ -1739,6 +1781,7 @@ export function Toast({
   position = 'bottom-right',
   liquidGlass = false,
   className,
+  ...rest
 }: ToastProps) {
   /* LES DEUX RÉGIONS SONT MONTÉES EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
 
@@ -1769,7 +1812,7 @@ export function Toast({
   const Shell = liquidGlass ? Glass : 'div';
   const shellProps = liquidGlass ? ({ rootClassName: 'opale-toast--glass-root' } as const) : {};
   const card = open ? (
-    <Shell {...shellProps} className={classes} data-opale-toast-tone={tone}>
+    <Shell {...rest} {...shellProps} className={classes} data-opale-toast-tone={tone}>
       {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
 
           Le ton n'était qu'un filet de 4 px en ombre intérieure, rogné à ses
@@ -1822,7 +1865,7 @@ export function Toast({
   return createPortal(card, assertive ? anchor.alert : anchor.status);
 }
 
-export interface SpinnerProps {
+export interface SpinnerProps extends ComponentPropsWithRef<'span'> {
   label?: string;
   className?: string;
 }
@@ -1835,16 +1878,17 @@ export interface SpinnerProps {
  * dont l'issue doit être entendue, gardez une région montée et n'y changez que
  * le texte.
  */
-export function Spinner({ label = 'Chargement', className }: SpinnerProps) {
+export function Spinner({ label = 'Chargement', className, ...rest }: SpinnerProps) {
   return (
-    <span className={cx('opale-stack', className)} role="status">
+    <span {...rest} className={cx('opale-stack', className)} role="status">
       <span className="opale-spinner" aria-hidden="true" />
       <span>{label}</span>
     </span>
   );
 }
 
-export interface ProgressBarProps {
+/** Les props de `ProgressBar`. `ref` et les attributs vont à l'élément `progressbar`. */
+export interface ProgressBarProps extends ComponentPropsWithRef<'div'> {
   value?: number;
   label?: string;
   className?: string;
@@ -1856,6 +1900,7 @@ export function ProgressBar({
   label,
   className,
   liquidGlass = false,
+  ...rest
 }: ProgressBarProps) {
   const labelId = useId();
   /* LA PISTE EST CE QUI CHANGE DE MATIÈRE, PAS LA VALEUR. Le remplissage
@@ -1875,10 +1920,11 @@ export function ProgressBar({
         </span>
       )}
       <Track
+        aria-labelledby={label ? labelId : undefined}
+        {...rest}
         {...trackProps}
         className={cx('opale-progress', liquidGlass && 'opale-progress--glass')}
         role="progressbar"
-        aria-labelledby={label ? labelId : undefined}
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={100}
@@ -1906,7 +1952,8 @@ function closeHandler(
   };
 }
 
-export interface ConfirmDialogProps {
+/** Les props de `ConfirmDialog`. `ref` et les attributs vont au panneau du dialogue. */
+export interface ConfirmDialogProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
@@ -1927,6 +1974,7 @@ export function ConfirmDialog({
   onOpenChange,
   onCancel,
   liquidGlass = false,
+  ...rest
 }: ConfirmDialogProps) {
   const close = closeHandler(onOpenChange, onCancel);
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
@@ -1944,6 +1992,7 @@ export function ConfirmDialog({
      lui passait simplement pas. */
   return (
     <Modal
+      {...rest}
       open={open}
       onOpenChange={close}
       liquidGlass={liquidGlass}
@@ -1961,7 +2010,7 @@ export function ConfirmDialog({
   );
 }
 
-export interface EmptyStateProps {
+export interface EmptyStateProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   title?: ReactNode;
   description?: ReactNode;
   action?: ReactNode;
@@ -1973,10 +2022,13 @@ export function EmptyState({
   description,
   action,
   liquidGlass = false,
+  className,
+  ...rest
 }: EmptyStateProps) {
   return (
     <Card
-      className="opale-empty-state"
+      {...rest}
+      className={cx('opale-empty-state', className)}
       title={title}
       subtitle={description}
       actions={action}
@@ -1994,7 +2046,10 @@ export interface NavItem {
   icon?: ReactNode;
 }
 
-export interface NavbarProps {
+export interface NavbarProps extends Omit<
+  ComponentPropsWithRef<'nav'>,
+  'onSelect' | 'onChange' | 'defaultValue' | 'children'
+> {
   items?: readonly NavItem[];
   /** L'entrée courante. Présente, l'appelant la tient ; `null` : aucune. */
   value?: string | null;
@@ -2019,6 +2074,7 @@ export function Navbar({
   onSelect,
   className,
   liquidGlass = false,
+  ...rest
 }: NavbarProps) {
   const [activeId, setActiveId] = useControllableState<string | null>(
     value !== undefined ? value : activeIdProp,
@@ -2039,9 +2095,10 @@ export function Navbar({
        pour son CONTENU : le `<nav>` et son nom accessible restent le même nœud
        dans les deux rendus, donc la navigation garde son rôle sous verre. */
     <Rail
+      aria-label="Navigation"
+      {...rest}
       {...railProps}
       className={cx('opale-surface', liquidGlass && 'opale-surface--glass', 'opale-nav', className)}
-      aria-label="Navigation"
     >
       {items.map((item) =>
         item.href ? (
@@ -2071,7 +2128,7 @@ export function Navbar({
   );
 }
 
-export interface MenuProps {
+export interface MenuProps extends ComponentPropsWithRef<'details'> {
   label?: ReactNode;
   items?: readonly NavItem[];
   className?: string;
@@ -2085,6 +2142,7 @@ export function Menu({
   className,
   children,
   liquidGlass = false,
+  ...rest
 }: MenuProps) {
   const classes = cx(
     'opale-surface',
@@ -2101,16 +2159,20 @@ export function Menu({
 
   if (liquidGlass) {
     return (
-      <Glass as="details" className={classes} rootClassName="opale-surface--glass-root">
+      <Glass {...rest} as="details" className={classes} rootClassName="opale-surface--glass-root">
         {content}
       </Glass>
     );
   }
 
-  return <details className={classes}>{content}</details>;
+  return (
+    <details {...rest} className={classes}>
+      {content}
+    </details>
+  );
 }
 
-export interface LinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+export interface LinkProps extends ComponentPropsWithRef<'a'> {
   children: ReactNode;
 }
 
@@ -2122,7 +2184,8 @@ export function Link({ children, className, ...props }: LinkProps) {
   );
 }
 
-export interface SidePanelProps {
+/** Les props de `SidePanel`. `ref` et les attributs vont au panneau. */
+export interface SidePanelProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   open?: boolean;
   title?: ReactNode;
   children?: ReactNode;
@@ -2140,6 +2203,7 @@ export function SidePanel({
   onOpenChange,
   onClose,
   liquidGlass = false,
+  ...rest
 }: SidePanelProps) {
   /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
      coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
@@ -2147,6 +2211,7 @@ export function SidePanel({
      toute la hauteur ; voir `.opale-side-panel` dans `opale.css`. */
   return (
     <Modal
+      {...rest}
       open={open}
       onOpenChange={closeHandler(onOpenChange, onClose)}
       liquidGlass={liquidGlass}
@@ -2158,7 +2223,11 @@ export function SidePanel({
   );
 }
 
-export interface CommandPaletteProps {
+/** Les props de `CommandPalette`. `ref` et les attributs vont au panneau. */
+export interface CommandPaletteProps extends Omit<
+  ComponentPropsWithRef<'div'>,
+  'title' | 'onChange' | 'defaultValue'
+> {
   open?: boolean;
   /** Le texte de la recherche. Présent, l'appelant le tient. */
   value?: string;
@@ -2186,6 +2255,7 @@ export function CommandPalette({
   onClose,
   children,
   liquidGlass = false,
+  ...rest
 }: CommandPaletteProps) {
   const close = closeHandler(onOpenChange, onClose);
   /* La modale donne d'abord le focus au panneau pour annoncer son titre.
@@ -2202,6 +2272,7 @@ export function CommandPalette({
 
   return (
     <Modal
+      {...rest}
       open={open}
       onOpenChange={close}
       liquidGlass={liquidGlass}
@@ -2232,17 +2303,17 @@ export function CommandPalette({
   );
 }
 
-export interface BreadcrumbProps {
+export interface BreadcrumbProps extends Omit<ComponentPropsWithRef<'nav'>, 'children'> {
   items?: readonly NavItem[];
 }
 
-export function Breadcrumb({ items = [] }: BreadcrumbProps) {
+export function Breadcrumb({ items = [], className, ...rest }: BreadcrumbProps) {
   return (
     /* UNE LISTE ORDONNÉE, ET UN MAILLON COURANT. Le fil était une suite de
        `<span>` : rien n'annonçait « liste de quatre éléments, élément deux »,
        et aucun `aria-current` ne disait où l'on se trouve — sur le composant
        dont c'est l'unique fonction (WCAG 1.3.1). */
-    <nav className="opale-breadcrumb" aria-label="Fil d'Ariane">
+    <nav aria-label="Fil d'Ariane" {...rest} className={cx('opale-breadcrumb', className)}>
       <ol>
         {items.map((item, index) => {
           /* LA DERNIÈRE ÉTAPE EST LA PAGE COURANTE, LIEN OU PAS. `aria-current`
@@ -2333,7 +2404,8 @@ function subscribeConsent(listener: () => void) {
   };
 }
 
-export interface CookieBannerProps {
+/** Les props de `CookieBanner`. `ref` et les attributs vont à la `<section>` nommée. */
+export interface CookieBannerProps extends ComponentPropsWithRef<'section'> {
   /** Passé, il décide seul de l'affichage ; omis, le bandeau suit le choix mémorisé. */
   open?: boolean;
   /** Appelée avec `false` quand l'utilisateur choisit. Le bandeau ne s'ouvre jamais de lui-même. */
@@ -2354,6 +2426,8 @@ export function CookieBanner({
   onDecline,
   storageKey = COOKIE_CONSENT_KEY,
   liquidGlass = false,
+  className,
+  ...rest
 }: CookieBannerProps) {
   const stored = useSyncExternalStore(
     subscribeConsent,
@@ -2413,10 +2487,15 @@ export function CookieBanner({
         aria-hidden={leaving ? true : undefined}
       >
         <Shell
-          {...shellProps}
-          className={cx('opale-cookie-banner', liquidGlass && 'opale-cookie-banner--glass')}
           aria-label="Consentement aux cookies"
           aria-describedby={textId}
+          {...rest}
+          {...shellProps}
+          className={cx(
+            'opale-cookie-banner',
+            liquidGlass && 'opale-cookie-banner--glass',
+            className,
+          )}
         >
           <div className="opale-cookie-banner__copy">
             <strong>Cookies</strong>
@@ -2436,7 +2515,7 @@ export function CookieBanner({
   );
 }
 
-export interface SelectionBarProps {
+export interface SelectionBarProps extends ComponentPropsWithRef<'div'> {
   selectedCount?: number;
   children?: ReactNode;
   liquidGlass?: boolean;
@@ -2446,9 +2525,15 @@ export function SelectionBar({
   selectedCount = 0,
   children,
   liquidGlass = false,
+  className,
+  ...rest
 }: SelectionBarProps) {
   return (
-    <Surface liquidGlass={liquidGlass} className="opale-selection-bar opale-panel">
+    <Surface
+      {...rest}
+      liquidGlass={liquidGlass}
+      className={cx('opale-selection-bar', 'opale-panel', className)}
+    >
       {/* LE COMPTE CHANGEAIT SANS UN MOT. On cochait des lignes et le total
           n'était jamais annoncé (WCAG 4.1.3). La région est montée en
           permanence avec la barre, donc elle est surveillée avant que le
@@ -2461,7 +2546,7 @@ export function SelectionBar({
   );
 }
 
-export interface StackProps extends HTMLAttributes<HTMLDivElement> {
+export interface StackProps extends ComponentPropsWithRef<'div'> {
   direction?: 'row' | 'column';
   wrap?: boolean;
 }
@@ -2488,30 +2573,30 @@ export function Stack({
   );
 }
 
-export interface LayoutProps {
+export interface LayoutProps extends ComponentPropsWithRef<'div'> {
   navigation?: ReactNode;
   children?: ReactNode;
   className?: string;
 }
 
-export function Layout({ navigation, children, className }: LayoutProps) {
+export function Layout({ navigation, children, className, ...rest }: LayoutProps) {
   return (
-    <div className={cx('opale-layout', className)}>
+    <div {...rest} className={cx('opale-layout', className)}>
       {navigation}
       <main className="opale-layout__content">{children}</main>
     </div>
   );
 }
 
-export interface DividerProps {
+export interface DividerProps extends Omit<ComponentPropsWithRef<'hr'>, 'children'> {
   className?: string;
 }
 
-export function Divider({ className }: DividerProps) {
-  return <hr className={cx('opale-divider', className)} />;
+export function Divider({ className, ...rest }: DividerProps) {
+  return <hr {...rest} className={cx('opale-divider', className)} />;
 }
 
-export interface BackgroundSurfaceProps extends HTMLAttributes<HTMLDivElement> {
+export interface BackgroundSurfaceProps extends ComponentPropsWithRef<'div'> {
   shape?: boolean;
 }
 
@@ -2544,13 +2629,13 @@ export function BackgroundSurface({
   );
 }
 
-export interface DescriptionListProps {
+export interface DescriptionListProps extends Omit<ComponentPropsWithRef<'dl'>, 'children'> {
   items?: readonly { term: ReactNode; description: ReactNode }[];
 }
 
-export function DescriptionList({ items = [] }: DescriptionListProps) {
+export function DescriptionList({ items = [], className, ...rest }: DescriptionListProps) {
   return (
-    <dl className="opale-description-list">
+    <dl {...rest} className={cx('opale-description-list', className)}>
       {/* `<div>` ET NON `<span>` : le modèle de contenu d'un `<dl>` n'admet
           que `<dt>`/`<dd>` ou un groupe `<div>`. Un `<span>` intercalé casse
           la relation terme/définition dans l'arbre d'accessibilité, ARIA
@@ -2565,13 +2650,13 @@ export function DescriptionList({ items = [] }: DescriptionListProps) {
   );
 }
 
-export interface BulletListProps {
+export interface BulletListProps extends Omit<ComponentPropsWithRef<'ul'>, 'children'> {
   items?: readonly ReactNode[];
 }
 
-export function BulletList({ items = [] }: BulletListProps) {
+export function BulletList({ items = [], className, ...rest }: BulletListProps) {
   return (
-    <ul className="opale-bullet-list">
+    <ul {...rest} className={cx('opale-bullet-list', className)}>
       {items.map((item, index) => (
         <li key={index}>{item}</li>
       ))}
@@ -2665,12 +2750,12 @@ function inkCut(fill: number): number {
   return RATING_INK_CUTS[bas] + (RATING_INK_CUTS[haut] - RATING_INK_CUTS[bas]) * (position - bas);
 }
 
-export interface RatingProps {
+export interface RatingProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   value?: number;
   max?: number;
 }
 
-export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: RatingProps) {
+export function Rating({ value = 0, max = RATING_DEFAULT_MAX, className, ...rest }: RatingProps) {
   /* LE REMPLISSAGE EST FRACTIONNAIRE, ET C'EST TOUT LE COMPOSANT.
 
      Il comparait `index + 1 <= value` : une note de 3,75 dessinait donc
@@ -2709,9 +2794,10 @@ export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: RatingProps) {
        note ne s'annonçait donc PAS DU TOUT (WCAG 1.1.1). `Icon`, quelques
        lignes plus haut, prend déjà cette précaution. */
     <span
-      className="opale-rating"
-      role="img"
       aria-label={`${formatRating(note)} sur ${bareme}`}
+      {...rest}
+      className={cx('opale-rating', className)}
+      role="img"
       data-opale-rating={note}
     >
       {Array.from({ length: bareme }, (_, index) => {
@@ -2752,16 +2838,23 @@ export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: RatingProps) {
   );
 }
 
-export interface StatCardProps {
+export interface StatCardProps extends ComponentPropsWithRef<'div'> {
   label: ReactNode;
   value: ReactNode;
   delta?: ReactNode;
   liquidGlass?: boolean;
 }
 
-export function StatCard({ label, value, delta, liquidGlass = false }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  delta,
+  liquidGlass = false,
+  className,
+  ...rest
+}: StatCardProps) {
   return (
-    <Surface className="opale-stat-card" liquidGlass={liquidGlass}>
+    <Surface {...rest} className={cx('opale-stat-card', className)} liquidGlass={liquidGlass}>
       <span className="opale-stat-card__label">{label}</span>
       <strong className="opale-stat-card__value">{value}</strong>
       {delta && <span className="opale-stat-card__delta">{delta}</span>}
@@ -2769,19 +2862,21 @@ export function StatCard({ label, value, delta, liquidGlass = false }: StatCardP
   );
 }
 
-export interface DonutProps {
+export interface DonutProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   value?: number;
   label?: string;
 }
 
-export function Donut({ value = 60, label = `${value}%` }: DonutProps) {
+export function Donut({ value = 60, label = `${value}%`, className, style, ...rest }: DonutProps) {
+  /* Le style de l'appelant d'abord, la variable qui dessine l'anneau ensuite. */
   return (
     <div
-      className="opale-donut"
-      data-label={label}
-      style={{ '--opale-donut-value': `${value}%` } as CSSProperties}
-      role="img"
       aria-label={label}
+      {...rest}
+      className={cx('opale-donut', className)}
+      data-label={label}
+      style={{ ...style, '--opale-donut-value': `${value}%` } as CSSProperties}
+      role="img"
     />
   );
 }
@@ -2834,7 +2929,7 @@ export interface DataTableColumn {
 /** Les tailles d'une table : `small` resserre les lignes. */
 export type DataTableSize = Extract<OpaleSize, 'small' | 'medium'>;
 
-export interface DataTableProps {
+export interface DataTableProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   columns?: readonly DataTableColumn[];
   rows?: readonly DataTableRow[];
   /** Nom de la table, rendu en `<caption>`. */
@@ -2904,6 +2999,8 @@ export function DataTable({
   density,
   striped = false,
   showRowCount = false,
+  className,
+  ...rest
 }: DataTableProps) {
   /* `size` gagne ; l'ancien `density` ne sert que s'il est seul. */
   const compact = (size ?? (density === 'compact' ? 'small' : 'medium')) === 'small';
@@ -2946,7 +3043,11 @@ export function DataTable({
   };
 
   return (
-    <Surface liquidGlass={liquidGlass} className="opale-panel opale-table-panel">
+    <Surface
+      {...rest}
+      liquidGlass={liquidGlass}
+      className={cx('opale-panel', 'opale-table-panel', className)}
+    >
       <div className="opale-table-scroll">
         <table
           className={cx(
@@ -3036,13 +3137,13 @@ export function DataTable({
   );
 }
 
-export interface LegalLinksProps {
+export interface LegalLinksProps extends Omit<ComponentPropsWithRef<'nav'>, 'children'> {
   links?: readonly NavItem[];
 }
 
-export function LegalLinks({ links = [] }: LegalLinksProps) {
+export function LegalLinks({ links = [], className, ...rest }: LegalLinksProps) {
   return (
-    <nav className="opale-legal-links" aria-label="Liens légaux">
+    <nav aria-label="Liens légaux" {...rest} className={cx('opale-legal-links', className)}>
       {links.map((link) => (
         <a key={link.id} href={link.href}>
           {link.label}
@@ -3052,12 +3153,17 @@ export function LegalLinks({ links = [] }: LegalLinksProps) {
   );
 }
 
-export interface FileCardProps {
+/**
+ * Les props de `FileCard`. La coquille est un `<button>` quand `onClick` est
+ * passé, un `<div>` sinon : `ref` et les attributs visent donc un `HTMLElement`.
+ */
+export interface FileCardProps extends Omit<HTMLAttributes<HTMLElement>, 'onClick'> {
   name: string;
   size?: string;
   selected?: boolean;
   onClick?: () => void;
   liquidGlass?: boolean;
+  ref?: Ref<HTMLElement>;
 }
 
 export function FileCard({
@@ -3066,7 +3172,13 @@ export function FileCard({
   selected = false,
   onClick,
   liquidGlass = false,
+  className,
+  ref,
+  ...rest
 }: FileCardProps) {
+  /* Une ref d'`HTMLElement` ne se pose pas telle quelle sur un `<button>` : la
+     fonction qui l'enveloppe, elle, convient aux deux balises. */
+  const shellRef = useCallback((node: HTMLElement | null) => mergeRefs(ref)(node), [ref]);
   return (
     /* `aria-pressed` ET UNE CLASSE PROPRE, À LA PLACE DU LAVIS.
 
@@ -3077,12 +3189,15 @@ export function FileCard({
        couleur (1.4.1). La classe dédiée porte un liseré et une coche ; l'état
        est désormais annoncé. */
     <FileCardShell
+      {...rest}
+      shellRef={shellRef}
       liquidGlass={liquidGlass}
       className={cx(
         'opale-surface',
         liquidGlass && 'opale-surface--glass',
         'opale-file-card',
         selected && 'opale-file-card--selected',
+        className,
       )}
       selected={selected}
       onClick={onClick}
@@ -3110,42 +3225,51 @@ function FileCardShell({
   children,
   selected,
   onClick,
+  shellRef,
   ...props
-}: {
+}: Omit<HTMLAttributes<HTMLElement>, 'onClick'> & {
   liquidGlass: boolean;
   className: string;
   selected: boolean;
   onClick?: () => void;
+  shellRef: RefCallback<HTMLElement>;
   children: ReactNode;
 }) {
   if (liquidGlass) {
     return onClick ? (
       <Glass
+        {...props}
+        ref={shellRef}
         as="button"
         type="button"
         rootClassName="opale-file-card--glass-root"
         aria-pressed={selected}
         onClick={onClick}
-        {...props}
       >
         {children}
       </Glass>
     ) : (
-      <Glass as="div" rootClassName="opale-file-card--glass-root" {...props}>
+      <Glass {...props} ref={shellRef} as="div" rootClassName="opale-file-card--glass-root">
         {children}
       </Glass>
     );
   }
 
   return onClick ? (
-    <button type="button" aria-pressed={selected} onClick={onClick} {...props}>
+    <button {...props} ref={shellRef} type="button" aria-pressed={selected} onClick={onClick}>
       {children}
     </button>
   ) : (
-    <div {...props}>{children}</div>
+    <div {...props} ref={shellRef}>
+      {children}
+    </div>
   );
 }
-export interface DropzoneProps {
+/** Les props de `Dropzone`. `ref` et les attributs vont au `<label>` qui porte la zone. */
+export interface DropzoneProps extends Omit<
+  ComponentPropsWithRef<'label'>,
+  'children' | 'onError'
+> {
   onFiles?: (files: FileList) => void;
   onError?: (message: string) => void;
   children?: ReactNode;
@@ -3182,6 +3306,12 @@ export function Dropzone({
   maxSizeBytes,
   disabled = false,
   liquidGlass = false,
+  className,
+  onDragEnter,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  ...rest
 }: DropzoneProps) {
   const Zone = liquidGlass ? Glass : 'label';
   const zoneProps = liquidGlass
@@ -3209,31 +3339,40 @@ export function Dropzone({
     else onFiles?.(files);
   };
 
+  /* Le geste de la zone d'abord, le gestionnaire de l'appelant ensuite. */
   const dragHandlers = {
-    onDragEnter: (event: DragEvent<HTMLElement>) => {
+    onDragEnter: (event: DragEvent<HTMLLabelElement>) => {
       event.preventDefault();
-      if (disabled) return;
-      depth.current += 1;
-      setDragging(true);
+      if (!disabled) {
+        depth.current += 1;
+        setDragging(true);
+      }
+      onDragEnter?.(event);
     },
-    onDragOver: (event: DragEvent<HTMLElement>) => event.preventDefault(),
-    onDragLeave: () => {
+    onDragOver: (event: DragEvent<HTMLLabelElement>) => {
+      event.preventDefault();
+      onDragOver?.(event);
+    },
+    onDragLeave: (event: DragEvent<HTMLLabelElement>) => {
       depth.current = Math.max(0, depth.current - 1);
       if (depth.current === 0) setDragging(false);
+      onDragLeave?.(event);
     },
-    onDrop: (event: DragEvent<HTMLElement>) => {
+    onDrop: (event: DragEvent<HTMLLabelElement>) => {
       event.preventDefault();
       depth.current = 0;
       setDragging(false);
       receive(event.dataTransfer.files);
+      onDrop?.(event);
     },
   };
 
   return (
     <Zone
+      {...rest}
       {...zoneProps}
       {...dragHandlers}
-      className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass')}
+      className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass', className)}
       data-dragging={dragging ? 'true' : undefined}
       data-disabled={disabled ? 'true' : undefined}
     >
@@ -3260,7 +3399,8 @@ export function Dropzone({
   );
 }
 
-export interface LightboxProps {
+/** Les props de `Lightbox`. `ref` et les attributs vont au panneau. */
+export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title' | 'children'> {
   src?: string;
   /* `alt` EST OBLIGATOIRE, ET IL NE PEUT PAS EN ÊTRE AUTREMENT. Sa valeur par
      défaut était la chaîne vide, c'est-à-dire « cette image est décorative » —
@@ -3284,14 +3424,16 @@ export function Lightbox({
   onOpenChange,
   onClose,
   liquidGlass = false,
+  ...rest
 }: LightboxProps) {
   const close = closeHandler(onOpenChange, onClose);
   return (
     <Modal
+      aria-label="Aperçu"
+      {...rest}
       open={open && Boolean(src)}
       onOpenChange={close}
       liquidGlass={liquidGlass}
-      aria-label="Aperçu"
       rootClassName="opale-lightbox"
       footer={
         /* UN BOUTON PLEIN, ET NON LE FANTÔME. `ghost` trace son contour par un
@@ -3335,13 +3477,20 @@ const CLIPBOARD_STATUS: Record<ClipboardState, string> = {
   failed: 'Échec de la copie',
 };
 
-export interface ClipboardProps {
+/** Les props de `Clipboard`. `ref` et les attributs vont au bouton de copie. */
+export interface ClipboardProps extends Omit<ButtonProps, 'children' | 'value'> {
   value: string;
   liquidGlass?: boolean;
   children?: ReactNode;
 }
 
-export function Clipboard({ value, liquidGlass = false, children = 'Copier' }: ClipboardProps) {
+export function Clipboard({
+  value,
+  liquidGlass = false,
+  children = 'Copier',
+  onClick,
+  ...rest
+}: ClipboardProps) {
   const [state, setState] = useState<ClipboardState>('idle');
   const reset = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -3374,9 +3523,11 @@ export function Clipboard({ value, liquidGlass = false, children = 'Copier' }: C
       <Button
         size="small"
         variant="tonal"
+        {...rest}
         liquidGlass={liquidGlass}
-        onClick={() => {
+        onClick={(event) => {
           void copy();
+          onClick?.(event);
         }}
       >
         {state === 'copied' ? 'Copié' : state === 'failed' ? 'Échec de la copie' : children}
@@ -3436,7 +3587,7 @@ export interface SvgMapRegion {
   readonly ariaLabel?: string;
 }
 
-export interface SvgMapProps {
+export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelect' | 'children'> {
   /** Vue d'ensemble du dessin, au format de l'attribut `viewBox`. */
   readonly viewBox: string;
   readonly regions: readonly SvgMapRegion[];
@@ -3518,6 +3669,9 @@ export function SvgMap({
   children,
   liquidGlass = false,
   className,
+  style: styleProp,
+  onKeyDown,
+  ...rest
 }: SvgMapProps) {
   /* LE CROCHET EST TOUJOURS APPELÉ, et la vue de l'appelant l'emporte : l'ordre
      des crochets ne peut pas dépendre d'une prop. */
@@ -3644,7 +3798,7 @@ export function SvgMap({
     return box ? { x: (box.minX + box.maxX) / 2, y: (box.minY + box.maxY) / 2 } : undefined;
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleMapKeys = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape' && tooltipName) {
       setTooltipDismissed(true);
       return;
@@ -3671,6 +3825,12 @@ export function SvgMap({
       event.preventDefault();
       viewport.reset();
     }
+  };
+
+  /* Les raccourcis de la carte d'abord, le gestionnaire de l'appelant ensuite. */
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    handleMapKeys(event);
+    onKeyDown?.(event);
   };
 
   /* L'INFOBULLE SE PLACE EN POURCENTAGES DU CADRE, et c'est ce qui la garde
@@ -3704,7 +3864,9 @@ export function SvgMap({
       : undefined;
 
   const maxInlineSize = [maxWidth, maxHeight && `calc(${maxHeight} * ${ratio})`].filter(Boolean);
+  /* Le style de l'appelant d'abord ; le rapport et les bornes, vitaux, ensuite. */
   const style = {
+    ...styleProp,
     '--opale-svg-map-ratio': `${base.width} / ${base.height}`,
     ...(stroke ? { '--opale-svg-map-stroke': stroke } : {}),
     ...(maxInlineSize.length > 0
@@ -3868,6 +4030,7 @@ export function SvgMap({
        de ses vrais contrôles — les régions et les boutons de zoom. */
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- délégation des raccourcis, voir ci-dessus
     <div
+      {...rest}
       className={cx('opale-svg-map', liquidGlass && 'opale-svg-map--glass', className)}
       style={style}
       onKeyDown={handleKeyDown}
@@ -3883,7 +4046,7 @@ export function SvgMap({
   );
 }
 
-export interface SvgMapControlsProps {
+export interface SvgMapControlsProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   /** La vue à piloter, celle que renvoie `useSvgMapViewport`. */
   readonly viewport: UseSvgMapViewportResult;
   /**
@@ -3900,13 +4063,19 @@ export function SvgMapControls({
   step = SVG_MAP_DEFAULT_STEP,
   liquidGlass = false,
   className,
+  ...rest
 }: SvgMapControlsProps) {
   const act = (enabled: boolean, run: () => void) => () => {
     if (enabled) run();
   };
 
   return (
-    <div className={cx('opale-svg-map-controls', className)} role="group" aria-label="Zoom">
+    <div
+      aria-label="Zoom"
+      {...rest}
+      className={cx('opale-svg-map-controls', className)}
+      role="group"
+    >
       <IconActionButton
         icon="zoom-in"
         label="Zoomer"

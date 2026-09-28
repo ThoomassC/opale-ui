@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom';
 import Glass, { type GlassProps } from '../glass/Glass';
 
 import { IconGlyph } from '../icon';
+import { mergeRefs } from '../../shared/merge-refs';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 
 import styles from './style/Modal.module.css';
@@ -118,6 +119,8 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
    * état.
    */
   liquidGlass?: boolean;
+  /** Le panneau du dialogue, celui qui porte `role="dialog"`. */
+  ref?: Ref<HTMLDivElement>;
   /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
      côtés, sans quoi l'intersection le ramène à une chaîne. */
 } & Omit<GlassProps, 'title'>;
@@ -226,6 +229,7 @@ const Modal = ({
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
   'aria-describedby': ariaDescribedBy,
+  ref,
   ...rest
 }: ModalProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -235,6 +239,11 @@ const Modal = ({
      type le plus général n'est pas le plus accueillant. Tout ce que le panneau
      appelle dessus (`focus`, `contains`, `querySelectorAll`) est hérité. */
   const panelRef = useRef<HTMLDivElement | null>(null);
+  /* L'appelant reçoit le panneau que la modale focalise et piège. */
+  const panelRefs = useCallback(
+    (node: HTMLDivElement | null) => mergeRefs(panelRef, ref)(node),
+    [ref],
+  );
   const titleId = useId();
   const descriptionId = useId();
 
@@ -479,7 +488,7 @@ const Modal = ({
           composant, et il ne doit pas dépendre d'une apparence. */}
       <Panneau
         {...rest}
-        ref={panelRef}
+        ref={panelRefs}
         liquidGlass={liquidGlass}
         triggerAnimation={openRipple}
         rootClassName={cx(styles.shell, sizeClass[normalizeSize(size, 'medium')], rootClassName)}
