@@ -139,6 +139,12 @@ export type GlassProps<T extends ElementType = 'div'> = {
   readonly pressFeedback?: boolean;
 } & Omit<ComponentPropsWithoutRef<T>, 'as' | 'children'>;
 
+/** Ce que le verre laisse régler d'un composant qui le porte. `as` n'en fait pas partie. */
+export type GlassSurfaceProps = Pick<
+  GlassProps,
+  'rootClassName' | 'rootStyle' | 'enableLiquidAnimation' | 'triggerAnimation'
+>;
+
 const RIPPLE_MS = 800;
 
 function GlassInner<T extends ElementType = 'div'>(

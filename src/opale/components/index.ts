@@ -34,6 +34,9 @@
    icône là où il n'en faut qu'un. */
 export { OPALE_ICONS, ICON_NAMES, ICON_GROUPS, ICON_KEYWORDS, isOpaleIconName } from './icon';
 export type { OpaleIconName, IconGroup } from './icon';
+/* LE MATÉRIAU RESTE INTERNE, SES RÉGLAGES DE SURFACE SONT PUBLICS : c'est le
+   type que partagent les composants qui portent le verre. */
+export type { GlassSurfaceProps } from './glass';
 export * from './modal';
 export * from './page-scaffold';
 export * from './search-bar';

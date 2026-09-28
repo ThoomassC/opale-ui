@@ -51,6 +51,7 @@ import { useSvgMapGestures } from './components/svg-map/useSvgMapGestures';
 import { parseViewBox as parseSvgViewBox } from './components/svg-map/viewport';
 import toastMotion from './components/toast/style/Toast.module.css';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
+import type { OpaleSize } from './shared';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-extras';
 
@@ -93,8 +94,15 @@ export type { PaginationProps, RatingInputProps, SkeletonProps } from './opale-e
    `ChangeEvent`. Le verre ne fait que l'habiller.
    ========================================================================== */
 
-type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text';
-type ButtonSize = 'small' | 'medium' | 'large';
+/** Le rôle visuel d'un bouton. */
+export type ButtonVariant =
+  'primary' | 'secondary' | 'accent' | 'danger' | 'tonal' | 'ghost' | 'text';
+
+/** Un choix proposé par une liste : sa valeur de formulaire et son libellé. */
+export interface SelectOption {
+  value: string;
+  label: ReactNode;
+}
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(' ');
@@ -179,7 +187,7 @@ function Surface({ liquidGlass = false, className, children, ...props }: Surface
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
-  size?: ButtonSize;
+  size?: OpaleSize;
   loading?: boolean;
   startIcon?: ReactNode;
   endIcon?: ReactNode;
@@ -306,7 +314,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = 'Button';
 
-export const Pressable = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => (
+/** Les props de `Pressable` : celles de `Button`, dont la variante `text` est le défaut. */
+export type PressableProps = ButtonProps;
+
+export const Pressable = forwardRef<HTMLButtonElement, PressableProps>((props, ref) => (
   <Button ref={ref} variant="text" {...props} />
 ));
 Pressable.displayName = 'Pressable';
@@ -378,7 +389,9 @@ export function Card({
   );
 }
 
-export function CardGrid({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
+export type CardGridProps = HTMLAttributes<HTMLDivElement>;
+
+export function CardGrid({ className, children, ...props }: CardGridProps) {
   return (
     <div className={cx('opale-card-grid', className)} {...props}>
       {children}
@@ -386,7 +399,7 @@ export function CardGrid({ className, children, ...props }: HTMLAttributes<HTMLD
   );
 }
 
-export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: ReactNode;
   helperText?: ReactNode;
   error?: ReactNode;
@@ -394,7 +407,10 @@ export interface FieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   liquidGlass?: boolean;
 }
 
-export const Input = forwardRef<HTMLInputElement, FieldProps>(
+/** @deprecated Depuis 3.6 — utilisez `InputProps`. */
+export type FieldProps = InputProps;
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, helperText, error, icon, liquidGlass = false, className, id, ...props }, ref) => {
     const generatedId = useId();
     const inputId = id ?? generatedId;
@@ -763,7 +779,7 @@ export function Slider({
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: ReactNode;
   helperText?: ReactNode;
-  options?: readonly { value: string; label: ReactNode }[];
+  options?: readonly SelectOption[];
   liquidGlass?: boolean;
 }
 
@@ -1061,7 +1077,7 @@ export function MultiSelect({
   );
 }
 
-export interface AutocompleteProps extends FieldProps {
+export interface AutocompleteProps extends InputProps {
   options?: readonly string[];
 }
 
@@ -1109,7 +1125,7 @@ export function Autocomplete({ options = [], ...props }: AutocompleteProps) {
    l'Entrée qui confirme une conversion arrive avec `key === 'Enter'` : elle
    aurait validé une saisie inachevée.
    ========================================================================== */
-export interface InlineInputProps extends FieldProps {
+export interface InlineInputProps extends InputProps {
   /** Entrée, ou sortie du champ après modification : la valeur est validée. */
   onCommit?: (value: string) => void;
   /** Échap : reçoit la valeur rétablie. */
@@ -1166,7 +1182,7 @@ export function InlineInput({
 }
 
 export interface SegmentedControlProps {
-  options: readonly { value: string; label: ReactNode }[];
+  options: readonly SelectOption[];
   value?: string;
   onChange?: (value: string) => void;
   className?: string;
@@ -1286,8 +1302,15 @@ export function SegmentedControl({
   );
 }
 
-export function Form({ className, ...props }: FormHTMLAttributes<HTMLFormElement>) {
+export type FormProps = FormHTMLAttributes<HTMLFormElement>;
+
+export function Form({ className, ...props }: FormProps) {
   return <form className={cx('opale-stack', 'opale-stack--column', className)} {...props} />;
+}
+
+export interface IconActionButtonProps extends Omit<ButtonProps, 'children'> {
+  icon?: OpaleIconName;
+  label: string;
 }
 
 export function IconActionButton({
@@ -1296,7 +1319,7 @@ export function IconActionButton({
   variant = 'tonal',
   className,
   ...props
-}: Omit<ButtonProps, 'children'> & { icon?: OpaleIconName; label: string }) {
+}: IconActionButtonProps) {
   /* Le nom accessible reste indépendant du glyphe. Le rendu tonal remplace
      le filet ghost masqué, qui n'apparaissait qu'aux quatre bords du bouton
      et traversait aussi le verre liquide. La variante reste configurable. */
@@ -1312,20 +1335,25 @@ export function IconActionButton({
   );
 }
 
+/** L'emphase de marque d'une pastille. */
+export type BadgeTone = 'primary' | 'accent' | 'danger';
+
+export interface BadgeProps {
+  tone?: BadgeTone;
+  /** Un point de notification : le texte est masqué à l'œil, lu à l'oreille. */
+  dot?: boolean;
+  liquidGlass?: boolean;
+  children: ReactNode;
+  className?: string;
+}
+
 export function Badge({
   tone = 'primary',
   dot = false,
   liquidGlass = false,
   children,
   className,
-}: {
-  tone?: 'primary' | 'accent' | 'danger';
-  /** Un point de notification : le texte est masqué à l'œil, lu à l'oreille. */
-  dot?: boolean;
-  liquidGlass?: boolean;
-  children: ReactNode;
-  className?: string;
-}) {
+}: BadgeProps) {
   /* LE BADGE EST LE MÊME DES DEUX CÔTÉS. La pastille tierce forçait ses
      libellés en CAPITALES, imposait sa propre graisse et ignorait le ton
      d'Opale au profit de six variantes d'une autre palette : il fallait
@@ -1356,36 +1384,34 @@ export function Badge({
   return <span className={classes}>{content}</span>;
 }
 
-export function Heading({
-  level = 2,
-  children,
-  className,
-}: {
-  level?: 1 | 2 | 3 | 4;
+/** Le niveau HTML d'un titre, qui fixe sa place dans le plan de la page. */
+export type HeadingLevel = 1 | 2 | 3 | 4;
+
+export interface HeadingProps {
+  level?: HeadingLevel;
   children: ReactNode;
   className?: string;
-}) {
+}
+
+export function Heading({ level = 2, children, className }: HeadingProps) {
   const Heading = `h${level}` as 'h1';
   return <Heading className={cx('opale-heading', className)}>{children}</Heading>;
 }
 
-export function Text({
-  variant = 'body',
-  children,
-  className,
-}: {
-  variant?: 'body' | 'label' | 'caption' | 'metric';
+/** Le rôle typographique d'un texte. */
+export type TextVariant = 'body' | 'label' | 'caption' | 'metric';
+
+export interface TextProps {
+  variant?: TextVariant;
   children: ReactNode;
   className?: string;
-}) {
+}
+
+export function Text({ variant = 'body', children, className }: TextProps) {
   return <p className={cx('opale-text', `opale-text--${variant}`, className)}>{children}</p>;
 }
 
-export function Icon({
-  name = 'sparkle',
-  label,
-  className,
-}: {
+export interface IconProps {
   /**
    * Le nom d'une icône du jeu d'Opale — voir `ICON_NAMES` et la page « Icônes »
    * — ou n'importe quel nœud à rendre tel quel.
@@ -1398,7 +1424,9 @@ export function Icon({
   name?: OpaleIconName | ReactNode;
   label?: string;
   className?: string;
-}) {
+}
+
+export function Icon({ name = 'sparkle', label, className }: IconProps) {
   return (
     <span
       className={cx('opale-icon', className)}
@@ -1437,19 +1465,24 @@ const FEEDBACK_TITLES = {
   error: 'Erreur',
 } as const;
 
+/** La nature d'un retour : sa couleur, son titre par défaut et l'urgence de son annonce. */
+export type FeedbackTone = 'success' | 'info' | 'warning' | 'error';
+
+export interface FeedbackProps {
+  severity?: FeedbackTone;
+  title?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  liquidGlass?: boolean;
+}
+
 export function Feedback({
   severity = 'info',
   title,
   children,
   className,
   liquidGlass = false,
-}: {
-  severity?: 'success' | 'info' | 'warning' | 'error';
-  title?: ReactNode;
-  children: ReactNode;
-  className?: string;
-  liquidGlass?: boolean;
-}) {
+}: FeedbackProps) {
   const classes = cx(
     'opale-feedback',
     `opale-feedback--${severity}`,
@@ -1639,15 +1672,7 @@ function useToastAnchor(position: ToastPlacement): ToastAnchor | null {
   );
 }
 
-export function Toast({
-  message,
-  open = true,
-  onClose,
-  tone = 'neutral',
-  position = 'bottom-right',
-  liquidGlass = false,
-  className,
-}: {
+export interface ToastProps {
   message: ReactNode;
   open?: boolean;
   onClose?: () => void;
@@ -1658,7 +1683,17 @@ export function Toast({
   /** La place à l'écran. Le message est rendu dans un portail, pas en flux. */
   position?: ToastPlacement;
   className?: string;
-}) {
+}
+
+export function Toast({
+  message,
+  open = true,
+  onClose,
+  tone = 'neutral',
+  position = 'bottom-right',
+  liquidGlass = false,
+  className,
+}: ToastProps) {
   /* LES DEUX RÉGIONS SONT MONTÉES EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
 
      Le composant entier — `role="status"` compris — était rendu au moment où
@@ -1740,6 +1775,11 @@ export function Toast({
   return createPortal(card, assertive ? anchor.alert : anchor.status);
 }
 
+export interface SpinnerProps {
+  label?: string;
+  className?: string;
+}
+
 /**
  * L'indicateur d'attente.
  *
@@ -1748,13 +1788,7 @@ export function Toast({
  * dont l'issue doit être entendue, gardez une région montée et n'y changez que
  * le texte.
  */
-export function Spinner({
-  label = 'Chargement',
-  className,
-}: {
-  label?: string;
-  className?: string;
-}) {
+export function Spinner({ label = 'Chargement', className }: SpinnerProps) {
   return (
     <span className={cx('opale-stack', className)} role="status">
       <span className="opale-spinner" aria-hidden="true" />
@@ -1763,17 +1797,19 @@ export function Spinner({
   );
 }
 
+export interface ProgressBarProps {
+  value?: number;
+  label?: string;
+  className?: string;
+  liquidGlass?: boolean;
+}
+
 export function ProgressBar({
   value = 0,
   label,
   className,
   liquidGlass = false,
-}: {
-  value?: number;
-  label?: string;
-  className?: string;
-  liquidGlass?: boolean;
-}) {
+}: ProgressBarProps) {
   const labelId = useId();
   /* LA PISTE EST CE QUI CHANGE DE MATIÈRE, PAS LA VALEUR. Le remplissage
      reste opaque sous verre : une progression translucide sur un paysage ne
@@ -1809,6 +1845,15 @@ export function ProgressBar({
   );
 }
 
+export interface ConfirmDialogProps {
+  open?: boolean;
+  title?: ReactNode;
+  children?: ReactNode;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  liquidGlass?: boolean;
+}
+
 export function ConfirmDialog({
   open = false,
   title = 'Confirmer',
@@ -1816,14 +1861,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   liquidGlass = false,
-}: {
-  open?: boolean;
-  title?: ReactNode;
-  children?: ReactNode;
-  onConfirm?: () => void;
-  onCancel?: () => void;
-  liquidGlass?: boolean;
-}) {
+}: ConfirmDialogProps) {
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
      faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
      confirmations coexistaient. `Modal` le dérive d'un `useId`.
@@ -1856,17 +1894,19 @@ export function ConfirmDialog({
   );
 }
 
+export interface EmptyStateProps {
+  title?: ReactNode;
+  description?: ReactNode;
+  action?: ReactNode;
+  liquidGlass?: boolean;
+}
+
 export function EmptyState({
   title = 'Aucun résultat',
   description,
   action,
   liquidGlass = false,
-}: {
-  title?: ReactNode;
-  description?: ReactNode;
-  action?: ReactNode;
-  liquidGlass?: boolean;
-}) {
+}: EmptyStateProps) {
   return (
     <Card
       className="opale-empty-state"
@@ -1886,19 +1926,22 @@ export interface NavItem {
   href?: string;
   icon?: ReactNode;
 }
+
+export interface NavbarProps {
+  items?: readonly NavItem[];
+  activeId?: string;
+  onSelect?: (id: string) => void;
+  className?: string;
+  liquidGlass?: boolean;
+}
+
 export function Navbar({
   items = [],
   activeId,
   onSelect,
   className,
   liquidGlass = false,
-}: {
-  items?: readonly NavItem[];
-  activeId?: string;
-  onSelect?: (id: string) => void;
-  className?: string;
-  liquidGlass?: boolean;
-}) {
+}: NavbarProps) {
   const Rail = liquidGlass ? Glass : 'nav';
   const railProps = liquidGlass
     ? ({ as: 'nav', rootClassName: 'opale-surface--glass-root' } as const)
@@ -1941,19 +1984,21 @@ export function Navbar({
   );
 }
 
+export interface MenuProps {
+  label?: ReactNode;
+  items?: readonly NavItem[];
+  className?: string;
+  children?: ReactNode;
+  liquidGlass?: boolean;
+}
+
 export function Menu({
   label = 'Menu',
   items = [],
   className,
   children,
   liquidGlass = false,
-}: {
-  label?: ReactNode;
-  items?: readonly NavItem[];
-  className?: string;
-  children?: ReactNode;
-  liquidGlass?: boolean;
-}) {
+}: MenuProps) {
   const classes = cx(
     'opale-surface',
     liquidGlass && 'opale-surface--glass',
@@ -1978,16 +2023,24 @@ export function Menu({
   return <details className={classes}>{content}</details>;
 }
 
-export function Link({
-  children,
-  className,
-  ...props
-}: AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode }) {
+export interface LinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  children: ReactNode;
+}
+
+export function Link({ children, className, ...props }: LinkProps) {
   return (
     <a className={cx('opale-link', className)} {...props}>
       {children}
     </a>
   );
+}
+
+export interface SidePanelProps {
+  open?: boolean;
+  title?: ReactNode;
+  children?: ReactNode;
+  onClose?: () => void;
+  liquidGlass?: boolean;
 }
 
 export function SidePanel({
@@ -1996,13 +2049,7 @@ export function SidePanel({
   children,
   onClose,
   liquidGlass = false,
-}: {
-  open?: boolean;
-  title?: ReactNode;
-  children?: ReactNode;
-  onClose?: () => void;
-  liquidGlass?: boolean;
-}) {
+}: SidePanelProps) {
   /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
      coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
      même position. La coquille le plaque désormais contre le bord de fin sur
@@ -2020,6 +2067,15 @@ export function SidePanel({
   );
 }
 
+export interface CommandPaletteProps {
+  open?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
+  onClose?: () => void;
+  children?: ReactNode;
+  liquidGlass?: boolean;
+}
+
 export function CommandPalette({
   open = false,
   value = '',
@@ -2027,14 +2083,7 @@ export function CommandPalette({
   onClose,
   children,
   liquidGlass = false,
-}: {
-  open?: boolean;
-  value?: string;
-  onChange?: (value: string) => void;
-  onClose?: () => void;
-  children?: ReactNode;
-  liquidGlass?: boolean;
-}) {
+}: CommandPaletteProps) {
   /* La modale donne d'abord le focus au panneau pour annoncer son titre.
      Au cadre suivant, la palette place le curseur dans sa recherche : on peut
      lancer une commande sans clic, tout en laissant Modal retenir l'élément
@@ -2074,7 +2123,11 @@ export function CommandPalette({
   );
 }
 
-export function Breadcrumb({ items = [] }: { items?: readonly NavItem[] }) {
+export interface BreadcrumbProps {
+  items?: readonly NavItem[];
+}
+
+export function Breadcrumb({ items = [] }: BreadcrumbProps) {
   return (
     /* UNE LISTE ORDONNÉE, ET UN MAILLON COURANT. Le fil était une suite de
        `<span>` : rien n'annonçait « liste de quatre éléments, élément deux »,
@@ -2171,14 +2224,7 @@ function subscribeConsent(listener: () => void) {
   };
 }
 
-export function CookieBanner({
-  open,
-  children = 'Nous utilisons des cookies pour améliorer votre expérience.',
-  onAccept,
-  onDecline,
-  storageKey = COOKIE_CONSENT_KEY,
-  liquidGlass = false,
-}: {
+export interface CookieBannerProps {
   /** Passé, il décide seul de l'affichage ; omis, le bandeau suit le choix mémorisé. */
   open?: boolean;
   children?: ReactNode;
@@ -2187,7 +2233,16 @@ export function CookieBanner({
   /** Clé de `localStorage` où le choix est mémorisé ; `null` coupe la mémoire. */
   storageKey?: string | null;
   liquidGlass?: boolean;
-}) {
+}
+
+export function CookieBanner({
+  open,
+  children = 'Nous utilisons des cookies pour améliorer votre expérience.',
+  onAccept,
+  onDecline,
+  storageKey = COOKIE_CONSENT_KEY,
+  liquidGlass = false,
+}: CookieBannerProps) {
   const stored = useSyncExternalStore(
     subscribeConsent,
     () => readCookieConsent(storageKey),
@@ -2268,15 +2323,17 @@ export function CookieBanner({
   );
 }
 
+export interface SelectionBarProps {
+  selectedCount?: number;
+  children?: ReactNode;
+  liquidGlass?: boolean;
+}
+
 export function SelectionBar({
   selectedCount = 0,
   children,
   liquidGlass = false,
-}: {
-  selectedCount?: number;
-  children?: ReactNode;
-  liquidGlass?: boolean;
-}) {
+}: SelectionBarProps) {
   return (
     <Surface liquidGlass={liquidGlass} className="opale-selection-bar opale-panel">
       {/* LE COMPTE CHANGEAIT SANS UN MOT. On cochait des lignes et le total
@@ -2291,13 +2348,18 @@ export function SelectionBar({
   );
 }
 
+export interface StackProps extends HTMLAttributes<HTMLDivElement> {
+  direction?: 'row' | 'column';
+  wrap?: boolean;
+}
+
 export function Stack({
   direction = 'column',
   wrap = false,
   className,
   children,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { direction?: 'row' | 'column'; wrap?: boolean }) {
+}: StackProps) {
   return (
     <div
       className={cx(
@@ -2312,15 +2374,14 @@ export function Stack({
     </div>
   );
 }
-export function Layout({
-  navigation,
-  children,
-  className,
-}: {
+
+export interface LayoutProps {
   navigation?: ReactNode;
   children?: ReactNode;
   className?: string;
-}) {
+}
+
+export function Layout({ navigation, children, className }: LayoutProps) {
   return (
     <div className={cx('opale-layout', className)}>
       {navigation}
@@ -2328,9 +2389,19 @@ export function Layout({
     </div>
   );
 }
-export function Divider({ className }: { className?: string }) {
+
+export interface DividerProps {
+  className?: string;
+}
+
+export function Divider({ className }: DividerProps) {
   return <hr className={cx('opale-divider', className)} />;
 }
+
+export interface BackgroundSurfaceProps extends HTMLAttributes<HTMLDivElement> {
+  shape?: boolean;
+}
+
 /**
  * Le fond décoratif du catalogue.
  *
@@ -2345,7 +2416,7 @@ export function BackgroundSurface({
   children,
   className,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { shape?: boolean }) {
+}: BackgroundSurfaceProps) {
   return (
     <div
       className={cx(
@@ -2360,11 +2431,11 @@ export function BackgroundSurface({
   );
 }
 
-export function DescriptionList({
-  items = [],
-}: {
+export interface DescriptionListProps {
   items?: readonly { term: ReactNode; description: ReactNode }[];
-}) {
+}
+
+export function DescriptionList({ items = [] }: DescriptionListProps) {
   return (
     <dl className="opale-description-list">
       {/* `<div>` ET NON `<span>` : le modèle de contenu d'un `<dl>` n'admet
@@ -2380,7 +2451,12 @@ export function DescriptionList({
     </dl>
   );
 }
-export function BulletList({ items = [] }: { items?: readonly ReactNode[] }) {
+
+export interface BulletListProps {
+  items?: readonly ReactNode[];
+}
+
+export function BulletList({ items = [] }: BulletListProps) {
   return (
     <ul className="opale-bullet-list">
       {items.map((item, index) => (
@@ -2476,7 +2552,12 @@ function inkCut(fill: number): number {
   return RATING_INK_CUTS[bas] + (RATING_INK_CUTS[haut] - RATING_INK_CUTS[bas]) * (position - bas);
 }
 
-export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: { value?: number; max?: number }) {
+export interface RatingProps {
+  value?: number;
+  max?: number;
+}
+
+export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: RatingProps) {
   /* LE REMPLISSAGE EST FRACTIONNAIRE, ET C'EST TOUT LE COMPOSANT.
 
      Il comparait `index + 1 <= value` : une note de 3,75 dessinait donc
@@ -2558,17 +2639,14 @@ export function Rating({ value = 0, max = RATING_DEFAULT_MAX }: { value?: number
   );
 }
 
-export function StatCard({
-  label,
-  value,
-  delta,
-  liquidGlass = false,
-}: {
+export interface StatCardProps {
   label: ReactNode;
   value: ReactNode;
   delta?: ReactNode;
   liquidGlass?: boolean;
-}) {
+}
+
+export function StatCard({ label, value, delta, liquidGlass = false }: StatCardProps) {
   return (
     <Surface className="opale-stat-card" liquidGlass={liquidGlass}>
       <span className="opale-stat-card__label">{label}</span>
@@ -2577,7 +2655,13 @@ export function StatCard({
     </Surface>
   );
 }
-export function Donut({ value = 60, label = `${value}%` }: { value?: number; label?: string }) {
+
+export interface DonutProps {
+  value?: number;
+  label?: string;
+}
+
+export function Donut({ value = 60, label = `${value}%` }: DonutProps) {
   return (
     <div
       className="opale-donut"
@@ -2815,7 +2899,11 @@ export function DataTable({
   );
 }
 
-export function LegalLinks({ links = [] }: { links?: readonly NavItem[] }) {
+export interface LegalLinksProps {
+  links?: readonly NavItem[];
+}
+
+export function LegalLinks({ links = [] }: LegalLinksProps) {
   return (
     <nav className="opale-legal-links" aria-label="Liens légaux">
       {links.map((link) => (
@@ -2827,19 +2915,21 @@ export function LegalLinks({ links = [] }: { links?: readonly NavItem[] }) {
   );
 }
 
+export interface FileCardProps {
+  name: string;
+  size?: string;
+  selected?: boolean;
+  onClick?: () => void;
+  liquidGlass?: boolean;
+}
+
 export function FileCard({
   name,
   size,
   selected = false,
   onClick,
   liquidGlass = false,
-}: {
-  name: string;
-  size?: string;
-  selected?: boolean;
-  onClick?: () => void;
-  liquidGlass?: boolean;
-}) {
+}: FileCardProps) {
   return (
     /* `aria-pressed` ET UNE CLASSE PROPRE, À LA PLACE DU LAVIS.
 
@@ -3032,13 +3122,8 @@ export function Dropzone({
     </Zone>
   );
 }
-export function Lightbox({
-  src,
-  alt,
-  open = false,
-  onClose,
-  liquidGlass = false,
-}: {
+
+export interface LightboxProps {
   src?: string;
   /* `alt` EST OBLIGATOIRE, ET IL NE PEUT PAS EN ÊTRE AUTREMENT. Sa valeur par
      défaut était la chaîne vide, c'est-à-dire « cette image est décorative » —
@@ -3050,7 +3135,9 @@ export function Lightbox({
   open?: boolean;
   onClose?: () => void;
   liquidGlass?: boolean;
-}) {
+}
+
+export function Lightbox({ src, alt, open = false, onClose, liquidGlass = false }: LightboxProps) {
   return (
     <Modal
       open={open && Boolean(src)}
@@ -3096,15 +3183,13 @@ const CLIPBOARD_STATUS: Record<ClipboardState, string> = {
   failed: 'Échec de la copie',
 };
 
-export function Clipboard({
-  value,
-  liquidGlass = false,
-  children = 'Copier',
-}: {
+export interface ClipboardProps {
   value: string;
   liquidGlass?: boolean;
   children?: ReactNode;
-}) {
+}
+
+export function Clipboard({ value, liquidGlass = false, children = 'Copier' }: ClipboardProps) {
   const [state, setState] = useState<ClipboardState>('idle');
   const reset = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 

@@ -13,6 +13,7 @@ import { createPortal } from 'react-dom';
 
 import Glass from '../glass/Glass';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
+import type { OpalePlacement } from '../../shared';
 
 import styles from './style/Toast.module.css';
 
@@ -86,10 +87,11 @@ type ToastVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 /** Les tons qui doivent INTERROMPRE la lecture plutôt que l'attendre. */
 const ASSERTIVE_VARIANTS = new Set<ToastVariant>(['error', 'warning']);
 
-type ToastAnimation = 'slide-from-right' | 'slide-from-left' | 'slide-from-bottom' | 'scale';
+/** L'entrée en scène d'une notification. */
+export type ToastAnimation = 'slide-from-right' | 'slide-from-left' | 'slide-from-bottom' | 'scale';
 
-type ToastPosition =
-  'top-right' | 'top-left' | 'top-center' | 'bottom-right' | 'bottom-left' | 'bottom-center';
+/** Les six places de la file : le vocabulaire commun d'Opale. */
+type ToastPosition = OpalePlacement;
 
 export type ToastDefinition = {
   id?: string;

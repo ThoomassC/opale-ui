@@ -209,8 +209,8 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   StatCard: {
     states: 'Métrique, valeur et variation sur une même surface.',
     rows: [
-      prop('label', 'ReactNode', 'Nom de la métrique.'),
-      prop('value', 'ReactNode', 'Valeur principale.'),
+      prop('label', 'ReactNode', 'Nom de la métrique.', undefined, true),
+      prop('value', 'ReactNode', 'Valeur principale.', undefined, true),
       prop('delta', 'ReactNode', 'Variation ou contexte.'),
     ],
   },
@@ -252,6 +252,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   Toast: {
     states: 'Notification pilotée par l’application dans le coin choisi de l’écran.',
     rows: [
+      prop('message', 'ReactNode', 'Contenu de la notification.', undefined, true),
       prop('open', 'boolean', 'Affiche ou masque le message.', 'true'),
       prop('tone', 'ToastTone', 'Sens et couleur du message.', 'neutral'),
       prop('position', 'ToastPlacement', 'Position dans la fenêtre.', 'bottom-right'),
@@ -420,11 +421,8 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       ),
       prop('viewport', 'UseSvgMapViewportResult', 'Vue partagée, pour cadrer de l’extérieur.'),
       prop('maxZoom', 'number', 'Zoom maximal, en facteur de la vue d’ensemble.', '9'),
-      prop(
-        'maxWidth / maxHeight',
-        'string',
-        'Bornes de taille ; la hauteur est traduite en largeur.',
-      ),
+      prop('maxWidth', 'string', 'Largeur maximale ; la carte se centre au-delà.'),
+      prop('maxHeight', 'string', 'Hauteur maximale, traduite en largeur au rapport du viewBox.'),
       prop('controls', 'boolean', 'Boutons de zoom intégrés.', 'true'),
       prop(
         'tapTolerance',

@@ -10,7 +10,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import Glass, { type GlassProps } from '../glass/Glass';
+import Glass, { type GlassSurfaceProps } from '../glass/Glass';
 import styles from './style/Topbar.module.css';
 
 /* =============================================================================
@@ -81,25 +81,8 @@ const useTopbarContext = (component: string) => {
   return context;
 };
 
-type SectionGap = 'tight' | 'regular' | 'relaxed';
-
-/**
- * Ce que `Topbar` et ses parties reprennent de `GlassProps`, et rien de plus.
- *
- * L'ANCIENNE ÉCRITURE INTERSECTAIT `GlassProps` EN ENTIER, ce qui apportait
- * deux choses de trop : le `as` du verre — analysé en tête de fichier — et
- * l'intégralité des attributs d'un `<div>`, qui venaient s'intersecter avec
- * ceux du `<header>`. Un `onClick` déclaré des deux côtés devient alors une
- * intersection de deux signatures, et son paramètre un `MouseEvent<HTMLElement>
- * & MouseEvent<HTMLDivElement>` : un type que personne n'a écrit et que
- * personne ne sait satisfaire sans le contourner.
- *
- * Quatre props sont réellement utiles ici, et les voici nommées.
- */
-type GlassSurfaceProps = Pick<
-  GlassProps,
-  'rootClassName' | 'rootStyle' | 'enableLiquidAnimation' | 'triggerAnimation'
->;
+/** L'espacement entre les éléments d'une section de la barre. */
+export type TopbarGap = 'tight' | 'regular' | 'relaxed';
 
 export type TopbarProps = ComponentPropsWithoutRef<'header'> & {
   size?: TopbarSize;
@@ -177,7 +160,7 @@ TopbarBase.displayName = 'Topbar';
 export type TopbarSectionProps = ComponentPropsWithoutRef<'div'> & {
   grow?: boolean;
   align?: 'left' | 'center' | 'right' | 'between';
-  gap?: SectionGap;
+  gap?: TopbarGap;
   wrap?: boolean;
 };
 
@@ -188,7 +171,7 @@ const alignClassMap: Record<NonNullable<TopbarSectionProps['align']>, string> = 
   between: styles.alignBetween,
 };
 
-const gapClassMap: Record<SectionGap, string> = {
+const gapClassMap: Record<TopbarGap, string> = {
   tight: styles.gapTight,
   regular: styles.gapRegular,
   relaxed: styles.gapRelaxed,
@@ -276,7 +259,7 @@ const TopbarBrand = forwardRef<HTMLDivElement, TopbarBrandProps>(
 TopbarBrand.displayName = 'Topbar.Brand';
 
 export type TopbarActionsProps = ComponentPropsWithoutRef<'div'> & {
-  gap?: SectionGap;
+  gap?: TopbarGap;
 };
 
 /** Une `Topbar.Section` préréglée : alignée à droite, gouttière serrée. */

@@ -14,7 +14,8 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import Glass, { type GlassProps } from '../glass/Glass';
+import Glass, { type GlassSurfaceProps } from '../glass/Glass';
+import type { OpaleSize } from '../../shared';
 import styles from './style/Sidebar.module.css';
 
 /* =============================================================================
@@ -70,7 +71,7 @@ import styles from './style/Sidebar.module.css';
    polymorphe serait une autre API, pas une correction.
    ========================================================================== */
 
-type SidebarSize = 'small' | 'medium' | 'large';
+type SidebarSize = OpaleSize;
 
 export type SidebarContextValue = {
   size: SidebarSize;
@@ -94,19 +95,6 @@ const useSidebarContext = (component: string) => {
 
   return context;
 };
-
-/**
- * Ce que `Sidebar` reprend de `GlassProps`, et rien de plus.
- *
- * Le raisonnement est celui écrit en tête de `Topbar.tsx` : intersecter
- * `GlassProps` en entier apportait le `as` du verre — qui aurait permis de
- * remplacer l'`<aside>` par autre chose — et tous les attributs d'un `<div>`,
- * qui venaient s'intersecter avec ceux de l'`<aside>`.
- */
-type GlassSurfaceProps = Pick<
-  GlassProps,
-  'rootClassName' | 'rootStyle' | 'enableLiquidAnimation' | 'triggerAnimation'
->;
 
 export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle'> & {
   size?: SidebarSize;

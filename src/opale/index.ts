@@ -9,3 +9,4 @@ import './motion.scss';
 import './opale.css';
 export * from './components';
 export * from './opale';
+export type * from './shared';
