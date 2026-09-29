@@ -12,6 +12,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import Glass from '../glass/Glass';
+import { IconGlyph } from '../icon';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
@@ -393,7 +394,8 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
           aria-label={labels.close}
           onClick={() => onDismiss(id)}
         >
-          <span aria-hidden="true">×</span>
+          {/* Le tracé de la croix d'Opale, comme dans `Modal` : pas le signe « × ». */}
+          <IconGlyph name="close" className={styles.closeGlyph} />
         </button>
       </Carte>
     </div>

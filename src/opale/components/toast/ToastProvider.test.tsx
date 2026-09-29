@@ -402,6 +402,21 @@ describe('ToastProvider — tone', () => {
   });
 });
 
+describe('ToastProvider — la croix', () => {
+  it('dessine la croix du jeu d’icônes, comme la modale, au lieu du caractère ×', () => {
+    renderWithProvider(<Trigger label="Publier" toast={{ title: 'Publié' }} />, {
+      duration: Infinity,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Publier' }));
+    const close = screen.getByRole('button', { name: 'Fermer la notification' });
+
+    expect(close).toHaveTextContent('');
+    expect(close.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    expect(close.querySelector('svg')).toHaveClass(toastClasses.closeGlyph);
+  });
+});
+
 describe('ToastProvider — durée des messages urgents', () => {
   beforeEach(() => {
     vi.useFakeTimers();

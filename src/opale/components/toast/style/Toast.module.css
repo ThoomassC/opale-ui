@@ -210,6 +210,12 @@
   outline-offset: var(--opale-focus-ring-offset);
 }
 
+.closeGlyph {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
 /* LES QUATRE ENTRÉES, ET LEURS QUATRE SORTIES.
 
    Les durées — 220, 220, 240 et 200 ms — sont celles que la page de vitrine
