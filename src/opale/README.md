@@ -86,6 +86,51 @@ Les noms internes ont d'ailleurs tous changé à cette occasion : `glassFilter`,
 `glassOverlay`, `glassSpecular`, `glassContainer` et `glassContent` n'existent
 plus. Si une feuille d'hôte les cite encore, elle ne s'applique à rien.
 
+**Les réglages du verre sont les mêmes d'un composant à l'autre.**
+`liquidGlass` choisit la matière ; `className` et `style` vont au contenu.
+`rootClassName` et `rootStyle` restent publics parce qu'ils sont **le seul accès
+à l'enveloppe depuis l'appel** — celle qui porte largeur, rayon et ombre —, et
+ils valent aussi en version pleine, fondus sur l'élément unique (le `style` de
+l'appelant l'emporte). `enableLiquidAnimation` règle l'onde là où le composant
+en fait naître une : ouverture de `Modal`, arrivée d'un toast, clic dans
+`SearchBar`. Le reste est interne au matériau : `triggerAnimation`, l'onde d'une
+surface (`enableLiquidAnimation` de `Topbar`, `Sidebar`, `Tabs`), `as` et
+`pressFeedback` de `Modal` et `Tabs`, et l'ancien `enableClickAnimation` de
+`SearchBar`. Ces props gardent leur effet et portent `@deprecated` ; en version
+pleine, elles n'arrivent plus dans le DOM.
+
+## Les classes stables
+
+Les classes des modules sont hachées (`opale-mod-panel-x7Kq2`) : une feuille
+d'hôte ne peut pas les nommer. Chaque racine et chaque partie qui compte porte
+donc **aussi** une classe `opale-*` non hachée, dans les deux matières. La classe
+du module reste à côté ; `stable-classes.test.tsx` vérifie la liste ci-dessous.
+
+Le nommage suit `opale.css` : `opale-<bloc>` pour la racine,
+`opale-<bloc>__<partie>` pour une partie, `--<état>` pour un état.
+**`__shell` désigne l'élément qui porte la silhouette** (largeur, rayon, ombre) :
+l'enveloppe du verre avec `liquidGlass`, le même élément que la racine sans.
+
+| Composant | Classes |
+| --- | --- |
+| `Modal` | `opale-modal` (conteneur de portail), `__backdrop`, `__shell`, `__panel` (le `role="dialog"`), `__header`, `__heading`, `__title`, `__description`, `__close`, `__body`, `__footer` |
+| `Tabs` | `opale-tabs`, `__shell`, `__list`, `__indicator`, `__trigger`, `__trigger-shell`, `__content` |
+| `Sidebar` | `opale-sidebar`, `opale-sidebar--collapsed`, `__shell`, `__header`, `__items`, `__item`, `__item-icon`, `__item-fallback`, `__item-label`, `__badge`, `__footer`, `__toggle` |
+| `Topbar` | `opale-topbar`, `__shell`, `__section`, `__brand`, `__brand-icon`, `__brand-content`, `__brand-title`, `__brand-subtitle`, `__actions`, `__divider` |
+| `ToastProvider` | `opale-toast-provider` (conteneur de portail), `__stack`, `__region`, `__card`, `__surface`, `__body`, `__text`, `__title`, `__description`, `__close` |
+| `SearchBar` | `opale-search-bar` (le repère `search`), `__shell`, `__icon`, `__input` |
+| `SiteNav` | `opale-site-nav` (le `<header>`), `__shell`, `__brand`, `__inner`, `__list`, `__link`, `__bubble` |
+| `PageScaffold` | `opale-page-scaffold`, `__skip-link`, `__header`, `__header-shell`, `__brand`, `__search`, `__suggestions`, `__suggestion`, `__suggestion-label`, `__suggestion-group`, `__no-results`, `__navigation`, `__mobile-navigation`, `__menu-button`, `__actions`, `__main`, `__intro`, `__footer`, `__footer-links`, `__copyright` |
+
+`ToastProvider` s'appelle `opale-toast-provider` et non `opale-toast` : ce nom
+appartient déjà à `Opale.Toast` dans `opale.css`.
+
+**La spécificité est celle du module : une classe, (0,1,0).** À poids égal,
+l'ordre tranche : la feuille d'hôte doit être chargée après celles d'Opale, ou
+viser `.hote .opale-modal__panel`. Les états passent par les attributs ARIA
+déjà posés — `[aria-selected='true']` sur un onglet, `[aria-current='page']` sur
+une entrée ou un lien.
+
 ## Les feuilles
 
 Neuf modules de style, un par composant rendu : **huit `.module.css` et un seul
@@ -157,6 +202,13 @@ interrupteur de fichier.
 
 ## Ce qui n'est pas mesuré
 
+- **Le coût GPU du verre.** Le déplacement SVG est coupé sous
+  `prefers-reduced-transparency`, `prefers-reduced-motion`, sous 37,5 rem et sous
+  un pointeur grossier (`Glass.displacement.structure.test.ts`) ; le flou reste
+  partout. Aucun profil n'a été pris : ni le panneau Performance de Chromium
+  (durée de *Paint* et de *Composite* par image, en défilant une page chargée de
+  verres), ni le clignotement des zones repeintes (*Paint flashing*), ni la
+  comparaison avec et sans le filtre sur un appareil mobile réel.
 - **Aucun audit `axe`** n'a été passé sur ces composants. Ce qu'on sait de leur
   accessibilité vient de la lecture du code, d'ESLint et des tests écrits à la
   main.

@@ -255,7 +255,7 @@ const generateToastId = () => {
    et porte les deux classes. Le reste — le texte, le bouton de fermeture, la
    minuterie et sa pause — ne dépend d'aucune des deux.
    ========================================================================== */
-function Carte({
+function ToastSurface({
   liquidGlass,
   rootClassName,
   className,
@@ -365,7 +365,12 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
 
   return (
     <div
-      className={cx(styles.card, animationClass[animation], dismissed && styles.leaving)}
+      className={cx(
+        'opale-toast-provider__card',
+        styles.card,
+        animationClass[animation],
+        dismissed && styles.leaving,
+      )}
       data-testid="toast"
       /* Les quatre gestionnaires sont le dispositif WCAG 2.2.1, et il en faut
          quatre : la souris et le doigt passent par le pointeur, le clavier par
@@ -376,28 +381,32 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
       onFocus={pause}
       onBlur={resume}
     >
-      <Carte
+      <ToastSurface
         liquidGlass={liquidGlass}
-        rootClassName={cx(styles.surface, toneClass[tone])}
-        className={styles.body}
+        rootClassName={cx('opale-toast-provider__surface', styles.surface, toneClass[tone])}
+        className={cx('opale-toast-provider__body', styles.body)}
         enableLiquidAnimation={enableLiquidAnimation}
         triggerAnimation={entered}
       >
-        <div className={styles.text}>
-          {title && <p className={styles.title}>{title}</p>}
-          {description && <p className={styles.description}>{description}</p>}
+        <div className={cx('opale-toast-provider__text', styles.text)}>
+          {title && <p className={cx('opale-toast-provider__title', styles.title)}>{title}</p>}
+          {description && (
+            <p className={cx('opale-toast-provider__description', styles.description)}>
+              {description}
+            </p>
+          )}
         </div>
 
         <button
           type="button"
-          className={styles.close}
+          className={cx('opale-toast-provider__close', styles.close)}
           aria-label={labels.close}
           onClick={() => onDismiss(id)}
         >
           {/* Le tracé de la croix d'Opale, comme dans `Modal` : pas le signe « × ». */}
           <IconGlyph name="close" className={styles.closeGlyph} />
         </button>
-      </Carte>
+      </ToastSurface>
     </div>
   );
 }
@@ -416,7 +425,10 @@ function ToastStack({
   const ref = useRef<HTMLDivElement>(null);
   useScrollPadding(ref, position.startsWith('top') ? 'top' : 'bottom', occupied);
   return (
-    <div ref={ref} className={cx(styles.stack, positionClass[position])}>
+    <div
+      ref={ref}
+      className={cx('opale-toast-provider__stack', styles.stack, positionClass[position])}
+    >
       {children}
     </div>
   );
@@ -569,7 +581,7 @@ export const ToastProvider = ({
       {portalNode &&
         createPortal(
           <div
-            className={styles.root}
+            className={cx('opale-toast-provider', styles.root)}
             data-testid="toast-portal"
             /* Une modale ouverte rend le reste de la page inerte ; les toasts
                lancés depuis elle doivent rester annoncés et refermables. */
@@ -587,7 +599,7 @@ export const ToastProvider = ({
                     l'annonce aux ajouts : le départ d'une carte n'a rien à
                     dire. */}
                 <div
-                  className={styles.region}
+                  className={cx('opale-toast-provider__region', styles.region)}
                   role="status"
                   aria-live="polite"
                   aria-atomic="false"
@@ -597,7 +609,7 @@ export const ToastProvider = ({
                 </div>
 
                 <div
-                  className={styles.region}
+                  className={cx('opale-toast-provider__region', styles.region)}
                   role="alert"
                   aria-live="assertive"
                   aria-atomic="false"

@@ -121,6 +121,7 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   closeOnEsc?: boolean;
   lockScroll?: boolean;
   size?: ModalSize;
+  /** L'onde qui parcourt le panneau en verre à son ouverture. Défaut : `true`. */
   enableLiquidAnimation?: boolean;
   portalContainer?: HTMLElement | null;
   /** Remplace les textes français par défaut, clé par clé. */
@@ -135,9 +136,15 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   liquidGlass?: boolean;
   /** Le panneau du dialogue, celui qui porte `role="dialog"`. */
   ref?: Ref<HTMLDivElement>;
+  /** @deprecated Depuis 3.7 — utilisez `enableLiquidAnimation` ; l'onde d'ouverture est programmée par la modale. */
+  triggerAnimation?: boolean;
+  /** @deprecated Depuis 3.7 — utilisez `className` ; la balise du panneau est interne au verre. */
+  as?: GlassProps['as'];
+  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
+  pressFeedback?: boolean;
   /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
      côtés, sans quoi l'intersection le ramène à une chaîne. */
-} & Omit<GlassProps, 'title'>;
+} & Omit<GlassProps, 'title' | 'triggerAnimation' | 'as' | 'pressFeedback'>;
 
 const sizeClass: Record<OpaleSize, string> = {
   small: styles.sm,
@@ -182,7 +189,7 @@ const cx = (...values: readonly (string | false | null | undefined)[]) =>
    `<div>`. Extraire ce choix ici évite d'écrire deux fois les huit attributs
    du dialogue, qui sont son contrat d'accessibilité.
    ========================================================================== */
-type PanneauProps = Omit<GlassProps<'div'>, 'title'> & {
+type PanelProps = Omit<GlassProps<'div'>, 'title'> & {
   liquidGlass: boolean;
   /* `ref` EST UNE PROP ORDINAIRE, et ce fichier n'importe pas `forwardRef`.
      React 19 l'a rendu inutile sur un composant de fonction ; l'envelopper
@@ -190,15 +197,19 @@ type PanneauProps = Omit<GlassProps<'div'>, 'title'> & {
   ref?: Ref<HTMLDivElement>;
 };
 
-function Panneau({
+function Panel({
   liquidGlass,
   ref,
   rootClassName,
+  rootStyle,
   className,
+  style,
   triggerAnimation,
+  as,
+  pressFeedback,
   children,
   ...rest
-}: PanneauProps) {
+}: PanelProps) {
   if (liquidGlass) {
     return (
       <Glass
@@ -206,8 +217,12 @@ function Panneau({
         ref={ref}
         enableLiquidAnimation={false}
         triggerAnimation={triggerAnimation}
+        as={as}
+        pressFeedback={pressFeedback}
         rootClassName={rootClassName}
+        rootStyle={rootStyle}
         className={className}
+        style={style}
       >
         {children}
       </Glass>
@@ -215,7 +230,12 @@ function Panneau({
   }
 
   return (
-    <div {...rest} ref={ref} className={cx(rootClassName, className, styles.plain)}>
+    <div
+      {...rest}
+      ref={ref}
+      className={cx(rootClassName, className, styles.plain)}
+      style={rootStyle ? { ...rootStyle, ...style } : style}
+    >
       {children}
     </div>
   );
@@ -499,7 +519,11 @@ const Modal = ({
 
   return createPortal(
     <ModalDepthContext.Provider value={depth}>
-      <div ref={containerRef} className={styles.container} data-testid="modal-container">
+      <div
+        ref={containerRef}
+        className={cx('opale-modal', styles.container)}
+        data-testid="modal-container"
+      >
         {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
           porte `aria-hidden` parce que la fermeture qu'il offre à la souris
           existe déjà au clavier, par Échap et par la croix. En faire un
@@ -510,7 +534,7 @@ const Modal = ({
         <div
           data-testid="modal-overlay"
           aria-hidden="true"
-          className={styles.overlay}
+          className={cx('opale-modal__backdrop', styles.overlay)}
           onClick={closeOnOverlay ? handleClose : undefined}
         />
 
@@ -520,13 +544,18 @@ const Modal = ({
           `tabIndex` et les deux gestionnaires — sont écrits UNE FOIS et posés
           sur les deux rendus : c'est tout le contrat d'accessibilité du
           composant, et il ne doit pas dépendre d'une apparence. */}
-        <Panneau
+        <Panel
           {...rest}
           ref={panelRefs}
           liquidGlass={liquidGlass}
           triggerAnimation={openRipple}
-          rootClassName={cx(styles.shell, sizeClass[normalizeSize(size, 'medium')], rootClassName)}
-          className={cx(styles.panel, className)}
+          rootClassName={cx(
+            'opale-modal__shell',
+            styles.shell,
+            sizeClass[normalizeSize(size, 'medium')],
+            rootClassName,
+          )}
+          className={cx('opale-modal__panel', styles.panel, className)}
           role="dialog"
           aria-modal="true"
           aria-label={ariaLabel}
@@ -537,7 +566,7 @@ const Modal = ({
           onClick={handlePanelClick}
         >
           {showHeader && (
-            <div className={styles.header}>
+            <div className={cx('opale-modal__header', styles.header)}>
               {/* LE BLOC DE TITRE N'EXISTE QUE S'IL A QUELQUE CHOSE DEDANS.
                 `showHeader` est vrai dès qu'il y a un `onClose`, donc un
                 dialogue sans titre ni description — une visionneuse d'image,
@@ -545,15 +574,18 @@ const Modal = ({
                 filet de séparation tirait une ligne pleine largeur sous un
                 bouton isolé. La feuille s'accroche à la présence de ce bloc. */}
               {(title || description) && (
-                <div className={styles.heading}>
+                <div className={cx('opale-modal__heading', styles.heading)}>
                   {title && (
-                    <h2 id={titleId} className={styles.title}>
+                    <h2 id={titleId} className={cx('opale-modal__title', styles.title)}>
                       {title}
                     </h2>
                   )}
 
                   {description && (
-                    <p id={descriptionId} className={styles.description}>
+                    <p
+                      id={descriptionId}
+                      className={cx('opale-modal__description', styles.description)}
+                    >
                       {description}
                     </p>
                   )}
@@ -563,7 +595,7 @@ const Modal = ({
               {(onClose || onOpenChange) && (
                 <button
                   type="button"
-                  className={styles.close}
+                  className={cx('opale-modal__close', styles.close)}
                   aria-label={labels.close}
                   onClick={handleClose}
                 >
@@ -580,10 +612,10 @@ const Modal = ({
             </div>
           )}
 
-          {children && <div className={styles.body}>{children}</div>}
+          {children && <div className={cx('opale-modal__body', styles.body)}>{children}</div>}
 
-          {footer && <div className={styles.footer}>{footer}</div>}
-        </Panneau>
+          {footer && <div className={cx('opale-modal__footer', styles.footer)}>{footer}</div>}
+        </Panel>
       </div>
     </ModalDepthContext.Provider>,
     container,

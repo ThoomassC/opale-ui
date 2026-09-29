@@ -86,7 +86,7 @@ import './opale/opale.css';
 
 // Hack est embarquée avec la vitrine : les exemples restent identiques sur
 // toutes les machines, sans dépendre d'une police installée localement.
-import 'hack-font/build/web/hack.css';
+import './styles/hack-font.css';
 
 // L'habillage de la vitrine, et lui seul : `doc.css` n'est pas publié dans le
 // paquet, donc aucun consommateur ne le télécharge. Il vient en dernier.

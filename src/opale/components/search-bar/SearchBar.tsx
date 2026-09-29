@@ -6,6 +6,9 @@ import styles from './style/SearchBar.module.scss';
 export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   size?: 'small' | 'medium' | 'large';
   icon?: ReactNode;
+  /** L'onde qui naît au clic dans le champ en verre. Défaut : `true`. */
+  enableLiquidAnimation?: boolean;
+  /** @deprecated Depuis 3.7 — utilisez `enableLiquidAnimation`. */
   enableClickAnimation?: boolean;
   /** Pose le repère `search` autour du champ. Défaut : `true`. */
   landmark?: boolean;
@@ -29,7 +32,8 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       size = 'medium',
       icon,
       disabled,
-      enableClickAnimation = true,
+      enableLiquidAnimation,
+      enableClickAnimation,
       landmark = true,
       landmarkLabel,
       liquidGlass = false,
@@ -43,10 +47,15 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
        enveloppe — le verre en a une, la version pleine n'en a pas besoin —,
        mais l'icône, le champ, son nom et ses classes ne dépendent d'aucune
        des deux. Les séparer est ce qui empêche les deux rendus de diverger. */
-    const contenu = (
+    const content = (
       <>
         {icon ?? (
-          <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg
+            className={clsx('opale-search-bar__icon', styles.icon)}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
             <circle
               cx="10.8"
               cy="10.8"
@@ -78,7 +87,13 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
           aria-label={
             ariaLabel ?? (props['aria-labelledby'] || props.id ? undefined : 'Rechercher')
           }
-          className={clsx(styles.input, styles[size], disabled && styles.disabled, className)}
+          className={clsx(
+            'opale-search-bar__input',
+            styles.input,
+            styles[size],
+            disabled && styles.disabled,
+            className,
+          )}
         />
       </>
     );
@@ -88,9 +103,15 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         <div
           role={landmark ? 'search' : undefined}
           aria-label={landmark ? landmarkLabel : undefined}
-          className={clsx(styles.root, styles.searchBar, styles.plain)}
+          className={clsx(
+            'opale-search-bar__shell',
+            'opale-search-bar',
+            styles.root,
+            styles.searchBar,
+            styles.plain,
+          )}
         >
-          {contenu}
+          {content}
         </div>
       );
     }
@@ -99,12 +120,12 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       <Glass
         role={landmark ? 'search' : undefined}
         aria-label={landmark ? landmarkLabel : undefined}
-        rootClassName={styles.root}
+        rootClassName={clsx('opale-search-bar__shell', styles.root)}
         rootStyle={{ width: '100%' }}
-        enableLiquidAnimation={!disabled && enableClickAnimation}
-        className={styles.searchBar}
+        enableLiquidAnimation={!disabled && (enableLiquidAnimation ?? enableClickAnimation ?? true)}
+        className={clsx('opale-search-bar', styles.searchBar)}
       >
-        {contenu}
+        {content}
       </Glass>
     );
   },

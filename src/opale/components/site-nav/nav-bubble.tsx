@@ -30,7 +30,7 @@ type OptimisticSelection = {
   readonly targetKey: string;
 };
 
-/** Keeps one liquid surface moving between the navigation's destinations. */
+/** Déplace une seule surface de verre entre les destinations de la navigation. */
 export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
   const initialKey = activeKey ?? items[0]?.id;
   const [optimisticSelection, setOptimisticSelection] = useState<OptimisticSelection>();
@@ -58,10 +58,10 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
   );
 
   /*
-   * The optimistic state belongs to the active key it replaced. When the
-   * consumer updates `activeKey` after routing, the new prop wins during render
-   * and no state-setting effect is needed. That keeps the click animation smooth
-   * while avoiding a cascading render after every route change.
+   * La sélection optimiste appartient à la clé active qu'elle a remplacée.
+   * Quand l'appelant met `activeKey` à jour après le routage, la nouvelle prop
+   * l'emporte pendant le rendu, sans effet qui écrive un état : l'animation du
+   * clic reste fluide et aucun rendu en cascade ne suit un changement de page.
    */
   const displayedKey =
     optimisticSelection && optimisticSelection.sourceKey === activeKey
@@ -98,7 +98,9 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
           link.getBoundingClientRect().left + link.getBoundingClientRect().width / 2 - clientX,
         );
         const closestDistance = Math.abs(
-          closest.getBoundingClientRect().left + closest.getBoundingClientRect().width / 2 - clientX,
+          closest.getBoundingClientRect().left +
+            closest.getBoundingClientRect().width / 2 -
+            clientX,
         );
         return distance < closestDistance ? link : closest;
       });
@@ -237,14 +239,14 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
   return (
     <ul
       ref={listRef}
-      className={styles.list}
+      className={`opale-site-nav__list ${styles.list}`}
       data-active-index={activeIndex}
       data-item-count={items.length}
       data-moving={moving ? 'true' : undefined}
       data-dragging={dragging ? 'true' : undefined}
     >
       <LiquidBubble
-        className={styles.movingBubble}
+        className={`opale-site-nav__bubble ${styles.movingBubble}`}
         aria-hidden="true"
         style={{ insetInlineStart: dragPosition !== undefined ? `${dragPosition}px` : undefined }}
       />
@@ -253,7 +255,7 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
         return (
           <li key={item.id}>
             <a
-              className={styles.link}
+              className={`opale-site-nav__link ${styles.link}`}
               data-nav={item.id}
               href={item.href}
               aria-current={current ? 'page' : undefined}

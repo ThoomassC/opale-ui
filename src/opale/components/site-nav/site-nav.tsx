@@ -7,16 +7,16 @@ import Glass from '../glass/Glass';
 import styles from './site-nav.module.css';
 
 export type SiteNavItem = {
-  /** Stable identifier used to position the single active liquid bubble. */
+  /** Identifiant stable qui place l'unique bulle active. */
   readonly id: string;
-  /** Destination of the anchor. */
+  /** La destination du lien. */
   readonly href: string;
-  /** Visible label for the destination. */
+  /** Le libellé visible de la destination. */
   readonly label: ReactNode;
 };
 
 /**
- * Default destinations for the compact site navigation.
+ * Les destinations par défaut de la barre de navigation compacte.
  * @deprecated Depuis 3.6 — utilisez `items`.
  */
 export const DEFAULT_SITE_NAV_ITEMS: readonly SiteNavItem[] = [
@@ -27,7 +27,7 @@ export const DEFAULT_SITE_NAV_ITEMS: readonly SiteNavItem[] = [
 ];
 
 export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
-  /** Optional brand lock-up supplied by the consuming application. */
+  /** La marque, fournie par l'application hôte. Facultative. */
   readonly brand?: ReactNode;
   /**
    * Les destinations principales, pensées pour quatre entrées. Passez-les
@@ -38,11 +38,12 @@ export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
   readonly value?: string;
   /** @deprecated Depuis 3.6 — utilisez `value`. */
   readonly activeItem?: string;
-  /** Accessible name of the navigation landmark. */
+  /** Le nom accessible du repère de navigation. */
   readonly navLabel?: string;
   /**
-   * Optional client-side navigation hook. When provided, the component keeps
-   * the clicked bubble visible and delegates routing to the consumer.
+   * Le crochet de navigation côté client, facultatif. Présent, il reçoit le
+   * routage : le composant garde la bulle sur l'entrée cliquée et laisse
+   * l'appelant changer de page.
    */
   readonly onNavigate?: (item: SiteNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
   /**
@@ -58,10 +59,11 @@ export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
 };
 
 /**
- * Reusable liquid-glass site navigation.
+ * La barre de navigation du site, réutilisable.
  *
- * The component owns the chrome and the animated active surface. Application
- * concerns stay in slots and data: optional brand, routes and labels.
+ * Le composant tient le chrome et la surface active animée. Ce qui relève de
+ * l'application passe par les emplacements et les données : marque
+ * facultative, adresses et libellés.
  */
 export function SiteNav({
   brand,
@@ -74,14 +76,14 @@ export function SiteNav({
   className,
   ...headerProps
 }: SiteNavProps) {
-  const classes = [styles.bar, liquidGlass ? styles.glass : '', className]
+  const classes = ['opale-site-nav', styles.bar, liquidGlass ? styles.glass : '', className]
     .filter(Boolean)
     .join(' ');
   const content = (
     <>
-      {brand && <div className={styles.brandZone}>{brand}</div>}
+      {brand && <div className={`opale-site-nav__brand ${styles.brandZone}`}>{brand}</div>}
 
-      <div className={styles.inner}>
+      <div className={`opale-site-nav__inner ${styles.inner}`}>
         <nav aria-label={navLabel}>
           <NavBubble items={items} activeKey={value ?? activeItem} onNavigate={onNavigate} />
         </nav>
@@ -95,14 +97,19 @@ export function SiteNav({
      décorative quand on active le matériau. */
   if (liquidGlass) {
     return (
-      <Glass as="header" className={classes} rootClassName={styles.glassRoot} {...headerProps}>
+      <Glass
+        as="header"
+        className={classes}
+        rootClassName={`opale-site-nav__shell ${styles.glassRoot}`}
+        {...headerProps}
+      >
         {content}
       </Glass>
     );
   }
 
   return (
-    <header className={classes} {...headerProps}>
+    <header className={`opale-site-nav__shell ${classes}`} {...headerProps}>
       {content}
     </header>
   );

@@ -71,6 +71,27 @@
     transform var(--opale-motion-slow) var(--opale-ease);
 }
 
+/* LE DÉPLACEMENT SE COUPE LÀ OÙ IL COÛTE LE PLUS OU SERT LE MOINS.
+
+   Le filtre SVG — bruit fractal puis déplacement — est recalculé à chaque
+   peinture de chaque verre, par-dessus le `backdrop-filter`. Il est retiré :
+   — pour qui demande moins de transparence ou moins de mouvement : le
+     gauchissement de l'arrière-plan est un effet, pas une information ;
+   — sur les petits écrans et sous un pointeur grossier, où le processeur
+     graphique est le plus souvent celui d'un téléphone ou d'une tablette.
+   Le flou, la saturation et la teinte restent : la matière se lit toujours
+   comme du verre. L'agrandissement ne servait qu'à masquer les bords du
+   déplacement ; il part avec lui. */
+@media (prefers-reduced-transparency: reduce),
+  (prefers-reduced-motion: reduce),
+  (max-width: 37.499rem),
+  (pointer: coarse) {
+  .refraction {
+    filter: none;
+    transform: none;
+  }
+}
+
 /* LE LAVIS A SON PROPRE JETON, ET LE NOM COMPTE.
 
    Il lisait d'abord `--opale-glass-surface`. Ce jeton existait déjà — il
@@ -221,8 +242,9 @@
 }
 
 /* WCAG 2.3.3 — l'onde et l'écrasement sont du mouvement non essentiel : ils
-   s'effacent pour qui demande moins d'animation. La réfraction, elle, reste :
-   c'est une apparence, pas un mouvement. */
+   s'effacent pour qui demande moins d'animation. Le flou de la réfraction,
+   lui, reste : c'est une apparence, pas un mouvement. Son déplacement est
+   coupé plus haut. */
 
 /* =============================================================================
    LE FOCUS EST UNE OMBRE DOUCE, ET RIEN D'AUTRE.

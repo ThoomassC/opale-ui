@@ -1,9 +1,9 @@
 /*
- * Liquid-glass site navigation.
+ * La barre de navigation du site.
  *
- * The first values in each `var()` are the Opale roles. The fallbacks keep the
- * component usable when an application imports only `opale.css`; applications
- * that also import `tokens.css` retain the exact shared palette.
+ * La première valeur de chaque `var()` est un rôle d'Opale. Les replis gardent
+ * le composant utilisable quand l'application n'importe que `opale.css` ; celle
+ * qui importe aussi `tokens.css` retrouve la palette partagée exacte.
  */
 .bar {
   /* L'ACCENT EST LE PRIMAIRE D'OPALE, ET SON ENCRE CELLE DES REMPLISSAGES. La
@@ -71,7 +71,7 @@
   min-inline-size: 0;
 }
 
-/* Four equal destinations reproduce the Travels in World navigation exactly. */
+/* Quatre destinations de même largeur : la disposition de référence. */
 .list {
   position: relative;
   display: grid;
@@ -168,7 +168,7 @@
   inset-inline-start: calc(3px + ((100% - 30px) / 4 + 8px) * 3);
 }
 
-/* The active surface follows the actual number of demo/application tabs. */
+/* La surface active suit le nombre réel d'entrées. */
 .list[data-item-count='1'] {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
