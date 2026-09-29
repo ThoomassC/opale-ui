@@ -49,6 +49,31 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V371_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Corrections',
+    changes: [
+      {
+        title: 'Un test qui teste vraiment',
+        detail:
+          'Le test de CookieBanner avec un stockage inaccessible fait désormais vraiment échouer localStorage ; avant, il passait sans rien vérifier. Le bandeau survit bien à un stockage bloqué, en lecture comme en écriture.',
+        links: [{ label: 'CookieBanner', slug: 'composants/opale-cookie-banner' }],
+      },
+      {
+        title: 'Une carte du monde plus légère',
+        detail:
+          'Les cadres des continents sont calculés à la construction : la page SvgMap ne charge plus de bibliothèque de projection. Le détail 50m ne change pas.',
+        links: [{ label: 'SvgMap', slug: 'composants/opale-svg-map' }],
+      },
+      {
+        title: 'Une vitrine qui décrit le présent',
+        detail:
+          'Les commentaires de la vitrine disent ce que le code garantit aujourd’hui, sans raconter son histoire.',
+      },
+    ],
+  },
+];
+
 const V370_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Accessibilité',
@@ -761,6 +786,23 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.7.1',
+    publishedAt: '2026-09-29',
+    dateLabel: '29 septembre 2026',
+    summary:
+      'Correctifs : un test de CookieBanner qui vérifie enfin ce qu’il annonce, et une carte du monde plus légère. Aucun changement d’API.',
+    sections: V371_RELEASE_SECTIONS,
+    changes: V371_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'CookieBanner vérifié avec un stockage bloqué.',
+      'La carte du monde n’embarque plus de bibliothèque de projection.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.7.0',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
@@ -775,8 +817,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Classes stables et jetons pour tout surcharger.',
       'Un Divider importé seul : 266 octets.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.7.1, sur son tag. */
+    appHref: '/versions/v3.7.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.7.0`,
   },
   {
     version: '3.6.1',
