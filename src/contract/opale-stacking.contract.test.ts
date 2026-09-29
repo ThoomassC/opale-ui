@@ -39,7 +39,10 @@ describe('l’échelle d’empilement', () => {
       postcss.parse(stripComments(raw)).walkDecls('z-index', (decl) => {
         const value = decl.value.trim();
         if (/^-?\d+$/.test(value)) {
-          expect(Math.abs(Number(value)), `${decl.parent?.toString().split('{')[0]}`).toBeLessThanOrEqual(3);
+          expect(
+            Math.abs(Number(value)),
+            `${decl.parent?.toString().split('{')[0]}`,
+          ).toBeLessThanOrEqual(3);
         } else {
           expect(value).toMatch(/^var\(--opale-z-(sticky|popover|overlay|modal|toast)\)$/);
         }
@@ -53,8 +56,16 @@ describe('l’échelle d’empilement', () => {
     ['.opale-toast-anchor', 'toast', opaleSource],
     ['.opale-cookie-banner-anchor', 'overlay', opaleSource],
     ['.opale-dialog-backdrop', 'modal', opaleSource],
-    ['.languageList', 'popover', modules['../opale/components/header-controls/HeaderControls.module.css']],
-    ['.stickyHeader', 'sticky', modules['../opale/components/page-scaffold/PageScaffold.module.css']],
+    [
+      '.languageList',
+      'popover',
+      modules['../opale/components/header-controls/HeaderControls.module.css'],
+    ],
+    [
+      '.stickyHeader',
+      'sticky',
+      modules['../opale/components/page-scaffold/PageScaffold.module.css'],
+    ],
     ['.bar', 'sticky', modules['../opale/components/site-nav/site-nav.module.css']],
     ['.glassRoot', 'sticky', modules['../opale/components/site-nav/site-nav.module.css']],
   ])('%s prend le plan « %s »', (selector, step, source) => {

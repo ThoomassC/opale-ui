@@ -26,7 +26,9 @@ const TOKEN = 'var(--opale-disabled-opacity)';
 function disabledOpacities(source: string): Array<[string, string]> {
   const found: Array<[string, string]> = [];
   postcss.parse(stripComments(source)).walkRules((rule) => {
-    const selectors = rule.selectors.filter((selector) => DISABLED.test(selector.replace(/:not\([^)]*\)/g, '')));
+    const selectors = rule.selectors.filter((selector) =>
+      DISABLED.test(selector.replace(/:not\([^)]*\)/g, '')),
+    );
     if (selectors.length === 0) return;
     rule.walkDecls('opacity', (decl) => {
       for (const selector of selectors) found.push([selector, decl.value.trim()]);
@@ -48,7 +50,7 @@ describe('l’état désactivé', () => {
       expect.arrayContaining([
         '.opale-button:disabled',
         '.opale-pagination button:disabled',
-        '.opale-dropzone[data-disabled=\'true\']',
+        ".opale-dropzone[data-disabled='true']",
         '.tabsTrigger:disabled',
         '.plainTrigger:disabled',
       ]),

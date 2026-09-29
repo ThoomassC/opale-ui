@@ -36,7 +36,8 @@ const MOTION_PROPS = new Set([
   'animation-timing-function',
 ]);
 const TIME = /(?<![\w-])\d*\.?\d+m?s\b/;
-const CURVE = /cubic-bezier\(|steps\(|(?<![\w-])(ease|ease-in|ease-out|ease-in-out|linear)(?![\w-])/;
+const CURVE =
+  /cubic-bezier\(|steps\(|(?<![\w-])(ease|ease-in|ease-out|ease-in-out|linear)(?![\w-])/;
 
 /** Vrai si la déclaration vit dans un bloc `prefers-reduced-motion`. */
 function inReducedMotion(decl: Declaration): boolean {
