@@ -4,23 +4,28 @@
 
    Trois défauts de livraison ne se voient ni aux tests ni au typecheck, parce
    qu'ils n'existent que dans `dist/` :
-   - la directive "use client" retirée par le regroupement (Next.js casse) ;
+   - la directive "use client" retirée par le regroupement (Next.js casse), ou
+     posée sur un module de données (ses valeurs mentent côté serveur) ;
    - des imports relatifs sans extension dans les `.d.ts` (nodenext casse) ;
    - des polices incorporées en base64 dans la feuille bloquante.
    À lancer après `npm run build:lib`.
    ========================================================================== */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import process from 'node:process';
+
+import { SERVER_SAFE_MODULES, isServerSafeModule } from './server-safe-modules.mjs';
 
 const failures = [];
 const check = (ok, message) => {
   if (!ok) failures.push(message);
 };
 
-/* Un fichier par module source : chacun porte la directive, puisqu'un
-   bundler peut n'en garder qu'un. */
+/* Un fichier par module source : chaque module client porte la directive,
+   puisqu'un bundler peut n'en garder qu'un. Les modules de
+   `server-safe-modules.mjs` ne la portent PAS : côté serveur, elle ferait de
+   `ICON_NAMES` une référence client vide. */
 const scripts = (directory) =>
   readdirSync(directory).flatMap((name) => {
     const path = join(directory, name);
@@ -29,10 +34,22 @@ const scripts = (directory) =>
   });
 const emitted = scripts('dist/opale');
 check(emitted.includes(join('dist/opale', 'index.js')), 'dist/opale/index.js est absent.');
+const USE_CLIENT = /^\s*["']use client["'];/;
 for (const file of emitted) {
+  const serverSafe = isServerSafeModule(relative('dist/opale', file));
+  const directive = USE_CLIENT.test(readFileSync(file, 'utf8'));
+  if (serverSafe) {
+    check(!directive, `${file} porte "use client" alors qu'il est sans code client.`);
+  } else {
+    check(directive, `${file} ne commence pas par "use client";`);
+  }
+}
+/* Une entrée de la liste qui ne correspond plus à aucun fichier émis ne
+   protège plus rien : un renommage doit la faire suivre. */
+for (const modulePath of SERVER_SAFE_MODULES) {
   check(
-    /^\s*["']use client["'];/.test(readFileSync(file, 'utf8')),
-    `${file} ne commence pas par "use client";`,
+    emitted.includes(join('dist/opale', `${modulePath}.js`)),
+    `dist/opale/${modulePath}.js, déclaré sans "use client", n'est pas émis.`,
   );
 }
 
@@ -93,4 +110,6 @@ if (failures.length > 0) {
   console.error(`\n✗ dist/ n'est pas livrable :\n  - ${failures.join('\n  - ')}\n`);
   process.exit(1);
 }
-console.log('✓ dist/ livrable : "use client", déclarations nodenext, polices à part.');
+console.log(
+  `✓ dist/ livrable : "use client" sur les modules client (${SERVER_SAFE_MODULES.length} modules sans code client épargnés), déclarations nodenext, polices à part.`,
+);

@@ -1,8 +1,31 @@
-/* OpaleUI-compatible design tokens. The names intentionally mirror the
-   reference library so an Opale consumer can move between both systems
-   without translating a second vocabulary. */
+/* LES JETONS D'OPALE. Chaque rôle — fond, encre, primaire, état — porte un
+   nom `--opale-*` stable : c'est la surface de personnalisation de la
+   bibliothèque, et un hôte la surcharge sur `:root`.
+
+   LE THÈME LOCAL DE PAGESCAFFOLD NE REDÉCLARE PLUS CE BLOC PARTOUT. Il était
+   déclaré sur `:root` ET sur `[data-opale-page-theme='light']` : PageScaffold
+   posant toujours l'attribut, ses jetons étaient réécrits sur la racine du
+   gabarit avec les valeurs d'Opale, et la marque qu'un hôte avait posée sur
+   `:root` s'arrêtait au bord du gabarit — bouton vert dehors, saphir dedans.
+   Le bloc local ne s'applique plus que là où il CHANGE quelque chose : un
+   gabarit clair sous un contexte sombre (racine `data-theme='dark'` ou
+   gabarit sombre englobant). Ailleurs, le gabarit hérite, marque comprise.
+   `:where()` garde au sélecteur local sa spécificité de 3.9.1 (0,1,0) : une
+   surcharge écrite sur `[data-opale-page-theme='light']` gagne toujours.
+
+   `:host` REJOINT LA RACINE : chargée dans une racine fantôme, la feuille n'y
+   trouve pas de `:root`. En 3.9.1, le gabarit portait tout le bloc par son
+   attribut ; un PageScaffold isolé dans un Shadow DOM garde ainsi ses jetons.
+
+   LES JETONS DÉRIVÉS SONT REDITS SUR LE THÈME LOCAL, plus bas : voir
+   « LES JETONS DÉRIVÉS SE RECALCULENT ». */
 :root,
-[data-opale-page-theme='light'] {
+:host,
+:where(:root[data-theme='dark'], [data-opale-page-theme='dark']) [data-opale-page-theme='light'] {
+  /* Le schéma de couleurs du thème, lu par `.opale-root`. Déclaré comme jeton
+     et non comme propriété sur `:root` : `color-scheme` posé sur la racine
+     claire nue l'emporterait sur un `html { color-scheme: light dark }` d'hôte. */
+  --opale-color-scheme: light;
   /* L'ENCRE ET LES REMPLISSAGES PLEINS SONT DES JETONS DE THÈME. Écrits en dur
      et corrigés sous `:root[data-theme='dark']`, ils ne suivaient pas le thème
      local de PageScaffold : texte des boutons à 2,82:1 dans une section
@@ -366,8 +389,16 @@
     0 0 4px 2px rgba(255, 255, 255, 0.85), 0 0 16px 7px rgba(7, 28, 43, 0.9);
 }
 
+/* MÊME RÈGLE POUR LE SOMBRE. Sous une racine déjà sombre, un gabarit sombre
+   hérite : la marque sombre qu'un hôte pose sur `:root[data-theme='dark']`
+   le traverse. Il ne se redéclare que sous un contexte clair — racine sans
+   `data-theme='dark'`, hôte d'une racine fantôme (`:host`, où le sombre
+   racine n'existe pas), ou gabarit clair englobant. */
 :root[data-theme='dark'],
-[data-opale-page-theme='dark'] {
+:where(:root:not([data-theme='dark']), :host, [data-opale-page-theme='light'])
+  [data-opale-page-theme='dark'] {
+  /* Le schéma de couleurs du thème, en jeton seulement : voir `.opale-root`. */
+  --opale-color-scheme: dark;
   /* Les fonds pleins du sombre sont des tons MOYENS : l'encre sombre y tient
      5,23:1 (primaire), 8,71:1 (secondaire), 6,18:1 (danger), là où la claire
      tombait sous 3,5:1. Les tons de toast passent par le jeton clair
@@ -432,6 +463,135 @@
   --opale-info-on-surface: #8fbdf0;
   --opale-warning-on-surface: #f0b366;
   --opale-danger-on-surface: #f09a94;
+}
+
+/* LES JETONS DÉRIVÉS SE RECALCULENT SUR LE THÈME LOCAL.
+
+   Un jeton écrit `var(--opale-primary)` ou `color-mix(… var(--opale-text) …)`
+   se résout là où il est DÉCLARÉ, puis hérite de sa valeur déjà résolue.
+   Déclarés sur la seule racine, les dérivés ignoraient donc une surcharge
+   posée sur `[data-opale-page-theme='light']` — qui marchait en 3.9.1, où le
+   bloc entier y était redéclaré. Seuls ces dérivés sont redits ici, à
+   l'identique : les jetons de base continuent d'hériter de l'hôte, et
+   `opale-page-theme.contract.test.ts` refuse que ces listes divergent de
+   celles des blocs racine. */
+[data-opale-page-theme='light'] {
+  --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
+  --opale-fill-success: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
+  --opale-fill-warning: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
+  --opale-fill-danger: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
+  --opale-fill-info: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
+  --opale-primary-on-surface: var(--opale-primary);
+  --opale-success-on-surface: var(--opale-success);
+  --opale-info-on-surface: var(--opale-info);
+  --opale-danger-on-surface: var(--opale-danger);
+  --opale-squircle-radius: min(var(--opale-radius-md), 50%);
+  --opale-squircle-clip: polygon(
+    0% var(--opale-squircle-radius),
+    calc(var(--opale-squircle-radius) * 0.0057) calc(var(--opale-squircle-radius) * 0.7427),
+    calc(var(--opale-squircle-radius) * 0.0228) calc(var(--opale-squircle-radius) * 0.5939),
+    calc(var(--opale-squircle-radius) * 0.0514) calc(var(--opale-squircle-radius) * 0.4729),
+    calc(var(--opale-squircle-radius) * 0.0914) calc(var(--opale-squircle-radius) * 0.37),
+    calc(var(--opale-squircle-radius) * 0.143) calc(var(--opale-squircle-radius) * 0.2817),
+    calc(var(--opale-squircle-radius) * 0.2063) calc(var(--opale-squircle-radius) * 0.2063),
+    calc(var(--opale-squircle-radius) * 0.2817) calc(var(--opale-squircle-radius) * 0.143),
+    calc(var(--opale-squircle-radius) * 0.37) calc(var(--opale-squircle-radius) * 0.0914),
+    calc(var(--opale-squircle-radius) * 0.4729) calc(var(--opale-squircle-radius) * 0.0514),
+    calc(var(--opale-squircle-radius) * 0.5939) calc(var(--opale-squircle-radius) * 0.0228),
+    calc(var(--opale-squircle-radius) * 0.7427) calc(var(--opale-squircle-radius) * 0.0057),
+    var(--opale-squircle-radius) 0%,
+    calc(100% - var(--opale-squircle-radius)) 0%,
+    calc(100% - var(--opale-squircle-radius) * 0.7427) calc(var(--opale-squircle-radius) * 0.0057),
+    calc(100% - var(--opale-squircle-radius) * 0.5939) calc(var(--opale-squircle-radius) * 0.0228),
+    calc(100% - var(--opale-squircle-radius) * 0.4729) calc(var(--opale-squircle-radius) * 0.0514),
+    calc(100% - var(--opale-squircle-radius) * 0.37) calc(var(--opale-squircle-radius) * 0.0914),
+    calc(100% - var(--opale-squircle-radius) * 0.2817) calc(var(--opale-squircle-radius) * 0.143),
+    calc(100% - var(--opale-squircle-radius) * 0.2063) calc(var(--opale-squircle-radius) * 0.2063),
+    calc(100% - var(--opale-squircle-radius) * 0.143) calc(var(--opale-squircle-radius) * 0.2817),
+    calc(100% - var(--opale-squircle-radius) * 0.0914) calc(var(--opale-squircle-radius) * 0.37),
+    calc(100% - var(--opale-squircle-radius) * 0.0514) calc(var(--opale-squircle-radius) * 0.4729),
+    calc(100% - var(--opale-squircle-radius) * 0.0228) calc(var(--opale-squircle-radius) * 0.5939),
+    calc(100% - var(--opale-squircle-radius) * 0.0057) calc(var(--opale-squircle-radius) * 0.7427),
+    100% var(--opale-squircle-radius),
+    100% calc(100% - var(--opale-squircle-radius)),
+    calc(100% - var(--opale-squircle-radius) * 0.0057)
+      calc(100% - var(--opale-squircle-radius) * 0.7427),
+    calc(100% - var(--opale-squircle-radius) * 0.0228)
+      calc(100% - var(--opale-squircle-radius) * 0.5939),
+    calc(100% - var(--opale-squircle-radius) * 0.0514)
+      calc(100% - var(--opale-squircle-radius) * 0.4729),
+    calc(100% - var(--opale-squircle-radius) * 0.0914)
+      calc(100% - var(--opale-squircle-radius) * 0.37),
+    calc(100% - var(--opale-squircle-radius) * 0.143)
+      calc(100% - var(--opale-squircle-radius) * 0.2817),
+    calc(100% - var(--opale-squircle-radius) * 0.2063)
+      calc(100% - var(--opale-squircle-radius) * 0.2063),
+    calc(100% - var(--opale-squircle-radius) * 0.2817)
+      calc(100% - var(--opale-squircle-radius) * 0.143),
+    calc(100% - var(--opale-squircle-radius) * 0.37)
+      calc(100% - var(--opale-squircle-radius) * 0.0914),
+    calc(100% - var(--opale-squircle-radius) * 0.4729)
+      calc(100% - var(--opale-squircle-radius) * 0.0514),
+    calc(100% - var(--opale-squircle-radius) * 0.5939)
+      calc(100% - var(--opale-squircle-radius) * 0.0228),
+    calc(100% - var(--opale-squircle-radius) * 0.7427)
+      calc(100% - var(--opale-squircle-radius) * 0.0057),
+    calc(100% - var(--opale-squircle-radius)) 100%,
+    var(--opale-squircle-radius) 100%,
+    calc(var(--opale-squircle-radius) * 0.7427) calc(100% - var(--opale-squircle-radius) * 0.0057),
+    calc(var(--opale-squircle-radius) * 0.5939) calc(100% - var(--opale-squircle-radius) * 0.0228),
+    calc(var(--opale-squircle-radius) * 0.4729) calc(100% - var(--opale-squircle-radius) * 0.0514),
+    calc(var(--opale-squircle-radius) * 0.37) calc(100% - var(--opale-squircle-radius) * 0.0914),
+    calc(var(--opale-squircle-radius) * 0.2817) calc(100% - var(--opale-squircle-radius) * 0.143),
+    calc(var(--opale-squircle-radius) * 0.2063) calc(100% - var(--opale-squircle-radius) * 0.2063),
+    calc(var(--opale-squircle-radius) * 0.143) calc(100% - var(--opale-squircle-radius) * 0.2817),
+    calc(var(--opale-squircle-radius) * 0.0914) calc(100% - var(--opale-squircle-radius) * 0.37),
+    calc(var(--opale-squircle-radius) * 0.0514) calc(100% - var(--opale-squircle-radius) * 0.4729),
+    calc(var(--opale-squircle-radius) * 0.0228) calc(100% - var(--opale-squircle-radius) * 0.5939),
+    calc(var(--opale-squircle-radius) * 0.0057) calc(100% - var(--opale-squircle-radius) * 0.7427),
+    0% calc(100% - var(--opale-squircle-radius))
+  );
+}
+
+[data-opale-page-theme='dark'] {
+  --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
+  --opale-fill-success: var(--opale-success-on-surface);
+  --opale-fill-warning: var(--opale-warning-on-surface);
+  --opale-fill-danger: var(--opale-danger-on-surface);
+  --opale-fill-info: var(--opale-info-on-surface);
+  --opale-primary-on-surface: var(--opale-primary-light);
+}
+
+/* LE GABARIT EST UNE SURFACE D'OPALE : IL POSE SON SCHÉMA DE COULEURS. La
+   racine, elle, n'en pose aucun — déclaré sur `:root[data-theme='dark']`
+   (0,2,0), il l'emportait sur un `html { color-scheme: light }` d'hôte. Hors
+   du gabarit, c'est `.opale-root` qui l'applique, sur demande. */
+[data-opale-page-theme] {
+  color-scheme: var(--opale-color-scheme);
+}
+
+/* `.opale-root` : LA RACINE D'UNE PAGE OPALE, FACULTATIVE.
+
+   Opale ne touche ni `html` ni `body`, et c'est voulu : rien ne fuit chez
+   l'hôte. En contrepartie, avec `data-theme='dark'` et sans CSS propre, la
+   page restait blanche sous des encres claires — 43 échecs de contraste
+   relevés par axe — et les pièces qui héritent de l'encre (libellé du
+   Spinner, Stack) prenaient celle de l'hôte.
+
+   Posée sur `<body>` (ou sur la racine de l'application), la classe peint le
+   fond, l'encre, la police et le schéma de couleurs depuis les jetons du thème
+   en vigueur :
+
+     <html data-theme="dark">
+       <body class="opale-root">…</body>
+     </html>
+
+   Additive : qui ne la pose pas ne voit rien changer. */
+.opale-root {
+  background: var(--opale-background);
+  color: var(--opale-text);
+  font-family: var(--opale-font-body);
+  color-scheme: var(--opale-color-scheme);
 }
 
 /* LA POLICE D'OPALE EST POSÉE SUR CHAQUE RACINE DE COMPOSANT.
@@ -1467,6 +1627,17 @@
 }
 .opale-multiselect--glass:focus-within .opale-multiselect__option[data-active='true'] {
   outline-color: var(--opale-glass-ink);
+}
+/* DÉSACTIVÉE, LA LISTE LE MONTRE. `disabled` n'atteignait que le natif caché :
+   la liste visible gardait sa présence, son survol et sa main. Elle s'efface de
+   l'opacité commune des contrôles désactivés et ne réagit plus au pointeur. */
+.opale-multiselect__list[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: var(--opale-disabled-opacity);
+}
+.opale-multiselect__list[aria-disabled='true'] .opale-multiselect__option {
+  cursor: not-allowed;
+  background: none;
 }
 
 .opale-checkbox-row,

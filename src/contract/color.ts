@@ -51,6 +51,10 @@ function alphaValue(part: string): number {
  */
 export function parseRgba(color: string): RgbaColor {
   const trimmed = color.trim();
+
+  if (/^transparent$/i.test(trimmed)) return { red: 0, green: 0, blue: 0, alpha: 0 };
+  if (/^color-mix\(/i.test(trimmed)) return parseColorMix(trimmed);
+
   const hexMatch = HEX_COLOR.exec(trimmed);
 
   if (hexMatch !== null) {
@@ -94,8 +98,98 @@ export function parseRgba(color: string): RgbaColor {
   }
 
   throw new Error(
-    `couleur CSS attendue (#rgb, #rgba, #rrggbb, #rrggbbaa, rgb() ou rgba()), reçu "${color}"`
+    `couleur CSS attendue (#rgb, #rgba, #rrggbb, #rrggbbaa, rgb(), rgba(), transparent ` +
+      `ou color-mix(in srgb, …)), reçu "${color}"`
   );
+}
+
+/** Les membres d'une liste séparée par des virgules, parenthèses respectées. */
+function splitTopLevel(list: string): readonly string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+
+  for (let index = 0; index < list.length; index += 1) {
+    const char = list[index];
+    if (char === "(") depth += 1;
+    else if (char === ")") depth -= 1;
+    else if (char === "," && depth === 0) {
+      parts.push(list.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  parts.push(list.slice(start).trim());
+
+  return parts;
+}
+
+const MIX_PERCENTAGE = /(?:^|\s)(-?[\d.]+)%(?=\s|$)/;
+
+/** Une couleur d'un `color-mix()` et sa part facultative, dans un ordre ou l'autre. */
+function mixComponent(part: string, whole: string): { color: string; share: number | undefined } {
+  const match = MIX_PERCENTAGE.exec(part);
+  if (match === null) return { color: part, share: undefined };
+
+  const share = Number.parseFloat(match[1]);
+  if (!Number.isFinite(share) || share < 0 || share > 100) {
+    throw new Error(`parts de color-mix hors de [0 %, 100 %] dans "${whole}"`);
+  }
+
+  return { color: (part.slice(0, match.index) + part.slice(match.index + match[0].length)).trim(), share };
+}
+
+/**
+ * `color-mix(in srgb, A p%, B q%)`, calculé comme CSS Color 5 le prescrit.
+ *
+ * SEUL L'ESPACE sRGB EST CALCULÉ, et tout autre espace est REFUSÉ par son nom.
+ * Toutes les feuilles de ce paquet mélangent en sRGB ; un `in oklab` approximé
+ * en sRGB rendrait une couleur fausse et un contraste faux, sans le dire.
+ *
+ * Les parts se normalisent à 100 % : une part absente complète l'autre, deux
+ * absentes valent moitié-moitié, et une somme inférieure à 100 % réduit
+ * l'opacité d'autant. Le mélange est PRÉMULTIPLIÉ par l'alpha : mélanger avec
+ * `transparent` baisse l'opacité sans tirer la teinte vers le noir — c'est ce
+ * que peint le navigateur pour `--opale-button-hover-background`.
+ */
+function parseColorMix(color: string): RgbaColor {
+  const open = color.indexOf("(");
+  if (!color.endsWith(")")) throw new Error(`color-mix non refermé : "${color}"`);
+
+  const [space, first, second, ...extra] = splitTopLevel(color.slice(open + 1, -1));
+  const spaceName = (space ?? "").replace(/^in\s+/i, "").trim().toLowerCase();
+
+  if (spaceName !== "srgb") {
+    throw new Error(
+      `color-mix(in ${spaceName}) non pris en charge : seul l'espace srgb est résolu, ` +
+        `et approximer un autre espace rendrait un contraste faux. Reçu "${color}"`
+    );
+  }
+  if (first === undefined || second === undefined || extra.length > 0) {
+    throw new Error(`color-mix attend exactement deux couleurs, reçu "${color}"`);
+  }
+
+  const one = mixComponent(first, color);
+  const other = mixComponent(second, color);
+  const shareOne = one.share ?? (other.share === undefined ? 50 : 100 - other.share);
+  const shareOther = other.share ?? 100 - shareOne;
+  const total = shareOne + shareOther;
+
+  if (total <= 0) throw new Error(`parts de color-mix nulles dans "${color}"`);
+
+  const weightOne = shareOne / total;
+  const weightOther = shareOther / total;
+  const top = parseRgba(one.color);
+  const bottom = parseRgba(other.color);
+  const alpha = top.alpha * weightOne + bottom.alpha * weightOther;
+  const channel = (a: number, b: number): number =>
+    alpha === 0 ? 0 : (a * top.alpha * weightOne + b * bottom.alpha * weightOther) / alpha;
+
+  return {
+    red: channel(top.red, bottom.red),
+    green: channel(top.green, bottom.green),
+    blue: channel(top.blue, bottom.blue),
+    alpha: alpha * Math.min(total / 100, 1),
+  };
 }
 
 /**

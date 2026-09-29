@@ -16,6 +16,8 @@ import { IconGlyph } from '../icon';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
+import { useDocumentBody } from '../../shared/use-document-body';
+import { useDocumentPageTheme } from '../../shared/use-page-theme';
 import { useScrollPadding } from '../../shared/use-scroll-padding';
 import { ToastContext, type ToastContextValue } from './toast-context';
 
@@ -102,6 +104,12 @@ export type ToastAnimation = 'slide-from-right' | 'slide-from-left' | 'slide-fro
 type ToastPosition = OpalePlacement;
 
 export type ToastDefinition = {
+  /**
+   * L'identifiant du toast. Un `id` déjà présent dans la file REMPLACE son
+   * toast au lieu d'en empiler un second : le remplaçant repart de zéro — sa
+   * durée entière, son entrée, son propre `onClose` —, et le remplacé
+   * disparaît sans prévenir le sien, puisqu'il n'a pas été fermé.
+   */
   id?: string;
   title?: ReactNode;
   description?: ReactNode;
@@ -130,6 +138,10 @@ export type ToastDefinition = {
 
 type ToastRecord = ToastDefinition & {
   id: string;
+  /* LE NUMÉRO DE PASSAGE DANS LA FILE, qui entre dans la clé de la carte. Un
+     remplacement par `id` gardait la même clé, donc la même carte et ses refs :
+     le reste à courir de l'ancien, et son drapeau « onClose déjà prévenu ». */
+  revision: number;
   dismissed: boolean;
   duration: number;
   animation: ToastAnimation;
@@ -432,6 +444,7 @@ export const ToastProvider = ({
 }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
   const duration = durationProp ?? DEFAULT_DURATION_MS;
+  const revisions = useRef(0);
 
   const showToast = useCallback(
     (toast: ToastDefinition) => {
@@ -441,9 +454,11 @@ export const ToastProvider = ({
       const tone = resolveTone(toast);
       /* UN MESSAGE URGENT NE PART PAS SEUL (WCAG 2.2.1) : sans durée
          explicite, `error` et `warning` attendent leur fermeture. */
+      revisions.current += 1;
       const record: ToastRecord = {
         ...toast,
         id,
+        revision: revisions.current,
         tone,
         duration:
           toast.duration ??
@@ -461,7 +476,15 @@ export const ToastProvider = ({
            quand même, ce qui donnait deux enfants React de même clé : React
            n'en réconcilie alors qu'un correctement, et le second toast pouvait
            hériter de l'état du premier — minuterie comprise. Remplacer sur
-           place est le seul comportement qui donne un sens à la prop `id`. */
+           place est le seul comportement qui donne un sens à la prop `id`.
+
+           LE REMPLAÇANT EST UNE CARTE NEUVE (ROB-06). Remplacer l'objet ne
+           suffisait pas : la clé restait la même, donc la carte aussi, avec
+           ses refs. Un « Enregistré » de cinq secondes posé sur un
+           « Enregistrement… » presque échu partait en deux dixièmes de
+           seconde ; posé pendant la sortie de l'ancien, il ne prévenait
+           jamais son `onClose`. La révision entre dans la clé : la carte est
+           remontée, minuterie et drapeaux compris. */
         const index = previous.findIndex((existing) => existing.id === id);
         if (index === -1) return [...previous, record];
 
@@ -532,16 +555,29 @@ export const ToastProvider = ({
     return byPosition;
   }, [toasts]);
 
-  /* Résolu pendant le rendu, comme chez `Modal` : `document.body` ne demande
-     pas d'être monté, il demande d'exister. L'amont passait par un effet et un
-     `setState`, ce qui retardait le portail d'un tour de rendu pour rien. */
-  const portalNode = portalContainer ?? (typeof document === 'undefined' ? null : document.body);
+  /* Résolu pendant le rendu, comme chez `Modal`, mais par
+     `useSyncExternalStore` (ROB-02). Le garde `typeof document` faisait rendre
+     `null` au serveur et le portail au premier rendu client : l'écart faisait
+     jeter et recréer TOUT le HTML serveur de l'application, sans un toast
+     affiché. L'instantané serveur vaut `null` aussi pendant l'hydratation ;
+     hors hydratation, le portail est là dès le premier rendu. */
+  const body = useDocumentBody();
+  const portalNode = body ? (portalContainer ?? body) : null;
+
+  /* LE THÈME LOCAL SUIT LA FILE (THM-05). Le fournisseur n'a pas d'emplacement
+     à lui dans la page — il est le plus souvent posé AU-DESSUS du gabarit —,
+     donc le thème est celui du gabarit du document quand il n'y en a qu'un.
+     Il est relu à l'arrivée du premier toast, et suivi tant qu'il y en a.
+     Le nœud racine est tenu en état : remplacé — un autre `portalContainer` —,
+     il relance l'effet au lieu de laisser le thème sur l'ancien. */
+  const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
+  useDocumentPageTheme(portalRoot, portalNode !== null && toasts.length > 0);
 
   const labels = resolveLabels(DEFAULT_TOAST_LABELS, labelsProp);
 
   const renderCard = (toast: ToastRecord) => (
     <ToastCard
-      key={toast.id}
+      key={`${toast.id}:${toast.revision}`}
       toast={toast}
       onDismiss={dismissToast}
       onRemove={removeToast}
@@ -555,6 +591,7 @@ export const ToastProvider = ({
       {portalNode &&
         createPortal(
           <div
+            ref={setPortalRoot}
             className={clsx('opale-toast-provider', styles.root)}
             data-testid="toast-portal"
             /* Une modale ouverte rend le reste de la page inerte ; les toasts

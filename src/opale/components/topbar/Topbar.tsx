@@ -377,3 +377,8 @@ Topbar.Divider = TopbarDivider;
 Topbar.useTopbar = () => useTopbarContext('Topbar.useTopbar');
 
 export default Topbar;
+
+/* LES PARTIES SOUS LEUR PROPRE NOM, pour les Server Components : une référence
+   client ne se lit pas par un point, `Topbar.Section` y lève une erreur.
+   `TopbarSection` est le même objet que `Topbar.Section`. */
+export { TopbarSection, TopbarBrand, TopbarActions, TopbarDivider };

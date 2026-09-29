@@ -1,6 +1,6 @@
 {
   "name": "@thomascaron/opale-ui",
-  "version": "3.9.1",
+  "version": "3.9.2",
   "private": true,
   "description": "Opale — système de design React 19 : jetons mesurés, contrat de couleur exécutable, composants et matière verre liquide.",
   "author": "Thomas Caron",
@@ -29,11 +29,13 @@
   "exports": {
     ".": {
       "types": "./dist/opale/index.d.ts",
-      "import": "./dist/opale/index.js"
+      "import": "./dist/opale/index.js",
+      "default": "./dist/opale/index.js"
     },
     "./contract": {
       "types": "./dist/contract/index.d.ts",
-      "import": "./dist/contract/index.js"
+      "import": "./dist/contract/index.js",
+      "default": "./dist/contract/index.js"
     },
     "./tokens.css": "./dist/tokens/tokens.css",
     "./opale.css": "./dist/opale/opale.css",

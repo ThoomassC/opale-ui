@@ -4,11 +4,18 @@ import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
+import { isServerSafeModule } from './scripts/server-safe-modules.mjs';
+
 // Extension-ful on purpose: Vite's forthcoming native config loader cannot
 // resolve an extensionless TypeScript import and warns on every build.
 
 const LIB_OUT_DIR = 'dist/opale';
 const TYPES_ENTRY = `${LIB_OUT_DIR}/index.d.ts`;
+/* LA NOTICE DE LICENCE VOYAGE AVEC LE FICHIER. Seul un commentaire `/*!`
+   survit au regroupement : il porte la licence MIT d'Opale, pour le cas où le
+   module serait copié seul, hors du paquet. */
+const LICENSE_BANNER =
+  '/*! @thomascaron/opale-ui — MIT License, Copyright (c) 2026 Thomas Caron. */';
 const STYLE_SIDE_EFFECT_IMPORT = /^\s*import\s+['"]\.\/[\w.-]+\.s?css['"];?[ \t]*\r?\n/gm;
 
 /**
@@ -174,17 +181,21 @@ export default defineConfig({
         preserveModules: true,
         preserveModulesRoot: 'src/opale',
 
-        // LA NOTICE DE LICENCE VOYAGE AVEC LE FICHIER. Seul un commentaire
-        // `/*!` survit au regroupement : il porte la licence MIT d'Opale, pour
-        // le cas où le bundle serait copié seul, hors du paquet.
-        /* `"use client";` D'ABORD, ET C'EST UNE CONDITION D'USAGE. Les modules
+        /* `"use client";` D'ABORD, SUR CHAQUE MODULE CLIENT. Les composants
            appellent useState, createContext et createPortal : sans la
            directive, un Server Component de Next.js qui importe un Button
-           échoue. La bannière la pose en tête de CHAQUE fichier émis, là où
-           React l'exige — avant tout commentaire qui ne serait pas une
-           directive. `scripts/check-dist.mjs` le vérifie fichier par fichier. */
-        banner:
-          '"use client";\n/*! @thomascaron/opale-ui — MIT License, Copyright (c) 2026 Thomas Caron. */',
+           échoue. La bannière la pose en tête du fichier émis, là où React
+           l'exige — avant tout commentaire qui ne serait pas une directive.
+
+           SAUF SUR LES MODULES DE `scripts/server-safe-modules.mjs`. Sur une
+           donnée, la directive ment : côté serveur, `ICON_NAMES` devenait une
+           référence client de longueur 0, `COOKIE_CONSENT_KEY` une fonction
+           qui lève. Les barils en sont aussi épargnés — c'est ce qui laisse
+           passer ces valeurs jusqu'au serveur, tandis que chaque composant
+           qu'ils réexportent garde sa propre directive.
+           `scripts/check-dist.mjs` vérifie les deux cas, fichier par fichier. */
+        banner: (chunk) =>
+          `${isServerSafeModule(chunk.fileName) ? '' : '"use client";\n'}${LICENSE_BANNER}`,
       },
     },
   },

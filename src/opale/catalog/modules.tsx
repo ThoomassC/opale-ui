@@ -178,6 +178,18 @@ export interface DropzoneProps extends Omit<
   liquidGlass?: boolean;
   /** Remplace les textes français par défaut, clé par clé. `children` gagne sur `labels.prompt`. */
   labels?: Partial<DropzoneLabels>;
+  /**
+   * Le nom de formulaire du champ de fichiers. Présent (ou avec `required`),
+   * le champ GARDE les fichiers retenus — choisis ou déposés — jusqu'à la
+   * soumission : un `<form>`, un `FormData` ou une Server Action les reçoit.
+   * Chaque sélection remplace la précédente, comme sur un champ natif ; une
+   * sélection refusée vide le champ.
+   */
+  name?: string;
+  /** Plusieurs fichiers à la fois. Défaut : `true`. À `false`, un dépôt de plusieurs fichiers est refusé. */
+  multiple?: boolean;
+  /** Un fichier est exigé à la soumission du formulaire. */
+  required?: boolean;
 }
 
 function fileMatchesAccept(file: File, accept: string): boolean {
@@ -207,6 +219,9 @@ export function Dropzone({
   disabled = false,
   liquidGlass = false,
   labels: labelsProp,
+  name,
+  multiple = true,
+  required,
   className,
   onDragEnter,
   onDragOver,
@@ -223,12 +238,20 @@ export function Dropzone({
   const depth = useRef(0);
   const labels = resolveLabels(DEFAULT_DROPZONE_LABELS, labelsProp);
   const errorId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  /* LE CHAMP GARDE SES FICHIERS DÈS QU'UN FORMULAIRE LES ATTEND : avec `name`,
+     pour les soumettre ; avec `required`, pour que sa validation passe — vidé
+     après chaque choix, un champ requis restait invalide et bloquait l'envoi
+     pour toujours. Sans l'un ni l'autre, il est vidé comme en 3.9.1. */
+  const keepsFiles = name !== undefined || Boolean(required);
 
-  const receive = (files: FileList) => {
-    if (disabled || files.length === 0) return;
+  /** Rend `true` quand les fichiers sont retenus, `false` quand ils sont refusés ou ignorés. */
+  const receive = (files: FileList): boolean => {
+    if (disabled || files.length === 0) return false;
+    const limit = multiple ? maxFiles : 1;
     let message = '';
-    if (maxFiles !== undefined && files.length > maxFiles) {
-      message = labels.tooManyFiles(maxFiles);
+    if (limit !== undefined && files.length > limit) {
+      message = labels.tooManyFiles(limit);
     } else if (
       maxSizeBytes !== undefined &&
       Array.from(files).some((file) => file.size > maxSizeBytes)
@@ -240,6 +263,7 @@ export function Dropzone({
     setError(message);
     if (message) onError?.(message);
     else onFiles?.(files);
+    return message === '';
   };
 
   /* Le geste de la zone d'abord, le gestionnaire de l'appelant ensuite. */
@@ -265,7 +289,19 @@ export function Dropzone({
       event.preventDefault();
       depth.current = 0;
       setDragging(false);
-      receive(event.dataTransfer.files);
+      const files = event.dataTransfer.files;
+      const accepted = receive(files);
+      /* LE DÉPÔT REJOINT LE FORMULAIRE. Les fichiers déposés n'étaient jamais
+         recopiés sur le champ : `onFiles` les recevait, la soumission non.
+         Ils y sont posés — un `FileList` de dépôt s'affecte tel quel à
+         `input.files` dans les navigateurs. REFUSÉ, le dépôt VIDE le champ,
+         comme le sélecteur : l'erreur affichée ne doit pas laisser partir
+         la sélection d'avant. Un dépôt vide ou ignoré ne touche à rien. */
+      const input = inputRef.current;
+      if (keepsFiles && input && !disabled && files.length > 0) {
+        if (accepted) input.files = files;
+        else input.value = '';
+      }
       onDrop?.(event);
     },
   };
@@ -283,16 +319,24 @@ export function Dropzone({
         data-disabled={disabled ? 'true' : undefined}
       >
         <input
+          ref={inputRef}
           type="file"
           className="opale-visually-hidden"
-          multiple
+          name={name}
+          multiple={multiple}
+          required={required}
           accept={accept}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           onChange={(event) => {
-            if (event.currentTarget.files) receive(event.currentTarget.files);
-            event.currentTarget.value = '';
+            const input = event.currentTarget;
+            const accepted = input.files ? receive(input.files) : false;
+            /* SANS `name` NI `required`, LE CHAMP EST VIDÉ COMME AVANT : un
+               même fichier choisi deux fois doit redéclencher `onFiles`.
+               SINON, il garde sa sélection pour le formulaire — sauf refusée,
+               pour ne jamais envoyer ce que la zone a signalé invalide. */
+            if (!keepsFiles || !accepted) input.value = '';
           }}
         />
         <strong>{children === undefined ? labels.prompt : children}</strong>

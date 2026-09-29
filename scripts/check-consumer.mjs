@@ -58,10 +58,37 @@ try {
   }
 
   writeFileSync(join(app, 'package.json'), JSON.stringify({ name: 'app', type: 'module' }));
+
+  /* INT-13 — un outil en résolution CommonJS (Jest par défaut, un script
+     `require`) passe par la condition `default` des `exports` : sans elle,
+     ERR_PACKAGE_PATH_NOT_EXPORTED. Les deux entrées doivent se résoudre, et le
+     contrat, sans dépendance, se charger par `require()`. */
+  writeFileSync(
+    join(app, 'require.cjs'),
+    `const assert = require('node:assert');
+for (const specifier of ['@thomascaron/opale-ui', '@thomascaron/opale-ui/contract']) {
+  require.resolve(specifier);
+}
+const { contrastRatio } = require('@thomascaron/opale-ui/contract');
+assert.strictEqual(Math.round(contrastRatio('#ffffff', '#000000')), 21);
+`,
+  );
+  run(process.execPath, ['require.cjs'], app);
+  console.log('✓ les entrées se résolvent aussi par require() (condition « default »).');
   writeFileSync(
     join(app, 'index.tsx'),
     `import '@thomascaron/opale-ui/opale.css';
-import { Button, Modal, type ButtonProps, type ModalProps } from '@thomascaron/opale-ui';
+import {
+  Button,
+  ICON_NAMES,
+  Modal,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  type ButtonProps,
+  type ModalProps,
+} from '@thomascaron/opale-ui';
 import { contrastRatio } from '@thomascaron/opale-ui/contract';
 
 const props: ButtonProps = { variant: 'primary', size: 'small' };
@@ -70,6 +97,13 @@ export const view = (
   <>
     <Button {...props}>Valider</Button>
     <Modal open={modal.open} onOpenChange={() => undefined} title="Titre" />
+    {/* Les parties nommées, la seule forme qu'un Server Component peut lire. */}
+    <Tabs defaultValue="a">
+      <TabsList aria-label="Sections">
+        <TabsTrigger value="a">A</TabsTrigger>
+      </TabsList>
+      <TabsContent value="a">{ICON_NAMES.length}</TabsContent>
+    </Tabs>
   </>
 );
 export const ratio: number = contrastRatio('#ffffff', '#000000');
