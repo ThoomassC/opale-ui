@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useContext,
   useEffect,
   useId,
   useRef,
@@ -18,6 +19,8 @@ import { IconGlyph } from '../icon';
 import { resolveLabels } from '../../shared/labels';
 import { mergeRefs } from '../../shared/merge-refs';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
+
+import { isTopModal, ModalDepthContext, pushModal } from './modal-stack';
 
 import styles from './style/Modal.module.css';
 
@@ -308,9 +311,23 @@ const Modal = ({
     };
   }, [lockScroll, open]);
 
+  /* LA MODALE S'INSCRIT DANS LA PILE tant qu'elle est ouverte, même sans
+     `closeOnEsc` : ouverte au-dessus d'une autre, elle garde Échap pour elle. */
+  const depth = useContext(ModalDepthContext) + 1;
+  const stackEntryRef = useRef<ReturnType<typeof pushModal>['entry'] | null>(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const { entry, release } = pushModal(depth);
+    stackEntryRef.current = entry;
+    return () => {
+      release();
+      stackEntryRef.current = null;
+    };
+  }, [depth, open]);
+
   /* L'ÉCOUTE D'ÉCHAP EST SUR `window`, et c'est ce que documente la vitrine.
      Sur le panneau, elle raterait le cas où le focus a été déplacé hors du
-     dialogue par du code de l'appelant. */
+     dialogue par du code de l'appelant. Seule la modale du dessus répond. */
   useEffect(() => {
     if (!open || !closeOnEsc) return undefined;
 
@@ -319,7 +336,10 @@ const Modal = ({
        replie. Fermer en plus ferait perdre tout le dialogue pour une
        annulation locale. */
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.defaultPrevented) handleClose();
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      const entry = stackEntryRef.current;
+      if (entry && !isTopModal(entry)) return;
+      handleClose();
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -478,92 +498,94 @@ const Modal = ({
   const showHeader = Boolean(title || description || onClose || onOpenChange);
 
   return createPortal(
-    <div ref={containerRef} className={styles.container} data-testid="modal-container">
-      {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
+    <ModalDepthContext.Provider value={depth}>
+      <div ref={containerRef} className={styles.container} data-testid="modal-container">
+        {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
           porte `aria-hidden` parce que la fermeture qu'il offre à la souris
           existe déjà au clavier, par Échap et par la croix. En faire un
           contrôle exposé ajouterait une tabulation vide avant chaque
           dialogue. La règle jsx-a11y qui réclamerait un rôle sur un `onClick`
           ne se déclenche pas ici, justement parce que l'élément est retiré de
           l'arbre d'accessibilité. */}
-      <div
-        data-testid="modal-overlay"
-        aria-hidden="true"
-        className={styles.overlay}
-        onClick={closeOnOverlay ? handleClose : undefined}
-      />
+        <div
+          data-testid="modal-overlay"
+          aria-hidden="true"
+          className={styles.overlay}
+          onClick={closeOnOverlay ? handleClose : undefined}
+        />
 
-      {/* LE PANNEAU, DANS L'UNE OU L'AUTRE MATIÈRE.
+        {/* LE PANNEAU, DANS L'UNE OU L'AUTRE MATIÈRE.
 
           Les attributs du dialogue — rôle, `aria-modal`, nom, description,
           `tabIndex` et les deux gestionnaires — sont écrits UNE FOIS et posés
           sur les deux rendus : c'est tout le contrat d'accessibilité du
           composant, et il ne doit pas dépendre d'une apparence. */}
-      <Panneau
-        {...rest}
-        ref={panelRefs}
-        liquidGlass={liquidGlass}
-        triggerAnimation={openRipple}
-        rootClassName={cx(styles.shell, sizeClass[normalizeSize(size, 'medium')], rootClassName)}
-        className={cx(styles.panel, className)}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-        aria-labelledby={labelledBy}
-        aria-describedby={describedBy}
-        tabIndex={-1}
-        onKeyDown={handlePanelKeyDown}
-        onClick={handlePanelClick}
-      >
-        {showHeader && (
-          <div className={styles.header}>
-            {/* LE BLOC DE TITRE N'EXISTE QUE S'IL A QUELQUE CHOSE DEDANS.
+        <Panneau
+          {...rest}
+          ref={panelRefs}
+          liquidGlass={liquidGlass}
+          triggerAnimation={openRipple}
+          rootClassName={cx(styles.shell, sizeClass[normalizeSize(size, 'medium')], rootClassName)}
+          className={cx(styles.panel, className)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={ariaLabel}
+          aria-labelledby={labelledBy}
+          aria-describedby={describedBy}
+          tabIndex={-1}
+          onKeyDown={handlePanelKeyDown}
+          onClick={handlePanelClick}
+        >
+          {showHeader && (
+            <div className={styles.header}>
+              {/* LE BLOC DE TITRE N'EXISTE QUE S'IL A QUELQUE CHOSE DEDANS.
                 `showHeader` est vrai dès qu'il y a un `onClose`, donc un
                 dialogue sans titre ni description — une visionneuse d'image,
                 par exemple — posait une boîte vide à côté de sa croix, et le
                 filet de séparation tirait une ligne pleine largeur sous un
                 bouton isolé. La feuille s'accroche à la présence de ce bloc. */}
-            {(title || description) && (
-              <div className={styles.heading}>
-                {title && (
-                  <h2 id={titleId} className={styles.title}>
-                    {title}
-                  </h2>
-                )}
+              {(title || description) && (
+                <div className={styles.heading}>
+                  {title && (
+                    <h2 id={titleId} className={styles.title}>
+                      {title}
+                    </h2>
+                  )}
 
-                {description && (
-                  <p id={descriptionId} className={styles.description}>
-                    {description}
-                  </p>
-                )}
-              </div>
-            )}
+                  {description && (
+                    <p id={descriptionId} className={styles.description}>
+                      {description}
+                    </p>
+                  )}
+                </div>
+              )}
 
-            {(onClose || onOpenChange) && (
-              <button
-                type="button"
-                className={styles.close}
-                aria-label={labels.close}
-                onClick={handleClose}
-              >
-                {/* LA CROIX EST UN TRACÉ, PLUS UN CARACTÈRE. « × » est le signe
+              {(onClose || onOpenChange) && (
+                <button
+                  type="button"
+                  className={styles.close}
+                  aria-label={labels.close}
+                  onClick={handleClose}
+                >
+                  {/* LA CROIX EST UN TRACÉ, PLUS UN CARACTÈRE. « × » est le signe
                     MULTIPLIER : sa barre est plus fine que le reste de
                     l'interface, sa taille dépend de la police installée, et il
                     n'est pas centré dans sa boîte — d'où une croix qui flottait
                     un peu haut et un peu à gauche dans son cercle. Le tracé du
                     jeu d'Opale a l'épaisseur de trait de toutes les autres
                     icônes et se centre sur sa grille. */}
-                <IconGlyph name="close" className={styles.closeGlyph} />
-              </button>
-            )}
-          </div>
-        )}
+                  <IconGlyph name="close" className={styles.closeGlyph} />
+                </button>
+              )}
+            </div>
+          )}
 
-        {children && <div className={styles.body}>{children}</div>}
+          {children && <div className={styles.body}>{children}</div>}
 
-        {footer && <div className={styles.footer}>{footer}</div>}
-      </Panneau>
-    </div>,
+          {footer && <div className={styles.footer}>{footer}</div>}
+        </Panneau>
+      </div>
+    </ModalDepthContext.Provider>,
     container,
   );
 };

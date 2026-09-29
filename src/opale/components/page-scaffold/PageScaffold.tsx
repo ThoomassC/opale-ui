@@ -15,6 +15,7 @@ import { HeaderThemeToggle } from '../header-controls/HeaderThemeToggle';
 import { LanguageSelector } from '../header-controls/LanguageSelector';
 import Topbar from '../topbar/Topbar';
 import type { OpaleSize } from '../../shared';
+import { useScrollPadding } from '../../shared/use-scroll-padding';
 import type { SearchBarProps } from '../search-bar/SearchBar';
 import { PageScaffoldSearch } from './PageScaffoldSearch';
 import styles from './PageScaffold.module.css';
@@ -106,6 +107,13 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithRef<'div'>, 't
   contentWidth?: 'normal' | 'wide' | 'full';
   stickyHeader?: boolean;
   liquidGlass?: boolean;
+  /**
+   * Rend un lien d'évitement vers le contenu principal, visible au focus.
+   * Il déplace le focus sans écrire le fragment dans l'adresse. Défaut : `false`.
+   */
+  showSkipLink?: boolean;
+  /** Le texte du lien d'évitement. Défaut : « Aller au contenu », selon la langue. */
+  skipLinkLabel?: string;
   mainId?: string;
   /** Utile quand le gabarit est montré dans une page qui possède déjà un `<main>`. */
   mainAs?: 'main' | 'div';
@@ -138,6 +146,7 @@ const COPY = {
     copyright: 'Tous droits réservés.',
     theme: 'Changer le thème clair ou sombre',
     language: 'Langue de la page',
+    skipLink: 'Aller au contenu',
   },
   en: {
     home: 'Home',
@@ -158,6 +167,7 @@ const COPY = {
     copyright: 'All rights reserved.',
     theme: 'Switch between light and dark theme',
     language: 'Page language',
+    skipLink: 'Skip to content',
   },
   es: {
     home: 'Inicio',
@@ -178,6 +188,7 @@ const COPY = {
     copyright: 'Todos los derechos reservados.',
     theme: 'Cambiar entre tema claro y oscuro',
     language: 'Idioma de la página',
+    skipLink: 'Saltar al contenido',
   },
 } as const;
 
@@ -230,6 +241,8 @@ export function PageScaffold({
   contentWidth = 'normal',
   stickyHeader = false,
   liquidGlass = false,
+  showSkipLink = false,
+  skipLinkLabel,
   mainId,
   mainAs: Main = 'main',
   slots,
@@ -243,6 +256,9 @@ export function PageScaffold({
   const mobileId = `opale-page-menu-${generatedId}`;
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  /* L'en-tête collant ne doit pas couvrir l'élément atteint au clavier. */
+  useScrollPadding(headerRef, 'top', stickyHeader && slots?.header === undefined);
   const [menuOpen, setMenuOpen] = useState(false);
   const [localTheme, setLocalTheme] = useState<PageScaffoldTheme>(defaultTheme);
   const [localLanguage, setLocalLanguage] = useState<PageScaffoldLanguage>(defaultLanguage);
@@ -258,6 +274,15 @@ export function PageScaffold({
     { id: 'legal', href: '/mentions-legales', label: copy.legal },
     { id: 'privacy', href: '/confidentialite', label: copy.privacy },
   ];
+  /* Le fragment écrit dans l'adresse casserait un routeur par fragment :
+     le focus est déplacé à la main, le `href` reste le filet sans script. */
+  const skipToContent = (event: MouseEvent<HTMLAnchorElement>) => {
+    const target = document.getElementById(contentId);
+    if (!target) return;
+    event.preventDefault();
+    target.focus();
+    target.scrollIntoView?.({ block: 'start' });
+  };
   const changeTheme = () => {
     const next = activeTheme === 'light' ? 'dark' : 'light';
     if (theme === undefined) setLocalTheme(next);
@@ -339,6 +364,7 @@ export function PageScaffold({
     ) : (
       <>
         <Topbar
+          ref={headerRef}
           elevated={false}
           size={headerSize}
           liquidGlass={liquidGlass}
@@ -486,6 +512,11 @@ export function PageScaffold({
       lang={activeLanguage}
       {...rootProps}
     >
+      {showSkipLink ? (
+        <a className={styles.skipLink} href={`#${contentId}`} onClick={skipToContent}>
+          {skipLinkLabel ?? copy.skipLink}
+        </a>
+      ) : null}
       {header}
       <Main
         id={contentId}

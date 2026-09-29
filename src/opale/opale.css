@@ -2150,6 +2150,28 @@
   min-width: 0;
   gap: var(--opale-space-xs);
 }
+/* L'option active est désignée par `aria-activedescendant` : le focus reste
+   dans la recherche, donc c'est `aria-selected` qui porte l'anneau. */
+.opale-command-palette__option {
+  display: grid;
+  gap: 0.125rem;
+  border-radius: var(--opale-radius-md);
+  padding: var(--opale-space-sm) var(--opale-space-md);
+  cursor: pointer;
+}
+.opale-command-palette__option[aria-selected='true'] {
+  background: var(--opale-surface-sunken);
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
+}
+.opale-command-palette__option[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.opale-command-palette__option-description {
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
 /* La modale en verre a une surface claire opaque : son libellé reprend l'encre
    du dialogue, pas l'encre blanche des composants posés sur une photographie. */
 [data-opale-glass] .opale-command-palette__content .opale-field__label {

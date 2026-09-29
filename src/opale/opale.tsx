@@ -61,6 +61,7 @@ import type { OpalePlacement, OpaleSize, OpaleTone } from './shared';
 import { resolveLabels } from './shared/labels';
 import { mergeRefs } from './shared/merge-refs';
 import { useControllableState, useOptionalState } from './shared/use-controllable-state';
+import { useScrollPadding } from './shared/use-scroll-padding';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type {
   PaginationLabels,
@@ -343,10 +344,13 @@ export interface CardProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   footer?: ReactNode;
   elevation?: 0 | 1 | 2 | 3;
   liquidGlass?: boolean;
+  /** La balise du titre, pour suivre la hiérarchie de la page. Défaut : `h3`. */
+  titleAs?: 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 }
 
 export function Card({
   title,
+  titleAs: Title = 'h3',
   subtitle,
   actions,
   footer,
@@ -361,7 +365,7 @@ export function Card({
       {(title || subtitle || actions) && (
         <div className="opale-card__header">
           <div>
-            {title && <h3 className="opale-card__title">{title}</h3>}
+            {title && <Title className="opale-card__title">{title}</Title>}
             {subtitle && <p className="opale-card__subtitle">{subtitle}</p>}
           </div>
           {actions}
@@ -419,13 +423,28 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'>
   error?: ReactNode;
   icon?: ReactNode;
   liquidGlass?: boolean;
+  /** Avec `type="search"`, pose le repère `search` autour du champ. Défaut : `true`. */
+  searchLandmark?: boolean;
+  /** Avec `type="search"`, le nom du repère `search`. */
+  searchLandmarkLabel?: string;
 }
 
 /** @deprecated Depuis 3.6 — utilisez `InputProps`. */
 export type FieldProps = InputProps;
 
 export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
-  { label, helperText, error, icon, liquidGlass = false, className, id, ...props },
+  {
+    label,
+    helperText,
+    error,
+    icon,
+    liquidGlass = false,
+    searchLandmark,
+    searchLandmarkLabel,
+    className,
+    id,
+    ...props
+  },
   ref,
 ) {
   const generatedId = useId();
@@ -471,6 +490,8 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
           id={inputId}
           icon={icon}
           liquidGlass={liquidGlass}
+          landmark={searchLandmark}
+          landmarkLabel={searchLandmarkLabel}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={message ? messageId : props['aria-describedby']}
         />
@@ -511,12 +532,24 @@ Input.displayName = 'Input';
 export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   description?: ReactNode;
+  /** L'erreur, annoncée et décrite après la description ; rend la case invalide. */
+  error?: ReactNode;
   liquidGlass?: boolean;
+}
+
+/** Le message d'erreur d'un contrôle en rangée, hors de son `<label>`. */
+function FieldError({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <span id={id} role="alert" className="opale-field__helper opale-field__helper--error">
+      {children}
+    </span>
+  );
 }
 
 export function Checkbox({
   label,
   description,
+  error,
   liquidGlass = false,
   className,
   onChange,
@@ -524,6 +557,11 @@ export function Checkbox({
 }: CheckboxProps) {
   const labelId = useId();
   const descriptionId = useId();
+  const errorId = useId();
+  const describedBy =
+    [label && description ? descriptionId : null, error ? errorId : null]
+      .filter(Boolean)
+      .join(' ') || undefined;
 
   /* L'ÉTAT N'A PLUS BESOIN D'ÊTRE RECOPIÉ EN JAVASCRIPT.
 
@@ -533,7 +571,7 @@ export function Checkbox({
      le CSS, à partir de l'état réel du natif. Un état dérivé de moins, c'est
      une occasion de désynchronisation de moins — et `onChange` redevient un
      simple passe-plat. */
-  return (
+  const row = (
     <label className={cx('opale-checkbox-row', className)}>
       {/* LA DESCRIPTION EST DÉCRITE, PLUS NOMMÉE. Rendue dans le `<label>`,
           elle entrait dans le nom de la case : « Recevoir les notifications
@@ -549,7 +587,8 @@ export function Checkbox({
            et la rangée reste cliquable sur toute sa surface, ce qui est le
            point de la construire ainsi. */
         aria-labelledby={labelId}
-        aria-describedby={label && description ? descriptionId : undefined}
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : undefined}
         onChange={onChange}
         {...props}
       />
@@ -572,20 +611,44 @@ export function Checkbox({
       )}
     </label>
   );
+  if (!error) return row;
+  return (
+    <>
+      {row}
+      <FieldError id={errorId}>{error}</FieldError>
+    </>
+  );
 }
 
 export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
+  /** L'erreur, annoncée et décrite ; rend l'interrupteur invalide. */
+  error?: ReactNode;
   liquidGlass?: boolean;
 }
 
-export function Toggle({ label, liquidGlass = false, className, onChange, ...props }: ToggleProps) {
+export function Toggle({
+  label,
+  error,
+  liquidGlass = false,
+  className,
+  onChange,
+  ...props
+}: ToggleProps) {
+  const errorId = useId();
   /* Même simplification que pour la case : la piste et sa poignée sont celles
      d'Opale, et `.opale-toggle:checked` les peint depuis le CSS. Le verre
      habille la piste sans se mêler de son état. */
-  return (
+  const row = (
     <label className={cx('opale-toggle-row', className)}>
-      <input type="checkbox" className="opale-toggle" onChange={onChange} {...props} />
+      <input
+        type="checkbox"
+        className="opale-toggle"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+        onChange={onChange}
+        {...props}
+      />
       <FieldShell
         liquidGlass={liquidGlass}
         className={cx('opale-toggle-track', liquidGlass && 'opale-toggle-track--glass')}
@@ -597,11 +660,22 @@ export function Toggle({ label, liquidGlass = false, className, onChange, ...pro
       {label && <span>{label}</span>}
     </label>
   );
+  if (!error) return row;
+  return (
+    <>
+      {row}
+      <FieldError id={errorId}>{error}</FieldError>
+    </>
+  );
 }
 
 export interface SliderProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   valueLabel?: ReactNode;
+  /** La valeur dite en mots, en `aria-valuetext` : « 3 sur 10 ». */
+  valueText?: string;
+  /** Dérive `aria-valuetext` de la valeur, à chaque déplacement. `valueText` gagne. */
+  getValueText?: (value: number) => string;
   liquidGlass?: boolean;
 }
 
@@ -638,6 +712,8 @@ function rangeProgress(input: HTMLInputElement): number {
 export function Slider({
   label,
   valueLabel,
+  valueText,
+  getValueText,
   liquidGlass = false,
   className,
   onChange,
@@ -692,6 +768,9 @@ export function Slider({
     const progress = rangeProgress(input);
     shell.style.setProperty('--opale-range-progress', String(progress));
     previous.current = progress;
+    if (getValueText && valueText === undefined && props['aria-valuetext'] === undefined) {
+      input.setAttribute('aria-valuetext', getValueText(Number(input.value)));
+    }
   });
 
   useEffect(() => () => clearTimeout(relax.current), []);
@@ -723,6 +802,10 @@ export function Slider({
 
       previous.current = progress;
     }
+    /* Un curseur libre ne re-rend pas : le texte de valeur suit dans le DOM. */
+    if (getValueText && valueText === undefined && props['aria-valuetext'] === undefined) {
+      input.setAttribute('aria-valuetext', getValueText(Number(input.value)));
+    }
 
     onChange?.(event);
   };
@@ -738,6 +821,7 @@ export function Slider({
       id={sliderId}
       type="range"
       className="opale-range"
+      aria-valuetext={valueText}
       onChange={handleChange}
       {...props}
     />
@@ -801,6 +885,8 @@ export function Slider({
 export interface SelectProps extends ComponentPropsWithRef<'select'> {
   label?: ReactNode;
   helperText?: ReactNode;
+  /** L'erreur, annoncée et décrite à la place de l'aide ; rend le champ invalide. */
+  error?: ReactNode;
   options?: readonly SelectOption[];
   liquidGlass?: boolean;
 }
@@ -808,6 +894,7 @@ export interface SelectProps extends ComponentPropsWithRef<'select'> {
 export function Select({
   label,
   helperText,
+  error,
   options,
   liquidGlass = false,
   className,
@@ -838,6 +925,7 @@ export function Select({
      commande vocale visant « Pays » (WCAG 1.3.1). La correction avait été
      appliquée au champ de saisie et pas à ses trois voisins. */
   const helperId = `${selectId}-helper`;
+  const message = error || helperText;
 
   return (
     <div className={cx('opale-field', className)}>
@@ -854,7 +942,8 @@ export function Select({
         <select
           id={selectId}
           className="opale-select"
-          aria-describedby={helperText ? helperId : undefined}
+          aria-describedby={message ? helperId : undefined}
+          aria-invalid={error ? true : undefined}
           onChange={onChange}
           {...props}
         >
@@ -866,9 +955,13 @@ export function Select({
           {children}
         </select>
       </FieldShell>
-      {helperText && (
-        <span id={helperId} className="opale-field__helper">
-          {helperText}
+      {message && (
+        <span
+          id={helperId}
+          role={error ? 'alert' : undefined}
+          className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
+        >
+          {message}
         </span>
       )}
     </div>
@@ -937,6 +1030,7 @@ export function MultiSelect({
   values,
   label,
   helperText,
+  error,
   options = [],
   liquidGlass = false,
   className,
@@ -1074,7 +1168,8 @@ export function MultiSelect({
              sans option, la référence ne résout rien et la liste annonce un
              descendant actif qui n'existe pas. */
           aria-activedescendant={options.length ? `${fieldId}-option-${activeIndex}` : undefined}
-          aria-describedby={helperText ? `${fieldId}-helper` : undefined}
+          aria-describedby={error || helperText ? `${fieldId}-helper` : undefined}
+          aria-invalid={error ? true : undefined}
           tabIndex={0}
           onKeyDown={onKeyDown}
         >
@@ -1114,9 +1209,13 @@ export function MultiSelect({
         </div>
       </FieldShell>
 
-      {helperText && (
-        <span id={`${fieldId}-helper`} className="opale-field__helper">
-          {helperText}
+      {(error || helperText) && (
+        <span
+          id={`${fieldId}-helper`}
+          role={error ? 'alert' : undefined}
+          className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
+        >
+          {error || helperText}
         </span>
       )}
     </div>
@@ -1801,6 +1900,7 @@ export function Toast({
   liquidGlass = false,
   labels: labelsProp,
   className,
+  ref,
   ...rest
 }: ToastProps) {
   /* LES DEUX RÉGIONS SONT MONTÉES EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
@@ -1832,8 +1932,19 @@ export function Toast({
      du matériau. */
   const Shell = liquidGlass ? Glass : 'div';
   const shellProps = liquidGlass ? ({ rootClassName: 'opale-toast--glass-root' } as const) : {};
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useCallback(
+    (node: HTMLDivElement | null) => mergeRefs(cardRef, ref)(node),
+    [ref],
+  );
   const card = open ? (
-    <Shell {...rest} {...shellProps} className={classes} data-opale-toast-tone={tone}>
+    <Shell
+      {...rest}
+      {...shellProps}
+      ref={cardRefs}
+      className={classes}
+      data-opale-toast-tone={tone}
+    >
       {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
 
           Le ton n'était qu'un filet de 4 px en ombre intérieure, rogné à ses
@@ -1880,6 +1991,8 @@ export function Toast({
      qui garantit son annonce —, montez le composant fermé et ouvrez-le ensuite,
      ou gardez une autre instance à la même place. */
   const anchor = useToastAnchor(position);
+  /* Le message fixe ne doit pas couvrir l'élément atteint au clavier. */
+  useScrollPadding(cardRef, position.startsWith('top') ? 'top' : 'bottom', open && anchor !== null);
 
   if (!anchor || !card) return null;
 
@@ -1929,6 +2042,8 @@ export function ProgressBar({
      se lirait plus, et c'est la seule chose que la barre a à dire. */
   const Track = liquidGlass ? Glass : 'div';
   const trackProps = liquidGlass ? ({ rootClassName: 'opale-progress--glass-root' } as const) : {};
+  /* La valeur annoncée est celle qu'on voit : bornée à [0, 100]. */
+  const bounded = Number.isFinite(value) ? Math.max(0, Math.min(value, 100)) : 0;
 
   return (
     <div className={cx('opale-field', className)}>
@@ -1946,14 +2061,11 @@ export function ProgressBar({
         {...trackProps}
         className={cx('opale-progress', liquidGlass && 'opale-progress--glass')}
         role="progressbar"
-        aria-valuenow={value}
+        aria-valuenow={bounded}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <div
-          className="opale-progress__value"
-          style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
-        />
+        <div className="opale-progress__value" style={{ width: `${bounded}%` }} />
       </Track>
     </div>
   );
@@ -2118,6 +2230,8 @@ export interface NavbarProps extends Omit<
   activeId?: string;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onSelect?: (id: string) => void;
+  /** Le nom du repère ; `aria-label` gagne. Défaut : « Navigation ». */
+  label?: string;
   className?: string;
   liquidGlass?: boolean;
 }
@@ -2129,6 +2243,7 @@ export function Navbar({
   onValueChange,
   activeId: activeIdProp,
   onSelect,
+  label = 'Navigation',
   className,
   liquidGlass = false,
   ...rest
@@ -2149,7 +2264,7 @@ export function Navbar({
        pour son CONTENU : le `<nav>` et son nom accessible restent le même nœud
        dans les deux rendus, donc la navigation garde son rôle sous verre. */
     <Rail
-      aria-label="Navigation"
+      aria-label={label}
       {...rest}
       {...railProps}
       className={cx('opale-surface', liquidGlass && 'opale-surface--glass', 'opale-nav', className)}
@@ -2185,6 +2300,8 @@ export function Navbar({
 export interface MenuProps extends ComponentPropsWithRef<'details'> {
   label?: ReactNode;
   items?: readonly NavItem[];
+  /** Le nom de la navigation rendue depuis `items`. Défaut : celui de `Navbar`. */
+  navigationLabel?: string;
   className?: string;
   children?: ReactNode;
   liquidGlass?: boolean;
@@ -2193,6 +2310,7 @@ export interface MenuProps extends ComponentPropsWithRef<'details'> {
 export function Menu({
   label = 'Menu',
   items = [],
+  navigationLabel,
   className,
   children,
   liquidGlass = false,
@@ -2207,7 +2325,11 @@ export function Menu({
   const content = (
     <>
       <summary>{label}</summary>
-      {items.length > 0 ? <Navbar items={items} liquidGlass={liquidGlass} /> : children}
+      {items.length > 0 ? (
+        <Navbar items={items} label={navigationLabel} liquidGlass={liquidGlass} />
+      ) : (
+        children
+      )}
     </>
   );
 
@@ -2296,13 +2418,32 @@ export interface CommandPaletteLabels extends ModalLabels {
   title: string;
   /** Le libellé du champ de recherche. Défaut : « Rechercher une commande ». */
   search: string;
+  /** Avec `items`, le nom de la liste. Défaut : « Commandes ». */
+  results?: string;
+  /** Avec `items`, le compte annoncé. Défaut : « 3 résultats », « Aucun résultat ». */
+  resultCount?: (count: number) => string;
 }
 
-const DEFAULT_COMMAND_PALETTE_LABELS: CommandPaletteLabels = {
+const DEFAULT_COMMAND_PALETTE_LABELS: Required<CommandPaletteLabels> = {
   close: 'Fermer',
   title: 'Palette de commandes',
   search: 'Rechercher une commande',
+  results: 'Commandes',
+  resultCount: (count) =>
+    count === 0 ? 'Aucun résultat' : `${count} résultat${count > 1 ? 's' : ''}`,
 };
+
+/** Une commande de la palette. */
+export interface CommandPaletteItem {
+  id: string;
+  label: ReactNode;
+  /** Un texte secondaire, sous le libellé. */
+  description?: ReactNode;
+  /** Visible mais ni activable ni choisie aux flèches. */
+  disabled?: boolean;
+  /** Appelée quand la commande est choisie, avant `onItemSelect`. */
+  onSelect?: () => void;
+}
 
 /** Les props de `CommandPalette`. `ref` et les attributs vont au panneau. */
 export interface CommandPaletteProps extends Omit<
@@ -2322,7 +2463,15 @@ export interface CommandPaletteProps extends Omit<
   onOpenChange?: (open: boolean) => void;
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
+  /** Un contenu libre, rendu sous la recherche. */
   children?: ReactNode;
+  /**
+   * Les commandes, déjà filtrées par l'appelant. Présentes, la recherche devient
+   * une combobox : flèches haut et bas, Entrée, et le compte annoncé.
+   */
+  items?: readonly CommandPaletteItem[];
+  /** Appelée avec l'`id` de la commande choisie, à Entrée ou au clic. */
+  onItemSelect?: (id: string) => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<CommandPaletteLabels>;
   liquidGlass?: boolean;
@@ -2337,12 +2486,17 @@ export function CommandPalette({
   onOpenChange,
   onClose,
   children,
+  items,
+  onItemSelect,
   labels: labelsProp,
   liquidGlass = false,
   ...rest
 }: CommandPaletteProps) {
   const close = closeHandler(onOpenChange, onClose);
-  const labels = resolveLabels(DEFAULT_COMMAND_PALETTE_LABELS, labelsProp);
+  const labels = resolveLabels<Required<CommandPaletteLabels>>(
+    DEFAULT_COMMAND_PALETTE_LABELS,
+    labelsProp,
+  );
   /* La modale donne d'abord le focus au panneau pour annoncer son titre.
      Au cadre suivant, la palette place le curseur dans sa recherche : on peut
      lancer une commande sans clic, tout en laissant Modal retenir l'élément
@@ -2354,6 +2508,43 @@ export function CommandPalette({
     const frame = requestAnimationFrame(() => searchRef.current?.focus({ preventScroll: true }));
     return () => cancelAnimationFrame(frame);
   }, [open]);
+
+  /* LA COMMANDE ACTIVE SE DÉDUIT : celle retenue aux flèches si elle est
+     encore là et active, la première active sinon. */
+  const listboxId = useId();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const enabledItems = (items ?? []).filter((item) => !item.disabled);
+  const active = enabledItems.find((item) => item.id === activeId) ?? enabledItems[0];
+  const optionId = (item: CommandPaletteItem) => `${listboxId}-${item.id}`;
+  const choose = (item: CommandPaletteItem) => {
+    if (item.disabled) return;
+    item.onSelect?.();
+    onItemSelect?.(item.id);
+  };
+  const handleComboboxKeys = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && active) {
+      event.preventDefault();
+      choose(active);
+      return;
+    }
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    if (enabledItems.length === 0) return;
+    const index = active ? enabledItems.indexOf(active) : -1;
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    const next = enabledItems[(index + step + enabledItems.length) % enabledItems.length];
+    setActiveId(next.id);
+  };
+  const combobox = items
+    ? ({
+        role: 'combobox',
+        'aria-expanded': items.length > 0,
+        'aria-controls': listboxId,
+        'aria-autocomplete': 'list',
+        'aria-activedescendant': active ? optionId(active) : undefined,
+        onKeyDown: handleComboboxKeys,
+      } as const)
+    : {};
 
   return (
     <Modal
@@ -2372,9 +2563,12 @@ export function CommandPalette({
       }
     >
       <div className="opale-command-palette__content">
+        {/* Le dialogue est déjà un repère : la recherche n'en ajoute pas. */}
         <Input
           ref={searchRef}
           type="search"
+          searchLandmark={false}
+          {...combobox}
           label={labels.search}
           value={query}
           onChange={(event) => {
@@ -2383,6 +2577,43 @@ export function CommandPalette({
             onChange?.(next);
           }}
         />
+        {items && (
+          <>
+            <div
+              id={listboxId}
+              role="listbox"
+              aria-label={labels.results}
+              className="opale-command-palette__results opale-command-palette__listbox"
+            >
+              {items.map((item) => (
+                /* Le focus reste dans la recherche : l'option est désignée par
+                   `aria-activedescendant`, pas focalisée. */
+                /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
+                   Le clavier est porté par la combobox, comme dans `MultiSelect`. */
+                <div
+                  key={item.id}
+                  id={optionId(item)}
+                  role="option"
+                  aria-selected={item === active}
+                  aria-disabled={item.disabled ? true : undefined}
+                  className="opale-command-palette__option"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => choose(item)}
+                >
+                  <span className="opale-command-palette__option-label">{item.label}</span>
+                  {item.description && (
+                    <span className="opale-command-palette__option-description">
+                      {item.description}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div role="status" className="opale-visually-hidden">
+              {labels.resultCount(items.length)}
+            </div>
+          </>
+        )}
         {children && <div className="opale-command-palette__results">{children}</div>}
       </div>
     </Modal>
@@ -2551,6 +2782,9 @@ export function CookieBanner({
   const visible = open ?? !(decided ?? stored);
   const [wasVisible, setWasVisible] = useState(visible);
   const [leaving, setLeaving] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  /* Le bandeau fixe ne doit pas couvrir l'élément atteint au clavier. */
+  useScrollPadding(anchorRef, 'bottom', visible);
 
   /* La sortie animée suit un clic ou la fermeture pilotée par `open`. Une
      préférence déjà mémorisée, découverte après hydratation, se retire tout
@@ -2588,7 +2822,7 @@ export function CookieBanner({
     : {};
 
   return (
-    <div className="opale-cookie-banner-anchor">
+    <div ref={anchorRef} className="opale-cookie-banner-anchor">
       <div
         className={cx(
           toastMotion.card,
@@ -2977,13 +3211,22 @@ export function StatCard({
 export interface DonutProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   value?: number;
   label?: string;
+  /** Ce que la valeur mesure, lu avant elle : « Tâches terminées : 72% ». */
+  context?: string;
 }
 
-export function Donut({ value = 60, label = `${value}%`, className, style, ...rest }: DonutProps) {
+export function Donut({
+  value = 60,
+  label = `${value}%`,
+  context,
+  className,
+  style,
+  ...rest
+}: DonutProps) {
   /* Le style de l'appelant d'abord, la variable qui dessine l'anneau ensuite. */
   return (
     <div
-      aria-label={label}
+      aria-label={context ? `${context} : ${label}` : label}
       {...rest}
       className={cx('opale-donut', className)}
       data-label={label}
@@ -3221,6 +3464,7 @@ export function DataTable({
             compact && 'opale-table--compact',
             striped && 'opale-table--striped',
           )}
+          aria-busy={loading || undefined}
         >
           {caption && <caption className="opale-table__caption">{caption}</caption>}
           <thead>
@@ -3260,8 +3504,9 @@ export function DataTable({
             {loading ? (
               <tr>
                 <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
-                  <div className="opale-table__state">
-                    <span className="opale-spinner" aria-hidden="true" />
+                  {/* Masqué aux outils : la région de statut l'annonce déjà. */}
+                  <div className="opale-table__state" aria-hidden="true">
+                    <span className="opale-spinner" />
                     <span>{labels.loading}</span>
                   </div>
                 </td>
@@ -3515,6 +3760,7 @@ export function Dropzone({
   const [error, setError] = useState('');
   const depth = useRef(0);
   const labels = resolveLabels(DEFAULT_DROPZONE_LABELS, labelsProp);
+  const errorId = useId();
 
   const receive = (files: FileList) => {
     if (disabled || files.length === 0) return;
@@ -3562,33 +3808,38 @@ export function Dropzone({
     },
   };
 
+  /* L'ERREUR VIT HORS DU `<label>` : dedans, elle entrait dans le nom du champ.
+     Elle le décrit, et sa région reste montée pour être annoncée. */
   return (
-    <Zone
-      {...rest}
-      {...zoneProps}
-      {...dragHandlers}
-      className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass', className)}
-      data-dragging={dragging ? 'true' : undefined}
-      data-disabled={disabled ? 'true' : undefined}
-    >
-      <input
-        type="file"
-        className="opale-visually-hidden"
-        multiple
-        accept={accept}
-        disabled={disabled}
-        aria-invalid={error ? true : undefined}
-        onChange={(event) => {
-          if (event.currentTarget.files) receive(event.currentTarget.files);
-          event.currentTarget.value = '';
-        }}
-      />
-      <strong>{children === undefined ? labels.prompt : children}</strong>
-      <span className="opale-dropzone__action">{disabled ? labels.disabled : labels.select}</span>
-      <span className="opale-dropzone__error" role="alert">
+    <>
+      <Zone
+        {...rest}
+        {...zoneProps}
+        {...dragHandlers}
+        className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass', className)}
+        data-dragging={dragging ? 'true' : undefined}
+        data-disabled={disabled ? 'true' : undefined}
+      >
+        <input
+          type="file"
+          className="opale-visually-hidden"
+          multiple
+          accept={accept}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          onChange={(event) => {
+            if (event.currentTarget.files) receive(event.currentTarget.files);
+            event.currentTarget.value = '';
+          }}
+        />
+        <strong>{children === undefined ? labels.prompt : children}</strong>
+        <span className="opale-dropzone__action">{disabled ? labels.disabled : labels.select}</span>
+      </Zone>
+      <span id={errorId} className="opale-dropzone__error" role="alert">
         {error}
       </span>
-    </Zone>
+    </>
   );
 }
 
@@ -4050,7 +4301,10 @@ export function SvgMap({
   };
 
   const handleMapKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    /* Échap consommé par l'infobulle : la modale englobante reste ouverte. */
     if (event.key === 'Escape' && tooltipName) {
+      event.preventDefault();
+      event.stopPropagation();
       setTooltipDismissed(true);
       return;
     }

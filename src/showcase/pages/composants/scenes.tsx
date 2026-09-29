@@ -246,7 +246,7 @@ export function ToastVariantScene({ liquidGlass = false }: { liquidGlass?: boole
     /* PAS DE SCÈNE ICI : `MaterialSwitch` pose la sienne, et elle change avec
        la matière — le paysage sous le verre, la surface unie sous l'original.
        En garder une seconde à l'intérieur les emboîtait l'une dans l'autre. */
-    <ToastProvider duration={4000} liquidGlass={liquidGlass}>
+    <ToastProvider liquidGlass={liquidGlass}>
       <div className="tc-doc-opale-scenerow">
         <ToastTrigger
           label="neutral"

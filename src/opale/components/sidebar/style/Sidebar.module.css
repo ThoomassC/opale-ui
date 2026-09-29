@@ -289,8 +289,7 @@
    déplié et replié.
 
    LE BADGE EST MASQUÉ AVEC LE LIBELLÉ, parce qu'il est dans la même boîte. Il
-   ne disparaît pas d'un lecteur d'écran en se repliant : il en était déjà
-   absent, étant `aria-hidden` dans les deux états — voir `Sidebar.tsx`. */
+   s'entend dans les deux états, en description — voir `Sidebar.tsx`. */
 .itemContentHidden {
   position: absolute;
   overflow: hidden;
