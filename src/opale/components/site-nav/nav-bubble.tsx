@@ -239,14 +239,14 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
   return (
     <ul
       ref={listRef}
-      className={styles.list}
+      className={`opale-site-nav__list ${styles.list}`}
       data-active-index={activeIndex}
       data-item-count={items.length}
       data-moving={moving ? 'true' : undefined}
       data-dragging={dragging ? 'true' : undefined}
     >
       <LiquidBubble
-        className={styles.movingBubble}
+        className={`opale-site-nav__bubble ${styles.movingBubble}`}
         aria-hidden="true"
         style={{ insetInlineStart: dragPosition !== undefined ? `${dragPosition}px` : undefined }}
       />
@@ -255,7 +255,7 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
         return (
           <li key={item.id}>
             <a
-              className={styles.link}
+              className={`opale-site-nav__link ${styles.link}`}
               data-nav={item.id}
               href={item.href}
               aria-current={current ? 'page' : undefined}

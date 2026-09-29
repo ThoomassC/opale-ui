@@ -130,8 +130,13 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     const size = TOPBAR_SIZE[normalizeSize(sizeProp, 'medium')];
     const value = useMemo<TopbarContextValue>(() => ({ size }), [size]);
 
-    const shellClasses = clsx(styles.topbarRoot, elevated && styles.elevated, rootClassName);
-    const contentClasses = clsx(styles.topbar, sizeClassMap[size], className);
+    const shellClasses = clsx(
+      'opale-topbar__shell',
+      styles.topbarRoot,
+      elevated && styles.elevated,
+      rootClassName,
+    );
+    const contentClasses = clsx('opale-topbar', styles.topbar, sizeClassMap[size], className);
 
     /* SANS VERRE, LES DEUX CLASSES SE POSENT SUR UN SEUL ÉLÉMENT. Le matériau
        a besoin d'une enveloppe — c'est elle qui porte la silhouette et les
@@ -194,6 +199,7 @@ const TopbarSection = forwardRef<HTMLDivElement, TopbarSectionProps>(
     <div
       ref={ref}
       className={clsx(
+        'opale-topbar__section',
         styles.section,
         wrap ? styles.sectionWrap : styles.sectionNoWrap,
         gapClassMap[gap],
@@ -236,20 +242,25 @@ const TopbarBrand = forwardRef<HTMLDivElement, TopbarBrandProps>(
     const { size } = useTopbarContext('Topbar.Brand');
 
     return (
-      <div ref={ref} className={clsx(styles.brand, className)} {...rest}>
+      <div ref={ref} className={clsx('opale-topbar__brand', styles.brand, className)} {...rest}>
         {icon ? (
           /* L'ICÔNE EST DÉCORATIVE, et elle l'est vraiment : le titre est à
              côté, dans le même bloc. L'annoncer reviendrait à faire lire
              « image, Voyages » là où « Voyages » suffit. */
           <span
-            className={clsx(styles.brandIcon, brandIconClassMap[size], iconClassName)}
+            className={clsx(
+              'opale-topbar__brand-icon',
+              styles.brandIcon,
+              brandIconClassMap[size],
+              iconClassName,
+            )}
             aria-hidden="true"
           >
             {icon}
           </span>
         ) : null}
 
-        <div className={styles.brandContent}>
+        <div className={clsx('opale-topbar__brand-content', styles.brandContent)}>
           {/* LE TEST DE PRÉSENCE EST UNE VÉRACITÉ ET NON UN `??`, comme dans
               l'original : `children` vaut `false` dès qu'un appelant écrit
               `{condition && <a/>}`, et un `??` rendrait alors ni le lien ni le
@@ -258,8 +269,16 @@ const TopbarBrand = forwardRef<HTMLDivElement, TopbarBrandProps>(
             children
           ) : (
             <>
-              {title ? <span className={styles.brandTitle}>{title}</span> : null}
-              {subtitle ? <span className={styles.brandSubtitle}>{subtitle}</span> : null}
+              {title ? (
+                <span className={clsx('opale-topbar__brand-title', styles.brandTitle)}>
+                  {title}
+                </span>
+              ) : null}
+              {subtitle ? (
+                <span className={clsx('opale-topbar__brand-subtitle', styles.brandSubtitle)}>
+                  {subtitle}
+                </span>
+              ) : null}
             </>
           )}
         </div>
@@ -281,7 +300,7 @@ const TopbarActions = forwardRef<HTMLDivElement, TopbarActionsProps>(
       ref={ref}
       align="right"
       gap={gap}
-      className={clsx(styles.actions, className)}
+      className={clsx('opale-topbar__actions', styles.actions, className)}
       {...rest}
     />
   ),
@@ -313,7 +332,7 @@ const TopbarDivider = forwardRef<HTMLDivElement, TopbarDividerProps>(
     return (
       <div
         ref={ref}
-        className={clsx(styles.divider, dividerClassMap[size], className)}
+        className={clsx('opale-topbar__divider', styles.divider, dividerClassMap[size], className)}
         aria-hidden="true"
         {...rest}
       />

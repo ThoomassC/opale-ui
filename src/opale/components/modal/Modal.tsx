@@ -499,7 +499,11 @@ const Modal = ({
 
   return createPortal(
     <ModalDepthContext.Provider value={depth}>
-      <div ref={containerRef} className={styles.container} data-testid="modal-container">
+      <div
+        ref={containerRef}
+        className={cx('opale-modal', styles.container)}
+        data-testid="modal-container"
+      >
         {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
           porte `aria-hidden` parce que la fermeture qu'il offre à la souris
           existe déjà au clavier, par Échap et par la croix. En faire un
@@ -510,7 +514,7 @@ const Modal = ({
         <div
           data-testid="modal-overlay"
           aria-hidden="true"
-          className={styles.overlay}
+          className={cx('opale-modal__backdrop', styles.overlay)}
           onClick={closeOnOverlay ? handleClose : undefined}
         />
 
@@ -525,8 +529,13 @@ const Modal = ({
           ref={panelRefs}
           liquidGlass={liquidGlass}
           triggerAnimation={openRipple}
-          rootClassName={cx(styles.shell, sizeClass[normalizeSize(size, 'medium')], rootClassName)}
-          className={cx(styles.panel, className)}
+          rootClassName={cx(
+            'opale-modal__shell',
+            styles.shell,
+            sizeClass[normalizeSize(size, 'medium')],
+            rootClassName,
+          )}
+          className={cx('opale-modal__panel', styles.panel, className)}
           role="dialog"
           aria-modal="true"
           aria-label={ariaLabel}
@@ -537,7 +546,7 @@ const Modal = ({
           onClick={handlePanelClick}
         >
           {showHeader && (
-            <div className={styles.header}>
+            <div className={cx('opale-modal__header', styles.header)}>
               {/* LE BLOC DE TITRE N'EXISTE QUE S'IL A QUELQUE CHOSE DEDANS.
                 `showHeader` est vrai dès qu'il y a un `onClose`, donc un
                 dialogue sans titre ni description — une visionneuse d'image,
@@ -545,15 +554,18 @@ const Modal = ({
                 filet de séparation tirait une ligne pleine largeur sous un
                 bouton isolé. La feuille s'accroche à la présence de ce bloc. */}
               {(title || description) && (
-                <div className={styles.heading}>
+                <div className={cx('opale-modal__heading', styles.heading)}>
                   {title && (
-                    <h2 id={titleId} className={styles.title}>
+                    <h2 id={titleId} className={cx('opale-modal__title', styles.title)}>
                       {title}
                     </h2>
                   )}
 
                   {description && (
-                    <p id={descriptionId} className={styles.description}>
+                    <p
+                      id={descriptionId}
+                      className={cx('opale-modal__description', styles.description)}
+                    >
                       {description}
                     </p>
                   )}
@@ -563,7 +575,7 @@ const Modal = ({
               {(onClose || onOpenChange) && (
                 <button
                   type="button"
-                  className={styles.close}
+                  className={cx('opale-modal__close', styles.close)}
                   aria-label={labels.close}
                   onClick={handleClose}
                 >
@@ -580,9 +592,9 @@ const Modal = ({
             </div>
           )}
 
-          {children && <div className={styles.body}>{children}</div>}
+          {children && <div className={cx('opale-modal__body', styles.body)}>{children}</div>}
 
-          {footer && <div className={styles.footer}>{footer}</div>}
+          {footer && <div className={cx('opale-modal__footer', styles.footer)}>{footer}</div>}
         </Panel>
       </div>
     </ModalDepthContext.Provider>,

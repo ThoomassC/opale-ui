@@ -340,7 +340,7 @@ export function PageScaffold({
       slots.brand
     ) : (
       <a
-        className={clsx(styles.brand, classNames?.brand)}
+        className={clsx('opale-page-scaffold__brand', styles.brand, classNames?.brand)}
         href={homeHref}
         aria-label={brandLabel ?? `${copy.home} — ${siteName}`}
       >
@@ -369,11 +369,12 @@ export function PageScaffold({
           size={headerSize}
           liquidGlass={liquidGlass}
           rootClassName={clsx(
+            'opale-page-scaffold__header-shell',
             styles.headerSurface,
             stickyHeader && styles.stickyHeader,
             classNames?.headerRoot,
           )}
-          className={clsx(styles.header, classNames?.header)}
+          className={clsx('opale-page-scaffold__header', styles.header, classNames?.header)}
         >
           <Topbar.Section className={styles.brandSection}>{brand}</Topbar.Section>
           {search ? (
@@ -385,7 +386,11 @@ export function PageScaffold({
                 links={pageNavigation}
                 activeId={activeId}
                 ariaLabel={navigationLabel ?? copy.navigation}
-                className={clsx(styles.navigation, classNames?.navigation)}
+                className={clsx(
+                  'opale-page-scaffold__navigation',
+                  styles.navigation,
+                  classNames?.navigation,
+                )}
                 onNavigate={onNavigate}
               >
                 {slots?.navigation}
@@ -397,7 +402,7 @@ export function PageScaffold({
           {showNavigation && pageNavigation.length > 0 ? (
             <button
               ref={menuButtonRef}
-              className={styles.menuButton}
+              className={clsx('opale-page-scaffold__menu-button', styles.menuButton)}
               type="button"
               aria-label={mobileMenuLabel ?? copy.menu}
               aria-expanded={menuOpen}
@@ -409,10 +414,12 @@ export function PageScaffold({
           ) : null}
           {slots?.actions !== undefined ? (
             slots.actions ? (
-              <Topbar.Actions className={styles.actions}>{slots.actions}</Topbar.Actions>
+              <Topbar.Actions className={clsx('opale-page-scaffold__actions', styles.actions)}>
+                {slots.actions}
+              </Topbar.Actions>
             ) : null
           ) : showThemeToggle || showLanguageSelector ? (
-            <Topbar.Actions className={styles.actions}>
+            <Topbar.Actions className={clsx('opale-page-scaffold__actions', styles.actions)}>
               {showThemeToggle ? (
                 <HeaderThemeToggle
                   isDark={activeTheme === 'dark'}
@@ -437,7 +444,7 @@ export function PageScaffold({
             links={pageNavigation}
             activeId={activeId}
             ariaLabel={`${navigationLabel ?? copy.navigation} — mobile`}
-            className={styles.mobileNavigation}
+            className={clsx('opale-page-scaffold__mobile-navigation', styles.mobileNavigation)}
             hidden={!menuOpen}
             onNavigate={(link, event) => {
               onNavigate?.(link, event);
@@ -455,7 +462,7 @@ export function PageScaffold({
     slots?.intro !== undefined ? (
       slots.intro
     ) : (
-      <div className={clsx(styles.intro, classNames?.intro)}>
+      <div className={clsx('opale-page-scaffold__intro', styles.intro, classNames?.intro)}>
         {(introEyebrow === undefined ? copy.welcome : introEyebrow) ? (
           <span className={styles.eyebrow}>
             {introEyebrow === undefined ? copy.welcome : introEyebrow}
@@ -472,7 +479,7 @@ export function PageScaffold({
     slots?.footer !== undefined ? (
       slots.footer
     ) : (
-      <footer className={clsx(styles.footer, classNames?.footer)}>
+      <footer className={clsx('opale-page-scaffold__footer', styles.footer, classNames?.footer)}>
         <div className={styles.footerTop}>
           <div>
             <strong>{siteName}</strong>
@@ -483,7 +490,7 @@ export function PageScaffold({
           {pageFooterLinks.length > 0 ? (
             <nav
               aria-label={footerNavigationLabel ?? copy.footerNavigation}
-              className={styles.footerLinks}
+              className={clsx('opale-page-scaffold__footer-links', styles.footerLinks)}
             >
               {pageFooterLinks.map((link) => (
                 <a key={link.id} href={link.href} target={link.target} rel={link.rel}>
@@ -495,7 +502,7 @@ export function PageScaffold({
         </div>
         {slots?.footerExtra}
         {showCopyright ? (
-          <div className={styles.copyright}>
+          <div className={clsx('opale-page-scaffold__copyright', styles.copyright)}>
             © {copyrightYear} {copyrightOwner ?? siteName}
             {(copyrightText === undefined ? copy.copyright : copyrightText) ? (
               <>. {copyrightText === undefined ? copy.copyright : copyrightText}</>
@@ -507,13 +514,17 @@ export function PageScaffold({
 
   return (
     <div
-      className={clsx(styles.root, className)}
+      className={clsx('opale-page-scaffold', styles.root, className)}
       data-opale-page-theme={activeTheme}
       lang={activeLanguage}
       {...rootProps}
     >
       {showSkipLink ? (
-        <a className={styles.skipLink} href={`#${contentId}`} onClick={skipToContent}>
+        <a
+          className={clsx('opale-page-scaffold__skip-link', styles.skipLink)}
+          href={`#${contentId}`}
+          onClick={skipToContent}
+        >
           {skipLinkLabel ?? copy.skipLink}
         </a>
       ) : null}
@@ -521,7 +532,12 @@ export function PageScaffold({
       <Main
         id={contentId}
         tabIndex={-1}
-        className={clsx(styles.main, styles[contentWidth], classNames?.main)}
+        className={clsx(
+          'opale-page-scaffold__main',
+          styles.main,
+          styles[contentWidth],
+          classNames?.main,
+        )}
       >
         {intro}
         {slots?.beforeContent}

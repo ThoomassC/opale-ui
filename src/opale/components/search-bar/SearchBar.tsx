@@ -46,7 +46,12 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
     const content = (
       <>
         {icon ?? (
-          <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg
+            className={clsx('opale-search-bar__icon', styles.icon)}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
             <circle
               cx="10.8"
               cy="10.8"
@@ -78,7 +83,13 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
           aria-label={
             ariaLabel ?? (props['aria-labelledby'] || props.id ? undefined : 'Rechercher')
           }
-          className={clsx(styles.input, styles[size], disabled && styles.disabled, className)}
+          className={clsx(
+            'opale-search-bar__input',
+            styles.input,
+            styles[size],
+            disabled && styles.disabled,
+            className,
+          )}
         />
       </>
     );
@@ -88,7 +99,13 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         <div
           role={landmark ? 'search' : undefined}
           aria-label={landmark ? landmarkLabel : undefined}
-          className={clsx(styles.root, styles.searchBar, styles.plain)}
+          className={clsx(
+            'opale-search-bar__shell',
+            'opale-search-bar',
+            styles.root,
+            styles.searchBar,
+            styles.plain,
+          )}
         >
           {content}
         </div>
@@ -99,10 +116,10 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       <Glass
         role={landmark ? 'search' : undefined}
         aria-label={landmark ? landmarkLabel : undefined}
-        rootClassName={styles.root}
+        rootClassName={clsx('opale-search-bar__shell', styles.root)}
         rootStyle={{ width: '100%' }}
         enableLiquidAnimation={!disabled && enableClickAnimation}
-        className={styles.searchBar}
+        className={clsx('opale-search-bar', styles.searchBar)}
       >
         {content}
       </Glass>

@@ -76,14 +76,14 @@ export function SiteNav({
   className,
   ...headerProps
 }: SiteNavProps) {
-  const classes = [styles.bar, liquidGlass ? styles.glass : '', className]
+  const classes = ['opale-site-nav', styles.bar, liquidGlass ? styles.glass : '', className]
     .filter(Boolean)
     .join(' ');
   const content = (
     <>
-      {brand && <div className={styles.brandZone}>{brand}</div>}
+      {brand && <div className={`opale-site-nav__brand ${styles.brandZone}`}>{brand}</div>}
 
-      <div className={styles.inner}>
+      <div className={`opale-site-nav__inner ${styles.inner}`}>
         <nav aria-label={navLabel}>
           <NavBubble items={items} activeKey={value ?? activeItem} onNavigate={onNavigate} />
         </nav>
@@ -97,14 +97,19 @@ export function SiteNav({
      décorative quand on active le matériau. */
   if (liquidGlass) {
     return (
-      <Glass as="header" className={classes} rootClassName={styles.glassRoot} {...headerProps}>
+      <Glass
+        as="header"
+        className={classes}
+        rootClassName={`opale-site-nav__shell ${styles.glassRoot}`}
+        {...headerProps}
+      >
         {content}
       </Glass>
     );
   }
 
   return (
-    <header className={classes} {...headerProps}>
+    <header className={`opale-site-nav__shell ${classes}`} {...headerProps}>
       {content}
     </header>
   );

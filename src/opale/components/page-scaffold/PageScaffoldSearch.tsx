@@ -106,7 +106,7 @@ export function PageScaffoldSearch({
   return (
     <form
       ref={formRef}
-      className={clsx(styles.searchForm, className)}
+      className={clsx('opale-page-scaffold__search', styles.searchForm, className)}
       action={searchAction}
       method="get"
       autoComplete="off"
@@ -167,7 +167,7 @@ export function PageScaffoldSearch({
             id={listId}
             role="listbox"
             aria-label={suggestionsLabel}
-            className={styles.searchSuggestions}
+            className={clsx('opale-page-scaffold__suggestions', styles.searchSuggestions)}
             hidden={!listVisible}
           >
             {matches.map((suggestion, index) => (
@@ -180,20 +180,37 @@ export function PageScaffoldSearch({
                   suggestion.group ? `${suggestion.label} — ${suggestion.group}` : suggestion.label
                 }
                 aria-selected={index === activeIndex}
-                className={styles.searchSuggestion}
+                className={clsx('opale-page-scaffold__suggestion', styles.searchSuggestion)}
                 onMouseDown={(event) => event.preventDefault()}
                 onMouseEnter={() => setActiveIndex(index)}
                 onClick={() => choose(suggestion)}
               >
-                <span className={styles.searchSuggestionLabel}>{suggestion.label}</span>
+                <span
+                  className={clsx(
+                    'opale-page-scaffold__suggestion-label',
+                    styles.searchSuggestionLabel,
+                  )}
+                >
+                  {suggestion.label}
+                </span>
                 {suggestion.group ? (
-                  <span className={styles.searchSuggestionGroup}>{suggestion.group}</span>
+                  <span
+                    className={clsx(
+                      'opale-page-scaffold__suggestion-group',
+                      styles.searchSuggestionGroup,
+                    )}
+                  >
+                    {suggestion.group}
+                  </span>
                 ) : null}
               </li>
             ))}
           </ul>
           {panelOpen && matches.length === 0 ? (
-            <p className={styles.searchNoResults} role="status">
+            <p
+              className={clsx('opale-page-scaffold__no-results', styles.searchNoResults)}
+              role="status"
+            >
               {noResultsLabel}
             </p>
           ) : null}

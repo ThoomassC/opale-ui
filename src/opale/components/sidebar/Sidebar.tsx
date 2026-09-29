@@ -264,11 +264,18 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
     );
 
     const shellClasses = clsx(
+      'opale-sidebar__shell',
       styles.sidebarRoot,
       collapsed ? styles.collapsed : widthClassMap[size],
       rootClassName,
     );
-    const contentClasses = clsx(styles.sidebar, collapsed && styles.sidebarCollapsed, className);
+    const contentClasses = clsx(
+      'opale-sidebar',
+      collapsed && 'opale-sidebar--collapsed',
+      styles.sidebar,
+      collapsed && styles.sidebarCollapsed,
+      className,
+    );
 
     if (!liquidGlass) {
       return (
@@ -319,7 +326,12 @@ const SidebarHeader = forwardRef<HTMLDivElement, SidebarHeaderProps>(
     return (
       <div
         ref={ref}
-        className={clsx(styles.header, collapsed && styles.headerCollapsed, className)}
+        className={clsx(
+          'opale-sidebar__header',
+          styles.header,
+          collapsed && styles.headerCollapsed,
+          className,
+        )}
         {...rest}
       />
     );
@@ -332,7 +344,7 @@ export type SidebarFooterProps = ComponentPropsWithoutRef<'div'>;
 
 const SidebarFooter = forwardRef<HTMLDivElement, SidebarFooterProps>(
   ({ className, ...rest }, ref) => (
-    <div ref={ref} className={clsx(styles.footer, className)} {...rest} />
+    <div ref={ref} className={clsx('opale-sidebar__footer', styles.footer, className)} {...rest} />
   ),
 );
 
@@ -369,7 +381,7 @@ const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ..
     <nav
       ref={ref}
       aria-label={context?.labels?.items ?? DEFAULT_SIDEBAR_LABELS.items}
-      className={clsx(styles.items, className)}
+      className={clsx('opale-sidebar__items', styles.items, className)}
       {...rest}
     />
   );
@@ -453,6 +465,7 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
         ref={ref}
         type="button"
         className={clsx(
+          'opale-sidebar__item',
           styles.item,
           collapsed && styles.itemCollapsed,
           isActive && styles.itemActive,
@@ -470,13 +483,16 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
         {...rest}
       >
         {icon ? (
-          <span className={styles.itemIcon} aria-hidden="true">
+          <span className={clsx('opale-sidebar__item-icon', styles.itemIcon)} aria-hidden="true">
             {icon}
           </span>
         ) : null}
 
         {collapsed && !icon ? (
-          <span className={styles.itemFallback} aria-hidden="true">
+          <span
+            className={clsx('opale-sidebar__item-fallback', styles.itemFallback)}
+            aria-hidden="true"
+          >
             {getCollapsedFallback(collapsedFallback, children)}
           </span>
         ) : null}
@@ -486,7 +502,7 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
             accessible dans les deux états, quel que soit le type du libellé.
             Voir la feuille pour le détail du défaut que cela corrige. */}
         <span className={clsx(styles.itemContent, collapsed && styles.itemContentHidden)}>
-          <span className={styles.itemText}>{children}</span>
+          <span className={clsx('opale-sidebar__item-label', styles.itemText)}>{children}</span>
 
           {/* LE BADGE VISIBLE EST `aria-hidden` : dans le nom, il ferait
               « Analytics 4 », un nom qui bouge avec le compteur (WCAG 2.5.3).
@@ -494,7 +510,7 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
               `aria-describedby` désigne. */}
           {badge ? (
             <>
-              <span className={styles.itemBadge} aria-hidden="true">
+              <span className={clsx('opale-sidebar__badge', styles.itemBadge)} aria-hidden="true">
                 {badge}
               </span>
               <span id={badgeId} hidden>
@@ -557,7 +573,7 @@ const SidebarToggle = forwardRef<HTMLButtonElement, SidebarToggleProps>(
       <button
         ref={ref}
         type="button"
-        className={clsx(styles.toggle, className)}
+        className={clsx('opale-sidebar__toggle', styles.toggle, className)}
         /* LE NOM DIT L'ACTION, `aria-expanded` DIT L'ÉTAT, et les deux sont
            nécessaires. Le nom seul ne répond qu'à « que va-t-il se passer si
            j'appuie ? » ; il ne répond pas à « où en suis-je ? » posé à froid,

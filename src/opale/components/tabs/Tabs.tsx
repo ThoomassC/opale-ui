@@ -346,6 +346,7 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     orientation = 'horizontal',
     liquidGlass = false,
     className,
+    rootClassName,
     children,
     ...rest
   },
@@ -396,7 +397,9 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     ],
   );
 
+  const shellClasses = classes('opale-tabs__shell', rootClassName);
   const rootClasses = classes(
+    'opale-tabs',
     styles.tabs,
     orientation === 'vertical' && styles.tabsVertical,
     className,
@@ -405,11 +408,11 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   return (
     <TabsContext.Provider value={context}>
       {liquidGlass ? (
-        <Glass ref={ref} className={rootClasses} {...rest}>
+        <Glass ref={ref} rootClassName={shellClasses} className={rootClasses} {...rest}>
           {children}
         </Glass>
       ) : (
-        <div ref={ref} className={classes(rootClasses, styles.plain)} {...rest}>
+        <div ref={ref} className={classes(shellClasses, rootClasses, styles.plain)} {...rest}>
           {children}
         </div>
       )}
@@ -524,13 +527,18 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsList(
       role="tablist"
       aria-orientation={orientation}
       className={classes(
+        'opale-tabs__list',
         styles.tabsList,
         orientation === 'vertical' ? styles.tabsListVertical : styles.tabsListHorizontal,
         className,
       )}
       {...rest}
     >
-      <span ref={indicatorRef} aria-hidden="true" className={styles.tabsIndicator} />
+      <span
+        ref={indicatorRef}
+        aria-hidden="true"
+        className={classes('opale-tabs__indicator', styles.tabsIndicator)}
+      />
       {children}
     </div>
   );
@@ -606,6 +614,8 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function Tab
         ref={ref}
         {...sharedAttributes}
         className={classes(
+          'opale-tabs__trigger-shell',
+          'opale-tabs__trigger',
           styles.tabsTriggerRoot,
           styles.tabsTrigger,
           styles.plainTrigger,
@@ -637,8 +647,8 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function Tab
       tabIndex={isSelected ? 0 : -1}
       disabled={disabled}
       enableLiquidAnimation={!disabled}
-      className={classes(styles.tabsTrigger, className)}
-      rootClassName={styles.tabsTriggerRoot}
+      className={classes('opale-tabs__trigger', styles.tabsTrigger, className)}
+      rootClassName={classes('opale-tabs__trigger-shell', styles.tabsTriggerRoot)}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onFocus={handleFocus}
@@ -688,7 +698,7 @@ const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(function TabsCo
       /* Le panneau est un arrêt de tabulation : sans lui, un panneau dont le
          contenu n'est pas focalisable serait purement et simplement sauté. */
       tabIndex={0}
-      className={classes(styles.tabsContent, className)}
+      className={classes('opale-tabs__content', styles.tabsContent, className)}
       {...rest}
     >
       {children}
