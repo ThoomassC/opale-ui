@@ -1,10 +1,22 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { INSTALL_REF } from '../install-ref';
-import { installationPage } from './installation';
+import {
+  FIRST_ARCHIVE_VERSION,
+  INSTALL_REF,
+  INSTALL_REF_KIND,
+  releaseArchiveUrl,
+} from '../install-ref';
+import { installCommands, installationPage } from './installation';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.doUnmock('../install-ref');
+  vi.resetModules();
+});
+
+/** Une commande shell par l'archive quand la release en porte une. */
+const shellBlocks = releaseArchiveUrl(INSTALL_REF, INSTALL_REF_KIND) ? 2 : 1;
 
 describe('la page Installation', () => {
   it('pointe vers le paquet Opale et la référence réellement disponible', () => {
@@ -19,8 +31,10 @@ describe('la page Installation', () => {
     const { container } = render(<>{installationPage.render()}</>);
     const reveals = container.querySelectorAll('.tc-doc-codeexample__reveal');
 
-    expect(reveals).toHaveLength(5);
-    expect(screen.getAllByRole('button', { name: 'Masquer le code' })).toHaveLength(5);
+    expect(reveals).toHaveLength(4 + shellBlocks);
+    expect(screen.getAllByRole('button', { name: 'Masquer le code' })).toHaveLength(
+      4 + shellBlocks,
+    );
     expect(screen.queryByRole('button', { name: 'Afficher le code' })).not.toBeInTheDocument();
 
     for (const reveal of reveals) {
@@ -35,7 +49,13 @@ describe('la page Installation', () => {
       (code) => code.dataset.language,
     );
 
-    expect(languages).toEqual(['shell', 'tsx', 'tsx', 'tsx', 'tsx']);
+    expect(languages).toEqual([
+      ...Array.from({ length: shellBlocks }, () => 'shell'),
+      'tsx',
+      'tsx',
+      'tsx',
+      'tsx',
+    ]);
     expect(container.textContent).toContain('return <Button variant="primary">Continuer</Button>;');
     expect(screen.getByText('En local')).toBeVisible();
   });
@@ -61,5 +81,64 @@ describe('la page Installation', () => {
     expect(
       screen.getByRole('heading', { name: /5\. Afficher un premier composant/ }),
     ).toBeInTheDocument();
+  });
+
+  /* LIV-05 — L'ARCHIVE CONSTRUITE D'ABORD, LE TAG GIT EN SECOURS. Par le tag,
+     npm compile le paquet chez le consommateur : chaîne de build requise,
+     `--ignore-scripts` livre un paquet vide, pnpm 10 bloque le script. */
+  it('propose l’archive de release à partir de la version qui en porte une', () => {
+    expect(FIRST_ARCHIVE_VERSION).toBe('3.9.0');
+    expect(installCommands('v3.9.0', 'tag')).toEqual({
+      archive:
+        'npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.9.0/thomascaron-opale-ui-3.9.0.tgz',
+      git: 'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.9.0"',
+    });
+    expect(installCommands('v3.10.0', 'tag').archive).toContain(
+      '/v3.10.0/thomascaron-opale-ui-3.10.0.tgz',
+    );
+  });
+
+  it('ne montre pas d’archive pour un tag qui n’en porte pas, ni pour une branche', () => {
+    expect(installCommands('v3.8.0', 'tag').archive).toBeNull();
+    expect(installCommands('recette', 'branch').archive).toBeNull();
+    expect(installCommands('v3.8.0', 'tag').git).toBe(
+      'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.8.0"',
+    );
+  });
+
+  it('affiche seulement la commande Git tant que la release n’a pas d’archive', async () => {
+    vi.doMock('../install-ref', async (original) => ({
+      ...(await original<typeof import('../install-ref')>()),
+      INSTALL_REF: 'v3.8.0',
+      INSTALL_REF_KIND: 'tag',
+    }));
+    const { installationPage: page } = await import('./installation');
+    const { container } = render(<>{page.render()}</>);
+    const text = container.textContent ?? '';
+
+    expect(text).toContain('npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.8.0"');
+    expect(text).not.toContain('releases/download');
+    expect(container.querySelectorAll('[data-language="shell"]')).toHaveLength(1);
+  });
+
+  it('affiche l’archive en premier et le tag Git en alternative dès qu’elle existe', async () => {
+    vi.doMock('../install-ref', async (original) => ({
+      ...(await original<typeof import('../install-ref')>()),
+      INSTALL_REF: 'v3.9.0',
+      INSTALL_REF_KIND: 'tag',
+    }));
+    const { installationPage: page } = await import('./installation');
+    const { container } = render(<>{page.render()}</>);
+    const text = container.textContent ?? '';
+    const archive =
+      'npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.9.0/thomascaron-opale-ui-3.9.0.tgz';
+    const git = 'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.9.0"';
+
+    expect(container.querySelectorAll('[data-language="shell"]')).toHaveLength(2);
+    expect(text).toContain(archive);
+    expect(text).toContain(git);
+    expect(text.indexOf(archive)).toBeLessThan(text.indexOf(git));
+    expect(text).toMatch(/pnpm/);
+    expect(text).toMatch(/chaîne de build/);
   });
 });

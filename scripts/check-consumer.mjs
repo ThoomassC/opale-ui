@@ -9,11 +9,16 @@
    `bundler`. Une déclaration qu'une de ces deux résolutions ne lit pas, un
    fichier oublié par `files`, un export absent : la CI échoue ici.
 
+   LIV-05 — c'est aussi l'archive attachée aux releases GitHub : elle doit
+   arriver CONSTRUITE. Emballée et extraite sans aucun script, elle doit déjà
+   contenir ses points d'entrée ; sinon l'installation recommandée livrerait
+   un paquet vide, exactement le défaut qu'elle corrige.
+
    Suppose `dist/` construit (`npm run build:lib`).
    ========================================================================== */
 
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -33,6 +38,18 @@ try {
   const target = join(app, 'node_modules', '@thomascaron', 'opale-ui');
   mkdirSync(target, { recursive: true });
   run('tar', ['-xzf', join(work, tarball), '-C', target, '--strip-components=1'], app);
+
+  /* Aucun script n'a tourné : ce qui manque ici manquera chez le consommateur. */
+  const missing = [
+    'dist/opale/index.js',
+    'dist/opale/index.d.ts',
+    'dist/opale/opale.css',
+    'dist/contract/index.js',
+  ].filter((file) => !existsSync(join(target, file)));
+  if (missing.length > 0) {
+    throw new Error(`l'archive n'est pas construite, il lui manque : ${missing.join(', ')}`);
+  }
+  console.log(`✓ ${tarball} arrive construite, sans script d'installation.`);
 
   /* React et ses types viennent du dépôt : l'application ne teste que le
      paquet, pas le registre. */

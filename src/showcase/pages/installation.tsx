@@ -2,7 +2,7 @@ import type { DocPage } from '../doc-model';
 import { currentDeploymentLabel } from '../deployment-environment';
 import { hrefFor } from '../doc-model';
 import { UI_VERSION } from '../version';
-import { INSTALL_REF, INSTALL_REF_KIND } from '../install-ref';
+import { INSTALL_REF, INSTALL_REF_KIND, releaseArchiveUrl } from '../install-ref';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
 
@@ -10,7 +10,20 @@ import { PageBody, UsageBlock } from './api';
    styles et polices, thème, premier composant (plus la frontière client de
    Next.js). */
 
-const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${INSTALL_REF}"`;
+/** Les deux façons d'installer `ref` : l'archive construite de la release
+    (quand elle existe) et le tag Git, compilé à l'installation. */
+export function installCommands(
+  ref: string,
+  kind: 'branch' | 'tag',
+): { archive: string | null; git: string } {
+  const url = releaseArchiveUrl(ref, kind);
+  return {
+    archive: url ? `npm i ${url}` : null,
+    git: `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${ref}"`,
+  };
+}
+
+const INSTALL = installCommands(INSTALL_REF, INSTALL_REF_KIND);
 
 const STYLES = `// Une seule fois, à la racine de l'application.
 import '@thomascaron/opale-ui/opale.css'; // les jetons --opale-*, les composants et leurs polices`;
@@ -53,6 +66,9 @@ export const installationPage: DocPage = {
   title: 'Installation',
   searchTerms: [
     'npm',
+    'pnpm',
+    'archive',
+    'release',
     'import',
     'fonts.css',
     'opale.css',
@@ -102,8 +118,8 @@ export const installationPage: DocPage = {
             paires : Opale ne les embarque pas.
           </li>
           <li>
-            <strong>Node 20.19</strong> (ou 22.12 et plus) sur la machine qui installe : le paquet
-            se compile à l’installation.
+            <strong>Node 20.19</strong> (ou 22.12 et plus) sur la machine qui installe
+            {INSTALL.archive ? '.' : ' : le paquet se compile à l’installation.'}
           </li>
           <li>
             Un bundler qui résout les imports CSS et les polices : Vite, Next.js, webpack ou
@@ -120,14 +136,51 @@ export const installationPage: DocPage = {
             : 'Cette commande installe un tag de version : le code ne bouge plus sous vos pieds.'
         }
       >
-        <UsageBlock label="Commande d'installation" code={INSTALL} language="shell" defaultOpen />
-        <p className="tc-doc-prose">
-          Opale n’est pas publié sur npm : il s’installe depuis GitHub et se compile à
-          l’installation par son script <code>prepare</code>. Deux cas l’empêchent de tourner, et le
-          paquet arrive alors sans son dossier <code>dist</code> :{' '}
-          <code>npm ci --ignore-scripts</code>, et pnpm 10, qui bloque par défaut les scripts des
-          dépendances — autorisez-le dans <code>onlyBuiltDependencies</code>.
-        </p>
+        {INSTALL.archive ? (
+          <>
+            <UsageBlock
+              label="Commande d'installation (archive construite)"
+              code={INSTALL.archive}
+              language="shell"
+              defaultOpen
+            />
+            <p className="tc-doc-prose">
+              <strong>Recommandé.</strong> Opale n’est pas publié sur npm : chaque version est une
+              release GitHub qui porte son archive déjà construite. Elle s’installe telle quelle
+              avec npm, pnpm ou yarn, sans compilation ni script à l’installation — y compris avec{' '}
+              <code>npm ci --ignore-scripts</code> et pnpm 10.
+            </p>
+            <UsageBlock
+              label="Alternative : tag Git"
+              code={INSTALL.git}
+              language="shell"
+              defaultOpen
+            />
+            <p className="tc-doc-prose">
+              Par le tag Git, le paquet se compile à l’installation (script <code>prepare</code>) et
+              demande la chaîne de build chez vous. Si ce script ne tourne pas, le paquet arrive
+              sans son dossier <code>dist</code> : c’est le cas avec{' '}
+              <code>npm ci --ignore-scripts</code>, et avec pnpm 10, qui bloque par défaut les
+              scripts des dépendances — autorisez-le dans <code>onlyBuiltDependencies</code>.
+            </p>
+          </>
+        ) : (
+          <>
+            <UsageBlock
+              label="Commande d'installation"
+              code={INSTALL.git}
+              language="shell"
+              defaultOpen
+            />
+            <p className="tc-doc-prose">
+              Opale n’est pas publié sur npm : il s’installe depuis GitHub et se compile à
+              l’installation par son script <code>prepare</code>. Deux cas l’empêchent de tourner,
+              et le paquet arrive alors sans son dossier <code>dist</code> :{' '}
+              <code>npm ci --ignore-scripts</code>, et pnpm 10, qui bloque par défaut les scripts
+              des dépendances — autorisez-le dans <code>onlyBuiltDependencies</code>.
+            </p>
+          </>
+        )}
       </Specimen>
 
       <Specimen

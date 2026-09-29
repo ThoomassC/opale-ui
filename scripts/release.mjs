@@ -20,10 +20,26 @@
 
    Le script ne publie RIEN de lui-même : il refuse plus qu'il n'agit, et
    n'écrit que le tag, une fois toutes les vérifications passées.
+
+   LIV-05 — ET IL ATTACHE UNE ARCHIVE CONSTRUITE À LA RELEASE. Installé par
+   son tag Git, le paquet se compile chez le consommateur (`prepare`) : il lui
+   faut toute la chaîne de build, `npm ci --ignore-scripts` livre un paquet
+   sans `dist/`, et pnpm 10 bloque ce script par défaut. Après le tag, le
+   script construit `dist/`, le vérifie, l'emballe (`npm pack
+   --ignore-scripts`) et attache l'archive à une release GitHub : elle
+   s'installe avec npm, pnpm ou yarn sans rien compiler. Le tag Git reste une
+   voie d'installation — `prepare` est gardé pour ne casser personne.
+
+   `gh` est vérifié AVANT de poser le tag : découvrir à la fin qu'il manque
+   laisserait un tag publié sans archive. Si la release échoue quand même
+   après le push, le tag n'est PAS supprimé (il a peut-être déjà été
+   installé) : le script donne la commande exacte pour rejouer l'étape.
    ========================================================================== */
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import process from 'node:process';
 
 import {
@@ -31,6 +47,8 @@ import {
   breakingBlocker,
   highestTag,
   isBreakingEntry,
+  releaseAssetName,
+  releaseAssetUrl,
   releaseBlocker,
 } from './release-guard.mjs';
 
@@ -38,6 +56,13 @@ const DRY_RUN = process.argv.includes('--dry-run');
 
 function git(...args) {
   return execFileSync('git', args, { encoding: 'utf8' }).trim();
+}
+
+const root = resolve(import.meta.dirname, '..');
+
+/** Une commande visible : sa sortie défile, son échec lève une erreur. */
+function run(command, ...args) {
+  execFileSync(command, args, { cwd: root, stdio: 'inherit' });
 }
 
 function fail(message) {
@@ -105,8 +130,40 @@ if (breaking) {
   fail(breaking);
 }
 
+/* 6. `gh` doit être installé et authentifié : c'est lui qui crée la release et
+      y attache l'archive. Vérifié avant le tag, pour ne pas publier un tag
+      sans archive faute d'outil. */
+try {
+  execFileSync('gh', ['--version'], { stdio: 'ignore' });
+} catch {
+  fail(
+    'La CLI GitHub (gh) est introuvable. Installez-la (https://cli.github.com) : ' +
+      "elle crée la release et y attache l'archive construite.",
+  );
+}
+
+try {
+  execFileSync('gh', ['auth', 'status'], { stdio: 'ignore' });
+} catch {
+  fail("gh n'est pas authentifié. Lancez « gh auth login », puis relancez la publication.");
+}
+
+const asset = releaseAssetName(version);
+const notes = [
+  `Opale UI ${version}. Notes détaillées : page « Versions » de la vitrine.`,
+  '',
+  'Installation recommandée — archive construite, sans compilation (npm, pnpm, yarn) :',
+  '',
+  `    npm i ${releaseAssetUrl(tag, version)}`,
+  '',
+  'Alternative — tag Git, compilé à l’installation (demande la chaîne de build) :',
+  '',
+  `    npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${tag}"`,
+].join('\n');
+
 if (DRY_RUN) {
   console.log(`\n✓ Prêt à publier ${tag} sur ${git('rev-parse', '--short', 'HEAD')}.`);
+  console.log(`  Archive attendue : ${asset}`);
   console.log('  (--dry-run : rien n’a été écrit)\n');
   process.exit(0);
 }
@@ -115,4 +172,61 @@ git('tag', '-a', tag, '-m', `Opale UI ${version}`);
 git('push', 'origin', tag);
 
 console.log(`\n✓ ${tag} publié sur ${git('rev-parse', '--short', 'HEAD')}.`);
+
+/* 7. L'archive : construite depuis le commit tagué (l'arbre est propre),
+      vérifiée, emballée sans relancer `prepare`, puis attachée. Un échec ici
+      ne retire pas le tag : il donne la commande qui rejoue l'étape. */
+const work = mkdtempSync(join(tmpdir(), 'opale-release-'));
+const tarball = join(work, asset);
+const notesFile = join(work, 'notes.md');
+writeFileSync(notesFile, `${notes}\n`);
+const retry =
+  `npm run build:lib && npm run check:dist && ` +
+  `npm pack --ignore-scripts --pack-destination "${work}" && ` +
+  `gh release create ${tag} "${tarball}" --title "Opale UI ${version}" --notes-file "${notesFile}" --verify-tag`;
+
+try {
+  run('npm', 'run', 'build:lib');
+  run('npm', 'run', 'check:dist');
+
+  const produced = execFileSync(
+    'npm',
+    ['pack', '--silent', '--ignore-scripts', '--pack-destination', work],
+    {
+      cwd: root,
+      encoding: 'utf8',
+    },
+  )
+    .trim()
+    .split('\n')
+    .at(-1);
+
+  if (produced !== asset || !existsSync(tarball)) {
+    throw new Error(`npm pack a produit « ${produced} », la garde attend « ${asset} ».`);
+  }
+
+  run(
+    'gh',
+    'release',
+    'create',
+    tag,
+    tarball,
+    '--title',
+    `Opale UI ${version}`,
+    '--notes-file',
+    notesFile,
+    '--verify-tag',
+  );
+} catch (error) {
+  fail(
+    `Le tag ${tag} est publié, mais la release et son archive ne le sont pas :\n  ${error.message}\n\n` +
+      `  Ne supprimez pas le tag. Corrigez la cause, puis rejouez depuis ${tag} :\n` +
+      `  git checkout ${tag} && ${retry}\n\n` +
+      `  Si la release existe déjà sans archive, attachez-la seulement :\n` +
+      `  gh release upload ${tag} "${tarball}"`,
+  );
+}
+
+console.log(`✓ Release ${tag} créée avec ${asset}.`);
+console.log(`  npm i ${releaseAssetUrl(tag, version)}`);
 console.log(`  npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${tag}"\n`);

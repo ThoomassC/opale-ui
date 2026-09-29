@@ -9,20 +9,31 @@ les notes de versions. Licence MIT.
 
 ## Installation
 
-Le paquet s'installe depuis GitHub, il n'est pas publié sur npm. Installez **un tag de
-version** : le code ne bouge plus sous vos pieds.
+Le paquet s'installe depuis GitHub, il n'est pas publié sur npm. Installez **une version
+figée** : le code ne bouge plus sous vos pieds.
+
+**Recommandé, à partir de la 3.9.0 — l'archive construite de la release.** Chaque release GitHub
+porte l'archive du paquet déjà compilé : elle s'installe avec npm, pnpm ou yarn, sans script ni
+chaîne de build à l'installation.
+
+```bash
+npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.9.0/thomascaron-opale-ui-3.9.0.tgz
+```
+
+**Alternative — le tag Git** (seule voie pour les versions antérieures à la 3.9.0) :
 
 ```bash
 npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.8.0"
 ```
 
-Prérequis : React 19 et Node 20.19 ou 22.12 et plus. Le paquet se compile à l'installation
-(`prepare` → `build:lib`).
+Prérequis : React 19 et Node 20.19 ou 22.12 et plus. Par le tag Git, le paquet se compile à
+l'installation (`prepare` → `build:lib`) et demande la chaîne de build chez vous.
 
-> **Point de vigilance en déploiement.** Si `prepare` ne tourne pas, `dist/` est absent et le
-> build casse en production sans avoir cassé en local : c'est le cas avec
+> **Point de vigilance en déploiement (tag Git).** Si `prepare` ne tourne pas, `dist/` est absent
+> et le build casse en production sans avoir cassé en local : c'est le cas avec
 > `npm ci --ignore-scripts`, et avec pnpm 10, qui bloque par défaut les scripts des
-> dépendances (autorisez `@thomascaron/opale-ui` dans `onlyBuiltDependencies`).
+> dépendances (autorisez `@thomascaron/opale-ui` dans `onlyBuiltDependencies`). L'archive de
+> release n'a pas ce défaut.
 
 ## Une seule convention d'import
 
