@@ -85,6 +85,22 @@ describe('Glass — le filtre partagé', () => {
       svg.remove();
     }
   });
+
+  /* Le `<svg>` de l'hôte n'appartient pas au verre : le dernier démontage ne
+     retire que celui que le verre a créé. */
+  it('ne devrait pas retirer le filtre que l’hôte a posé lui-même', () => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.innerHTML = `<filter id="${FILTER_ID}"></filter>`;
+    document.body.append(svg);
+
+    try {
+      const { unmount } = render(<Glass>Un</Glass>);
+      unmount();
+      expect(svg.isConnected).toBe(true);
+    } finally {
+      svg.remove();
+    }
+  });
 });
 
 describe('Glass — les couches', () => {

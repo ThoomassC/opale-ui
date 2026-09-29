@@ -91,6 +91,8 @@ const FILTER_ID = 'opale-glass-displacement';
    seul `<svg>`. Le compteur vit au niveau du module — il est donc partagé par
    toutes les instances, ce qui est exactement la portée voulue. */
 let mountedGlassCount = 0;
+/** Le `<svg>` que le verre a créé ; celui d'un hôte ne lui appartient pas. */
+let ownedFilterHost: SVGSVGElement | null = null;
 
 function ensureFilterMounted(): () => void {
   mountedGlassCount += 1;
@@ -113,11 +115,15 @@ function ensureFilterMounted(): () => void {
         <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="12" xChannelSelector="R" yChannelSelector="G" />
       </filter>`;
     document.body.append(svg);
+    ownedFilterHost = svg;
   }
 
   return () => {
     mountedGlassCount -= 1;
-    if (mountedGlassCount === 0) document.getElementById(FILTER_ID)?.closest('svg')?.remove();
+    if (mountedGlassCount === 0) {
+      ownedFilterHost?.remove();
+      ownedFilterHost = null;
+    }
   };
 }
 
