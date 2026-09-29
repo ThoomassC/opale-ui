@@ -1103,6 +1103,9 @@ export interface SegmentedControlProps extends Omit<
  * `translate3d` avec les deux axes, et non le seul X : `.opale-segmented` est
  * en `flex-wrap: wrap`, donc les options passent à la ligne dès que la place
  * manque et l'indicateur doit descendre avec elles.
+ *
+ * Seul `transform` est transitionné : `width` et `height` sont posées d'un coup,
+ * sans relancer la mise en page à chaque image ni déformer le rayon.
  */
 export function SegmentedControl({
   options,

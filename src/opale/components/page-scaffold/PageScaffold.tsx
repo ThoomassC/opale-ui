@@ -87,6 +87,11 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithRef<'div'>, 't
   searchSuggestions?: readonly PageScaffoldSearchSuggestion[];
   /** Gère le choix dans un routeur client ; sans callback, le lien est ouvert. */
   onSearchSuggestionSelect?: (suggestion: PageScaffoldSearchSuggestion) => void;
+  /**
+   * Ouvre le `href` d'une suggestion quand `onSearchSuggestionSelect` est absent.
+   * Par défaut : `window.location.assign(href)`. `onSearchSuggestionSelect` reste prioritaire.
+   */
+  searchNavigate?: (href: string) => void;
   searchSuggestionsLabel?: string;
   searchNoResultsLabel?: string;
   /** La soumission native GET vers `/search` reste disponible sans callback. */
@@ -222,6 +227,7 @@ export function PageScaffold({
   searchProps,
   searchSuggestions,
   onSearchSuggestionSelect,
+  searchNavigate,
   searchSuggestionsLabel,
   searchNoResultsLabel,
   searchAction = '/search',
@@ -326,6 +332,7 @@ export function PageScaffold({
         noResultsLabel={searchNoResultsLabel ?? copy.searchNoResults}
         suggestions={searchSuggestions}
         onSuggestionSelect={onSearchSuggestionSelect}
+        navigate={searchNavigate}
         searchProps={searchProps}
         searchAction={searchAction}
         searchName={searchName}
