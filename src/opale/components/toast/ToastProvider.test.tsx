@@ -471,3 +471,93 @@ describe('ToastProvider — durée des messages urgents', () => {
     expect(screen.queryByText('Échec du fournisseur')).not.toBeInTheDocument();
   });
 });
+
+/* =============================================================================
+   ROB-06 — REMPLACER PAR `id` REPART DE ZÉRO.
+
+   La carte gardait sa clé, donc ses refs : le reste à courir, l'instant de
+   départ et le drapeau « onClose déjà prévenu ». Un « Enregistré » de cinq
+   secondes, posé à la place d'un « Enregistrement… » presque échu, partait en
+   moins de deux dixièmes de seconde ; remplacé pendant sa sortie, il ne
+   prévenait jamais son propre `onClose`.
+   ========================================================================== */
+
+describe('ToastProvider — remplacement par id', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('donne au remplaçant sa durée entière, sans celle déjà consommée par l’ancien', async () => {
+    renderWithProvider(
+      <>
+        <Trigger label="Un" toast={{ id: 'save', title: 'Enregistrement…' }} />
+        <Trigger label="Deux" toast={{ id: 'save', title: 'Enregistré', duration: 5000 }} />
+      </>,
+      { duration: 5000 },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Un' }));
+    await advance(4900);
+    fireEvent.click(screen.getByRole('button', { name: 'Deux' }));
+
+    await advance(4900);
+    expect(screen.getByText('Enregistré')).toBeInTheDocument();
+    expect(screen.getByTestId('toast')).not.toHaveClass(toastClasses.leaving);
+
+    await advance(100);
+    expect(screen.getByTestId('toast')).toHaveClass(toastClasses.leaving);
+
+    await advance(220);
+    expect(screen.queryByText('Enregistré')).not.toBeInTheDocument();
+  });
+
+  it('prévient l’onClose du remplaçant, et pas celui du remplacé', async () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    renderWithProvider(
+      <>
+        <Trigger label="Un" toast={{ id: 'save', title: 'Enregistrement…', onClose: first }} />
+        <Trigger label="Deux" toast={{ id: 'save', title: 'Enregistré', onClose: second }} />
+      </>,
+      { duration: 1000 },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Un' }));
+    await advance(1000);
+    expect(first).toHaveBeenCalledTimes(1);
+
+    /* L'ancien est en pleine sortie : le remplaçant arrive par-dessus. */
+    fireEvent.click(screen.getByRole('button', { name: 'Deux' }));
+    expect(screen.getByText('Enregistré')).toBeInTheDocument();
+
+    await advance(1000);
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(first).toHaveBeenCalledTimes(1);
+
+    await advance(220);
+    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+  });
+
+  it('ne prévient pas l’onClose d’un toast remplacé avant sa fermeture', async () => {
+    const first = vi.fn();
+    renderWithProvider(
+      <>
+        <Trigger label="Un" toast={{ id: 'save', title: 'Enregistrement…', onClose: first }} />
+        <Trigger label="Deux" toast={{ id: 'save', title: 'Enregistré' }} />
+      </>,
+      { duration: 1000 },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Un' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Deux' }));
+    await advance(1000);
+    await advance(220);
+
+    expect(first).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+  });
+});

@@ -20,6 +20,14 @@ import { IconGlyph } from '../icon';
 import { warnDeprecatedProps } from '../../deprecations';
 import { resolveLabels } from '../../shared/labels';
 import { mergeRefs } from '../../shared/merge-refs';
+import {
+  lockBodyScroll,
+  OVERLAY_EXEMPT_ATTRIBUTE,
+  registerOverlay,
+  type OverlayHandle,
+} from '../../shared/overlay-stack';
+import { useDocumentBody } from '../../shared/use-document-body';
+import { PageThemeContext, pageThemeAttributes } from '../../shared/page-theme-context';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 
 import { isTopModal, ModalDepthContext, pushModal } from './modal-stack';
@@ -55,7 +63,10 @@ import styles from './style/Modal.module.css';
         d'écran, sans effet sur le clavier ni sur la souris. Les frères du
         conteneur de portail, à chaque niveau jusqu'à `<body>`, reçoivent donc
         `inert` et `aria-hidden` le temps de l'ouverture, et retrouvent
-        exactement leur valeur d'avant au nettoyage.
+        exactement leur valeur d'avant au nettoyage. Depuis 3.9.2, cette
+        inertie et le verrou de défilement passent par une pile PARTAGÉE
+        (`shared/overlay-stack.ts`) : deux surimpressions sœurs se refermaient
+        en se rendant l'une à l'autre un état périmé.
 
      4. LE BOUTON DE FERMETURE PARLE FRANÇAIS. Il annonçait « close modal » —
         en anglais, dans une librairie dont tout le reste est en français,
@@ -70,14 +81,15 @@ import styles from './style/Modal.module.css';
      `mounted`, un pour le conteneur de portail. Ce n'était pas un détail de
      style — c'est ce qui faisait qu'un `open` à vrai au premier rendu
      n'affichait RIEN avant le passage des effets. Le conteneur se résout
-     maintenant PENDANT le rendu, ce qu'il a toujours pu faire : `document.body`
-     ne demande pas d'être monté, il demande d'exister.
+     maintenant PENDANT le rendu, par `useSyncExternalStore` : au client,
+     `document.body` dès le premier rendu.
 
-     CE QUE CETTE RÉSOLUTION IMMÉDIATE COÛTE, et il faut le dire : le garde
-     `typeof document === 'undefined'` reste la seule protection côté serveur.
-     Un modal rendu OUVERT au premier rendu d'une hydratation produira donc son
-     portail côté client sans équivalent côté serveur. C'est le comportement de
-     tous les portails React, et c'est préférable au défaut qu'on retire.
+     L'HYDRATATION EST PROPRE DEPUIS 3.9.2. Le garde `typeof document` que ce
+     paragraphe assumait faisait rendre `null` au serveur et un portail au
+     premier rendu client : React jetait le HTML serveur du sous-arbre. Ce
+     n'était PAS « le comportement de tous les portails React », comme on
+     l'écrivait ici : l'instantané serveur de `useDocumentBody` vaut `null`
+     aussi pendant l'hydratation, et le portail arrive au rendu suivant.
 
    — LE VERRE EST IMPORTÉ, PAS DÉCRIT. `Glass` porte la matière ; ce fichier ne
      décrit que la silhouette, et il la pose sur `rootClassName`, c'est-à-dire
@@ -163,7 +175,7 @@ const sizeClass: Record<OpaleSize, string> = {
    ailleurs un cas rare ; l'arrière-plan, lui, est traité par `inert`. */
 /** Un élément qui porte cet attribut échappe à l'inertie posée par la modale :
  *  les régions live des toasts, ou toute annonce qu'un hôte veut garder audible. */
-export const MODAL_EXEMPT_ATTRIBUTE = 'data-opale-modal-exempt';
+export const MODAL_EXEMPT_ATTRIBUTE = OVERLAY_EXEMPT_ATTRIBUTE;
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -323,17 +335,16 @@ const Modal = ({
 
   /* LE VERROU DE DÉFILEMENT RESTAURE LA VALEUR PRÉCÉDENTE, il ne remet pas à
      zéro. Un hôte qui avait déjà posé son propre `overflow` sur `<body>` le
-     retrouve intact — une remise à `''` le lui aurait volé au passage. */
+     retrouve intact — une remise à `''` le lui aurait volé au passage.
+
+     IL EST COMPTÉ, ET PARTAGÉ. Chaque modale mémorisait le `overflow` qu'elle
+     trouvait : la seconde de deux sœurs mémorisait donc le `hidden` de la
+     première, et le restaurait en partant la dernière. Le premier verrou de
+     la pile mémorise, le dernier restitue — padding de compensation de la
+     barre de défilement compris. */
   useEffect(() => {
-    if (!open || !lockScroll || typeof document === 'undefined') return undefined;
-
-    const { style } = document.body;
-    const previousOverflow = style.overflow;
-    style.overflow = 'hidden';
-
-    return () => {
-      style.overflow = previousOverflow;
-    };
+    if (!open || !lockScroll) return undefined;
+    return lockBodyScroll();
   }, [lockScroll, open]);
 
   /* LA MODALE S'INSCRIT DANS LA PILE tant qu'elle est ouverte, même sans
@@ -375,7 +386,10 @@ const Modal = ({
 
      On remonte du conteneur de portail jusqu'à `<body>` et, à chaque niveau,
      on neutralise les FRÈRES. C'est la seule façon correcte : neutraliser
-     `<body>` entier neutraliserait aussi le dialogue, qui vit dedans.
+     `<body>` entier neutraliserait aussi le dialogue, qui vit dedans. Le
+     parcours vit dans `shared/overlay-stack.ts`, qui ne l'applique qu'à la
+     surimpression du DESSUS : deux modales imbriquées ouvertes dans le même
+     rendu se rendaient mutuellement inertes, la plus profonde comprise.
 
      LES DEUX ATTRIBUTS SONT POSÉS, ET CE N'EST PAS UNE CEINTURE-BRETELLES.
      `inert` retire du clavier, de la souris ET de l'arbre d'accessibilité,
@@ -385,52 +399,28 @@ const Modal = ({
 
      LA VALEUR PRÉCÉDENTE EST MÉMORISÉE, attribut par attribut, parce qu'un
      hôte peut très bien avoir déjà posé `aria-hidden="true"` sur un décor. Le
-     nettoyage RESTAURE au lieu de retirer. */
+     nettoyage RESTAURE au lieu de retirer — et seulement quand plus aucune
+     surimpression ne le neutralise, quel que soit l'ordre des fermetures.
+
+     `container` EST DANS LES DÉPENDANCES pour l'hydratation : le premier rendu
+     client n'a pas encore de conteneur de portail, le suivant si. */
+  const body = useDocumentBody();
+  const container = body ? (portalContainer ?? body) : null;
+
+  const overlayRef = useRef<OverlayHandle | null>(null);
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || !container) return undefined;
 
     const node = containerRef.current;
     if (!node) return undefined;
 
-    const restore: Array<[HTMLElement, string | null, string | null]> = [];
-
-    /* UNE RÉGION EXEMPTÉE RESTE VIVANTE. Les toasts se rendent dans `<body>` :
-       rendus inertes, un « Enregistré » lancé depuis la modale n'était jamais
-       annoncé et sa croix ne répondait plus. Un frère qui CONTIENT une région
-       exemptée n'est donc pas neutralisé en bloc : on descend dans ses enfants,
-       et seule la branche de la région est épargnée. */
-    const neutralize = (element: HTMLElement) => {
-      if (element.hasAttribute(MODAL_EXEMPT_ATTRIBUTE)) return;
-      if (element.querySelector(`[${MODAL_EXEMPT_ATTRIBUTE}]`)) {
-        for (const child of element.children) {
-          if (child instanceof HTMLElement) neutralize(child);
-        }
-        return;
-      }
-      restore.push([element, element.getAttribute('inert'), element.getAttribute('aria-hidden')]);
-      element.setAttribute('inert', '');
-      element.setAttribute('aria-hidden', 'true');
-    };
-
-    let level: HTMLElement | null = node;
-    while (level && level !== document.body && level.parentElement) {
-      for (const sibling of level.parentElement.children) {
-        if (sibling === level || !(sibling instanceof HTMLElement)) continue;
-        neutralize(sibling);
-      }
-      level = level.parentElement;
-    }
-
+    const overlay = registerOverlay(node, depth, panelRef.current);
+    overlayRef.current = overlay;
     return () => {
-      for (const [element, inert, hidden] of restore) {
-        if (inert === null) element.removeAttribute('inert');
-        else element.setAttribute('inert', inert);
-
-        if (hidden === null) element.removeAttribute('aria-hidden');
-        else element.setAttribute('aria-hidden', hidden);
-      }
+      overlay.release();
+      if (overlayRef.current === overlay) overlayRef.current = null;
     };
-  }, [open]);
+  }, [container, depth, open]);
 
   /* CET EFFET EST DÉCLARÉ APRÈS CELUI DE L'INERTIE, ET L'ORDRE EST LE CORRECTIF.
 
@@ -449,18 +439,28 @@ const Modal = ({
      titre et la description avant les actions. La restauration vit dans le
      NETTOYAGE, donc elle couvre les trois sorties — fermeture, démontage du
      parent, et changement de `open` — sans qu'aucune ait à y penser. */
+  /* UNE MODALE RECOUVERTE NE PREND PAS LE FOCUS. Ouvertes dans le même rendu,
+     une modale et celle qu'elle contient passent leurs effets de l'enfant au
+     parent : sans ce garde, le parent reprenait le focus à la modale du
+     dessus. Sous `inert`, `focus()` ne fait rien dans un navigateur ; le garde
+     rend la règle explicite au lieu de la déléguer à l'attribut.
+
+     LA CIBLE DE RETOUR EST TENUE PAR LA PILE. Dans ce même cas, l'enfant
+     mémorisait le déclencheur — inerte sous le parent resté ouvert — et le
+     parent le panneau de l'enfant, détruit à sa fermeture : le focus tombait
+     sur `<body>`. La pile échange les deux cibles et, si la cible mémorisée
+     n'est plus atteignable, rend le focus au panneau du dessus. Voir
+     `shared/overlay-stack.ts`. */
   useEffect(() => {
-    if (!open) return undefined;
+    const overlay = overlayRef.current;
+    if (!open || !container || !overlay) return undefined;
 
-    const previous = document.activeElement;
-    panelRef.current?.focus({ preventScroll: true });
+    overlay.captureReturnFocus();
+    const panel = panelRef.current;
+    if (panel && !panel.closest('[inert]')) panel.focus({ preventScroll: true });
 
-    return () => {
-      if (previous instanceof HTMLElement && previous.isConnected) {
-        previous.focus({ preventScroll: true });
-      }
-    };
-  }, [open]);
+    return () => overlay.restoreFocus();
+  }, [container, open]);
 
   /* LE PIÈGE DE FOCUS. Il ne déplace le focus que sur les DEUX bords de la
      liste — début en `Shift+Tab`, fin en `Tab` — et laisse le navigateur faire
@@ -511,10 +511,11 @@ const Modal = ({
     [onClick],
   );
 
-  /* Le conteneur de portail est résolu PENDANT le rendu — voir l'en-tête. Le
-     garde sur `document` est ce qui garde le composant rendable là où il n'y a
-     pas de DOM. */
-  const container = portalContainer ?? (typeof document === 'undefined' ? null : document.body);
+  /* LE THÈME LOCAL DU GABARIT SUIT LE PORTAIL (THM-05). `PageScaffold` le
+     transmet par contexte, que les portails traversent ; il est posé sur le
+     conteneur PENDANT le rendu, donc dès la première image. Rien n'est rendu à
+     l'endroit où la modale est écrite — une ancre y cassait un `<tbody>`. */
+  const pageTheme = useContext(PageThemeContext);
 
   if (!open || !container) return null;
 
@@ -528,6 +529,7 @@ const Modal = ({
         ref={containerRef}
         className={clsx('opale-modal', styles.container)}
         data-testid="modal-container"
+        {...pageThemeAttributes(pageTheme)}
       >
         {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
           porte `aria-hidden` parce que la fermeture qu'il offre à la souris

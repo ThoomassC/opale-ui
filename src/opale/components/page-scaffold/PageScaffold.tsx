@@ -15,6 +15,7 @@ import { HeaderThemeToggle } from '../header-controls/HeaderThemeToggle';
 import { LanguageSelector } from '../header-controls/LanguageSelector';
 import Topbar from '../topbar/Topbar';
 import type { OpaleSize } from '../../shared';
+import { PageThemeContext } from '../../shared/page-theme-context';
 import { useScrollPadding } from '../../shared/use-scroll-padding';
 import type { SearchBarProps } from '../search-bar/SearchBar';
 import { PageScaffoldSearch } from './PageScaffoldSearch';
@@ -519,39 +520,44 @@ export function PageScaffold({
       </footer>
     );
 
+  /* Le thème effectif descend aussi par contexte : les modales et les
+     messages rendus en portail, hors de cette racine, le reprennent sur leur
+     propre conteneur. Voir `shared/page-theme-context.ts`. */
   return (
-    <div
-      className={clsx('opale-page-scaffold', styles.root, className)}
-      data-opale-page-theme={activeTheme}
-      lang={activeLanguage}
-      {...rootProps}
-    >
-      {showSkipLink ? (
-        <a
-          className={clsx('opale-page-scaffold__skip-link', styles.skipLink)}
-          href={`#${contentId}`}
-          onClick={skipToContent}
-        >
-          {skipLinkLabel ?? copy.skipLink}
-        </a>
-      ) : null}
-      {header}
-      <Main
-        id={contentId}
-        tabIndex={-1}
-        className={clsx(
-          'opale-page-scaffold__main',
-          styles.main,
-          styles[contentWidth],
-          classNames?.main,
-        )}
+    <PageThemeContext.Provider value={activeTheme}>
+      <div
+        className={clsx('opale-page-scaffold', styles.root, className)}
+        data-opale-page-theme={activeTheme}
+        lang={activeLanguage}
+        {...rootProps}
       >
-        {intro}
-        {slots?.beforeContent}
-        {children}
-        {slots?.afterContent}
-      </Main>
-      {footer}
-    </div>
+        {showSkipLink ? (
+          <a
+            className={clsx('opale-page-scaffold__skip-link', styles.skipLink)}
+            href={`#${contentId}`}
+            onClick={skipToContent}
+          >
+            {skipLinkLabel ?? copy.skipLink}
+          </a>
+        ) : null}
+        {header}
+        <Main
+          id={contentId}
+          tabIndex={-1}
+          className={clsx(
+            'opale-page-scaffold__main',
+            styles.main,
+            styles[contentWidth],
+            classNames?.main,
+          )}
+        >
+          {intro}
+          {slots?.beforeContent}
+          {children}
+          {slots?.afterContent}
+        </Main>
+        {footer}
+      </div>
+    </PageThemeContext.Provider>
   );
 }

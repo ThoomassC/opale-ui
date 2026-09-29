@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useContext,
   useId,
   useRef,
   useSyncExternalStore,
@@ -32,6 +33,12 @@ import type { OpalePlacement, OpaleTone } from '../shared';
 import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
+import {
+  PAGE_THEME_ATTRIBUTE,
+  PAGE_THEME_COPY_ATTRIBUTE,
+  PageThemeContext,
+  pageThemeAttributes,
+} from '../shared/page-theme-context';
 import { useScrollPadding } from '../shared/use-scroll-padding';
 import { Button } from './forms';
 import { Card, Icon } from './display';
@@ -245,6 +252,24 @@ export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children
 
 const DEFAULT_TOAST_LABELS: ToastLabels = { close: 'Fermer la notification' };
 
+/* SOUS VERRE, LE THÈME VA AUSSI SUR L'ENVELOPPE. `Glass` passe les attributs
+   à sa couche de contenu, et la `ref` la désigne ; or la teinte et le voile
+   sont peints par les couches SŒURS du contenu, dans l'enveloppe. Le thème y
+   est posé depuis la `ref` de rappel, au rattachement du nœud : un passage au
+   verre pendant l'ouverture remonte la carte, et le nouveau nœud le reçoit
+   aussitôt — sans effet, donc sans image dans le mauvais thème. */
+function applyThemeToGlassRoot(node: HTMLElement, theme: 'light' | 'dark' | null) {
+  const root = node.closest<HTMLElement>('.opale-toast--glass-root');
+  if (!root || root === node) return;
+  if (theme === null) {
+    root.removeAttribute(PAGE_THEME_ATTRIBUTE);
+    root.removeAttribute(PAGE_THEME_COPY_ATTRIBUTE);
+    return;
+  }
+  root.setAttribute(PAGE_THEME_ATTRIBUTE, theme);
+  root.setAttribute(PAGE_THEME_COPY_ATTRIBUTE, '');
+}
+
 export function Toast({
   message,
   open = true,
@@ -288,10 +313,20 @@ export function Toast({
      du matériau. */
   const Shell = liquidGlass ? Glass : 'div';
   const shellProps = liquidGlass ? ({ rootClassName: 'opale-toast--glass-root' } as const) : {};
+  /* LE THÈME LOCAL DU GABARIT SUIT LE MESSAGE (THM-05). `PageScaffold` le
+     transmet par contexte, que le portail traverse. L'ancre de la place est
+     partagée par tous les messages qui s'y rendent, peut-être depuis des
+     gabarits différents : le thème se pose donc sur la CARTE, pendant le
+     rendu. Rien n'est rendu à l'endroit où le composant est écrit — le
+     conteneur d'appel reste vide, c'est un contrat. */
+  const pageTheme = useContext(PageThemeContext);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useCallback(
-    (node: HTMLDivElement | null) => mergeRefs(cardRef, ref)(node),
-    [ref],
+    (node: HTMLDivElement | null) => {
+      if (node && liquidGlass) applyThemeToGlassRoot(node, pageTheme);
+      mergeRefs(cardRef, ref)(node);
+    },
+    [liquidGlass, pageTheme, ref],
   );
   const card = open ? (
     <Shell
@@ -300,6 +335,7 @@ export function Toast({
       ref={cardRefs}
       className={classes}
       data-opale-toast-tone={tone}
+      {...pageThemeAttributes(pageTheme)}
     >
       {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
 
