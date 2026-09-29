@@ -32,7 +32,7 @@
 
   position: sticky;
   inset-block-start: 0;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   inline-size: 100%;
@@ -148,12 +148,12 @@
   --liquid-bubble-ink: var(--site-nav-ink);
   --liquid-bubble-edge: color-mix(in srgb, var(--site-nav-ink) 58%, transparent);
   --liquid-bubble-highlight: var(--site-nav-ink);
-  --liquid-bubble-shadow-ink: rgba(15, 23, 42, 0.3);
+  --liquid-bubble-shadow-ink: color-mix(in srgb, var(--opale-glass-deep) 30%, transparent);
   z-index: 0;
   transform-origin: center;
   pointer-events: none;
   opacity: 1;
-  transition: inset-inline-start 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: inset-inline-start var(--opale-motion-slower) var(--opale-ease-out);
 }
 
 .list[data-active-index='1'] .movingBubble {
@@ -225,7 +225,7 @@
 }
 
 .list[data-moving='true'] .movingBubble {
-  animation: siteNavBubbleFlow 620ms var(--site-nav-motion-ease);
+  animation: siteNavBubbleFlow var(--opale-motion-slower) var(--site-nav-motion-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -313,6 +313,6 @@
 
   position: sticky;
   inset-block-start: 0;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   inline-size: 100%;
 }

@@ -15,7 +15,7 @@
   --header-control-border: var(--opale-divider);
   position: relative;
   isolation: isolate;
-  min-height: 2.75rem;
+  min-height: var(--opale-control-md);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -62,7 +62,7 @@
 
 .theme {
   display: grid;
-  width: 2.75rem;
+  width: var(--opale-control-md);
   place-items: center;
   font-size: var(--opale-text-md);
 }
@@ -90,8 +90,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding-inline: 0.7rem;
+  gap: var(--opale-space-xs);
+  padding-inline: var(--opale-space-sm);
 }
 
 .flag {
@@ -99,7 +99,7 @@
   width: 1.4rem;
   height: 0.95rem;
   flex: none;
-  border-radius: 0.15rem;
+  border-radius: var(--opale-radius-xs);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--opale-text) 22%, transparent);
 }
 
@@ -107,8 +107,8 @@
   width: 0.4rem;
   height: 0.4rem;
   flex: none;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   color: var(--opale-text-secondary);
   transform: translateY(-0.1rem) rotate(45deg);
   transition: transform var(--opale-motion) var(--opale-ease);
@@ -124,14 +124,14 @@
 
 .languageList {
   position: absolute;
-  z-index: 50;
-  inset-block-start: calc(100% + 0.5rem);
+  z-index: var(--opale-z-popover);
+  inset-block-start: calc(100% + var(--opale-space-xs));
   inset-inline-end: 0;
   display: grid;
   min-width: 100%;
-  gap: 0.15rem;
+  gap: var(--opale-space-2xs);
   margin: 0;
-  padding: 0.35rem;
+  padding: var(--opale-space-2xs);
   border: 1px solid var(--opale-divider);
   border-radius: var(--opale-radius-md);
   background: var(--opale-surface);
@@ -147,10 +147,10 @@
   position: relative;
   isolation: isolate;
   display: flex;
-  min-height: 2.25rem;
+  min-height: var(--opale-control-sm);
   align-items: center;
   justify-content: center;
-  padding-inline: 0.7rem;
+  padding-inline: var(--opale-space-sm);
   cursor: pointer;
 }
 
@@ -178,7 +178,7 @@
 }
 
 .option[aria-selected='true'] .flag {
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 55%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--opale-glass-light) 55%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -193,9 +193,9 @@
   position: relative;
   isolation: isolate;
   display: inline-flex;
-  min-height: 2.75rem;
+  min-height: var(--opale-control-md);
   align-items: center;
-  padding: 0.45rem 0.85rem;
+  padding: var(--opale-space-xs) var(--opale-space-sm);
   color: var(--opale-text-secondary);
   font-family: var(--opale-font-body);
   font-size: var(--opale-text-sm);

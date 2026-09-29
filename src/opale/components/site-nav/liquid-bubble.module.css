@@ -5,7 +5,7 @@
   --liquid-bubble-ink: var(--opale-primary-on-surface);
   --liquid-bubble-edge: color-mix(in srgb, var(--opale-glass-ink) 42%, transparent);
   --liquid-bubble-highlight: var(--opale-glass-ink);
-  --liquid-bubble-shadow-ink: rgba(15, 23, 42, 0.3);
+  --liquid-bubble-shadow-ink: color-mix(in srgb, var(--opale-glass-deep) 30%, transparent);
 
   box-sizing: border-box;
   border: 1px solid var(--liquid-bubble-edge);
@@ -31,7 +31,8 @@
     inset 0 1px 0 color-mix(in srgb, var(--liquid-bubble-highlight) 72%, transparent),
     inset 0 -0.35rem 0.75rem color-mix(in srgb, var(--liquid-bubble-shadow-ink) 16%, transparent),
     0 0.5rem 1.25rem color-mix(in srgb, var(--liquid-bubble-shadow-ink) 24%, transparent);
-  backdrop-filter: blur(12px) saturate(145%);
-  -webkit-backdrop-filter: blur(12px) saturate(145%);
+  backdrop-filter: blur(var(--opale-glass-backdrop-blur)) saturate(var(--opale-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--opale-glass-backdrop-blur))
+    saturate(var(--opale-glass-saturate));
   color: var(--liquid-bubble-ink);
 }

@@ -18,6 +18,10 @@ export type NavBubbleProps = {
   readonly onNavigate?: (item: SiteNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
+/* La durée du glissement de la bulle, `--opale-motion-slower` dans
+   `site-nav.module.css` : la bulle reste « en mouvement » jusqu'à son arrivée. */
+const BUBBLE_FLOW_MS = 600;
+
 const isModifiedClick = (event: MouseEvent<HTMLAnchorElement>): boolean =>
   event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
 
@@ -74,7 +78,7 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
     setOptimisticSelection({ sourceKey: activeKey, targetKey });
     setMoving(true);
     if (movementTimer.current !== null) window.clearTimeout(movementTimer.current);
-    movementTimer.current = window.setTimeout(() => setMoving(false), 620);
+    movementTimer.current = window.setTimeout(() => setMoving(false), BUBBLE_FLOW_MS);
   };
 
   const itemAtClientX = (clientX: number): SiteNavItem | undefined => {

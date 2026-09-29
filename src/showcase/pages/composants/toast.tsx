@@ -74,8 +74,8 @@ const PROPS: readonly PropRow[] = [
     defaultValue: "'slide-from-right'",
     description: (
       <>
-        L’entrée par défaut, surchargeable par toast. La durée de sortie est indexée sur ce choix —
-        220, 220, 240 ou 200 ms.
+        L’entrée par défaut, surchargeable par toast. Les quatre sorties durent 220 ms
+        (<code>--opale-motion</code>).
       </>
     ),
   },

@@ -33,6 +33,13 @@ check(
   /^(@charset "[^"]+";\r?\n)?@import '\.\/fonts\.css';/.test(css),
   "dist/opale/opale.css ne relie pas ses polices (@import './fonts.css' en tête).",
 );
+/* La feuille livrée est minifiée : seuls les commentaires `/*!` (licence) et
+   le marqueur de hachage que Vite ajoute en fin de feuille y restent. Un
+   commentaire ordinaire signale que la minification a sauté. */
+check(
+  !/\/\*(?!!|\$vite\$)/.test(css),
+  "dist/opale/opale.css contient encore des commentaires : la feuille n'est pas minifiée.",
+);
 for (const font of ['bricolage-grotesque-latin.woff2', 'chivo-latin.woff2']) {
   check(existsSync(join('dist/opale/fonts', font)), `dist/opale/fonts/${font} est absent.`);
 }

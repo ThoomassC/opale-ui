@@ -11,7 +11,7 @@
   align-items: center;
   gap: var(--opale-space-xs, 0.5rem);
   padding-inline: var(--opale-space-sm, 0.75rem);
-  border: 1px solid color-mix(in srgb, #ffffff 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--opale-glass-light) 72%, transparent);
   border-radius: inherit;
   background: transparent;
   color: var(--opale-glass-ink);
@@ -19,14 +19,14 @@
 }
 
 .searchBar:focus-within {
-  border-color: var(--opale-primary-light, #a9c7f4);
+  border-color: var(--opale-primary-light);
 }
 
 /* Le verre ne garde ni halo extérieur ni assombrissement au focus :
    seul son contour prend le bleu du contrôle. */
 .root:has([data-opale-glass-layer='content'] .input:focus) {
-  --opale-glass-edge: var(--opale-primary-light, #a9c7f4);
-  --opale-glass-tint: rgba(255, 255, 255, 0.06);
+  --opale-glass-edge: var(--opale-primary-light);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-glass-light) 6%, transparent);
   box-shadow: none;
 }
 
@@ -92,7 +92,7 @@
 
 .disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
 }
 
 /* Le dessin plein reprend la recherche de la barre d’en-tête : un filet

@@ -208,15 +208,15 @@ const positionClass: Record<ToastPosition, string> = {
   'bottom-center': styles.bottomCenter,
 };
 
-/* Les durées de sortie, en accord avec `Toast.module.css` et avec ce que la
-   vitrine documente. Elles minutent le RETRAIT du DOM : trop courtes, la carte
+/* Les durées de sortie, en accord avec `Toast.module.css` (`--opale-motion`)
+   et avec ce que la vitrine documente. Elles minutent le RETRAIT du DOM : trop courtes, la carte
    disparaît en plein mouvement ; trop longues, elle reste invisible à occuper
    sa place dans la pile. */
 const ANIMATION_MS: Record<ToastAnimation, number> = {
   'slide-from-right': 220,
   'slide-from-left': 220,
-  'slide-from-bottom': 240,
-  scale: 200,
+  'slide-from-bottom': 220,
+  scale: 220,
 };
 
 /* Le sens d'empilement. En haut, le plus récent se pose près du bord, donc en
