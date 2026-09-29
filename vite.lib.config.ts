@@ -129,6 +129,12 @@ export default defineConfig({
     // "no React inlined here" check on `dist/opale/index.js` verifiable by
     // eye rather than by bundle-size guesswork.
     minify: false,
+    // LA FEUILLE, ELLE, EST MINIFIÉE : ses commentaires de conception pesaient
+    // près de la moitié du fichier livré, et un consommateur n'a aucune raison
+    // de les télécharger. `cssMinify` est indépendant de `minify`, donc le
+    // JavaScript reste lisible. `scripts/link-fonts.mjs` pose ensuite
+    // `@import './fonts.css'` juste après le `@charset`.
+    cssMinify: 'esbuild',
     lib: {
       entry: 'src/opale/index.ts',
       formats: ['es'],
