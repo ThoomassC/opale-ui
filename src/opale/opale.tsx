@@ -420,13 +420,28 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'>
   error?: ReactNode;
   icon?: ReactNode;
   liquidGlass?: boolean;
+  /** Avec `type="search"`, pose le repère `search` autour du champ. Défaut : `true`. */
+  searchLandmark?: boolean;
+  /** Avec `type="search"`, le nom du repère `search`. */
+  searchLandmarkLabel?: string;
 }
 
 /** @deprecated Depuis 3.6 — utilisez `InputProps`. */
 export type FieldProps = InputProps;
 
 export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
-  { label, helperText, error, icon, liquidGlass = false, className, id, ...props },
+  {
+    label,
+    helperText,
+    error,
+    icon,
+    liquidGlass = false,
+    searchLandmark,
+    searchLandmarkLabel,
+    className,
+    id,
+    ...props
+  },
   ref,
 ) {
   const generatedId = useId();
@@ -472,6 +487,8 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
           id={inputId}
           icon={icon}
           liquidGlass={liquidGlass}
+          landmark={searchLandmark}
+          landmarkLabel={searchLandmarkLabel}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={message ? messageId : props['aria-describedby']}
         />
@@ -2133,6 +2150,8 @@ export interface NavbarProps extends Omit<
   activeId?: string;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onSelect?: (id: string) => void;
+  /** Le nom du repère ; `aria-label` gagne. Défaut : « Navigation ». */
+  label?: string;
   className?: string;
   liquidGlass?: boolean;
 }
@@ -2144,6 +2163,7 @@ export function Navbar({
   onValueChange,
   activeId: activeIdProp,
   onSelect,
+  label = 'Navigation',
   className,
   liquidGlass = false,
   ...rest
@@ -2164,7 +2184,7 @@ export function Navbar({
        pour son CONTENU : le `<nav>` et son nom accessible restent le même nœud
        dans les deux rendus, donc la navigation garde son rôle sous verre. */
     <Rail
-      aria-label="Navigation"
+      aria-label={label}
       {...rest}
       {...railProps}
       className={cx('opale-surface', liquidGlass && 'opale-surface--glass', 'opale-nav', className)}
@@ -2200,6 +2220,8 @@ export function Navbar({
 export interface MenuProps extends ComponentPropsWithRef<'details'> {
   label?: ReactNode;
   items?: readonly NavItem[];
+  /** Le nom de la navigation rendue depuis `items`. Défaut : celui de `Navbar`. */
+  navigationLabel?: string;
   className?: string;
   children?: ReactNode;
   liquidGlass?: boolean;
@@ -2208,6 +2230,7 @@ export interface MenuProps extends ComponentPropsWithRef<'details'> {
 export function Menu({
   label = 'Menu',
   items = [],
+  navigationLabel,
   className,
   children,
   liquidGlass = false,
@@ -2222,7 +2245,11 @@ export function Menu({
   const content = (
     <>
       <summary>{label}</summary>
-      {items.length > 0 ? <Navbar items={items} liquidGlass={liquidGlass} /> : children}
+      {items.length > 0 ? (
+        <Navbar items={items} label={navigationLabel} liquidGlass={liquidGlass} />
+      ) : (
+        children
+      )}
     </>
   );
 
@@ -2311,13 +2338,32 @@ export interface CommandPaletteLabels extends ModalLabels {
   title: string;
   /** Le libellé du champ de recherche. Défaut : « Rechercher une commande ». */
   search: string;
+  /** Avec `items`, le nom de la liste. Défaut : « Commandes ». */
+  results?: string;
+  /** Avec `items`, le compte annoncé. Défaut : « 3 résultats », « Aucun résultat ». */
+  resultCount?: (count: number) => string;
 }
 
-const DEFAULT_COMMAND_PALETTE_LABELS: CommandPaletteLabels = {
+const DEFAULT_COMMAND_PALETTE_LABELS: Required<CommandPaletteLabels> = {
   close: 'Fermer',
   title: 'Palette de commandes',
   search: 'Rechercher une commande',
+  results: 'Commandes',
+  resultCount: (count) =>
+    count === 0 ? 'Aucun résultat' : `${count} résultat${count > 1 ? 's' : ''}`,
 };
+
+/** Une commande de la palette. */
+export interface CommandPaletteItem {
+  id: string;
+  label: ReactNode;
+  /** Un texte secondaire, sous le libellé. */
+  description?: ReactNode;
+  /** Visible mais ni activable ni choisie aux flèches. */
+  disabled?: boolean;
+  /** Appelée quand la commande est choisie, avant `onItemSelect`. */
+  onSelect?: () => void;
+}
 
 /** Les props de `CommandPalette`. `ref` et les attributs vont au panneau. */
 export interface CommandPaletteProps extends Omit<
@@ -2337,7 +2383,15 @@ export interface CommandPaletteProps extends Omit<
   onOpenChange?: (open: boolean) => void;
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
+  /** Un contenu libre, rendu sous la recherche. */
   children?: ReactNode;
+  /**
+   * Les commandes, déjà filtrées par l'appelant. Présentes, la recherche devient
+   * une combobox : flèches haut et bas, Entrée, et le compte annoncé.
+   */
+  items?: readonly CommandPaletteItem[];
+  /** Appelée avec l'`id` de la commande choisie, à Entrée ou au clic. */
+  onItemSelect?: (id: string) => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<CommandPaletteLabels>;
   liquidGlass?: boolean;
@@ -2352,12 +2406,17 @@ export function CommandPalette({
   onOpenChange,
   onClose,
   children,
+  items,
+  onItemSelect,
   labels: labelsProp,
   liquidGlass = false,
   ...rest
 }: CommandPaletteProps) {
   const close = closeHandler(onOpenChange, onClose);
-  const labels = resolveLabels(DEFAULT_COMMAND_PALETTE_LABELS, labelsProp);
+  const labels = resolveLabels<Required<CommandPaletteLabels>>(
+    DEFAULT_COMMAND_PALETTE_LABELS,
+    labelsProp,
+  );
   /* La modale donne d'abord le focus au panneau pour annoncer son titre.
      Au cadre suivant, la palette place le curseur dans sa recherche : on peut
      lancer une commande sans clic, tout en laissant Modal retenir l'élément
@@ -2369,6 +2428,43 @@ export function CommandPalette({
     const frame = requestAnimationFrame(() => searchRef.current?.focus({ preventScroll: true }));
     return () => cancelAnimationFrame(frame);
   }, [open]);
+
+  /* LA COMMANDE ACTIVE SE DÉDUIT : celle retenue aux flèches si elle est
+     encore là et active, la première active sinon. */
+  const listboxId = useId();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const enabledItems = (items ?? []).filter((item) => !item.disabled);
+  const active = enabledItems.find((item) => item.id === activeId) ?? enabledItems[0];
+  const optionId = (item: CommandPaletteItem) => `${listboxId}-${item.id}`;
+  const choose = (item: CommandPaletteItem) => {
+    if (item.disabled) return;
+    item.onSelect?.();
+    onItemSelect?.(item.id);
+  };
+  const handleComboboxKeys = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && active) {
+      event.preventDefault();
+      choose(active);
+      return;
+    }
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    if (enabledItems.length === 0) return;
+    const index = active ? enabledItems.indexOf(active) : -1;
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    const next = enabledItems[(index + step + enabledItems.length) % enabledItems.length];
+    setActiveId(next.id);
+  };
+  const combobox = items
+    ? ({
+        role: 'combobox',
+        'aria-expanded': items.length > 0,
+        'aria-controls': listboxId,
+        'aria-autocomplete': 'list',
+        'aria-activedescendant': active ? optionId(active) : undefined,
+        onKeyDown: handleComboboxKeys,
+      } as const)
+    : {};
 
   return (
     <Modal
@@ -2387,9 +2483,12 @@ export function CommandPalette({
       }
     >
       <div className="opale-command-palette__content">
+        {/* Le dialogue est déjà un repère : la recherche n'en ajoute pas. */}
         <Input
           ref={searchRef}
           type="search"
+          searchLandmark={false}
+          {...combobox}
           label={labels.search}
           value={query}
           onChange={(event) => {
@@ -2398,6 +2497,48 @@ export function CommandPalette({
             onChange?.(next);
           }}
         />
+        {items && (
+          <>
+            <div
+              id={listboxId}
+              role="listbox"
+              aria-label={labels.results}
+              className="opale-command-palette__results opale-command-palette__listbox"
+            >
+              {items.map((item) => (
+                /* Le focus reste dans la recherche : l'option est désignée par
+                   `aria-activedescendant`, pas focalisée. */
+                <div
+                  key={item.id}
+                  id={optionId(item)}
+                  role="option"
+                  tabIndex={-1}
+                  aria-selected={item === active}
+                  aria-disabled={item.disabled ? true : undefined}
+                  className="opale-command-palette__option"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => choose(item)}
+                  /* Une technologie d'assistance peut y poser le focus. */
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    choose(item);
+                  }}
+                >
+                  <span className="opale-command-palette__option-label">{item.label}</span>
+                  {item.description && (
+                    <span className="opale-command-palette__option-description">
+                      {item.description}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div role="status" className="opale-visually-hidden">
+              {labels.resultCount(items.length)}
+            </div>
+          </>
+        )}
         {children && <div className="opale-command-palette__results">{children}</div>}
       </div>
     </Modal>

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ToastProvider, useToast } from './components/toast';
 import toastClasses from './components/toast/style/Toast.module.css';
-import { CookieBanner, Pagination, Toast } from './opale';
+import { CommandPalette, CookieBanner, Input, Menu, Navbar, Pagination, Toast } from './opale';
 
 /* Comportements d'accessibilité : focus, annonces, repères. */
 
@@ -113,5 +113,48 @@ describe('Réserve de défilement sous les surfaces fixes du bas', () => {
 
     expect(bottomPadding()).toBe('90px');
     rect.mockRestore();
+  });
+});
+
+describe('Repères : nom et présence', () => {
+  it('garde le repère search d’un Input de recherche par défaut, et le nomme sur demande', () => {
+    render(<Input type="search" label="Filtrer" searchLandmarkLabel="Filtre des étapes" />);
+
+    expect(screen.getByRole('search', { name: 'Filtre des étapes' })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Filtrer' })).toBeInTheDocument();
+  });
+
+  it('retire le repère search d’un Input avec searchLandmark={false}', () => {
+    render(<Input type="search" label="Filtrer" searchLandmark={false} />);
+
+    expect(screen.queryByRole('search')).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Filtrer' })).toBeInTheDocument();
+  });
+
+  it('ne pose pas de repère search dans la CommandPalette libre', () => {
+    render(<CommandPalette open />);
+
+    expect(screen.queryByRole('search')).not.toBeInTheDocument();
+  });
+
+  it('nomme la Navbar par label, « Navigation » restant le défaut', () => {
+    const items = [{ id: 'a', label: 'Accueil', href: '/' }];
+    render(
+      <>
+        <Navbar items={items} />
+        <Navbar items={items} label="Pied de page" />
+      </>,
+    );
+
+    expect(screen.getByRole('navigation', { name: 'Navigation' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Pied de page' })).toBeInTheDocument();
+  });
+
+  it('transmet navigationLabel à la navigation du Menu', () => {
+    render(
+      <Menu open items={[{ id: 'a', label: 'Accueil', href: '/' }]} navigationLabel="Compte" />,
+    );
+
+    expect(screen.getByRole('navigation', { name: 'Compte' })).toBeInTheDocument();
   });
 });
