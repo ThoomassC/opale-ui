@@ -381,6 +381,8 @@ export type SidebarItemProps = ComponentPropsWithoutRef<'button'> & {
   itemId: string;
   icon?: ReactNode;
   badge?: ReactNode;
+  /** Ce que le badge dit au lecteur d'écran, en description. Défaut : le badge. */
+  badgeLabel?: ReactNode;
   collapsedFallback?: ReactNode;
 };
 
@@ -406,10 +408,26 @@ const getCollapsedFallback = (collapsedFallback: ReactNode | undefined, children
 
 const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
   (
-    { itemId, icon, badge, collapsedFallback, disabled, className, children, onClick, ...rest },
+    {
+      itemId,
+      icon,
+      badge,
+      badgeLabel,
+      collapsedFallback,
+      disabled,
+      className,
+      children,
+      onClick,
+      'aria-describedby': ariaDescribedBy,
+      ...rest
+    },
     ref,
   ) => {
     const { collapsed, handleItemSelect, value } = useSidebarContext('Sidebar.Item');
+    const badgeId = useId();
+    const describedBy = badge
+      ? [ariaDescribedBy, badgeId].filter(Boolean).join(' ')
+      : ariaDescribedBy;
 
     const isActive = value === itemId;
 
@@ -448,6 +466,7 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
            attribut global : il est valide sur un `<button>` comme sur un `<a>`,
            même si ce rail gagnerait par ailleurs à être fait de liens. */
         aria-current={isActive ? 'page' : undefined}
+        aria-describedby={describedBy}
         {...rest}
       >
         {icon ? (
@@ -469,19 +488,19 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
         <span className={clsx(styles.itemContent, collapsed && styles.itemContentHidden)}>
           <span className={styles.itemText}>{children}</span>
 
-          {/* LE BADGE EST `aria-hidden`, ET C'EST UNE LIMITE ASSUMÉE, PAS UN
-              OUBLI. Le laisser dans l'arbre ferait du nom du bouton
-              « Analytics 4 » — un nom qui ne correspond plus au libellé visible
-              (WCAG 2.5.3, « Label in Name ») et qui change à chaque fois que le
-              compteur bouge, donc un nom sur lequel aucune commande vocale ne
-              peut s'appuyer. Ce qu'on perd en échange est réel : le compteur ne
-              s'entend pas. Une entrée dont le compte est une information à part
-              entière doit passer son propre `aria-label` — « Analytics, 4
-              nouveaux » —, ce que la prop permet. */}
+          {/* LE BADGE VISIBLE EST `aria-hidden` : dans le nom, il ferait
+              « Analytics 4 », un nom qui bouge avec le compteur (WCAG 2.5.3).
+              Il s'entend en DESCRIPTION, par un texte masqué que
+              `aria-describedby` désigne. */}
           {badge ? (
-            <span className={styles.itemBadge} aria-hidden="true">
-              {badge}
-            </span>
+            <>
+              <span className={styles.itemBadge} aria-hidden="true">
+                {badge}
+              </span>
+              <span id={badgeId} hidden>
+                {badgeLabel ?? badge}
+              </span>
+            </>
           ) : null}
         </span>
       </button>
