@@ -49,6 +49,43 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V390_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Distribution',
+    changes: [
+      {
+        title: 'Une archive construite à chaque version',
+        detail:
+          'Chaque version publie sur GitHub une archive déjà compilée : npm, pnpm et yarn l’installent sans chaîne de build, même avec --ignore-scripts ou pnpm 10. L’installation par tag Git reste possible et inchangée.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+    ],
+  },
+  {
+    title: 'Préparer la 4.0',
+    changes: [
+      {
+        title: 'Les anciens noms se signalent',
+        detail:
+          'En développement, chaque prop dépréciée écrit une fois dans la console son remplaçant et la version qui la retirera. Rien en production, et les anciens noms marchent toujours.',
+        links: [{ label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' }],
+      },
+      {
+        title: 'Un guide de migration',
+        detail:
+          'La page « Migrer vers la 4.0 » liste chaque ancien nom, ce qui le remplace et depuis quand, ainsi que les changements que la 4.0.0 apportera.',
+        links: [{ label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' }],
+      },
+      {
+        title: 'Toggle en interrupteur, en option',
+        detail:
+          'role="switch" sur Toggle l’annonce comme un interrupteur ; ce sera le rôle par défaut en 4.0.0. En développement, un Toggle sans nom accessible est signalé.',
+        links: [{ label: 'Toggle', slug: 'composants/opale-toggle' }],
+      },
+    ],
+  },
+];
+
 const V380_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Nouveautés',
@@ -817,6 +854,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.9.0',
+    publishedAt: '2026-09-29',
+    dateLabel: '29 septembre 2026',
+    summary:
+      'La dernière 3.x : une archive construite à chaque version, et la sortie des anciens noms préparée — avertissements en développement, guide de migration, Toggle en interrupteur en option. Sans rupture.',
+    sections: V390_RELEASE_SECTIONS,
+    changes: V390_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Archive construite attachée à la release.', 'Guide « Migrer vers la 4.0 ».'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.8.0',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
@@ -827,8 +878,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['searchNavigate sur PageScaffold.', 'footerClose sur Lightbox et CommandPalette.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.9.0, sur son tag. */
+    appHref: '/versions/v3.8.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.8.0`,
   },
   {
     version: '3.7.1',
