@@ -1,12 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  ToastProvider,
-  useToast,
-  type ToastDefinition,
-  type ToastProviderProps,
-} from './ToastProvider';
+import { ToastProvider, type ToastDefinition, type ToastProviderProps } from './ToastProvider';
+import { useToast } from './toast-context';
 import toastClasses from './style/Toast.module.css';
 
 /* =============================================================================

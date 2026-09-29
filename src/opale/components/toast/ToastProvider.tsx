@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -9,6 +7,7 @@ import {
   type PropsWithChildren,
   type ReactNode,
 } from 'react';
+import clsx from 'clsx';
 import { createPortal } from 'react-dom';
 
 import Glass from '../glass/Glass';
@@ -17,6 +16,7 @@ import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
 import { useScrollPadding } from '../../shared/use-scroll-padding';
+import { ToastContext, type ToastContextValue } from './toast-context';
 
 import styles from './style/Toast.module.css';
 
@@ -165,19 +165,6 @@ export type ToastProviderProps = PropsWithChildren<{
   labels?: Partial<ToastLabels>;
 }>;
 
-type ToastContextValue = {
-  showToast: (toast: ToastDefinition) => string;
-  dismissToast: (id: string) => void;
-  clearToasts: () => void;
-  defaults: {
-    duration: number;
-    animation: ToastAnimation;
-    position: ToastPosition;
-    enableLiquidAnimation: boolean;
-    liquidGlass: boolean;
-  };
-};
-
 /* L'ordre de cette liste est l'ordre du DOM des six piles. Il n'a pas
    d'incidence visuelle — chaque pile est positionnée en absolu — mais il fixe
    l'ordre dans lequel un lecteur d'écran parcourt les régions en mode lecture,
@@ -238,11 +225,6 @@ const NEWEST_FIRST: Record<ToastPosition, boolean> = {
   'bottom-center': false,
 };
 
-const ToastContext = createContext<ToastContextValue | null>(null);
-
-const cx = (...values: readonly (string | false | null | undefined)[]) =>
-  values.filter(Boolean).join(' ');
-
 const generateToastId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Math.random().toString(36).slice(2);
@@ -271,7 +253,7 @@ function ToastSurface({
   readonly children: ReactNode;
 }) {
   if (!liquidGlass) {
-    return <div className={cx(rootClassName, className, styles.plain)}>{children}</div>;
+    return <div className={clsx(rootClassName, className, styles.plain)}>{children}</div>;
   }
 
   return (
@@ -365,7 +347,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
 
   return (
     <div
-      className={cx(
+      className={clsx(
         'opale-toast-provider__card',
         styles.card,
         animationClass[animation],
@@ -383,15 +365,15 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
     >
       <ToastSurface
         liquidGlass={liquidGlass}
-        rootClassName={cx('opale-toast-provider__surface', styles.surface, toneClass[tone])}
-        className={cx('opale-toast-provider__body', styles.body)}
+        rootClassName={clsx('opale-toast-provider__surface', styles.surface, toneClass[tone])}
+        className={clsx('opale-toast-provider__body', styles.body)}
         enableLiquidAnimation={enableLiquidAnimation}
         triggerAnimation={entered}
       >
-        <div className={cx('opale-toast-provider__text', styles.text)}>
-          {title && <p className={cx('opale-toast-provider__title', styles.title)}>{title}</p>}
+        <div className={clsx('opale-toast-provider__text', styles.text)}>
+          {title && <p className={clsx('opale-toast-provider__title', styles.title)}>{title}</p>}
           {description && (
-            <p className={cx('opale-toast-provider__description', styles.description)}>
+            <p className={clsx('opale-toast-provider__description', styles.description)}>
               {description}
             </p>
           )}
@@ -399,7 +381,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
 
         <button
           type="button"
-          className={cx('opale-toast-provider__close', styles.close)}
+          className={clsx('opale-toast-provider__close', styles.close)}
           aria-label={labels.close}
           onClick={() => onDismiss(id)}
         >
@@ -427,22 +409,12 @@ function ToastStack({
   return (
     <div
       ref={ref}
-      className={cx('opale-toast-provider__stack', styles.stack, positionClass[position])}
+      className={clsx('opale-toast-provider__stack', styles.stack, positionClass[position])}
     >
       {children}
     </div>
   );
 }
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  /* Le message est en anglais et au mot près celui de l'origine : la page de
-     vitrine le cite entre guillemets, et un appelant a pu l'écrire dans un
-     test à lui. C'est une erreur de développement, pas un texte d'interface —
-     elle n'a donc pas à suivre la langue du produit. */
-  if (!context) throw new Error('useToast must be used within ToastProvider');
-  return context;
-};
 
 /** La durée d'un toast dont ni l'appel ni le fournisseur ne fixent la durée. */
 const DEFAULT_DURATION_MS = 4000;
@@ -581,7 +553,7 @@ export const ToastProvider = ({
       {portalNode &&
         createPortal(
           <div
-            className={cx('opale-toast-provider', styles.root)}
+            className={clsx('opale-toast-provider', styles.root)}
             data-testid="toast-portal"
             /* Une modale ouverte rend le reste de la page inerte ; les toasts
                lancés depuis elle doivent rester annoncés et refermables. */
@@ -599,7 +571,7 @@ export const ToastProvider = ({
                     l'annonce aux ajouts : le départ d'une carte n'a rien à
                     dire. */}
                 <div
-                  className={cx('opale-toast-provider__region', styles.region)}
+                  className={clsx('opale-toast-provider__region', styles.region)}
                   role="status"
                   aria-live="polite"
                   aria-atomic="false"
@@ -609,7 +581,7 @@ export const ToastProvider = ({
                 </div>
 
                 <div
-                  className={cx('opale-toast-provider__region', styles.region)}
+                  className={clsx('opale-toast-provider__region', styles.region)}
                   role="alert"
                   aria-live="assertive"
                   aria-atomic="false"

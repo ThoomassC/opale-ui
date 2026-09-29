@@ -151,16 +151,9 @@ export function DocShell({ pages }: DocShellProps) {
   const defaultNavWidth = compactNav ? DOC_NAV_WIDTH_MOBILE_DEFAULT : DOC_NAV_WIDTH_DEFAULT;
   const effectiveNavWidth =
     navWidth >= navWidthMin && navWidth <= navWidthMax ? navWidth : defaultNavWidth;
-  /* LE TITRE, ET NON `<main>`, EST LA CIBLE DU FOCUS. Deux raisons mesurées :
-     — `<main>` fait la hauteur entière de la page, donc l'anneau de
-       `:focus-visible` devenait un rectangle de plusieurs milliers de pixels
-       dont on ne voyait que deux traits verticaux, le bord haut passant sous
-       la barre collante. Sur le titre, l'anneau se pose là où l'œil doit aller ;
-     — un `<main>` sans nom accessible s'annonce « main », c'est-à-dire rien.
-       Un titre focalisé s'annonce « Button, titre niveau 1 » chez NVDA, JAWS
-       et VoiceOver : le nom de la page, une fois, par le mécanisme le plus
-       universel. C'est ce qui a permis de SUPPRIMER la région live qui doublait
-       l'annonce. */
+  /* Le titre, et non `<main>`, reçoit le focus à la navigation : l'anneau
+     se pose sur une cible de la taille du texte, et le titre focalisé
+     annonce le nom de la page sans région live. */
   const docRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);

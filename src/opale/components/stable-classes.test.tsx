@@ -8,7 +8,7 @@ import SearchBar from './search-bar/SearchBar';
 import Sidebar from './sidebar/Sidebar';
 import { SiteNav } from './site-nav/site-nav';
 import Tabs from './tabs/Tabs';
-import { ToastProvider, useToast } from './toast/ToastProvider';
+import { ToastProvider, useToast } from './toast';
 import Topbar from './topbar/Topbar';
 
 /* =============================================================================

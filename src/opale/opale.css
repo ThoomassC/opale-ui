@@ -3218,6 +3218,46 @@
   opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
+
+/* LA NOTE, LE LIEN, LE FIL D'ARIANE ET LA PAGINATION SOUS VERRE. L'enveloppe
+   épouse le contenu ; le contenu garde sa balise et son rôle, et prend l'encre
+   du matériau. Le lien reste souligné : sa couleur ne le distingue plus du
+   texte voisin (WCAG 1.4.1). */
+.opale-rating--glass-root,
+.opale-link--glass-root {
+  --opale-glass-radius: var(--opale-radius-pill);
+  display: inline-flex;
+  vertical-align: middle;
+}
+.opale-breadcrumb--glass-root,
+.opale-pagination--glass-root {
+  --opale-glass-radius: var(--opale-radius-md);
+}
+.opale-rating--glass,
+.opale-link--glass {
+  display: flex;
+  align-items: center;
+}
+.opale-rating--glass,
+.opale-link--glass,
+.opale-breadcrumb--glass,
+.opale-pagination--glass {
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+}
+.opale-link--glass,
+.opale-link--glass:hover,
+.opale-breadcrumb--glass,
+.opale-breadcrumb--glass a {
+  color: var(--opale-glass-ink);
+}
+.opale-link--glass {
+  text-decoration: underline;
+}
+.opale-pagination--glass button:not([aria-current='page']) {
+  border-color: color-mix(in srgb, var(--opale-glass-ink) 32%, transparent);
+  background: color-mix(in srgb, var(--opale-glass-ink) 10%, transparent);
+  color: var(--opale-glass-ink);
+}
 .opale-rating-input {
   margin: 0;
   padding: 0;

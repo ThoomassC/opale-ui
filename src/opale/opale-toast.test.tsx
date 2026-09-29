@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Profiler } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -429,5 +430,27 @@ describe('les ancres partagées', () => {
     const after = document.querySelector('.opale-toast-anchor--bottom-right');
     expect(after, 'Même nœud, régions déjà surveillées.').toBe(before);
     expect(after).toHaveTextContent('Second');
+  });
+});
+
+describe('le coût d’un montage', () => {
+  /* Monter un message ne doit pas refaire le rendu de ceux déjà affichés : leur
+     ancre n'a pas changé. */
+  it.each([
+    ['à la même place', 'bottom-right'],
+    ['à une autre place', 'top-left'],
+  ] as const)('ne devrait pas refaire le rendu des messages montés %s', (_, position) => {
+    const commits = vi.fn();
+    render(
+      <Profiler id="premier" onRender={commits}>
+        <Opale.Toast message="Premier" position="bottom-right" />
+      </Profiler>,
+    );
+    commits.mockClear();
+
+    render(<Opale.Toast message="Second" position={position} />);
+
+    expect(screen.getByText('Second')).toBeInTheDocument();
+    expect(commits).not.toHaveBeenCalled();
   });
 });

@@ -138,9 +138,14 @@ export default defineConfig({
     lib: {
       entry: 'src/opale/index.ts',
       formats: ['es'],
-      fileName: () => 'index.js',
+      // Un nom par module conservé : l'entrée reste `index.js`.
+      fileName: (_format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
+      // Une constante importée reste importée : inlinée, elle laissait un
+      // `import '../modal/Modal.js'` nu que les bundlers consommateurs
+      // signalent, le paquet déclarant son JavaScript sans effet de bord.
+      optimization: { inlineConst: false },
       // Everything these components reach for outside themselves. `clsx` is
       // externalised rather than bundled because it is declared as a real
       // runtime dependency of the package: bundling it would ship a second
@@ -161,15 +166,23 @@ export default defineConfig({
         // library mode calls it `style.css`.
         assetFileNames: 'opale.[ext]',
 
+        // UN FICHIER PAR MODULE SOURCE, et c'est ce qui rend le paquet
+        // élagable. Avec `"sideEffects": ["**/*.css"]`, le bundler d'une
+        // application écarte chaque module qu'elle n'importe pas : un
+        // `Divider` seul ne tire plus le reste du catalogue.
+        // `scripts/check-size.mjs` tient ce poids sous un budget.
+        preserveModules: true,
+        preserveModulesRoot: 'src/opale',
+
         // LA NOTICE DE LICENCE VOYAGE AVEC LE FICHIER. Seul un commentaire
         // `/*!` survit au regroupement : il porte la licence MIT d'Opale, pour
         // le cas où le bundle serait copié seul, hors du paquet.
-        /* `"use client";` D'ABORD, ET C'EST UNE CONDITION D'USAGE. Le bundle
-           unique appelle useState, createContext et createPortal : sans la
+        /* `"use client";` D'ABORD, ET C'EST UNE CONDITION D'USAGE. Les modules
+           appellent useState, createContext et createPortal : sans la
            directive, un Server Component de Next.js qui importe un Button
-           échoue. Rollup retire celles des sources en les regroupant ; la
-           bannière la remet une fois, en tête du fichier, là où React
-           l'exige — avant tout commentaire qui ne serait pas une directive. */
+           échoue. La bannière la pose en tête de CHAQUE fichier émis, là où
+           React l'exige — avant tout commentaire qui ne serait pas une
+           directive. `scripts/check-dist.mjs` le vérifie fichier par fichier. */
         banner:
           '"use client";\n/*! @thomascaron/opale-ui — MIT License, Copyright (c) 2026 Thomas Caron. */',
       },

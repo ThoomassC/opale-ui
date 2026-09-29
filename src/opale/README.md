@@ -33,10 +33,12 @@ réduisent pas à un élément natif habillé.
 `PageScaffold` assemble les briques publiques et délègue `liquidGlass` à `Topbar` et
 `SearchBar`. `SiteNav` garde sa bulle propre, écrite dans `liquid-bubble.tsx`.
 
-**`opale.tsx` — le catalogue plat.** Un seul fichier, et c'est un choix
-défendable : ce sont des composants courts — une vingtaine de lignes en moyenne
-sur les 1 923 du fichier —, dont la valeur est d'être **cohérents entre eux**
-plutôt qu'isolables. Leurs fiches — nom, catégorie, phrase de présentation —
+**`catalog/` — le catalogue, un module par famille.** `forms.tsx`,
+`display.tsx`, `feedback.tsx`, `navigation.tsx`, `layout.tsx`, `modules.tsx` et
+`svg-map.tsx` portent les composants ; `shells.tsx` leurs coquilles partagées.
+`opale.ts` les réexporte tous, et `opale-namespace.ts` compose le namespace.
+Ce sont des composants courts, dont la valeur est d'être **cohérents entre
+eux** plutôt qu'isolables. Leurs fiches — nom, catégorie, phrase de présentation —
 vivent dans `catalog.ts`, réparties en catégories — primitives, champs, données,
 retour d'information, navigation, disposition, modules. Le namespace `Opale`
 réunit tous les composants du paquet, composés compris ; les exemples importent
@@ -44,7 +46,7 @@ par nom (`import { Button } from '@thomascaron/opale-ui'`). `OpaleUI`,
 `Opale.Background`, `OPALE_CATALOG` et `CatalogEntry` restent exportés, dépréciés
 depuis 3.6.
 
-La règle qui gouverne ce fichier est écrite en tête, et elle mérite d'être
+La règle qui gouverne le catalogue est écrite en tête d'`opale.ts`, et elle mérite d'être
 répétée ici : **le verre est la peau, le contrôle natif reste le moteur.** Là où
 un composant porte un état — case, interrupteur, curseur, sélecteur —, c'est
 l'élément natif qui garde le focus, le clavier, le nom de formulaire et son
@@ -192,11 +194,11 @@ et c'est là que vivent ses 33 assertions. Un test unitaire du matériau
 lui-même — montage et démontage du filtre partagé, compteur d'instances, présence
 des quatre couches — reste à écrire.
 
-**Le linter.** `npx eslint src/opale` rend **0 erreur et 6 avertissements**. Plus
+**Le linter.** `npx eslint src/opale` rend **0 erreur et 0 avertissement**. Plus
 aucun fichier de ce dossier ne porte d'`eslint-disable` en tête : les deux
 derniers, dans `Modal` et `ToastProvider`, masquaient un `setState` en corps
-d'effet que la réécriture a supprimé. Il subsiste deux
-`eslint-disable-next-line` **en ligne et documentés** dans `opale.tsx`, ce qui est
+d'effet que la réécriture a supprimé. Il subsiste trois
+`eslint-disable-next-line` **en ligne et documentés** dans `catalog/`, ce qui est
 la forme qu'on veut — un pragma qui nomme sa règle et sa raison, pas un
 interrupteur de fichier.
 

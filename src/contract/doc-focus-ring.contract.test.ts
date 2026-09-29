@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { compositeOver, contrastRatio, withAlpha } from './color';
 import opaleSource from '../opale/opale.css?raw';
 import docSource from '../styles/doc-v3.css?raw';
-import { ruleBody } from '../test/css-rules';
+import { ruleBody, stripComments } from '../test/css-rules';
 
 /* =============================================================================
    L'ANNEAU DISCRET DE LA VITRINE TIENT 3:1 SUR CHAQUE SOL.
@@ -20,8 +20,6 @@ import { ruleBody } from '../test/css-rules';
    ========================================================================== */
 
 const AA_NON_TEXT = 3;
-
-const strip = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 
 function token(body: string, name: string): string {
   const value = new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`).exec(body)?.[1];
@@ -43,7 +41,7 @@ const SURFACES = [
 const MIX = (() => {
   const match =
     /--tc-doc-focus-ring:\s*color-mix\(in srgb,\s*var\(--opale-text\)\s*(\d+)%,\s*transparent\)/.exec(
-      strip(docSource),
+      stripComments(docSource),
     );
   expect(match, '--tc-doc-focus-ring doit mêler l’encre du texte à du transparent').not.toBeNull();
   return Number(match?.[1]) / 100;

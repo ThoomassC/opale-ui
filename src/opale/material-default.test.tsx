@@ -18,7 +18,7 @@ import sidebarSheet from './components/sidebar/style/Sidebar.module.css?raw';
 import tabsSheet from './components/tabs/style/Tabs.module.css?raw';
 import toastSheet from './components/toast/style/Toast.module.css?raw';
 import topbarSheet from './components/topbar/style/Topbar.module.css?raw';
-import opaleSource from './opale.tsx?raw';
+import { OPALE_CATALOG_SOURCE as opaleSource } from '../test/opale-source';
 import { useSvgMapViewport } from './components/svg-map';
 import { OPALE_CATALOG, Opale } from './opale';
 
@@ -218,6 +218,31 @@ const PORTEURS = [
       <Opale.IconActionButton liquidGlass={g} icon="trash" label="Supprimer" />
     ),
   },
+  { nom: 'Rating', rendre: (g?: boolean) => <Opale.Rating liquidGlass={g} value={3.5} /> },
+  {
+    nom: 'Breadcrumb',
+    rendre: (g?: boolean) => (
+      <Opale.Breadcrumb
+        liquidGlass={g}
+        items={[
+          { id: 'a', label: 'Accueil', href: '/' },
+          { id: 'b', label: 'Composants' },
+        ]}
+      />
+    ),
+  },
+  {
+    nom: 'Link',
+    rendre: (g?: boolean) => (
+      <Opale.Link liquidGlass={g} href="/guide">
+        Guide
+      </Opale.Link>
+    ),
+  },
+  {
+    nom: 'Pagination',
+    rendre: (g?: boolean) => <Opale.Pagination liquidGlass={g} pageCount={5} />,
+  },
   {
     nom: 'SvgMapControls',
     rendre: (g?: boolean) => {
@@ -297,7 +322,7 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
      `liquidGlass` soit tenu quelque part — ici, ou dans la liste des exclus,
      qui dit pourquoi.
 
-     Il ne couvre que `opale.tsx` : les six composants de `components/**` sont
+     Il ne couvre que `catalog/` : les six composants de `components/**` sont
      nommés un par un dans la liste, et ils sont six. */
   it('ne laisse aucun composant à matière hors de la règle', () => {
     /* Les composants EXCLUS, et la raison de chacun. */
