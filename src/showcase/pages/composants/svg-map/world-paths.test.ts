@@ -1,11 +1,15 @@
+import { geoNaturalEarth1 } from 'd3-geo';
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildContinentFrames,
   buildWorldPaths,
   compactPath,
+  CONTINENT_DEGREES,
   projectWorld,
   readTopology,
 } from '../../../../../scripts/world-map.mjs';
+import continentFrames from './continent-frames.json';
 import worldPaths from './world-paths.json';
 import worldSource from './world.ts?raw';
 
@@ -91,5 +95,48 @@ describe('les tracés précalculés du monde', () => {
 
   it('ne projette plus rien au chargement de la page', () => {
     expect(worldSource).not.toMatch(/from '(?:world-atlas|topojson-client)/);
+  });
+
+  it('ne charge plus d3-geo au chargement de la page', () => {
+    expect(worldSource).not.toMatch(/from 'd3-geo'/);
+  });
+});
+
+/* Les cadres de continent précalculés valent la projection Natural Earth I
+   d'usine de leurs bords en degrés, échantillonnés en neuf points par côté. */
+describe('les cadres de continent précalculés', () => {
+  it('sont à jour — relancez `node scripts/world-map.mjs` sinon', () => {
+    expect(continentFrames).toEqual(buildContinentFrames());
+  });
+
+  it('égalent la projection de leurs bords en degrés', () => {
+    const projection = geoNaturalEarth1();
+    const continents = Object.keys(CONTINENT_DEGREES) as Array<keyof typeof CONTINENT_DEGREES>;
+    expect(Object.keys(continentFrames).sort()).toEqual([...continents].sort());
+
+    for (const continent of continents) {
+      const [west, south, east, north] = CONTINENT_DEGREES[continent];
+      const edges: [number, number][] = [];
+      for (let step = 0; step <= 8; step += 1) {
+        const lon = west + ((east - west) * step) / 8;
+        const lat = south + ((north - south) * step) / 8;
+        edges.push([lon, south], [lon, north], [west, lat], [east, lat]);
+      }
+      const xs: number[] = [];
+      const ys: number[] = [];
+      for (const edge of edges) {
+        const point = projection(edge);
+        if (point) {
+          xs.push(point[0]);
+          ys.push(point[1]);
+        }
+      }
+      expect(continentFrames[continent], continent).toEqual({
+        minX: Math.min(...xs),
+        minY: Math.min(...ys),
+        maxX: Math.max(...xs),
+        maxY: Math.max(...ys),
+      });
+    }
   });
 });
