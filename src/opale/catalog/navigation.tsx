@@ -310,6 +310,12 @@ export interface CommandPaletteProps extends Omit<
   onItemSelect?: (id: string) => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<CommandPaletteLabels>;
+  /**
+   * Rend le bouton « Fermer » du pied, en plus de la croix d'en-tête. Défaut : `true`.
+   * À `false`, seule la croix ferme le dialogue (elle n'existe qu'avec `onOpenChange`
+   * ou `onClose`) ; son nom et la gestion du focus sont inchangés.
+   */
+  footerClose?: boolean;
   liquidGlass?: boolean;
 }
 
@@ -326,6 +332,7 @@ export function CommandPalette({
   onItemSelect,
   labels: labelsProp,
   liquidGlass = false,
+  footerClose = true,
   ...rest
 }: CommandPaletteProps) {
   const close = closeHandler(onOpenChange, onClose);
@@ -391,7 +398,7 @@ export function CommandPalette({
       labels={{ close: labels.close }}
       title={labels.title}
       footer={
-        close ? (
+        close && footerClose ? (
           <Button variant="text" onClick={closeClickHandler(onOpenChange, onClose)}>
             {labels.close}
           </Button>

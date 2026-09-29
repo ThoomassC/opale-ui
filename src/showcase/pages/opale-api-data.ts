@@ -365,6 +365,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
         '(open: boolean) => void',
         'Ferme la palette avec la croix, le pied ou Échap.',
       ),
+      prop(
+        'footerClose',
+        'boolean',
+        'Rend le bouton Fermer du pied ; à false, seule la croix d’en-tête ferme.',
+        'true',
+      ),
       prop('children', 'ReactNode', 'Résultats ou commandes affichés sous la recherche.'),
       prop(
         'labels',
@@ -448,6 +454,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('alt', 'string', 'Description de l’image.', undefined, true),
       prop('open', 'boolean', 'Affiche la visionneuse.', 'false'),
       prop('onOpenChange', '(open: boolean) => void', 'Demande de fermeture.'),
+      prop(
+        'footerClose',
+        'boolean',
+        'Rend le bouton Fermer du pied ; à false, seule la croix d’en-tête ferme.',
+        'true',
+      ),
       prop(
         'labels',
         'Partial<LightboxLabels>',

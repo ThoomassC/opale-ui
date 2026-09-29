@@ -329,6 +329,12 @@ export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title
   onClose?: () => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<LightboxLabels>;
+  /**
+   * Rend le bouton « Fermer » du pied, en plus de la croix d'en-tête. Défaut : `true`.
+   * À `false`, seule la croix ferme le dialogue (elle n'existe qu'avec `onOpenChange`
+   * ou `onClose`) ; son nom et la gestion du focus sont inchangés.
+   */
+  footerClose?: boolean;
   liquidGlass?: boolean;
 }
 
@@ -340,6 +346,7 @@ export function Lightbox({
   onClose,
   labels: labelsProp,
   liquidGlass = false,
+  footerClose = true,
   ...rest
 }: LightboxProps) {
   const close = closeHandler(onOpenChange, onClose);
@@ -358,13 +365,15 @@ export function Lightbox({
            masque découpé en squircle : autour d'un libellé court, il ne restait
            que deux crochets de part et d'autre de « Fermer ». `tonal` est le
            bouton secondaire du système. */
-        <Button
-          variant="tonal"
-          liquidGlass={liquidGlass}
-          onClick={closeClickHandler(onOpenChange, onClose)}
-        >
-          {labels.close}
-        </Button>
+        footerClose ? (
+          <Button
+            variant="tonal"
+            liquidGlass={liquidGlass}
+            onClick={closeClickHandler(onOpenChange, onClose)}
+          >
+            {labels.close}
+          </Button>
+        ) : undefined
       }
     >
       {src && <img src={src} alt={alt} />}

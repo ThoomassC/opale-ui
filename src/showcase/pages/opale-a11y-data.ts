@@ -644,7 +644,7 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
     semantics: [
       '`role="dialog"`, `aria-modal="true"`, nommé par `aria-label` (« Aperçu » par défaut).',
       '`alt` est obligatoire et posé sur l’`<img>`.',
-      'Bouton Fermer toujours rendu ; arrière-plan `inert` et `aria-hidden` pendant l’ouverture.',
+      'Bouton Fermer du pied rendu par défaut, retiré par `footerClose={false}` ; arrière-plan `inert` et `aria-hidden` pendant l’ouverture.',
     ],
     limits: ['Sans `src`, le dialogue ne s’ouvre pas, même avec `open`.'],
   },
