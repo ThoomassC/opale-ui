@@ -344,10 +344,13 @@ export interface CardProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   footer?: ReactNode;
   elevation?: 0 | 1 | 2 | 3;
   liquidGlass?: boolean;
+  /** La balise du titre, pour suivre la hiérarchie de la page. Défaut : `h3`. */
+  titleAs?: 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 }
 
 export function Card({
   title,
+  titleAs: Title = 'h3',
   subtitle,
   actions,
   footer,
@@ -362,7 +365,7 @@ export function Card({
       {(title || subtitle || actions) && (
         <div className="opale-card__header">
           <div>
-            {title && <h3 className="opale-card__title">{title}</h3>}
+            {title && <Title className="opale-card__title">{title}</Title>}
             {subtitle && <p className="opale-card__subtitle">{subtitle}</p>}
           </div>
           {actions}

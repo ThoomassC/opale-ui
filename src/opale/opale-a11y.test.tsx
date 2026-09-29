@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider, useToast } from './components/toast';
 import toastClasses from './components/toast/style/Toast.module.css';
 import {
+  Card,
   Checkbox,
   CommandPalette,
   CookieBanner,
@@ -235,5 +236,24 @@ describe('Champs en erreur : error, aria-invalid et description', () => {
     const input = screen.getByRole('textbox', { name: 'E-mail' });
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAccessibleDescription('Adresse invalide');
+  });
+});
+
+describe('Card — niveau du titre', () => {
+  it('garde un h3 par défaut', () => {
+    render(<Card title="Résumé">Contenu</Card>);
+
+    expect(screen.getByRole('heading', { level: 3, name: 'Résumé' })).toBeInTheDocument();
+  });
+
+  it.each(['h2', 'h4', 'h6'] as const)('rend le titre en %s avec titleAs', (tag) => {
+    render(
+      <Card title="Résumé" titleAs={tag}>
+        Contenu
+      </Card>,
+    );
+
+    const heading = screen.getByRole('heading', { level: Number(tag[1]), name: 'Résumé' });
+    expect(heading).toHaveClass('opale-card__title');
   });
 });
