@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { catalogCategoryLabel } from './showcase/catalog-category';
 import { OPALE_NAV_SECTIONS } from './showcase/doc-model';
 import { CATALOG } from './opale/catalog';
 
@@ -63,7 +64,7 @@ describe('les libellés de navigation', () => {
 
   it('range chaque famille du catalogue sous une section de même nom', () => {
     const sections = new Set(OPALE_NAV_SECTIONS.map((section) => section.label));
-    const families = [...new Set(CATALOG.map((entry) => entry.category))];
+    const families = [...new Set(CATALOG.map((entry) => catalogCategoryLabel(entry.category)))];
 
     expect(families.filter((family) => !sections.has(family.toUpperCase()))).toEqual([]);
   });

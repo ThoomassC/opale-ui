@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { Opale } from '../../opale';
 import { CATALOG, type ShowcaseCatalogEntry } from '../../opale/catalog';
+import { catalogCategoryLabel } from '../catalog-category';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import { PropsTable, UsageBlock } from './api';
 import { COMPONENT_ALTERNATIVES } from './component-alternatives';
@@ -393,18 +394,6 @@ if (readCookieConsent() === 'accepted') enableAnalytics();
   }
 }
 
-/* Deux familles du catalogue publié gardent leur nom anglais : `OPALE_CATALOG`
-   est encore exporté, ses valeurs ne bougent pas en 3.x. La vitrine les
-   affiche en français. */
-const CATEGORY_LABELS: Readonly<Record<string, string>> = {
-  Inputs: 'Saisie',
-  Feedback: 'Retours',
-};
-
-function categoryLabel(category: string): string {
-  return CATEGORY_LABELS[category] ?? category;
-}
-
 export function ComponentPage({ entry }: { entry: ShowcaseCatalogEntry }) {
   const displayName = catalogComponentLabel(entry.name);
   const supportsLiquidGlass = FORWARDS_LIQUID_GLASS.includes(entry.name);
@@ -564,7 +553,7 @@ const rows = [
           <>
             <p className="tc-doc-lede">{entry.description}</p>
             <div className="tc-doc-opale-meta">
-              <Opale.Badge>{categoryLabel(entry.category)}</Opale.Badge>
+              <Opale.Badge>{catalogCategoryLabel(entry.category)}</Opale.Badge>
               <span>Composant Opale · TypeScript strict</span>
             </div>
           </>
