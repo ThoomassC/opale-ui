@@ -343,7 +343,9 @@ body {
 
 .tc-doc code {
   font-family: var(--font-mono);
-  font-size: 0.9em;
+  /* `0.9em` se compose avec son parent : sous une légende de 12 px, le code
+     tombait à 10,8 px. Le plancher de lecture est `--text-xs`. */
+  font-size: max(0.9em, var(--text-xs));
 }
 
 /* --- L'ÉCHELLE DE PROFONDEUR DE LA VITRINE, ÉCRITE UNE FOIS ---------------
@@ -3317,6 +3319,9 @@ body {
 }
 
 .tc-doc-checklist li {
+  /* La mesure se reprend sur l'élément : le `ch` de la liste est celui de son
+     corps de 16 px, et les entrées en 14 px y logeaient 95 caractères. */
+  max-inline-size: var(--measure);
   padding-inline-start: var(--space-3);
   font-size: var(--text-sm);
 }

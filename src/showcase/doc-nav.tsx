@@ -38,9 +38,11 @@ export interface DocNavResize {
 export const DOC_NAV_WIDTH_MIN = 14 * 16;
 export const DOC_NAV_WIDTH_MAX = 30 * 16;
 export const DOC_NAV_WIDTH_DEFAULT = 17 * 16;
-export const DOC_NAV_WIDTH_MOBILE_MIN = 6 * 16;
+/* Le rail compact (30 à 60 rem) garde 12 px aux titres et 14 px aux liens :
+   sous 10 rem, ces libellés ne tiennent plus, même sur deux lignes. */
+export const DOC_NAV_WIDTH_MOBILE_MIN = 10 * 16;
 export const DOC_NAV_WIDTH_MOBILE_MAX = 14 * 16;
-export const DOC_NAV_WIDTH_MOBILE_DEFAULT = 8.5 * 16;
+export const DOC_NAV_WIDTH_MOBILE_DEFAULT = 12 * 16;
 export const DOC_NAV_WIDTH_STEP = 16;
 
 interface ScrollbarState {
@@ -122,6 +124,25 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
      visibilité reste en place pendant la navigation. Au-delà, le rail est
      permanent et le bouton est masqué par la feuille de style. */
   const [menuOpen, setMenuOpen] = useState(false);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
+
+  /* Échap replie le sommaire déplié quand le focus est dedans, et rend le
+     focus à son bouton. Pressée ailleurs, la touche appartient à la page (une
+     modale de démonstration, par exemple). */
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (!(event.target instanceof Node) || !shellRef.current?.contains(event.target)) return;
+      setMenuOpen(false);
+      menuToggleRef.current?.focus();
+    };
+
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [menuOpen]);
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -365,10 +386,11 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
     /* `Sidebar` rend son `<aside>` dans un `Glass` qui ouvre un contexte
        d'empilement et prend `fit-content` : le collage, la piste de grille et
        le sol opaque vivent donc sur cette enveloppe. */
-    <div className="tc-doc-nav" data-menu={menuOpen ? 'open' : 'closed'}>
+    <div className="tc-doc-nav" data-menu={menuOpen ? 'open' : 'closed'} ref={shellRef}>
       <button
         type="button"
         className="tc-doc-nav__menu"
+        ref={menuToggleRef}
         aria-expanded={menuOpen}
         aria-controls="tc-doc-nav-scroll"
         onClick={() => setMenuOpen((open) => !open)}

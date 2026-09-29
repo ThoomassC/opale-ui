@@ -258,10 +258,14 @@ describe('le catalogue interactif V3', () => {
     );
   });
 
-  it('ferme CookieBanner après consentement', async () => {
+  /* RESP-13 : monté ouvert, le bandeau fixe recouvrait la fiche au
+     chargement. Il attend désormais qu'on le demande. */
+  it('monte CookieBanner fermé, l’affiche à la demande et le ferme après consentement', async () => {
     const user = userEvent.setup();
     render(<CatalogPreview name="CookieBanner" liquidGlass={false} />);
 
+    expect(screen.queryByText(/Nous utilisons des cookies/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Afficher le bandeau' }));
     await user.click(screen.getByRole('button', { name: 'Accepter' }));
     await waitForElementToBeRemoved(() => screen.queryByText(/Nous utilisons des cookies/));
   });

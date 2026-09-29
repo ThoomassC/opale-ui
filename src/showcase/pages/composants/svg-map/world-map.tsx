@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { Opale, SvgMap, useSvgMapViewport } from '../../../../opale';
 import { MaterialSwitch } from '../material-switch';
+import { RegionPicker } from './region-picker';
 import { CONTINENT_FRAMES, WORLD_COUNTRIES, WORLD_VIEWBOX } from './world';
 
 /* =============================================================================
@@ -64,6 +65,20 @@ export default function WorldMap() {
       return next;
     });
 
+  /* LA LISTE DIT L'ÉTAT, COMME LE NOM ACCESSIBLE : « Japon — visité ». Triée
+     dans l'ordre alphabétique français, celui où l'on cherche un pays. */
+  const options = useMemo(
+    () =>
+      [...regions]
+        .sort((a, b) => (a.name ?? a.id).localeCompare(b.name ?? b.id, 'fr'))
+        .map((region) => {
+          const state = trips.get(region.id);
+          const name = region.name ?? region.id;
+          return { id: region.id, label: state ? `${name} — ${TRIP_LABEL[state]}` : name };
+        }),
+    [regions, trips],
+  );
+
   const count = (state: TripState) => [...trips.values()].filter((value) => value === state).length;
 
   return (
@@ -117,6 +132,19 @@ export default function WorldMap() {
               selectable
               onSelect={toggle}
               fill={fill}
+              liquidGlass={liquidGlass}
+            />
+            {/* L'ÉQUIVALENT DE LA CARTE. Sur un téléphone, la Lettonie mesure
+                dix pixels sur quatre : la liste fait la même bascule que le
+                clic, avec une cible qui se touche. Elle revient à l'invite
+                après chaque choix — c'est une action, pas une valeur. */}
+            <RegionPicker
+              label="Ou basculez un pays par la liste"
+              placeholder="Choisir un pays…"
+              options={options}
+              value=""
+              onPick={toggle}
+              helperText="Chaque choix fait tourner l’état : non visité, visité, à venir."
               liquidGlass={liquidGlass}
             />
           </div>

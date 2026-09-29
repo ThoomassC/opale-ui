@@ -29,6 +29,7 @@ export const notesVersionsPage: DocPage = {
     '3.7.1',
     '3.8.0',
     '3.9.0',
+    '3.9.1',
     'SvgMap',
     'PageScaffold',
     'changelog',
@@ -114,13 +115,24 @@ export const notesVersionsPage: DocPage = {
                                 <div className="tc-doc-release__migration-code">
                                   <div>
                                     <span>Avant</span>
-                                    <pre>
+                                    {/* Le bloc défile à l'horizontale sur écran
+                                        étroit : il doit être atteignable au
+                                        clavier (WCAG 2.1.1), comme `UsageBlock`. */}
+                                    <pre
+                                      tabIndex={0}
+                                      role="group"
+                                      aria-label={`${step.title}, avant, défilement horizontal`}
+                                    >
                                       <code>{step.before}</code>
                                     </pre>
                                   </div>
                                   <div>
                                     <span>Après</span>
-                                    <pre>
+                                    <pre
+                                      tabIndex={0}
+                                      role="group"
+                                      aria-label={`${step.title}, après, défilement horizontal`}
+                                    >
                                       <code>{step.after}</code>
                                     </pre>
                                     <CopyMigrationCode code={step.after} />

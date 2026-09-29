@@ -154,8 +154,20 @@ export function DocShell({ pages }: DocShellProps) {
       if (!menu?.open || !(event.target instanceof Node) || menu.contains(event.target)) return;
       menu.open = false;
     };
+    /* Échap referme le menu ouvert et rend le focus à son bouton, comme tout
+       disclosure ; menu fermé, la touche reste aux autres composants. */
+    const closeOnEscape = (event: KeyboardEvent) => {
+      const menu = headerMenuRef.current;
+      if (event.key !== 'Escape' || !menu?.open) return;
+      menu.open = false;
+      menu.querySelector('summary')?.focus();
+    };
     document.addEventListener('pointerdown', closeOnOutsidePointer);
-    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePointer);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
   }, []);
 
   /* Le header a plusieurs hauteurs selon le breakpoint : sur petit écran les

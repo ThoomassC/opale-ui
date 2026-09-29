@@ -13,6 +13,7 @@ import { MaterialSwitch, PlainStage } from '../material-switch';
    besoin. La démonstration arrive quand ses données sont là. */
 const WorldMap = lazy(() => import('./world-map'));
 import { CORSE, FRANCE_DEPARTMENTS, FRANCE_VIEWBOX, ILE_DE_FRANCE } from './france-departments';
+import { RegionPicker } from './region-picker';
 
 const USAGE = `import { SvgMap, SvgMapControls, useSvgMapViewport } from '@thomascaron/opale-ui';
 
@@ -61,9 +62,12 @@ const QUIZ_REGIONS = shuffled(FRANCE_DEPARTMENTS, 91).map((department, index) =>
   ariaLabel: `Zone ${index + 1}`,
 }));
 
+/* La liste des zones, dans l'ordre de leur numéro — celui qu'annonce la carte. */
+const QUIZ_OPTIONS = QUIZ_REGIONS.map((region) => ({ id: region.id, label: region.ariaLabel }));
+
 type Answer = { readonly picked: string; readonly target: string };
 
-function FindTheDepartment() {
+export function FindTheDepartment() {
   const [round, setRound] = useState(0);
   const [score, setScore] = useState({ right: 0, total: 0 });
   const [answer, setAnswer] = useState<Answer | null>(null);
@@ -116,6 +120,18 @@ function FindTheDepartment() {
                   Cliquez sur : <strong>{target.name}</strong>
                 </p>
               }
+            />
+            {/* LA MÊME RÉPONSE, PAR LA LISTE. Le jeu reste visuel — une zone
+                ne dit pas où elle est —, mais la liste offre la même action
+                que la carte avec une cible à la taille du doigt : sur un
+                téléphone, bien des départements font moins de 24 px. */}
+            <RegionPicker
+              label="Ou répondez par la liste"
+              placeholder="Choisir une zone…"
+              options={QUIZ_OPTIONS}
+              value={answer?.picked ?? ''}
+              onPick={choose}
+              liquidGlass={liquidGlass}
             />
             <div className="tc-doc-svgmap-demo__bar">
               <span role="status" className="tc-doc-svgmap-demo__status">

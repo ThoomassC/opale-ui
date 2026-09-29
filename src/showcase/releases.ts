@@ -49,6 +49,43 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V391_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Petits écrans',
+    changes: [
+      {
+        title: 'Topbar passe à la ligne',
+        detail:
+          'Sous 30rem, le titre garde une largeur minimale et les actions passent sur une seconde ligne au lieu de recouvrir le badge. Rien ne change au-delà.',
+        links: [{ label: 'Topbar', slug: 'composants/topbar' }],
+      },
+      {
+        title: 'SvgMap libère son dessin',
+        detail:
+          'Sous 30rem, l’invite et les commandes de zoom passent sous la carte au lieu de la couvrir. Elles sont désormais regroupées avec le dessin dans .opale-svg-map__frame : un sélecteur qui visait .opale-svg-map__canvas > .opale-svg-map__overlay doit viser le cadre.',
+        links: [{ label: 'SvgMap', slug: 'composants/opale-svg-map' }],
+      },
+    ],
+  },
+  {
+    title: 'Vitrine',
+    changes: [
+      {
+        title: 'Plus de défilement horizontal',
+        detail:
+          'Les fiches composant tiennent dans l’écran de 320 à 1024 px ; les tables de props défilent dans leur cadre. Le menu, le sommaire (fermé par Échap), le rail tablette, la marque et les blocs de code de migration, désormais atteignables au clavier, sont revus pour le mobile et le zoom du texte.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+      {
+        title: 'Des démos qui laissent lire',
+        detail:
+          'Le bandeau de cookies ne s’affiche plus d’office sur sa fiche, la carte propose une liste pour choisir une région sans viser au doigt, et la prose ne dépasse plus une largeur de lecture confortable.',
+        links: [{ label: 'CookieBanner', slug: 'composants/opale-cookie-banner' }],
+      },
+    ],
+  },
+];
+
 const V390_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Distribution',
@@ -854,6 +891,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.9.1',
+    publishedAt: '2026-09-29',
+    dateLabel: '29 septembre 2026',
+    summary:
+      'Correctifs responsive : Topbar et SvgMap à l’aise sur téléphone, et une vitrine qui ne défile plus en largeur, de 320 px au zoom du texte. Sans changement d’API.',
+    sections: V391_RELEASE_SECTIONS,
+    changes: V391_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Aucune page ne défile en largeur à 320 px.', 'Topbar et SvgMap sur petit écran.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.9.0',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
@@ -864,8 +915,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Archive construite attachée à la release.', 'Guide « Migrer vers la 4.0 ».'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.9.1, sur son tag. */
+    appHref: '/versions/v3.9.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.9.0`,
   },
   {
     version: '3.8.0',

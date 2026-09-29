@@ -53,6 +53,13 @@ body {
   position: sticky;
   z-index: 20;
   inset-block-start: 0;
+  /* La barre est un conteneur de requêtes : ses bascules (onglets ou menu,
+     une ligne ou deux) lisent SA largeur en rem courant. Des requêtes média
+     en rem se calculent sur la taille de police initiale, et un zoom du texte
+     seul à 200 % laissait les onglets du bureau déborder de 150 px. Le
+     `backdrop-filter` ci-dessous fait déjà de la barre le bloc conteneur de
+     ses descendants fixes : le confinement n'y change rien. */
+  container: tc-doc-topbar / inline-size;
   padding: 0;
   border-bottom: 1px solid var(--opale-divider);
   background: color-mix(in srgb, var(--opale-surface) 96%, transparent);
@@ -636,6 +643,9 @@ body {
 }
 
 .tc-doc-nav {
+  /* La largeur de la barre personnalisée, partagée avec la réserve que le
+     rail compact lui laisse pour que le texte ne passe jamais dessous. */
+  --tc-doc-nav-scrollbar-size: 1.15rem;
   position: sticky !important;
   z-index: 1;
   inset-block-start: var(--tc-doc-topbar-height, var(--doc-topbar-size)) !important;
@@ -800,7 +810,7 @@ body {
   inset-block: 0.8rem;
   inset-inline-end: 0.35rem;
   display: block;
-  width: 1.15rem;
+  width: var(--tc-doc-nav-scrollbar-size);
   border-radius: var(--opale-radius-pill);
   background: var(--opale-surface-sunken);
   pointer-events: none;
@@ -841,7 +851,7 @@ body {
   padding: 0.65rem 0.55rem 0.35rem;
   color: var(--opale-text-secondary);
   cursor: pointer;
-  font: 600 0.72rem/1.2 var(--opale-font-body);
+  font: 600 0.75rem/1.2 var(--opale-font-body);
   letter-spacing: 0.13em;
   list-style: none;
   text-transform: uppercase;
@@ -1147,7 +1157,10 @@ body {
   display: block;
   color: var(--opale-text);
 }
+/* La prose garde une mesure lisible ; les tableaux et les démos, eux, gardent
+   toute la largeur de la colonne. */
 .tc-doc-release__change-list p {
+  max-inline-size: var(--measure);
   margin: 0.35rem 0 0;
   color: var(--opale-text-secondary);
   line-height: 1.5;
@@ -2083,8 +2096,9 @@ body {
 }
 
 /* Le menu compact prend le relais avant que la navigation principale ne
-   perde le lien Accueil ou ne tronque Installation. */
-@media (max-width: 77.999rem) {
+   perde le lien Accueil ou ne tronque Installation. Requête de conteneur et
+   non média : voir `.tc-doc-topbar`. */
+@container tc-doc-topbar (max-width: 77.999rem) {
   .tc-doc-topbar .tc-doc-topbar__bar {
     grid-template-areas:
       'brand menu actions'
@@ -2134,7 +2148,9 @@ body {
   :root {
     --doc-topbar-size: 4.5rem;
   }
+}
 
+@container tc-doc-topbar (min-width: 42.001rem) and (max-width: 77.999rem) {
   .tc-doc-topbar .tc-doc-topbar__bar {
     grid-template-areas: 'brand search menu actions' !important;
     grid-template-columns: minmax(9.5rem, 1fr) minmax(12rem, 2fr) auto auto !important;
@@ -2149,7 +2165,7 @@ body {
   }
 }
 
-@media (min-width: 78rem) and (max-width: 89.999rem) {
+@container tc-doc-topbar (min-width: 78rem) and (max-width: 89.999rem) {
   .tc-doc-topbar .tc-doc-topbar__bar {
     grid-template-columns: auto minmax(12rem, 1fr) max-content auto !important;
   }
@@ -2158,7 +2174,7 @@ body {
   }
 }
 
-@media (max-width: 26rem) {
+@container tc-doc-topbar (max-width: 26rem) {
   .tc-doc-topbar .tc-doc-topbar__bar {
     column-gap: var(--opale-space-sm) !important;
     padding-inline: var(--opale-space-sm) !important;
@@ -2181,7 +2197,7 @@ body {
 
   .tc-doc-topbar__version {
     padding-inline: 0.45rem;
-    font-size: 0.68rem;
+    font-size: 0.75rem;
   }
 
   .tc-doc-topbar__tab {
@@ -2200,13 +2216,44 @@ body {
   }
 }
 
-/* Sur mobile, le rail reste permanent mais ne doit plus manger la moitié de
-   la largeur utile. La colonne historique de 17 rem passe à 8,5 rem ; les
-   intitulés restent complets pour les technologies d'assistance et disposent
-   d'un title natif quand leur affichage est tronqué. */
+/* SUR DEUX LIGNES, LE PANNEAU DU MENU S'ANCRE À LA BARRE, PAS AU BOUTON.
+   Ancré au bouton (`inset-inline-end: 0`), un panneau de 16 rem débordait à
+   gauche dès que le bouton était à moins de 16 rem du bord : −70 px à 320 px,
+   « Accueil » masqué. Aligné sur le bord droit de la barre et borné à sa
+   largeur, il tient à toute taille. */
+@container tc-doc-topbar (max-width: 42rem) {
+  .tc-doc-topbar .tc-doc-topbar__bar {
+    position: relative;
+  }
+
+  .tc-doc-topbar__menu {
+    position: static;
+  }
+
+  .tc-doc-topbar__menu-nav {
+    inset-block-start: calc(100% + 0.25rem);
+    inset-inline-end: var(--opale-space-sm);
+    inline-size: min(16rem, calc(100% - 2 * var(--opale-space-sm)));
+    min-width: 0;
+  }
+}
+
+/* Sous 23,75 rem, la pastille de version cède avant la marque : elle coupait
+   le mot-marque en « Opa… » à 320 px et en « OpaleU… » à 360 px. La version
+   reste dans les notes de versions. */
+@container tc-doc-topbar (max-width: 23.75rem) {
+  .tc-doc-topbar__version {
+    display: none;
+  }
+}
+
+/* Sur tablette, le rail reste permanent mais ne doit plus manger la moitié
+   de la largeur utile. La colonne historique de 17 rem passe à 12 rem : à
+   8,5 rem, les libellés tombaient à 9 et 11 px et restaient tronqués. Ils
+   passent désormais à la ligne. */
 @media (max-width: 59.999rem) {
   .tc-doc-body {
-    grid-template-columns: minmax(0, var(--tc-doc-nav-width, 8.5rem)) minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, var(--tc-doc-nav-width, 12rem)) minmax(0, 1fr) !important;
   }
 
   .tc-doc-nav {
@@ -2226,33 +2273,53 @@ body {
     max-height: inherit;
   }
 
+  /* La réserve de droite est celle de la barre personnalisée et de son
+     retrait : le texte s'arrête avant elle au lieu de passer dessous. */
   .tc-doc-nav__scroll {
     max-height: none !important;
-    padding: 0.85rem 0.55rem 1.5rem;
+    padding: 0.85rem calc(var(--tc-doc-nav-scrollbar-size) + 0.6rem) 1.5rem 0.55rem;
   }
 
+  .tc-doc-nav__list {
+    padding-inline-end: 0.15rem !important;
+  }
+
+  /* 12 px aux titres, 14 px aux liens : 9 et 11 px ne se lisaient pas. Les
+     libellés passent à la ligne plutôt que d'être tronqués. */
   .tc-doc-nav__grouptitle {
-    overflow: hidden;
     padding-block: 0.55rem 0.25rem;
     padding-inline: 0.35rem 1.5rem;
-    font-size: 0.58rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .tc-doc-nav__link {
     min-height: 1.95rem;
-    overflow: hidden;
     padding-block: 0.38rem;
     padding-inline: 0.38rem;
-    font-size: 0.7rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 0.875rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .tc-doc-nav__scrollbar {
     inset-block: 0.8rem;
+  }
+}
+
+/* AU DOIGT, LA POIGNÉE DU RAIL S'EFFACE ET LA BARRE S'ÉLARGIT.
+   18 px chacune et côte à côte : deux cibles sous 24 px, trop proches pour
+   l'exception d'espacement (WCAG 2.5.8). Glisser une poignée de 18 px au doigt
+   n'a guère de sens ; la barre, elle, passe à 24 px. */
+@media (pointer: coarse) {
+  .tc-doc-nav {
+    --tc-doc-nav-scrollbar-size: 1.5rem;
+  }
+
+  .tc-doc-nav__resize {
+    display: none !important;
   }
 }
 
@@ -2845,7 +2912,7 @@ body {
     white-space: normal;
   }
   .tc-doc-nav__grouptitle {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
   }
 }
 @media (max-width: 30rem) and (prefers-reduced-motion: reduce) {
@@ -3135,12 +3202,18 @@ body {
    composants ne vaut pas à l'intérieur du gabarit : un spécimen y garde son
    titre, un tableau de props sa note.
    ========================================================================== */
+/* `minmax(0, 1fr)` sur les deux grilles : une piste implicite prend la largeur
+   minimale de son contenu, et le tableau de props (704 px au minimum)
+   élargissait toute la fiche de 320 à 1 024 px. Le tableau défile désormais
+   dans son propre cadre (`.tc-doc-tablewrap`, atteignable au clavier). */
 .tc-doc-component-page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--opale-space-xl);
 }
 .tc-doc-component-section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--opale-space-md);
   padding-block-start: var(--opale-space-lg);
   border-block-start: 1px solid var(--opale-divider);
@@ -3163,6 +3236,7 @@ body {
 .tc-doc-component-section__list {
   display: grid;
   gap: var(--opale-space-xs);
+  max-inline-size: var(--measure);
   margin: 0;
   padding-inline-start: 1.25rem;
   color: var(--opale-text);
@@ -3196,6 +3270,7 @@ body {
   font-weight: 600;
 }
 .tc-doc-component-alternative__text {
+  max-inline-size: var(--measure);
   margin: 0;
   color: var(--opale-text-secondary);
   line-height: var(--opale-leading-relaxed);
