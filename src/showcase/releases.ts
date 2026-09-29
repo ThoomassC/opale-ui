@@ -49,6 +49,83 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V370_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Accessibilité',
+    changes: [
+      {
+        title: 'Modales empilées',
+        detail:
+          'Échap ne ferme que la modale du dessus : une confirmation ouverte depuis un panneau latéral ne ferme plus les deux. Dans une modale, Échap sur une carte ferme d’abord son infobulle.',
+        links: [{ label: 'Modal', slug: 'composants/modal' }],
+      },
+      {
+        title: 'Le focus ne se perd plus',
+        detail:
+          'La pagination reporte le focus sur la page courante quand une flèche se désactive, et les surfaces fixées en bas ou l’en-tête collant réservent leur place au défilement.',
+        links: [{ label: 'Pagination', slug: 'composants/opale-pagination' }],
+      },
+      {
+        title: 'CommandPalette en combobox',
+        detail:
+          'Avec la nouvelle prop items, la palette suit le motif combobox : flèches, Entrée et nombre de résultats annoncé.',
+        links: [{ label: 'CommandPalette', slug: 'composants/opale-command-palette' }],
+      },
+      {
+        title: 'Des erreurs sur tous les champs',
+        detail:
+          'Select, MultiSelect, Checkbox et Toggle acceptent error, relié au champ et annoncé comme celui d’Input.',
+      },
+      {
+        title: 'Messages urgents et repères',
+        detail:
+          'Sans duration, un toast d’erreur ou d’avertissement reste jusqu’à ce qu’on le ferme. PageScaffold propose un lien d’évitement (showSkipLink), Card un titleAs, et les repères de recherche et de navigation se nomment.',
+      },
+    ],
+  },
+  {
+    title: 'Cohérence et API',
+    changes: [
+      {
+        title: 'Des échelles partout',
+        detail:
+          'Empilement, voile, opacité de l’état désactivé, animations, couleurs, espacements et rayons de l’en-tête passent tous par des jetons. Le verre a deux recettes nommées : réfraction et dépoli.',
+      },
+      {
+        title: 'Des classes stables',
+        detail:
+          'Chaque partie des composants composés porte une classe non hachée, par exemple opale-modal__panel ou opale-tabs__trigger, pour les surcharger depuis l’application.',
+      },
+      {
+        title: 'Le verre sur quatre composants de plus',
+        detail:
+          'Rating, Breadcrumb, Link et Pagination acceptent liquidGlass. Les réglages internes du verre restent acceptés et sont dépréciés.',
+      },
+    ],
+  },
+  {
+    title: 'Poids et livraison',
+    changes: [
+      {
+        title: 'Un paquet plus léger',
+        detail:
+          'La feuille publiée est minifiée (18 ko compressés au lieu de 67) et le code est livré module par module : importer un Divider seul coûte 266 octets au lieu de 47 ko.',
+      },
+      {
+        title: 'Un paquet vérifié comme on le reçoit',
+        detail:
+          'La CI emballe le paquet, l’installe dans une application témoin et la compile en nodenext et en bundler, avec un budget de poids. Les versions ne se publient que depuis recette.',
+      },
+      {
+        title: 'Corrections',
+        detail:
+          'Un glissement annulé de SiteNav ne marque plus l’onglet survolé comme page courante ; Glass ne retire plus un filtre posé par la page ; le fil d’Ariane s’aligne sur une ligne, sans numéros.',
+        links: [{ label: 'Breadcrumb', slug: 'composants/opale-breadcrumb' }],
+      },
+    ],
+  },
+];
+
 const V361_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Documentation',
@@ -684,6 +761,24 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.7.0',
+    publishedAt: '2026-09-29',
+    dateLabel: '29 septembre 2026',
+    summary:
+      'Modales empilées, focus gardé, erreurs sur tous les champs, jetons partout, classes stables et un paquet bien plus léger — sans rupture.',
+    sections: V370_RELEASE_SECTIONS,
+    changes: V370_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'Échap ne ferme que la modale du dessus.',
+      'Classes stables et jetons pour tout surcharger.',
+      'Un Divider importé seul : 266 octets.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.6.1',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
@@ -698,8 +793,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Accessibilité et limites connues documentées page par page.',
       'README réécrit pour la 3.6.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.7.0, sur son tag. */
+    appHref: '/versions/v3.6.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.6.1`,
   },
   {
     version: '3.6.0',
