@@ -10,7 +10,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import Glass, { type GlassSurfaceProps } from '../glass/Glass';
+import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 import styles from './style/Topbar.module.css';
 
@@ -106,7 +106,8 @@ export type TopbarProps = ComponentPropsWithoutRef<'header'> & {
    * état.
    */
   liquidGlass?: boolean;
-} & GlassSurfaceProps;
+} & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
+  LegacySurfaceAnimationProps;
 
 const sizeClassMap: Record<TopbarSize, string> = {
   compact: styles.compact,
@@ -122,6 +123,10 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
       liquidGlass = false,
       className,
       rootClassName,
+      rootStyle,
+      style,
+      enableLiquidAnimation,
+      triggerAnimation,
       children,
       ...rest
     },
@@ -145,7 +150,12 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     if (!liquidGlass) {
       return (
         <TopbarContext.Provider value={value}>
-          <header ref={ref} className={clsx(shellClasses, contentClasses, styles.plain)} {...rest}>
+          <header
+            ref={ref}
+            className={clsx(shellClasses, contentClasses, styles.plain)}
+            style={rootStyle ? { ...rootStyle, ...style } : style}
+            {...rest}
+          >
             {children}
           </header>
         </TopbarContext.Provider>
@@ -162,7 +172,11 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
              l'appelant lui ferait perdre les deux au moment précis où il veut
              juste ajouter un crochet de style. */
           rootClassName={shellClasses}
+          rootStyle={rootStyle}
           className={contentClasses}
+          style={style}
+          enableLiquidAnimation={enableLiquidAnimation}
+          triggerAnimation={triggerAnimation}
           {...rest}
         >
           {children}

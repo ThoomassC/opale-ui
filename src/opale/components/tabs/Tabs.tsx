@@ -17,7 +17,7 @@ import {
   type RefAttributes,
 } from 'react';
 
-import Glass, { type GlassProps } from '../glass/Glass';
+import Glass, { type GlassProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import styles from './style/Tabs.module.css';
 
 /* =============================================================================
@@ -335,7 +335,12 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
    * état.
    */
   readonly liquidGlass?: boolean;
-} & GlassProps;
+  /** @deprecated Depuis 3.7 — utilisez `className` ; la balise du contenu est interne au verre. */
+  readonly as?: GlassProps['as'];
+  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
+  readonly pressFeedback?: boolean;
+} & Omit<GlassProps, 'as' | 'pressFeedback' | 'enableLiquidAnimation' | 'triggerAnimation'> &
+  LegacySurfaceAnimationProps;
 
 const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   {
@@ -347,6 +352,12 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     liquidGlass = false,
     className,
     rootClassName,
+    rootStyle,
+    style,
+    as,
+    pressFeedback,
+    enableLiquidAnimation,
+    triggerAnimation,
     children,
     ...rest
   },
@@ -408,11 +419,27 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   return (
     <TabsContext.Provider value={context}>
       {liquidGlass ? (
-        <Glass ref={ref} rootClassName={shellClasses} className={rootClasses} {...rest}>
+        <Glass
+          ref={ref}
+          as={as}
+          rootClassName={shellClasses}
+          rootStyle={rootStyle}
+          className={rootClasses}
+          style={style}
+          pressFeedback={pressFeedback}
+          enableLiquidAnimation={enableLiquidAnimation}
+          triggerAnimation={triggerAnimation}
+          {...rest}
+        >
           {children}
         </Glass>
       ) : (
-        <div ref={ref} className={classes(shellClasses, rootClasses, styles.plain)} {...rest}>
+        <div
+          ref={ref}
+          className={classes(shellClasses, rootClasses, styles.plain)}
+          style={rootStyle ? { ...rootStyle, ...style } : style}
+          {...rest}
+        >
           {children}
         </div>
       )}

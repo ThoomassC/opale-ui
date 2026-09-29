@@ -86,6 +86,19 @@ Les noms internes ont d'ailleurs tous changé à cette occasion : `glassFilter`,
 `glassOverlay`, `glassSpecular`, `glassContainer` et `glassContent` n'existent
 plus. Si une feuille d'hôte les cite encore, elle ne s'applique à rien.
 
+**Les réglages du verre sont les mêmes d'un composant à l'autre.**
+`liquidGlass` choisit la matière ; `className` et `style` vont au contenu.
+`rootClassName` et `rootStyle` restent publics parce qu'ils sont **le seul accès
+à l'enveloppe depuis l'appel** — celle qui porte largeur, rayon et ombre —, et
+ils valent aussi en version pleine, fondus sur l'élément unique (le `style` de
+l'appelant l'emporte). `enableLiquidAnimation` règle l'onde là où le composant
+en fait naître une : ouverture de `Modal`, arrivée d'un toast, clic dans
+`SearchBar`. Le reste est interne au matériau : `triggerAnimation`, l'onde d'une
+surface (`enableLiquidAnimation` de `Topbar`, `Sidebar`, `Tabs`), `as` et
+`pressFeedback` de `Modal` et `Tabs`, et l'ancien `enableClickAnimation` de
+`SearchBar`. Ces props gardent leur effet et portent `@deprecated` ; en version
+pleine, elles n'arrivent plus dans le DOM.
+
 ## Les classes stables
 
 Les classes des modules sont hachées (`opale-mod-panel-x7Kq2`) : une feuille

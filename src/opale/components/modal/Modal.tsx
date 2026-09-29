@@ -121,6 +121,7 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   closeOnEsc?: boolean;
   lockScroll?: boolean;
   size?: ModalSize;
+  /** L'onde qui parcourt le panneau en verre à son ouverture. Défaut : `true`. */
   enableLiquidAnimation?: boolean;
   portalContainer?: HTMLElement | null;
   /** Remplace les textes français par défaut, clé par clé. */
@@ -135,9 +136,15 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   liquidGlass?: boolean;
   /** Le panneau du dialogue, celui qui porte `role="dialog"`. */
   ref?: Ref<HTMLDivElement>;
+  /** @deprecated Depuis 3.7 — utilisez `enableLiquidAnimation` ; l'onde d'ouverture est programmée par la modale. */
+  triggerAnimation?: boolean;
+  /** @deprecated Depuis 3.7 — utilisez `className` ; la balise du panneau est interne au verre. */
+  as?: GlassProps['as'];
+  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
+  pressFeedback?: boolean;
   /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
      côtés, sans quoi l'intersection le ramène à une chaîne. */
-} & Omit<GlassProps, 'title'>;
+} & Omit<GlassProps, 'title' | 'triggerAnimation' | 'as' | 'pressFeedback'>;
 
 const sizeClass: Record<OpaleSize, string> = {
   small: styles.sm,
@@ -194,8 +201,12 @@ function Panel({
   liquidGlass,
   ref,
   rootClassName,
+  rootStyle,
   className,
+  style,
   triggerAnimation,
+  as,
+  pressFeedback,
   children,
   ...rest
 }: PanelProps) {
@@ -206,8 +217,12 @@ function Panel({
         ref={ref}
         enableLiquidAnimation={false}
         triggerAnimation={triggerAnimation}
+        as={as}
+        pressFeedback={pressFeedback}
         rootClassName={rootClassName}
+        rootStyle={rootStyle}
         className={className}
+        style={style}
       >
         {children}
       </Glass>
@@ -215,7 +230,12 @@ function Panel({
   }
 
   return (
-    <div {...rest} ref={ref} className={cx(rootClassName, className, styles.plain)}>
+    <div
+      {...rest}
+      ref={ref}
+      className={cx(rootClassName, className, styles.plain)}
+      style={rootStyle ? { ...rootStyle, ...style } : style}
+    >
       {children}
     </div>
   );

@@ -13,7 +13,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import Glass, { type GlassSurfaceProps } from '../glass/Glass';
+import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import type { OpaleSize } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
 import { useControllableState } from '../../shared/use-controllable-state';
@@ -151,7 +151,8 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * état.
    */
   liquidGlass?: boolean;
-} & GlassSurfaceProps;
+} & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
+  LegacySurfaceAnimationProps;
 
 const widthClassMap: Record<SidebarSize, string> = {
   small: styles.small,
@@ -178,6 +179,10 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       liquidGlass = false,
       className,
       rootClassName,
+      rootStyle,
+      style,
+      enableLiquidAnimation = false,
+      triggerAnimation = false,
       children,
       id,
       ...rest
@@ -284,6 +289,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
             ref={ref}
             id={sidebarId}
             className={clsx(shellClasses, contentClasses, styles.plain)}
+            style={rootStyle ? { ...rootStyle, ...style } : style}
             {...rest}
           >
             {children}
@@ -302,10 +308,12 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
              qui part sous le doigt à chaque sélection d'entrée ferait clignoter
              la surface entière d'un rail qu'on parcourt. Le retour visuel
              appartient à l'entrée, qui l'a. */
-          enableLiquidAnimation={false}
-          triggerAnimation={false}
+          enableLiquidAnimation={enableLiquidAnimation}
+          triggerAnimation={triggerAnimation}
           rootClassName={shellClasses}
+          rootStyle={rootStyle}
           className={contentClasses}
+          style={style}
           {...rest}
         >
           {children}

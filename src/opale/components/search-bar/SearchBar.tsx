@@ -6,6 +6,9 @@ import styles from './style/SearchBar.module.scss';
 export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   size?: 'small' | 'medium' | 'large';
   icon?: ReactNode;
+  /** L'onde qui naît au clic dans le champ en verre. Défaut : `true`. */
+  enableLiquidAnimation?: boolean;
+  /** @deprecated Depuis 3.7 — utilisez `enableLiquidAnimation`. */
   enableClickAnimation?: boolean;
   /** Pose le repère `search` autour du champ. Défaut : `true`. */
   landmark?: boolean;
@@ -29,7 +32,8 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       size = 'medium',
       icon,
       disabled,
-      enableClickAnimation = true,
+      enableLiquidAnimation,
+      enableClickAnimation,
       landmark = true,
       landmarkLabel,
       liquidGlass = false,
@@ -118,7 +122,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         aria-label={landmark ? landmarkLabel : undefined}
         rootClassName={clsx('opale-search-bar__shell', styles.root)}
         rootStyle={{ width: '100%' }}
-        enableLiquidAnimation={!disabled && enableClickAnimation}
+        enableLiquidAnimation={!disabled && (enableLiquidAnimation ?? enableClickAnimation ?? true)}
         className={clsx('opale-search-bar', styles.searchBar)}
       >
         {content}
