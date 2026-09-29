@@ -254,3 +254,41 @@
   background: var(--opale-surface);
   color: var(--opale-text);
 }
+
+/* =============================================================================
+   LA BARRE ÉTROITE — SOUS 30 REM D'ÉCRAN.
+
+   À 320 px, la rangée ne tenait plus : chaque section a `min-width: 0`, donc
+   rien n'empêchait le titre de tomber à zéro pixel, et les actions, rétrécies
+   sous la largeur de leur bouton, le laissaient déborder sur le badge voisin.
+   Deux corrections, et aucune ne joue au-delà du seuil :
+
+   — LA RANGÉE PASSE À LA LIGNE. `flex-wrap` ne coupe que ce qui ne tient pas :
+     une barre étroite dont le contenu tient reste sur une seule ligne. Les
+     actions s'étirent sur la place libre, et leur `justify-content: flex-end`
+     les garde à droite, sur la première ligne comme sur la seconde.
+   — LE TITRE A UN PLANCHER de six caractères. L'ellipse coupe ce qui dépasse,
+     mais une marque réduite à son icône n'est plus une marque.
+
+   UNE REQUÊTE D'ÉCRAN, ET NON DE CONTENEUR, ET C'EST DÉLIBÉRÉ. Faire de la
+   barre un conteneur (`container-type`) aurait changé la cible de toute
+   requête `@container` anonyme écrite À L'INTÉRIEUR de la barre : elle aurait
+   interrogé la barre au lieu du conteneur de l'hôte. `PageScaffold` en écrit
+   quatre, sur sa racine ; posées sur la barre, elles auraient mesuré la boîte
+   de contenu de l'en-tête — gouttières déduites — et basculé plus tôt. Sans
+   verre, surtout, un seul `<header>` porte la rangée, et un élément ne peut
+   pas s'interroger lui-même. Sur un téléphone, la barre a de toute façon la
+   largeur de l'écran, gouttières près. */
+@media (max-width: 30rem) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    flex-grow: 1;
+  }
+
+  .brandContent:has(> .brandTitle) {
+    min-inline-size: 6ch;
+  }
+}

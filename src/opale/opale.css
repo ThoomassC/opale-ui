@@ -2714,6 +2714,12 @@
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
   outline-offset: var(--opale-focus-ring-offset);
 }
+/* LE `frame` PORTE L'INVITE ET LES COMMANDES, sans rien changer au dessin :
+   son seul enfant en flux est le cadre, il en a donc exactement la boîte, et
+   ce qui s'y place en absolu se pose sur le dessin comme avant. */
+.opale-svg-map__frame {
+  position: relative;
+}
 .opale-svg-map__canvas {
   position: relative;
 }
@@ -2829,6 +2835,40 @@
   position: absolute;
   inset-block-start: var(--opale-space-sm);
   inset-inline-end: var(--opale-space-sm);
+}
+/* SOUS 30 REM D'ÉCRAN, L'INVITE ET LES COMMANDES PASSENT SOUS LE DESSIN.
+   Posées dessus, sur une carte de 200 px de large, elles en couvraient plus
+   de la moitié — et les régions qu'elles cachaient ne se cliquaient plus. Le
+   dessin garde toute la largeur ; dessous, l'invite à gauche et les commandes
+   en rangée à droite — ou l'invite sur sa propre ligne quand les deux ne
+   tiennent pas côte à côte : une grille à deux colonnes l'écrasait à 20 px.
+
+   UNE REQUÊTE D'ÉCRAN ET NON DE CONTENEUR : faire de la carte un conteneur
+   aurait changé la cible des requêtes `@container` anonymes que l'appelant
+   écrit dans `overlay`. Voir la même décision dans la feuille de `Topbar`. */
+@media (max-width: 30rem) {
+  .opale-svg-map__frame {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--opale-space-sm);
+  }
+  .opale-svg-map__canvas {
+    flex: 1 0 100%;
+    min-inline-size: 0;
+  }
+  .opale-svg-map__overlay {
+    position: static;
+    flex: 1 1 12rem;
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+  .opale-svg-map__controls {
+    position: static;
+    flex: none;
+    flex-direction: row;
+    margin-inline-start: auto;
+  }
 }
 .opale-svg-map-controls [aria-disabled='true'] {
   cursor: not-allowed;

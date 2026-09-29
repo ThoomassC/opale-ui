@@ -135,7 +135,18 @@ export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelec
    * choisir un contour qui se détache des siennes.
    */
   readonly stroke?: string;
-  /** Rend les régions cliquables et atteignables au clavier. */
+  /**
+   * Rend les régions cliquables et atteignables au clavier.
+   *
+   * SUR UN PETIT ÉCRAN, PRÉVOYEZ UNE LISTE À CÔTÉ. Une région de carte fait la
+   * taille que lui donne la géographie : sur un téléphone, beaucoup tombent
+   * sous 24 px — quelques pixels pour un petit pays ou un département de la
+   * petite couronne —, ce que WCAG 2.5.8 refuse comme cible, sauf si la même
+   * action est offerte ailleurs sur la page. Une liste des régions (`<select>`,
+   * `Opale.Select`) branchée sur le même `onSelect` et le même `selected` est
+   * cet équivalent. Le zoom (pincement, commandes) agrandit les cibles, mais ne
+   * dispense pas de l'équivalent.
+   */
   readonly selectable?: boolean;
   readonly onSelect?: (id: string) => void;
   /**
@@ -158,7 +169,11 @@ export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelec
   readonly tapTolerance?: number;
   /** Zoom à la molette : avec Ctrl ou ⌘ par défaut, toujours, ou jamais. */
   readonly wheel?: SvgMapWheel;
-  /** Posé au-dessus de la carte, en haut à gauche : légende, consigne. */
+  /**
+   * Posé au-dessus de la carte, en haut à gauche : légende, consigne. Sur un
+   * écran de moins de 30 rem, il passe sous le dessin, avec les commandes de
+   * zoom : posé dessus, il en masquait une bonne part.
+   */
   readonly overlay?: ReactNode;
   /** Dessin supplémentaire, dans les coordonnées de la carte : repères, tracés. */
   readonly children?: ReactNode;
@@ -520,17 +535,6 @@ export function SvgMap({
         {children}
       </svg>
 
-      {overlay && <div className="opale-svg-map__overlay">{overlay}</div>}
-
-      {controls && (
-        <SvgMapControls
-          viewport={viewport}
-          liquidGlass={liquidGlass}
-          labels={labels}
-          className="opale-svg-map__controls"
-        />
-      )}
-
       {tooltipName && tooltipRegion && !dragging && (
         <span
           className="opale-svg-map__tooltip"
@@ -558,6 +562,30 @@ export function SvgMap({
     </div>
   );
 
+  /* L'INVITE ET LES COMMANDES SONT SŒURS DU CADRE, PAS SES ENFANTS. Le cadre
+     doit coïncider avec le `<svg>` : l'infobulle s'y place en pourcentages de
+     sa boîte. Sur un écran large, les deux se posent quand même SUR le dessin —
+     le `frame` a la boîte du cadre, son seul enfant en flux. Sur un écran
+     étroit, elles passent dessous (voir `opale.css`), et le cadre, lui, ne
+     grandit pas. L'ordre de tabulation ne change pas : régions, invite,
+     commandes. */
+  const frame = (
+    <div className="opale-svg-map__frame">
+      {canvas}
+
+      {overlay && <div className="opale-svg-map__overlay">{overlay}</div>}
+
+      {controls && (
+        <SvgMapControls
+          viewport={viewport}
+          liquidGlass={liquidGlass}
+          labels={labels}
+          className="opale-svg-map__controls"
+        />
+      )}
+    </div>
+  );
+
   return (
     /* LES RACCOURCIS SONT DÉLÉGUÉS, PAS PORTÉS : l'enveloppe n'est pas un
        contrôle et ne prend pas le focus. Elle écoute les touches qui remontent
@@ -571,10 +599,10 @@ export function SvgMap({
     >
       {liquidGlass ? (
         <Surface liquidGlass className="opale-svg-map__plate">
-          {canvas}
+          {frame}
         </Surface>
       ) : (
-        <div className="opale-svg-map__plate">{canvas}</div>
+        <div className="opale-svg-map__plate">{frame}</div>
       )}
     </div>
   );
