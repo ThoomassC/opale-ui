@@ -15,7 +15,9 @@ const fontFaces = (source: string): ReadonlyMap<string, string>[] =>
 
 /** La source déclarée pour une famille, ou `undefined`. */
 const fontSource = (family: string): string | undefined =>
-  fontFaces(fontsSource).find((face) => face.get('font-family') === `'${family}'`)?.get('src');
+  fontFaces(fontsSource)
+    .find((face) => face.get('font-family') === `'${family}'`)
+    ?.get('src');
 
 describe('la forme interactive OpaleUI', () => {
   it('épingle la palette saphir et la géométrie mesurée sur la référence', () => {
@@ -73,9 +75,7 @@ describe('la forme interactive OpaleUI', () => {
     const pageTitle = declarations(docSource, '.tc-doc-page__title');
     const homeTitle = declarations(docSource, '.tc-doc-main--home .tc-doc-page__title');
 
-    expect(atRules(opaleSource, 'import').filter((params) => params.includes('Titan'))).toEqual(
-      [],
-    );
+    expect(atRules(opaleSource, 'import').filter((params) => params.includes('Titan'))).toEqual([]);
     expect(pageTitle.get('font')).toMatch(/^600 clamp\(1\.8rem, 3vw, 2\.75rem\)/);
     expect(pageTitle.get('letter-spacing')).toMatch(/^-0\.03em/);
     expect(homeTitle.get('font-size')).toMatch(/^clamp\(1\.8rem, 3vw, 2\.75rem\)/);
@@ -134,9 +134,7 @@ describe('la forme interactive OpaleUI', () => {
     expect(declaration(docSource, ".tc-doc [tabindex='-1']:focus-visible", 'outline')).toBe(
       'none !important',
     );
-    expect(declaration(docSource, '.tc-doc-main:focus-visible', 'outline')).toBe(
-      'none !important',
-    );
+    expect(declaration(docSource, '.tc-doc-main:focus-visible', 'outline')).toBe('none !important');
 
     /* La feuille PUBLIÉE garde son anneau : la vitrine n'impose pas son choix
        d'accessibilité aux projets qui installent le paquet. */
@@ -224,9 +222,7 @@ describe('la forme interactive OpaleUI', () => {
     expect(declaration(docSource, '.tc-doc-codeexample__actions', 'justify-content')).toBe(
       'flex-end',
     );
-    expect(declaration(docSource, '.tc-doc-codeexample__reveal', 'grid-template-rows')).toBe(
-      '0fr',
-    );
+    expect(declaration(docSource, '.tc-doc-codeexample__reveal', 'grid-template-rows')).toBe('0fr');
     expect(
       declaration(docSource, ".tc-doc-codeexample__reveal[data-open='true']", 'grid-template-rows'),
     ).toBe('1fr');
@@ -259,9 +255,9 @@ describe('la forme interactive OpaleUI', () => {
     expect(declaration(docSource, ".tc-doc-nav__link[aria-current='page']", 'font-weight')).toBe(
       '600',
     );
-    expect(
-      declaration(docSource, ".tc-doc-topbar__tab[aria-current='page']", 'font-weight'),
-    ).toBe('600');
+    expect(declaration(docSource, ".tc-doc-topbar__tab[aria-current='page']", 'font-weight')).toBe(
+      '600',
+    );
     expect(
       declaration(
         docSource,

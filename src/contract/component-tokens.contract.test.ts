@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { declaration } from '../test/css-rules';
 import { stripComments } from './stylesheet';
 import opaleSheet from '../opale/opale.css?raw';
 
@@ -50,13 +51,13 @@ describe('les modules de composants', () => {
    ========================================================================== */
 describe('la police des composants', () => {
   it('pose la police d’Opale sur chaque racine de composant, sans spécificité', () => {
-    const css = stripComments(opaleSheet);
-    const rule =
-      /(:where\(\[class\^='opale-'\], \[class\*=' opale-'\]\):not\(:where\(\[class\^='opale-'\], \[class\*=' opale-'\]\) \*\))\s*\{([^}]*)\}/.exec(
-        css,
-      );
-
-    expect(rule, 'règle de police des racines absente').not.toBeNull();
-    expect(rule?.[2]).toMatch(/font-family:\s*var\(--opale-font-body\)/);
+    expect(
+      declaration(
+        opaleSheet,
+        ":where([class^='opale-'], [class*=' opale-']):not(:where([class^='opale-'], [class*=' opale-']) *)",
+        'font-family',
+      ),
+      'règle de police des racines absente',
+    ).toBe('var(--opale-font-body)');
   });
 });

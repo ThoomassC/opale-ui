@@ -11,6 +11,7 @@ import {
   ToastProvider,
   useToast,
 } from './components';
+import { declarations, parseRules } from '../test/css-rules';
 import searchBarSheet from './components/search-bar/style/SearchBar.module.scss?raw';
 import modalSheet from './components/modal/style/Modal.module.css?raw';
 import sidebarSheet from './components/sidebar/style/Sidebar.module.css?raw';
@@ -382,12 +383,15 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
   it.each(FEUILLES)(
     '$nom ne laisse aucun jeton blanc peindre le focus du rendu plein',
     ({ nom, css }) => {
-      const sansCommentaires = css.replace(/\/\*[\s\S]*?\*\//g, '');
-      const plain = /\.plain\b[^{]*\{([^}]*)\}/.exec(sansCommentaires)?.[1];
+      const plain = declarations(css, '.plain');
+      /* Toutes les déclarations de la feuille, tous contextes confondus. */
+      const ecrites = parseRules(css).flatMap((rule) => [
+        ...declarations(css, rule.selectors[0], { within: rule.context }),
+      ]);
 
-      /* Une feuille sans bloc `.plain` n'a pas de rendu plein à protéger : son
-       composant ne porte pas le matériau, ou il n'a pas de surface propre. */
-      if (!plain) return;
+      /* Chaque feuille listée porte un rendu plein : son bloc `.plain` doit
+         exister, sans quoi rien ne redéfinit les jetons du verre. */
+      expect(plain.size, `${nom} : le bloc \`.plain\` est introuvable.`).toBeGreaterThan(0);
 
       /* Les jetons dont la valeur est un blanc — littéral ou `rgba(255,…)`. */
       /* LES JETONS RÉGLÉS POUR LE VERRE : un blanc, ou le marine du voile.
@@ -400,20 +404,24 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
 
          Seules les valeurs LITTÉRALES comptent : un jeton dérivé par
          `color-mix` d'une couleur de thème suit déjà le thème. */
-      const teintesDeVerre = [
-        ...sansCommentaires.matchAll(
-          /(--[\w-]+):\s*(#fff\w*|rgba?\(\s*255,\s*255,\s*255[^)]*\)|rgba?\(\s*7,\s*28,\s*43[^)]*\))/g,
-        ),
-      ].map((match) => match[1]);
+      const teintesDeVerre = ecrites
+        .filter(
+          ([propriete, valeur]) =>
+            propriete.startsWith('--') &&
+            /^(#fff\w*|rgba?\(\s*255,\s*255,\s*255[^)]*\)|rgba?\(\s*7,\s*28,\s*43[^)]*\))/.test(
+              valeur,
+            ),
+        )
+        .map(([propriete]) => propriete);
 
       /* UN JETON EST EN CAUSE dès qu'une règle QUELCONQUE de la feuille le
          consomme — pas seulement une règle de focus : la pastille de
          sélection et le fond du panneau sont peints par des règles
          ordinaires. */
-      const coupables = teintesDeVerre.filter(
+      const coupables = [...new Set(teintesDeVerre)].filter(
         (jeton) =>
-          new RegExp(`var\\(${jeton}[,)]`).test(sansCommentaires) &&
-          !new RegExp(`${jeton}:`).test(plain),
+          ecrites.some(([, valeur]) => new RegExp(`var\\(${jeton}[,)]`).test(valeur)) &&
+          !plain.has(jeton),
       );
 
       expect(

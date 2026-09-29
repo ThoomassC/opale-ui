@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { ruleBodies, stripComments } from './stylesheet';
+import { declaration } from '../test/css-rules';
+import { stripComments } from './stylesheet';
 import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
@@ -26,21 +27,18 @@ const SIZE = /^(var\(--opale-text-(xs|sm|md|lg|xl|2xl)\)|inherit|clamp\(.+\)|var
 const LEADING = /^(var\(--opale-leading-(tight|snug|relaxed)\)|1|inherit|normal)$/;
 
 describe('l’échelle typographique', () => {
-  it('déclare six tailles et trois hauteurs de ligne à la racine', () => {
-    const root = ruleBodies(stripComments(opaleSource), ':root').join('\n');
-    for (const [token, value] of [
-      ['xs', '0.75rem'],
-      ['sm', '0.875rem'],
-      ['md', '1rem'],
-      ['lg', '1.25rem'],
-      ['xl', '1.5rem'],
-      ['2xl', '2rem'],
-    ]) {
-      expect(root).toMatch(new RegExp(`--opale-text-${token}:\\s*${value.replace('.', '\\.')}`));
-    }
-    expect(root).toMatch(/--opale-leading-tight:\s*1\.1;/);
-    expect(root).toMatch(/--opale-leading-snug:\s*1\.4;/);
-    expect(root).toMatch(/--opale-leading-relaxed:\s*1\.6;/);
+  it.each([
+    ['--opale-text-xs', '0.75rem'],
+    ['--opale-text-sm', '0.875rem'],
+    ['--opale-text-md', '1rem'],
+    ['--opale-text-lg', '1.25rem'],
+    ['--opale-text-xl', '1.5rem'],
+    ['--opale-text-2xl', '2rem'],
+    ['--opale-leading-tight', '1.1'],
+    ['--opale-leading-snug', '1.4'],
+    ['--opale-leading-relaxed', '1.6'],
+  ])('déclare %s à %s à la racine', (token, value) => {
+    expect(declaration(opaleSource, ':root', token)).toBe(value);
   });
 
   for (const [file, raw] of Object.entries(sheets)) {
@@ -51,10 +49,14 @@ describe('l’échelle typographique', () => {
     const leadings: string[] = [];
 
     for (const [, value] of source.matchAll(/font-size:\s*([^;]+);/g)) sizes.push(value.trim());
-    for (const [, value] of source.matchAll(/line-height:\s*([^;]+);/g)) leadings.push(value.trim());
+    for (const [, value] of source.matchAll(/line-height:\s*([^;]+);/g))
+      leadings.push(value.trim());
     /* Le raccourci `font: 600 0.875rem/1.75 …` porte les deux. */
     for (const [, value] of source.matchAll(/(?<![\w-])font:\s*([^;]+);/g)) {
-      const parts = /(var\(--opale-text-[\w-]+\)|[\d.]+r?em)(?:\s*\/\s*(var\(--opale-leading-[\w-]+\)|[\d.]+))?/.exec(value);
+      const parts =
+        /(var\(--opale-text-[\w-]+\)|[\d.]+r?em)(?:\s*\/\s*(var\(--opale-leading-[\w-]+\)|[\d.]+))?/.exec(
+          value,
+        );
       if (parts) {
         sizes.push(parts[1]);
         if (parts[2]) leadings.push(parts[2]);
@@ -70,7 +72,8 @@ describe('l’échelle typographique', () => {
     });
 
     it(`${name} prend ses hauteurs de ligne dans l’échelle`, () => {
-      for (const value of leadings) expect(value, `interligne hors échelle dans ${name}`).toMatch(LEADING);
+      for (const value of leadings)
+        expect(value, `interligne hors échelle dans ${name}`).toMatch(LEADING);
     });
   }
 });
