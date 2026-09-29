@@ -51,6 +51,26 @@ for (const file of [...declarations('dist/opale'), ...declarations('dist/contrac
   }
 }
 
+/* LIV-09 — une carte qui renvoie à `src/` renvoie dans le vide : `src/` n'est
+   pas livré. Pas de carte de déclarations, et toute carte JS embarque ses
+   sources. */
+const files = (directory) =>
+  readdirSync(directory).flatMap((name) => {
+    const path = join(directory, name);
+    return statSync(path).isDirectory() ? files(path) : [path];
+  });
+for (const file of files('dist')) {
+  if (file.endsWith('.d.ts.map')) {
+    failures.push(`${file} : carte de déclarations vers des sources non livrées.`);
+  } else if (file.endsWith('.js.map')) {
+    const map = JSON.parse(readFileSync(file, 'utf8'));
+    const embedded = Array.isArray(map.sourcesContent) ? map.sourcesContent.filter(Boolean).length : 0;
+    if (embedded !== map.sources.length) {
+      failures.push(`${file} : ${map.sources.length - embedded} source(s) non embarquée(s).`);
+    }
+  }
+}
+
 if (failures.length > 0) {
   console.error(`\n✗ dist/ n'est pas livrable :\n  - ${failures.join('\n  - ')}\n`);
   process.exit(1);

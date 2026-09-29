@@ -20,7 +20,7 @@
     "noEmit": false,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "outDir": "./dist/opale",
     "rootDir": "./src/opale",
     "allowImportingTsExtensions": false,
