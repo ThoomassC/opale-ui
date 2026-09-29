@@ -79,6 +79,13 @@ const PROPS: readonly PropRow[] = [
       'Suggestions personnalisées filtrées dans une liste accessible ; sans callback, le choix ouvre href.',
   },
   {
+    name: 'searchNavigate',
+    type: '(href: string) => void',
+    defaultValue: 'window.location.assign',
+    description:
+      'Ouvre le href choisi quand onSearchSuggestionSelect est absent (routeur client, tests).',
+  },
+  {
     name: 'searchSuggestionsLabel / searchNoResultsLabel',
     type: 'string / string',
     defaultValue: 'libellés traduits',
@@ -315,7 +322,8 @@ export default function PageScaffoldContent() {
         <>Le menu mobile n’est pas un dialogue : il ne piège pas le focus.</>,
         <>
           Huit suggestions au plus ; sans <code>onSearchSuggestionSelect</code>, un choix ouvre son{' '}
-          <code>href</code>.
+          <code>href</code> via <code>searchNavigate</code> (par défaut{' '}
+          <code>window.location.assign</code>).
         </>,
         <>Les langues de l’interface se limitent au français, à l’anglais et à l’espagnol.</>,
       ]}

@@ -13,6 +13,7 @@ interface PageScaffoldSearchProps {
   readonly noResultsLabel: string;
   readonly suggestions?: readonly PageScaffoldSearchSuggestion[];
   readonly onSuggestionSelect?: (suggestion: PageScaffoldSearchSuggestion) => void;
+  readonly navigate?: (href: string) => void;
   readonly searchProps?: SearchBarProps;
   readonly searchAction: string;
   readonly searchName: string;
@@ -28,6 +29,10 @@ function normalize(value: string, language: PageScaffoldLanguage): string {
     .toLocaleLowerCase(language);
 }
 
+function defaultNavigate(href: string): void {
+  window.location.assign(href);
+}
+
 /** Recherche autonome du gabarit ; la liste personnalisée est activée par `suggestions`. */
 export function PageScaffoldSearch({
   language,
@@ -37,6 +42,7 @@ export function PageScaffoldSearch({
   noResultsLabel,
   suggestions,
   onSuggestionSelect,
+  navigate = defaultNavigate,
   searchProps,
   searchAction,
   searchName,
@@ -76,7 +82,7 @@ export function PageScaffoldSearch({
     setLocalQuery('');
     inputRef.current?.blur();
     if (onSuggestionSelect) onSuggestionSelect(suggestion);
-    else window.location.assign(suggestion.href);
+    else navigate(suggestion.href);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {

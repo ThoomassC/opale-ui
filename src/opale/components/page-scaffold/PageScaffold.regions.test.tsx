@@ -451,6 +451,40 @@ describe('PageScaffold — la recherche à suggestions', () => {
     expect(searchbox()).toHaveValue('');
   });
 
+  it('devrait confier le href choisi à searchNavigate quand aucun callback de choix n’est fourni', async () => {
+    const user = userEvent.setup();
+    const navigate = vi.fn();
+    render(<PageScaffold searchSuggestions={SUGGESTIONS} searchNavigate={navigate} />);
+
+    await user.type(searchbox(), 'ecl');
+    await user.click(screen.getByRole('option', { name: 'Écluse — Lieux' }));
+    expect(navigate).toHaveBeenCalledExactlyOnceWith('#ecluse');
+
+    await user.type(searchbox(), 'ecl');
+    await user.keyboard('{ArrowDown}{Enter}');
+    expect(navigate).toHaveBeenLastCalledWith('#eclair');
+    expect(navigate).toHaveBeenCalledTimes(2);
+  });
+
+  it('devrait laisser onSearchSuggestionSelect prendre le pas sur searchNavigate', async () => {
+    const user = userEvent.setup();
+    const navigate = vi.fn();
+    const onSelect = vi.fn();
+    render(
+      <PageScaffold
+        searchSuggestions={SUGGESTIONS}
+        onSearchSuggestionSelect={onSelect}
+        searchNavigate={navigate}
+      />,
+    );
+
+    await user.type(searchbox(), 'ec');
+    await user.click(screen.getByRole('option', { name: 'École — Lieux' }));
+
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(SUGGESTIONS[0]);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('devrait laisser le gestionnaire clavier de l’appelant passer en premier', async () => {
     const user = userEvent.setup();
     const onKeyDown = vi.fn((event: React.KeyboardEvent<HTMLInputElement>) =>
