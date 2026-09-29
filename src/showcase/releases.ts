@@ -49,6 +49,66 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V392_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Dialogues et toasts',
+    changes: [
+      {
+        title: 'La page ne reste plus figée',
+        detail:
+          'Deux dialogues fermés dans le même geste, ou dans le désordre, laissaient la page inerte et le défilement bloqué. Une pile partagée ne neutralise plus que le reste de la page sous le dialogue du dessus, et restitue tout quand le dernier se ferme. Le verrou compense aussi la barre de défilement : la page ne saute plus.',
+        links: [{ label: 'Modal', slug: 'composants/modal' }],
+      },
+      {
+        title: 'Next.js hydrate enfin',
+        detail:
+          'ToastProvider à la racine et les dialogues ouverts au premier rendu cassaient l’hydratation : la page rendue par le serveur était jetée. Leur portail n’apparaît plus qu’après l’hydratation. Chaque composant est désormais testé en rendu serveur puis hydraté sous StrictMode.',
+        links: [{ label: 'Toast', slug: 'composants/opale-toast' }],
+      },
+      {
+        title: 'Le thème suit les portails',
+        detail:
+          'Un dialogue ou un toast ouvert dans un PageScaffold sombre s’affiche sombre. Rappeler showToast avec le même id redonne au toast sa durée entière.',
+        links: [{ label: 'PageScaffold', slug: 'composants/page-scaffold' }],
+      },
+    ],
+  },
+  {
+    title: 'Next.js et le paquet',
+    changes: [
+      {
+        title: 'Les parties composées ont un nom',
+        detail:
+          'TabsList, TabsTrigger, TabsContent, SidebarItem, TopbarBrand… sont exportés sous leur nom, utilisables depuis un Server Component. Tabs.List reste valable dans un composant client.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+      {
+        title: 'Les données restent côté serveur',
+        detail:
+          'ICON_NAMES, COOKIE_CONSENT_KEY, le catalogue et les liens par défaut de SiteNav ne portent plus « use client » : ils ont leur vraie valeur dans un Server Component. Le paquet se charge aussi par require().',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+    ],
+  },
+  {
+    title: 'Thème et formulaires',
+    changes: [
+      {
+        title: 'Votre marque traverse PageScaffold',
+        detail:
+          'Une couleur posée sur :root n’est plus remise au bleu d’Opale dans le gabarit. La classe facultative .opale-root peint la page hôte (fond, encre, police, color-scheme) selon le thème. Le contrat de couleur lit enfin la feuille publiée minifiée et color-mix().',
+        links: [{ label: 'PageScaffold', slug: 'composants/page-scaffold' }],
+      },
+      {
+        title: 'Des champs qui tiennent dans un formulaire',
+        detail:
+          'Dropzone envoie ses fichiers avec name ; MultiSelect désactivé ne se coche plus et reste d’accord avec reset() et les bibliothèques de formulaire ; Checkbox garde son aria-label ; un aria-describedby ajouté ne masque plus le message d’erreur.',
+        links: [{ label: 'MultiSelect', slug: 'composants/opale-multi-select' }],
+      },
+    ],
+  },
+];
+
 const V391_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Petits écrans',
@@ -891,6 +951,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.9.2',
+    publishedAt: '2026-09-29',
+    dateLabel: '29 septembre 2026',
+    summary:
+      'Sûre en production : des dialogues qui ne figent plus la page, une hydratation Next.js intacte, des parties composées utilisables côté serveur, une marque qui traverse PageScaffold et des champs fiables dans un formulaire. Sans rupture.',
+    sections: V392_RELEASE_SECTIONS,
+    changes: V392_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Hydratation Next.js sans erreur.', 'Deux dialogues ne figent plus la page.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.9.1',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
@@ -901,8 +975,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Aucune page ne défile en largeur à 320 px.', 'Topbar et SvgMap sur petit écran.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.9.2, sur son tag. */
+    appHref: '/versions/v3.9.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.9.1`,
   },
   {
     version: '3.9.0',
@@ -1137,7 +1212,7 @@ export const RELEASES: readonly ReleaseNote[] = [
     summary:
       'Opale porte ses propres composants et fait du verre liquide une option de chacun d’eux.',
     changes: [
-      'Chaque composant du catalogue porte désormais le nom d’Opale — Button, Card, Input — au lieu du préfixe hérité de la bibliothèque de référence sur laquelle le catalogue avait été calqué.',
+      'Chaque composant du catalogue porte désormais le nom d’Opale — Button, Card, Input — au lieu de l’ancien préfixe de ses premières versions.',
       'Un seul composant par nom : les sept doublons « original » et « verre liquide » sont fusionnés en Badge, Card, Checkbox, Input, Select, Slider et Toggle.',
       'Le verre liquide devient une propriété des composants (liquidGlass) et non un second jeu de composants : le commutateur change la matière, jamais la taille, la position ni le comportement.',
       'Sous verre, le contrôle natif reste le moteur : le champ garde son focus, son clavier, son nom de formulaire et son événement de changement.',
