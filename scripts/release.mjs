@@ -24,21 +24,21 @@
    LIV-05 — ET IL ATTACHE UNE ARCHIVE CONSTRUITE À LA RELEASE. Installé par
    son tag Git, le paquet se compile chez le consommateur (`prepare`) : il lui
    faut toute la chaîne de build, `npm ci --ignore-scripts` livre un paquet
-   sans `dist/`, et pnpm 10 bloque ce script par défaut. Après le tag, le
-   script construit `dist/`, le vérifie, l'emballe (`npm pack
-   --ignore-scripts`) et attache l'archive à une release GitHub : elle
+   sans `dist/`, et pnpm 10 bloque ce script par défaut. Avant le tag, le
+   script construit `dist/`, le vérifie et l'emballe (`npm pack
+   --ignore-scripts`) ; après, il attache l'archive à une release GitHub : elle
    s'installe avec npm, pnpm ou yarn sans rien compiler. Le tag Git reste une
    voie d'installation — `prepare` est gardé pour ne casser personne.
 
    `gh` est vérifié AVANT de poser le tag : découvrir à la fin qu'il manque
-   laisserait un tag publié sans archive. Si la release échoue quand même
+   laisserait un tag publié sans archive — comme un build rouge, d'où
+   l'archive construite avant le tag. Si la release échoue quand même
    après le push, le tag n'est PAS supprimé (il a peut-être déjà été
    installé) : le script donne la commande exacte pour rejouer l'étape.
    ========================================================================== */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
 
@@ -161,29 +161,18 @@ const notes = [
   `    npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${tag}"`,
 ].join('\n');
 
-if (DRY_RUN) {
-  console.log(`\n✓ Prêt à publier ${tag} sur ${git('rev-parse', '--short', 'HEAD')}.`);
-  console.log(`  Archive attendue : ${asset}`);
-  console.log('  (--dry-run : rien n’a été écrit)\n');
-  process.exit(0);
-}
-
-git('tag', '-a', tag, '-m', `Opale UI ${version}`);
-git('push', 'origin', tag);
-
-console.log(`\n✓ ${tag} publié sur ${git('rev-parse', '--short', 'HEAD')}.`);
-
-/* 7. L'archive : construite depuis le commit tagué (l'arbre est propre),
-      vérifiée, emballée sans relancer `prepare`, puis attachée. Un échec ici
-      ne retire pas le tag : il donne la commande qui rejoue l'étape. */
-const work = mkdtempSync(join(tmpdir(), 'opale-release-'));
+/* 7. L'archive, AVANT le tag : construite depuis ce commit (l'arbre est
+      propre), vérifiée, emballée sans relancer `prepare`. Un build rouge
+      arrête tout ici, sans rien publier — après le push, ce même commit
+      échouerait pareil, et le tag resterait sans archive pour toujours.
+      Elle est rangée dans `dist-release/` (ignoré par git), pas dans un
+      dossier temporaire : une reprise après redémarrage la retrouve. */
+const work = join(root, 'dist-release', tag);
 const tarball = join(work, asset);
 const notesFile = join(work, 'notes.md');
+rmSync(work, { recursive: true, force: true });
+mkdirSync(work, { recursive: true });
 writeFileSync(notesFile, `${notes}\n`);
-const retry =
-  `npm run build:lib && npm run check:dist && ` +
-  `npm pack --ignore-scripts --pack-destination "${work}" && ` +
-  `gh release create ${tag} "${tarball}" --title "Opale UI ${version}" --notes-file "${notesFile}" --verify-tag`;
 
 try {
   run('npm', 'run', 'build:lib');
@@ -192,10 +181,7 @@ try {
   const produced = execFileSync(
     'npm',
     ['pack', '--silent', '--ignore-scripts', '--pack-destination', work],
-    {
-      cwd: root,
-      encoding: 'utf8',
-    },
+    { cwd: root, encoding: 'utf8' },
   )
     .trim()
     .split('\n')
@@ -204,7 +190,26 @@ try {
   if (produced !== asset || !existsSync(tarball)) {
     throw new Error(`npm pack a produit « ${produced} », la garde attend « ${asset} ».`);
   }
+} catch (error) {
+  fail(`L'archive n'a pas pu être construite ; aucun tag n'a été posé.\n  ${error.message}`);
+}
 
+if (DRY_RUN) {
+  console.log(`\n✓ Prêt à publier ${tag} sur ${git('rev-parse', '--short', 'HEAD')}.`);
+  console.log(`  Archive construite et vérifiée : ${tarball}`);
+  console.log('  (--dry-run : ni tag ni release)\n');
+  process.exit(0);
+}
+
+git('tag', '-a', tag, '-m', `Opale UI ${version}`);
+git('push', 'origin', tag);
+
+console.log(`\n✓ ${tag} publié sur ${git('rev-parse', '--short', 'HEAD')}.`);
+
+/* 8. La release : la seule étape qui a besoin du tag. Un échec ici ne retire
+      pas le tag (il a peut-être déjà été installé) ; l'archive et les notes
+      restent sur le disque, donc la reprise n'a plus qu'à les envoyer. */
+try {
   run(
     'gh',
     'release',
@@ -220,8 +225,8 @@ try {
 } catch (error) {
   fail(
     `Le tag ${tag} est publié, mais la release et son archive ne le sont pas :\n  ${error.message}\n\n` +
-      `  Ne supprimez pas le tag. Corrigez la cause, puis rejouez depuis ${tag} :\n` +
-      `  git checkout ${tag} && ${retry}\n\n` +
+      `  Ne supprimez pas le tag. Corrigez la cause (réseau, droits gh), puis rejouez :\n` +
+      `  gh release create ${tag} "${tarball}" --title "Opale UI ${version}" --notes-file "${notesFile}" --verify-tag\n\n` +
       `  Si la release existe déjà sans archive, attachez-la seulement :\n` +
       `  gh release upload ${tag} "${tarball}"`,
   );
