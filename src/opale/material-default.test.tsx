@@ -21,6 +21,10 @@ import topbarSheet from './components/topbar/style/Topbar.module.css?raw';
 import { OPALE_CATALOG_SOURCE as opaleSource } from '../test/opale-source';
 import { useSvgMapViewport } from './components/svg-map';
 import { OPALE_CATALOG, Opale } from './opale';
+import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 

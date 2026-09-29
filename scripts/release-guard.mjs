@@ -97,3 +97,30 @@ export function branchBlocker(branch) {
   }
   return null;
 }
+
+/* LIV-05 — L'ARCHIVE CONSTRUITE, ATTACHÉE À LA RELEASE GITHUB.
+
+   Installer depuis le tag Git fait tourner `prepare` chez le consommateur :
+   il lui faut toute la chaîne de build (typescript, vite, sass…),
+   `npm ci --ignore-scripts` livre un paquet sans `dist/`, et pnpm 10 bloque
+   ce script par défaut. L'archive de `npm pack`, attachée à la release, arrive
+   construite : aucun script ne tourne à l'installation.
+
+   Le nom suit la règle de `npm pack` pour un paquet à portée : le « @ »
+   tombe, le « / » devient « - ». */
+const PACKAGE_NAME = '@thomascaron/opale-ui';
+const REPOSITORY = 'ThoomassC/opale-ui';
+
+/** Le fichier que `npm pack` produit pour `version`. */
+export function releaseAssetName(version) {
+  if (!parse(version) || version.startsWith('v')) {
+    throw new Error(`Version invalide : « ${version} ».`);
+  }
+  return `${PACKAGE_NAME.replace(/^@/, '').replace('/', '-')}-${version}.tgz`;
+}
+
+/** L'adresse de téléchargement de l'archive attachée à la release `tag`. */
+export function releaseAssetUrl(tag, version) {
+  if (!/^v\d+\.\d+\.\d+$/.test(tag)) throw new Error(`Tag invalide : « ${tag} ».`);
+  return `https://github.com/${REPOSITORY}/releases/download/${tag}/${releaseAssetName(version)}`;
+}

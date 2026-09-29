@@ -7,6 +7,10 @@ import SearchBar from './search-bar/SearchBar';
 import Sidebar from './sidebar/Sidebar';
 import Tabs from './tabs/Tabs';
 import Topbar from './topbar/Topbar';
+import { expectOnlyDeprecationWarnings } from '../../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    LES RÉGLAGES DU VERRE SE COMPORTENT PAREIL PARTOUT.

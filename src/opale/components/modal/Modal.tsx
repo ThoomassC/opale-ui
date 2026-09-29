@@ -17,6 +17,7 @@ import { createPortal } from 'react-dom';
 import Glass, { type GlassProps } from '../glass/Glass';
 
 import { IconGlyph } from '../icon';
+import { warnDeprecatedProps } from '../../deprecations';
 import { resolveLabels } from '../../shared/labels';
 import { mergeRefs } from '../../shared/merge-refs';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
@@ -280,6 +281,12 @@ const Modal = ({
   const titleId = useId();
   const descriptionId = useId();
   const labels = resolveLabels(DEFAULT_MODAL_LABELS, labelsProp);
+  warnDeprecatedProps('Modal', {
+    onClose,
+    triggerAnimation: rest.triggerAnimation,
+    as: rest.as,
+    pressFeedback: rest.pressFeedback,
+  });
 
   /* L'ONDE D'OUVERTURE SE DEMANDE UNE IMAGE APRÈS LE MONTAGE, ET ELLE N'A PAS
      LE CHOIX. `Glass` lit désormais `triggerAnimation` comme un FRONT — elle

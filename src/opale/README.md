@@ -101,6 +101,17 @@ surface (`enableLiquidAnimation` de `Topbar`, `Sidebar`, `Tabs`), `as` et
 `SearchBar`. Ces props gardent leur effet et portent `@deprecated` ; en version
 pleine, elles n'arrivent plus dans le DOM.
 
+**Chaque nom déprécié le dit à l'exécution, en développement.** Depuis 3.9, une
+prop dépréciée écrit une fois par page, dans la console, un avertissement du
+type « [Opale] Modal : `onClose` est déprécié depuis 3.6 et sera retiré en
+4.0.0 — utilisez `onOpenChange`. ». Le garde lit `process.env.NODE_ENV`, que le
+bundler de l'application remplace : le build de production n'avertit pas. Les
+alias de type et les exports de valeur (`OpaleUI`, `Opale.Background`…) ne
+peuvent pas avertir sans changer d'identité ; ils sont seulement listés. La
+liste complète vit dans `deprecations.ts`, tenue contre chaque `@deprecated`
+par `deprecations.structure.test.ts`, et la vitrine en tire la page « Migrer
+vers la 4.0 » (`#/migrer-vers-4`).
+
 ## Les classes stables
 
 Les classes des modules sont hachées (`opale-mod-panel-x7Kq2`) : une feuille

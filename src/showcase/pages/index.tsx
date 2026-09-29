@@ -4,6 +4,7 @@ import { introductionPage } from './introduction';
 import { installationPage } from './installation';
 import { themingPage, utilisationPage } from './guide-pages';
 import { iconesPage } from './icones';
+import { migrationPage } from './migrer-vers-4';
 import { verreLiquidePage } from './verre-liquide';
 import { notesVersionsPage } from './notes-de-versions';
 
@@ -38,6 +39,9 @@ export const PAGES: readonly DocPage[] = [
   utilisationPage,
   themingPage,
   iconesPage,
+  /* La dernière 3.x prépare la suivante : la liste des anciens noms, déduite
+     de `src/opale/deprecations.ts`. */
+  migrationPage,
   /* Juste sous « Présentation », et dans le même groupe : c'est la page qui
      montre l'effet dont toute la 2.0 dépend, avant le catalogue. */
   verreLiquidePage,

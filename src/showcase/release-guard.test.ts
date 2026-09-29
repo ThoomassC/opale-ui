@@ -6,8 +6,11 @@ import {
   compareVersions,
   highestTag,
   isBreakingEntry,
+  releaseAssetName,
+  releaseAssetUrl,
   releaseBlocker,
 } from '../../scripts/release-guard.mjs';
+import packageJson from '../../package.json';
 import releasesSource from './releases.ts?raw';
 import { RELEASES } from './releases';
 
@@ -82,5 +85,33 @@ describe('la garde de branche', () => {
     expect(branchBlocker('main')).toMatch(/recette/);
     expect(branchBlocker('codex/recette-vague-5')).toMatch(/recette/);
     expect(branchBlocker('HEAD')).toMatch(/détach/);
+  });
+});
+
+/* LIV-05 — UNE ARCHIVE CONSTRUITE, ATTACHÉE À LA RELEASE.
+
+   Installer depuis le tag Git fait tourner `prepare` chez le consommateur :
+   toute la chaîne de build y est requise, `npm ci --ignore-scripts` livre un
+   paquet sans `dist/`, et pnpm 10 bloque le script. L'archive `npm pack`
+   attachée à la release GitHub arrive construite. Son nom et son adresse sont
+   calculés ici, au même endroit pour le script de publication et la vitrine. */
+describe("l'archive de release", () => {
+  it('porte le nom que `npm pack` donne à ce paquet', () => {
+    expect(releaseAssetName('3.9.0')).toBe('thomascaron-opale-ui-3.9.0.tgz');
+    expect(packageJson.name).toBe('@thomascaron/opale-ui');
+    expect(releaseAssetName('3.9.0')).toBe(
+      `${packageJson.name.replace(/^@/, '').replace('/', '-')}-3.9.0.tgz`,
+    );
+  });
+
+  it('se télécharge depuis la release du tag', () => {
+    expect(releaseAssetUrl('v3.9.0', '3.9.0')).toBe(
+      'https://github.com/ThoomassC/opale-ui/releases/download/v3.9.0/thomascaron-opale-ui-3.9.0.tgz',
+    );
+  });
+
+  it('refuse une version qui n’en est pas une', () => {
+    expect(() => releaseAssetName('recette')).toThrow(/Version invalide/);
+    expect(() => releaseAssetUrl('recette', '3.9.0')).toThrow(/Tag invalide/);
   });
 });

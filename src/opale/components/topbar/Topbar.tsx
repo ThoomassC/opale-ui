@@ -10,6 +10,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
+import { warnDeprecatedProps } from '../../deprecations';
 import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 import styles from './style/Topbar.module.css';
@@ -132,6 +133,7 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     },
     ref,
   ) => {
+    warnDeprecatedProps('Topbar', { enableLiquidAnimation, triggerAnimation });
     const size = TOPBAR_SIZE[normalizeSize(sizeProp, 'medium')];
     const value = useMemo<TopbarContextValue>(() => ({ size }), [size]);
 

@@ -15,6 +15,7 @@ import clsx from 'clsx';
 import Glass from '../components/glass/Glass';
 import { Modal, type ModalLabels } from '../components/modal';
 import toastMotion from '../components/toast/style/Toast.module.css';
+import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { useControllableState, useOptionalState } from '../shared/use-controllable-state';
 import { useScrollPadding } from '../shared/use-scroll-padding';
@@ -69,6 +70,7 @@ export function Navbar({
   liquidGlass = false,
   ...rest
 }: NavbarProps) {
+  warnDeprecatedProps('Navbar', { activeId: activeIdProp, onSelect });
   const [activeId, setActiveId] = useOptionalState(value ?? activeIdProp, defaultValue);
   const select = (id: string) => {
     setActiveId(id);
@@ -228,6 +230,7 @@ export function SidePanel({
   liquidGlass = false,
   ...rest
 }: SidePanelProps) {
+  warnDeprecatedProps('SidePanel', { onClose });
   const labels = resolveLabels(DEFAULT_SIDE_PANEL_LABELS, labelsProp);
   /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
      coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
@@ -335,6 +338,7 @@ export function CommandPalette({
   footerClose = true,
   ...rest
 }: CommandPaletteProps) {
+  warnDeprecatedProps('CommandPalette', { onChange, onClose });
   const close = closeHandler(onOpenChange, onClose);
   const labels = resolveLabels<Required<CommandPaletteLabels>>(
     DEFAULT_COMMAND_PALETTE_LABELS,

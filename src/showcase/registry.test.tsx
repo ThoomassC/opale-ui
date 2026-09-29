@@ -18,6 +18,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
    Le spécimen relatif désigne la source, dans les trois outils, sans
    configuration. Voir la note de `vite.config.ts`. */
 import * as library from '../opale';
+import { resetDeprecationWarnings } from '../opale/deprecations';
 
 import type { DocPage } from './doc-model';
 import { GROUPS, HOME_SLUG, catalogComponentLabel, parseSlug } from './doc-model';
@@ -414,9 +415,22 @@ describe('Le registre des pages', () => {
 
   describe('le rendu de chaque page', () => {
     let errors: string[] = [];
+    let opaleWarnings: string[] = [];
+    const originalWarn = console.warn;
 
     beforeEach(() => {
       errors = [];
+      opaleWarnings = [];
+      /* LA VITRINE N'EMPLOIE NI NOM DÉPRÉCIÉ NI INTERRUPTEUR SANS NOM : ce que
+         `no-deprecated-api.structure.test.ts` lit dans le code, ceci le voit à
+         l'exécution. Remis à zéro par page, pour nommer la page fautive ; les
+         autres avertissements repartent tels quels. */
+      resetDeprecationWarnings();
+      vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+        const message = args.map((arg) => String(arg)).join(' ');
+        if (message.startsWith('[Opale]')) opaleWarnings.push(message);
+        else originalWarn(...args);
+      });
       /* `console.error` reste espionné et non avalé : le message part dans
          l'assertion. Les trois composants d'Opale qui s'en servaient pour
          signaler un emploi fautif — `Pill` sans libellé lisible, `TimelineItem`
@@ -439,6 +453,10 @@ describe('Le registre des pages', () => {
       expect(
         errors,
         `la page « ${page.slug} » a écrit dans console.error :\n${errors.join('\n')}`,
+      ).toEqual([]);
+      expect(
+        opaleWarnings,
+        `la page « ${page.slug} » a déclenché un avertissement d’Opale`,
       ).toEqual([]);
     });
 

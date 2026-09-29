@@ -13,6 +13,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
+import { warnDeprecatedProps } from '../../deprecations';
 import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import type { OpaleSize } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
@@ -181,14 +182,25 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       rootClassName,
       rootStyle,
       style,
-      enableLiquidAnimation = false,
-      triggerAnimation = false,
+      enableLiquidAnimation: enableLiquidAnimationProp,
+      triggerAnimation: triggerAnimationProp,
       children,
       id,
       ...rest
     },
     ref,
   ) => {
+    /* Les valeurs BRUTES, avant leur défaut : une prop absente n'avertit pas. */
+    warnDeprecatedProps('Sidebar', {
+      onToggle,
+      activeItemId: activeItemIdProp,
+      defaultActiveItemId,
+      onSelectItem,
+      enableLiquidAnimation: enableLiquidAnimationProp,
+      triggerAnimation: triggerAnimationProp,
+    });
+    const enableLiquidAnimation = enableLiquidAnimationProp ?? false;
+    const triggerAnimation = triggerAnimationProp ?? false;
     /* LES DEUX ÉTATS SONT CONTRÔLABLES SÉPARÉMENT, et le motif est le même pour
        les deux : une prop présente rend l'appelant maître, une prop absente
        laisse le composant se souvenir. Le rappel part dans les DEUX cas — un

@@ -31,6 +31,10 @@ import {
   type PressableProps,
   type SegmentedControlProps,
 } from './opale';
+import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    CE QU'UNE APPLICATION ÉCRITE POUR 3.5 VOIT ENCORE.

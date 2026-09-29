@@ -111,6 +111,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       { label: 'Thèmes', slug: 'theming' },
       { label: 'Typographie', slug: 'typographie' },
       { label: 'Icônes', slug: 'icones' },
+      { label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' },
     ],
   },
   {

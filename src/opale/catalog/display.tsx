@@ -13,6 +13,7 @@ import clsx from 'clsx';
 import Glass from '../components/glass/Glass';
 import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from '../components/icon';
 import type { OpaleSize } from '../shared';
+import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { useControllableState } from '../shared/use-controllable-state';
 import { Surface } from './shells';
@@ -658,6 +659,7 @@ export function DataTable({
   className,
   ...rest
 }: DataTableProps) {
+  warnDeprecatedProps('DataTable', { emptyMessage, density });
   /* `size` gagne ; l'ancien `density` ne sert que s'il est seul. */
   const compact = (size ?? (density === 'compact' ? 'small' : 'medium')) === 'small';
   const [sort, setSort] = useControllableState<DataTableSort | null>(sortProp, defaultSort ?? null);
