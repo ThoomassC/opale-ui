@@ -19,11 +19,22 @@ const check = (ok, message) => {
   if (!ok) failures.push(message);
 };
 
-const bundle = readFileSync('dist/opale/index.js', 'utf8');
-check(
-  /^\s*["']use client["'];/.test(bundle),
-  'dist/opale/index.js ne commence pas par "use client";',
-);
+/* Un fichier par module source : chacun porte la directive, puisqu'un
+   bundler peut n'en garder qu'un. */
+const scripts = (directory) =>
+  readdirSync(directory).flatMap((name) => {
+    const path = join(directory, name);
+    if (statSync(path).isDirectory()) return scripts(path);
+    return name.endsWith('.js') ? [path] : [];
+  });
+const emitted = scripts('dist/opale');
+check(emitted.includes(join('dist/opale', 'index.js')), 'dist/opale/index.js est absent.');
+for (const file of emitted) {
+  check(
+    /^\s*["']use client["'];/.test(readFileSync(file, 'utf8')),
+    `${file} ne commence pas par "use client";`,
+  );
+}
 
 const css = readFileSync('dist/opale/opale.css', 'utf8');
 check(!css.includes('data:font/'), 'dist/opale/opale.css contient encore des polices en base64.');

@@ -42,6 +42,11 @@ jobs:
       - name: Contrôle de ce qui est livré
         run: npm run check:dist
 
+      # Un import isolé ne doit tirer que son composant : le paquet est émis
+      # module par module, et ce budget le vérifie sur une application jetable.
+      - name: Budget de poids
+        run: npm run check:size
+
       # Le paquet emballé, installé dans une application jetable et compilé en
       # nodenext puis en bundler : `files`, `exports` et déclarations tels
       # qu'un consommateur les reçoit.
