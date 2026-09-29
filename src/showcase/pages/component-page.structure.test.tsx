@@ -1,6 +1,8 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
+import { hrefFor } from '../doc-model';
+import { COMPONENT_ALTERNATIVES } from './component-alternatives';
 import { PAGES } from './index';
 import { preloadPages } from './lazy-page';
 
@@ -78,6 +80,43 @@ describe('le gabarit des pages de composant', () => {
       const section = container.querySelector('[data-section="accessibilite"]');
 
       expect(section?.querySelectorAll('li').length ?? 0).toBeGreaterThan(0);
+    },
+  );
+
+  /* L'ENCADRÉ « QUAND UTILISER X PLUTÔT QUE Y » précède les sections : il
+     n'a pas de titre de niveau 2, donc il ne change pas le plan ci-dessus. */
+  const ALTERNATIVES = Object.entries(COMPONENT_ALTERNATIVES);
+
+  it('devrait tenir les composants voisins par paires réciproques', () => {
+    expect(ALTERNATIVES.length).toBeGreaterThan(0);
+    const slugs = new Set(PAGES.map((page) => page.slug));
+
+    for (const [slug, alternative] of ALTERNATIVES) {
+      expect(slugs.has(slug), `page absente : ${slug}`).toBe(true);
+      expect(slugs.has(alternative.slug), `page absente : ${alternative.slug}`).toBe(true);
+      expect(COMPONENT_ALTERNATIVES[alternative.slug]?.slug, `réciproque de ${slug}`).toBe(slug);
+    }
+  });
+
+  it.each(ALTERNATIVES)(
+    'la page « %s » devrait renvoyer vers son voisin avant les sections',
+    (slug, alternative) => {
+      const page = PAGES.find((candidate) => candidate.slug === slug);
+      const { container } = render(<>{page?.render()}</>);
+      const box = container.querySelector('.tc-doc-component-alternative');
+      const link = box?.querySelector('a');
+
+      expect(box?.textContent).toMatch(
+        new RegExp(`^Quand utiliser ${alternative.name} plutôt que`),
+      );
+      expect(link?.getAttribute('href')).toBe(hrefFor(alternative.slug));
+      expect(link?.textContent).toContain(alternative.name);
+
+      const importSection = container.querySelector('[data-section="import"]');
+      expect(
+        box && importSection && box.compareDocumentPosition(importSection) & 4,
+        'l’encadré précède la section Import',
+      ).toBeTruthy();
     },
   );
 });

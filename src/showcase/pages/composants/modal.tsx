@@ -1,6 +1,7 @@
 import { Specimen } from '../../section';
 import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { COMPONENT_ALTERNATIVES } from '../component-alternatives';
 import { ComponentPageLayout } from '../component-page';
 import { ModalScene } from './scenes';
 import { MaterialSwitch, PlainStage } from './material-switch';
@@ -132,6 +133,7 @@ export default function ModalContent() {
     <ComponentPageLayout
       id="modal"
       imports={['Modal']}
+      alternative={COMPONENT_ALTERNATIVES['composants/modal']}
       demo={
         <Specimen
           title="Les trois tailles"

@@ -4,6 +4,7 @@ import { Opale } from '../../opale';
 import { CATALOG, type ShowcaseCatalogEntry } from '../../opale/catalog';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import { PropsTable, UsageBlock } from './api';
+import { COMPONENT_ALTERNATIVES } from './component-alternatives';
 import { ComponentPageLayout, InlineCode } from './component-page';
 import { CATALOG_A11Y } from './opale-a11y-data';
 import { CATALOG_API } from './opale-api-data';
@@ -546,6 +547,7 @@ const rows = [
       <ComponentPageLayout
         id={catalogComponentSlug(entry.name).replace('/', '-')}
         imports={[entry.name]}
+        alternative={COMPONENT_ALTERNATIVES[catalogComponentSlug(entry.name)]}
         intro={
           <>
             <p className="tc-doc-lede">{entry.description}</p>

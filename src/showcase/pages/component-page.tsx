@@ -1,7 +1,9 @@
 import { Fragment, type ReactNode } from 'react';
 
 import { DocHeadingLevel } from '../doc-heading-level';
+import { hrefFor } from '../doc-model';
 import { UsageBlock } from './api';
+import type { ComponentAlternative } from './component-alternatives';
 
 /* =============================================================================
    LE GABARIT DE TOUTE PAGE DE COMPOSANT.
@@ -11,6 +13,10 @@ import { UsageBlock } from './api';
    chaque page. Import, Démo, Exemples, Props, États, Accessibilité, Limites
    connues — « États » et « Limites connues » disparaissent quand ils n'ont
    rien à dire. `component-page.structure.test.tsx` vérifie le plan rendu.
+
+   Un encadré facultatif, « Quand utiliser X plutôt que Y », se place entre
+   le chapô et l'import quand un composant voisin répond à un besoin proche.
+   Il ne porte pas de titre de niveau 2 : ce n'est pas une section du plan.
 
    À l'intérieur d'une section, spécimens et tableaux de props titrent en
    `<h3>` (voir `DocHeadingLevel`), sous le `<h2>` de la section.
@@ -46,6 +52,8 @@ export interface ComponentPageLayoutProps {
   readonly imports: readonly string[];
   /** Ce qui précède les sections : chapô, pastille de famille. */
   readonly intro?: ReactNode;
+  /** Le composant voisin à préférer dans certains cas, voir `component-alternatives.ts`. */
+  readonly alternative?: ComponentAlternative;
   /** La démonstration vivante, commutateur de matériau compris. */
   readonly demo: ReactNode;
   readonly examples: ReactNode;
@@ -83,6 +91,28 @@ function BulletList({ items }: { readonly items: readonly ReactNode[] }) {
   );
 }
 
+function AlternativeBox({
+  current,
+  alternative,
+}: {
+  readonly current: string;
+  readonly alternative: ComponentAlternative;
+}) {
+  const title = `Quand utiliser ${alternative.name} plutôt que ${current}`;
+
+  return (
+    <aside className="tc-doc-component-alternative" aria-label={title}>
+      <p className="tc-doc-component-alternative__title">{title}</p>
+      <p className="tc-doc-component-alternative__text">
+        <InlineCode text={alternative.when} />{' '}
+        <a className="tc-doc-link" href={hrefFor(alternative.slug)}>
+          Voir {alternative.name}
+        </a>
+      </p>
+    </aside>
+  );
+}
+
 function Section({
   id,
   slug,
@@ -110,6 +140,7 @@ export function ComponentPageLayout({
   id,
   imports,
   intro,
+  alternative,
   demo,
   examples,
   props,
@@ -122,6 +153,8 @@ export function ComponentPageLayout({
   return (
     <div className="tc-doc-component-page">
       {intro}
+
+      {alternative ? <AlternativeBox current={imports[0] ?? ''} alternative={alternative} /> : null}
 
       <Section id={id} slug="import" title="Import">
         <UsageBlock label={`Import de ${imports.join(', ')}`} code={importCode} actions={false} />

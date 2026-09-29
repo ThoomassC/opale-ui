@@ -1,6 +1,7 @@
 import { Specimen } from '../../section';
 import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { COMPONENT_ALTERNATIVES } from '../component-alternatives';
 import { ComponentPageLayout } from '../component-page';
 import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
@@ -158,6 +159,7 @@ export default function ToastContent() {
     <ComponentPageLayout
       id="toast"
       imports={['ToastProvider', 'useToast']}
+      alternative={COMPONENT_ALTERNATIVES['composants/toast-provider']}
       demo={
         <Specimen
           title="Les cinq tons — déclenchez-les"

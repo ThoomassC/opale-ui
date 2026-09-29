@@ -3180,6 +3180,26 @@ body {
   margin: 0;
   color: var(--opale-text-secondary);
 }
+/* L'encadré « Quand utiliser X plutôt que Y » : un filet d'accent, pas une
+   carte — il oriente vers une autre page, il ne documente rien lui-même. */
+.tc-doc-component-alternative {
+  display: grid;
+  gap: var(--opale-space-xs);
+  padding: var(--opale-space-sm) var(--opale-space-md);
+  border-inline-start: 3px solid var(--opale-primary);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-surface);
+}
+.tc-doc-component-alternative__title {
+  margin: 0;
+  color: var(--opale-text);
+  font-weight: 600;
+}
+.tc-doc-component-alternative__text {
+  margin: 0;
+  color: var(--opale-text-secondary);
+  line-height: var(--opale-leading-relaxed);
+}
 .tc-doc-main--components .tc-doc-component-page .tc-doc-specimen__title,
 .tc-doc-main--components .tc-doc-component-page .tc-doc-specimen__note,
 .tc-doc-main--components .tc-doc-component-page .tc-doc-props {
