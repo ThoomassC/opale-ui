@@ -128,6 +128,9 @@
   /* Un contrôle désactivé s'efface de moitié, quel qu'il soit. WCAG exempte
      les composants désactivés du contraste de 1.4.3. */
   --opale-disabled-opacity: 0.5;
+  /* `xs` arrondit les petits objets — un drapeau, un trait d'icône — sans en
+     faire des pastilles. */
+  --opale-radius-xs: 0.125rem;
   --opale-radius-sm: 0.75rem;
   --opale-radius-md: 1.375rem;
   --opale-radius-lg: 2.25rem;
