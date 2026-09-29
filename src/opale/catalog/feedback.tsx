@@ -29,6 +29,7 @@ import { IconGlyph, type OpaleIconName } from '../components/icon';
 import { Modal, type ModalLabels } from '../components/modal';
 import type { ToastLabels } from '../components/toast';
 import type { OpalePlacement, OpaleTone } from '../shared';
+import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import { useScrollPadding } from '../shared/use-scroll-padding';
@@ -87,6 +88,7 @@ export function Feedback({
   liquidGlass = false,
   ...rest
 }: FeedbackProps) {
+  warnDeprecatedProps('Feedback', { severity });
   const resolvedTone = tone ?? severity ?? 'info';
   const classes = clsx(
     'opale-feedback',
@@ -269,6 +271,7 @@ export function Toast({
      rôle d'une région ne peut pas changer en cours de route sans la remonter,
      ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
      posées d'avance, vides, et le message entre dans celle de son ton. */
+  warnDeprecatedProps('Toast', { onClose });
   const closeClick = closeClickHandler(onOpenChange, onClose);
   const labels = resolveLabels(DEFAULT_TOAST_LABELS, labelsProp);
   const assertive = ASSERTIVE_TONES.has(tone);
@@ -468,6 +471,7 @@ export function ConfirmDialog({
   liquidGlass = false,
   ...rest
 }: ConfirmDialogProps) {
+  warnDeprecatedProps('ConfirmDialog', { onCancel });
   const close = closeHandler(onOpenChange, onCancel);
   const labels = resolveLabels(DEFAULT_CONFIRM_DIALOG_LABELS, labelsProp);
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui

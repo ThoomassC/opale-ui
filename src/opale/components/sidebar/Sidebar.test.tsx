@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Sidebar, { type SidebarProps } from './Sidebar';
+import { expectOnlyDeprecationWarnings } from '../../../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 const renderSidebar = (props?: Partial<SidebarProps>) => {
   return render(

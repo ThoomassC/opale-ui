@@ -18,6 +18,7 @@ import clsx from 'clsx';
 import Glass from '../components/glass/Glass';
 import { IconGlyph } from '../components/icon';
 import { Modal, type ModalLabels } from '../components/modal';
+import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import { Button, type ButtonProps } from './forms';
@@ -349,6 +350,7 @@ export function Lightbox({
   footerClose = true,
   ...rest
 }: LightboxProps) {
+  warnDeprecatedProps('Lightbox', { onClose });
   const close = closeHandler(onOpenChange, onClose);
   const labels = resolveLabels(DEFAULT_LIGHTBOX_LABELS, labelsProp);
   return (

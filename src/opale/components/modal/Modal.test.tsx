@@ -8,6 +8,10 @@ import { describe, expect, it, vi } from 'vitest';
 import Modal, { type ModalProps } from './Modal';
 import { ToastProvider, useToast } from '../toast';
 import { declarations, selectorsDeclaring } from '../../../test/css-rules';
+import { expectOnlyDeprecationWarnings } from '../../../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    LES SIX CAS D'ORIGINE SONT TOUS LÀ, ET AUCUN N'A ÉTÉ AFFAIBLI.

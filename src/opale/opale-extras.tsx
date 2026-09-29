@@ -2,6 +2,7 @@ import { useId, useLayoutEffect, useRef, type ComponentPropsWithRef } from 'reac
 
 import Glass from './components/glass/Glass';
 import { IconGlyph } from './components/icon';
+import { warnDeprecatedProps } from './deprecations';
 import { resolveLabels } from './shared/labels';
 import { useControllableState } from './shared/use-controllable-state';
 
@@ -93,6 +94,7 @@ export function Pagination({
   className,
   ...rest
 }: PaginationProps) {
+  warnDeprecatedProps('Pagination', { page, onChange });
   const [requested, setRequested] = useControllableState<number>(
     value ?? page,
     defaultValue,
@@ -215,6 +217,7 @@ export function RatingInput({
   className,
   ...rest
 }: RatingInputProps) {
+  warnDeprecatedProps('RatingInput', { onChange });
   const [selected, setSelected] = useControllableState<number>(value, defaultValue, onValueChange);
   const generatedName = useId();
   const total = Math.max(1, Math.min(10, Math.floor(max)));

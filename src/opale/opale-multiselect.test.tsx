@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MultiSelect } from './opale';
+import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 

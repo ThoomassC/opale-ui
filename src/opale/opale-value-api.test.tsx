@@ -12,6 +12,10 @@ import {
   SegmentedControl,
   type DataTableSort,
 } from './opale';
+import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    LE TRIPLET `value / defaultValue / onValueChange`.

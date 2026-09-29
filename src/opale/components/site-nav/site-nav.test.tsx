@@ -1,6 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SiteNav, type SiteNavItem } from './site-nav';
+import { expectOnlyDeprecationWarnings } from '../../../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 const items: readonly SiteNavItem[] = [
   { id: 'map', href: '/map', label: 'Map' },

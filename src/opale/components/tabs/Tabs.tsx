@@ -17,6 +17,7 @@ import {
   type RefAttributes,
 } from 'react';
 
+import { warnDeprecatedProps } from '../../deprecations';
 import Glass, { type GlassProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import styles from './style/Tabs.module.css';
 
@@ -363,6 +364,7 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   },
   ref,
 ) {
+  warnDeprecatedProps('Tabs', { as, pressFeedback, enableLiquidAnimation, triggerAnimation });
   const isControlled = valueProp !== undefined;
   const [ownValue, setOwnValue] = useState(defaultValue);
   const value = isControlled ? valueProp : ownValue;

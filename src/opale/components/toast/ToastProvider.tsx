@@ -10,6 +10,7 @@ import {
 import clsx from 'clsx';
 import { createPortal } from 'react-dom';
 
+import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
 import { IconGlyph } from '../icon';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
@@ -434,6 +435,7 @@ export const ToastProvider = ({
 
   const showToast = useCallback(
     (toast: ToastDefinition) => {
+      warnDeprecatedProps('showToast', { variant: toast.variant });
       const id = toast.id ?? generateToastId();
 
       const tone = resolveTone(toast);

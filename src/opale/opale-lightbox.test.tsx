@@ -4,6 +4,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { declaration } from '../test/css-rules';
 import modalStyles from './components/modal/style/Modal.module.css?raw';
 import { Lightbox } from './opale';
+import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 

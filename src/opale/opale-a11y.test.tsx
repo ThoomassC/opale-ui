@@ -234,6 +234,34 @@ describe('Champs en erreur : error, aria-invalid et description', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Activation impossible');
   });
 
+  it('Toggle devient un interrupteur avec `role="switch"`, et bascule son état natif', async () => {
+    /* A11Y-15 : l'option recommandée en 3.9, le défaut de la 4.0.0. */
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Toggle role="switch" label="Wi-Fi" onChange={onChange} />);
+
+    const toggle = screen.getByRole('switch', { name: 'Wi-Fi' });
+    expect(toggle).not.toBeChecked();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+
+    await user.click(toggle);
+
+    expect(toggle).toBeChecked();
+    expect(screen.getByRole('switch', { name: 'Wi-Fi', checked: true })).toBe(toggle);
+    expect(onChange).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByText('Wi-Fi'));
+
+    expect(toggle).not.toBeChecked();
+  });
+
+  it('Toggle reste une case à cocher sans `role`, comme en 3.x', () => {
+    render(<Toggle label="Notifications" />);
+
+    expect(screen.getByRole('checkbox', { name: 'Notifications' })).toBeInTheDocument();
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+  });
+
   it('Input garde le même motif', () => {
     render(<Input label="E-mail" error="Adresse invalide" />);
 

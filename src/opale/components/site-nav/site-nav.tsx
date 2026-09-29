@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithRef, MouseEvent, ReactNode } from 'react';
 import { NavBubble } from './nav-bubble';
+import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
 import { DEFAULT_SITE_NAV_ITEMS } from './default-items';
 
@@ -66,6 +67,7 @@ export function SiteNav({
   className,
   ...headerProps
 }: SiteNavProps) {
+  warnDeprecatedProps('SiteNav', { activeItem });
   const classes = ['opale-site-nav', styles.bar, liquidGlass ? styles.glass : '', className]
     .filter(Boolean)
     .join(' ');

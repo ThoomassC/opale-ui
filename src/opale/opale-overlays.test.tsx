@@ -2,6 +2,10 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CommandPalette, ConfirmDialog, CookieBanner, Lightbox, SidePanel, Toast } from './opale';
+import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    OUVRIR ET FERMER : `open` + `onOpenChange`.

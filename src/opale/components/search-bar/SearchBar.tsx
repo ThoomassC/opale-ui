@@ -1,5 +1,6 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import clsx from 'clsx';
+import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
 import styles from './style/SearchBar.module.scss';
 
@@ -43,6 +44,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
     },
     ref,
   ) => {
+    warnDeprecatedProps('SearchBar', { enableClickAnimation });
     /* LE CONTENU EST ÉCRIT UNE FOIS. Les deux matières n'ont pas la même
        enveloppe — le verre en a une, la version pleine n'en a pas besoin —,
        mais l'icône, le champ, son nom et ses classes ne dépendent d'aucune

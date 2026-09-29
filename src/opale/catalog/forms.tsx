@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type AriaRole,
   type ComponentPropsWithRef,
   type FocusEvent,
   type KeyboardEvent,
@@ -20,6 +21,7 @@ import Glass from '../components/glass/Glass';
 import SearchBar from '../components/search-bar/SearchBar';
 import { IconGlyph, type OpaleIconName } from '../components/icon';
 import type { OpaleSize } from '../shared';
+import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
 import { mergeRefs } from '../shared/merge-refs';
 import { useControllableState, useOptionalState } from '../shared/use-controllable-state';
 import { FieldShell, FieldError } from './shells';
@@ -370,6 +372,15 @@ export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'
   /** L'erreur, annoncée et décrite ; rend l'interrupteur invalide. */
   error?: ReactNode;
   liquidGlass?: boolean;
+  /**
+   * Le rôle exposé à la technologie d'assistance. `"switch"` est recommandé :
+   * l'interrupteur s'annonce alors « activé / désactivé » plutôt que
+   * « coché / non coché », sans changer son état natif (`checked`). Absent,
+   * l'élément reste une case à cocher, comme en 3.x.
+   *
+   * La 4.0.0 posera `role="switch"` par défaut.
+   */
+  role?: AriaRole;
 }
 
 export function Toggle({
@@ -378,9 +389,20 @@ export function Toggle({
   liquidGlass = false,
   className,
   onChange,
+  ref,
   ...props
 }: ToggleProps) {
   const errorId = useId();
+  /* LE NOM SE LIT DANS LE DOM, UNE FOIS MONTÉ : un `<label for>` posé hors du
+     composant nomme l'interrupteur sans qu'aucune prop ne le dise. */
+  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRefs = useCallback(
+    (node: HTMLInputElement | null) => mergeRefs(inputRef, ref)(node),
+    [ref],
+  );
+  useEffect(() => {
+    if (inputRef.current) warnIfUnnamed('Toggle', inputRef.current);
+  }, []);
   /* Même simplification que pour la case : la piste et sa poignée sont celles
      d'Opale, et `.opale-toggle:checked` les peint depuis le CSS. Le verre
      habille la piste sans se mêler de son état. */
@@ -393,6 +415,7 @@ export function Toggle({
         aria-describedby={error ? errorId : undefined}
         onChange={onChange}
         {...props}
+        ref={inputRefs}
       />
       <FieldShell
         liquidGlass={liquidGlass}
@@ -785,6 +808,7 @@ export function MultiSelect({
   ref,
   ...props
 }: MultiSelectProps) {
+  warnDeprecatedProps('MultiSelect', { values });
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
@@ -1118,6 +1142,7 @@ export function SegmentedControl({
   ref,
   ...rest
 }: SegmentedControlProps) {
+  warnDeprecatedProps('SegmentedControl', { onChange });
   const [value, setValue] = useOptionalState(valueProp, defaultValue);
   const groupRef = useRef<HTMLDivElement>(null);
   /* Le groupe mesuré est aussi celui que reçoit l'appelant. */
