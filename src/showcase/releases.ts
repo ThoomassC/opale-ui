@@ -259,15 +259,36 @@ const V350_RELEASE_SECTIONS: readonly ReleaseSection[] = [
         detail:
           'useSvgMapViewport partage la vue avec l’appelant — fitTo, zoomBy, reveal, reset — et SvgMapControls se branche à part. La carte existe en version originale et en verre liquide.',
       },
+      {
+        title: 'Cadrer sur un ensemble de régions',
+        detail:
+          'fitBounds cadre la vue sur une boîte englobante : un continent, un groupe de départements, une sélection.',
+      },
+      {
+        title: 'Une plaque aux coins arrondis',
+        detail:
+          'L’anneau de focus suit l’arrondi de la plaque et non le rectangle du dessin, et les tracés ne débordent plus dans les coins.',
+      },
     ],
   },
   {
     title: 'Vitrine',
     changes: [
       {
+        title: 'La carte du monde',
+        detail:
+          'La page SvgMap gagne un carnet de voyage sur la carte du monde au 1:50 000 000, chargé à part pour ne pas alourdir la page.',
+        links: [{ label: 'SvgMap', slug: 'composants/opale-svg-map' }],
+      },
+      {
         title: 'Le nom OpaleUI',
         detail:
           'Le nom de la librairie prend un O majuscule et s’écrit plus grand dans l’en-tête, en Chivo 700 ; le titre des onglets suit.',
+      },
+      {
+        title: 'L’en-tête resserré',
+        detail:
+          'Le bouton de menu prend le même espacement que la bascule de thème et le sélecteur de langue.',
       },
     ],
   },
@@ -366,6 +387,41 @@ const V330_RELEASE_SECTIONS: readonly ReleaseSection[] = [
         title: 'Recherche branchable',
         detail:
           'La recherche utilise SearchBar, propose des suggestions personnalisables et soumet un formulaire GET natif ; un callback peut prendre le relais.',
+      },
+    ],
+  },
+  {
+    title: 'Composants retouchés',
+    changes: [
+      {
+        title: 'CommandPalette',
+        detail: 'Une mise en page resserrée et une recherche plus directe.',
+        links: [{ label: 'CommandPalette', slug: 'composants/opale-command-palette' }],
+      },
+      {
+        title: 'CookieBanner et Toast',
+        detail:
+          'Le bandeau se place mieux ; les toasts centrent leur contenu, bougent plus doucement et précisent le survol de leur croix.',
+      },
+      {
+        title: 'Navbar, DataTable, Modal et SegmentedControl en verre liquide',
+        detail:
+          'Un meilleur contraste sous le verre ; la modale en verre retrouve une teinte lisible.',
+      },
+      {
+        title: 'IconActionButton et focus des champs',
+        detail:
+          'Le bouton-icône est retravaillé dans ses deux matières, et l’anneau de focus des champs suit leur arrondi.',
+      },
+    ],
+  },
+  {
+    title: 'Vitrine',
+    changes: [
+      {
+        title: 'La goutte d’Opale',
+        detail:
+          'Le logo devient une goutte en verre liquide, et le tag de version une pastille aux marges de la référence.',
       },
     ],
   },
