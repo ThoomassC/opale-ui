@@ -130,8 +130,8 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     const size = TOPBAR_SIZE[normalizeSize(sizeProp, 'medium')];
     const value = useMemo<TopbarContextValue>(() => ({ size }), [size]);
 
-    const enveloppe = clsx(styles.topbarRoot, elevated && styles.elevated, rootClassName);
-    const contenu = clsx(styles.topbar, sizeClassMap[size], className);
+    const shellClasses = clsx(styles.topbarRoot, elevated && styles.elevated, rootClassName);
+    const contentClasses = clsx(styles.topbar, sizeClassMap[size], className);
 
     /* SANS VERRE, LES DEUX CLASSES SE POSENT SUR UN SEUL ÉLÉMENT. Le matériau
        a besoin d'une enveloppe — c'est elle qui porte la silhouette et les
@@ -140,7 +140,7 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
     if (!liquidGlass) {
       return (
         <TopbarContext.Provider value={value}>
-          <header ref={ref} className={clsx(enveloppe, contenu, styles.plain)} {...rest}>
+          <header ref={ref} className={clsx(shellClasses, contentClasses, styles.plain)} {...rest}>
             {children}
           </header>
         </TopbarContext.Provider>
@@ -156,8 +156,8 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
              désormais la largeur et l'ombre : la laisser écraser par celle de
              l'appelant lui ferait perdre les deux au moment précis où il veut
              juste ajouter un crochet de style. */
-          rootClassName={enveloppe}
-          className={contenu}
+          rootClassName={shellClasses}
+          className={contentClasses}
           {...rest}
         >
           {children}

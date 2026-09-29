@@ -182,7 +182,7 @@ const cx = (...values: readonly (string | false | null | undefined)[]) =>
    `<div>`. Extraire ce choix ici évite d'écrire deux fois les huit attributs
    du dialogue, qui sont son contrat d'accessibilité.
    ========================================================================== */
-type PanneauProps = Omit<GlassProps<'div'>, 'title'> & {
+type PanelProps = Omit<GlassProps<'div'>, 'title'> & {
   liquidGlass: boolean;
   /* `ref` EST UNE PROP ORDINAIRE, et ce fichier n'importe pas `forwardRef`.
      React 19 l'a rendu inutile sur un composant de fonction ; l'envelopper
@@ -190,7 +190,7 @@ type PanneauProps = Omit<GlassProps<'div'>, 'title'> & {
   ref?: Ref<HTMLDivElement>;
 };
 
-function Panneau({
+function Panel({
   liquidGlass,
   ref,
   rootClassName,
@@ -198,7 +198,7 @@ function Panneau({
   triggerAnimation,
   children,
   ...rest
-}: PanneauProps) {
+}: PanelProps) {
   if (liquidGlass) {
     return (
       <Glass
@@ -520,7 +520,7 @@ const Modal = ({
           `tabIndex` et les deux gestionnaires — sont écrits UNE FOIS et posés
           sur les deux rendus : c'est tout le contrat d'accessibilité du
           composant, et il ne doit pas dépendre d'une apparence. */}
-        <Panneau
+        <Panel
           {...rest}
           ref={panelRefs}
           liquidGlass={liquidGlass}
@@ -583,7 +583,7 @@ const Modal = ({
           {children && <div className={styles.body}>{children}</div>}
 
           {footer && <div className={styles.footer}>{footer}</div>}
-        </Panneau>
+        </Panel>
       </div>
     </ModalDepthContext.Provider>,
     container,

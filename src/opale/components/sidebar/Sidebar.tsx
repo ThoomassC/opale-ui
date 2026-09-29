@@ -263,12 +263,12 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       ],
     );
 
-    const enveloppe = clsx(
+    const shellClasses = clsx(
       styles.sidebarRoot,
       collapsed ? styles.collapsed : widthClassMap[size],
       rootClassName,
     );
-    const contenu = clsx(styles.sidebar, collapsed && styles.sidebarCollapsed, className);
+    const contentClasses = clsx(styles.sidebar, collapsed && styles.sidebarCollapsed, className);
 
     if (!liquidGlass) {
       return (
@@ -276,7 +276,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
           <aside
             ref={ref}
             id={sidebarId}
-            className={clsx(enveloppe, contenu, styles.plain)}
+            className={clsx(shellClasses, contentClasses, styles.plain)}
             {...rest}
           >
             {children}
@@ -297,8 +297,8 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
              appartient à l'entrée, qui l'a. */
           enableLiquidAnimation={false}
           triggerAnimation={false}
-          rootClassName={enveloppe}
-          className={contenu}
+          rootClassName={shellClasses}
+          className={contentClasses}
           {...rest}
         >
           {children}

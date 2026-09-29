@@ -396,7 +396,7 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     ],
   );
 
-  const contenu = classes(
+  const rootClasses = classes(
     styles.tabs,
     orientation === 'vertical' && styles.tabsVertical,
     className,
@@ -405,11 +405,11 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   return (
     <TabsContext.Provider value={context}>
       {liquidGlass ? (
-        <Glass ref={ref} className={contenu} {...rest}>
+        <Glass ref={ref} className={rootClasses} {...rest}>
           {children}
         </Glass>
       ) : (
-        <div ref={ref} className={classes(contenu, styles.plain)} {...rest}>
+        <div ref={ref} className={classes(rootClasses, styles.plain)} {...rest}>
           {children}
         </div>
       )}
@@ -586,7 +586,7 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function Tab
     if (list) roveTabStop(list);
   };
 
-  const attributsCommuns = {
+  const sharedAttributes = {
     type: 'button',
     role: 'tab',
     id: getTriggerId(value),
@@ -604,7 +604,7 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function Tab
     return (
       <button
         ref={ref}
-        {...attributsCommuns}
+        {...sharedAttributes}
         className={classes(
           styles.tabsTriggerRoot,
           styles.tabsTrigger,

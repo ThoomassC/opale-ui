@@ -43,7 +43,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
        enveloppe — le verre en a une, la version pleine n'en a pas besoin —,
        mais l'icône, le champ, son nom et ses classes ne dépendent d'aucune
        des deux. Les séparer est ce qui empêche les deux rendus de diverger. */
-    const contenu = (
+    const content = (
       <>
         {icon ?? (
           <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -90,7 +90,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
           aria-label={landmark ? landmarkLabel : undefined}
           className={clsx(styles.root, styles.searchBar, styles.plain)}
         >
-          {contenu}
+          {content}
         </div>
       );
     }
@@ -104,7 +104,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         enableLiquidAnimation={!disabled && enableClickAnimation}
         className={styles.searchBar}
       >
-        {contenu}
+        {content}
       </Glass>
     );
   },

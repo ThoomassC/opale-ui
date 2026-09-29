@@ -255,7 +255,7 @@ const generateToastId = () => {
    et porte les deux classes. Le reste — le texte, le bouton de fermeture, la
    minuterie et sa pause — ne dépend d'aucune des deux.
    ========================================================================== */
-function Carte({
+function ToastSurface({
   liquidGlass,
   rootClassName,
   className,
@@ -376,7 +376,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
       onFocus={pause}
       onBlur={resume}
     >
-      <Carte
+      <ToastSurface
         liquidGlass={liquidGlass}
         rootClassName={cx(styles.surface, toneClass[tone])}
         className={styles.body}
@@ -397,7 +397,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
           {/* Le tracé de la croix d'Opale, comme dans `Modal` : pas le signe « × ». */}
           <IconGlyph name="close" className={styles.closeGlyph} />
         </button>
-      </Carte>
+      </ToastSurface>
     </div>
   );
 }
