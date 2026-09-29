@@ -145,7 +145,8 @@ export type GlassSurfaceProps = Pick<
   'rootClassName' | 'rootStyle' | 'enableLiquidAnimation' | 'triggerAnimation'
 >;
 
-const RIPPLE_MS = 800;
+/* La durée de l'onde, `--opale-motion-slower` dans `Glass.module.css`. */
+const RIPPLE_MS = 600;
 
 function GlassInner<T extends ElementType = 'div'>(
   {

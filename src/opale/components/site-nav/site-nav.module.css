@@ -153,7 +153,7 @@
   transform-origin: center;
   pointer-events: none;
   opacity: 1;
-  transition: inset-inline-start 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: inset-inline-start var(--opale-motion-slower) var(--opale-ease-out);
 }
 
 .list[data-active-index='1'] .movingBubble {
@@ -225,7 +225,7 @@
 }
 
 .list[data-moving='true'] .movingBubble {
-  animation: siteNavBubbleFlow 620ms var(--site-nav-motion-ease);
+  animation: siteNavBubbleFlow var(--opale-motion-slower) var(--site-nav-motion-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {

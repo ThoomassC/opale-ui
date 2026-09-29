@@ -42,7 +42,7 @@
      mouvement — rien ne se déplace, rien ne change de taille : une ombre prend
      sa densité. Le bloc anti-mouvement plus bas la coupe malgré tout, et c'est
      sans conséquence : l'indicateur est déjà là à la première image. */
-  transition: box-shadow 130ms ease;
+  transition: box-shadow var(--opale-motion-fast) var(--opale-ease);
 }
 
 /* LA RÉFRACTION EST LA SEULE COUCHE QUI REGARDE DERRIÈRE.
@@ -66,8 +66,8 @@
   transform: scale(1.018);
   transform-origin: center;
   transition:
-    filter 0.3s ease,
-    transform 0.3s ease;
+    filter var(--opale-motion-slow) var(--opale-ease),
+    transform var(--opale-motion-slow) var(--opale-ease);
 }
 
 /* LE LAVIS A SON PROPRE JETON, ET LE NOM COMPTE.
@@ -94,7 +94,7 @@
     radial-gradient(88% 125% at 8% 0%, rgba(255, 255, 255, 0.2), transparent 52%),
     radial-gradient(80% 120% at 100% 100%, rgba(5, 35, 48, 0.16), transparent 58%),
     var(--opale-glass-tint, rgba(255, 255, 255, 0.06));
-  transition: background 0.3s ease;
+  transition: background var(--opale-motion-slow) var(--opale-ease);
 }
 
 .specular {
@@ -106,7 +106,7 @@
   box-shadow:
     inset 1px 1px 0 var(--opale-glass-edge, rgba(255, 255, 255, 0.32)),
     inset 0 0 5px var(--opale-glass-edge, rgba(255, 255, 255, 0.32));
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow var(--opale-motion-slow) var(--opale-ease);
 }
 
 /* L'onde part du point cliqué. `translate(-50%, -50%)` la centre sur ce point
@@ -124,7 +124,7 @@
     transparent 70%
   );
   pointer-events: none;
-  animation: opale-glass-ripple 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: opale-glass-ripple var(--opale-motion-slower) var(--opale-ease-spring);
 }
 
 /* LE CONTENU HÉRITE DE L'ENCRE DU MATÉRIAU, ET C'EST UN FILET DE SÉCURITÉ.
@@ -171,7 +171,7 @@
 }
 
 .squishing {
-  animation: opale-glass-squish 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: opale-glass-squish var(--opale-motion-slower) var(--opale-ease-spring);
 }
 
 @keyframes opale-glass-ripple {
@@ -320,10 +320,9 @@
 
      — IL NE SE RÉPÈTE PAS. Une seule passe, pas d'`infinite`.
 
-     — IL EST COURT. 240 ms contre les 800 ms de la version d'avant. Au-delà
-       d'un quart de seconde, un retour d'appui cesse d'être un retour et
-       devient une attente — et l'écrasement précédent durait plus longtemps
-       que le clic lui-même.
+     — IL EST COURT : `--opale-motion`, 220 ms. Au-delà d'un quart de
+       seconde, un retour d'appui cesse d'être un retour et devient une
+       attente — plus long que le clic lui-même.
 
      — IL EST PETIT. L'amplitude reste sous 4 % : la boîte ne bouge pas, donc
        rien ne se décale autour et aucun voisin ne saute. C'est ce qui permet
@@ -340,7 +339,7 @@
    c'est ce dépassement qui fait le rebond. Sans lui, on aurait un
    rétrécissement mou. */
 .glass[data-opale-glass-press='true']:active {
-  animation: opale-glass-press 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: opale-glass-press var(--opale-motion) var(--opale-ease-spring);
 }
 
 @keyframes opale-glass-press {
