@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  branchBlocker,
   breakingBlocker,
   compareVersions,
   highestTag,
@@ -69,5 +70,17 @@ describe('la garde des ruptures', () => {
       return blocker ? [release.version] : [];
     });
     expect(offenders).toEqual(LEGACY);
+  });
+});
+
+/* LIV-08 — LES VERSIONS SORTENT DE `recette`. `main` porte la production
+   (2.0.0) et ne reçoit une version que sur décision ; un tag posé depuis une
+   branche de travail désignerait un code qui n'a pas été recetté. */
+describe('la garde de branche', () => {
+  it('ne publie que depuis recette', () => {
+    expect(branchBlocker('recette')).toBeNull();
+    expect(branchBlocker('main')).toMatch(/recette/);
+    expect(branchBlocker('codex/recette-vague-5')).toMatch(/recette/);
+    expect(branchBlocker('HEAD')).toMatch(/détach/);
   });
 });

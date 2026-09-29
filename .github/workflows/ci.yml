@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, recette]
   pull_request:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       # `--ignore-scripts` skips `prepare`, which would build the library
@@ -41,6 +41,12 @@ jobs:
       # cela n'existe avant `dist/`, donc aucun test ne le voit.
       - name: Contrôle de ce qui est livré
         run: npm run check:dist
+
+      # Le paquet emballé, installé dans une application jetable et compilé en
+      # nodenext puis en bundler : `files`, `exports` et déclarations tels
+      # qu'un consommateur les reçoit.
+      - name: Application consommatrice
+        run: npm run check:consumer
 
       - name: Build de la charte
         run: npm run build

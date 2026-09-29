@@ -207,6 +207,7 @@ le fragment (`#/composants/opale-button`) : la vitrine se construit en statique 
 | `npm run coverage`    | La suite avec le rapport `v8`                                  |
 | `npm run build:lib`   | Construit le paquet dans `dist/` (appelé par `prepare`)        |
 | `npm run check:dist`  | Vérifie le paquet construit : `"use client"`, types, polices   |
+| `npm run check:consumer` | Emballe le paquet et le compile dans une application témoin (nodenext, bundler) |
 | `npm run build`       | Construit la vitrine statique dans `dist-showcase/`            |
 | `npm run typecheck`   | `tsc -b --noEmit`                                              |
 | `npm run lint`        | ESLint, `jsx-a11y` compris                                     |
