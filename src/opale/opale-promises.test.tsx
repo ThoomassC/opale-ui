@@ -225,6 +225,45 @@ describe('CookieBanner — la mémorisation du choix', () => {
     await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
     vi.restoreAllMocks();
   });
+
+  /* Le choix se lit une fois par montage, pas à chaque rendu : le stockage est
+     synchrone et peut coûter. */
+  it('ne devrait pas relire le stockage à chaque rendu', () => {
+    const getItem = vi.spyOn(window.localStorage, 'getItem');
+    const { rerender } = render(<CookieBanner>Premier</CookieBanner>);
+    const reads = () => getItem.mock.calls.filter(([key]) => key === COOKIE_CONSENT_KEY).length;
+    const afterMount = reads();
+
+    rerender(<CookieBanner>Deuxième</CookieBanner>);
+    rerender(<CookieBanner>Troisième</CookieBanner>);
+    rerender(<CookieBanner>Quatrième</CookieBanner>);
+
+    expect(screen.getByText('Quatrième')).toBeInTheDocument();
+    expect(reads()).toBe(afterMount);
+    vi.restoreAllMocks();
+  });
+
+  it('devrait suivre un choix fait dans un autre onglet', () => {
+    render(<CookieBanner />);
+    expect(screen.getByText('Cookies')).toBeInTheDocument();
+
+    window.localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: COOKIE_CONSENT_KEY }));
+    });
+
+    expect(screen.queryByText('Cookies')).toBeNull();
+  });
+
+  it('devrait relire le stockage au montage suivant', () => {
+    const { unmount } = render(<CookieBanner />);
+    unmount();
+    window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+
+    render(<CookieBanner />);
+
+    expect(screen.queryByText('Cookies')).toBeNull();
+  });
 });
 
 /* ---------------------------------------------------------------------------

@@ -21,7 +21,7 @@ import { useScrollPadding } from '../shared/use-scroll-padding';
 import {
   COOKIE_CONSENT_KEY,
   notifyConsent,
-  readCookieConsent,
+  readCachedCookieConsent,
   subscribeConsent,
   type CookieConsent,
 } from './cookie-consent';
@@ -573,7 +573,7 @@ export function CookieBanner({
 }: CookieBannerProps) {
   const stored = useSyncExternalStore(
     subscribeConsent,
-    () => readCookieConsent(storageKey),
+    () => readCachedCookieConsent(storageKey),
     () => null,
   );
   const [decided, setDecided] = useState<CookieConsent | null>(null);

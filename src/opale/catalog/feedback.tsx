@@ -35,6 +35,7 @@ import { useScrollPadding } from '../shared/use-scroll-padding';
 import { Button } from './forms';
 import { Card, Icon } from './display';
 import { closeHandler, closeClickHandler } from './close-handlers';
+import { getToastAnchor, subscribeToastAnchor, type ToastAnchor } from './toast-anchors';
 
 /**
  * L'encart de retour en flux.
@@ -204,58 +205,6 @@ const TONE_ICON: Record<OpaleTone, OpaleIconName | null> = {
   info: 'info',
 };
 
-interface ToastAnchor {
-  readonly status: HTMLDivElement;
-  readonly alert: HTMLDivElement;
-  readonly root: HTMLDivElement;
-  users: number;
-}
-
-const TOAST_ANCHORS = new Map<OpalePlacement, ToastAnchor>();
-const toastAnchorListeners = new Set<() => void>();
-
-function notifyToastAnchors() {
-  toastAnchorListeners.forEach((listener) => listener());
-}
-
-function acquireToastAnchor(position: OpalePlacement) {
-  let anchor = TOAST_ANCHORS.get(position);
-  if (!anchor) {
-    const root = document.createElement('div');
-    root.className = `opale-toast-anchor opale-toast-anchor--${position}`;
-    const status = document.createElement('div');
-    status.setAttribute('role', 'status');
-    const alert = document.createElement('div');
-    alert.setAttribute('role', 'alert');
-    root.append(status, alert);
-    if (position.startsWith('top')) document.body.prepend(root);
-    else document.body.append(root);
-    anchor = { root, status, alert, users: 0 };
-    TOAST_ANCHORS.set(position, anchor);
-  }
-  anchor.users += 1;
-}
-
-/* LA DESTRUCTION ATTEND LA FIN DU COMMIT. Un message qui en remplace un autre
-   — `key` qui change — démonte l'ancien et monte le nouveau dans le même
-   commit, et le nettoyage du premier passe avant l'abonnement du second : le
-   compteur touchait zéro, l'ancre était retirée puis recréée, et le message
-   entrait dans une région live née dans la même tâche, dont l'annonce peut se
-   perdre. Le retrait est donc remis à une micro-tâche, et n'a lieu que si
-   personne n'a repris l'ancre entre-temps. */
-function releaseToastAnchor(position: OpalePlacement) {
-  const anchor = TOAST_ANCHORS.get(position);
-  if (!anchor) return;
-  anchor.users -= 1;
-  if (anchor.users > 0) return;
-  queueMicrotask(() => {
-    if (anchor.users > 0 || TOAST_ANCHORS.get(position) !== anchor) return;
-    anchor.root.remove();
-    TOAST_ANCHORS.delete(position);
-    notifyToastAnchors();
-  });
-}
-
 /* L'ANCRE S'OBTIENT PAR UN MAGASIN EXTERNE, pas par un état posé dans un
    effet. S'abonner, c'est occuper l'ancre de sa place — la créer si l'on est
    le premier — et se désabonner, la libérer. React relit l'instantané aussitôt
@@ -263,20 +212,12 @@ function releaseToastAnchor(position: OpalePlacement) {
    l'instantané est `null` : pas d'ancre, pas de portail, et rien à hydrater. */
 function useToastAnchor(position: OpalePlacement): ToastAnchor | null {
   const subscribe = useCallback(
-    (listener: () => void) => {
-      toastAnchorListeners.add(listener);
-      acquireToastAnchor(position);
-      notifyToastAnchors();
-      return () => {
-        toastAnchorListeners.delete(listener);
-        releaseToastAnchor(position);
-      };
-    },
+    (listener: () => void) => subscribeToastAnchor(position, listener),
     [position],
   );
   return useSyncExternalStore(
     subscribe,
-    () => TOAST_ANCHORS.get(position) ?? null,
+    () => getToastAnchor(position),
     () => null,
   );
 }
