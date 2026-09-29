@@ -529,12 +529,24 @@ Input.displayName = 'Input';
 export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   description?: ReactNode;
+  /** L'erreur, annoncée et décrite après la description ; rend la case invalide. */
+  error?: ReactNode;
   liquidGlass?: boolean;
+}
+
+/** Le message d'erreur d'un contrôle en rangée, hors de son `<label>`. */
+function FieldError({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <span id={id} role="alert" className="opale-field__helper opale-field__helper--error">
+      {children}
+    </span>
+  );
 }
 
 export function Checkbox({
   label,
   description,
+  error,
   liquidGlass = false,
   className,
   onChange,
@@ -542,6 +554,11 @@ export function Checkbox({
 }: CheckboxProps) {
   const labelId = useId();
   const descriptionId = useId();
+  const errorId = useId();
+  const describedBy =
+    [label && description ? descriptionId : null, error ? errorId : null]
+      .filter(Boolean)
+      .join(' ') || undefined;
 
   /* L'ÉTAT N'A PLUS BESOIN D'ÊTRE RECOPIÉ EN JAVASCRIPT.
 
@@ -551,7 +568,7 @@ export function Checkbox({
      le CSS, à partir de l'état réel du natif. Un état dérivé de moins, c'est
      une occasion de désynchronisation de moins — et `onChange` redevient un
      simple passe-plat. */
-  return (
+  const row = (
     <label className={cx('opale-checkbox-row', className)}>
       {/* LA DESCRIPTION EST DÉCRITE, PLUS NOMMÉE. Rendue dans le `<label>`,
           elle entrait dans le nom de la case : « Recevoir les notifications
@@ -567,7 +584,8 @@ export function Checkbox({
            et la rangée reste cliquable sur toute sa surface, ce qui est le
            point de la construire ainsi. */
         aria-labelledby={labelId}
-        aria-describedby={label && description ? descriptionId : undefined}
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : undefined}
         onChange={onChange}
         {...props}
       />
@@ -590,20 +608,44 @@ export function Checkbox({
       )}
     </label>
   );
+  if (!error) return row;
+  return (
+    <>
+      {row}
+      <FieldError id={errorId}>{error}</FieldError>
+    </>
+  );
 }
 
 export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
+  /** L'erreur, annoncée et décrite ; rend l'interrupteur invalide. */
+  error?: ReactNode;
   liquidGlass?: boolean;
 }
 
-export function Toggle({ label, liquidGlass = false, className, onChange, ...props }: ToggleProps) {
+export function Toggle({
+  label,
+  error,
+  liquidGlass = false,
+  className,
+  onChange,
+  ...props
+}: ToggleProps) {
+  const errorId = useId();
   /* Même simplification que pour la case : la piste et sa poignée sont celles
      d'Opale, et `.opale-toggle:checked` les peint depuis le CSS. Le verre
      habille la piste sans se mêler de son état. */
-  return (
+  const row = (
     <label className={cx('opale-toggle-row', className)}>
-      <input type="checkbox" className="opale-toggle" onChange={onChange} {...props} />
+      <input
+        type="checkbox"
+        className="opale-toggle"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+        onChange={onChange}
+        {...props}
+      />
       <FieldShell
         liquidGlass={liquidGlass}
         className={cx('opale-toggle-track', liquidGlass && 'opale-toggle-track--glass')}
@@ -614,6 +656,13 @@ export function Toggle({ label, liquidGlass = false, className, onChange, ...pro
       </FieldShell>
       {label && <span>{label}</span>}
     </label>
+  );
+  if (!error) return row;
+  return (
+    <>
+      {row}
+      <FieldError id={errorId}>{error}</FieldError>
+    </>
   );
 }
 
@@ -819,6 +868,8 @@ export function Slider({
 export interface SelectProps extends ComponentPropsWithRef<'select'> {
   label?: ReactNode;
   helperText?: ReactNode;
+  /** L'erreur, annoncée et décrite à la place de l'aide ; rend le champ invalide. */
+  error?: ReactNode;
   options?: readonly SelectOption[];
   liquidGlass?: boolean;
 }
@@ -826,6 +877,7 @@ export interface SelectProps extends ComponentPropsWithRef<'select'> {
 export function Select({
   label,
   helperText,
+  error,
   options,
   liquidGlass = false,
   className,
@@ -856,6 +908,7 @@ export function Select({
      commande vocale visant « Pays » (WCAG 1.3.1). La correction avait été
      appliquée au champ de saisie et pas à ses trois voisins. */
   const helperId = `${selectId}-helper`;
+  const message = error || helperText;
 
   return (
     <div className={cx('opale-field', className)}>
@@ -872,7 +925,8 @@ export function Select({
         <select
           id={selectId}
           className="opale-select"
-          aria-describedby={helperText ? helperId : undefined}
+          aria-describedby={message ? helperId : undefined}
+          aria-invalid={error ? true : undefined}
           onChange={onChange}
           {...props}
         >
@@ -884,9 +938,13 @@ export function Select({
           {children}
         </select>
       </FieldShell>
-      {helperText && (
-        <span id={helperId} className="opale-field__helper">
-          {helperText}
+      {message && (
+        <span
+          id={helperId}
+          role={error ? 'alert' : undefined}
+          className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
+        >
+          {message}
         </span>
       )}
     </div>
@@ -955,6 +1013,7 @@ export function MultiSelect({
   values,
   label,
   helperText,
+  error,
   options = [],
   liquidGlass = false,
   className,
@@ -1092,7 +1151,8 @@ export function MultiSelect({
              sans option, la référence ne résout rien et la liste annonce un
              descendant actif qui n'existe pas. */
           aria-activedescendant={options.length ? `${fieldId}-option-${activeIndex}` : undefined}
-          aria-describedby={helperText ? `${fieldId}-helper` : undefined}
+          aria-describedby={error || helperText ? `${fieldId}-helper` : undefined}
+          aria-invalid={error ? true : undefined}
           tabIndex={0}
           onKeyDown={onKeyDown}
         >
@@ -1132,9 +1192,13 @@ export function MultiSelect({
         </div>
       </FieldShell>
 
-      {helperText && (
-        <span id={`${fieldId}-helper`} className="opale-field__helper">
-          {helperText}
+      {(error || helperText) && (
+        <span
+          id={`${fieldId}-helper`}
+          role={error ? 'alert' : undefined}
+          className={cx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
+        >
+          {error || helperText}
         </span>
       )}
     </div>
@@ -2508,22 +2572,17 @@ export function CommandPalette({
               {items.map((item) => (
                 /* Le focus reste dans la recherche : l'option est désignée par
                    `aria-activedescendant`, pas focalisée. */
+                /* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus --
+                   Le clavier est porté par la combobox, comme dans `MultiSelect`. */
                 <div
                   key={item.id}
                   id={optionId(item)}
                   role="option"
-                  tabIndex={-1}
                   aria-selected={item === active}
                   aria-disabled={item.disabled ? true : undefined}
                   className="opale-command-palette__option"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => choose(item)}
-                  /* Une technologie d'assistance peut y poser le focus. */
-                  onKeyDown={(event) => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return;
-                    event.preventDefault();
-                    choose(item);
-                  }}
                 >
                   <span className="opale-command-palette__option-label">{item.label}</span>
                   {item.description && (

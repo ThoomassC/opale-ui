@@ -4,7 +4,19 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ToastProvider, useToast } from './components/toast';
 import toastClasses from './components/toast/style/Toast.module.css';
-import { CommandPalette, CookieBanner, Input, Menu, Navbar, Pagination, Toast } from './opale';
+import {
+  Checkbox,
+  CommandPalette,
+  CookieBanner,
+  Input,
+  Menu,
+  MultiSelect,
+  Navbar,
+  Pagination,
+  Select,
+  Toast,
+  Toggle,
+} from './opale';
 
 /* Comportements d'accessibilité : focus, annonces, repères. */
 
@@ -156,5 +168,72 @@ describe('Repères : nom et présence', () => {
     );
 
     expect(screen.getByRole('navigation', { name: 'Compte' })).toBeInTheDocument();
+  });
+});
+
+describe('Champs en erreur : error, aria-invalid et description', () => {
+  const OPTIONS = [
+    { value: 'fr', label: 'France' },
+    { value: 'be', label: 'Belgique' },
+  ];
+
+  it('Select décrit son erreur et se déclare invalide, à la place de l’aide', () => {
+    render(<Select label="Pays" helperText="Votre pays" error="Pays requis" options={OPTIONS} />);
+
+    const select = screen.getByRole('combobox', { name: 'Pays' });
+    expect(select).toHaveAttribute('aria-invalid', 'true');
+    expect(select).toHaveAccessibleDescription('Pays requis');
+    expect(screen.getByRole('alert')).toHaveTextContent('Pays requis');
+    expect(screen.queryByText('Votre pays')).not.toBeInTheDocument();
+  });
+
+  it('Select sans erreur reste tel quel', () => {
+    render(<Select label="Pays" helperText="Votre pays" options={OPTIONS} />);
+
+    const select = screen.getByRole('combobox', { name: 'Pays' });
+    expect(select).not.toHaveAttribute('aria-invalid');
+    expect(select).toHaveAccessibleDescription('Votre pays');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('MultiSelect décrit son erreur sur la liste', () => {
+    render(<MultiSelect label="Langues" error="Choisissez une langue" options={OPTIONS} />);
+
+    const listbox = screen.getByRole('listbox', { name: 'Langues' });
+    expect(listbox).toHaveAttribute('aria-invalid', 'true');
+    expect(listbox).toHaveAccessibleDescription('Choisissez une langue');
+    expect(screen.getByRole('alert')).toHaveTextContent('Choisissez une langue');
+  });
+
+  it('Checkbox décrit description puis erreur, sans toucher au nom', () => {
+    render(
+      <Checkbox
+        label="J’accepte les conditions"
+        description="Obligatoire pour continuer"
+        error="Cochez la case"
+      />,
+    );
+
+    const checkbox = screen.getByRole('checkbox', { name: 'J’accepte les conditions' });
+    expect(checkbox).toHaveAttribute('aria-invalid', 'true');
+    expect(checkbox).toHaveAccessibleDescription('Obligatoire pour continuer Cochez la case');
+    expect(screen.getByRole('alert')).toHaveTextContent('Cochez la case');
+  });
+
+  it('Toggle décrit son erreur, sans toucher au nom', () => {
+    render(<Toggle label="Notifications" error="Activation impossible" />);
+
+    const toggle = screen.getByRole('checkbox', { name: 'Notifications' });
+    expect(toggle).toHaveAttribute('aria-invalid', 'true');
+    expect(toggle).toHaveAccessibleDescription('Activation impossible');
+    expect(screen.getByRole('alert')).toHaveTextContent('Activation impossible');
+  });
+
+  it('Input garde le même motif', () => {
+    render(<Input label="E-mail" error="Adresse invalide" />);
+
+    const input = screen.getByRole('textbox', { name: 'E-mail' });
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription('Adresse invalide');
   });
 });
