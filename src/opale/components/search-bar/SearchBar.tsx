@@ -7,6 +7,10 @@ export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   size?: 'small' | 'medium' | 'large';
   icon?: ReactNode;
   enableClickAnimation?: boolean;
+  /** Pose le repère `search` autour du champ. Défaut : `true`. */
+  landmark?: boolean;
+  /** Le nom du repère `search`, utile quand la page en compte plusieurs. */
+  landmarkLabel?: string;
   /**
    * Rend la barre dans le matériau « verre liquide ».
    *
@@ -26,6 +30,8 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       icon,
       disabled,
       enableClickAnimation = true,
+      landmark = true,
+      landmarkLabel,
       liquidGlass = false,
       className,
       ['aria-label']: ariaLabel,
@@ -79,7 +85,11 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
 
     if (!liquidGlass) {
       return (
-        <div role="search" className={clsx(styles.root, styles.searchBar, styles.plain)}>
+        <div
+          role={landmark ? 'search' : undefined}
+          aria-label={landmark ? landmarkLabel : undefined}
+          className={clsx(styles.root, styles.searchBar, styles.plain)}
+        >
           {contenu}
         </div>
       );
@@ -87,7 +97,8 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
 
     return (
       <Glass
-        role="search"
+        role={landmark ? 'search' : undefined}
+        aria-label={landmark ? landmarkLabel : undefined}
         rootClassName={styles.root}
         rootStyle={{ width: '100%' }}
         enableLiquidAnimation={!disabled && enableClickAnimation}
