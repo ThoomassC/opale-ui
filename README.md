@@ -13,7 +13,7 @@ Le paquet s'installe depuis GitHub, il n'est pas publié sur npm. Installez **un
 version** : le code ne bouge plus sous vos pieds.
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.6.0"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.6.1"
 ```
 
 Prérequis : React 19 et Node 20.19 ou 22.12 et plus. Le paquet se compile à l'installation
