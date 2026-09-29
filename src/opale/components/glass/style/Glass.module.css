@@ -59,8 +59,9 @@
   z-index: 0;
   border-radius: inherit;
   inset: 0;
-  backdrop-filter: blur(0.75px) saturate(1.08);
-  -webkit-backdrop-filter: blur(0.75px) saturate(1.08);
+  backdrop-filter: blur(var(--opale-glass-backdrop-blur)) saturate(var(--opale-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--opale-glass-backdrop-blur))
+    saturate(var(--opale-glass-saturate));
   filter: url('#opale-glass-displacement');
   isolation: isolate;
   transform: scale(1.018);

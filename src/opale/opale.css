@@ -261,6 +261,14 @@
   --opale-glass-surface: rgba(255, 255, 255, 0.58);
   --opale-glass-border: rgba(255, 255, 255, 0.72);
   --opale-glass-shadow: 0 1.25rem 3rem rgba(35, 69, 122, 0.16);
+  /* LA RECETTE DU VERRE LIQUIDE, UNE POUR TOUS. Le matériau `Glass`, la goutte
+     du curseur et la bulle de SiteNav regardent derrière eux avec ce flou et
+     cette saturation : un flou d'à peine un pixel, parce que c'est le
+     déplacement qui fait le verre, pas le dépoli. */
+  --opale-glass-backdrop-blur: 0.75px;
+  --opale-glass-saturate: 1.08;
+  /* Déprécié depuis 3.7 : aucun composant ne le lit. Le flou du matériau est
+     `--opale-glass-backdrop-blur`. Conservé pour les feuilles qui le lisent. */
   --opale-glass-blur: 18px;
   /* L'ENCRE DU VERRE EST UN JETON, PARCE QU'ELLE DÉPEND DE CE QU'IL Y A DERRIÈRE.
      Un verre est transparent : son texte se lit sur le FOND, pas sur lui. Sur la
@@ -1680,8 +1688,9 @@
     color-mix(in srgb, var(--opale-glass-light) 24%, transparent) 46%,
     color-mix(in srgb, var(--opale-glass-light) 10%, transparent) 74%
   );
-  backdrop-filter: blur(1px) saturate(1.35);
-  -webkit-backdrop-filter: blur(1px) saturate(1.35);
+  backdrop-filter: blur(var(--opale-glass-backdrop-blur)) saturate(var(--opale-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--opale-glass-backdrop-blur))
+    saturate(var(--opale-glass-saturate));
   /* LE BORD FAIT LE TOUR, et ce n'est pas cosmétique. Le filet spéculaire du
      matériau n'éclaire que le quart haut-gauche — c'est ce qui donne à une
      surface de verre son air d'être éclairée d'en haut. Sur la bulle, cela
