@@ -672,6 +672,10 @@ export function Toggle({
 export interface SliderProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   valueLabel?: ReactNode;
+  /** La valeur dite en mots, en `aria-valuetext` : « 3 sur 10 ». */
+  valueText?: string;
+  /** Dérive `aria-valuetext` de la valeur, à chaque déplacement. `valueText` gagne. */
+  getValueText?: (value: number) => string;
   liquidGlass?: boolean;
 }
 
@@ -708,6 +712,8 @@ function rangeProgress(input: HTMLInputElement): number {
 export function Slider({
   label,
   valueLabel,
+  valueText,
+  getValueText,
   liquidGlass = false,
   className,
   onChange,
@@ -762,6 +768,9 @@ export function Slider({
     const progress = rangeProgress(input);
     shell.style.setProperty('--opale-range-progress', String(progress));
     previous.current = progress;
+    if (getValueText && valueText === undefined && props['aria-valuetext'] === undefined) {
+      input.setAttribute('aria-valuetext', getValueText(Number(input.value)));
+    }
   });
 
   useEffect(() => () => clearTimeout(relax.current), []);
@@ -793,6 +802,10 @@ export function Slider({
 
       previous.current = progress;
     }
+    /* Un curseur libre ne re-rend pas : le texte de valeur suit dans le DOM. */
+    if (getValueText && valueText === undefined && props['aria-valuetext'] === undefined) {
+      input.setAttribute('aria-valuetext', getValueText(Number(input.value)));
+    }
 
     onChange?.(event);
   };
@@ -808,6 +821,7 @@ export function Slider({
       id={sliderId}
       type="range"
       className="opale-range"
+      aria-valuetext={valueText}
       onChange={handleChange}
       {...props}
     />
@@ -2028,6 +2042,8 @@ export function ProgressBar({
      se lirait plus, et c'est la seule chose que la barre a à dire. */
   const Track = liquidGlass ? Glass : 'div';
   const trackProps = liquidGlass ? ({ rootClassName: 'opale-progress--glass-root' } as const) : {};
+  /* La valeur annoncée est celle qu'on voit : bornée à [0, 100]. */
+  const bounded = Number.isFinite(value) ? Math.max(0, Math.min(value, 100)) : 0;
 
   return (
     <div className={cx('opale-field', className)}>
@@ -2045,14 +2061,11 @@ export function ProgressBar({
         {...trackProps}
         className={cx('opale-progress', liquidGlass && 'opale-progress--glass')}
         role="progressbar"
-        aria-valuenow={value}
+        aria-valuenow={bounded}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <div
-          className="opale-progress__value"
-          style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
-        />
+        <div className="opale-progress__value" style={{ width: `${bounded}%` }} />
       </Track>
     </div>
   );
@@ -3198,13 +3211,22 @@ export function StatCard({
 export interface DonutProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   value?: number;
   label?: string;
+  /** Ce que la valeur mesure, lu avant elle : « Tâches terminées : 72% ». */
+  context?: string;
 }
 
-export function Donut({ value = 60, label = `${value}%`, className, style, ...rest }: DonutProps) {
+export function Donut({
+  value = 60,
+  label = `${value}%`,
+  context,
+  className,
+  style,
+  ...rest
+}: DonutProps) {
   /* Le style de l'appelant d'abord, la variable qui dessine l'anneau ensuite. */
   return (
     <div
-      aria-label={label}
+      aria-label={context ? `${context} : ${label}` : label}
       {...rest}
       className={cx('opale-donut', className)}
       data-label={label}
@@ -3442,6 +3464,7 @@ export function DataTable({
             compact && 'opale-table--compact',
             striped && 'opale-table--striped',
           )}
+          aria-busy={loading || undefined}
         >
           {caption && <caption className="opale-table__caption">{caption}</caption>}
           <thead>
@@ -3481,8 +3504,9 @@ export function DataTable({
             {loading ? (
               <tr>
                 <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
-                  <div className="opale-table__state">
-                    <span className="opale-spinner" aria-hidden="true" />
+                  {/* Masqué aux outils : la région de statut l'annonce déjà. */}
+                  <div className="opale-table__state" aria-hidden="true">
+                    <span className="opale-spinner" />
                     <span>{labels.loading}</span>
                   </div>
                 </td>

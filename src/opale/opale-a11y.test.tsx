@@ -9,12 +9,16 @@ import {
   Checkbox,
   CommandPalette,
   CookieBanner,
+  DataTable,
+  Donut,
   Input,
   Menu,
   MultiSelect,
   Navbar,
   Pagination,
+  ProgressBar,
   Select,
+  Slider,
   Toast,
   Toggle,
 } from './opale';
@@ -255,5 +259,75 @@ describe('Card — niveau du titre', () => {
 
     const heading = screen.getByRole('heading', { level: Number(tag[1]), name: 'Résumé' });
     expect(heading).toHaveClass('opale-card__title');
+  });
+});
+
+describe('Annonces : une fois, et avec leur contexte', () => {
+  it('DataTable n’annonce le chargement qu’une fois, par sa région de statut', () => {
+    render(<DataTable caption="Composants" columns={[{ key: 'name', label: 'Nom' }]} loading />);
+
+    const texts = screen.getAllByText('Chargement des données…');
+    const exposed = texts.filter((node) => !node.closest('[aria-hidden="true"]'));
+    expect(exposed).toEqual([screen.getByRole('status')]);
+    expect(screen.getByRole('table', { name: 'Composants' })).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('DataTable n’est pas occupée hors chargement', () => {
+    render(<DataTable caption="Composants" columns={[{ key: 'name', label: 'Nom' }]} />);
+
+    expect(screen.getByRole('table', { name: 'Composants' })).not.toHaveAttribute('aria-busy');
+  });
+
+  it.each([
+    [140, '100'],
+    [-20, '0'],
+    [Number.NaN, '0'],
+    [42, '42'],
+  ])('ProgressBar borne aria-valuenow (%s → %s)', (value, expected) => {
+    render(<ProgressBar label="Import" value={value} />);
+
+    expect(screen.getByRole('progressbar', { name: 'Import' })).toHaveAttribute(
+      'aria-valuenow',
+      expected,
+    );
+  });
+
+  it('Slider annonce valueText', () => {
+    render(<Slider label="Volume" value={3} max={10} valueText="3 sur 10" readOnly />);
+
+    expect(screen.getByRole('slider', { name: 'Volume' })).toHaveAttribute(
+      'aria-valuetext',
+      '3 sur 10',
+    );
+  });
+
+  it('Slider suit getValueText à chaque déplacement, même non contrôlé', () => {
+    render(
+      <Slider label="Luminosité" defaultValue={20} getValueText={(value) => `${value} pour cent`} />,
+    );
+    const slider = screen.getByRole('slider', { name: 'Luminosité' });
+    expect(slider).toHaveAttribute('aria-valuetext', '20 pour cent');
+
+    fireEvent.change(slider, { target: { value: '65' } });
+
+    expect(slider).toHaveAttribute('aria-valuetext', '65 pour cent');
+  });
+
+  it('Slider sans texte de valeur ne pose pas aria-valuetext', () => {
+    render(<Slider label="Volume" defaultValue={3} />);
+
+    expect(screen.getByRole('slider', { name: 'Volume' })).not.toHaveAttribute('aria-valuetext');
+  });
+
+  it('Donut garde « 60% » par défaut et préfixe son contexte quand il est donné', () => {
+    render(
+      <>
+        <Donut value={60} />
+        <Donut value={72} context="Tâches terminées" />
+      </>,
+    );
+
+    expect(screen.getByRole('img', { name: '60%' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Tâches terminées : 72%' })).toBeInTheDocument();
   });
 });
