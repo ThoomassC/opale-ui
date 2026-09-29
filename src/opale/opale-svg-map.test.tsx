@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { compositeOver, contrastRatio, withAlpha } from '../contract/color';
 import { parseThemes, resolveToken, ruleBodies, stripComments } from '../contract/stylesheet';
 import type { Theme } from '../contract/stylesheet';
-import { useSvgMapViewport } from './components';
+import { Modal, useSvgMapViewport } from './components';
 import opaleSource from './opale.css?raw';
 import { SvgMap, SvgMapControls, type SvgMapRegion } from './opale';
 
@@ -193,6 +193,24 @@ describe('SvgMap', () => {
       expect(screen.getByText('Alpha')).toBeInTheDocument();
       fireEvent.keyDown(alpha, { key: 'Escape' });
       expect(screen.queryByText('Alpha')).not.toBeInTheDocument();
+    });
+
+    it('garde Échap pour l’infobulle, sans fermer la modale qui la contient', () => {
+      const onOpenChange = vi.fn();
+      render(
+        <Modal open title="Carte" onOpenChange={onOpenChange}>
+          <SvgMap viewBox="0 0 400 200" regions={REGIONS} selectable />
+        </Modal>,
+      );
+      const alpha = screen.getByRole('button', { name: 'Alpha' });
+      fireEvent.focus(alpha);
+
+      const first = fireEvent.keyDown(alpha, { key: 'Escape' });
+      expect(first).toBe(false);
+      expect(onOpenChange).not.toHaveBeenCalled();
+
+      fireEvent.keyDown(alpha, { key: 'Escape' });
+      expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
     });
 
     it('laisse défiler la page sous une molette nue, et le dit', () => {

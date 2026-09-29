@@ -4050,7 +4050,10 @@ export function SvgMap({
   };
 
   const handleMapKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    /* Échap consommé par l'infobulle : la modale englobante reste ouverte. */
     if (event.key === 'Escape' && tooltipName) {
+      event.preventDefault();
+      event.stopPropagation();
       setTooltipDismissed(true);
       return;
     }
