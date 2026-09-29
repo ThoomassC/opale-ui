@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ruleBodies, stripComments } from './stylesheet';
+import { declaration, declarations } from '../test/css-rules';
 import opaleSource from '../opale/opale.css?raw';
 import searchBarSource from '../opale/components/search-bar/style/SearchBar.module.scss?raw';
 
@@ -12,15 +12,14 @@ import searchBarSource from '../opale/components/search-bar/style/SearchBar.modu
    de 4 px dans tout formulaire en ligne.
    ========================================================================== */
 
-const css = stripComments(opaleSource);
-const rule = (selector: string) => ruleBodies(css, selector).join('\n');
+const rule = (selector: string) => declarations(opaleSource, selector);
 
 describe('les hauteurs des contrôles', () => {
   it('déclarent l’échelle à la racine', () => {
-    const root = ruleBodies(css, ':root').join('\n');
-    expect(root).toMatch(/--opale-control-sm:\s*2\.25rem/);
-    expect(root).toMatch(/--opale-control-md:\s*2\.75rem/);
-    expect(root).toMatch(/--opale-control-lg:\s*3rem/);
+    const root = rule(':root');
+    expect(root.get('--opale-control-sm')).toBe('2.25rem');
+    expect(root.get('--opale-control-md')).toBe('2.75rem');
+    expect(root.get('--opale-control-lg')).toBe('3rem');
   });
 
   it.each([
@@ -33,15 +32,17 @@ describe('les hauteurs des contrôles', () => {
     ['.opale-icon-action-button.opale-button--large', '--opale-icon-action-size', 'lg'],
     ['.opale-pagination button', 'min-block-size', 'md'],
   ])('%s prend sa hauteur dans l’échelle', (selector, property, step) => {
-    expect(rule(selector)).toMatch(new RegExp(`${property}:\\s*var\\(--opale-control-${step}\\)`));
+    expect(rule(selector).get(property)).toBe(`var(--opale-control-${step})`);
   });
 
   it('mesure la coquille du champ bordure comprise', () => {
-    expect(rule('.opale-input-shell')).toMatch(/box-sizing:\s*border-box/);
-    expect(rule('.opale-input')).toMatch(/align-self:\s*stretch/);
+    expect(rule('.opale-input-shell').get('box-sizing')).toBe('border-box');
+    expect(rule('.opale-input').get('align-self')).toBe('stretch');
   });
 
   it('aligne SearchBar sur la même échelle', () => {
-    expect(stripComments(searchBarSource)).toMatch(/min-height:\s*var\(--opale-control-md\)/);
+    expect(declaration(searchBarSource, '.searchBar', 'min-height')).toBe(
+      'var(--opale-control-md)',
+    );
   });
 });

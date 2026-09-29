@@ -7,6 +7,7 @@ import opaleSheet from './opale.css?raw';
 import { compositeOver, contrastRatio, withAlpha } from '../contract/color';
 import { parseThemes, resolveToken } from '../contract/stylesheet';
 import type { Theme } from '../contract/stylesheet';
+import { declarations } from '../test/css-rules';
 import { Opale } from './index';
 import { CatalogPreview } from '../showcase/pages/catalog-preview';
 
@@ -247,22 +248,14 @@ describe('le ton se voit autrement que par la couleur', () => {
    lisibilité et non un goût.
    ========================================================================== */
 describe('le ton plein', () => {
-  /** La feuille, commentaires retirés — jsdom ne fait pas de mise en page. */
-  const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
-
-  /** Le corps d'une règle, par son sélecteur exact. */
-  function rule(selector: string): string {
-    const debut = sheet.indexOf(`${selector} {`);
-    expect(debut, `règle ${selector} absente`).toBeGreaterThan(-1);
-
-    return sheet.slice(debut, sheet.indexOf('}', debut));
-  }
+  /** Ce que la feuille retient pour un sélecteur exact — jsdom ne fait pas de mise en page. */
+  const rule = (selector: string) => declarations(opaleSheet, selector);
 
   it('devrait peindre la carte avec le remplissage du ton et écrire avec son encre', () => {
     const carte = rule('.opale-toast');
 
-    expect(carte).toMatch(/background:\s*var\(--opale-toast-fill, var\(--opale-surface\)\)/);
-    expect(carte).toMatch(/color:\s*var\(--opale-toast-fill-ink, var\(--opale-text\)\)/);
+    expect(carte.get('background')).toBe('var(--opale-toast-fill, var(--opale-surface))');
+    expect(carte.get('color')).toBe('var(--opale-toast-fill-ink, var(--opale-text))');
   });
 
   /* LE REPLI EST CE QUI TIENT `neutral`. Sans ton, les deux variables ne sont
@@ -289,8 +282,8 @@ describe('le ton plein', () => {
     (tone, token) => {
       const corps = rule(`.opale-toast--${tone}`);
 
-      expect(corps).toMatch(new RegExp(`--opale-toast-fill:\\s*var\\(--opale-fill-${token}\\)`));
-      expect(corps).toMatch(/--opale-toast-fill-ink:\s*var\(--opale-on-fill\)/);
+      expect(corps.get('--opale-toast-fill')).toBe(`var(--opale-fill-${token})`);
+      expect(corps.get('--opale-toast-fill-ink')).toBe('var(--opale-on-fill)');
     },
   );
 
@@ -322,8 +315,8 @@ describe('le ton plein', () => {
      sur du vert, et un anneau de focus bleu sur une carte rouge ne se verrait
      pas : les deux se composent à partir de l'encre de la carte. */
   it('devrait faire hériter la croix de l’encre de la carte', () => {
-    expect(rule('.opale-toast__close')).toMatch(/color:\s*inherit/);
-    expect(rule('.opale-toast__close:focus-visible')).toMatch(/outline:[^;]*currentColor/);
+    expect(rule('.opale-toast__close').get('color')).toBe('inherit');
+    expect(rule('.opale-toast__close:focus-visible').get('outline')).toMatch(/ currentColor$/);
   });
 });
 
@@ -413,9 +406,9 @@ describe('les ancres partagées', () => {
   });
 
   it('devrait empiler les cartes en colonne dans la feuille', () => {
-    const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
-    expect(sheet).toMatch(/\.opale-toast-anchor\s*\{[^}]*flex-direction:\s*column/);
-    expect(sheet).toMatch(/\.opale-toast-anchor\s*\{[^}]*gap:/);
+    const anchor = declarations(opaleSheet, '.opale-toast-anchor');
+    expect(anchor.get('flex-direction')).toBe('column');
+    expect(anchor.get('gap')).toBeDefined();
   });
 
   it('devrait ne rien rendre côté serveur', () => {

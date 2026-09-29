@@ -3,6 +3,7 @@ import { createRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import opaleSheet from './opale.css?raw';
+import { declaration, declarations, ruleBody } from '../test/css-rules';
 import {
   BackgroundSurface,
   Badge,
@@ -218,18 +219,21 @@ describe('les bloquants de l’audit d’accessibilité', () => {
      qu'on y vérifie est l'ABSENCE D'ASYMÉTRIE avec l'interrupteur, qui est
      la forme qu'avait l'oubli. */
   it('marque le focus de la case comme celui de l’interrupteur', () => {
-    const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
+    const caseCochee = declarations(
+      opaleSheet,
+      '.opale-checkbox:focus-visible + .opale-checkbox-mark',
+    );
+    const interrupteur = declarations(
+      opaleSheet,
+      '.opale-toggle:focus-visible + .opale-toggle-track',
+    );
 
-    for (const [control, skin] of [
-      ['opale-checkbox', 'opale-checkbox-mark'],
-      ['opale-toggle', 'opale-toggle-track'],
-    ]) {
-      expect(
-        sheet,
-        `« .${control} » n’allume pas « .${skin} » au focus clavier : son ` +
-          'contrôle natif est invisible, donc l’anneau se dessine sur rien.',
-      ).toMatch(new RegExp(`\\.${control}:focus-visible \\+ \\.${skin}`));
-    }
+    expect(
+      caseCochee.size,
+      '« .opale-checkbox » n’allume pas « .opale-checkbox-mark » au focus clavier : son ' +
+        'contrôle natif est invisible, donc l’anneau se dessine sur rien.',
+    ).toBeGreaterThan(0);
+    expect(caseCochee).toEqual(interrupteur);
   });
 
   /* LES QUATRE DIALOGUES N'EN ÉTAIENT PAS. Aucun n'avait de piège de focus,
@@ -363,8 +367,6 @@ describe('les doublons du catalogue', () => {
    technologie d'assistance PERÇOIT, pas ce que le balisage déclare.
    ========================================================================== */
 describe('les constats sérieux de l’audit', () => {
-  const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
-
   it('affiche une loupe décorative dans les recherches, sauf si une icône est fournie', () => {
     render(
       <>
@@ -381,10 +383,7 @@ describe('les constats sérieux de l’audit', () => {
 
     for (const name of ['Filtrer les icônes', 'Chercher sous verre']) {
       const shell = screen.getByRole('searchbox', { name }).closest('[role="search"]');
-      expect(shell?.querySelector('svg')).toHaveAttribute(
-        'aria-hidden',
-        'true',
-      );
+      expect(shell?.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     }
 
     const customShell = screen
@@ -399,7 +398,9 @@ describe('les constats sérieux de l’audit', () => {
 
   it('conserve le nom, la référence et l’erreur quand Input rend SearchBar', () => {
     const ref = createRef<HTMLInputElement>();
-    render(<Input ref={ref} label="Rechercher des pages" type="search" error="Recherche invalide" />);
+    render(
+      <Input ref={ref} label="Rechercher des pages" type="search" error="Recherche invalide" />,
+    );
 
     const input = screen.getByRole('searchbox', { name: 'Rechercher des pages' });
     expect(ref.current).toBe(input);
@@ -520,24 +521,17 @@ describe('les constats sérieux de l’audit', () => {
     /* LA RÈGLE PROPRE, ET NON CELLE PARTAGÉE AVEC `:hover`. Le sélecteur
        apparaît dans les deux ; ne lire que le premier bloc venu reviendrait à
        interroger précisément la règle qu'on reproche. */
-    const rule =
-      [...sheet.matchAll(/([^{}]+)\{([^}]*)\}/g)]
-        .filter((match) =>
-          match[1]
-            .split(',')
-            .map((one) => one.trim())
-            .includes('\u002e' + "opale-nav__item[aria-current='page']"),
-        )
-        .map((match) => match[2])
-        .join('\n') ?? '';
+    const courante = declarations(opaleSheet, ".opale-nav__item[aria-current='page']");
 
-    expect(rule, 'Aucune règle propre à la page courante.').not.toBe('');
     expect(
-      rule,
+      courante.get('font-weight'),
       'Fond et couleur sont partagés avec `:hover` : il faut une marque qui ' +
         'survive aux niveaux de gris.',
-    ).toMatch(/font-weight/);
-    expect(sheet).toMatch(/\.opale-nav__item\[aria-current='page'\]::before/);
+    ).toBeDefined();
+    expect(
+      ruleBody(opaleSheet, ".opale-nav__item[aria-current='page']::before"),
+      'La marque de la page courante a disparu.',
+    ).not.toBeNull();
   });
 
   /* RAMENER LA SEULE DURÉE À 0,01 ms N'ARRÊTE PAS UNE ANIMATION `infinite` :
@@ -546,18 +540,18 @@ describe('les constats sérieux de l’audit', () => {
   it('borne aussi les animations en boucle quand on demande moins de mouvement', () => {
     /* LA FEUILLE EN COMPTE PLUSIEURS — le curseur a le sien. On retient celui
        qui borne les animations, puisque c'est de lui qu'il s'agit. */
-    const bloc =
-      [...sheet.matchAll(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/g)]
-        .map((match) => match[1])
-        .find((body) => /animation-duration/.test(body)) ?? '';
+    const filet = declarations(opaleSheet, '*', {
+      within: '@media (prefers-reduced-motion: reduce)',
+    });
 
-    expect(bloc, 'Le filet anti-mouvement est introuvable.').not.toBe('');
-    expect(bloc).toMatch(/animation-duration:\s*0\.01ms/);
+    expect(filet.get('animation-duration'), 'Le filet anti-mouvement est introuvable.').toBe(
+      '0.01ms !important',
+    );
     expect(
-      bloc,
+      filet.get('animation-iteration-count'),
       'Sans plafond d’itérations, une animation `infinite` se rejoue une fois ' +
         'par centième de milliseconde au lieu de s’arrêter.',
-    ).toMatch(/animation-iteration-count:\s*1/);
+    ).toBe('1 !important');
   });
 });
 
@@ -639,25 +633,19 @@ describe('le nom des champs ne contient que leur libellé', () => {
   it('dessine le focus de la zone de dépôt sur la zone', () => {
     render(<Dropzone />);
 
-    const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
-
     expect(
-      sheet,
+      declaration(opaleSheet, '.opale-dropzone:focus-within', 'outline'),
       'Le champ est masqué par découpage : son anneau est rogné. Sans règle ' +
         'sur la zone, tabuler dedans ne change pas un pixel (WCAG 2.4.7).',
-    ).toMatch(/\.opale-dropzone:focus-within\s*\{[^}]*outline:/);
+    ).toMatch(/^var\(--opale-focus-ring-width\) solid /);
   });
 
   it('souligne les liens du fil d’Ariane', () => {
-    const sheet = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
-    const rule = /\.opale-breadcrumb a\s*\{([^}]*)\}/.exec(sheet)?.[1] ?? '';
-
-    expect(rule, 'La règle des liens du fil est introuvable.').not.toBe('');
     expect(
-      rule,
+      declaration(opaleSheet, '.opale-breadcrumb a', 'text-decoration'),
       'Contre le gris qui l’entoure, le primaire ne donne que 1,08:1 : sans ' +
         'soulignement, rien ne dit qu’un maillon est cliquable (WCAG 1.4.1).',
-    ).toMatch(/text-decoration:\s*underline/);
+    ).toBe('underline');
   });
 });
 
@@ -761,7 +749,9 @@ describe('Rating — le remplissage au quart', () => {
   it('devrait couper net, par deux arrêts de dégradé au même décalage', () => {
     const { container } = render(<Rating value={3.75} max={5} />);
 
-    const arrets = [...container.querySelectorAll('.opale-rating__star')[3].querySelectorAll('stop')];
+    const arrets = [
+      ...container.querySelectorAll('.opale-rating__star')[3].querySelectorAll('stop'),
+    ];
 
     expect(arrets).toHaveLength(2);
     expect(arrets[0].getAttribute('offset')).toBe('66.40%');
@@ -874,7 +864,11 @@ describe('ConfirmDialog — la description', () => {
   });
 
   it('devrait garder son titre comme nom accessible', () => {
-    render(<ConfirmDialog open title="Supprimer le fichier ?">Irréversible.</ConfirmDialog>);
+    render(
+      <ConfirmDialog open title="Supprimer le fichier ?">
+        Irréversible.
+      </ConfirmDialog>,
+    );
 
     expect(screen.getByRole('dialog', { name: 'Supprimer le fichier ?' })).toBeInTheDocument();
   });
