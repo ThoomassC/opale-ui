@@ -1,4 +1,4 @@
-import { useId, type ComponentPropsWithRef } from 'react';
+import { useId, useLayoutEffect, useRef, type ComponentPropsWithRef } from 'react';
 
 import { IconGlyph } from './components/icon';
 import { resolveLabels } from './shared/labels';
@@ -99,6 +99,21 @@ export function Pagination({
     setRequested(next);
     onChange?.(next);
   };
+  const stepRef = useRef<HTMLButtonElement | null>(null);
+  /* UNE FLÈCHE QUI DEVIENT INACTIVE SOUS LE FOCUS le rendrait à `<body>` :
+     il passe alors au bouton de la page courante. */
+  useLayoutEffect(() => {
+    const step = stepRef.current;
+    stepRef.current = null;
+    if (!step?.disabled) return;
+    const active = document.activeElement;
+    if (active !== step && active !== document.body && active !== null) return;
+    step.parentElement?.querySelector<HTMLButtonElement>('button[aria-current="page"]')?.focus();
+  });
+  const stepTo = (button: HTMLButtonElement, next: number) => {
+    stepRef.current = button;
+    choose(next);
+  };
   const total = Number.isFinite(pageCount) ? Math.max(0, Math.floor(pageCount)) : 0;
   const current = Number.isFinite(requested)
     ? Math.max(1, Math.min(total || 1, Math.floor(requested)))
@@ -115,7 +130,7 @@ export function Pagination({
       <button
         type="button"
         disabled={disabled || current <= 1}
-        onClick={() => choose(current - 1)}
+        onClick={(event) => stepTo(event.currentTarget, current - 1)}
         aria-label={labels.previous}
       >
         ‹
@@ -150,7 +165,7 @@ export function Pagination({
       <button
         type="button"
         disabled={disabled || total === 0 || current >= total}
-        onClick={() => choose(current + 1)}
+        onClick={(event) => stepTo(event.currentTarget, current + 1)}
         aria-label={labels.next}
       >
         ›
