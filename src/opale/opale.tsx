@@ -3760,6 +3760,7 @@ export function Dropzone({
   const [error, setError] = useState('');
   const depth = useRef(0);
   const labels = resolveLabels(DEFAULT_DROPZONE_LABELS, labelsProp);
+  const errorId = useId();
 
   const receive = (files: FileList) => {
     if (disabled || files.length === 0) return;
@@ -3807,33 +3808,38 @@ export function Dropzone({
     },
   };
 
+  /* L'ERREUR VIT HORS DU `<label>` : dedans, elle entrait dans le nom du champ.
+     Elle le décrit, et sa région reste montée pour être annoncée. */
   return (
-    <Zone
-      {...rest}
-      {...zoneProps}
-      {...dragHandlers}
-      className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass', className)}
-      data-dragging={dragging ? 'true' : undefined}
-      data-disabled={disabled ? 'true' : undefined}
-    >
-      <input
-        type="file"
-        className="opale-visually-hidden"
-        multiple
-        accept={accept}
-        disabled={disabled}
-        aria-invalid={error ? true : undefined}
-        onChange={(event) => {
-          if (event.currentTarget.files) receive(event.currentTarget.files);
-          event.currentTarget.value = '';
-        }}
-      />
-      <strong>{children === undefined ? labels.prompt : children}</strong>
-      <span className="opale-dropzone__action">{disabled ? labels.disabled : labels.select}</span>
-      <span className="opale-dropzone__error" role="alert">
+    <>
+      <Zone
+        {...rest}
+        {...zoneProps}
+        {...dragHandlers}
+        className={cx('opale-dropzone', liquidGlass && 'opale-dropzone--glass', className)}
+        data-dragging={dragging ? 'true' : undefined}
+        data-disabled={disabled ? 'true' : undefined}
+      >
+        <input
+          type="file"
+          className="opale-visually-hidden"
+          multiple
+          accept={accept}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          onChange={(event) => {
+            if (event.currentTarget.files) receive(event.currentTarget.files);
+            event.currentTarget.value = '';
+          }}
+        />
+        <strong>{children === undefined ? labels.prompt : children}</strong>
+        <span className="opale-dropzone__action">{disabled ? labels.disabled : labels.select}</span>
+      </Zone>
+      <span id={errorId} className="opale-dropzone__error" role="alert">
         {error}
       </span>
-    </Zone>
+    </>
   );
 }
 
