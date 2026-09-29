@@ -491,12 +491,13 @@
 
 .skipLink:focus {
   position: fixed;
-  z-index: 100;
-  top: 0.5rem;
-  left: 0.5rem;
+  /* Au-dessus de l'en-tête collant, comme tout ce qui doit se voir au clavier. */
+  z-index: var(--opale-z-toast);
+  top: var(--opale-space-xs);
+  left: var(--opale-space-xs);
   border: 2px solid var(--opale-focus);
   border-radius: var(--opale-radius-sm);
-  padding: 0.65rem 1rem;
+  padding: var(--opale-space-sm) var(--opale-space-md);
   background: var(--opale-surface);
   color: var(--opale-text);
   box-shadow: var(--opale-shadow-2);
