@@ -148,7 +148,7 @@
   --liquid-bubble-ink: var(--site-nav-ink);
   --liquid-bubble-edge: color-mix(in srgb, var(--site-nav-ink) 58%, transparent);
   --liquid-bubble-highlight: var(--site-nav-ink);
-  --liquid-bubble-shadow-ink: rgba(15, 23, 42, 0.3);
+  --liquid-bubble-shadow-ink: color-mix(in srgb, var(--opale-glass-deep) 30%, transparent);
   z-index: 0;
   transform-origin: center;
   pointer-events: none;

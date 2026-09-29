@@ -5,7 +5,7 @@
   --liquid-bubble-ink: var(--opale-primary-on-surface);
   --liquid-bubble-edge: color-mix(in srgb, var(--opale-glass-ink) 42%, transparent);
   --liquid-bubble-highlight: var(--opale-glass-ink);
-  --liquid-bubble-shadow-ink: rgba(15, 23, 42, 0.3);
+  --liquid-bubble-shadow-ink: color-mix(in srgb, var(--opale-glass-deep) 30%, transparent);
 
   box-sizing: border-box;
   border: 1px solid var(--liquid-bubble-edge);

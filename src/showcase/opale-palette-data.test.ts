@@ -83,6 +83,14 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
     'voile de lisibilité sous le matériau — un réglage de contraste, pas une couleur de marque',
   '--opale-scrim':
     'voile des dialogues — une couche translucide posée sur la page, pas une couleur de marque',
+  /* Les teintes fixes du matériau et des encres d'appoint : jamais peintes
+     pleines, elles sont dosées sur place ou posées sur un seul fond. */
+  '--opale-glass-light': 'blanc des reflets du verre — dosé par color-mix, jamais peint plein',
+  '--opale-glass-deep': 'bleu nuit des ombres et lavis du verre — même raison',
+  '--opale-shade':
+    'encre qui assombrit un fond plein au survol — un réglage, pas une couleur de marque',
+  '--opale-on-accent':
+    'encre du bouton ambré — elle n’a de sens que sur --opale-accent, déjà plaqué',
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {

@@ -178,7 +178,7 @@
 }
 
 .searchSuggestion[aria-selected='true'] {
-  color: #fff;
+  color: var(--opale-on-fill);
 }
 
 .searchSuggestion[aria-selected='true']::before {
@@ -199,7 +199,7 @@
 }
 
 .searchSuggestion[aria-selected='true'] .searchSuggestionGroup {
-  color: #e8f8fb;
+  color: var(--opale-on-fill);
 }
 
 .searchNoResults {
