@@ -56,6 +56,13 @@ import { parseViewBox as parseSvgViewBox } from './components/svg-map/viewport';
 import toastMotion from './components/toast/style/Toast.module.css';
 import type { ToastLabels } from './components/toast';
 import { CATALOG, type ShowcaseCatalogEntry } from './catalog';
+import {
+  COOKIE_CONSENT_KEY,
+  notifyConsent,
+  readCookieConsent,
+  subscribeConsent,
+  type CookieConsent,
+} from './catalog/cookie-consent';
 import { Pagination, RatingInput, Skeleton } from './opale-extras';
 import type { OpalePlacement, OpaleSize, OpaleTone } from './shared';
 import { resolveLabels } from './shared/labels';
@@ -63,6 +70,8 @@ import { mergeRefs } from './shared/merge-refs';
 import { useControllableState, useOptionalState } from './shared/use-controllable-state';
 import { useScrollPadding } from './shared/use-scroll-padding';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
+export { COOKIE_CONSENT_KEY, readCookieConsent } from './catalog/cookie-consent';
+export type { CookieConsent } from './catalog/cookie-consent';
 export type {
   PaginationLabels,
   PaginationProps,
@@ -1143,9 +1152,6 @@ export function MultiSelect({
         ))}
       </select>
 
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- la
-          `listbox` EST la commande : c'est le motif ARIA de la sélection
-          multiple, et les `option` en sont les enfants exigés. */}
       {/* LE MATÉRIAU EST CELUI DE TOUT LE MONDE, ENFIN.
 
           Cette liste posait `.opale-liquid`, l'ancienne imitation en lavis
@@ -2692,34 +2698,8 @@ export function Breadcrumb({ items = [], className, ...rest }: BreadcrumbProps) 
    région live n'est pas faite pour porter des boutons. Une `<section>`
    nommée se trouve, elle, dans la liste des régions du lecteur d'écran.
    ========================================================================== */
-export const COOKIE_CONSENT_KEY = 'opale-cookie-consent';
-
 /* Même durée que la sortie « slide-from-bottom » de Toast. */
 const COOKIE_EXIT_MS = 240;
-
-export type CookieConsent = 'accepted' | 'declined';
-
-/** Le choix mémorisé sous `key`, ou `null` s'il n'y en a pas ou que le stockage manque. */
-export function readCookieConsent(key: string | null = COOKIE_CONSENT_KEY): CookieConsent | null {
-  if (!key || typeof window === 'undefined') return null;
-  try {
-    const stored = window.localStorage.getItem(key);
-    return stored === 'accepted' || stored === 'declined' ? stored : null;
-  } catch {
-    return null;
-  }
-}
-
-const consentListeners = new Set<() => void>();
-
-function subscribeConsent(listener: () => void) {
-  consentListeners.add(listener);
-  window.addEventListener('storage', listener);
-  return () => {
-    consentListeners.delete(listener);
-    window.removeEventListener('storage', listener);
-  };
-}
 
 /** Les textes de `CookieBanner`. */
 export interface CookieBannerLabels {
@@ -2809,7 +2789,7 @@ export function CookieBanner({
       }
     }
     setDecided(choice);
-    consentListeners.forEach((listener) => listener());
+    notifyConsent();
     onOpenChange?.(false);
     (choice === 'accepted' ? onAccept : onDecline)?.();
   };

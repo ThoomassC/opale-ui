@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -17,6 +15,7 @@ import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
 import { useScrollPadding } from '../../shared/use-scroll-padding';
+import { ToastContext, type ToastContextValue } from './toast-context';
 
 import styles from './style/Toast.module.css';
 
@@ -165,19 +164,6 @@ export type ToastProviderProps = PropsWithChildren<{
   labels?: Partial<ToastLabels>;
 }>;
 
-type ToastContextValue = {
-  showToast: (toast: ToastDefinition) => string;
-  dismissToast: (id: string) => void;
-  clearToasts: () => void;
-  defaults: {
-    duration: number;
-    animation: ToastAnimation;
-    position: ToastPosition;
-    enableLiquidAnimation: boolean;
-    liquidGlass: boolean;
-  };
-};
-
 /* L'ordre de cette liste est l'ordre du DOM des six piles. Il n'a pas
    d'incidence visuelle — chaque pile est positionnée en absolu — mais il fixe
    l'ordre dans lequel un lecteur d'écran parcourt les régions en mode lecture,
@@ -237,8 +223,6 @@ const NEWEST_FIRST: Record<ToastPosition, boolean> = {
   'bottom-left': false,
   'bottom-center': false,
 };
-
-const ToastContext = createContext<ToastContextValue | null>(null);
 
 const cx = (...values: readonly (string | false | null | undefined)[]) =>
   values.filter(Boolean).join(' ');
@@ -422,15 +406,6 @@ function ToastStack({
   );
 }
 
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  /* Le message est en anglais et au mot près celui de l'origine : la page de
-     vitrine le cite entre guillemets, et un appelant a pu l'écrire dans un
-     test à lui. C'est une erreur de développement, pas un texte d'interface —
-     elle n'a donc pas à suivre la langue du produit. */
-  if (!context) throw new Error('useToast must be used within ToastProvider');
-  return context;
-};
 
 /** La durée d'un toast dont ni l'appel ni le fournisseur ne fixent la durée. */
 const DEFAULT_DURATION_MS = 4000;

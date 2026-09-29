@@ -3,6 +3,7 @@
 import type { ComponentPropsWithRef, MouseEvent, ReactNode } from 'react';
 import { NavBubble } from './nav-bubble';
 import Glass from '../glass/Glass';
+import { DEFAULT_SITE_NAV_ITEMS } from './default-items';
 
 import styles from './site-nav.module.css';
 
@@ -14,17 +15,6 @@ export type SiteNavItem = {
   /** Visible label for the destination. */
   readonly label: ReactNode;
 };
-
-/**
- * Default destinations for the compact site navigation.
- * @deprecated Depuis 3.6 — utilisez `items`.
- */
-export const DEFAULT_SITE_NAV_ITEMS: readonly SiteNavItem[] = [
-  { id: 'map', href: '/', label: 'Carte' },
-  { id: 'countries', href: '/countries', label: 'Pays' },
-  { id: 'cities', href: '/cities', label: 'Villes' },
-  { id: 'about', href: '/about', label: 'À propos' },
-];
 
 export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
   /** Optional brand lock-up supplied by the consuming application. */

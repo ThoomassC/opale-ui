@@ -50,7 +50,7 @@
     "build:css": "rm -rf dist/tokens && mkdir -p dist/tokens && cp src/tokens/*.css dist/tokens/",
     "build:opale": "rm -rf dist/opale && tsc -p tsconfig.opale.json && vite build --config vite.lib.config.ts && mkdir -p dist/opale/fonts && cp src/opale/fonts.css dist/opale/fonts.css && cp src/opale/fonts/* dist/opale/fonts/ && node scripts/link-fonts.mjs",
     "prepare": "npm run build:lib",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 2",
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",

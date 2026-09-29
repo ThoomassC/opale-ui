@@ -17,6 +17,7 @@ import type { CSSProperties } from 'react';
 import type { DocPage } from '../doc-model';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
+import { LiquidGlassFilter } from './liquid-glass-filter';
 import { StageCell, Stage } from './composants/stage';
 
 const LANDSCAPE_GROUND =
@@ -33,30 +34,6 @@ const SQUIRE_CIRCLE_STYLE = {
   height: 'var(--target-min)',
   borderRadius: '0.75rem',
 } as CSSProperties;
-
-function LiquidGlassFilter() {
-  return (
-    <svg className="tc-doc-liquid-filter" aria-hidden="true">
-      <filter id="tc-doc-liquid-modal-dist" x="-20%" y="-20%" width="140%" height="140%">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.025 0.018"
-          numOctaves="2"
-          seed="18"
-          result="liquidNoise"
-        />
-        <feGaussianBlur in="liquidNoise" stdDeviation="0.7" result="softNoise" />
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="softNoise"
-          scale="12"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
-    </svg>
-  );
-}
 
 const USAGE = `import { Button, Card } from '@thomascaron/opale-ui';
 

@@ -1,5 +1,7 @@
 import { Suspense, use, type ComponentType, type ReactNode } from 'react';
 
+import { PageLoading } from './page-loading';
+
 /* =============================================================================
    LES PAGES SE CHARGENT À LA DEMANDE.
 
@@ -27,14 +29,6 @@ import { Suspense, use, type ComponentType, type ReactNode } from 'react';
    ========================================================================== */
 
 const PRELOADERS: (() => Promise<unknown>)[] = [];
-
-function PageLoading() {
-  return (
-    <div className="tc-doc-page-loading" aria-busy="true">
-      <span className="opale-visually-hidden">Chargement de la page</span>
-    </div>
-  );
-}
 
 export function lazyPage<P extends object>(
   loader: () => Promise<ComponentType<P>>,
