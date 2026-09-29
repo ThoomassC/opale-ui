@@ -267,6 +267,10 @@
      déplacement qui fait le verre, pas le dépoli. */
   --opale-glass-backdrop-blur: 0.75px;
   --opale-glass-saturate: 1.08;
+  /* Le verre DÉPOLI : la bulle de SiteNav ne réfracte pas, elle floute franchement
+     ce qui passe dessous pour rester lisible sur une photographie. */
+  --opale-glass-frost-blur: 12px;
+  --opale-glass-frost-saturate: 1.45;
   /* Déprécié depuis 3.7 : aucun composant ne le lit. Le flou du matériau est
      `--opale-glass-backdrop-blur`. Conservé pour les feuilles qui le lisent. */
   --opale-glass-blur: 18px;
