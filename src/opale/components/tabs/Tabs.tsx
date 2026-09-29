@@ -97,7 +97,7 @@ import styles from './style/Tabs.module.css';
      pour ce code-là : il s'en va avec lui.
 
    L'INDICATEUR QUI GLISSE — la mécanique est celle de `SegmentedControl` dans
-   `opale.tsx`, et elle est reprise plutôt que réinventée. Trois points pesés :
+   `src/opale/catalog/forms.tsx`, reprise plutôt que réinventée. Trois points pesés :
 
      1. `translate3d` ET `width`/`height`, PLUTÔT QU'UN AXE CHOISI SELON
         L'ORIENTATION. Poser les quatre grandeurs rend le code indifférent à

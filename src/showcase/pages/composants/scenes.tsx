@@ -7,57 +7,21 @@ import type { OpaleIconName, OpaleSize, ToastDefinition } from '../../../opale';
 
 import { MaterialSwitch, PlainStage } from './material-switch';
 
-/* =============================================================================
-   LES SCÈNES QUI ONT UN ÉTAT.
+/* Les scènes jouables, en composants : un hook ne peut pas vivre dans
+   `page.render()`, et un fichier de page n'exporte que son `DocPage`
+   (`react-refresh/only-export-components`). Une scène figée reste en JSX dans
+   sa page. `Tabs` et `Sidebar` sont montrés ici en mode contrôlé ; `Modal` et
+   `Toast` exigent un état ou un fournisseur. */
 
-   POURQUOI CE FICHIER EXISTE, ET NON UN COMPOSANT PAR PAGE. Deux raisons, dans
-   cet ordre.
-
-   1. UN HOOK NE PEUT PAS VIVRE DANS `render()`. Le registre appelle
-      `page.render()` depuis un composant de la coquille (`PageContent` dans
-      `doc-shell.tsx`) : un `useState` écrit là serait un état DE LA COQUILLE,
-      remis à zéro à chaque navigation et partagé avec les autres pages. Un
-      composant est donc obligatoire dès qu'une scène est jouable.
-
-   2. UN COMPOSANT DÉCLARÉ DANS UN FICHIER DE PAGE FAIT ROUGIR LE LINTER.
-      `react-refresh/only-export-components` refuse un fichier qui déclare des
-      composants et n'exporte qu'un objet — ce qu'est exactement un fichier de
-      page, dont l'unique export est son `DocPage`. Mesuré : treize
-      avertissements avant ce fichier, zéro après.
-
-   NE VIENNENT ICI QUE LES SCÈNES RÉELLEMENT JOUABLES. Une scène figée — les
-   deux apparences d'un contrôle désactivé, par exemple — reste du JSX écrit
-   dans sa page : elle n'a pas d'état, donc elle n'a pas besoin d'être un
-   composant, et la garder sur place la garde lisible à côté de sa prose.
-
-   IL Y EN AVAIT HUIT, IL EN RESTE CINQ, ET LES TROIS PARTIES N'ONT PAS ÉTÉ
-   PERDUES. `CheckboxSizeScene`, `SelectSizeScene`, `SwitchSizeScene`,
-   `SliderSizeScene` et `SliderStepScene` mettaient en scène des composants
-   d’origine dont la page a fusionné avec celle du jumeau Opale : plus aucune
-   page ne les appelait, et une scène qu'aucune page ne joue n'est pas une
-   réserve, c'est du code mort qui continue d'importer sa dépendance. Ce que
-   ces composants montrent se voit désormais sur `composants/opale-checkbox`,
-   `opale-select`, `opale-toggle` et `opale-slider`, verre compris.
-
-   LES CINQ QUI RESTENT N'ONT PAS DE JUMEAU OPALE. `Modal` est toujours
-   contrôlé et `Toast` exige un fournisseur ; `Tabs` et `Sidebar` savent se
-   piloter seuls — leurs scènes contrôlées sont ici pour MONTRER l'autre mode,
-   pas parce qu'il le faut.
-   ========================================================================== */
-
-/* L'ICÔNE D'UNE ENTRÉE DU RAIL, prise dans le jeu d'Opale par sa prop
-   publique, comme l'écrirait un consommateur. La classe retire le gabarit de
-   2,5 rem et l'encre primaire que `Opale.Icon` pose seul : dans le rail,
-   l'icône suit la taille et l'encre de l'entrée qui la porte. */
+/* L'icône d'une entrée du rail, par la prop publique de `Opale.Icon` ; la
+   classe lui fait suivre la taille et l'encre de l'entrée. */
 function SceneGlyph({ name }: { name: OpaleIconName }) {
   return <Opale.Icon name={name} className="tc-doc-sidebar-glyph" />;
 }
 
 /** La barre latérale pliable, contrôlée pour que son état soit affiché. */
-/* L'ÉTAT VIT AU-DESSUS DU COMMUTATEUR DE MATÉRIAU, et c'est ce qui le garde.
-   Passer en verre remonte le rail dans une autre scène : un état tenu par le
-   rail repartirait de zéro à chaque bascule, et l'on comparerait deux
-   matériaux sur deux états différents. */
+/* L'état vit au-dessus du commutateur de matériau : les deux matériaux se
+   comparent sur le même état. */
 export function SidebarCollapsibleScene() {
   const [collapsed, setCollapsed] = useState(false);
   const [active, setActive] = useState('etapes');
@@ -156,12 +120,8 @@ export interface ModalSceneProps {
 }
 
 /**
- * Un déclencheur, et son modal.
- *
- * LE MODAL SE PORTAILLE DANS `document.body`, DONC HORS DE LA SCÈNE. Il ne se
- * peint pas sur le dégradé de la page mais par-dessus la vitrine entière :
- * c'est son propre voile qui lui fait un fond sombre. C'est le seul composant
- * de ces pages dont la lisibilité ne dépende pas de la mise en scène.
+ * Un déclencheur, et son modal. Le modal se portaille dans `document.body` et
+ * porte son propre voile : sa lisibilité ne dépend pas de la scène.
  */
 export function ModalScene({
   size,
@@ -205,13 +165,8 @@ export function ModalScene({
 }
 
 /**
- * Un bouton qui empile un toast.
- *
- * IL DOIT ÊTRE UN COMPOSANT SÉPARÉ DU FOURNISSEUR, et ce n'est pas un choix de
- * style : `useToast` lit un contexte, donc il ne peut pas être appelé dans le
- * composant qui rend le `ToastProvider` — un fournisseur ne se consomme pas
- * lui-même. C'est la contrainte de montage que la page décrit, rendue
- * exécutable ici.
+ * Un bouton qui empile un toast, séparé du fournisseur : `useToast` lit le
+ * contexte que `ToastProvider` fournit à ses descendants.
  */
 function ToastTrigger({
   label,

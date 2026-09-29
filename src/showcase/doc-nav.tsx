@@ -74,39 +74,13 @@ const INITIAL_SCROLLBAR_STATE: ScrollbarState = {
 
 /**
  * La barre de navigation du site de documentation, bâtie avec le `Sidebar` de
- * la librairie.
+ * la librairie (`Sidebar`, `.Header`, `.Items`).
  *
- * =============================================================================
- * CE QUI A CHANGÉ, ET CE QUI N'A PAS BOUGÉ
- *
- * La colonne était du HTML natif habillé par `doc.css`. Elle est désormais un
- * `Sidebar` — `Sidebar`, `.Header` et `.Items` — parce que la vitrine doit
- * manger sa propre cuisine. Le rail reste une navigation statique, toujours
- * visible, et le ancien composant en verre conserve la surface qu'il sait rendre.
- *
- * `Sidebar.Item` N'EST PAS EMPLOYÉ, ET C'EST LA SEULE PIÈCE NON ADOPTÉE.
- * Il est câblé sur `<button>` — `ComponentPropsWithoutRef<"button">`,
- * `forwardRef<HTMLButtonElement>`, aucune prop `as`. Les entrées
- * du sommaire sont des ADRESSES : les rendre en boutons retirerait le clic
- * milieu, le « copier le lien », l'ouverture dans un onglet, et ferait annoncer
- * « bouton » là où un lecteur d'écran doit dire « lien ». `Sidebar.Items` est un
- * `<nav>` nu qui rend ses enfants : les vrais `<a href>` y vivent, et `doc.css`
- * les accorde au reste. Corriger `Sidebar.Item` demanderait de toucher du code
- * d’origine, ce qui n'est pas une décision de ce fichier.
- *
- * AUCUN TITRE DE SECTION ICI, ET C'EST DÉLIBÉRÉ. La nav précède le contenu
- * dans le DOM ; un `<h2>` par groupe placerait plusieurs titres de niveau 2 avant
- * le `<h1>` de la page, c'est-à-dire un plan de document inversé pour qui
- * navigue par titres. Les libellés de groupe sont donc des boutons —
- * ni `<h2>` ni `<h3>` —, et chaque liste est nommée par `aria-labelledby`.
- *
- * Chaque groupe se plie avec un bouton natif. Sa liste reste montée mais
- * masquée quand elle est fermée ; le lien courant rouvre son groupe à la
- * navigation, sans effacer les choix faits sur les autres groupes.
- *
- * Les libellés sont nommés par `aria-labelledby` afin que chaque liste
- * reste clairement associée à sa famille sans introduire de titre hiérarchique.
- * ==========================================================================
+ * Les entrées sont des `<a href>` dans `Sidebar.Items`, et non des
+ * `Sidebar.Item`, qui rendent des `<button>` : une adresse doit rester un lien.
+ * Pas de titre de section : la nav précède le `<h1>` dans le DOM. Chaque groupe
+ * se plie par un bouton natif, sa liste reste montée et nommée par
+ * `aria-labelledby` ; le lien courant rouvre son groupe à la navigation.
  */
 export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavProps) {
   const sections = navSectionsForPages(pages);
@@ -388,12 +362,9 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
   };
 
   return (
-    /* L'ENVELOPPE EST À MOI, POUR LA MÊME RAISON QUE CELLE DE LA BARRE DU
-       HAUT : `Sidebar` rend son `<aside>` dans un `Glass`, dont l'enveloppe
-       est un contexte d'empilement et dont la largeur est `fit-content`. Le
-       collant, la piste de grille et le sol opaque vivent donc dehors. Elle
-       porte la surface visible, tandis que le rail statique porte l'état du
-       sommaire, tandis que les groupes ont chacun leur commande de pliage. */
+    /* `Sidebar` rend son `<aside>` dans un `Glass` qui ouvre un contexte
+       d'empilement et prend `fit-content` : le collage, la piste de grille et
+       le sol opaque vivent donc sur cette enveloppe. */
     <div className="tc-doc-nav" data-menu={menuOpen ? 'open' : 'closed'}>
       <button
         type="button"

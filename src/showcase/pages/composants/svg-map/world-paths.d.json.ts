@@ -1,6 +1,5 @@
-/* LES TRACÉS PRÉCALCULÉS DU MONDE, produits par `scripts/world-map.mjs`.
-   Décrits ici plutôt que par `resolveJsonModule`, pour la même raison que
-   `src/showcase/types/world-atlas.d.ts`. */
+/* Les tracés précalculés du monde, produits par `scripts/world-map.mjs`, typés
+   ici (`allowArbitraryExtensions`) plutôt que déduits du JSON. */
 declare const worldPaths: readonly {
   /** Le rang de la forme dans le jeu 50m, Antarctique compris. */
   readonly index: number;

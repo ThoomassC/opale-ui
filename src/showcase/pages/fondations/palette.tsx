@@ -9,10 +9,7 @@ import { PalettePlate } from './palette-plate';
 export default function PaletteContent() {
   return (
     <PageBody>
-      {/* LES TROIS LOIS PARLAIENT DE TEAL ET DE CUIVRE, la marque de la 2.x, alors
-        que le site est peint en saphir depuis la V3. Une page de palette qui
-        nomme une couleur que l'écran ne montre pas est pire qu'une page
-        absente : on y vient pour savoir quoi écrire. */}
+      {/* Les trois lois nomment les couleurs que la vitrine peint. */}
       <ul className="tc-doc-laws">
         <li className="tc-doc-laws__item tc-doc-laws__item--teal">
           <strong>Le saphir est l’encre des actions.</strong> Boutons, liens, onglet courant, entrée
@@ -28,20 +25,15 @@ export default function PaletteContent() {
         </li>
       </ul>
 
-      {/* CE QUE LE SITE REND, EN PREMIER. Les plaques `--opale-*` viennent avant
-        celles de `roles.css` parce que c'est cette palette-là que le lecteur a
-        sous les yeux pendant qu'il lit la page. */}
+      {/* D'abord la palette `--opale-*`, celle que le lecteur a sous les yeux. */}
       <div className="tc-doc-plates">
         {OPALE_PLATES.map((plate) => (
           <PalettePlate plate={plate} key={plate.id} />
         ))}
       </div>
 
-      {/* CE QUE LE PAQUET PUBLIE, ENSUITE — ET CE N'EST PAS UN VESTIGE.
-        `tokens.css` est déclaré dans `exports`, donc ces rôles sont exactement
-        ce qu'installe un consommateur ; 172 tests les tiennent contre la
-        feuille. Les retirer aurait supprimé une information vraie, simplement
-        moins urgente que la précédente. */}
+      {/* Ensuite, ce que publie `tokens.css` : les rôles qu'installe un
+        consommateur, tenus contre la feuille par `palette-data.test.ts`. */}
       <div className="tc-doc-plates">
         {PLATES.map((plate) => (
           <PalettePlate plate={plate} key={plate.id} />

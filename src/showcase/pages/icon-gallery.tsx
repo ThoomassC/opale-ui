@@ -5,13 +5,8 @@ import { ICON_GROUPS, ICON_KEYWORDS, ICON_NAMES, Opale } from '../../opale';
 /* La galerie filtrable de la page « Icônes ». */
 
 /**
- * Le délai avant que le compte filtré ne soit annoncé.
- *
- * LA RÉGION LIVE PARLAIT À CHAQUE FRAPPE : taper « flèche » produisait six
- * annonces polies à la file, que le lecteur d'écran débite l'une après
- * l'autre. Ce qui intéresse, c'est le compte quand la frappe s'arrête. Le
- * texte AFFICHÉ, lui, suit immédiatement — c'est seulement ce qui est ANNONCÉ
- * qui attend.
+ * Le délai avant l'annonce du compte filtré : l'affichage suit la frappe, seule
+ * l'annonce attend qu'elle s'arrête.
  */
 const ANNOUNCE_DELAY_MS = 400;
 
@@ -32,10 +27,7 @@ export function IconGallery() {
     const needle = fold(query.trim());
     if (!needle) return ICON_GROUPS;
 
-    /* LA RECHERCHE PORTE SUR LE NOM *ET* SUR LES MOTS FRANÇAIS. Les noms sont
-       anglais — ce sont des identifiants de code —, mais le champ est lu par
-       quelqu'un qui pense « valise ». Chercher sur les seuls noms rendait le
-       champ inutile pour tout mot que la page elle-même proposait. */
+    /* La recherche porte sur le nom de code et sur les mots français. */
     return ICON_GROUPS.map((group) => ({
       ...group,
       names: group.names.filter(
@@ -68,10 +60,8 @@ export function IconGallery() {
             onChange={(event) => setQuery(event.currentTarget.value)}
           />
         </div>
-        {/* LE COMPTE EST UNE RÉGION LIVE POLIE. Filtrer au clavier ne déplace
-            pas le focus : sans annonce, un lecteur d'écran ne sait pas que la
-            grille a changé sous lui (WCAG 4.1.3). La région est montée AVEC la
-            page et non avec le résultat, sinon l'annonce se perd. */}
+        {/* Le compte est une région live polie, montée avec la page : filtrer
+            ne déplace pas le focus (WCAG 4.1.3). */}
         <p className="tc-doc-icon-filter__count" role="status">
           {announced === 0
             ? 'Aucune icône ne correspond.'

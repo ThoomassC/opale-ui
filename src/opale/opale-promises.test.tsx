@@ -212,18 +212,26 @@ describe('CookieBanner — la mémorisation du choix', () => {
     expect(screen.getByText('Cookies')).toBeInTheDocument();
   });
 
+  /* `src/test/setup.ts` remplace `localStorage` par un objet simple : on
+     espionne cet objet-là, pas `Storage.prototype`. */
   it('devrait fonctionner quand le stockage est inaccessible', async () => {
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('bloqué');
-    });
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('bloqué');
-    });
-    render(<CookieBanner />);
+    const blocked = () => {
+      throw new DOMException('bloqué', 'SecurityError');
+    };
+    const getItem = vi.spyOn(window.localStorage, 'getItem').mockImplementation(blocked);
+    const setItem = vi.spyOn(window.localStorage, 'setItem').mockImplementation(blocked);
+    try {
+      render(<CookieBanner />);
+      expect(screen.getByText('Cookies')).toBeInTheDocument();
+      expect(getItem).toHaveBeenCalledWith(COOKIE_CONSENT_KEY);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Accepter' }));
-    await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
-    vi.restoreAllMocks();
+      fireEvent.click(screen.getByRole('button', { name: 'Accepter' }));
+      expect(setItem).toHaveBeenCalledWith(COOKIE_CONSENT_KEY, 'accepted');
+      await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
+    } finally {
+      getItem.mockRestore();
+      setItem.mockRestore();
+    }
   });
 
   /* Le choix se lit une fois par montage, pas à chaque rendu : le stockage est

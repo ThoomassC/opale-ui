@@ -62,16 +62,8 @@ export interface DocShellProps {
 }
 
 /**
- * Le corps de la page, appelé DEPUIS UN COMPOSANT et non depuis la coquille.
- *
- * Cette indirection d'une ligne est tout ce qui sépare la frontière d'erreur
- * de l'inutilité. `<PageBoundary>{page.render()}</PageBoundary>` paraît juste
- * et ne l'est pas : l'appel est évalué pendant le rendu de la COQUILLE, donc
- * au-dessus de la frontière, qui n'en reçoit que le résultat. Une page dont le
- * corps jette était bien bornée ; une page dont `render()` jette lui-même
- * remontait hors de la coquille et démontait la racine — la page blanche que
- * la frontière existe pour empêcher. Rendu ici, l'appel a lieu SOUS la
- * frontière, et les deux cas sont couverts.
+ * Le corps de la page, rendu par un composant et non par la coquille : ainsi
+ * `page.render()` s'exécute sous `PageBoundary`, qui en borne aussi les erreurs.
  */
 function PageContent({ page }: { page: DocPage }): ReactNode {
   return page.render();
@@ -115,12 +107,8 @@ function HeaderNav({ page, className, ariaLabel, copy }: HeaderNavProps) {
  * C'est ce qui permet d'écrire les pages sans toucher à la coquille, et
  * inversement.
  *
- * UN FRAGMENT INCONNU SERT L'ACCUEIL, sans redirection. Ni `history.replaceState`
- * ni réécriture du `hash` : réécrire l'adresse ferait perdre au visiteur ce
- * qu'il avait tapé ou suivi, et empêcherait le bouton « retour » de revenir en
- * arrière (le fragment corrigé remplacerait l'entrée d'historique d'origine).
- * L'adresse reste donc fausse et la page rendue est l'accueil, qui est
- * navigable — c'est le repli le moins destructeur des trois.
+ * Un fragment inconnu sert l'accueil sans réécrire l'adresse : le visiteur
+ * garde ce qu'il a suivi et le bouton « retour » reste utile.
  */
 export function DocShell({ pages }: DocShellProps) {
   const slug = useRoute();
@@ -208,13 +196,9 @@ export function DocShell({ pages }: DocShellProps) {
     document.title = `${pageTitle} — ${SITE_NAME}`;
   }, [pageTitle]);
 
-  /* La page rendue lors du dernier passage de cet effet. UNE CHAÎNE ET NON UN
-     BOOLÉEN « déjà monté », et c'est ce qui rend le mode strict inoffensif :
-     React monte, démonte puis remonte le composant en gardant ses `ref`, si
-     bien qu'un drapeau serait déjà à `true` au second montage — la vitrine
-     volerait alors le focus au chargement, exactement ce que ce garde existe
-     pour empêcher. Avec le slug, le second passage voit la même valeur et ne
-     fait rien. */
+  /* Le slug de la dernière page traitée, et non un booléen : le mode strict
+     remonte le composant en gardant ses `ref`, et un drapeau volerait le focus
+     au chargement. */
   const settledSlug = useRef<string | null>(null);
 
   useEffect(() => {
@@ -251,50 +235,11 @@ export function DocShell({ pages }: DocShellProps) {
 
   return (
     <div className="tc-doc" ref={docRef}>
-      {/* =====================================================================
-          LA BARRE DU HAUT EST LE `Topbar` DE LA LIBRAIRIE, ET LE `<div>` QUI
-          L'ENTOURE N'EST PAS DÉCORATIF.
-
-          `Topbar` rend son `<header>` À L'INTÉRIEUR d'un `Glass`, dont
-          l'enveloppe porte depuis peu `z-index: 0` — donc un contexte
-          d'empilement. Une barre collante posée sur le composant serait
-          enfermée à 0 dans son propre contexte, et le `z-index` qui la met
-          au-dessus du contenu ne peut pas vivre là : c'est l'élément qu'on
-          positionne AUTOUR qui doit le porter. `.tc-doc-topbar` est donc le
-          calque collant (`position: sticky; z-index: 2`) et le sol opaque ; le
-          composant est le matériau posé dessus.
-
-          CE `<div>` NE VOLE PAS LE POINT DE REPÈRE. `<header>` prend le rôle
-          `banner` dès qu'il n'est pas dans un `article`, `aside`, `main`,
-          `nav` ou `section` — un `<div>` n'en fait pas partie, donc la barre
-          reste le `banner` du document. Vérifié : `getByRole('banner')` de
-          `doc-shell.test.tsx` continue de la trouver.
-
-          LE SOL OPAQUE EST AUSSI CE QUI REND LE VERRE SÛR. `Glass` floute son
-          arrière-plan (`backdrop-filter: blur(0.75px) saturate(1.08)`) : sur un fond
-          TRANSPARENT, ce serait le contenu de la page qui remonterait sous
-          l'encre de la barre — le défaut exact que `doc.css` mesurait pour
-          refuser le verre sur la barre en 1.x (encre de marque à 2,64:1
-          au-dessus d'une plaque sombre qui défile). Avec un sol opaque, le
-          flou n'échantillonne qu'un aplat : la surface composée est constante,
-          et c'est elle qui est mesurée.
-
-          `elevated={false}`, ET C'EST DÉSORMAIS UN CHOIX D'APPARENCE — ça ne
-          l'a pas toujours été, et la distinction vaut d'être écrite.
-
-          L'ombre d'`elevated` était posée sur le `<header>`, c'est-à-dire À
-          L'INTÉRIEUR de l'enveloppe de verre, qui porte `overflow: hidden` :
-          elle était rognée par son propre parent et ne se voyait pas. La
-          demander revenait à annoncer une élévation que rien ne peignait.
-          `Topbar` a depuis déplacé la largeur et l'ombre SUR L'ENVELOPPE, donc
-          l'ombre se peindrait maintenant.
-
-          On continue de ne pas la vouloir, pour une autre raison : la barre est
-          pleine largeur, à ras du haut de la fenêtre, et son enveloppe porte
-          déjà une arête mesurée (`--doc-shell-edge`, 3,11:1 contre le blanc,
-          plancher WCAG 1.4.11). Une ombre portée en plus doublerait une
-          séparation qui est déjà faite, et le ferait par un moyen non mesuré.
-          ================================================================== */}
+      {/* `.tc-doc-topbar` porte le collage, le `z-index` et un sol opaque :
+          l'enveloppe `Glass` de `Topbar` ouvre son propre contexte
+          d'empilement, et le flou du verre n'échantillonne ainsi qu'un aplat.
+          Un `<div>` laisse au `<header>` son rôle `banner`. `elevated={false}` :
+          l'arête `--doc-shell-edge` sépare déjà la barre du contenu. */}
       <div className="tc-doc-topbar" ref={topbarRef}>
         <Topbar
           className="tc-doc-topbar__bar"
@@ -302,14 +247,9 @@ export function DocShell({ pages }: DocShellProps) {
           size="large"
           elevated={false}
         >
-          {/* `Topbar.Brand` EST EMPLOYÉ, MAIS NI `icon`, NI `title`, NI
-              `subtitle`, et c'est la même raison que pour `Sidebar.Item` :
-              les trois rendent des `<span>`. Or la marque est LE LIEN DE
-              RETOUR À L'ACCUEIL — clic milieu, « copier le lien », ouverture
-              dans un onglet, et une annonce « lien » plutôt que « texte ». Le
-              `<a>` est donc passé en enfants, avec l'icône du favicon dedans pour
-              qu'il fasse partie de la cible ; le composant apporte la boîte
-              (`min-w-0`, l'alignement, la gouttière). */}
+          {/* La marque est le lien de retour à l'accueil : un `<a>` en enfant,
+              favicon compris, plutôt que `icon`/`title`/`subtitle`, qui rendent
+              des `<span>`. */}
           <Topbar.Brand className="tc-doc-topbar__side tc-doc-topbar__brand-container">
             <a className="tc-doc-topbar__brand" href={hrefFor(HOME_SLUG)}>
               <img className="tc-doc-topbar__glyph" src="/favicon.svg" alt="" aria-hidden="true" />
@@ -341,23 +281,15 @@ export function DocShell({ pages }: DocShellProps) {
             </details>
           </Topbar.Section>
 
-          {/* LA RECHERCHE EST LA SECTION ÉLASTIQUE, et `grow` est exactement ce
-              que `doc.css` écrivait à la main : `flex: 1 1 auto` avec un
-              plancher. Elle reste ENTRE la marque et les contrôles — c'est ce
-              qui lui donne la place, la marque se tronquant et la bascule
-              ayant une largeur fixe. Le combobox lui-même n'a pas changé d'une
-              ligne : il est déplacé, pas réécrit. */}
+          {/* La recherche est la section élastique (`grow`), entre la marque
+              et les contrôles. */}
           <Topbar.Section className="tc-doc-topbar__field" grow align="center">
             <DocSearch pages={pages} language={language} />
           </Topbar.Section>
 
-          {/* LE SÉPARATEUR EST DANS LES ACTIONS ET NON ENTRE ELLES ET LE CHAMP,
-              et c'est de la géométrie et non du rangement : les deux pistes
-              latérales sont égales par construction (`flex: 1 1 0`), donc la
-              section du milieu est centrée sur la barre quoi qu'elles portent.
-              Un `Topbar.Divider` posé en FRÈRE ajouterait sa largeur et sa
-              gouttière — 17 px mesurés — d'un seul côté, et le champ cesserait
-              d'être centré. */}
+          {/* Le séparateur appartient aux actions : les pistes latérales sont
+              égales (`flex: 1 1 0`), un `Topbar.Divider` frère décentrerait le
+              champ. */}
           <Topbar.Actions className="tc-doc-topbar__side tc-doc-topbar__actions">
             <ThemeToggle label={copy.darkTheme} />
             <LanguageSelector language={language} label={copy.language} onChange={setLanguage} />

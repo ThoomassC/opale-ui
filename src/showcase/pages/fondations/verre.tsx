@@ -4,40 +4,11 @@ import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
-/* =============================================================================
-   CETTE PAGE A ÉTÉ RÉDUITE, PAS SUPPRIMÉE, ET LA DISTINCTION EST LE SUJET.
-
-   Elle documentait DEUX choses que la 2.0 sépare :
-
-   1. LE THÈME « verre liquide » d'Opale — un porteur `data-material="glass"`
-      sur `<html>`, la feuille `src/styles/glass.css` qui le lit, et sept
-      composants repeints par elle (`Button`, `Field`, `IconTile`, `Input`,
-      `Message`, `Pill`, `Tag`). Tout cela est supprimé : la feuille n'existe
-      plus, les composants non plus, et le porteur n'a plus AUCUN consommateur —
-      vérifié, `data-material` n'apparaît nulle part dans `src/tokens/**`, dans
-      `src/opale/**` ni dans `doc.css`. La bascule « Verre liquide » de la barre
-      du haut a donc été retirée avec le reste : un bouton `aria-pressed` qui
-      n'allume rien est un défaut, pas une commodité.
-
-   2. LES JETONS DU MATÉRIAU — `--glass-fill`, `--glass-blur`, `--glass-border`,
-      `--glass-specular`… Ceux-là SURVIVENT : ils sont déclarés dans
-      `src/tokens/materials.css`, que `tokens.css` importe, donc ils sont
-      toujours publiés par `@thomascaron/opale-ui/tokens.css`. Et ils sont toujours
-      MESURÉS : `src/contract/glass.contract.test.ts` lit `materials.css` et
-      recalcule ses onze sections à chaque exécution de la suite.
-
-   D'OÙ LE RENVERSEMENT DE CETTE PAGE. Elle montrait un matériau appliqué ; elle
-   documente désormais un matériau DISPONIBLE MAIS PLUS APPLIQUÉ. C'est une
-   nuance qu'un lecteur ne peut pas deviner d'une liste de jetons, et c'est
-   pourquoi le premier spécimen la dit avant tout le reste.
-
-   LE SEUL SPÉCIMEN VISUEL EST RECONSTRUIT À LA MAIN, et il est étiqueté comme
-   tel. Aucune feuille publiée ne compose plus ces jetons : les peindre ici
-   demande de réécrire en style en ligne ce que `glass.css` faisait, ce qui est
-   légitime pour une démonstration mais ne doit pas se lire comme une API. Les
-   valeurs employées sont toutes des `var(--glass-*)` — aucune couleur
-   littérale, la règle de `doc.css` vaut aussi pour ce qui est écrit en ligne.
-   ========================================================================== */
+/* Les jetons du matériau (`--glass-*`), déclarés dans `src/tokens/materials.css`,
+   publiés par `tokens.css` et mesurés par `glass.contract.test.ts`. Aucune
+   feuille publiée ne les applique : la page documente un matériau disponible,
+   et son seul spécimen visuel, recomposé en `var(--glass-*)`, est étiqueté
+   comme tel. */
 
 interface MaterialToken {
   readonly token: string;
@@ -157,12 +128,8 @@ const TOKENS: readonly MaterialToken[] = [
 
 const TOKENS_TITLE_ID = 'verre-jetons-title';
 
-/* LA SCÈNE DE DÉMONSTRATION, ÉCRITE EN STYLE EN LIGNE ET ASSUMÉE COMME TELLE.
-   `doc.css` s'interdit toute couleur littérale et ne porte plus de règle de
-   verre ; ces trois objets composent les jetons comme le ferait un
-   consommateur, en `var()` uniquement. Le motif du fond est fait de deux rôles
-   de la charte pour que le flou ait quelque chose à flouter — sans arête
-   derrière lui, un `backdrop-filter` ne se voit pas. */
+/* La scène de démonstration, en style en ligne et en `var()` seulement, comme
+   l'écrirait un consommateur. Le fond rayé donne au flou une arête à flouter. */
 const GROUND: CSSProperties = {
   background: 'repeating-linear-gradient(115deg, var(--accent) 0 18px, var(--surface) 18px 36px)',
   borderRadius: 'var(--radius-lg)',

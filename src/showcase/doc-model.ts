@@ -1,20 +1,10 @@
 import type { ReactNode } from 'react';
 
-/* =============================================================================
-   LE MODÈLE DE LA VITRINE — une page par sujet, une entrée de nav par page.
-
-   La vitrine était UNE page de charte qui déroulait sept sections ; elle est
-   désormais un site de documentation : une barre de navigation à gauche, une
-   page à droite, et une entrée de navigation par composant publié. Le routage
-   passe par le FRAGMENT (`#/composants/button`) et non par l'historique
-   `pushState` : la vitrine est servie en statique depuis `dist-showcase/`, sans
-   serveur capable de réécrire une URL profonde vers `index.html`. Un chemin
-   réel se casserait donc au premier rechargement, et au premier lien partagé.
-
-   Ce fichier ne contient que le MODÈLE — les types, les groupes, la lecture du
-   fragment. Les pages elles-mêmes vivent dans `pages/`, la coquille dans
-   `doc-shell.tsx` : aucun des deux n'a besoin de connaître l'autre.
-   ========================================================================== */
+/* Le modèle de la vitrine : une page par sujet, une entrée de nav par page.
+   Le routage passe par le fragment (`#/composants/button`) : la vitrine est
+   servie en statique, sans réécriture d'URL profonde. Ce fichier ne porte que
+   les types, les groupes et la lecture du fragment ; les pages vivent dans
+   `pages/`, la coquille dans `doc-shell.tsx`. */
 
 /** Les trois familles de la barre de gauche, dans l'ordre où elle les sert. */
 export type DocGroupId = 'introduction' | 'fondations' | 'composants';
