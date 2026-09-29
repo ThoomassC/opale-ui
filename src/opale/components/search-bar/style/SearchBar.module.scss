@@ -92,7 +92,7 @@
 
 .disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
 }
 
 /* Le dessin plein reprend la recherche de la barre d’en-tête : un filet

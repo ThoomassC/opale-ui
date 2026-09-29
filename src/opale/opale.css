@@ -125,6 +125,9 @@
      C'est l'opacité qui détache le dialogue, pas le flou. */
   --opale-scrim: rgb(12 15 13 / 0.62);
   --opale-scrim-blur: 3px;
+  /* Un contrôle désactivé s'efface de moitié, quel qu'il soit. WCAG exempte
+     les composants désactivés du contraste de 1.4.3. */
+  --opale-disabled-opacity: 0.5;
   --opale-radius-sm: 0.75rem;
   --opale-radius-md: 1.375rem;
   --opale-radius-lg: 2.25rem;
@@ -506,7 +509,7 @@
 
 .opale-button:disabled {
   cursor: not-allowed;
-  opacity: 0.52;
+  opacity: var(--opale-disabled-opacity);
 }
 
 .opale-button--primary {
@@ -2739,7 +2742,7 @@
 }
 .opale-svg-map-controls [aria-disabled='true'] {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
 }
 /* L'INFOBULLE DIT LE NOM, et rien d'autre : le nom accessible de la région le
    dit déjà aux lecteurs d'écran, elle est donc cachée de l'arbre. */
@@ -3075,7 +3078,7 @@
   font-style: italic;
 }
 .opale-dropzone[data-disabled='true'] {
-  opacity: 0.55;
+  opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
 .opale-dropzone__error:not(:empty) {
@@ -3132,7 +3135,7 @@
   color: var(--opale-on-fill);
 }
 .opale-pagination button:disabled {
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
 .opale-rating-input {
@@ -3179,7 +3182,7 @@
   pointer-events: none;
 }
 .opale-rating-input:disabled .opale-rating-input__option {
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
 

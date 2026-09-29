@@ -167,7 +167,7 @@
 }
 
 .tabsTrigger:disabled {
-  opacity: 0.45;
+  opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
 
@@ -284,5 +284,5 @@
 .plainTrigger:disabled {
   color: var(--opale-text-secondary);
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: var(--opale-disabled-opacity);
 }
