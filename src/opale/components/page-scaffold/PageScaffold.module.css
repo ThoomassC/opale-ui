@@ -34,7 +34,7 @@
 
 .stickyHeader {
   position: sticky;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   top: 0;
 }
 

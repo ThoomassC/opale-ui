@@ -81,6 +81,8 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
   '--opale-glass-ink-muted': 'texte indicatif sous verre — même raison',
   '--opale-glass-scrim':
     'voile de lisibilité sous le matériau — un réglage de contraste, pas une couleur de marque',
+  '--opale-scrim':
+    'voile des dialogues — une couche translucide posée sur la page, pas une couleur de marque',
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {

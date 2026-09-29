@@ -124,7 +124,7 @@
 
 .languageList {
   position: absolute;
-  z-index: 50;
+  z-index: var(--opale-z-popover);
   inset-block-start: calc(100% + 0.5rem);
   inset-inline-end: 0;
   display: grid;

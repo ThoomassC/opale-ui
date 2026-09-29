@@ -23,7 +23,7 @@
 
 .container {
   position: fixed;
-  z-index: 1000;
+  z-index: var(--opale-z-modal);
   inset: 0;
   display: flex;
   align-items: center;
@@ -37,21 +37,21 @@
    est derrière ». Aucun jeton d'Opale n'est sombre dans les deux — `--opale-
    text` l'est en clair et pâle en sombre, `--opale-background` fait l'inverse.
    Le voile prend donc son propre réglage, `--opale-modal-scrim`, avec pour
-   valeur par défaut le fond sombre d'Opale (`#0c0f0d`, la valeur de
-   `--opale-background` du thème sombre) à 62 %. Un hôte qui veut un autre
-   voile pose la variable sur n'importe quel ancêtre ; c'est la même mécanique
-   que `--opale-glass-radius` chez `Glass`.
+   valeur par défaut le voile commun `--opale-scrim` : le fond sombre d'Opale
+   (`#0c0f0d`, la valeur de `--opale-background` du thème sombre) à 62 %. Un
+   hôte qui veut un autre voile pose la variable sur n'importe quel ancêtre ;
+   c'est la même mécanique que `--opale-glass-radius` chez `Glass`.
 
-   LE FLOU EST FAIBLE À DESSEIN — 3 px, pas 10. Mesuré sur la version amont :
+   LE FLOU EST FAIBLE À DESSEIN — 3 px (`--opale-scrim-blur`), pas 10. Mesuré sur la version amont :
    à 10 px la page derrière devenait une bouillie sans que la modale s'en
    détache davantage, le flou emportant justement les arêtes qui servaient de
    repère. C'est l'OPACITÉ qui sépare, pas le flou. */
 .overlay {
   position: absolute;
   inset: 0;
-  background: var(--opale-modal-scrim, rgb(12 15 13 / 0.62));
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: var(--opale-modal-scrim, var(--opale-scrim));
+  backdrop-filter: blur(var(--opale-scrim-blur));
+  -webkit-backdrop-filter: blur(var(--opale-scrim-blur));
   animation: opale-modal-veil var(--opale-motion) var(--opale-ease) both;
 }
 

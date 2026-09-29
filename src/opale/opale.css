@@ -113,6 +113,18 @@
      suit la matière (bleu de focus, encre du verre, `currentColor`). */
   --opale-focus-ring-width: 3px;
   --opale-focus-ring-offset: 3px;
+  /* Une seule échelle d'empilement pour les plans globaux, du plus bas au plus
+     haut : barre collante, liste déroulante, bandeau, dialogue, message. Un
+     message reste lisible au-dessus d'un dialogue ouvert. */
+  --opale-z-sticky: 20;
+  --opale-z-popover: 50;
+  --opale-z-overlay: 900;
+  --opale-z-modal: 1000;
+  --opale-z-toast: 1100;
+  /* Le voile des dialogues : sombre dans les deux thèmes, légèrement flouté.
+     C'est l'opacité qui détache le dialogue, pas le flou. */
+  --opale-scrim: rgb(12 15 13 / 0.62);
+  --opale-scrim-blur: 3px;
   --opale-radius-sm: 0.75rem;
   --opale-radius-md: 1.375rem;
   --opale-radius-lg: 2.25rem;
@@ -1841,7 +1853,7 @@
    translation horizontale ; son enfant animé garde ainsi sa glissade verticale. */
 .opale-cookie-banner-anchor {
   position: fixed;
-  z-index: 900;
+  z-index: var(--opale-z-overlay);
   inset-inline-start: 50%;
   inset-block-end: calc(var(--opale-space-lg) + env(safe-area-inset-bottom, 0px));
   width: min(44rem, calc(100vw - 2 * var(--opale-space-lg)));
@@ -2033,11 +2045,13 @@
 .opale-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: var(--opale-z-modal);
   display: grid;
   place-items: center;
   padding: var(--opale-space-lg);
-  background: rgba(12, 15, 13, 0.46);
+  background: var(--opale-scrim);
+  backdrop-filter: blur(var(--opale-scrim-blur));
+  -webkit-backdrop-filter: blur(var(--opale-scrim-blur));
 }
 /* LE DIALOGUE RESPIRE : UNE GRILLE, ET UNE GOUTTIÈRE ENTRE SES TROIS BANDES.
 
@@ -2868,7 +2882,7 @@
      — le cas le plus fréquent — était peinte derrière le voile, illisible, et
      sa croix inatteignable : le clic tombait sur le voile, qui fermait le
      dialogue. `ToastProvider` avait déjà choisi 1100 pour cette raison. */
-  z-index: 1100;
+  z-index: var(--opale-z-toast);
   display: flex;
   /* LES MESSAGES D'UNE MÊME PLACE S'EMPILENT. L'ancre est partagée : deux
      cartes y sont deux éléments, posés l'un sous l'autre au lieu de se

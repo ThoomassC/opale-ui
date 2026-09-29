@@ -32,7 +32,7 @@
 
   position: sticky;
   inset-block-start: 0;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   inline-size: 100%;
@@ -313,6 +313,6 @@
 
   position: sticky;
   inset-block-start: 0;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   inline-size: 100%;
 }

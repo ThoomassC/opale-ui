@@ -24,7 +24,7 @@
    un toast en haut à droite rendrait tout le quart supérieur inutilisable. */
 .root {
   position: fixed;
-  z-index: 1100;
+  z-index: var(--opale-z-toast);
   inset: 0;
   pointer-events: none;
 }
