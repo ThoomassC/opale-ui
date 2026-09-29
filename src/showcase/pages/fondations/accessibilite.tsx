@@ -152,14 +152,8 @@ export default function AccessibiliteContent() {
             <code>Tag</code> — indiscernables en simulation deutéranope (1,16:1 l’un contre
             l’autre), donc séparés par un glyphe et un libellé obligatoires. Ces composants ne sont
             plus publiés, et les trois tons de{' '}
-            {/* LE LIEN VISAIT LE `Badge` D’ORIGINE, dont la page a fusionné avec celle
-              d'Opale. « Les SIX variantes » était son compte à lui
-              (`default`, `positive`, `negative`, `warning`, `info`,
-              `neutral`) ; `Opale.Badge` en expose TROIS — `primary`,
-              `accent`, `danger`. Rediriger sans recompter aurait laissé un
-              nombre faux sur la page qui promet justement de ne rien
-              arrondir. Le reproche, lui, ne change pas : la teinte est le
-              seul écart entre les trois. */}
+            {/* `Opale.Badge` expose trois tons — `primary`, `accent`, `danger` —, que
+               seule la teinte distingue. */}
             <a className="tc-doc-link" href={hrefFor('composants/opale-badge')}>
               Badge
             </a>{' '}

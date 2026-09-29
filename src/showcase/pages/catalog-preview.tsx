@@ -55,29 +55,10 @@ function DemoFrame({ children }: { children: ReactNode }) {
 }
 
 /* =============================================================================
-   LA BARRE DE PROGRESSION SE REMPLIT, PARCE QU'UNE BARRE FIGÉE NE MONTRE RIEN.
-
-   L'aperçu affichait `value={72}` : un rectangle immobile, dont on ne pouvait
-   deviner ni la façon dont il se remplit, ni l'animation de sa bande. Qui vient
-   choisir un composant a besoin de le voir VIVRE — c'est tout l'objet d'une
-   démonstration.
-
-   LE MOUVEMENT EST DANS LA DÉMONSTRATION ET NON DANS LE COMPOSANT, et c'est la
-   distinction qui compte : `ProgressBar` reste piloté par sa prop `value`,
-   comme doit l'être une barre DÉTERMINÉE. Lui coudre une animation interne
-   mentirait sur une progression réelle et retirerait au consommateur le
-   contrôle de sa propre valeur.
-
-   LE MINUTEUR NE TOURNE QUE SUR LA PAGE CONCERNÉE (`active`). Sans ce garde, un
-   `setInterval` rerendrait l'aperçu quatre fois par seconde sur les
-   quatre-vingt-treize pages du catalogue, y compris celles qui n'affichent
-   aucune barre.
-
-   `prefers-reduced-motion` EST RESPECTÉ, ET C'EST UNE OBLIGATION, PAS UNE
-   POLITESSE : une barre qui se remplit en boucle est un mouvement répété et non
-   essentiel, exactement ce que WCAG 2.3.3 demande de pouvoir désactiver. Dans ce
-   cas la barre se pose à 72 %, la valeur d'origine — on ne voit pas le
-   remplissage, on voit tout de même à quoi la barre ressemble.
+   La démonstration de `ProgressBar` se remplit en boucle. Le mouvement
+   appartient à la démonstration : le composant reste piloté par `value`. Le
+   minuteur ne tourne que sur la page concernée (`active`), et
+   `prefers-reduced-motion` pose la barre à 72 % sans mouvement (WCAG 2.3.3).
    ========================================================================== */
 const PROGRESS_STEP = 4;
 const PROGRESS_TICK_MS = 240;

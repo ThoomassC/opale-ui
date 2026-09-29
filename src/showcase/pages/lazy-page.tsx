@@ -3,29 +3,16 @@ import { Suspense, use, type ComponentType, type ReactNode } from 'react';
 import { PageLoading } from './page-loading';
 
 /* =============================================================================
-   LES PAGES SE CHARGENT À LA DEMANDE.
+   Les pages se chargent à la demande. Leurs métadonnées (`slug`, `label`,
+   `title`, `lede`) restent dans un petit module `*.page.tsx`, lu par le
+   sommaire, la recherche et le titre sans rien charger ; seul `render`
+   devient un chargeur.
 
-   La vitrine partait d'un seul bloc : ouvrir l'accueil téléchargeait les
-   quatre-vingt-quatorze pages. Mesuré sur le paquet construit, les pages
-   pèsent 47 ko gzip sur 143 ; React (56 ko) et la bibliothèque qu'utilise la
-   coquille (31 ko) sont incompressibles. Les fondations, les composants écrits
-   à la main et le catalogue passent donc en morceaux chargés à la navigation ;
-   l'accueil et les guides, où l'on arrive d'abord, restent dans le paquet.
-
-   LES MÉTADONNÉES RESTENT ET LE CONTENU PART. Le sommaire, la recherche et le
-   titre de la page lisent `slug`, `label`, `title` et `lede` sans rien charger :
-   ils vivent dans un petit module `*.page.tsx`, et seul `render` devient un
-   chargeur.
-
-   `use()` SOUS `Suspense`, ET JAMAIS DE REMONTAGE. Le composant passerelle est
-   toujours le même élément : tant que le morceau n'est pas là, il suspend ;
-   ensuite, il rend la page. Une version qui rendait `<Lazy />` au premier
-   passage puis la page nue aux suivants changeait d'arbre au premier nouveau
-   rendu — changement de langue compris — et remontait la page, état perdu.
-
-   DÉJÀ CHARGÉE, ELLE SE REND SANS DÉTOUR. C'est ce qui garde synchrones les
-   tests qui montent des pages : `preloadPages()` charge tout d'avance, et plus
-   rien ne suspend.
+   Le composant passerelle est toujours le même élément : il suspend sous
+   `Suspense` avec `use()` tant que le morceau manque, puis rend la page. Il
+   ne change jamais d'arbre, donc la page n'est jamais remontée. Déjà chargée,
+   elle se rend sans suspendre : `preloadPages()` sert aux tests qui montent
+   des pages.
    ========================================================================== */
 
 const PRELOADERS: (() => Promise<unknown>)[] = [];
@@ -38,18 +25,10 @@ export function lazyPage<P extends object>(
   let pending: Promise<void> | null = null;
   let failure: Error | null = null;
 
-  /* UN ÉCHEC EST REMIS À `PageBoundary`, ET IL Y RESTE. Un morceau introuvable
-     — une version déployée entre-temps a changé son empreinte — rejette.
-     Oublier la promesse avant que React la voie le faisait relancer un
-     chargement à chaque tentative de rendu : soixante-neuf requêtes en une
-     seconde et demie sur un réseau lent, l'emplacement d'attente sans fin, et
-     l'erreur jamais montrée.
-
-     L'ÉCHEC N'EST PAS CONSOMMÉ AU RENDU, parce que React relance de lui-même
-     un rendu qui a levé avant d'appeler la frontière : consommé au premier
-     lancer, il repartait en chargement au second. Il reste donc levé pour
-     cette page jusqu'au rechargement — le seul remède d'ailleurs, puisque le
-     morceau disparu ne reviendra pas —, et le message le dit. */
+  /* Un échec de chargement est mémorisé et relancé à chaque rendu jusqu'au
+     rechargement : `PageBoundary` l'affiche, et aucune requête n'est relancée.
+     Il n'est pas consommé au rendu, React relançant de lui-même un rendu qui
+     a levé avant d'appeler la frontière. */
   const load = () =>
     (pending ??= loader().then(
       (component) => {

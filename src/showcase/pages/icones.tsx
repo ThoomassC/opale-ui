@@ -5,23 +5,9 @@ import { PageBody, UsageBlock } from './api';
 import { IconGallery } from './icon-gallery';
 
 /* =============================================================================
-   LA PAGE « ICÔNES » MONTRE LE JEU, ELLE NE LE RACONTE PLUS.
-
-   Elle était une page de GUIDE : trois conseils, un exemple d'une ligne, et
-   pas une seule icône affichée. On y lisait `<Opale.Icon name="check" />`
-   sans pouvoir savoir à quoi ressemblait `check`, ni quels autres noms
-   existaient — la réponse, à l'époque, étant « aucun » : le composant rendait
-   le caractère qu'on lui passait.
-
-   LES CONSEILS RESTENT APRÈS LA GALERIE. Ils disent quand une icône se suffit
-   et quand elle doit être accompagnée d'un nom accessible ; la recherche et
-   les tracés sont visibles dès l'arrivée sur la page.
-
-   LE FILTRE EST UN CHAMP, PAS UN ONGLET PAR FAMILLE. Avec plus de cent vingt
-   dessins, ce qu'on cherche est « quelque chose comme une valise » : on tape
-   trois lettres. Les familles restent visibles pour parcourir sans idée
-   précise. Le champ NE VIDE PAS LA PAGE quand rien ne correspond — il le dit,
-   parce qu'une grille vide se lit comme un défaut d'affichage.
+   La page « Icônes » montre le jeu complet, filtrable par un champ (nom
+   anglais ou mots français), puis les conseils d'usage. Sans résultat, le
+   champ le dit au lieu de vider la page.
    ========================================================================== */
 
 const USAGE = `import { Icon } from '@thomascaron/opale-ui';

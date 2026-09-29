@@ -86,14 +86,8 @@ function normalizeCatalogLabel(value: string): string {
   return value === 'BackgroundSurface' ? 'Background' : value;
 }
 
-/* LE PRÉFIXE A DISPARU AVEC LE NOM DE L'AUTRE LIBRAIRIE, ET LE DÉCAPAGE AVEC.
-
-   Les composants portaient un préfixe hérité de la librairie amont dont ce
-   catalogue est issu, et cette fonction le retirait pour afficher « Button ».
-   Ils s'appellent désormais `Button` et `Card` tout court : il n'y a plus rien
-   à retirer, et garder un `replace(/^Opale/, '')` aurait été pire qu'inutile —
-   il aurait mangé le début du premier composant dont le nom commence par
-   « Opale ». */
+/* Le libellé affiché d'un composant du catalogue. Aucun préfixe n'est retiré :
+   un nom qui commence par « Opale » resterait intact. */
 export function catalogComponentLabel(name: string): string {
   return normalizeCatalogLabel(name);
 }
@@ -158,21 +152,10 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Form', 'Form'),
       opaleEntry('SegmentedControl', 'SegmentedControl'),
       opaleEntry('RatingInput', 'RatingInput'),
-      /* SIX ENTRÉES DU VERRE D’ORIGINE ONT QUITTÉ CETTE SECTION — `Button`, `Input`,
-         `Checkbox`, `Slider`, `Select` et `Switch`. Chacune doublonnait la
-         `opaleEntry` qui la précède : le rail affichait « Input » puis
-         « Input » sans dire lequel prendre. Leurs composants sont désormais la
-         matière derrière `liquidGlass`, documentée sur la page Opale, et leurs
-         pages sont supprimées.
-
-         `composants/button` ÉTAIT DÉJÀ MORTE AVANT CE NETTOYAGE, et personne ne
-         l'avait vu : `navSectionsForPages` résout chaque slug par un
-         `bySlug.get()` et SAUTE EN SILENCE ceux qu'aucune page ne sert. Une
-         entrée fantôme ne rougit donc nulle part et ne s'affiche pas non plus —
-         elle se contente de mentir à qui lit cette liste. C'est la raison pour
-         laquelle les cinq autres partent ici et pas « plus tard ».
-
-         `SearchBar` reste : l'export historique et `Opale.SearchBar` désignent désormais la même barre. */
+      /* Une entrée par composant : la matière en verre se documente sur la page du
+         composant, par `liquidGlass`. `navSectionsForPages` saute en silence un
+         slug qu'aucune page ne sert, donc aucune entrée ne doit viser une page
+         absente. */
       { label: 'SearchBar', slug: 'composants/search-bar' },
     ],
   },

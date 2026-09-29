@@ -1,18 +1,9 @@
 import Glass from '../../opale/components/glass/Glass';
 
-/* CETTE PAGE DOCUMENTE LE MATÉRIAU, donc elle appelle `Glass` directement —
-   c'est la seule qui en ait besoin, pour montrer ses crochets propres
-   (`rootClassName`, `rootStyle`) que la façade d'Opale ne transmet pas.
-
-   ELLE L'IMPORTE PAR CHEMIN, ET PLUS PAR LE BARRIL. `Glass` n'est plus un
-   composant publié : c'est le matériau, atteint partout ailleurs par la prop
-   `liquidGlass`. La page du matériau reste la seule à ouvrir le capot, et elle
-   le fait par la porte de service — celle que le catalogue emprunte déjà.
-
-   LE BOUTON DE DÉMONSTRATION EST CELUI D'OPALE. Il venait d'une librairie
-   tierce, dont ce dépôt n'embarque plus une ligne : un bouton de verre EST
-   désormais `<Glass as="button">` avec les classes d'Opale, ce que la page
-   montre au lieu de le raconter. */
+/* Cette page documente le matériau : c'est la seule à appeler `Glass`
+   directement, par son chemin, pour montrer `rootClassName` et `rootStyle`
+   que la prop `liquidGlass` ne transmet pas. Son bouton de démonstration est
+   `<Glass as="button">` avec les classes d'Opale. */
 import type { CSSProperties } from 'react';
 import type { DocPage } from '../doc-model';
 import { Specimen } from '../section';
