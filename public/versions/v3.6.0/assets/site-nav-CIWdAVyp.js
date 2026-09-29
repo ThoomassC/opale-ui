@@ -1,0 +1,12 @@
+import{_ as e,c as t}from"./opale-6frPstJR.js";import{a as n,i as r,o as i,s as a}from"./index-EFEcVvRl.js";import{t as o}from"./material-switch--39rvnov.js";var s=e(),c=`import { SiteNav } from '@thomascaron/opale-ui';
+import '@thomascaron/opale-ui/opale.css';
+
+<SiteNav
+  items={[
+    { id: 'example-1', href: '#', label: 'Exemple 1' },
+    { id: 'example-2', href: '#', label: 'Exemple 2' },
+  ]}
+  value="example-1"
+  navLabel="Navigation principale"
+  onNavigate={() => undefined}
+/>`,l=[{id:`example-1`,href:`#`,label:`Exemple 1`},{id:`example-2`,href:`#`,label:`Exemple 2`}],u=[{name:`brand`,type:`ReactNode`,description:`Optionnel : une marque à gauche de la navigation.`},{name:`items`,type:`readonly SiteNavItem[]`,description:`Les destinations, pensées pour quatre entrées. À passer toujours : le défaut hérité n’est gardé que pour les appels existants.`},{name:`value`,type:`string`,description:`Identifiant de l’entrée qui porte l’unique bulle active. Remplace activeItem, déprécié depuis 3.6.`},{name:`navLabel`,type:`string`,defaultValue:`'Navigation principale'`,description:`Nom accessible du repère de navigation.`},{name:`onNavigate`,type:`(item, event) => void`,description:`Intercepte une navigation client. Le clic déplace la bulle et le callback prend le relais pour le routage.`}];function d(){return(0,s.jsxs)(n,{children:[(0,s.jsx)(a,{label:`Import et appel représentatif de SiteNav`,code:c}),(0,s.jsx)(r,{title:`La barre — originale ou en verre liquide`,note:`Cliquez une destination : la bulle unique se déplace et se déforme pendant le trajet. La version originale pose un aplat opaque ; en verre liquide, la barre devient transparente et laisse le matériau réfracter la photographie.`,children:(0,s.jsx)(o,{name:`SiteNav`,stack:!0,children:e=>(0,s.jsx)(t,{liquidGlass:e,items:l,value:`example-1`,navLabel:`Navigation de l’exemple`,onNavigate:()=>void 0})})}),(0,s.jsx)(i,{id:`site-nav`,note:(0,s.jsxs)(s.Fragment,{children:[(0,s.jsx)(`code`,{children:`SiteNav`}),` porte uniquement la structure de navigation. La marque et les routes restent configurables ; la recherche est un composant séparé :`,` `,(0,s.jsx)(`code`,{children:`SearchBar`}),`.`]}),rows:u})]})}export{d as default};
