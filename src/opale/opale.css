@@ -1777,9 +1777,10 @@
    propriété qui doit changer AU MOMENT du clic et non à l'arrivée de la
    pastille. La pastille passe DERRIÈRE les options (`z-index: 0` contre `1`)
    pour ne pas masquer leur libellé.
-   `prefers-reduced-motion` est couvert par le bloc en fin de feuille, qui
-   ramène toute `transition-duration` à 0,01 ms : la pastille s'y pose d'un
-   coup, ce qui est le comportement d'avant. */
+   Seul `transform` glisse : largeur et hauteur sont posées d'un coup à la
+   mesure, sans transition, pour ne pas relancer la mise en page à chaque
+   image. Un `scale` déformerait le rayon de la pilule.
+   Sous `prefers-reduced-motion`, la pastille se pose sans glisser. */
 .opale-segmented {
   position: relative;
   display: inline-flex;
@@ -1803,15 +1804,17 @@
   background: var(--opale-surface);
   box-shadow: var(--opale-shadow-1);
   pointer-events: none;
-  will-change: transform, width, height;
+  will-change: transform;
 }
 /* Armée seulement après le premier placement : sans l'attribut, la pastille
    traverserait le composant depuis le coin haut-gauche à chaque montage. */
 .opale-segmented__indicator[data-animated='true'] {
-  transition:
-    transform var(--opale-motion-slow) var(--opale-ease),
-    width var(--opale-motion-slow) var(--opale-ease),
-    height var(--opale-motion-slow) var(--opale-ease);
+  transition: transform var(--opale-motion-slow) var(--opale-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .opale-segmented__indicator[data-animated='true'] {
+    transition: none;
+  }
 }
 .opale-segmented__item {
   position: relative;
