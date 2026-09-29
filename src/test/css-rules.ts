@@ -232,6 +232,19 @@ export function selectorsDeclaring(source: string, property: string): readonly s
   return found;
 }
 
+/**
+ * Les paramètres de chaque at-rule `@name`, tous contextes confondus, dans
+ * l'ordre de la feuille — `@import` sans bloc compris. Une at-rule citée en
+ * commentaire n'en est pas une.
+ */
+export function atRules(source: string, name: string): readonly string[] {
+  const found: string[] = [];
+  postcss.parse(stripComments(source)).walkAtRules(name, (node) => {
+    found.push(node.params.trim());
+  });
+  return found;
+}
+
 /** La valeur retenue d'une propriété, ou `undefined`. Voir `declarations`. */
 export function declaration(
   source: string,
