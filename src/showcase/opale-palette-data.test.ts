@@ -94,9 +94,20 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {
+  /* Les thèmes locaux ne se redéclarent plus que sous un contexte opposé
+     (voir l'en-tête d'`opale.css`) : leurs sélecteurs ont changé, pas leurs
+     jetons, qui restent ceux des blocs racine. */
   it('applique les mêmes jetons aux thèmes locaux du PageScaffold', () => {
-    expect(blockBody("[data-opale-page-theme='light']")).toBe(blockBody(':root'));
-    expect(blockBody("[data-opale-page-theme='dark']")).toBe(blockBody(":root[data-theme='dark']"));
+    expect(
+      blockBody(
+        ":where(:root[data-theme='dark'], [data-opale-page-theme='dark']) [data-opale-page-theme='light']",
+      ),
+    ).toBe(blockBody(':root'));
+    expect(
+      blockBody(
+        ":where(:root:not([data-theme='dark']), :host, [data-opale-page-theme='light']) [data-opale-page-theme='dark']",
+      ),
+    ).toBe(blockBody(":root[data-theme='dark']"));
   });
 
   it.each(

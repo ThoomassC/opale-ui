@@ -47,6 +47,12 @@ const FORBIDDEN = [
   ['ma', 'gic'].join(''),
   ['twee', 'edlex'].join(''),
   ['ven', 'dor'].join(''),
+  /* LA TROISIÈME TRACE N'ÉTAIT PAS UN NOM, MAIS UNE PHRASE. L'en-tête de
+     `opale.css` présentait les jetons comme « compatibles » avec une librairie
+     « de référence » dont ils « reprenaient » les noms : la librairie amont
+     n'était plus nommée, mais toujours désignée. Le garde refuse désormais la
+     formule elle-même, recomposée pour la raison du point 1. */
+  ['reference', 'library'].join(' '),
 ];
 
 /* `import.meta.glob` est résolu par Vite À LA COMPILATION : la liste des

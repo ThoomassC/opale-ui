@@ -1,7 +1,9 @@
 /* Les composants de saisie et d'action du catalogue. */
 
 import {
+  Children,
   forwardRef,
+  isValidElement,
   useCallback,
   useEffect,
   useId,
@@ -13,6 +15,7 @@ import {
   type ComponentPropsWithRef,
   type FocusEvent,
   type KeyboardEvent,
+  type OptionHTMLAttributes,
   type ReactNode,
 } from 'react';
 import clsx from 'clsx';
@@ -34,6 +37,26 @@ export type ButtonVariant =
 export interface SelectOption {
   value: string;
   label: ReactNode;
+}
+
+/* =============================================================================
+   LA DESCRIPTION D'UN CHAMP SE FUSIONNE, ELLE NE SE REMPLACE PAS.
+
+   Chaque champ posait son `aria-describedby` — vers l'aide ou l'erreur — puis
+   étalait les props de l'appelant par-dessus. Un appelant qui reliait un texte
+   d'aide externe (compteur, consigne, react-hook-form) EFFAÇAIT donc le lien
+   vers le message d'erreur : l'erreur s'affichait et n'était plus annoncée à
+   la prise de focus (WCAG 1.3.1, 3.3.1). Les identifiants de l'appelant
+   passent d'abord, puis l'aide, puis l'erreur ; les doublons tombent.
+   ========================================================================== */
+function mergeIds(...ids: ReadonlyArray<string | false | null | undefined>): string | undefined {
+  const unique = new Set(ids.flatMap((id) => (id ? id.split(/\s+/).filter(Boolean) : [])));
+  return unique.size > 0 ? [...unique].join(' ') : undefined;
+}
+
+/** Un `ReactNode` qui rend quelque chose : ni absent, ni `false`, ni chaîne vide. */
+function hasContent(node: ReactNode): boolean {
+  return node !== undefined && node !== null && node !== false && node !== '';
 }
 
 export interface ButtonProps extends ComponentPropsWithRef<'button'> {
@@ -199,6 +222,8 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
     searchLandmarkLabel,
     className,
     id,
+    'aria-describedby': ariaDescribedBy,
+    'aria-invalid': ariaInvalid,
     ...props
   },
   ref,
@@ -207,6 +232,10 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
   const inputId = id ?? generatedId;
   const messageId = `${inputId}-message`;
   const message = error || helperText;
+  /* L'erreur l'emporte sur un `aria-invalid={false}` passé par un formulaire :
+     le message affiché et l'état annoncé ne doivent pas se contredire. */
+  const invalid = error ? true : ariaInvalid;
+  const described = mergeIds(ariaDescribedBy, message ? messageId : undefined);
 
   /* LE MESSAGE SORT DU `<label>`, ET C'EST TOUT L'OBJET DE CE REMANIEMENT.
 
@@ -248,8 +277,8 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
           liquidGlass={liquidGlass}
           landmark={searchLandmark}
           landmarkLabel={searchLandmarkLabel}
-          aria-invalid={error ? true : props['aria-invalid']}
-          aria-describedby={message ? messageId : props['aria-describedby']}
+          aria-invalid={invalid}
+          aria-describedby={described}
         />
       ) : (
         <FieldShell
@@ -262,9 +291,9 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
             ref={ref}
             id={inputId}
             className="opale-input"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={message ? messageId : undefined}
             {...props}
+            aria-invalid={invalid}
+            aria-describedby={described}
           />
         </FieldShell>
       )}
@@ -300,15 +329,30 @@ export function Checkbox({
   liquidGlass = false,
   className,
   onChange,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   ...props
 }: CheckboxProps) {
   const labelId = useId();
   const descriptionId = useId();
   const errorId = useId();
-  const describedBy =
-    [label && description ? descriptionId : null, error ? errorId : null]
-      .filter(Boolean)
-      .join(' ') || undefined;
+  const describedBy = mergeIds(
+    ariaDescribedBy,
+    label && description ? descriptionId : null,
+    error ? errorId : null,
+  );
+  /* `aria-labelledby` NE DÉSIGNE QUE CE QUI EXISTE, ET NE PASSE JAMAIS DEVANT
+     L'APPELANT. Il était posé sans condition : sans `label` ni `description`,
+     il pointait vers un `<span>` VIDE, et l'emportait sur `aria-label` dans le
+     calcul du nom. `<Checkbox aria-label="Sélectionner la ligne" />` — la case
+     d'une ligne de tableau — n'avait aucun nom. Un `aria-labelledby` de
+     l'appelant gagne toujours ; un `aria-label` de l'appelant n'est plus
+     recouvert par le libellé. */
+  const labelledBy =
+    ariaLabelledBy ??
+    (ariaLabel === undefined && hasContent(label ?? description) ? labelId : undefined);
 
   /* L'ÉTAT N'A PLUS BESOIN D'ÊTRE RECOPIÉ EN JAVASCRIPT.
 
@@ -333,11 +377,12 @@ export function Checkbox({
            entre dans le nom calculé. Nommer explicitement le prend de vitesse,
            et la rangée reste cliquable sur toute sa surface, ce qui est le
            point de la construire ainsi. */
-        aria-labelledby={labelId}
-        aria-describedby={describedBy}
-        aria-invalid={error ? true : undefined}
         onChange={onChange}
         {...props}
+        aria-label={ariaLabel}
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
+        aria-invalid={error ? true : ariaInvalid}
       />
       {/* LA COCHE EST UNE DÉCORATION, sous verre comme sans. La vraie case est
           l'`<input>` natif, invisible et posé sur toute la rangée ; c'est le
@@ -390,6 +435,8 @@ export function Toggle({
   className,
   onChange,
   ref,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   ...props
 }: ToggleProps) {
   const errorId = useId();
@@ -411,10 +458,10 @@ export function Toggle({
       <input
         type="checkbox"
         className="opale-toggle"
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
         onChange={onChange}
         {...props}
+        aria-invalid={error ? true : ariaInvalid}
+        aria-describedby={mergeIds(ariaDescribedBy, error ? errorId : undefined)}
         ref={inputRefs}
       />
       <FieldShell
@@ -669,6 +716,8 @@ export function Select({
   id,
   children,
   onChange,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   ...props
 }: SelectProps) {
   const generatedId = useId();
@@ -710,10 +759,10 @@ export function Select({
         <select
           id={selectId}
           className="opale-select"
-          aria-describedby={message ? helperId : undefined}
-          aria-invalid={error ? true : undefined}
           onChange={onChange}
           {...props}
+          aria-describedby={mergeIds(ariaDescribedBy, message ? helperId : undefined)}
+          aria-invalid={error ? true : ariaInvalid}
         >
           {options?.map((option) => (
             <option key={option.value} value={option.value}>
@@ -746,6 +795,11 @@ export interface MultiSelectProps extends SelectProps {
   onValueChange?: (value: string[]) => void;
   /** @deprecated Depuis 3.6 — utilisez `value`. */
   values?: readonly string[];
+  /**
+   * Des `<option>` (éventuellement groupées dans des `<optgroup>`), ajoutées
+   * après `options`, comme pour `Select`. Tout autre enfant est ignoré.
+   */
+  children?: ReactNode;
 }
 
 /* Une sélection multiple se lit toujours en tableau. Le type hérité du
@@ -756,6 +810,40 @@ function toSelection(value: SelectProps['value']): readonly string[] | undefined
   if (typeof value === 'string' || typeof value === 'number') return [String(value)];
   return value;
 }
+
+type OptionElementProps = OptionHTMLAttributes<HTMLOptionElement> & { children?: ReactNode };
+type OptgroupElementProps = { children?: ReactNode };
+
+/* LES `<option>` EN ENFANTS DEVIENNENT DES OPTIONS. `MultiSelectProps` hérite
+   de `children` par `SelectProps`, mais la liste visible ne lisait que
+   `options` : `<MultiSelect><option /></MultiSelect>` ne rendait rien, alors
+   que `Select` accepte ces enfants. */
+function optionsFromChildren(children: ReactNode): SelectOption[] {
+  return Children.toArray(children).flatMap((child): SelectOption[] => {
+    if (!isValidElement(child)) return [];
+    if (child.type === 'optgroup') {
+      return optionsFromChildren((child.props as OptgroupElementProps).children);
+    }
+    if (child.type !== 'option') return [];
+    const props = child.props as OptionElementProps;
+    const text = typeof props.children === 'string' ? props.children : '';
+    return [{ value: String(props.value ?? text), label: props.children }];
+  });
+}
+
+/** La sélection que porte le natif, dans l'ordre des options. */
+function readSelection(select: HTMLSelectElement): string[] {
+  return Array.from(select.selectedOptions, (option) => option.value);
+}
+
+function sameSelection(one: readonly string[], other: readonly string[]): boolean {
+  return one.length === other.length && one.every((value, index) => value === other[index]);
+}
+
+const NATIVE_SELECTED = Object.getOwnPropertyDescriptor(
+  typeof HTMLOptionElement === 'undefined' ? {} : HTMLOptionElement.prototype,
+  'selected',
+);
 
 /**
  * La sélection multiple, habillée aux couleurs d'Opale.
@@ -790,6 +878,17 @@ function toSelection(value: SelectProps['value']): readonly string[] | undefined
  * et décorer par-dessus — était tentant et faux : un champ focusable invisible
  * est un piège au clavier, d'autant plus depuis que la vitrine ne peint plus
  * d'anneau de focus. Ici, ce qu'on voit est ce qu'on pilote.
+ *
+ * LE NATIF N'EST PLUS CONTRÔLÉ PAR REACT, IL EST ÉCRIT ET RELU.
+ * Il recevait `value={[...current]}` : chaque rendu réimposait l'état interne.
+ * Tout ce qui écrit le DOM sans passer par cet état — la réinitialisation d'un
+ * `<form>`, `register`, `setValue` et `reset` de react-hook-form, qui posent
+ * `option.selected` directement — laissait donc la liste visible figée, puis
+ * voyait sa valeur écrasée au rendu suivant. Désormais la sélection est
+ * ÉCRITE sur le natif quand elle change, et RELUE quand quelqu'un d'autre l'a
+ * écrite : une écriture de `option.selected` est observée, et la
+ * réinitialisation du formulaire aussi. En mode contrôlé, `value` reste seul
+ * maître : une écriture extérieure est aussitôt ramenée à `value`.
  * ================================================================
  */
 export function MultiSelect({
@@ -799,19 +898,29 @@ export function MultiSelect({
   label,
   helperText,
   error,
-  options = [],
+  options: optionsProp,
   liquidGlass = false,
   className,
   id,
   onChange,
   defaultValue,
   ref,
+  children,
+  disabled = false,
+  required,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
   ...props
 }: MultiSelectProps) {
   warnDeprecatedProps('MultiSelect', { values });
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
+  const helperId = `${fieldId}-helper`;
+  const options = [...(optionsProp ?? []), ...optionsFromChildren(children)];
+  const optionsKey = options.map((option) => option.value).join('\u0000');
   const selectRef = useRef<HTMLSelectElement>(null);
   /* La ref de l'appelant désigne le `<select>` porteur de valeur, comme pour
      un champ natif ; la liste visible garde la sienne pour les bascules. */
@@ -824,10 +933,13 @@ export function MultiSelect({
      l'option du `<select>` caché, mais ni la coche ni `aria-selected` ne
      bougeaient. L'état part de `defaultValue` et suit chaque `change` du natif ;
      en mode contrôlé, `value` (ou l'ancien `values`) reste seul maître. */
-  const [current, setCurrent] = useControllableState<readonly string[]>(
+  const [current, setCurrent, isControlled] = useControllableState<readonly string[]>(
     toSelection(value) ?? values,
     () => toSelection(defaultValue) ?? [],
   );
+  /* La sélection de départ devient celle que `form.reset()` rétablit : React
+     la pose en `defaultSelected` au montage d'un `<select>` non contrôlé. */
+  const [initialSelection] = useState(() => [...current]);
   const selected = new Set(current);
 
   /* `activeIndex` est l'option DÉSIGNÉE au clavier, distincte des options
@@ -836,14 +948,107 @@ export function MultiSelect({
      qu'on survole en chemin. */
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const toggle = (value: string) => {
+  /* Vrai pendant que le composant écrit lui-même le natif : ses propres
+     écritures ne doivent pas se faire passer pour des écritures extérieures. */
+  const writing = useRef(false);
+  const pending = useRef(false);
+  const reconcile = useRef<() => void>(() => undefined);
+
+  const writeSelection = useCallback((select: HTMLSelectElement, next: readonly string[]) => {
+    writing.current = true;
+    for (const option of Array.from(select.options)) option.selected = next.includes(option.value);
+    writing.current = false;
+  }, []);
+
+  /* Ce qui se fait quand le natif a été écrit du dehors : en mode contrôlé,
+     `value` est réimposée ; sinon, l'état suit le DOM. Relu après chaque rendu
+     pour voir la dernière sélection. */
+  useLayoutEffect(() => {
+    reconcile.current = () => {
+      const select = selectRef.current;
+      if (!select) return;
+      if (isControlled) {
+        writeSelection(select, current);
+        return;
+      }
+      const next = readSelection(select);
+      if (!sameSelection(next, current)) setCurrent(next);
+    };
+  });
+
+  /* LE NATIF SUIT LA SÉLECTION, et seulement quand elle change — ou quand les
+     options changent. Le réécrire à chaque rendu effacerait une écriture
+     extérieure pas encore relue. */
+  useLayoutEffect(() => {
+    const select = selectRef.current;
+    if (select) writeSelection(select, current);
+  }, [current, optionsKey, writeSelection]);
+
+  /* L'ÉCRITURE DIRECTE DE `option.selected` EST OBSERVÉE. Aucun événement ne
+     part quand un script — react-hook-form, un test, un autre composant —
+     coche une option du natif : l'accesseur est donc doublé sur chaque option,
+     par instance, et prévient le composant avant de rendre la main au natif.
+     Une microtâche regroupe les écritures d'une même boucle. */
+  useLayoutEffect(() => {
+    const select = selectRef.current;
+    const native = NATIVE_SELECTED;
+    if (!select || !native?.get || !native.set) return;
+    const { get, set } = native;
+    const observed = Array.from(select.options);
+    for (const option of observed) {
+      Object.defineProperty(option, 'selected', {
+        configurable: true,
+        get() {
+          return get.call(this);
+        },
+        set(next: boolean) {
+          set.call(this, next);
+          if (writing.current || pending.current) return;
+          pending.current = true;
+          queueMicrotask(() => {
+            pending.current = false;
+            reconcile.current();
+          });
+        },
+      });
+    }
+    return () => {
+      for (const option of observed) Reflect.deleteProperty(option, 'selected');
+    };
+  }, [optionsKey]);
+
+  /* LA RÉINITIALISATION DU FORMULAIRE EST RELUE. L'événement `reset` part
+     AVANT que le navigateur ne rétablisse les options : la relecture attend
+     donc la tâche suivante. */
+  useEffect(() => {
+    const form = selectRef.current?.form;
+    if (!form) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onReset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => reconcile.current(), 0);
+    };
+    form.addEventListener('reset', onReset);
+    return () => {
+      clearTimeout(timer);
+      form.removeEventListener('reset', onReset);
+    };
+  }, []);
+
+  const toggle = (optionValue: string) => {
     const select = selectRef.current;
 
-    if (!select) return;
+    /* DÉSACTIVÉE, LA LISTE NE COCHE PLUS RIEN. `disabled` partait sur le
+       natif caché : la liste visible restait cochable au clic comme au
+       clavier, `onValueChange` partait, et le formulaire — qui n'envoie pas un
+       champ désactivé — soumettait autre chose que ce qu'on voyait. */
+    if (!select || disabled) return;
 
+    writing.current = true;
     for (const option of Array.from(select.options)) {
-      if (option.value === value) option.selected = !option.selected;
+      if (option.value === optionValue) option.selected = !option.selected;
     }
+    writing.current = false;
 
     /* `bubbles`, sans quoi React ne verra rien : son écouteur n'est pas posé
        sur le `<select>` mais à la racine de l'arbre. */
@@ -851,16 +1056,17 @@ export function MultiSelect({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
     const last = options.length - 1;
 
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        setActiveIndex((current) => (current >= last ? 0 : current + 1));
+        setActiveIndex((index) => (index >= last ? 0 : index + 1));
         return;
       case 'ArrowUp':
         event.preventDefault();
-        setActiveIndex((current) => (current <= 0 ? last : current - 1));
+        setActiveIndex((index) => (index <= 0 ? last : index - 1));
         return;
       case 'Home':
         event.preventDefault();
@@ -881,6 +1087,16 @@ export function MultiSelect({
     }
   };
 
+  const message = error || helperText;
+  /* LE NOM, LA DESCRIPTION ET LES ÉTATS VONT À LA LISTE VISIBLE. Étalés sur le
+     natif caché (`aria-hidden`), `aria-label`, `aria-labelledby`,
+     `aria-describedby`, `required` et `disabled` n'atteignaient jamais le
+     contrôle réel : `<MultiSelect aria-label="Tags" />` rendait une liste sans
+     nom. Le natif garde ce qui sert au formulaire — `name`, `form`,
+     `required`, `disabled` —, la liste reçoit ce qui s'annonce. */
+  const labelledBy =
+    ariaLabelledBy ?? (ariaLabel === undefined && hasContent(label) ? labelId : undefined);
+
   return (
     <div className={clsx('opale-field', className)}>
       {label && (
@@ -894,15 +1110,26 @@ export function MultiSelect({
         id={fieldId}
         className="opale-visually-hidden"
         multiple
-        value={[...current]}
+        defaultValue={initialSelection}
+        disabled={disabled}
+        required={required}
         onChange={(event) => {
-          const next = Array.from(event.currentTarget.selectedOptions, (option) => option.value);
+          const next = readSelection(event.currentTarget);
           setCurrent(next);
           onValueChange?.(next);
           onChange?.(event);
+          /* En mode contrôlé, un appelant qui refuse la bascule doit retrouver
+             sa valeur sur le natif : React ne rétablit plus un `<select>`
+             qu'il ne contrôle pas. */
+          if (isControlled) queueMicrotask(() => reconcile.current());
         }}
         aria-hidden="true"
         tabIndex={-1}
+        /* `aria-label` reste AUSSI sur le natif, qui est la cible de la `ref`
+           et des attributs de racine depuis 3.6 : caché de l'arbre
+           d'accessibilité, il n'annonce rien, mais un appelant qui le lisait
+           là continue de l'y trouver. */
+        aria-label={ariaLabel}
         {...props}
       >
         {options.map((option) => (
@@ -922,21 +1149,28 @@ export function MultiSelect({
           attributs ARIA de la liste ne changent pas d'un état à l'autre. */}
       <FieldShell
         liquidGlass={liquidGlass}
-        className={clsx('opale-multiselect', liquidGlass && 'opale-multiselect--glass')}
+        className={clsx(
+          'opale-multiselect',
+          liquidGlass && 'opale-multiselect--glass',
+          disabled && 'opale-multiselect--disabled',
+        )}
         rootClassName="opale-multiselect--glass-root"
       >
         <div
           className="opale-multiselect__list"
           role="listbox"
           aria-multiselectable="true"
-          aria-labelledby={label ? labelId : undefined}
+          aria-label={ariaLabel}
+          aria-labelledby={labelledBy}
           /* `aria-activedescendant` NE DOIT PAS DÉSIGNER UN ÉLÉMENT ABSENT :
              sans option, la référence ne résout rien et la liste annonce un
              descendant actif qui n'existe pas. */
           aria-activedescendant={options.length ? `${fieldId}-option-${activeIndex}` : undefined}
-          aria-describedby={error || helperText ? `${fieldId}-helper` : undefined}
-          aria-invalid={error ? true : undefined}
-          tabIndex={0}
+          aria-describedby={mergeIds(ariaDescribedBy, message ? helperId : undefined)}
+          aria-invalid={error ? true : ariaInvalid}
+          aria-required={required ? true : undefined}
+          aria-disabled={disabled ? true : undefined}
+          tabIndex={disabled ? -1 : 0}
           onKeyDown={onKeyDown}
         >
           {options.map((option, index) => {

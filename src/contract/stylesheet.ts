@@ -209,12 +209,18 @@ function selectorList(prelude: string): readonly string[] {
  * are the same selector to a browser, and a contract that told them apart would
  * report a missing dark theme over a formatting choice Prettier makes for us.
  * Whitespace inside brackets goes as well, so `:not( [x] )` still matches.
+ *
+ * Unquoted attribute values are quoted too. A minifier writes
+ * `:root[data-theme=dark]`, and the published `opale.css` is minified: before
+ * this, the contract read the installed sheet as having no dark theme at all
+ * and measured the light one under its name — green, and wrong.
  */
 function normalizeSelector(prelude: string): string {
   return prelude
     .replace(/'/g, '"')
     .replace(/\s+/g, ' ')
     .replace(/\s*([([\]),>+~])\s*/g, '$1')
+    .replace(/\[([\w-]+)\s*([~|^$*]?=)\s*([^\]"\s]+)(\s+[is])?\]/gi, '[$1$2"$3"$4]')
     .trim();
 }
 
