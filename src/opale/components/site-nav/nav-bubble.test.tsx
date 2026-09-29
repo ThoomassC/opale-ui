@@ -229,6 +229,20 @@ describe('NavBubble — le glissement', () => {
     expect(onNavigate).toHaveBeenCalledOnce();
   });
 
+  /* Le survol déplace la page courante « optimiste » ; un geste annulé ne
+     navigue pas, donc la page courante doit revenir à celle de départ. */
+  it('devrait rendre la page courante d’origine quand le pointeur est annulé', () => {
+    render(<Routed />);
+    layOut();
+
+    press('Map', 25);
+    moveTo(125);
+    fireEvent.pointerCancel(window, { clientX: 125, pointerId: 1 });
+
+    expect(link('Map')).toHaveAttribute('aria-current', 'page');
+    expect(link('Cities')).not.toHaveAttribute('aria-current');
+  });
+
   it('devrait lâcher les écouteurs de fenêtre quand elle est démontée en plein geste', () => {
     const { unmount } = render(<Routed />);
     layOut();

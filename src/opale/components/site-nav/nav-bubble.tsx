@@ -141,6 +141,10 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
     setDragging(false);
     setDragPosition(undefined);
 
+    /* Un geste annulé ne navigue pas : la page courante redevient celle
+       d'avant le survol. */
+    if (!commit && wasDragged) setOptimisticSelection(undefined);
+
     if (commit && wasDragged && sourceKey !== targetKey && targetKey) {
       const targetLink = [
         ...(listRef.current?.querySelectorAll<HTMLAnchorElement>('[data-nav]') ?? []),
