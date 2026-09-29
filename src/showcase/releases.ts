@@ -49,6 +49,52 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V361_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Documentation',
+    changes: [
+      {
+        title: 'Un seul plan pour chaque composant',
+        detail:
+          'Chaque page suit le même ordre : Import, Démo, Exemples, Props, États, Accessibilité et Limites connues. PageScaffold a sa démonstration.',
+        links: [{ label: 'PageScaffold', slug: 'composants/page-scaffold' }],
+      },
+      {
+        title: 'Le contrat plutôt que l’histoire',
+        detail:
+          'Les pages disent comment employer le composant et ce qu’il ne fait pas ; l’historique reste dans ces notes. La source des tracés de SvgMap est de nouveau affichée.',
+      },
+      {
+        title: 'Quand préférer le composant voisin',
+        detail:
+          'Toast et ToastProvider, Modal et ConfirmDialog renvoient l’un vers l’autre et disent lequel choisir.',
+        links: [{ label: 'Modal', slug: 'composants/modal' }],
+      },
+      {
+        title: 'Un README à jour',
+        detail:
+          'Installation, convention d’import, conventions de l’API, thème, contrat de couleur et limites connues, avec des chiffres recalculés depuis le code. Les notes 3.5.0 et 3.3.0 sont complétées.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+      {
+        title: 'Un vocabulaire français',
+        detail:
+          'La prose dit « verre liquide » et le code liquidGlass ; le sommaire et les familles du catalogue sont en français à l’affichage.',
+      },
+    ],
+  },
+  {
+    title: 'Qualité',
+    changes: [
+      {
+        title: 'Des tests qui rendent',
+        detail:
+          'La restitution du focus de Modal est prouvée par le rendu sur ses trois sorties, et les feuilles de style sont lues par un vrai analyseur CSS dans les tests.',
+      },
+    ],
+  },
+];
+
 const V360_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Une API unique, sans rupture',
@@ -638,6 +684,24 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.6.1',
+    publishedAt: '2026-09-29',
+    dateLabel: '29 septembre 2026',
+    summary:
+      'Une documentation au même plan pour chaque composant, le contrat plutôt que l’histoire, et un README à jour. Aucun changement de la librairie.',
+    sections: V361_RELEASE_SECTIONS,
+    changes: V361_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'Même plan sur toutes les pages de composants.',
+      'Accessibilité et limites connues documentées page par page.',
+      'README réécrit pour la 3.6.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.6.0',
     publishedAt: '2026-09-28',
     dateLabel: '28 septembre 2026',
@@ -653,8 +717,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'ref, labels et attributs natifs sur chaque composant.',
     ],
     migration: V360_RELEASE_MIGRATION,
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.6.1, sur son tag. */
+    appHref: '/versions/v3.6.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.6.0`,
   },
   {
     version: '3.5.2',
