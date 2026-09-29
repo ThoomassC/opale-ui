@@ -17,10 +17,11 @@ const PROPS: readonly PropRow[] = [
     description: 'Taille du texte dans la barre.',
   },
   {
-    name: 'enableClickAnimation',
+    name: 'enableLiquidAnimation',
     type: 'boolean',
     defaultValue: 'true',
-    description: 'Active la déformation liquide au clic.',
+    description:
+      'Active la déformation liquide au clic, en verre liquide. `enableClickAnimation` reste accepté, déprécié.',
   },
   {
     name: 'icon',
