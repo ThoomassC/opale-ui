@@ -2073,12 +2073,19 @@
   color: var(--opale-glass-ink);
 }
 .opale-breadcrumb {
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
+/* Les maillons sont les `<li>` d'un `<ol>` : c'est la liste qui les aligne,
+   sans les numéros d'une liste ordonnée. */
+.opale-breadcrumb ol {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--opale-space-xs);
-  color: var(--opale-text-secondary);
-  font-size: var(--opale-text-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 /* LE LIEN NE SE DISTINGUE PLUS PAR LA SEULE COULEUR. Contre le texte gris qui
    l'entoure, le primaire ne donne que 1,08:1 : en niveaux de gris ou en vision
