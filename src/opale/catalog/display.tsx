@@ -342,9 +342,17 @@ function inkCut(fill: number): number {
 export interface RatingProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   value?: number;
   max?: number;
+  /** Pose la note sur le matériau « verre liquide ». Originale par défaut. */
+  liquidGlass?: boolean;
 }
 
-export function Rating({ value = 0, max = RATING_DEFAULT_MAX, className, ...rest }: RatingProps) {
+export function Rating({
+  value = 0,
+  max = RATING_DEFAULT_MAX,
+  liquidGlass = false,
+  className,
+  ...rest
+}: RatingProps) {
   /* LE REMPLISSAGE EST FRACTIONNAIRE, ET C'EST TOUT LE COMPOSANT.
 
      Il comparait `index + 1 <= value` : une note de 3,75 dessinait donc
@@ -375,6 +383,10 @@ export function Rating({ value = 0, max = RATING_DEFAULT_MAX, className, ...rest
   const bareme = snapMax(max);
   const note = snapRating(value, bareme);
   const gradientId = useId();
+  const Shell = liquidGlass ? Glass : 'span';
+  const shellProps = liquidGlass
+    ? ({ as: 'span', rootClassName: 'opale-rating--glass-root' } as const)
+    : {};
 
   return (
     /* `role="img"` EST OBLIGATOIRE ICI. Un `aria-label` posé sur un élément
@@ -382,10 +394,11 @@ export function Rating({ value = 0, max = RATING_DEFAULT_MAX, className, ...rest
        d'accessibilité, et les étoiles enfants sont toutes `aria-hidden` : la
        note ne s'annonçait donc PAS DU TOUT (WCAG 1.1.1). `Icon`, quelques
        lignes plus haut, prend déjà cette précaution. */
-    <span
+    <Shell
       aria-label={`${formatRating(note)} sur ${bareme}`}
       {...rest}
-      className={clsx('opale-rating', className)}
+      {...shellProps}
+      className={clsx('opale-rating', liquidGlass && 'opale-rating--glass', className)}
       role="img"
       data-opale-rating={note}
     >
@@ -423,7 +436,7 @@ export function Rating({ value = 0, max = RATING_DEFAULT_MAX, className, ...rest
           </svg>
         );
       })}
-    </span>
+    </Shell>
   );
 }
 

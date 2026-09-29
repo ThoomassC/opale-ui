@@ -1051,6 +1051,8 @@ describe('les coquilles de verre', () => {
     'opale-input-shell--glass',
     'opale-range-shell--glass',
     'opale-badge--glass',
+    'opale-rating--glass',
+    'opale-link--glass',
   ];
 
   /* `declaration` rend la DERNIÈRE valeur écrite pour la classe nue : c'est
@@ -1212,5 +1214,74 @@ describe('les seuils de lisibilité du verre', () => {
       declaration(opaleSource, '[data-opale-glass] .opale-file-card__icon', 'background'),
       'aucune règle propre à la vignette sous verre',
     ).toBe('color-mix(in srgb, var(--opale-primary) 62%, transparent)');
+  });
+});
+
+/* Le verre habille la note, le fil d'Ariane, le lien et la pagination sans
+   rien retirer à leur sémantique : rôle, nom, état courant et clavier restent
+   ceux du rendu original. */
+describe('le verre des petits composants de navigation et de note', () => {
+  it('garde la note lisible comme une image nommée', () => {
+    render(<Opale.Rating liquidGlass value={3.5} />);
+
+    const rating = screen.getByRole('img', { name: '3,5 sur 5' });
+    expect(rating).toHaveClass('opale-rating', 'opale-rating--glass');
+    expect(rating.closest('[data-opale-glass]')).not.toBeNull();
+  });
+
+  it('garde le fil d’Ariane comme repère nommé, étape courante marquée', () => {
+    render(
+      <Opale.Breadcrumb
+        liquidGlass
+        items={[
+          { id: 'a', label: 'Accueil', href: '/' },
+          { id: 'b', label: 'Composants' },
+        ]}
+      />,
+    );
+
+    const nav = screen.getByRole('navigation', { name: "Fil d'Ariane" });
+    expect(nav).toHaveClass('opale-breadcrumb', 'opale-breadcrumb--glass');
+    expect(nav.closest('[data-opale-glass]')).not.toBeNull();
+    expect(screen.getByText('Composants')).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('garde le lien natif, sa cible et sa référence', () => {
+    const ref = createRef<HTMLAnchorElement>();
+    render(
+      <Opale.Link liquidGlass href="/guide" ref={ref}>
+        Guide
+      </Opale.Link>,
+    );
+
+    const link = screen.getByRole('link', { name: 'Guide' });
+    expect(link).toHaveAttribute('href', '/guide');
+    expect(link).toHaveClass('opale-link', 'opale-link--glass');
+    expect(ref.current).toBe(link);
+  });
+
+  it('garde la pagination pilotable', async () => {
+    const onValueChange = vi.fn();
+    render(<Opale.Pagination liquidGlass pageCount={5} onValueChange={onValueChange} />);
+
+    const nav = screen.getByRole('navigation', { name: 'Pagination' });
+    expect(nav).toHaveClass('opale-pagination', 'opale-pagination--glass');
+    await userEvent.click(screen.getByRole('button', { name: 'Page suivante' }));
+    expect(onValueChange).toHaveBeenCalledWith(2);
+    expect(screen.getByRole('button', { name: 'Page 2' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('rend l’original sans enveloppe de verre par défaut', () => {
+    const { container } = render(
+      <>
+        <Opale.Rating value={2} />
+        <Opale.Breadcrumb items={[{ id: 'a', label: 'Accueil' }]} />
+        <Opale.Link href="/">Accueil</Opale.Link>
+        <Opale.Pagination pageCount={3} />
+      </>,
+    );
+
+    expect(container.querySelector('[data-opale-glass]')).toBeNull();
+    expect(container.querySelector('[class*="--glass"]')).toBeNull();
   });
 });

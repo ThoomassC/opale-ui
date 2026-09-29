@@ -176,11 +176,21 @@ export function Menu({
 
 export interface LinkProps extends ComponentPropsWithRef<'a'> {
   children: ReactNode;
+  /** Pose le lien sur le matériau « verre liquide ». Original par défaut. */
+  liquidGlass?: boolean;
 }
 
-export function Link({ children, className, ...props }: LinkProps) {
+export function Link({ children, className, liquidGlass = false, ...props }: LinkProps) {
+  const classes = clsx('opale-link', liquidGlass && 'opale-link--glass', className);
+  if (liquidGlass) {
+    return (
+      <Glass {...props} as="a" className={classes} rootClassName="opale-link--glass-root">
+        {children}
+      </Glass>
+    );
+  }
   return (
-    <a className={clsx('opale-link', className)} {...props}>
+    <a className={classes} {...props}>
       {children}
     </a>
   );
@@ -448,15 +458,31 @@ export function CommandPalette({
 
 export interface BreadcrumbProps extends Omit<ComponentPropsWithRef<'nav'>, 'children'> {
   items?: readonly NavItem[];
+  /** Pose le fil sur le matériau « verre liquide ». Original par défaut. */
+  liquidGlass?: boolean;
 }
 
-export function Breadcrumb({ items = [], className, ...rest }: BreadcrumbProps) {
+export function Breadcrumb({
+  items = [],
+  liquidGlass = false,
+  className,
+  ...rest
+}: BreadcrumbProps) {
+  const Shell = liquidGlass ? Glass : 'nav';
+  const shellProps = liquidGlass
+    ? ({ as: 'nav', rootClassName: 'opale-breadcrumb--glass-root' } as const)
+    : {};
   return (
     /* UNE LISTE ORDONNÉE, ET UN MAILLON COURANT. Le fil était une suite de
        `<span>` : rien n'annonçait « liste de quatre éléments, élément deux »,
        et aucun `aria-current` ne disait où l'on se trouve — sur le composant
        dont c'est l'unique fonction (WCAG 1.3.1). */
-    <nav aria-label="Fil d'Ariane" {...rest} className={clsx('opale-breadcrumb', className)}>
+    <Shell
+      aria-label="Fil d'Ariane"
+      {...rest}
+      {...shellProps}
+      className={clsx('opale-breadcrumb', liquidGlass && 'opale-breadcrumb--glass', className)}
+    >
       <ol>
         {items.map((item, index) => {
           /* LA DERNIÈRE ÉTAPE EST LA PAGE COURANTE, LIEN OU PAS. `aria-current`
@@ -478,7 +504,7 @@ export function Breadcrumb({ items = [], className, ...rest }: BreadcrumbProps) 
           );
         })}
       </ol>
-    </nav>
+    </Shell>
   );
 }
 /* =============================================================================

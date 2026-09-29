@@ -418,7 +418,14 @@ export function CatalogPreview({
       );
       break;
     case 'Pagination':
-      preview = <Opale.Pagination value={page} pageCount={8} onValueChange={setPage} />;
+      preview = (
+        <Opale.Pagination
+          liquidGlass={liquidGlass}
+          value={page}
+          pageCount={8}
+          onValueChange={setPage}
+        />
+      );
       break;
     case 'Skeleton':
       preview = (
@@ -434,7 +441,7 @@ export function CatalogPreview({
          pas que le remplissage est fractionnaire — c'est pourtant tout
          l'intérêt du composant ; avec trois rangées on ne savait plus laquelle
          l'extrait de code montrait. Une rangée, la même que le code. */
-      preview = <Opale.Rating value={4.75} max={5} />;
+      preview = <Opale.Rating liquidGlass={liquidGlass} value={4.75} max={5} />;
       break;
     case 'StatCard':
       preview = (
@@ -620,7 +627,11 @@ export function CatalogPreview({
       );
       break;
     case 'Link':
-      preview = <Opale.Link href="#/installation">Lire le guide d’installation →</Opale.Link>;
+      preview = (
+        <Opale.Link liquidGlass={liquidGlass} href="#/installation">
+          Lire le guide d’installation →
+        </Opale.Link>
+      );
       break;
     case 'SidePanel':
       preview = (
@@ -654,6 +665,7 @@ export function CatalogPreview({
     case 'Breadcrumb':
       preview = (
         <Opale.Breadcrumb
+          liquidGlass={liquidGlass}
           items={[
             { id: 'home', label: 'Accueil', href: '#/' },
             { id: 'components', label: 'Composants', href: '#/composants/opale-button' },

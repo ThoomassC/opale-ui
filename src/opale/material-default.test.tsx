@@ -218,6 +218,31 @@ const PORTEURS = [
       <Opale.IconActionButton liquidGlass={g} icon="trash" label="Supprimer" />
     ),
   },
+  { nom: 'Rating', rendre: (g?: boolean) => <Opale.Rating liquidGlass={g} value={3.5} /> },
+  {
+    nom: 'Breadcrumb',
+    rendre: (g?: boolean) => (
+      <Opale.Breadcrumb
+        liquidGlass={g}
+        items={[
+          { id: 'a', label: 'Accueil', href: '/' },
+          { id: 'b', label: 'Composants' },
+        ]}
+      />
+    ),
+  },
+  {
+    nom: 'Link',
+    rendre: (g?: boolean) => (
+      <Opale.Link liquidGlass={g} href="/guide">
+        Guide
+      </Opale.Link>
+    ),
+  },
+  {
+    nom: 'Pagination',
+    rendre: (g?: boolean) => <Opale.Pagination liquidGlass={g} pageCount={5} />,
+  },
   {
     nom: 'SvgMapControls',
     rendre: (g?: boolean) => {

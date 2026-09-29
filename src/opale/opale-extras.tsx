@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useRef, type ComponentPropsWithRef } from 'react';
 
+import Glass from './components/glass/Glass';
 import { IconGlyph } from './components/icon';
 import { resolveLabels } from './shared/labels';
 import { useControllableState } from './shared/use-controllable-state';
@@ -73,6 +74,8 @@ export interface PaginationProps extends Omit<
   label?: string;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<PaginationLabels>;
+  /** Pose la pagination sur le matériau « verre liquide ». Originale par défaut. */
+  liquidGlass?: boolean;
 }
 
 /** Pagination contrôlable, utilisable au clavier avec des boutons natifs. */
@@ -86,6 +89,7 @@ export function Pagination({
   disabled = false,
   label,
   labels: labelsProp,
+  liquidGlass = false,
   className,
   ...rest
 }: PaginationProps) {
@@ -121,11 +125,18 @@ export function Pagination({
   const visible = [...new Set([1, current - 1, current, current + 1, total])]
     .filter((number) => number >= 1 && number <= total)
     .sort((a, b) => a - b);
+  const Shell = liquidGlass ? Glass : 'nav';
+  const shellProps = liquidGlass
+    ? ({ as: 'nav', rootClassName: 'opale-pagination--glass-root' } as const)
+    : {};
   return (
-    <nav
+    <Shell
       aria-label={label ?? labels.navigation}
       {...rest}
-      className={['opale-pagination', className].filter(Boolean).join(' ')}
+      {...shellProps}
+      className={['opale-pagination', liquidGlass && 'opale-pagination--glass', className]
+        .filter(Boolean)
+        .join(' ')}
     >
       <button
         type="button"
@@ -170,7 +181,7 @@ export function Pagination({
       >
         ›
       </button>
-    </nav>
+    </Shell>
   );
 }
 
