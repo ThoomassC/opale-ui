@@ -752,3 +752,8 @@ Tabs.Content = TabsContent;
 Tabs.useTabs = () => useTabsContext('Tabs.useTabs');
 
 export default Tabs;
+
+/* LES PARTIES SOUS LEUR PROPRE NOM, pour les Server Components : une référence
+   client ne se lit pas par un point, `Tabs.List` y lève une erreur.
+   `TabsList` est le même objet que `Tabs.List`. */
+export { TabsList, TabsTrigger, TabsContent };

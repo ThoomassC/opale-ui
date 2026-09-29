@@ -1,2 +1,2 @@
-export { default as Tabs } from './Tabs';
+export { default as Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export type * from './Tabs';

@@ -29,11 +29,13 @@
   "exports": {
     ".": {
       "types": "./dist/opale/index.d.ts",
-      "import": "./dist/opale/index.js"
+      "import": "./dist/opale/index.js",
+      "default": "./dist/opale/index.js"
     },
     "./contract": {
       "types": "./dist/contract/index.d.ts",
-      "import": "./dist/contract/index.js"
+      "import": "./dist/contract/index.js",
+      "default": "./dist/contract/index.js"
     },
     "./tokens.css": "./dist/tokens/tokens.css",
     "./opale.css": "./dist/opale/opale.css",

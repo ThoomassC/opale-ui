@@ -156,17 +156,27 @@ const notes = [
   '',
   `    npm i ${releaseAssetUrl(tag, version)}`,
   '',
-  'Alternative — tag Git, compilé à l’installation (demande la chaîne de build) :',
+  'Alternative npm — tag Git, compilé à l’installation (demande la chaîne de build ; pnpm 10 le refuse, prenez l’archive) :',
   '',
   `    npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${tag}"`,
 ].join('\n');
 
-/* 7. L'archive, AVANT le tag : construite depuis ce commit (l'arbre est
-      propre), vérifiée, emballée sans relancer `prepare`. Un build rouge
+/* 7. La suite, puis l'archive, AVANT le tag : construite depuis ce commit
+      (l'arbre est propre), vérifiée, emballée sans relancer `prepare`. Un build rouge
       arrête tout ici, sans rien publier — après le push, ce même commit
       échouerait pareil, et le tag resterait sans archive pour toujours.
       Elle est rangée dans `dist-release/` (ignoré par git), pas dans un
       dossier temporaire : une reprise après redémarrage la retrouve. */
+/* ROB-14 — LA SUITE ENTIÈRE, PAS SEULEMENT LE BUILD. Ne relancer que
+   `build:lib` et `check:dist` laissait partir une archive d'un commit dont la
+   CI était rouge, ou n'avait pas tourné : c'est exactement la confiance
+   aveugle refusée à l'étape 2. D'abord ce qui ne demande pas `dist/` (le plus
+   rapide à échouer), puis ce qui le lit. `--dry-run` les joue toutes : il dit
+   si la publication passerait, pas seulement si l'archive se construit.
+   `release-script.structure.test.ts` tient ces deux listes. */
+const CHECKS_BEFORE_BUILD = ['typecheck', 'lint', 'test'];
+const CHECKS_ON_BUILD = ['check:dist', 'check:size', 'check:consumer'];
+
 const work = join(root, 'dist-release', tag);
 const tarball = join(work, asset);
 const notesFile = join(work, 'notes.md');
@@ -175,8 +185,9 @@ mkdirSync(work, { recursive: true });
 writeFileSync(notesFile, `${notes}\n`);
 
 try {
+  for (const script of CHECKS_BEFORE_BUILD) run('npm', 'run', script);
   run('npm', 'run', 'build:lib');
-  run('npm', 'run', 'check:dist');
+  for (const script of CHECKS_ON_BUILD) run('npm', 'run', script);
 
   const produced = execFileSync(
     'npm',
@@ -191,7 +202,7 @@ try {
     throw new Error(`npm pack a produit « ${produced} », la garde attend « ${asset} ».`);
   }
 } catch (error) {
-  fail(`L'archive n'a pas pu être construite ; aucun tag n'a été posé.\n  ${error.message}`);
+  fail(`La suite ou l'archive a échoué ; aucun tag n'a été posé.\n  ${error.message}`);
 }
 
 if (DRY_RUN) {

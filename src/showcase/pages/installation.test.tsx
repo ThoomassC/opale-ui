@@ -83,6 +83,31 @@ describe('la page Installation', () => {
     ).toBeInTheDocument();
   });
 
+  /* DOCS-01 — LA PAGE PROMETTAIT QUE TOUT S'IMPORTE TEL QUEL DEPUIS UN SERVER
+     COMPONENT. C'est faux pour la notation à point : une référence client ne
+     se lit pas par un point, `<Tabs.List>` y lève une erreur. L'exemple doit
+     montrer les parties nommées côté serveur, le namespace côté client, et
+     où poser le ToastProvider. */
+  it('montre la frontière client de Next.js telle qu’elle est', () => {
+    const { container } = render(<>{installationPage.render()}</>);
+    const text = container.textContent ?? '';
+
+    expect(text).not.toMatch(/s’importent tels quels, même depuis un Server Component/);
+    expect(text).toContain('<TabsList');
+    expect(text).toContain('<ToastProvider>{children}</ToastProvider>');
+    expect(text).toMatch(/Cannot access Tabs\.List on the server/);
+    expect(text).toMatch(/Opale\.\*/);
+    expect(text).toContain("'use client';");
+    expect(text).toContain('ICON_NAMES');
+  });
+
+  it('ne conseille plus onlyBuiltDependencies, qui ne suffit pas à pnpm 10', () => {
+    const { container } = render(<>{installationPage.render()}</>);
+    const text = container.textContent ?? '';
+    expect(text).not.toMatch(/autorisez-le dans onlyBuiltDependencies/);
+    expect(text).toMatch(/pnpm 10/);
+  });
+
   /* LIV-05 — L'ARCHIVE CONSTRUITE D'ABORD, LE TAG GIT EN SECOURS. Par le tag,
      npm compile le paquet chez le consommateur : chaîne de build requise,
      `--ignore-scripts` livre un paquet vide, pnpm 10 bloque le script. */

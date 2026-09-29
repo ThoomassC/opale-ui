@@ -61,7 +61,12 @@ import { SvgMap, SvgMapControls } from './catalog/svg-map';
 
 /* LE NAMESPACE `Opale` : chaque composant du paquet sous un seul nom. Les
    exports nommés (`import { Button } from '@thomascaron/opale-ui'`) restent la
-   forme recommandée ; `Opale.Button` désigne le même composant. */
+   forme recommandée ; `Opale.Button` désigne le même composant.
+
+   CE MODULE SE LIVRE SANS "use client" (`scripts/server-safe-modules.mjs`) :
+   il n'appelle rien, il assemble. La notation à point reste pourtant réservée
+   aux Client Components — côté serveur, `Opale.Tabs` est une référence client,
+   et `Opale.Tabs.List` y lève comme `Tabs.List`. */
 const COMPONENTS = {
   Button: Button,
   Pressable: Pressable,

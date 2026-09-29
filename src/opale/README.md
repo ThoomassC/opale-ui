@@ -53,6 +53,23 @@ l'élément natif qui garde le focus, le clavier, le nom de formulaire et son
 `ChangeEvent`. La prop `liquidGlass` ne change que la matière, jamais la
 mécanique.
 
+## La frontière client
+
+Le build pose `"use client"` en tête de chaque module de composant, et de ceux-là
+seulement. `scripts/server-safe-modules.mjs` nomme les exceptions : les barils
+(`index`, `opale`, `opale-namespace`) et les modules de pure donnée (`catalog`,
+`catalog/cookie-consent`, `components/icon/icons`,
+`components/site-nav/default-items`). Posée sur une donnée, la directive en fait
+une référence client côté serveur : `ICON_NAMES.length` y valait 0 et
+`COOKIE_CONSENT_KEY` y était une fonction qui lève.
+`server-safe-modules.structure.test.ts` tient la liste sur les sources,
+`scripts/check-dist.mjs` sur le build.
+
+Pour la même raison, un Server Component ne lit pas `Tabs.List` : une référence
+client ne se lit pas par un point. Chaque partie posée sur un composant composé
+est donc aussi exportée par son nom (`TabsList`, `SidebarItem`, `TopbarBrand`…),
+et `compound-parts.structure.test.ts` exige qu'une nouvelle partie le soit aussi.
+
 ## Le matériau
 
 `Glass` est la primitive du dossier, et la seule chose qu'il faut vraiment
@@ -246,9 +263,6 @@ interrupteur de fichier.
 - **Un seul module en SCSS.** `SearchBar.module.scss` est le dernier, et il tient
   `sass` dans les dépendances de développement à lui seul. Le convertir en CSS
   simple alignerait le dossier et retirerait une dépendance.
-- **Les commentaires sont publiés.** Ils survivent dans `dist/opale/opale.css`. Sans
-  conséquence fonctionnelle, mais si la feuille doit être minifiée, c'est côté
-  configuration de build — jamais en appauvrissant la source.
-- **Le poids du paquet n'a pas été remesuré** après la réécriture. La suppression
-  de Tailwind et de huit composants devrait l'avoir fait baisser nettement ;
-  « devrait » n'est pas une mesure.
+- **Seul un import isolé a un budget de poids.** `scripts/check-size.mjs` tient
+  `Divider` sous 1 ko minifié ; le poids d'un import de tout le catalogue, lui,
+  n'est suivi par aucun garde.

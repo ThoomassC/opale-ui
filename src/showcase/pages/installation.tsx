@@ -36,21 +36,43 @@ document.documentElement.dataset.theme = 'dark';
 
 const NEXT = `// app/layout.tsx — un Server Component
 import '@thomascaron/opale-ui/opale.css';
+import { ToastProvider } from '@thomascaron/opale-ui';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" data-theme="light">
-      <body>{children}</body>
+      <body>
+        {/* Un composant client peut envelopper des enfants serveur. */}
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }
 
-// app/page.tsx — Opale porte déjà "use client" :
-// ses composants s'importent tels quels, même depuis un Server Component.
-import { Button } from '@thomascaron/opale-ui';
+// app/page.tsx — un Server Component : les parties par leur nom.
+import { Button, ICON_NAMES, Tabs, TabsContent, TabsList, TabsTrigger } from '@thomascaron/opale-ui';
 
 export default function Page() {
-  return <Button variant="primary">Continuer</Button>;
+  return (
+    <Tabs defaultValue="apercu">
+      <TabsList aria-label="Sections">
+        <TabsTrigger value="apercu">Aperçu</TabsTrigger>
+      </TabsList>
+      <TabsContent value="apercu">
+        <p>{ICON_NAMES.length} icônes disponibles.</p>
+        <Button variant="primary">Continuer</Button>
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+// app/save-button.tsx — un Client Component : crochets et gestionnaires
+'use client';
+import { Button, useToast } from '@thomascaron/opale-ui';
+
+export function SaveButton() {
+  const { showToast } = useToast();
+  return <Button onClick={() => showToast({ title: 'Enregistré' })}>Enregistrer</Button>;
 }`;
 
 const FIRST_COMPONENT = `import { Button } from '@thomascaron/opale-ui';
@@ -157,11 +179,12 @@ export const installationPage: DocPage = {
               defaultOpen
             />
             <p className="tc-doc-prose">
-              Par le tag Git, le paquet se compile à l’installation (script <code>prepare</code>) et
-              demande la chaîne de build chez vous. Si ce script ne tourne pas, le paquet arrive
-              sans son dossier <code>dist</code> : c’est le cas avec{' '}
-              <code>npm ci --ignore-scripts</code>, et avec pnpm 10, qui bloque par défaut les
-              scripts des dépendances — autorisez-le dans <code>onlyBuiltDependencies</code>.
+              Par le tag Git, avec npm, le paquet se compile à l’installation (script{' '}
+              <code>prepare</code>) et demande la chaîne de build chez vous. Si ce script ne tourne
+              pas, le paquet arrive sans son dossier <code>dist</code> : c’est le cas avec{' '}
+              <code>npm ci --ignore-scripts</code>. <strong>Avec pnpm 10, prenez l’archive</strong>{' '}
+              : pnpm refuse de compiler une dépendance Git, et l’autoriser par son nom dans{' '}
+              <code>onlyBuiltDependencies</code> ne suffit pas.
             </p>
           </>
         ) : (
@@ -174,10 +197,11 @@ export const installationPage: DocPage = {
             />
             <p className="tc-doc-prose">
               Opale n’est pas publié sur npm : il s’installe depuis GitHub et se compile à
-              l’installation par son script <code>prepare</code>. Deux cas l’empêchent de tourner,
-              et le paquet arrive alors sans son dossier <code>dist</code> :{' '}
-              <code>npm ci --ignore-scripts</code>, et pnpm 10, qui bloque par défaut les scripts
-              des dépendances — autorisez-le dans <code>onlyBuiltDependencies</code>.
+              l’installation par son script <code>prepare</code>. Avec{' '}
+              <code>npm ci --ignore-scripts</code>, ce script ne tourne pas et le paquet arrive sans
+              son dossier <code>dist</code>. pnpm 10 refuse de compiler une dépendance Git, même
+              autorisée par son nom dans <code>onlyBuiltDependencies</code> : installez avec npm, ou
+              une version qui porte son archive construite (3.9.0 et plus).
             </p>
           </>
         )}
@@ -199,9 +223,36 @@ export const installationPage: DocPage = {
 
       <Specimen
         title="Avec Next.js (App Router)"
-        note="La feuille s’importe dans le layout racine, un Server Component. Les composants portent déjà la directive « use client » : inutile de les envelopper."
+        note="La feuille s’importe dans le layout racine, un Server Component. Chaque composant porte déjà la directive « use client » : un Server Component l’importe et le rend sans l’envelopper."
       >
         <UsageBlock label="Next.js App Router" code={NEXT} defaultOpen />
+        <ul className="tc-doc-checklist">
+          <li>
+            <strong>Dans un Server Component, les parties par leur nom</strong> :{' '}
+            <code>TabsList</code>, <code>TabsTrigger</code>, <code>TabsContent</code>,{' '}
+            <code>SidebarItem</code>, <code>TopbarBrand</code>… Côté serveur, un composant client
+            est une référence opaque qu’on ne lit pas par un point : <code>{'<Tabs.List>'}</code> y
+            échoue, avec « Cannot access Tabs.List on the server » ou, au prérendu de{' '}
+            <code>next build</code>, « Element type is invalid… got: undefined ».
+          </li>
+          <li>
+            <strong>
+              La notation à point et le namespace <code>Opale.*</code>
+            </strong>{' '}
+            (<code>Tabs.List</code>, <code>Opale.Button</code>) sont réservés aux Client Components,
+            dans un fichier qui commence par <code>'use client'</code>.
+          </li>
+          <li>
+            <code>ToastProvider</code> se pose une fois, dans le layout racine, autour de{' '}
+            <code>children</code> ; <code>useToast</code> s’appelle depuis un Client Component placé
+            dessous.
+          </li>
+          <li>
+            Les données — <code>ICON_NAMES</code>, <code>OPALE_ICONS</code>,{' '}
+            <code>COOKIE_CONSENT_KEY</code>, <code>isOpaleIconName</code> — se lisent aussi côté
+            serveur, comme de vraies valeurs.
+          </li>
+        </ul>
       </Specimen>
 
       <Specimen

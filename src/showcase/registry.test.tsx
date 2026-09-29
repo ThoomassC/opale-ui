@@ -204,11 +204,32 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    Rupture d'API assumée, à consigner dans les notes de version. */
 /* 61 DEPUIS LA 3.5.0 : `SvgMapControls` rejoint le catalogue avec la refonte
    de la carte SVG. */
-const PUBLISHED_COMPONENT_COUNT = 61;
+/* 73 DEPUIS LA 3.9.2 : les douze parties de `Tabs`, `Sidebar` et `Topbar`
+   (`TabsList`, `SidebarItem`, `TopbarBrand`…) sont aussi publiées sous leur
+   nom, pour les Server Components. Elles se documentent sur la page de leur
+   composant (`COMPOUND_PART_OWNERS`). */
+const PUBLISHED_COMPONENT_COUNT = 73;
+
+/**
+ * Les parties des composants composés, vers leur propriétaire : `TabsList` →
+ * `Tabs`. Publiées sous leur nom pour les Server Components (`Tabs.List` ne s'y
+ * lit pas), elles restent des pièces de leur composant et se documentent sur
+ * sa page. Dérivé des exports, comme `PUBLISHED_COMPONENTS`.
+ */
+const COMPOUND_PART_OWNERS: ReadonlyMap<string, string> = new Map(
+  Object.entries(library).flatMap(([owner, value]) =>
+    isComponent(value) && (typeof value === 'object' || typeof value === 'function') && value
+      ? Object.keys(value)
+          .filter((member) => /^[A-Z]/.test(member))
+          .map((member): [string, string] => [`${owner}${member}`, owner])
+      : [],
+  ),
+);
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {
-  return DOCUMENTED_WITH[component] ?? catalogComponentLabel(component);
+  const owner = COMPOUND_PART_OWNERS.get(component) ?? component;
+  return DOCUMENTED_WITH[owner] ?? catalogComponentLabel(owner);
 }
 
 /** `ChipList` → `chip-list`. Le slug d'une page de composant. */

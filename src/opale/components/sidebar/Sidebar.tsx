@@ -643,3 +643,8 @@ Sidebar.Toggle = SidebarToggle;
 Sidebar.useSidebar = () => useSidebarContext('Sidebar.useSidebar');
 
 export default Sidebar;
+
+/* LES PARTIES SOUS LEUR PROPRE NOM, pour les Server Components : une référence
+   client ne se lit pas par un point, `Sidebar.Header` y lève une erreur.
+   `SidebarHeader` est le même objet que `Sidebar.Header`. */
+export { SidebarHeader, SidebarFooter, SidebarItems, SidebarItem, SidebarToggle };
