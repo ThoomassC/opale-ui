@@ -6,7 +6,7 @@ import opaleComponentsSource from './opale-components.tsx?raw';
 import catalogPreviewSource from './catalog-preview.tsx?raw';
 import { OPALE_CATALOG, Opale } from '../../opale';
 import { catalogComponentLabel } from '../doc-model';
-import opaleLibrarySource from '../../opale/opale.tsx?raw';
+import { OPALE_CATALOG_SOURCE as opaleLibrarySource } from '../../test/opale-source';
 import { CatalogPreview } from './catalog-preview';
 import { CATALOG_API } from './opale-api-data';
 import { opaleComponentPages } from './opale-component-pages';

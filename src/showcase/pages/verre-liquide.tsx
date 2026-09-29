@@ -7,7 +7,7 @@ import Glass from '../../opale/components/glass/Glass';
    ELLE L'IMPORTE PAR CHEMIN, ET PLUS PAR LE BARRIL. `Glass` n'est plus un
    composant publié : c'est le matériau, atteint partout ailleurs par la prop
    `liquidGlass`. La page du matériau reste la seule à ouvrir le capot, et elle
-   le fait par la porte de service — celle qu'`opale.tsx` emprunte déjà.
+   le fait par la porte de service — celle que le catalogue emprunte déjà.
 
    LE BOUTON DE DÉMONSTRATION EST CELUI D'OPALE. Il venait d'une librairie
    tierce, dont ce dépôt n'embarque plus une ligne : un bouton de verre EST

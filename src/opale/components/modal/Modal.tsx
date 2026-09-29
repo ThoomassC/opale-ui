@@ -11,6 +11,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
+import clsx from 'clsx';
 import { createPortal } from 'react-dom';
 
 import Glass, { type GlassProps } from '../glass/Glass';
@@ -170,9 +171,6 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex^="-"])',
 ].join(',');
 
-const cx = (...values: readonly (string | false | null | undefined)[]) =>
-  values.filter(Boolean).join(' ');
-
 /* =============================================================================
    LE PANNEAU DU DIALOGUE, DANS LES DEUX MATIÈRES.
 
@@ -215,7 +213,7 @@ function Panneau({
   }
 
   return (
-    <div {...rest} ref={ref} className={cx(rootClassName, className, styles.plain)}>
+    <div {...rest} ref={ref} className={clsx(rootClassName, className, styles.plain)}>
       {children}
     </div>
   );
@@ -525,8 +523,12 @@ const Modal = ({
           ref={panelRefs}
           liquidGlass={liquidGlass}
           triggerAnimation={openRipple}
-          rootClassName={cx(styles.shell, sizeClass[normalizeSize(size, 'medium')], rootClassName)}
-          className={cx(styles.panel, className)}
+          rootClassName={clsx(
+            styles.shell,
+            sizeClass[normalizeSize(size, 'medium')],
+            rootClassName,
+          )}
+          className={clsx(styles.panel, className)}
           role="dialog"
           aria-modal="true"
           aria-label={ariaLabel}

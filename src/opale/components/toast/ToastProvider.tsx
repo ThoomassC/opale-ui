@@ -7,6 +7,7 @@ import {
   type PropsWithChildren,
   type ReactNode,
 } from 'react';
+import clsx from 'clsx';
 import { createPortal } from 'react-dom';
 
 import Glass from '../glass/Glass';
@@ -224,9 +225,6 @@ const NEWEST_FIRST: Record<ToastPosition, boolean> = {
   'bottom-center': false,
 };
 
-const cx = (...values: readonly (string | false | null | undefined)[]) =>
-  values.filter(Boolean).join(' ');
-
 const generateToastId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Math.random().toString(36).slice(2);
@@ -255,7 +253,7 @@ function Carte({
   readonly children: ReactNode;
 }) {
   if (!liquidGlass) {
-    return <div className={cx(rootClassName, className, styles.plain)}>{children}</div>;
+    return <div className={clsx(rootClassName, className, styles.plain)}>{children}</div>;
   }
 
   return (
@@ -349,7 +347,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
 
   return (
     <div
-      className={cx(styles.card, animationClass[animation], dismissed && styles.leaving)}
+      className={clsx(styles.card, animationClass[animation], dismissed && styles.leaving)}
       data-testid="toast"
       /* Les quatre gestionnaires sont le dispositif WCAG 2.2.1, et il en faut
          quatre : la souris et le doigt passent par le pointeur, le clavier par
@@ -362,7 +360,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
     >
       <Carte
         liquidGlass={liquidGlass}
-        rootClassName={cx(styles.surface, toneClass[tone])}
+        rootClassName={clsx(styles.surface, toneClass[tone])}
         className={styles.body}
         enableLiquidAnimation={enableLiquidAnimation}
         triggerAnimation={entered}
@@ -400,12 +398,11 @@ function ToastStack({
   const ref = useRef<HTMLDivElement>(null);
   useScrollPadding(ref, position.startsWith('top') ? 'top' : 'bottom', occupied);
   return (
-    <div ref={ref} className={cx(styles.stack, positionClass[position])}>
+    <div ref={ref} className={clsx(styles.stack, positionClass[position])}>
       {children}
     </div>
   );
 }
-
 
 /** La durée d'un toast dont ni l'appel ni le fournisseur ne fixent la durée. */
 const DEFAULT_DURATION_MS = 4000;

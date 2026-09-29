@@ -17,7 +17,7 @@
    dont les autres sont faits. Tout ce qu'on pouvait en obtenir s'obtient
    désormais par `liquidGlass` sur le composant qu'on veut vraiment — un
    `Glass` nu ne rend qu'un rectangle translucide que rien ne remplit. Le
-   module reste, il tourne à l'écran dès qu'on active le verre, et `opale.tsx`
+   module reste, il tourne à l'écran dès qu'on active le verre, et le catalogue
    l'importe par chemin direct comme les sept autres modules internes ; il n'a
    simplement plus de nom public, donc plus de page à exiger.
 
@@ -43,7 +43,7 @@ export * from './search-bar';
 export * from './sidebar';
 export * from './site-nav';
 /* LA CARTE SVG PUBLIE SA VUE, PAS SON MOTEUR. `SvgMap` et `SvgMapControls`
-   vivent dans `opale.tsx` avec le catalogue ; ce module-ci n'expose que le
+   vivent dans `catalog/svg-map.tsx` ; ce module-ci n'expose que le
    crochet qui permet de piloter leur vue de l'extérieur. Les gestes et la
    géométrie restent internes. */
 export { useSvgMapViewport } from './svg-map';

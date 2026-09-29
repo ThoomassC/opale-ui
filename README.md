@@ -110,7 +110,7 @@ Tout est exporté à la racine.
 - **Les composants composés**, un dossier chacun sous `src/opale/components/` : `Glass`,
   `Modal`, `PageScaffold`, `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` (et le
   hook `useToast`) et `Topbar`.
-- **Le catalogue**, dans `src/opale/opale.tsx` : **52 fiches** réparties en sept familles —
+- **Le catalogue**, dans `src/opale/catalog/` : **52 fiches** réparties en sept familles —
   saisie, boutons spécialisés, affichage de données, navigation, retours, mise en page et
   modules. La vitrine génère une page de démonstration par fiche.
 

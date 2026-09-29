@@ -152,7 +152,7 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    POURQUOI IL BAISSE : ce garde compte les exports de `src/opale/index.ts`, et
    ces sept-là ne sont plus réexportés par `src/opale/components/index.ts`. Ils
    sont devenus la matière derrière la prop `liquidGlass` de leur jumeau Opale,
-   que `opale.tsx` importe par chemin direct. Les sept MODULES existent
+   que le catalogue importe par chemin direct. Les sept MODULES existent
    toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
    ils n'ont simplement plus de nom public, donc plus de page à exiger.
 

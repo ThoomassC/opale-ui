@@ -2,7 +2,7 @@ import type { ComponentState } from './component-page';
 
 /* LE CONTRAT D'ACCESSIBILITÉ ET LES ÉTATS DES FICHES DU CATALOGUE.
 
-   Chaque ligne décrit ce que fait le code de `src/opale/opale.tsx` et
+   Chaque ligne décrit ce que fait le code de `src/opale/catalog/` et
    `src/opale/opale-extras.tsx`, JSDoc comprise — rien de plus. Les accents
    graves deviennent du code à l'affichage (voir `InlineCode`). Une fiche sans
    entrée fait jeter la page : `component-page.structure.test.tsx` le verrait. */

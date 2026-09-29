@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { parseRules, stripComments } from '../test/css-rules';
 import docV3 from './doc-v3.css?raw';
 
 /* ============================================================================
@@ -11,14 +12,14 @@ import docV3 from './doc-v3.css?raw';
    la mesure elle-même se refait au navigateur à chaque changement de scène.
    ========================================================================== */
 
-const CSS = docV3.replace(/\/\*[\s\S]*?\*\//g, '');
+const CSS = stripComments(docV3);
 
-const rule = (selector: string) => {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return [...CSS.matchAll(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`, 'g'))]
-    .map((match) => match[1])
+/* Les corps de toutes les règles qui nomment exactement `selector`, tous contextes confondus. */
+const rule = (selector: string) =>
+  parseRules(docV3)
+    .filter((candidate) => candidate.selectors.includes(selector))
+    .map((candidate) => candidate.body)
     .join('\n');
-};
 
 describe('la vitrine à 320 px', () => {
   it('devrait donner à la page de composant une piste qui peut rétrécir', () => {
