@@ -202,6 +202,13 @@ interrupteur de fichier.
 
 ## Ce qui n'est pas mesuré
 
+- **Le coût GPU du verre.** Le déplacement SVG est coupé sous
+  `prefers-reduced-transparency`, `prefers-reduced-motion`, sous 37,5 rem et sous
+  un pointeur grossier (`Glass.displacement.structure.test.ts`) ; le flou reste
+  partout. Aucun profil n'a été pris : ni le panneau Performance de Chromium
+  (durée de *Paint* et de *Composite* par image, en défilant une page chargée de
+  verres), ni le clignotement des zones repeintes (*Paint flashing*), ni la
+  comparaison avec et sans le filtre sur un appareil mobile réel.
 - **Aucun audit `axe`** n'a été passé sur ces composants. Ce qu'on sait de leur
   accessibilité vient de la lecture du code, d'ESLint et des tests écrits à la
   main.
