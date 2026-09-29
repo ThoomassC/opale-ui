@@ -23,10 +23,8 @@ const COOKIE_DEMO_KEY = 'opale-demo-cookie-consent';
 const PREVIEW_IMAGE =
   'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23dce7fb%22/%3E%3Ccircle cx=%22180%22 cy=%22155%22 r=%2275%22 fill=%22%233d66aa%22/%3E%3Cpath d=%22M40 320 245 120l95 105 80-70 180 165Z%22 fill=%22%23f8b31a%22 opacity=%22.85%22/%3E%3C/svg%3E';
 
-/* LES SIX PLACES ET LES CINQ TONS SONT RECOPIÉS ICI EN VALEURS, et un garde de
-   `opale.test.tsx` vérifie qu'ils correspondent aux types du composant : une
-   place ajoutée au composant et oubliée dans l'aperçu serait publiée sans
-   jamais pouvoir être essayée. */
+/* Recopiés en valeurs ; un garde de `opale.test.tsx` les confronte aux types
+   du composant pour que chaque place et chaque ton restent essayables. */
 const TOAST_TONES = ['neutral', 'success', 'warning', 'error', 'info'] as const;
 
 const TOAST_PLACEMENTS = [
@@ -75,12 +73,8 @@ function useDemoProgress(active: boolean): number {
        testée jetterait. */
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
 
-    /* AUCUN `setValue` SYNCHRONE ICI, et ce n'est pas un détail de style : poser
-       l'état pendant l'effet déclenche un second rendu en cascade avant la
-       peinture — ce que la règle `react-hooks` du dépôt refuse, à raison. La
-       barre démarre donc à sa valeur de repos et c'est le premier battement du
-       minuteur qui la met en mouvement ; elle repasse par zéro d'elle-même en
-       fin de course. */
+    /* Aucun `setValue` synchrone dans l'effet (règle `react-hooks`) : la barre
+       part de sa valeur de repos et le minuteur la met en mouvement. */
     const timer = window.setInterval(() => {
       setValue((current) => (current >= 100 ? 0 : Math.min(100, current + PROGRESS_STEP)));
     }, PROGRESS_TICK_MS);
@@ -418,10 +412,7 @@ export function CatalogPreview({
       );
       break;
     case 'Rating':
-      /* UN SEUL EXEMPLE, ET IL PORTE UN QUART. Avec `value={4}` on ne voyait
-         pas que le remplissage est fractionnaire — c'est pourtant tout
-         l'intérêt du composant ; avec trois rangées on ne savait plus laquelle
-         l'extrait de code montrait. Une rangée, la même que le code. */
+      /* Un seul exemple, fractionnaire, identique à l'extrait de code. */
       preview = <Opale.Rating liquidGlass={liquidGlass} value={4.75} max={5} />;
       break;
     case 'StatCard':
@@ -486,14 +477,8 @@ export function CatalogPreview({
       );
       break;
     case 'Toast':
-      /* LA DÉMONSTRATION EST PILOTABLE, ET LA LIGNE DE CODE SUIT LES RÉGLAGES.
-
-         L'aperçu affichait une surface grise au milieu du cadre, sans ton ni
-         place : on ne pouvait ni voir qu'il y en avait, ni vérifier où le
-         message atterrit. Les deux sélecteurs ci-dessous écrivent l'appel
-         exact sous eux ; cliquer « Afficher le toast » le pose EXACTEMENT là
-         où cette ligne le dit, c'est-à-dire dans le coin de la fenêtre et non
-         dans le cadre — un toast est posé sur l'écran, pas dans le flux. */
+      /* Démonstration pilotable : les sélecteurs écrivent l'appel exact, et le
+         toast se pose là où il le dit, dans le coin de la fenêtre. */
       preview = (
         <DemoFrame>
           <div className="tc-doc-opale-preview__row">
@@ -658,11 +643,8 @@ export function CatalogPreview({
     case 'CookieBanner':
       preview = (
         <DemoFrame>
-          {/* LA DÉMO OUBLIE LE CHOIX À LA DEMANDE. Le bandeau le mémorise, ce
-              qui est son rôle — sans ce bouton, un seul clic le ferait
-              disparaître de la page pour toujours. « Réafficher » efface la
-              clé de démonstration et remonte le bandeau pour relire le
-              stockage. */}
+          {/* « Réafficher » efface la clé de démonstration et remonte le
+              bandeau, qui relit alors le stockage. */}
           <Opale.Button
             size="small"
             onClick={() => {
@@ -808,14 +790,8 @@ export function CatalogPreview({
   }
 
   return (
-    /* LE MATÉRIAU EST SUR LE COMPOSANT, PAS SUR SON CADRE.
-
-       Ce conteneur portait `opale-liquid` : une plaque de verre grande comme
-       toute la zone de démonstration, DERRIÈRE le composant qui en portait déjà
-       une. On voyait donc deux surfaces empilées là où l'on venait en observer
-       une, et le spécimen ne se lisait plus à la place ni à la taille qu'il
-       aurait dans une vraie page. Le cadre redevient neutre ; l'attribut reste,
-       il sert au ciblage. */
+    /* Le matériau est sur le composant, pas sur ce cadre neutre ; l'attribut
+       reste pour le ciblage. */
     <div
       className="tc-doc-opale-preview__material"
       data-liquid-glass={liquidGlass ? 'true' : undefined}

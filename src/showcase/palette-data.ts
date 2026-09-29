@@ -1,40 +1,14 @@
 /**
- * Les mesures de la palette, en dur.
+ * Les mesures de la palette, en hexadécimaux littéraux : chaque plaque montre
+ * les deux thèmes quel que soit celui du lecteur.
  *
- * Ces hexadécimaux sont **littéraux et le resteront** : les deux plaques
- * documentent le thème clair ET le thème sombre en même temps, quel que soit
- * le thème que le lecteur a choisi pour la page. Une plaque qui suivrait
- * `var(--accent)` ne montrerait jamais qu'une moitié de la palette — et
- * mentirait sur l'autre.
+ * `palette-data.test.ts` compare chaque valeur au jeton résolu dans les vraies
+ * feuilles, exige que tout rôle coloré soit plaqué ou exclu avec sa raison, et
+ * refuse une exclusion dont le jeton n'existe plus.
  *
- * MAIS PLUS À L'AVEUGLE. Écrire ces valeurs à la main sans les tenir a coûté
- * exactement ce qu'on pouvait prévoir : `LIGHT_PLATE.ground` a affiché
- * `#deedf0` pendant que `roles.css` déclarait `#f2e9d6`, et rien n'a protesté.
- * Chaque valeur de ce fichier est désormais rejouée par
- * `palette-data.test.ts`, qui la compare au jeton RÉSOLU dans le thème
- * correspondant, en lisant les vraies feuilles. Une divergence est un rouge,
- * plus un commentaire.
- *
- * DEUX RÉCIPROQUES, parce qu'une comparaison seule ne voit que ce qu'on lui
- * montre :
- *   - tout rôle coloré de la feuille est soit plaqué ici, soit inscrit dans la
- *     liste d'exclusions du test avec sa raison ;
- *   - une exclusion dont le jeton n'existe plus fait échouer le test. Une
- *     exclusion périmée est un mensonge silencieux.
- *
- * LES LAVIS N'ONT PAS D'HEXADÉCIMAL. Depuis la v0.3.0 plusieurs jetons sont
- * des couches translucides — `--panel-surface`, `--glass-fill`, les deux arrêts
- * de tuile, les liserés. `hex` porte alors la valeur **déclarée**, en `rgba()`,
- * et `wash` porte la pile sur laquelle elle se compose plus l'aplat qui en
- * résulte : c'est cet aplat qu'on peint, parce que c'est lui que l'œil voit.
- * Faire tenir à un aplat opaque le rôle de la valeur d'un lavis serait
- * précisément la confusion que la migration a rendue possible.
- *
- * Les ratios sont ceux recalculés par `src/contract/` sur la feuille de
- * jetons ; s'ils divergent, c'est la feuille qui a raison et cette page qui
- * est à corriger. Ils sont recopiés **verbatim** des commentaires de
- * `roles.css` et `materials.css`, et absents là où la feuille n'en documente
- * aucun : un chiffre manquant vaut mieux qu'un chiffre inventé.
+ * Un lavis porte sa valeur déclarée en `rgba()` dans `hex`, et dans `wash` la
+ * pile où il se compose avec l'aplat qui en résulte, seul peint. Les ratios
+ * sont recopiés de `roles.css` et `materials.css`, absents s'ils n'y sont pas.
  */
 
 /**
@@ -123,13 +97,8 @@ const TRACE_NOTE =
 const GLASS_NOTE =
   'Le matériau, pas l’emploi. Le remplissage de verre composé sur le sol nu tombe exactement sur la carte opaque — c’est la preuve la plus courte que `--glass-fill-solid` n’avait pas à être un second littéral. Les halos sont des disques PLEINS posés à `--halo-opacity` : ce qui protège le texte est le remplissage de la carte, jamais l’effacement de la bulle.';
 
-/*
- * PLAQUÉE, ET NON EXCLUE, alors que c'est un lavis qu'on ne pose jamais en
- * aplat : la pastille ne peint pas le `rgba()` brut mais sa COMPOSITION sur le
- * sol, c'est-à-dire exactement la couleur que l'ombre donne là où elle tombe.
- * Aucun ratio n'est affiché — la feuille n'en documente aucun, et l'écart qui
- * tient cette encre est un ΔL sous l'accent, pas un contraste.
- */
+/* Plaquée et non exclue : la pastille peint la composition du `rgba()` sur le
+   sol. Aucun ratio affiché, la feuille n'en documente aucun. */
 const ACCENT_SHADOW_NOTE =
   'L’ombre que projette l’aplat accent, et elle NE SE THÈME PAS : l’accent est le même teal dans les deux thèmes, donc son ombre aussi — seule change la couleur sous elle. Son encre est un indigo dérivé de l’accent, pas une teinte choisie : au prochain déplacement de l’accent, elle se re-dérive.';
 

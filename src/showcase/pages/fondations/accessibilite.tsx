@@ -2,38 +2,11 @@ import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
-/* =============================================================================
-   CE QUE CETTE PAGE A PERDU, ET POURQUOI ELLE LE DIT AU LIEU DE SE TAIRE.
-
-   Elle portait TROIS engagements, chacun démontré sur des composants d'Opale :
-   le double anneau de focus (sur `Button`, `Field`, `Input`), la couleur comme
-   simple renfort (sur les trois tons de `Pill` et les trois variantes de `Tag`,
-   côte à côte en couleur et en niveaux de gris), et la taille de cible. La 2.0
-   ne publie plus un seul de ces composants.
-
-   DEUX DES TROIS TIENNENT ENCORE, PARCE QU'ILS SONT PORTÉS PAR LES JETONS :
-
-   - L'ANNEAU tient, et sa démonstration est même devenue plus juste.
-     `tokens.css` déclare une règle `:focus-visible` universelle — un sélecteur
-     nu, poids (0,1,0) — donc l'anneau ne vient d'aucun composant : il vient de
-     la feuille de jetons, et n'importe quel élément focusable de la page en
-     hérite. Le spécimen emploie donc des éléments NATIFS non habillés. C'est
-     exactement ce que la garantie dit, et la version précédente le cachait
-     derrière trois composants.
-   - LA TAILLE DE CIBLE tient : `--target-min` (44 px) et `--target-button`
-     (48 px) sont des jetons, et le spécimen ne les a jamais démontrés
-     autrement que par deux boîtes mesurées.
-
-   LE TROISIÈME EST PERDU, ET SON SPÉCIMEN A ÉTÉ RETIRÉ. « La couleur n'est
-   qu'un renfort » était une garantie sur des COMPOSANTS : les trois tons de
-   `Pill` mesuraient 1,16:1 l'un contre l'autre en simulation deutéranope, et ce
-   qui les séparait était le glyphe et le libellé. Rien de tel ne survit. Le
-   redémontrer sur les composants actuels serait un mensonge : leurs six
-   variantes de badge n'ont ni glyphe imposé ni libellé de repli, et aucun de
-   leurs ratios n'a été mesuré. Le spécimen est donc remplacé par le paragraphe
-   qui dit ce qui n'est plus garanti — un état vide honnête, pas une
-   démonstration recyclée.
-   ========================================================================== */
+/* Les garanties d'accessibilité portées par les jetons : l'anneau de focus
+   (règle `:focus-visible` universelle de `tokens.css`, montrée sur des éléments
+   natifs) et la taille de cible (`--target-min`, `--target-button`).
+   « La couleur n'est qu'un renfort » n'est pas garanti par les composants
+   actuels : la page le dit au lieu de le démontrer. */
 
 const FOCUS_RECIPE = `outline: 3px solid var(--focus-outer);
 outline-offset: 2px;

@@ -14,44 +14,15 @@ import {
 } from './localization';
 import { MAX_SUGGESTIONS, searchPages } from './search-model';
 
-/* =============================================================================
-   LA RECHERCHE DE LA VITRINE — un `combobox` avec liste de suggestions.
-
-   C'EST LE MOTIF LE PLUS FACILE À RATER DE TOUT ARIA, et le rater ne se voit
-   pas à la souris. Ce qui est implémenté ici est le motif « Combobox » de
-   l'APG, dans sa forme à liste : `role="combobox"` SUR LE CHAMP, la liste
-   référencée par `aria-controls`, l'option courante désignée par
-   `aria-activedescendant` — et non par le focus, qui ne quitte jamais le champ.
-
-   POURQUOI `aria-activedescendant` ET PAS UN VRAI FOCUS SUR L'OPTION. Déplacer
-   le focus dans la liste avec les flèches paraît plus simple et casse deux
-   choses : la frappe suivante n'arrive plus dans le champ (il faudrait la
-   réacheminer), et le lecteur d'écran annonce l'option en PERDANT le contexte
-   du champ, si bien qu'on ne sait plus dans quoi on tape. Avec
-   `activedescendant`, le focus reste au champ, la frappe continue d'y arriver,
-   et l'option courante est annoncée en plus du champ.
-
-   AUCUN RACCOURCI GLOBAL, ET C'EST UNE DÉCISION. Un `⌘K` aurait fait moderne,
-   et il détourne un raccourci du navigateur — dans Chrome, `⌘K` met le curseur
-   dans la barre d'adresse en mode recherche. Un `/` est pire : il vole la
-   frappe dès que le focus est dans un champ, et cette vitrine est pleine de
-   spécimens d'`Input`. Le champ est visible dans la barre du haut et atteint
-   par `Tab` : c'est moins spectaculaire et ça ne prend rien à personne.
-
-   AUCUN AMORTISSEMENT NON PLUS. Vingt-quatre pages, un balayage linéaire par
-   frappe : le `useMemo` ci-dessous ne recalcule que sur changement de requête,
-   et il n'y a rien à différer. Un `debounce` de 150 ms n'aurait fait
-   qu'introduire un décalage entre ce qui est tapé et ce qui est annoncé.
-   ========================================================================== */
+/* La recherche de la vitrine : le motif « Combobox » de l'APG, forme à liste.
+   `role="combobox"` sur le champ, liste désignée par `aria-controls`, option
+   courante par `aria-activedescendant` : le focus et la frappe restent au
+   champ. Aucun raccourci global (`⌘K` et `/` sont déjà pris) et aucun
+   amortissement : le balayage est linéaire et mémoïsé sur la requête. */
 
 /**
- * La phrase annoncée pour un compte. Hors du composant parce qu'elle est pure :
- * elle sert de dépendance STABLE au report de 400 ms, là où une valeur
- * reconstruite à chaque rendu relancerait le minuteur sans arrêt.
- *
- * ELLE DIT LE TOTAL ET NON LE NOMBRE AFFICHÉ. Au-delà de huit, la liste est
- * tronquée ; annoncer « 8 résultats » là où il y en a douze laisserait croire
- * qu'affiner ne sert à rien.
+ * La phrase annoncée pour un compte, pure pour rester une dépendance stable du
+ * report de 400 ms. Elle dit le total, et non le nombre affiché.
  */
 function countMessage(query: string, total: number, language: Language): string {
   if (query.trim().length === 0) return '';
@@ -256,20 +227,14 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
         onChange={(event) => {
           setQuery(event.target.value);
           setOpen(true);
-          /* L'OPTION COURANTE EST REMISE À ZÉRO À CHAQUE FRAPPE. La garder
-             pointerait sur une autre page dès que la liste change de contenu :
-             on aurait désigné « Button » puis validé « Card » sans rien voir
-             bouger. */
+          /* L'option courante repart de zéro à chaque frappe : la liste change. */
           setActiveIndex(-1);
         }}
         onKeyDown={onKeyDown}
       />
 
-      {/* LA LISTE EXISTE TOUJOURS DANS LE DOM, et c'est ce qui rend
-          `aria-controls` honnête : il doit désigner un élément présent, sinon
-          la référence est cassée pour les technologies d'assistance qui la
-          résolvent au chargement. Vide et `hidden` quand il n'y a rien —
-          `hidden` la retire de l'arbre d'accessibilité comme de la peinture. */}
+      {/* La liste reste dans le DOM pour que `aria-controls` désigne un élément
+          présent ; `hidden` la retire quand elle est vide. */}
       <ul
         className="tc-doc-search__list"
         id={listId}
@@ -280,27 +245,16 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
       >
         {suggestions.map((suggestion, index) => (
           /* eslint-disable-next-line jsx-a11y/click-events-have-key-events --
-             LA RÈGLE SE TROMPE ICI, ET LA RAISON EST LE MOTIF LUI-MÊME. Elle
-             exige un écouteur clavier sur tout élément non interactif qui porte
-             un `onClick`. Dans un combobox à `aria-activedescendant`, le focus
-             NE QUITTE JAMAIS le champ : l'option n'est pas focusable, elle ne
-             peut donc pas recevoir d'événement clavier, et lui en attacher un
-             serait du code mort. Le clavier est entièrement câblé sur l'input —
-             flèches, Début, Fin, Entrée, Échap — et c'est là que l'APG le
-             place. Ajouter un `onKeyDown` sur le `<li>` ferait taire la règle
-             sans rien rendre atteignable : ce serait le pire des deux. */
+             le focus ne quitte jamais le champ (`aria-activedescendant`) : le
+             clavier est câblé sur l'input, l'option n'en reçoit jamais. */
           <li
             className="tc-doc-search__option"
             id={optionId(index)}
             key={suggestion.page.slug}
             role="option"
             aria-selected={index === activeIndex}
-            /* `onMouseDown` AVEC `preventDefault`, ET C'EST LA CORRECTION D'UN
-               DÉFAUT CLASSIQUE : sans lui, appuyer sur une option retire le
-               focus au champ AVANT que le clic ne soit émis, le `blur` ferme le
-               panneau, l'option disparaît sous le doigt et le clic n'atteint
-               plus rien. Empêcher le défaut du `mousedown` empêche justement le
-               transfert de focus. */
+            /* `preventDefault` au `mousedown` : le champ garde le focus, et le
+               `blur` ne ferme pas le panneau avant le clic. */
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => choose(suggestion.page.slug)}
             onMouseEnter={() => setActiveIndex(index)}
@@ -313,31 +267,16 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
         ))}
       </ul>
 
-      {/* LE MESSAGE VIDE EST DEHORS, pour que la liste n'ait jamais d'enfant
-          qui ne soit pas une `option`. Une `role="listbox"` DOIT contenir des
-          `option` — ARIA 1.2 l'exige et `axe-core` le relève en `critical` :
-          « Required ARIA children role not present: group, option ». La rangée
-          y était en `role="presentation"`, ce qui retire le rôle du `<li>` mais
-          LAISSE SON TEXTE dans l'arbre : l'arbre exposait `listbox →
-          StaticText`, une liste dont l'enfant est du texte nu.
-
-          `aria-hidden` en plus, parce que la région live dit déjà la même
-          phrase et qu'elle a le bon comportement — elle annonce au CHANGEMENT,
-          ce qu'une rangée statique ne fait pas. */}
+      {/* Le message vide vit hors de la liste : une `listbox` ne contient que
+          des `option`. `aria-hidden`, car la région live dit la même phrase. */}
       {isPanelOpen && suggestions.length === 0 ? (
         <p className="tc-doc-search__empty" aria-hidden="true">
           {copy.noSearchResult}
         </p>
       ) : null}
 
-      {/* LE COMPTE, ANNONCÉ POLIMENT ET UNE SEULE FOIS. `aria-live="polite"`
-          attend une pause dans la frappe, ce qui est exactement le
-          comportement voulu : personne ne veut entendre « 8 résultats,
-          7 résultats, 3 résultats » lettre après lettre.
-
-          IL DIT LE TOTAL ET NON LE NOMBRE AFFICHÉ. Au-delà de huit, la liste
-          est tronquée ; annoncer « 8 résultats » là où il y en a douze
-          laisserait croire qu'affiner ne sert à rien. */}
+      {/* Le compte, annoncé poliment après une pause de frappe. Il dit le
+          total, et non le nombre affiché. */}
       <p className="tc-visually-hidden" aria-live="polite">
         {announced}
       </p>

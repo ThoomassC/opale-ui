@@ -1,36 +1,14 @@
 import type { DocGroupId, DocPage } from './doc-model';
 import { GROUPS } from './doc-model';
 
-/* =============================================================================
-   LA CORRESPONDANCE DE RECHERCHE, EN FONCTIONS PURES.
-
-   Séparée du composant, et ce n'est pas de la mise en ordre : c'est la seule
-   moitié de la recherche qui soit VÉRIFIABLE sans navigateur. Le classement,
-   la normalisation et le plafond se testent ici sur des tableaux ; le
-   composant, lui, n'a plus qu'à câbler un clavier sur le résultat.
-
-   AUCUN INDEX, AUCUNE DÉPENDANCE. Le registre reste assez petit pour un
-   balayage linéaire. Les termes API et anciens noms sont déclarés sur les pages
-   concernées, sans charger leur corps React ni ajouter un moteur de recherche.
-   ========================================================================== */
+/* La correspondance de recherche, en fonctions pures testables sans
+   navigateur : classement, normalisation, plafond. Balayage linéaire du
+   registre, sans index ni dépendance ; les termes d'API et anciens noms sont
+   déclarés sur les pages. */
 
 /**
- * La forme normalisée d'une chaîne : minuscules ET SANS DIACRITIQUES.
- *
- * LES ACCENTS NE SONT PAS UN DÉTAIL DANS UNE DOC EN FRANÇAIS. Sans cette
- * décomposition, « elevation » ne trouve pas « Élévation », « espacement » ne
- * trouve pas « Espacement et rayons » dès qu'on tape l'accent de travers, et
- * « acces » ne trouve pas « Accessibilité ». Or personne ne tape les accents
- * dans une barre de recherche.
- *
- * `NFD` sépare une lettre accentuée en lettre + marque combinante, puis
- * `\p{Diacritic}` retire les marques. Les échappements de propriétés Unicode
- * demandent le drapeau `u`, et sont dans le langage depuis ES2018 — le dépôt
- * cible des navigateurs qui ont `backdrop-filter`, la question ne se pose pas.
- *
- * `toLowerCase()` AVANT la décomposition : l'ordre est indifférent pour le
- * français, il ne l'est pas pour le turc ou le grec final, et la casse d'abord
- * est la forme que les tests épinglent.
+ * La forme normalisée d'une chaîne : minuscules, puis sans diacritiques
+ * (`NFD` puis `\p{Diacritic}`), pour que « acces » trouve « Accessibilité ».
  */
 export function normalize(value: string): string {
   return value
@@ -82,26 +60,9 @@ export interface Suggestion {
 }
 
 /**
- * Le nombre de suggestions affichées au plus.
- *
- * HUIT, ET C'EST UNE CONTRAINTE DE HAUTEUR — mais le calcul écrit ici était
- * FAUX. Il affirmait qu'à huit rangées le panneau « mesure environ 400 px, ce
- * qui tient dans la moitié haute d'une fenêtre de téléphone en paysage ».
- * Mesuré, en paysage 667 × 375 : le panneau contient **382 px** de rangées dans
- * une lucarne de **223 px** — quatre options visibles sur huit. Sur 375 × 667 :
- * 499 px de contenu pour 398 px de lucarne, six sur huit. La raison de l'erreur
- * est que le champ descend à son plancher de 8 rem sur ces largeurs, donc les
- * rangées passent à deux lignes : 58 px, et 80 px pour « Espacement et rayons ».
- *
- * Le plafond reste à huit, et il tient par un autre bout : le panneau DÉFILE
- * (`max-block-size: 60dvh; overflow-y: auto`) et le composant amène l'option
- * désignée dans la lucarne à chaque flèche. Ce qui est borné n'est donc pas ce
- * qu'on voit, c'est ce qu'on parcourt — huit rangées se parcourent aux flèches
- * sans qu'on perde le compte, vingt et une non.
- *
- * Une requête d'une lettre peut évidemment correspondre à plus de huit pages :
- * le composant annonce alors le TOTAL et affiche les huit premières, plutôt que
- * de laisser croire qu'il n'y en a que huit.
+ * Le nombre de suggestions affichées au plus. Le panneau défile et suit
+ * l'option désignée : huit rangées se parcourent aux flèches sans perdre le
+ * compte. Au-delà, le composant annonce le total.
  */
 export const MAX_SUGGESTIONS = 8;
 
@@ -142,19 +103,9 @@ export interface SearchResult {
 const EMPTY: SearchResult = { suggestions: [], total: 0 };
 
 /**
- * Les pages qui correspondent à `query`, classées et plafonnées.
- *
- * UNE REQUÊTE VIDE NE REND RIEN, et surtout pas les vingt et une pages. Le
- * sommaire de gauche est déjà la liste complète : un panneau qui l'aurait
- * recopiée sous la barre de recherche aurait mis deux navigations concurrentes
- * à l'écran, dont une qui recouvre le contenu. Une requête d'espaces est vide
- * elle aussi — on ne cherche pas un espace.
- *
- * LE TRI EST STABLE, et c'est ce qui rend l'ordre prévisible : `Array.sort` est
- * garanti stable depuis ES2019, donc deux pages de même rang sortent dans
- * l'ordre du REGISTRE, c'est-à-dire celui du sommaire. Une recherche qui
- * réordonne à chaque frappe des entrées de rang égal est une recherche dont on
- * n'apprend jamais la place des choses.
+ * Les pages qui correspondent à `query`, classées et plafonnées. Une requête
+ * vide ou faite d'espaces ne rend rien : le sommaire liste déjà tout. Le tri
+ * est stable, donc un même rang garde l'ordre du registre.
  */
 export function searchPages(pages: readonly DocPage[], query: string): SearchResult {
   const needle = normalize(query.trim());

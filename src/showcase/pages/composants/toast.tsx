@@ -128,33 +128,10 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
-/* =============================================================================
-   CETTE PAGE S'APPELLE « ToastProvider » DEPUIS QU'ON A REGARDÉ CE QU'ELLE
-   DOCUMENTE.
-
-   ELLE S'APPELAIT « Toast », ET LE SOMMAIRE AFFICHAIT DONC « Toast » DEUX FOIS
-   dans FEEDBACK — une fois pour elle, une fois pour `Opale.Toast`. Les sept
-   autres homonymes du sommaire se sont réglés par une fusion : l’ancien composant est
-   devenu la matière derrière `liquidGlass`, et sa page a disparu.
-
-   CELUI-CI NE SE FUSIONNE PAS, ET IL FAUT DIRE POURQUOI PLUTÔT QUE LE FAIRE.
-   Le paquet d’origine N'EXPORTE AUCUN COMPOSANT `Toast` : il exporte
-   `ToastProvider` et `useToast`, c'est-à-dire une FILE — les cartes sont
-   internes, montées par `createPortal` sur `document.body`, groupées par coin,
-   empilées, animées et minutées. `Opale.Toast` est autre chose : un
-   `<div role="status">` rendu SUR PLACE, ouvert et fermé par une prop `open`,
-   sans file ni minuterie.
-
-   LES SUBSTITUER AURAIT CASSÉ LES DEUX. Une `Opale.Toast liquidGlass` aurait
-   fait partir dans un coin de l'écran la carte que l'appelant avait posée dans
-   son flux — un déplacement, pas un changement de matière —, et la seule API
-   de file du paquet n'aurait plus eu de porte publique. Deux mécanismes
-   distincts ont droit à deux noms ; c'était le LIBELLÉ qui doublonnait, pas le
-   composant, et c'est donc le libellé qu'on corrige.
-   ========================================================================== */
-/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
-   chapô, adresse — vivent dans `toast.page.tsx`, que le sommaire lit sans
-   rien charger. */
+/* La page « ToastProvider » : la file de toasts (`ToastProvider`, `useToast`),
+   portaillée dans les coins de l'écran. `Opale.Toast` est un autre mécanisme,
+   rendu sur place et piloté par `open` : il a sa propre page. Les métadonnées
+   de la page vivent dans `toast.page.tsx`, lu par le sommaire sans rien charger. */
 export default function ToastContent() {
   return (
     <ComponentPageLayout

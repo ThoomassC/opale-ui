@@ -6,16 +6,9 @@ import { INSTALL_REF, INSTALL_REF_KIND } from '../install-ref';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
 
-/* =============================================================================
-   DÉMARRER AVEC OPALE, EN CINQ ÉTAPES QUI SE SUIVENT.
-
-   La page ne donnait que la commande d'installation et deux imports : ni les
-   prérequis, ni les polices, ni le thème, ni la frontière client de Next.js,
-   ni le fait que le paquet se compile à l'installation. Assez pour un essai,
-   pas pour une application de production. Les étapes sont numérotées parce
-   qu'elles ont un ordre : on ne peut pas afficher un composant avant d'avoir
-   chargé ses styles.
-   ========================================================================== */
+/* Démarrer avec Opale en cinq étapes ordonnées : prérequis, installation,
+   styles et polices, thème, premier composant (plus la frontière client de
+   Next.js). */
 
 const INSTALL = `npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#${INSTALL_REF}"`;
 

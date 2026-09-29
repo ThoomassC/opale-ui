@@ -13,16 +13,10 @@ const TYPE_STEPS: readonly TypeStep[] = [
   { token: '--text-base', size: '16 px', usage: 'texte courant — le pas de référence' },
   { token: '--text-md', size: '19 px', usage: 'chapeau de page, chapeau de spécimen' },
   { token: '--text-lg', size: '23 px', usage: 'titre de carte, titre de spécimen' },
-  /* Aucun emploi dans la vitrine depuis que les sections numérotées ont
-     disparu, et `section-heading.css` le refuse explicitement pour son niveau 2.
-     Le pas reste dans l'échelle, mais l'annoncer « titre de section » serait
-     faux : ce site n'en a plus. */
+  /* Sans emploi dans la vitrine ; `section-heading.css` le refuse au niveau 2. */
   { token: '--text-xl', size: '28 px', usage: 'inemployé — le pas laissé libre entre 23 et 30' },
-  /* LES DEUX PAS D'AFFICHAGE NE PEIGNENT PLUS LES TITRES DE LA VITRINE, et le
-     dire est plus honnête que de les retirer. La couche V3 écrit sa propre
-     borne — `clamp(1.8rem, 3vw, 2.75rem)` sur `.tc-doc-page__title` — au lieu
-     de lire un jeton. Les deux pas restent publiés pour les consommateurs du
-     paquet ; leur emploi annoncé, lui, est corrigé. */
+  /* Publiés, mais la vitrine borne ses titres elle-même
+     (`clamp()` sur `.tc-doc-page__title`). */
   {
     token: '--text-display-sm',
     size: '24 → 34 px (fluide)',
@@ -41,26 +35,10 @@ interface FontFamily {
   readonly note: string;
 }
 
-/* =============================================================================
-   LES FAMILLES ANNONCÉES ICI SONT CELLES QUI PEIGNENT LA PAGE, et ce n'était
-   plus le cas.
-
-   Cette liste décrivait les trois jetons `--font-*` de `roles.css` : une serif
-   de système pour les titres, une sans de système pour le reste, une mono de
-   système pour les mesures — avec la promesse « toutes systèmes, aucune requête
-   hors origine ». Les trois affirmations sont devenues fausses en V3 sans que
-   la page bouge, et c'est le genre de mensonge qu'une documentation de design
-   system ne peut pas se permettre : on vient y lire ce qu'on doit écrire.
-
-   CE QUI REND VRAIMENT LA VITRINE AUJOURD'HUI, mesuré dans le navigateur :
-   Bricolage Grotesque sur les titres de pages et les chiffres de l'accueil,
-   Chivo partout ailleurs, Hack pour le code. Les deux premières sont embarquées dans `opale.css` ; Hack est embarquée
-   avec la vitrine.
-
-   LES JETONS CITÉS SONT DONC LES `--opale-font-*` ET NON LES `--font-*`. Les
-   seconds existent encore et `doc.css` les consomme cent trente-cinq fois,
-   mais la couche V3 les recouvre : les nommer ici enverrait le lecteur vers
-   des variables qui ne décident plus de rien. */
+/* Les familles qui peignent la vitrine : Bricolage Grotesque (titres, chiffres
+   de l'accueil), Chivo (le reste), Hack (le code). Les jetons cités sont les
+   `--opale-font-*` : les `--font-*` de `roles.css` existent encore mais sont
+   recouverts par la couche V3. */
 const FAMILIES: readonly FontFamily[] = [
   {
     token: '--opale-font-title',

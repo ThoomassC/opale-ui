@@ -1,40 +1,12 @@
 import type { Plate } from './palette-data';
 
-/* =============================================================================
-   LA PALETTE QUI PEINT RÉELLEMENT LE SITE.
+/* La palette qui peint la vitrine : les jetons `--opale-*`. `palette-data.ts`
+   documente, lui, les rôles publiés de `src/tokens/roles.css` ; la page montre
+   d'abord ce qu'on voit, ensuite ce qu'on installe.
 
-   POURQUOI UN SECOND JEU DE PLAQUES, ET NON UNE RÉÉCRITURE DU PREMIER.
-   `palette-data.ts` documente les rôles de `src/tokens/roles.css` — le teal et
-   le cuivre de la 2.x. Ces valeurs ne sont PAS périmées : `tokens.css` est un
-   artefact publié (`exports["./tokens.css"]`), donc ces rôles sont exactement
-   ce qu'installe un consommateur du paquet, et 172 tests les tiennent contre
-   la feuille. Les effacer aurait supprimé une information vraie.
-
-   Seulement, ce n'est plus ce que la VITRINE rend. Depuis la V3, tout ce qu'on
-   voit à l'écran est peint par les jetons `--opale-*` : un saphir à la place du
-   teal, un sol crème, une olive et un ambre. La page de palette annonçait donc
-   une marque que le site n'affichait plus — le même défaut que la page de
-   typographie, qui promettait trois polices système alors que Chivo et
-   Bricolage Grotesque arrivaient de Google Fonts.
-
-   Les deux jeux cohabitent donc, dans cet ordre : d'abord ce qu'on voit,
-   ensuite ce qu'on installe.
-
-   LES HEXADÉCIMAUX SONT LITTÉRAUX, POUR LA MÊME RAISON QUE DANS L'AUTRE
-   FICHIER : une plaque documente UN thème et doit le montrer quel que soit
-   celui que le lecteur a choisi. Une pastille en `var(--opale-primary)` ne
-   montrerait jamais qu'une moitié de la palette.
-
-   ET ILS SONT TENUS PAR UN TEST, pour la raison que `palette-data.ts` a apprise
-   à ses dépens : une valeur écrite à la main sans garde diverge de la feuille
-   sans que rien ne proteste. `opale-palette-data.test.ts` relit `opale.css` et
-   compare chaque valeur au jeton déclaré, thème par thème.
-
-   AUCUN RATIO N'EST RECOPIÉ ICI. `opale.css` n'en documente pas, et inventer un
-   chiffre serait pire que de n'en donner aucun. Le test les CALCULE avec
-   `contrastRatio` du contrat de couleur et vérifie les paires qui portent du
-   texte ; la page, elle, n'en affiche aucun plutôt qu'un chiffre non mesuré.
-   ========================================================================== */
+   Hexadécimaux littéraux, pour montrer chaque thème quel que soit celui du
+   lecteur ; `opale-palette-data.test.ts` les compare à `opale.css`, thème par
+   thème, et calcule les contrastes. Aucun ratio n'est recopié ici. */
 
 /** Le sol, la surface et l'encre d'un thème — ce sur quoi tout le reste se pose. */
 const LIGHT = {
