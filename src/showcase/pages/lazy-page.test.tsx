@@ -1,9 +1,21 @@
 import { act, render, screen } from '@testing-library/react';
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PageBoundary } from '../page-boundary';
-import { lazyPage, preloadPages } from './lazy-page';
+
+type LazyPageModule = typeof import('./lazy-page');
+
+let lazyPage: LazyPageModule['lazyPage'];
+let preloadPages: LazyPageModule['preloadPages'];
+
+/* UN REGISTRE NEUF PAR TEST. `preloadPages` relance toutes les pages
+   déclarées dans le module : sans module neuf, le chargeur toujours en échec
+   d'un test faisait rougir le préchargement d'un autre, selon l'ordre. */
+beforeEach(async () => {
+  vi.resetModules();
+  ({ lazyPage, preloadPages } = await import('./lazy-page'));
+});
 
 /* `lazyPage` — une page chargée à la demande se rend comme une page ordinaire
    une fois là, et ne perd pas son état au rendu suivant. */
@@ -93,25 +105,32 @@ describe('lazyPage', () => {
      chargement — 69 requêtes en 1,5 s sur un loader lent — et l'erreur
      n'atteignait jamais `PageBoundary`. C'est le cas d'un déploiement qui a
      changé l'empreinte d'un morceau. */
+  /* L'horloge est simulée : les 200 ms laissent à une boucle le temps de
+     relancer dix chargements, sans en attendre une seule vraie. */
   it('devrait remettre l’échec à PageBoundary, en un seul essai', async () => {
-    const loader = vi.fn(
-      () =>
-        new Promise<() => React.ReactNode>((_, reject) => {
-          setTimeout(() => reject(new Error('morceau introuvable')), 20);
-        }),
-    );
-    const page = lazyPage(loader);
+    vi.useFakeTimers();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const loader = vi.fn(
+        () =>
+          new Promise<() => React.ReactNode>((_, reject) => {
+            setTimeout(() => reject(new Error('morceau introuvable')), 20);
+          }),
+      );
+      const page = lazyPage(loader);
 
-    await act(async () => {
-      render(<PageBoundary resetKey="a">{page()}</PageBoundary>);
-    });
-    await act(async () => {
-      await new Promise((done) => setTimeout(done, 200));
-    });
+      await act(async () => {
+        render(<PageBoundary resetKey="a">{page()}</PageBoundary>);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
 
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(loader, 'Un essai par navigation, pas une boucle.').toHaveBeenCalledTimes(1);
-    consoleError.mockRestore();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(loader, 'Un essai par navigation, pas une boucle.').toHaveBeenCalledTimes(1);
+    } finally {
+      consoleError.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });

@@ -172,18 +172,33 @@ describe('SvgMap', () => {
     });
 
     /* Une carte zoomée ne se parcourait qu'en la glissant (WCAG 2.1.1). */
-    it('se déplace au clavier : flèches sur une carte illustrative, Maj + flèches partout', async () => {
-      const { container } = render(<SvgMap viewBox="0 0 400 200" regions={REGIONS} />);
-      const svg = svgOf(container);
+    /* L'horloge et les images sont simulées : l'animation du zoom se déroule
+       jusqu'au bout sans attendre de vraies millisecondes. */
+    it('se déplace au clavier : flèches sur une carte illustrative, Maj + flèches partout', () => {
+      vi.useFakeTimers({
+        toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'],
+      });
+      try {
+        const { container } = render(<SvgMap viewBox="0 0 400 200" regions={REGIONS} />);
+        const svg = svgOf(container);
 
-      expect(svg).toHaveAttribute('tabindex', '0');
-      fireEvent.keyDown(svg, { key: '+' });
-      await waitFor(() => expect(svg.getAttribute('viewBox')).not.toBe('0 0 400 200'));
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      const zoomed = svg.getAttribute('viewBox');
+        expect(svg).toHaveAttribute('tabindex', '0');
+        fireEvent.keyDown(svg, { key: '+' });
+        act(() => {
+          vi.advanceTimersByTime(400);
+        });
+        const zoomed = svg.getAttribute('viewBox');
+        expect(zoomed, 'le zoom animé doit être arrivé').not.toBe('0 0 400 200');
+        act(() => {
+          vi.advanceTimersByTime(100);
+        });
+        expect(svg.getAttribute('viewBox'), 'l’animation doit être finie').toBe(zoomed);
 
-      fireEvent.keyDown(svg, { key: 'ArrowRight' });
-      expect(svg.getAttribute('viewBox')).not.toBe(zoomed);
+        fireEvent.keyDown(svg, { key: 'ArrowRight' });
+        expect(svg.getAttribute('viewBox')).not.toBe(zoomed);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('ferme l’infobulle avec Échap', () => {
