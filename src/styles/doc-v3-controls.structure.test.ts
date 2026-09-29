@@ -1,51 +1,67 @@
 import { describe, expect, it } from 'vitest';
 
-import { ruleBody } from '../test/css-rules';
+import { atRules, declaration, declarations, parseRules } from '../test/css-rules';
 import opaleSource from '../opale/opale.css?raw';
 import fontsSource from '../opale/fonts.css?raw';
 import searchBarSource from '../opale/components/search-bar/style/SearchBar.module.scss?raw';
 import docSource from './doc-v3.css?raw';
 import tokensSource from '../tokens/tokens.css?raw';
 
+/** Les déclarations retenues de chaque `@font-face`, dans l'ordre de la feuille. */
+const fontFaces = (source: string): ReadonlyMap<string, string>[] =>
+  parseRules(source)
+    .filter((rule) => rule.prelude === '@font-face')
+    .map((rule) => declarations(`.face { ${rule.body} }`, '.face'));
+
+/** La source déclarée pour une famille, ou `undefined`. */
+const fontSource = (family: string): string | undefined =>
+  fontFaces(fontsSource)
+    .find((face) => face.get('font-family') === `'${family}'`)
+    ?.get('src');
+
 describe('la forme interactive OpaleUI', () => {
   it('épingle la palette saphir et la géométrie mesurée sur la référence', () => {
-    const root = ruleBody(opaleSource, ':root') ?? '';
-    const darkRoot = ruleBody(opaleSource, ":root[data-theme='dark']") ?? '';
-    const button = ruleBody(opaleSource, '.opale-button') ?? '';
-    const small = ruleBody(opaleSource, '.opale-button--small') ?? '';
-    const large = ruleBody(opaleSource, '.opale-button--large') ?? '';
+    const root = declarations(opaleSource, ':root');
+    const darkRoot = declarations(opaleSource, ":root[data-theme='dark']");
+    const button = declarations(opaleSource, '.opale-button');
 
-    expect(root).toMatch(/--opale-primary:\s*#315c9e/);
-    expect(root).toMatch(/--opale-primary-dark:\s*#23457a/);
-    expect(root).toMatch(/--opale-primary-light:\s*#5f87c4/);
-    expect(root).toMatch(/--opale-font-display:\s*'Chivo'/);
-    expect(root).not.toMatch(/--opale-font-display:\s*'Titan One'/);
-    expect(root).toMatch(/--opale-font-mono:\s*'Hack'/);
-    expect(darkRoot).toMatch(/--opale-primary:\s*#5d87cb/);
-    expect(darkRoot).toMatch(/--opale-primary-dark:\s*#739cda/);
+    expect(root.get('--opale-primary')).toBe('#315c9e');
+    expect(root.get('--opale-primary-dark')).toBe('#23457a');
+    expect(root.get('--opale-primary-light')).toBe('#5f87c4');
+    expect(root.get('--opale-font-display')).toMatch(/^'Chivo',/);
+    expect(root.get('--opale-font-display')).not.toMatch(/^'Titan One'/);
+    expect(root.get('--opale-font-mono')).toMatch(/^'Hack',/);
+    expect(darkRoot.get('--opale-primary')).toBe('#5d87cb');
+    expect(darkRoot.get('--opale-primary-dark')).toBe('#739cda');
     /* LE SECONDAIRE EST PASSÉ DE L'OLIVE AU BLEU D'ACIER, et ce garde suit.
        Un bouton « secondaire » vert à côté d'un primaire saphir ne se lisait pas
        comme le second rôle du même rôle. Le chiffre change, l'exigence non :
        c'est toujours `--opale-secondary-dark` qui peint le fond du bouton, et
        il est désormais mesuré à 5,52:1 avec l'encre claire — contre 4,75 pour
        l'olive qu'il remplace. */
-    expect(root).toMatch(/--opale-secondary-dark:\s*#3a6b8a/);
-    expect(root).toMatch(/--opale-accent:\s*#f4ad15/);
-    expect(root).toMatch(/--opale-danger:\s*#b3261e/);
-    expect(root).toMatch(/--opale-radius-md:\s*1\.375rem/);
-    expect(root).toMatch(/--opale-squircle-clip:\s*polygon\(/);
-    expect(root).toContain('0.0057');
-    expect(root).toContain('0.7427');
+    expect(root.get('--opale-secondary-dark')).toBe('#3a6b8a');
+    expect(root.get('--opale-accent')).toBe('#f4ad15');
+    expect(root.get('--opale-danger')).toBe('#b3261e');
+    expect(root.get('--opale-radius-md')).toBe('1.375rem');
+    expect(root.get('--opale-squircle-clip')).toMatch(/^polygon\(/);
+    expect(root.get('--opale-squircle-clip')).toContain('0.0057');
+    expect(root.get('--opale-squircle-clip')).toContain('0.7427');
 
-    expect(button).toMatch(/min-height:\s*var\(--opale-control-md\)/);
-    expect(opaleSource).toMatch(/--opale-control-md:\s*2\.75rem/);
-    expect(button).toMatch(/padding:\s*0\.375rem\s+1\.25rem/);
-    expect(button).toMatch(/font:\s*600\s+var\(--opale-text-sm\)\s*\/\s*var\(--opale-leading-relaxed\)/);
-    expect(button).toMatch(/border-radius:\s*0/);
-    expect(small).toMatch(/min-height:\s*var\(--opale-control-sm\)/);
-    expect(large).toMatch(/min-height:\s*var\(--opale-control-lg\)/);
-    expect(root).toMatch(/--opale-control-sm:\s*2\.25rem/);
-    expect(root).toMatch(/--opale-control-lg:\s*3rem/);
+    expect(button.get('min-height')).toBe('var(--opale-control-md)');
+    expect(root.get('--opale-control-md')).toBe('2.75rem');
+    expect(button.get('padding')).toBe('0.375rem 1.25rem');
+    expect(button.get('font')).toMatch(
+      /^600 var\(--opale-text-sm\) ?\/ ?var\(--opale-leading-relaxed\)/,
+    );
+    expect(button.get('border-radius')).toBe('0');
+    expect(declaration(opaleSource, '.opale-button--small', 'min-height')).toBe(
+      'var(--opale-control-sm)',
+    );
+    expect(declaration(opaleSource, '.opale-button--large', 'min-height')).toBe(
+      'var(--opale-control-lg)',
+    );
+    expect(root.get('--opale-control-sm')).toBe('2.25rem');
+    expect(root.get('--opale-control-lg')).toBe('3rem');
   });
 
   /* CE GARDE A CHANGÉ D'INTENTION, ET C'EST DÉLIBÉRÉ. Il épinglait une graisse
@@ -56,26 +72,25 @@ describe('la forme interactive OpaleUI', () => {
      gardé, c'est l'ÉCHELLE — les deux `clamp` n'ont pas bougé d'un pixel — et
      le fait que les titres restent plus légers que le gras plein. */
   it('tient l’échelle d’affichage et la police de titre', () => {
-    const pageTitle = ruleBody(docSource, '.tc-doc-page__title') ?? '';
-    const homeTitle = ruleBody(docSource, '.tc-doc-main--home .tc-doc-page__title') ?? '';
-    const stats = ruleBody(docSource, '.tc-doc-home__stats dt') ?? '';
+    const pageTitle = declarations(docSource, '.tc-doc-page__title');
+    const homeTitle = declarations(docSource, '.tc-doc-main--home .tc-doc-page__title');
 
-    expect(opaleSource).not.toContain('family=Titan+One');
-    expect(pageTitle).toMatch(/font:\s*600\s+clamp\(1\.8rem,\s*3vw,\s*2\.75rem\)/);
-    expect(pageTitle).toMatch(/letter-spacing:\s*-0\.03em/);
-    expect(homeTitle).toMatch(/font-size:\s*clamp\(1\.8rem,\s*3vw,\s*2\.75rem\)/);
+    expect(atRules(opaleSource, 'import').filter((params) => params.includes('Titan'))).toEqual([]);
+    expect(pageTitle.get('font')).toMatch(/^600 clamp\(1\.8rem, 3vw, 2\.75rem\)/);
+    expect(pageTitle.get('letter-spacing')).toMatch(/^-0\.03em/);
+    expect(homeTitle.get('font-size')).toMatch(/^clamp\(1\.8rem, 3vw, 2\.75rem\)/);
     /* La règle de l'accueil REDÉCLARE la graisse : sans ce garde, la ramener à
        400 annulerait le changement sur la seule page où le titre est le
        sujet, et aucun autre test ne le verrait. */
-    expect(homeTitle).toMatch(/font-weight:\s*600/);
-    expect(stats).toMatch(/font:\s*600\s+clamp\(1\.4rem,\s*2\.5vw,\s*2rem\)/);
-    expect(ruleBody(opaleSource, '.opale-text--metric') ?? '').toMatch(/font-size:\s*var\(--opale-text-2xl\)/);
+    expect(homeTitle.get('font-weight')).toMatch(/^600/);
+    expect(declaration(docSource, '.tc-doc-home__stats dt', 'font')).toMatch(
+      /^600 clamp\(1\.4rem, 2\.5vw, 2rem\)/,
+    );
+    expect(declaration(opaleSource, '.opale-text--metric', 'font-size')).toBe(
+      'var(--opale-text-2xl)',
+    );
   });
 
-  /* LA POLICE DE TITRE EST SERVIE PAR LA MÊME REQUÊTE QUE CHIVO, et c'est la
-     seule chose qui sépare un second jeton d'un second aller-retour réseau
-     bloquant au premier rendu. Un `@import` supplémentaire aurait fonctionné à
-     l'écran et coûté une requête de plus, sans que rien ne le signale. */
   /* L'ANNEAU DE FOCUS EST UNE DÉCISION, DONC ELLE SE GARDE — DANS SA NOUVELLE FORME.
 
      Il avait été éteint à la demande du propriétaire : un rectangle bleu épais,
@@ -88,78 +103,98 @@ describe('la forme interactive OpaleUI', () => {
      `tokens.css` N'EST PAS CONCERNÉ et ne doit pas l'être : c'est un artefact
      publié (`exports["./tokens.css"]`). La dernière assertion l'empêche. */
   it('peint un anneau discret au clavier, et jamais l’ancien', () => {
-    const scope = /:root,\s*\.tc-doc\s*\{([\s\S]*?)\}/.exec(docSource)?.[1] ?? '';
+    const scope = declarations(docSource, '.tc-doc');
 
     // L'ancien anneau — halo bleu et filet citron — reste éteint.
-    expect(scope).toMatch(/--focus-outer:\s*transparent/);
-    expect(scope).toMatch(/--focus-inner:\s*transparent/);
+    expect(scope.get('--focus-outer')).toBe('transparent');
+    expect(scope.get('--focus-inner')).toBe('transparent');
     // Le nouveau : l'encre du texte, et la bibliothèque parle la même langue.
-    expect(scope).toMatch(/--tc-doc-focus-ring:\s*color-mix\(in srgb,\s*var\(--opale-text\)/);
-    expect(scope).toMatch(/--opale-focus:\s*var\(--tc-doc-focus-ring\)/);
+    expect(scope.get('--tc-doc-focus-ring')).toMatch(/^color-mix\(in srgb, var\(--opale-text\)/);
+    expect(scope.get('--opale-focus')).toBe('var(--tc-doc-focus-ring)');
 
     // Au clavier seulement, un trait de 2 px, sans ombre.
-    const ring = /\.tc-doc :focus-visible\s*\{([^}]*)\}/.exec(docSource)?.[1] ?? '';
-    expect(ring).toMatch(/outline:\s*2px solid var\(--tc-doc-focus-ring\)/);
-    expect(ring).toMatch(/outline-offset:\s*3px/);
-    expect(docSource).not.toMatch(/\.tc-doc [^{]*:focus\s*[,{][^}]*outline:\s*[1-9]/);
+    const ring = declarations(docSource, '.tc-doc :focus-visible');
+    expect(ring.get('outline')).toBe('2px solid var(--tc-doc-focus-ring)');
+    expect(ring.get('outline-offset')).toBe('3px');
+
+    /* Aucune règle `:focus` nu de la vitrine ne dessine de trait : il
+       s'allumerait aussi au clic de souris. */
+    const mouseRings = parseRules(docSource).flatMap((rule) =>
+      rule.selectors
+        .filter((selector) => /^\.tc-doc .*:focus$/.test(selector))
+        .map((selector) => ({
+          selector,
+          outline: declaration(docSource, selector, 'outline', { within: rule.context }) ?? '',
+        }))
+        .filter(({ outline }) => /^[1-9]/.test(outline)),
+    );
+    expect(mouseRings).toEqual([]);
 
     // Les cibles de focus programmatique restent sans anneau.
-    expect(docSource).toMatch(
-      /\.tc-doc \[tabindex='-1'\]:focus-visible[\s\S]{0,120}outline:\s*none\s*!important/,
+    expect(declaration(docSource, ".tc-doc [tabindex='-1']:focus-visible", 'outline')).toBe(
+      'none !important',
     );
-    expect(docSource).toMatch(
-      /\.tc-doc-main:focus-visible[\s\S]{0,120}outline:\s*none\s*!important/,
-    );
+    expect(declaration(docSource, '.tc-doc-main:focus-visible', 'outline')).toBe('none !important');
 
     /* La feuille PUBLIÉE garde son anneau : la vitrine n'impose pas son choix
        d'accessibilité aux projets qui installent le paquet. */
-    expect(tokensSource).toMatch(/:focus-visible\s*\{[\s\S]*?outline:\s*3px\s+solid/);
+    expect(declaration(tokensSource, ':focus-visible', 'outline')).toMatch(/^3px solid/);
   });
 
   /* L'ANNEAU ÉPOUSE LA SILHOUETTE. Les squircles sont peints par un
      pseudo-élément et la boîte reste un rectangle : sans rayon, l'anneau
      retrouvait les « oreilles » qui avaient fait éteindre l'ancien. */
   it('arrondit la boîte des contrôles en squircle quand ils portent le focus', () => {
-    const shaped = /\.tc-doc\s*:is\(([^)]*)\):focus-visible\s*\{([^}]*)\}/.exec(docSource) ?? [];
-    expect(shaped[1]).toContain('.opale-button');
-    expect(shaped[1]).toContain('.tc-doc-nav__link');
-    expect(shaped[2]).toMatch(
-      /border-radius:\s*calc\(var\(--opale-squircle-radius\)\s*\*\s*0\.68\)/,
+    const shaped = parseRules(docSource)
+      .flatMap((rule) => rule.selectors)
+      .map((selector) => selector.replace(/\s+/g, ' '))
+      .find(
+        (selector) =>
+          selector.startsWith('.tc-doc :is(') &&
+          selector.endsWith('):focus-visible') &&
+          selector.includes('.opale-button'),
+      );
+
+    expect(shaped).toContain('.tc-doc-nav__link');
+    expect(declaration(docSource, shaped ?? '', 'border-radius')).toMatch(
+      /^calc\(var\(--opale-squircle-radius\) \* 0\.68\)/,
     );
   });
 
+  /* LA POLICE DE TITRE EST SERVIE PAR LA MÊME REQUÊTE QUE CHIVO, et c'est la
+     seule chose qui sépare un second jeton d'un second aller-retour réseau
+     bloquant au premier rendu. Un `@import` supplémentaire aurait fonctionné à
+     l'écran et coûté une requête de plus, sans que rien ne le signale. */
   it('borne la police de titre et la sert sans requête supplémentaire', () => {
-    const imports = opaleSource.match(/@import url\([^)]*\);/g) ?? [];
-    const root = ruleBody(opaleSource, ':root') ?? '';
+    const root = declarations(opaleSource, ':root');
 
-    expect(imports).toHaveLength(0);
+    expect(atRules(opaleSource, 'import')).toHaveLength(0);
     /* LES POLICES VIVENT DANS `fonts.css`, PAS DANS `opale.css`. Le build de la
        librairie incorpore tout ce qu'`opale.css` référence : les deux woff2
        partaient en base64 dans la feuille bloquante (~110 kB gzip) et
        `font-display: swap` n'y servait plus à rien. Livrées à part, elles se
        chargent et se mettent en cache comme des fichiers. */
-    expect(opaleSource).not.toMatch(/@font-face/);
-    expect(fontsSource).toMatch(
-      /font-family: 'Bricolage Grotesque'[\s\S]*?fonts\/bricolage-grotesque-latin\.woff2/,
-    );
-    expect(fontsSource).toMatch(/font-family: 'Chivo'[\s\S]*?fonts\/chivo-latin\.woff2/);
-    expect(root).toMatch(/--opale-font-title:\s*'Bricolage Grotesque'/);
+    expect(atRules(opaleSource, 'font-face')).toHaveLength(0);
+    expect(fontSource('Bricolage Grotesque')).toContain('fonts/bricolage-grotesque-latin.woff2');
+    expect(fontSource('Chivo')).toContain('fonts/chivo-latin.woff2');
+    expect(root.get('--opale-font-title')).toMatch(/^'Bricolage Grotesque',/);
     /* `--opale-font-display` NE BOUGE PAS : il habille le titre du rail, les
        titres de plaques, la métrique, le donut et le compte à rebours, qui
        gardent Chivo. Le jeton dédié est ce qui borne le changement. */
-    expect(root).toMatch(/--opale-font-display:\s*'Chivo'/);
+    expect(root.get('--opale-font-display')).toMatch(/^'Chivo',/);
   });
 
   it('dessine Button avec le polygone sur un calque qui ne rogne pas le focus', () => {
-    const shape = opaleSource.match(/\.opale-button::before\s*\{([\s\S]*?)\}/)?.[1] ?? '';
+    const shape = declarations(opaleSource, '.opale-button::before');
+    const root = declarations(opaleSource, ':root');
 
-    expect(shape).toMatch(/clip-path:\s*var\(--opale-squircle-clip\)/);
-    expect(shape).toMatch(/background:\s*var\(--opale-button-background\)/);
-    expect(opaleSource).toMatch(
-      /\.opale-button:focus-visible,[\s\S]{0,240}outline:\s*var\(--opale-focus-ring-width\)\s+solid\s+var\(--opale-focus\)/,
+    expect(shape.get('clip-path')).toBe('var(--opale-squircle-clip)');
+    expect(shape.get('background')).toBe('var(--opale-button-background)');
+    expect(declaration(opaleSource, '.opale-button:focus-visible', 'outline')).toBe(
+      'var(--opale-focus-ring-width) solid var(--opale-focus)',
     );
-    expect(opaleSource).toMatch(/--opale-focus-ring-width:\s*3px/);
-    expect(opaleSource).toMatch(/--opale-focus-ring-offset:\s*3px/);
+    expect(root.get('--opale-focus-ring-width')).toBe('3px');
+    expect(root.get('--opale-focus-ring-offset')).toBe('3px');
   });
 
   it.each([
@@ -168,60 +203,67 @@ describe('la forme interactive OpaleUI', () => {
     '.tc-doc-nav__link::before',
     '.tc-doc-home__action::before',
   ])('%s devrait réutiliser la même squircle', (selector) => {
-    expect(ruleBody(docSource, selector) ?? '').toMatch(
-      /clip-path:\s*var\(--opale-squircle-clip\)/,
-    );
+    expect(declaration(docSource, selector, 'clip-path')).toBe('var(--opale-squircle-clip)');
   });
 
   it('place la squircle de recherche dans le composant partagé', () => {
-    expect(searchBarSource).toMatch(
-      /\.plain::before,\s*\.plain::after\s*\{[\s\S]*?clip-path:\s*var\(--opale-squircle-clip\)/,
+    expect(declaration(searchBarSource, '.plain::before', 'clip-path')).toBe(
+      'var(--opale-squircle-clip)',
     );
-    expect(searchBarSource).toMatch(/\.plain::after\s*\{[^}]*background:\s*var\(--opale-surface\)/);
+    expect(declaration(searchBarSource, '.plain::after', 'clip-path')).toBe(
+      'var(--opale-squircle-clip)',
+    );
+    expect(declaration(searchBarSource, '.plain::after', 'background')).toBe(
+      'var(--opale-surface)',
+    );
   });
 
   it('garde les actions de code, leur dévoilement animé et le filet anti-mouvement', () => {
-    expect(ruleBody(docSource, '.tc-doc-codeexample__actions') ?? '').toMatch(
-      /justify-content:\s*flex-end/,
+    expect(declaration(docSource, '.tc-doc-codeexample__actions', 'justify-content')).toBe(
+      'flex-end',
     );
-    expect(ruleBody(docSource, '.tc-doc-codeexample__reveal') ?? '').toMatch(
-      /grid-template-rows:\s*0fr/,
-    );
-    expect(ruleBody(docSource, ".tc-doc-codeexample__reveal[data-open='true']") ?? '').toMatch(
-      /grid-template-rows:\s*1fr/,
-    );
-    expect(docSource).toMatch(
-      /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.tc-doc-codeexample__reveal/,
-    );
+    expect(declaration(docSource, '.tc-doc-codeexample__reveal', 'grid-template-rows')).toBe('0fr');
+    expect(
+      declaration(docSource, ".tc-doc-codeexample__reveal[data-open='true']", 'grid-template-rows'),
+    ).toBe('1fr');
+    expect(
+      declaration(docSource, '.tc-doc-codeexample__reveal', 'transition', {
+        within: '@media (prefers-reduced-motion: reduce)',
+      }),
+    ).toBe('none !important');
   });
 
   it('rend le panneau de code minimal, sans rail gauche et avec une palette syntaxique', () => {
-    const code = ruleBody(docSource, '.tc-doc-codeexample__reveal .tc-doc-code') ?? '';
-    const theme = ruleBody(docSource, '.tc-doc-topbar__actions .tc-doc-themetoggle') ?? '';
+    const code = declarations(docSource, '.tc-doc-codeexample__reveal .tc-doc-code');
 
-    expect(code).toMatch(/border:\s*0\s*!important/);
-    expect(code).toMatch(/border-inline-start:\s*0\s*!important/);
-    expect(code).toMatch(/font-family:\s*var\(--opale-font-mono\)/);
-    expect(ruleBody(docSource, '.tc-doc-token--string') ?? '').toMatch(
-      /color:\s*var\(--tc-doc-code-string\)/,
+    expect(code.get('border')).toBe('0 !important');
+    expect(code.get('border-inline-start')).toBe('0 !important');
+    expect(code.get('font-family')).toMatch(/^var\(--opale-font-mono\)/);
+    expect(declaration(docSource, '.tc-doc-token--string', 'color')).toBe(
+      'var(--tc-doc-code-string)',
     );
-    expect(theme).toMatch(/background:\s*transparent\s*!important/);
+    expect(
+      declaration(docSource, '.tc-doc-topbar__actions .tc-doc-themetoggle', 'background'),
+    ).toBe('transparent !important');
   });
 
   it('garde la recherche nette au focus et renforce seulement les éléments sélectionnés', () => {
-    const searchFocus = ruleBody(searchBarSource, '.plain:focus-within') ?? '';
-    const headerWrapper = ruleBody(docSource, '.tc-doc-search') ?? '';
-
-    expect(searchFocus).toMatch(/--opale-search-border:\s*var\(--opale-primary\)/);
-    expect(headerWrapper).toMatch(/box-shadow:\s*none\s*!important/);
-    expect(docSource).toMatch(
-      /\.tc-doc-nav__link\[aria-current='page'\]\s*\{\s*font-weight:\s*600/,
+    expect(declaration(searchBarSource, '.plain:focus-within', '--opale-search-border')).toBe(
+      'var(--opale-primary)',
     );
-    expect(docSource).toMatch(
-      /\.tc-doc-topbar__tab\[aria-current='page'\]\s*\{\s*font-weight:\s*600/,
+    expect(declaration(docSource, '.tc-doc-search', 'box-shadow')).toBe('none !important');
+    expect(declaration(docSource, ".tc-doc-nav__link[aria-current='page']", 'font-weight')).toBe(
+      '600',
     );
-    expect(docSource).toMatch(
-      /\.tc-doc-search__option\[aria-selected='true'\]\s+\.tc-doc-search__label\s*\{\s*font-weight:\s*600/,
+    expect(declaration(docSource, ".tc-doc-topbar__tab[aria-current='page']", 'font-weight')).toBe(
+      '600',
     );
+    expect(
+      declaration(
+        docSource,
+        ".tc-doc-search__option[aria-selected='true'] .tc-doc-search__label",
+        'font-weight',
+      ),
+    ).toBe('600');
   });
 });

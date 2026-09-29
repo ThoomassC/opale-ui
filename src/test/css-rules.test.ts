@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import docSource from '../styles/doc.css?raw';
-import { declaration, declarations, parseRules, ruleBody, selectorsDeclaring } from './css-rules';
+import {
+  atRules,
+  declaration,
+  declarations,
+  parseRules,
+  ruleBody,
+  selectorsDeclaring,
+} from './css-rules';
 
 /* =============================================================================
    LE LECTEUR DE CSS SE TESTE, PARCE QUE TROIS GARDES EN DÉPENDENT.
@@ -200,5 +207,18 @@ describe('les sélecteurs qui déclarent une propriété', () => {
     const feuille = `.a { color: x; }\n.b, .c { margin: 0; }\n@media (x) { .d, .e { color: y; } }`;
 
     expect(selectorsDeclaring(feuille, 'color')).toEqual(['.a', '.d', '.e']);
+  });
+});
+
+describe('les at-rules d’une feuille', () => {
+  it('devrait rendre les paramètres de chaque at-rule du nom demandé, blocs ou non', () => {
+    const feuille = `@import url('a.css');\n@media (x) { @import url('b.css'); }\n@font-face { font-family: F; }`;
+
+    expect(atRules(feuille, 'import')).toEqual(["url('a.css')", "url('b.css')"]);
+    expect(atRules(feuille, 'font-face')).toEqual(['']);
+  });
+
+  it('ne devrait pas lire une at-rule citée en commentaire', () => {
+    expect(atRules("/* @import url('x.css'); */ .a { color: red; }", 'import')).toEqual([]);
   });
 });

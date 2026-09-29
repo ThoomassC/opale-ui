@@ -30,7 +30,7 @@
    les consommateurs.
    ========================================================================== */
 
-import postcss, { type AtRule, type Container, type Rule } from 'postcss';
+import postcss, { type AtRule, type Container, type Root, type Rule } from 'postcss';
 
 /** Une règle CSS, avec la pile d'at-rules qui la contient. */
 export interface CssRule {
@@ -72,6 +72,22 @@ function holdsRules(node: Container): boolean {
 }
 
 const cache = new Map<string, readonly CssRule[]>();
+const trees = new Map<string, Root>();
+
+/**
+ * L'arbre d'une feuille, commentaires retirés, analysé une seule fois.
+ *
+ * Les gardes interrogent la même feuille des centaines de fois : réanalyser
+ * `opale.css` à chaque `declaration` coûtait assez pour faire dépasser son
+ * délai à un test sous couverture. L'arbre n'est jamais modifié par ce module.
+ */
+function treeOf(source: string): Root {
+  const cached = trees.get(source);
+  if (cached) return cached;
+  const tree = postcss.parse(stripComments(source));
+  trees.set(source, tree);
+  return tree;
+}
 
 /**
  * Toutes les règles d'une feuille, avec leur contexte d'at-rules.
@@ -116,7 +132,7 @@ export function parseRules(source: string): readonly CssRule[] {
     }
   };
 
-  walk(postcss.parse(clean), []);
+  walk(treeOf(source), []);
   cache.set(source, rules);
   return rules;
 }
@@ -210,7 +226,7 @@ export function declarations(
     }
   };
 
-  walk(postcss.parse(stripComments(source)), []);
+  walk(treeOf(source), []);
   return result;
 }
 
@@ -224,10 +240,23 @@ export function declarations(
  */
 export function selectorsDeclaring(source: string, property: string): readonly string[] {
   const found: string[] = [];
-  postcss.parse(stripComments(source)).walkRules((rule) => {
+  treeOf(source).walkRules((rule) => {
     if (rule.nodes.some((child) => child.type === 'decl' && child.prop === property)) {
       found.push(...rule.selectors.map(normalizeSelector));
     }
+  });
+  return found;
+}
+
+/**
+ * Les paramètres de chaque at-rule `@name`, tous contextes confondus, dans
+ * l'ordre de la feuille — `@import` sans bloc compris. Une at-rule citée en
+ * commentaire n'en est pas une.
+ */
+export function atRules(source: string, name: string): readonly string[] {
+  const found: string[] = [];
+  treeOf(source).walkAtRules(name, (node) => {
+    found.push(node.params.trim());
   });
   return found;
 }

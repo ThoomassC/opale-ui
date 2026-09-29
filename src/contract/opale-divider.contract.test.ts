@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { compositeOver, contrastRatio, withAlpha } from './color';
-import { parseThemes, resolveToken, ruleBodies, stripComments } from './stylesheet';
+import { declaration } from '../test/css-rules';
+import { parseThemes, resolveToken } from './stylesheet';
 import type { Theme } from './stylesheet';
 import opaleSource from '../opale/opale.css?raw';
 
@@ -30,11 +31,9 @@ const VISIBILITY_FLOOR = 1.6;
 
 const GROUNDS = ['--opale-background', '--opale-surface', '--opale-surface-sunken'] as const;
 
-const body = () => ruleBodies(stripComments(opaleSource), '.opale-divider').join('\n');
-
 describe('Divider', () => {
   it('devrait occuper toute la largeur de son conteneur, quel qu’il soit', () => {
-    expect(body()).toMatch(/(^|[;{\s])inline-size:\s*100%/);
+    expect(declaration(opaleSource, '.opale-divider', 'inline-size')).toBe('100%');
   });
 
   describe('le trait tient son plancher de visibilité', () => {
@@ -46,11 +45,12 @@ describe('Divider', () => {
        thème sans jeton dédié, et le calcul compose exactement ce que peint le
        navigateur. */
     const share = () => {
-      const match = body().match(
-        /border-top:\s*1px solid color-mix\(in srgb, var\(--opale-text\) (\d+)%, transparent\)/,
-      );
+      const match =
+        /^1px solid color-mix\(in srgb, var\(--opale-text\) (\d+)%, transparent\)$/.exec(
+          declaration(opaleSource, '.opale-divider', 'border-top') ?? '',
+        );
       expect(match, 'filet attendu : color-mix de --opale-text sur transparent').not.toBeNull();
-      return Number((match as RegExpMatchArray)[1]) / 100;
+      return Number(match?.[1]) / 100;
     };
 
     for (const themeName of ['light', 'dark-explicit'] as const) {
@@ -58,7 +58,10 @@ describe('Divider', () => {
         it(`devrait tenir ${VISIBILITY_FLOOR}:1 sur ${ground} en ${themeName}`, () => {
           const theme = themes.get(themeName) as Theme;
           const paper = resolveToken(theme, ground);
-          const line = compositeOver(withAlpha(resolveToken(theme, '--opale-text'), share()), paper);
+          const line = compositeOver(
+            withAlpha(resolveToken(theme, '--opale-text'), share()),
+            paper,
+          );
 
           expect(contrastRatio(line, paper)).toBeGreaterThanOrEqual(VISIBILITY_FLOOR);
         });

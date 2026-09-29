@@ -2,8 +2,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { compositeOver, contrastRatio, withAlpha } from '../contract/color';
-import { parseThemes, resolveToken, ruleBodies, stripComments } from '../contract/stylesheet';
+import { parseThemes, resolveToken } from '../contract/stylesheet';
 import type { Theme } from '../contract/stylesheet';
+import { declaration, declarations } from '../test/css-rules';
 import { Modal, useSvgMapViewport } from './components';
 import opaleSource from './opale.css?raw';
 import { SvgMap, SvgMapControls, type SvgMapRegion } from './opale';
@@ -171,18 +172,33 @@ describe('SvgMap', () => {
     });
 
     /* Une carte zoomée ne se parcourait qu'en la glissant (WCAG 2.1.1). */
-    it('se déplace au clavier : flèches sur une carte illustrative, Maj + flèches partout', async () => {
-      const { container } = render(<SvgMap viewBox="0 0 400 200" regions={REGIONS} />);
-      const svg = svgOf(container);
+    /* L'horloge et les images sont simulées : l'animation du zoom se déroule
+       jusqu'au bout sans attendre de vraies millisecondes. */
+    it('se déplace au clavier : flèches sur une carte illustrative, Maj + flèches partout', () => {
+      vi.useFakeTimers({
+        toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'],
+      });
+      try {
+        const { container } = render(<SvgMap viewBox="0 0 400 200" regions={REGIONS} />);
+        const svg = svgOf(container);
 
-      expect(svg).toHaveAttribute('tabindex', '0');
-      fireEvent.keyDown(svg, { key: '+' });
-      await waitFor(() => expect(svg.getAttribute('viewBox')).not.toBe('0 0 400 200'));
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      const zoomed = svg.getAttribute('viewBox');
+        expect(svg).toHaveAttribute('tabindex', '0');
+        fireEvent.keyDown(svg, { key: '+' });
+        act(() => {
+          vi.advanceTimersByTime(400);
+        });
+        const zoomed = svg.getAttribute('viewBox');
+        expect(zoomed, 'le zoom animé doit être arrivé').not.toBe('0 0 400 200');
+        act(() => {
+          vi.advanceTimersByTime(100);
+        });
+        expect(svg.getAttribute('viewBox'), 'l’animation doit être finie').toBe(zoomed);
 
-      fireEvent.keyDown(svg, { key: 'ArrowRight' });
-      expect(svg.getAttribute('viewBox')).not.toBe(zoomed);
+        fireEvent.keyDown(svg, { key: 'ArrowRight' });
+        expect(svg.getAttribute('viewBox')).not.toBe(zoomed);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('ferme l’infobulle avec Échap', () => {
@@ -352,11 +368,9 @@ describe('SvgMap', () => {
    focus, tracé sur le `<svg>` rectangulaire, s'arrêtait net aux arrondis.
    ========================================================================== */
 describe('SvgMap — les coins de la plaque', () => {
-  const css = stripComments(opaleSource);
-
   it('écarte le dessin des coins arrondis par un coussin de la plaque', () => {
-    expect(ruleBodies(css, '.opale-svg-map__plate').join('\n')).toMatch(
-      /(^|[;{\s])padding:\s*var\(--opale-space-sm\)/,
+    expect(declaration(opaleSource, '.opale-svg-map__plate', 'padding')).toBe(
+      'var(--opale-space-sm)',
     );
   });
 
@@ -366,28 +380,29 @@ describe('SvgMap — les coins de la plaque', () => {
      composant, la première gagnait par l'ordre et redessinait un rectangle
      autour du dessin. La règle du composant porte donc trois classes. */
   it('trace l’anneau de focus sur la plaque, qui suit ses arrondis, et non sur le svg', () => {
-    const svgRule = ruleBodies(css, '.opale-svg-map .opale-svg-map__svg:focus-visible').join('');
-    expect(svgRule).toMatch(/outline:\s*none/);
-    expect(svgRule).toMatch(/box-shadow:\s*none/);
+    const svgRule = declarations(opaleSource, '.opale-svg-map .opale-svg-map__svg:focus-visible');
+    expect(svgRule.get('outline')).toBe('none');
+    expect(svgRule.get('box-shadow')).toBe('none');
     expect(
-      ruleBodies(css, '.opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible)').join(''),
-    ).toMatch(/outline:\s*var\(--opale-focus-ring-width\) solid var\(--opale-focus\)/);
+      declaration(
+        opaleSource,
+        '.opale-svg-map__plate:has(.opale-svg-map__svg:focus-visible)',
+        'outline',
+      ),
+    ).toBe('var(--opale-focus-ring-width) solid var(--opale-focus)');
   });
 });
 
 describe('SvgMap — contraste du contour', () => {
   const themes = new Map<string, Theme>(parseThemes(opaleSource).map((t) => [t.name, t]));
-  const body = ruleBodies(stripComments(opaleSource), '.opale-svg-map').join('\n');
 
-  /** Lit « color-mix(in srgb, var(--a) N%, var(--b)) » dans la déclaration d'une propriété. */
+  /** Lit « color-mix(in srgb, var(--a) N%, var(--b)) », valeur retenue d'une propriété. */
   const mixOf = (property: string) => {
-    const match = body.match(
-      new RegExp(
-        `${property}:\\s*color-mix\\(in srgb, var\\((--[\\w-]+)\\) (\\d+)%, var\\((--[\\w-]+)\\)\\)`,
-      ),
+    const match = /^color-mix\(in srgb, var\((--[\w-]+)\) (\d+)%, var\((--[\w-]+)\)\)$/.exec(
+      declaration(opaleSource, '.opale-svg-map', property) ?? '',
     );
     expect(match, `${property} attendu en color-mix de deux jetons`).not.toBeNull();
-    const [, top, share, bottom] = match as RegExpMatchArray;
+    const [, top = '', share = '', bottom = ''] = match ?? [];
     return { top, share: Number(share) / 100, bottom };
   };
 

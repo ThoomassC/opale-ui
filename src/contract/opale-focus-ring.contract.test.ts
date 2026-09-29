@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { ruleBodies, stripComments } from './stylesheet';
+import { declaration, declarations } from '../test/css-rules';
+import { stripComments } from './stylesheet';
 import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
@@ -29,9 +30,9 @@ const OFFSETS = ['var(--opale-focus-ring-offset)', 'calc(var(--opale-focus-ring-
 
 describe('l’anneau de focus', () => {
   it('déclare sa largeur et son décalage à la racine', () => {
-    const root = ruleBodies(stripComments(opaleSource), ':root').join('\n');
-    expect(root).toMatch(/--opale-focus-ring-width:\s*3px/);
-    expect(root).toMatch(/--opale-focus-ring-offset:\s*3px/);
+    const root = declarations(opaleSource, ':root');
+    expect(root.get('--opale-focus-ring-width')).toBe('3px');
+    expect(root.get('--opale-focus-ring-offset')).toBe('3px');
   });
 
   for (const [file, raw] of Object.entries(sheets)) {
@@ -55,14 +56,16 @@ describe('l’anneau de focus', () => {
   }
 
   it('dessine un anneau sur les liens de SiteNav', () => {
-    const css = stripComments(modules['../opale/components/site-nav/site-nav.module.css']);
-    expect(ruleBodies(css, '.link:focus-visible').join('\n')).toMatch(/outline:\s*var\(--opale-focus-ring-width\)/);
+    const css = modules['../opale/components/site-nav/site-nav.module.css'];
+    expect(declaration(css, '.link:focus-visible', 'outline')).toMatch(
+      /^var\(--opale-focus-ring-width\) solid /,
+    );
   });
 
   it('dessine un anneau autour de SearchBar au clavier', () => {
-    const css = stripComments(modules['../opale/components/search-bar/style/SearchBar.module.scss']);
-    expect(ruleBodies(css, '.root:has(.input:focus-visible)').join('\n')).toMatch(
-      /outline:\s*var\(--opale-focus-ring-width\)/,
+    const css = modules['../opale/components/search-bar/style/SearchBar.module.scss'];
+    expect(declaration(css, '.root:has(.input:focus-visible)', 'outline')).toMatch(
+      /^var\(--opale-focus-ring-width\) solid /,
     );
   });
 });
