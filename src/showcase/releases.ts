@@ -49,6 +49,37 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V380_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Nouveautés',
+    changes: [
+      {
+        title: 'Une navigation de recherche à brancher',
+        detail:
+          'PageScaffold accepte searchNavigate : la suggestion choisie passe par votre routeur au lieu de recharger la page. Sans cette prop, rien ne change.',
+        links: [{ label: 'PageScaffold', slug: 'composants/page-scaffold' }],
+      },
+      {
+        title: 'Un seul bouton Fermer',
+        detail:
+          'Lightbox et CommandPalette acceptent footerClose={false} pour ne garder que la croix d’en-tête. Par défaut, le bouton du pied reste.',
+        links: [{ label: 'Lightbox', slug: 'composants/opale-lightbox' }],
+      },
+    ],
+  },
+  {
+    title: 'Finitions',
+    changes: [
+      {
+        title: 'SegmentedControl glisse sans recalculer la page',
+        detail:
+          'La pastille se déplace par transformation seulement ; elle prend la largeur de sa nouvelle option au départ du geste. Sans animation quand le système demande moins de mouvement.',
+        links: [{ label: 'SegmentedControl', slug: 'composants/opale-segmented-control' }],
+      },
+    ],
+  },
+];
+
 const V371_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Corrections',
@@ -786,6 +817,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.8.0',
+    publishedAt: '2026-09-29',
+    dateLabel: '29 septembre 2026',
+    summary:
+      'Une recherche de PageScaffold branchée sur votre routeur, un seul bouton Fermer en option, et un SegmentedControl plus léger à animer. Sans rupture.',
+    sections: V380_RELEASE_SECTIONS,
+    changes: V380_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['searchNavigate sur PageScaffold.', 'footerClose sur Lightbox et CommandPalette.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.7.1',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
@@ -799,8 +844,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'CookieBanner vérifié avec un stockage bloqué.',
       'La carte du monde n’embarque plus de bibliothèque de projection.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.8.0, sur son tag. */
+    appHref: '/versions/v3.7.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.7.1`,
   },
   {
     version: '3.7.0',
