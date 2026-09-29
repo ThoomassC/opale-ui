@@ -311,6 +311,36 @@ describe('DocShell — les onglets du header', () => {
     fireEvent.pointerDown(screen.getByRole('main'));
     expect(menu.open).toBe(false);
   });
+
+  /* RESP-03 : le menu compact se refermait au clic extérieur, jamais au
+     clavier. Échap le referme et rend le focus au bouton qui l'a ouvert. */
+  it('referme le menu compact à Échap et rend le focus à son bouton', () => {
+    render(<DocShell pages={PAGES} />);
+    const menu = document.querySelector<HTMLDetailsElement>('.tc-doc-topbar__menu');
+    const toggle = menu?.querySelector('summary');
+    const firstLink = menu?.querySelector<HTMLAnchorElement>('.tc-doc-topbar__menu-nav a');
+    if (!menu || !toggle || !firstLink) throw new Error('Menu compact absent');
+    menu.open = true;
+    firstLink.focus();
+
+    fireEvent.keyDown(firstLink, { key: 'Escape' });
+
+    expect(menu.open).toBe(false);
+    expect(toggle).toHaveFocus();
+  });
+
+  it('laisse Échap aux autres composants quand le menu compact est fermé', () => {
+    render(<DocShell pages={PAGES} />);
+    const menu = document.querySelector<HTMLDetailsElement>('.tc-doc-topbar__menu');
+    if (!menu) throw new Error('Menu compact absent');
+    const title = screen.getByRole('heading', { level: 1 });
+    title.focus();
+
+    fireEvent.keyDown(title, { key: 'Escape' });
+
+    expect(menu.open).toBe(false);
+    expect(title).toHaveFocus();
+  });
 });
 
 describe('DocShell — la largeur du sommaire', () => {

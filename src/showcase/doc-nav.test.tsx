@@ -237,4 +237,35 @@ describe('le sommaire repliable', () => {
 
     expect(shell(container)).toHaveAttribute('data-menu', 'open');
   });
+
+  it('devrait se replier à Échap et rendre le focus à son bouton', () => {
+    const { container } = renderNav();
+
+    fireEvent.click(toggle());
+    const link = within(screen.getByRole('navigation', { name: 'Sommaire' })).getAllByRole(
+      'link',
+    )[0];
+    link.focus();
+    fireEvent.keyDown(link, { key: 'Escape' });
+
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+    expect(toggle()).toHaveFocus();
+  });
+
+  it('devrait ignorer Échap pressé hors du sommaire', () => {
+    const { container } = render(
+      <>
+        <DocNav pages={PAGES} currentSlug={HOME_SLUG} />
+        <button type="button">ailleurs</button>
+      </>,
+    );
+
+    fireEvent.click(toggle());
+    const outside = screen.getByRole('button', { name: 'ailleurs' });
+    outside.focus();
+    fireEvent.keyDown(outside, { key: 'Escape' });
+
+    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+    expect(outside).toHaveFocus();
+  });
 });

@@ -643,7 +643,9 @@ export function CatalogPreview({
     case 'CookieBanner':
       preview = (
         <DemoFrame>
-          {/* « Réafficher » efface la clé de démonstration et remonte le
+          {/* Le bandeau est fixe au bas de la fenêtre : monté d'office, il
+              recouvrait la fiche au chargement. Il attend donc qu'on le
+              demande ; le bouton efface la clé de démonstration et remonte le
               bandeau, qui relit alors le stockage. */}
           <Opale.Button
             size="small"
@@ -656,15 +658,17 @@ export function CatalogPreview({
               setCookieRun((run) => run + 1);
             }}
           >
-            Réafficher
+            Afficher le bandeau
           </Opale.Button>
-          <Opale.CookieBanner
-            key={cookieRun}
-            storageKey={COOKIE_DEMO_KEY}
-            liquidGlass={liquidGlass}
-            onAccept={() => setMessage('Cookies acceptés — choix mémorisé')}
-            onDecline={() => setMessage('Cookies refusés — choix mémorisé')}
-          />
+          {cookieRun > 0 ? (
+            <Opale.CookieBanner
+              key={cookieRun}
+              storageKey={COOKIE_DEMO_KEY}
+              liquidGlass={liquidGlass}
+              onAccept={() => setMessage('Cookies acceptés — choix mémorisé')}
+              onDecline={() => setMessage('Cookies refusés — choix mémorisé')}
+            />
+          ) : null}
           <span role="status">{message}</span>
         </DemoFrame>
       );

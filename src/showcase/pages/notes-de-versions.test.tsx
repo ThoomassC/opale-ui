@@ -56,4 +56,19 @@ describe('Notes de versions — actions', () => {
       expect(link).not.toHaveClass('tc-doc-link');
     }
   });
+
+  /* RESP-10 : les blocs « Avant » et « Après » défilent à l'horizontale sur
+     écran étroit ; un conteneur défilant doit être atteignable au clavier
+     (WCAG 2.1.1), comme les blocs d'usage et les tableaux de props. */
+  it('rend chaque bloc de migration atteignable au clavier', () => {
+    const { container } = render(notesVersionsPage.render());
+    const blocks = [...container.querySelectorAll('.tc-doc-release__migration-code pre')];
+
+    expect(blocks.length).toBeGreaterThan(0);
+    for (const block of blocks) {
+      expect(block).toHaveAttribute('tabindex', '0');
+      expect(block).toHaveAttribute('role', 'group');
+      expect(block.getAttribute('aria-label')).toMatch(/défilement horizontal$/);
+    }
+  });
 });
