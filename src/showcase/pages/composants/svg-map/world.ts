@@ -1,6 +1,6 @@
-import { geoNaturalEarth1, geoPath } from 'd3-geo';
-import { feature } from 'topojson-client';
-import topology from 'world-atlas/countries-50m.json';
+import { geoNaturalEarth1 } from 'd3-geo';
+
+import worldPaths from './world-paths.json';
 
 import type { SvgMapBounds, SvgMapRegion } from '../../../../opale';
 import { ALPHA2_BY_NUMERIC, continentOf, type Continent } from './world-codes';
@@ -24,6 +24,12 @@ import { ALPHA2_BY_NUMERIC, continentOf, type Continent } from './world-codes';
    3. DES TRACÉS ARRONDIS AU DIXIÈME. Au zoom maximal de la carte, un dixième
       d'unité reste sous le pixel, et le poids des chemins tombe de moitié.
 
+   LES TRACÉS SONT PRÉCALCULÉS. `scripts/world-map.mjs` fait la projection une
+   fois, avec ces mêmes réglages, et écrit `world-paths.json` en déplacements
+   relatifs : 120 kB gzip au lieu des 225 kB de la topologie, et ni d3-geo ni
+   topojson-client à exécuter au chargement pour obtenir les mêmes chaînes.
+   `world-paths.test.ts` vérifie que le dessin est le même, point par point.
+
    LE JEU 50m, COMME DANS TRAVELS IN WORLD. `countries-50m` de world-atlas
    (licence ISC, données Natural Earth du domaine public) porte 241 formes ;
    le 110m n'en avait que 177 — ni Singapour, ni Malte, ni Bahreïn, et des
@@ -39,18 +45,15 @@ const WORLD_HEIGHT = 500;
 
 export const WORLD_VIEWBOX = `0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`;
 
-const ANTARCTICA = '010';
-
 export interface WorldCountry extends SvgMapRegion {
   readonly continent?: Continent;
 }
 
 const regionNames = new Intl.DisplayNames(['fr'], { type: 'region' });
 
-/* LA PROJECTION EST PARTAGÉE, et doit l'être : les tracés et les cadres des
-   continents se calculent avec la même, sans quoi un cadre et une côte ne
-   tomberaient pas au même endroit. Ses réglages d'usine ne sont jamais
-   modifiés. */
+/* LA PROJECTION EST LA MÊME que celle des tracés précalculés, et doit l'être :
+   sans quoi un cadre de continent et une côte ne tomberaient pas au même
+   endroit. Ses réglages d'usine ne sont jamais modifiés. */
 const projection = geoNaturalEarth1();
 
 /* UNE RÉGION PAR CODE ISO. Le 50m écrit deux formes sous le numérique 036 —
@@ -68,33 +71,20 @@ function mergeById(countries: readonly WorldCountry[]): readonly WorldCountry[] 
 }
 
 function buildWorld(): readonly WorldCountry[] {
-  const path = geoPath(projection).digits(1);
-  const collection = feature(topology, topology.objects.countries);
-
-  return collection.features.flatMap((country, index) => {
-    const numeric = country.id === undefined ? null : String(country.id);
-    if (numeric === ANTARCTICA) return [];
-
-    const d = path(country);
-    if (!d) return [];
-
+  return worldPaths.map(({ index, numeric, name: sourceName, d }) => {
     const alpha2 = numeric === null ? undefined : ALPHA2_BY_NUMERIC.get(numeric);
     /* Cinq formes n'ont pas d'identifiant ISO — Somaliland, Kosovo, Chypre du
        Nord, les territoires de l'océan Indien et le glacier de Siachen : elles
        restent dessinées, c'est la côte, sous leur nom anglais et un
        identifiant de secours. */
-    const name = alpha2
-      ? (regionNames.of(alpha2) ?? country.properties.name)
-      : country.properties.name;
+    const name = alpha2 ? (regionNames.of(alpha2) ?? sourceName) : sourceName;
 
-    return [
-      {
-        id: alpha2 ?? `sans-code-${index}`,
-        path: d,
-        name,
-        continent: alpha2 ? continentOf(alpha2) : undefined,
-      },
-    ];
+    return {
+      id: alpha2 ?? `sans-code-${index}`,
+      path: d,
+      name,
+      continent: alpha2 ? continentOf(alpha2) : undefined,
+    };
   });
 }
 
