@@ -106,6 +106,10 @@ export type ToastDefinition = {
   tone?: OpaleTone;
   /** @deprecated Depuis 3.6 — utilisez `tone` (`default` → `neutral`). */
   variant?: ToastVariant;
+  /**
+   * En millisecondes ; `Infinity` désarme la fermeture. Sans durée ici ni sur
+   * le fournisseur, `error` et `warning` restent jusqu'à leur fermeture.
+   */
   duration?: number;
   animation?: ToastAnimation;
   position?: ToastPosition;
@@ -141,6 +145,7 @@ export interface ToastLabels {
 const DEFAULT_TOAST_LABELS: ToastLabels = { close: 'Fermer la notification' };
 
 export type ToastProviderProps = PropsWithChildren<{
+  /** La durée par défaut, en millisecondes. Défaut : 4000, sauf `error` et `warning`. */
   duration?: number;
   animation?: ToastAnimation;
   position?: ToastPosition;
@@ -404,9 +409,12 @@ export const useToast = () => {
   return context;
 };
 
+/** La durée d'un toast dont ni l'appel ni le fournisseur ne fixent la durée. */
+const DEFAULT_DURATION_MS = 4000;
+
 export const ToastProvider = ({
   children,
-  duration = 4000,
+  duration: durationProp,
   animation = 'slide-from-right',
   position = 'top-right',
   enableLiquidAnimation = true,
@@ -415,16 +423,23 @@ export const ToastProvider = ({
   labels: labelsProp,
 }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
+  const duration = durationProp ?? DEFAULT_DURATION_MS;
 
   const showToast = useCallback(
     (toast: ToastDefinition) => {
       const id = toast.id ?? generateToastId();
 
+      const tone = resolveTone(toast);
+      /* UN MESSAGE URGENT NE PART PAS SEUL (WCAG 2.2.1) : sans durée
+         explicite, `error` et `warning` attendent leur fermeture. */
       const record: ToastRecord = {
         ...toast,
         id,
-        tone: resolveTone(toast),
-        duration: toast.duration ?? duration,
+        tone,
+        duration:
+          toast.duration ??
+          durationProp ??
+          (ASSERTIVE_TONES.has(tone) ? Infinity : DEFAULT_DURATION_MS),
         animation: toast.animation ?? animation,
         position: toast.position ?? position,
         enableLiquidAnimation: toast.enableLiquidAnimation ?? enableLiquidAnimation,
@@ -448,7 +463,7 @@ export const ToastProvider = ({
 
       return id;
     },
-    [animation, duration, enableLiquidAnimation, liquidGlass, position],
+    [animation, durationProp, enableLiquidAnimation, liquidGlass, position],
   );
 
   const dismissToast = useCallback((id: string) => {

@@ -46,7 +46,8 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         Millisecondes avant fermeture automatique. <code>Infinity</code> désarme la minuterie : le
-        toast reste jusqu’à un clic ou un <code>dismissToast</code>.{' '}
+        toast reste jusqu’à un clic ou un <code>dismissToast</code>. Sans durée passée ici ni au
+        toast, <code>error</code> et <code>warning</code> restent jusqu’à leur fermeture.{' '}
         <strong>
           La minuterie se met en pause au survol et dès que le focus entre dans la carte
         </strong>
@@ -169,7 +170,8 @@ export default function ToastContent() {
                 Les toasts sont portaillés dans <code>document.body</code> : ils apparaissent en
                 haut à droite de la fenêtre, pas dans la scène.
               </strong>{' '}
-              Ils se ferment seuls au bout de 4 s, à la croix, ou avec « Tout fermer » — et{' '}
+              Ils se ferment seuls au bout de 4 s — sauf l’erreur et l’avertissement, qui attendent
+              —, à la croix, ou avec « Tout fermer » — et{' '}
               <strong>la minuterie s’arrête tant que le pointeur est dessus</strong>, donc
               survolez-en un pour le garder le temps de le lire. La scène est sombre pour ses
               boutons, qui sont ceux de la librairie. <StageGroundNote />

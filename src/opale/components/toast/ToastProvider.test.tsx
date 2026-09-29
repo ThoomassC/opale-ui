@@ -401,3 +401,58 @@ describe('ToastProvider — tone', () => {
     expect(surfaceOf('Toast mixte')).not.toHaveClass(toastClasses.error);
   });
 });
+
+describe('ToastProvider — durée des messages urgents', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each([
+    ['error', { tone: 'error' }],
+    ['warning', { tone: 'warning' }],
+    ['variant error', { variant: 'error' }],
+  ] as const)('ne ferme pas seul un toast %s sans durée explicite', async (_, tone) => {
+    renderWithProvider(<Trigger label="Lancer" toast={{ title: 'Échec', ...tone }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lancer' }));
+    await advance(60_000);
+    await advance(1000);
+
+    expect(screen.getByText('Échec')).toBeInTheDocument();
+  });
+
+  it('ferme toujours seul un toast de succès après la durée par défaut', async () => {
+    renderWithProvider(<Trigger label="Lancer" toast={{ title: 'Publié', tone: 'success' }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lancer' }));
+    await advance(4000);
+    await advance(300);
+
+    expect(screen.queryByText('Publié')).not.toBeInTheDocument();
+  });
+
+  it('laisse une durée explicite gagner sur une erreur', async () => {
+    renderWithProvider(
+      <>
+        <Trigger label="Toast" toast={{ title: 'Échec bref', tone: 'error', duration: 1000 }} />
+        <Trigger label="Fournisseur" toast={{ title: 'Échec du fournisseur', tone: 'error' }} />
+      </>,
+      { duration: 2000 },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toast' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fournisseur' }));
+    await advance(1000);
+    await advance(300);
+    expect(screen.queryByText('Échec bref')).not.toBeInTheDocument();
+    expect(screen.getByText('Échec du fournisseur')).toBeInTheDocument();
+
+    await advance(1000);
+    await advance(300);
+    expect(screen.queryByText('Échec du fournisseur')).not.toBeInTheDocument();
+  });
+});
