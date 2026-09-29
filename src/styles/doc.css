@@ -2116,7 +2116,7 @@ body {
   }
 }
 
-/* --- Démonstration Liquid Glass -------------------------------------------
+/* --- Démonstration du verre liquide --------------------------------------
    Cette couche documente la recette globale de `Glass` sur la scène paysage :
    transparence basse, relief de bulle, filet spéculaire et filtre de
    déplacement doux. Les composants de la librairie l'emploient désormais
@@ -2273,7 +2273,7 @@ body {
   overflow: visible;
 }
 
-/* La scène Liquid Glass expose trois variantes : elles respirent sur toute la
+/* La scène du verre liquide expose trois variantes : elles respirent sur toute la
    largeur disponible, et chaque nom reste centré sous l’objet qu’il décrit. */
 .tc-doc-stage:has(.tc-doc-squire-circle__root) {
   justify-content: space-between;
@@ -2625,10 +2625,10 @@ body {
   margin: 0;
 }
 
-/* Les pages de composants vont droit à l'essentiel : installation, import et
-   démonstration. Les détails d'API, les chapeaux et les commentaires restent
-   dans le source, mais ne prennent plus de place dans la vitrine. */
-.tc-doc-main--components .tc-doc-prose,
+/* Les pages de composants vont droit à l'essentiel ; hors du gabarit
+   (`doc-v3.css`), titres et notes de spécimen restent discrets. La prose
+   n'est plus masquée : ce qui en reste est un contrat ou une attribution de
+   licence, et doit se lire. */
 .tc-doc-main--components .tc-doc-specimen__note,
 .tc-doc-main--components .tc-doc-specimen__title,
 .tc-doc-main--components .tc-doc-props {

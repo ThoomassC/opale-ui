@@ -166,10 +166,8 @@ export default function AccessibiliteContent() {
             n’imposent ni glyphe ni libellé de repli.
           </li>
           <li>
-            <strong>Aucun état visuel n’est plus garanti sans JavaScript.</strong> La 1.0 portait
-            survol, appui, focus, erreur et attente en sélecteurs CSS, sur des composants sans état.
-            Les quatorze composants publiés tiennent de l’état React et exigent{' '}
-            <code>&quot;use client&quot;</code>.
+            <strong>Les états visuels demandent JavaScript.</strong> Les composants tiennent de
+            l’état React ; le bundle porte déjà la directive <code>&quot;use client&quot;</code>.
           </li>
           <li>
             <strong>La sémantique native d’abord.</strong> <code>&lt;button&gt;</code>,{' '}

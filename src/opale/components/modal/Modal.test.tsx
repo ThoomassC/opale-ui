@@ -1,11 +1,13 @@
-import modalSource from './Modal.tsx?raw';
 import modalStyles from './style/Modal.module.css?raw';
 import modalClasses from './style/Modal.module.css';
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import Modal, { type ModalProps } from './Modal';
 import { ToastProvider, useToast } from '../toast';
+import { declarations, selectorsDeclaring } from '../../../test/css-rules';
 
 /* =============================================================================
    LES SIX CAS D'ORIGINE SONT TOUS LÀ, ET AUCUN N'A ÉTÉ AFFAIBLI.
@@ -225,7 +227,11 @@ describe('Modal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     const portal = screen.getByTestId('toast-portal');
-    for (let node: HTMLElement | null = portal; node && node !== baseElement; node = node.parentElement) {
+    for (
+      let node: HTMLElement | null = portal;
+      node && node !== baseElement;
+      node = node.parentElement
+    ) {
       expect(node).not.toHaveAttribute('inert');
       expect(node).not.toHaveAttribute('aria-hidden');
     }
@@ -281,36 +287,84 @@ describe('Modal', () => {
 });
 
 /* =============================================================================
-   L'ORDRE DES DEUX EFFETS EST LE CORRECTIF, ET AUCUN TEST DE RENDU NE PEUT LE
-   VOIR.
+   LE FOCUS REVIENT AU DÉCLENCHEUR PAR LES TROIS SORTIES, ET L'ARRIÈRE-PLAN
+   N'EST INERTE QUE LE TEMPS DE L'OUVERTURE.
 
-   Le focus n'était jamais rendu au déclencheur : React exécute les nettoyages
-   dans l'ORDRE DE DÉCLARATION, et celui du focus passait avant celui de
-   l'inertie — `focus()` sur un élément encore `inert` ne fait rien, sans lever
-   d'erreur. Mesuré au navigateur sur les trois sorties : le focus retombait
-   sur `<body>`.
+   LE DÉFAUT QUE CES CAS TIENNENT. React exécute les nettoyages dans l'ordre de
+   déclaration des effets : si celui du focus passe avant celui de l'inertie,
+   `focus()` vise un déclencheur encore `inert` et ne fait rien, sans erreur.
+   Mesuré au navigateur sur les trois sorties : le focus retombait sur
+   `<body>`.
 
-   POURQUOI CE GARDE LIT LA SOURCE PLUTÔT QUE DE RENDRE. jsdom N'IMPLÉMENTE PAS
-   `inert` : le `focus()` y réussit, donc le test de restitution qui existe
-   au-dessus passait AU VERT pendant tout le temps où le défaut était livré.
-   Un test de comportement ne peut pas attraper ce bug ici ; seule la position
-   relative des deux blocs le décide.
+   CE GARDE LISAIT LA SOURCE, et il ne tenait que l'ordre de deux COMMENTAIRES :
+   renommer l'un le rougissait, déplacer le code sans ses commentaires le
+   laissait vert. Il est remplacé par un rendu. jsdom n'implémente pas `inert`
+   — c'est ce qui rendait le défaut invisible — ; `src/test/inert.ts` lui donne
+   la seule sémantique en jeu ici, celle du navigateur : `focus()` sur un
+   élément inerte est sans effet. Avec elle, inverser les deux effets fait
+   rougir les trois cas ci-dessous.
+
+   Les sorties sont jouées comme un utilisateur les joue (`userEvent`), sur un
+   modal CONTRÔLÉ : c'est `onOpenChange` qui referme, pas le test.
    ========================================================================== */
-describe('l’ordre des effets de Modal', () => {
-  it('déclare la restitution du focus APRÈS la levée de l’inertie', () => {
-    const inertie = modalSource.indexOf("L'INERTIE DE L'ARRIÈRE-PLAN");
-    const focus = modalSource.indexOf("CET EFFET EST DÉCLARÉ APRÈS CELUI DE L'INERTIE");
+describe('Modal — restitution du focus et inertie, par chaque sortie', () => {
+  const Harness = () => {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <button type="button" onClick={() => setOpen(true)}>
+          Ouvrir
+        </button>
+        <Modal open={open} onOpenChange={setOpen} title="Glass modal">
+          <p>Modal body content</p>
+        </Modal>
+      </>
+    );
+  };
 
-    expect(inertie, 'Le commentaire de l’effet d’inertie est introuvable.').toBeGreaterThan(-1);
-    expect(focus, 'Le commentaire de l’effet de focus est introuvable.').toBeGreaterThan(-1);
-    expect(
-      focus,
-      'L’effet de focus est déclaré AVANT celui de l’inertie. Son nettoyage ' +
-        'rendra donc le focus au déclencheur pendant que l’arrière-plan porte ' +
-        'encore `inert`, et l’appel sera sans effet — silencieusement. jsdom ne ' +
-        'voit pas ce défaut : il n’implémente pas `inert`.',
-    ).toBeGreaterThan(inertie);
-  });
+  const exits = [
+    ['Échap', (user: UserEvent) => user.keyboard('{Escape}')],
+    [
+      'le bouton Fermer',
+      (user: UserEvent) => user.click(screen.getByRole('button', { name: 'Fermer' })),
+    ],
+    ['le clic sur le voile', (user: UserEvent) => user.click(screen.getByTestId('modal-overlay'))],
+  ] as const;
+
+  it.each(exits)(
+    'devrait rendre le focus au déclencheur quand on ferme par %s',
+    async (_, exit) => {
+      const user = userEvent.setup();
+      render(<Harness />);
+      const trigger = screen.getByRole('button', { name: 'Ouvrir' });
+
+      await user.click(trigger);
+      expect(screen.getByRole('dialog', { name: 'Glass modal' })).toHaveFocus();
+
+      await exit(user);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(trigger).toHaveFocus();
+    },
+  );
+
+  it.each(exits)(
+    'devrait rendre l’arrière-plan inerte pendant l’ouverture et plus après une fermeture par %s',
+    async (_, exit) => {
+      const user = userEvent.setup();
+      render(<Harness />);
+      const trigger = screen.getByRole('button', { name: 'Ouvrir' });
+
+      await user.click(trigger);
+      expect(trigger.closest('[inert]')).not.toBeNull();
+      expect(trigger.closest('[aria-hidden="true"]')).not.toBeNull();
+
+      await exit(user);
+
+      expect(trigger.closest('[inert]')).toBeNull();
+      expect(trigger.closest('[aria-hidden="true"]')).toBeNull();
+    },
+  );
 });
 
 /* =============================================================================
@@ -326,26 +380,22 @@ describe('l’ordre des effets de Modal', () => {
    feuille peut porter ce garde.
    ========================================================================== */
 describe('les contours du panneau original', () => {
-  /** Le corps de la règle `.plain`, commentaires retirés. */
-  const plain = (() => {
-    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
-    const debut = sans.indexOf('.plain {');
-    return sans.slice(debut, sans.indexOf('}', debut));
-  })();
+  /** Ce que la feuille retient pour `.plain`, au premier niveau. */
+  const plain = declarations(modalStyles, '.plain');
 
   it('devrait écrire son propre rayon plutôt que de l’hériter', () => {
-    expect(plain).toMatch(/border-radius:\s*var\(--opale-radius-lg\)/);
+    expect(plain.get('border-radius')).toBe('var(--opale-radius-lg)');
   });
 
   /* `--opale-divider` SEUL NE DESSINE PAS D'ARÊTE : mesuré, il tient 1,09:1
-     contre la surface blanche. Le panneau doit donc porter un anneau tiré de
-     l'encre du texte, qui suit les deux thèmes. */
+     contre la surface blanche. Le panneau doit donc porter une bordure tirée
+     de l'encre du texte, qui suit les deux thèmes. */
   it('devrait porter une arête tirée de l’encre et non du seul filet de séparation', () => {
-    expect(plain).toMatch(/color-mix\(in srgb, var\(--opale-text\)/);
+    expect(plain.get('border')).toMatch(/^1px solid color-mix\(in srgb, var\(--opale-text\) /);
   });
 
   it('devrait garder son ombre portée', () => {
-    expect(plain).toMatch(/var\(--opale-shadow-4\)/);
+    expect(plain.get('box-shadow')).toMatch(/var\(--opale-shadow-4\)$/);
   });
 });
 
@@ -401,18 +451,17 @@ describe('l’en-tête sans titre', () => {
   /* MÊME RAISON POUR LE PIED. Sans corps — une confirmation, depuis que sa
      phrase est passée en description —, les deux filets se retrouvaient face à
      face autour d'une bande vide. */
-  it('devrait conditionner le filet du pied à la présence d’un corps', () => {
-    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
+  /** Les sélecteurs qui tirent un filet, `@media` compris. */
+  const filets = selectorsDeclaring(modalStyles, 'box-shadow');
 
-    expect(sans).toMatch(/\.body \+ \.footer\s*\{[^}]*box-shadow/);
-    expect(sans).not.toMatch(/(^|\n)\.footer\s*\{[^}]*box-shadow/);
+  it('devrait conditionner le filet du pied à la présence d’un corps', () => {
+    expect(filets).toContain('.body + .footer');
+    expect(filets).not.toContain('.footer');
   });
 
   it('devrait conditionner le filet d’en-tête à la présence d’un titre', () => {
-    const sans = modalStyles.replace(/\/\*[\s\S]*?\*\//g, '');
-
-    expect(sans).toMatch(/\.header:has\(\.heading\)\s*\{[^}]*box-shadow/);
-    expect(sans).not.toMatch(/\.header\s*\{[^}]*box-shadow/);
+    expect(filets).toContain('.header:has(.heading)');
+    expect(filets.filter((selector) => selector.endsWith('.header'))).toEqual([]);
   });
 });
 

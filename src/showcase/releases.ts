@@ -259,15 +259,36 @@ const V350_RELEASE_SECTIONS: readonly ReleaseSection[] = [
         detail:
           'useSvgMapViewport partage la vue avec l’appelant — fitTo, zoomBy, reveal, reset — et SvgMapControls se branche à part. La carte existe en version originale et en verre liquide.',
       },
+      {
+        title: 'Cadrer sur un ensemble de régions',
+        detail:
+          'fitBounds cadre la vue sur une boîte englobante : un continent, un groupe de départements, une sélection.',
+      },
+      {
+        title: 'Une plaque aux coins arrondis',
+        detail:
+          'L’anneau de focus suit l’arrondi de la plaque et non le rectangle du dessin, et les tracés ne débordent plus dans les coins.',
+      },
     ],
   },
   {
     title: 'Vitrine',
     changes: [
       {
+        title: 'La carte du monde',
+        detail:
+          'La page SvgMap gagne un carnet de voyage sur la carte du monde au 1:50 000 000, chargé à part pour ne pas alourdir la page.',
+        links: [{ label: 'SvgMap', slug: 'composants/opale-svg-map' }],
+      },
+      {
         title: 'Le nom OpaleUI',
         detail:
           'Le nom de la librairie prend un O majuscule et s’écrit plus grand dans l’en-tête, en Chivo 700 ; le titre des onglets suit.',
+      },
+      {
+        title: 'L’en-tête resserré',
+        detail:
+          'Le bouton de menu prend le même espacement que la bascule de thème et le sélecteur de langue.',
       },
     ],
   },
@@ -281,9 +302,9 @@ const V350_RELEASE_MIGRATION = {
   steps: [
     {
       title: 'Donner le dessin à la carte',
-      before: '<Opale.SvgMap>\n  <path d="…" />\n</Opale.SvgMap>',
+      before: '<SvgMap>\n  <path d="…" />\n</SvgMap>',
       after:
-        '<Opale.SvgMap\n  viewBox="0 0 613 585"\n  regions={[{ id: "75", path: "…", name: "Paris" }]}\n/>',
+        '<SvgMap\n  viewBox="0 0 613 585"\n  regions={[{ id: "75", path: "…", name: "Paris" }]}\n/>',
     },
   ],
 } as const;
@@ -369,6 +390,41 @@ const V330_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       },
     ],
   },
+  {
+    title: 'Composants retouchés',
+    changes: [
+      {
+        title: 'CommandPalette',
+        detail: 'Une mise en page resserrée et une recherche plus directe.',
+        links: [{ label: 'CommandPalette', slug: 'composants/opale-command-palette' }],
+      },
+      {
+        title: 'CookieBanner et Toast',
+        detail:
+          'Le bandeau se place mieux ; les toasts centrent leur contenu, bougent plus doucement et précisent le survol de leur croix.',
+      },
+      {
+        title: 'Navbar, DataTable, Modal et SegmentedControl en verre liquide',
+        detail:
+          'Un meilleur contraste sous le verre ; la modale en verre retrouve une teinte lisible.',
+      },
+      {
+        title: 'IconActionButton et focus des champs',
+        detail:
+          'Le bouton-icône est retravaillé dans ses deux matières, et l’anneau de focus des champs suit leur arrondi.',
+      },
+    ],
+  },
+  {
+    title: 'Vitrine',
+    changes: [
+      {
+        title: 'La goutte d’Opale',
+        detail:
+          'Le logo devient une goutte en verre liquide, et le tag de version une pastille aux marges de la référence.',
+      },
+    ],
+  },
 ];
 
 const V320_RELEASE_SECTIONS: readonly ReleaseSection[] = [
@@ -396,7 +452,7 @@ const V320_RELEASE_SECTIONS: readonly ReleaseSection[] = [
     title: 'Composants et interactions',
     changes: [
       {
-        title: 'Liquid Glass reste optionnel',
+        title: 'Le verre liquide reste optionnel',
         detail:
           'Les composants qui peignent une surface acceptent liquidGlass ; ils gardent leur matériau d’origine par défaut.',
         links: [{ label: 'Voir Card', slug: 'composants/opale-card' }],
@@ -558,18 +614,18 @@ const V320_RELEASE_MIGRATION = {
   steps: [
     {
       title: 'Activer le verre sur le composant',
-      before: '<Glass><Opale.Card>Contenu</Opale.Card></Glass>',
-      after: '<Opale.Card liquidGlass>Contenu</Opale.Card>',
+      before: '<Glass><Card>Contenu</Card></Glass>',
+      after: '<Card liquidGlass>Contenu</Card>',
     },
     {
       title: 'Nommer l’icône d’action',
-      before: '<Opale.IconActionButton label="Partager" />',
-      after: '<Opale.IconActionButton icon="share" label="Partager" />',
+      before: '<IconActionButton label="Partager" />',
+      after: '<IconActionButton icon="share" label="Partager" />',
     },
     {
       title: 'Décrire l’image de la visionneuse',
-      before: '<Opale.Lightbox src="/visuel.png" open />',
-      after: '<Opale.Lightbox src="/visuel.png" alt="Aperçu du composant" open />',
+      before: '<Lightbox src="/visuel.png" open />',
+      after: '<Lightbox src="/visuel.png" alt="Aperçu du composant" open />',
     },
   ],
 } as const;
@@ -754,7 +810,7 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Opale adopte un langage visuel unifié et étend son catalogue sans retirer les composants historiques.',
     changes: [
       'Ajout des tokens, layouts et primitives visuelles du catalogue Opale.',
-      'Ajout des thèmes clair et sombre, avec Liquid Glass activable composant par composant.',
+      'Ajout des thèmes clair et sombre, avec le verre liquide activable composant par composant.',
       'Ajout de nouveaux composants Opale en conservant les exports existants.',
     ],
     breaking: true,

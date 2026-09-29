@@ -1,11 +1,11 @@
 import { SiteNav } from '../../../opale';
 import { Specimen } from '../../section';
-import { PageBody, PropsTable, UsageBlock } from '../api';
+import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { ComponentPageLayout } from '../component-page';
 import { MaterialSwitch } from './material-switch';
 
 const USAGE = `import { SiteNav } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 <SiteNav
   items={[
@@ -31,8 +31,7 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'items',
     type: 'readonly SiteNavItem[]',
-    description:
-      'Les destinations, pensées pour quatre entrées. À passer toujours : le défaut hérité n’est gardé que pour les appels existants.',
+    description: 'Les destinations, pensées pour quatre entrées. À passer toujours.',
   },
   {
     name: 'value',
@@ -59,40 +58,85 @@ const PROPS: readonly PropRow[] = [
    rien charger. */
 export default function SiteNavContent() {
   return (
-    <PageBody>
-      <UsageBlock label="Import et appel représentatif de SiteNav" code={USAGE} />
-
-      <Specimen
-        title="La barre — originale ou en verre liquide"
-        note="Cliquez une destination : la bulle unique se déplace et se déforme pendant le trajet. La version originale pose un aplat opaque ; en verre liquide, la barre devient transparente et laisse le matériau réfracter la photographie."
-      >
-        <MaterialSwitch name="SiteNav" stack>
-          {(liquidGlass) => (
-            <SiteNav
-              liquidGlass={liquidGlass}
-              items={DEMO_ITEMS}
-              value="example-1"
-              /* PAS « Navigation principale » ICI : c'est déjà le nom de la
-                 barre du site, et deux repères de même nom sur une page ne se
-                 distinguent pas dans la liste d'un lecteur d'écran. */
-              navLabel="Navigation de l’exemple"
-              onNavigate={() => undefined}
-            />
-          )}
-        </MaterialSwitch>
-      </Specimen>
-
-      <PropsTable
-        id="site-nav"
-        note={
+    <ComponentPageLayout
+      id="site-nav"
+      imports={['SiteNav']}
+      demo={
+        <Specimen
+          title="La barre — originale ou en verre liquide"
+          note="Cliquez une destination : la bulle unique se déplace et se déforme pendant le trajet. La version originale pose un aplat opaque ; en verre liquide, la barre devient transparente et laisse le matériau réfracter la photographie."
+        >
+          <MaterialSwitch name="SiteNav" stack>
+            {(liquidGlass) => (
+              <SiteNav
+                liquidGlass={liquidGlass}
+                items={DEMO_ITEMS}
+                value="example-1"
+                /* Pas « Navigation principale » : c'est déjà le nom de la barre
+                   du site, et deux repères de même nom ne se distinguent pas. */
+                navLabel="Navigation de l’exemple"
+                onNavigate={() => undefined}
+              />
+            )}
+          </MaterialSwitch>
+        </Specimen>
+      }
+      examples={<UsageBlock label="Import et appel représentatif de SiteNav" code={USAGE} />}
+      props={
+        <PropsTable
+          id="site-nav"
+          note={
+            <>
+              <code>SiteNav</code> porte uniquement la structure de navigation. La marque et les
+              routes restent configurables ; la recherche est un composant séparé :{' '}
+              <code>SearchBar</code>.
+            </>
+          }
+          rows={PROPS}
+        />
+      }
+      accessibility={{
+        keyboard: [
           <>
-            <code>SiteNav</code> porte uniquement la structure de navigation. La marque et les
-            routes restent configurables ; la recherche est un composant séparé :{' '}
-            <code>SearchBar</code>.
-          </>
-        }
-        rows={PROPS}
-      />
-    </PageBody>
+            Des liens <code>&lt;a href&gt;</code> natifs : un arrêt de tabulation par destination,{' '}
+            <kbd>Entrée</kbd> suit le lien. Pas de déplacement aux flèches.
+          </>,
+          <>
+            Avec <code>onNavigate</code>, un clic simple est intercepté ; un clic avec modificateur
+            ou vers <code>target=&quot;_blank&quot;</code> ne l’est pas.
+          </>,
+        ],
+        semantics: [
+          <>
+            La racine est un <code>&lt;header&gt;</code> ; la navigation est un{' '}
+            <code>&lt;nav&gt;</code> nommé par <code>navLabel</code> (« Navigation principale » par
+            défaut), puis une liste <code>&lt;ul&gt;</code>.
+          </>,
+          <>
+            L’entrée active porte <code>aria-current=&quot;page&quot;</code>.
+          </>,
+          <>
+            La bulle est <code>aria-hidden</code> ; son animation est coupée sous{' '}
+            <code>prefers-reduced-motion</code>.
+          </>,
+        ],
+      }}
+      limits={[
+        <>
+          Sans <code>value</code>, la première entrée reçoit{' '}
+          <code>aria-current=&quot;page&quot;</code>.
+        </>,
+        <>
+          La bulle est un enfant direct du <code>&lt;ul&gt;</code>, hors d’un{' '}
+          <code>&lt;li&gt;</code>, même masquée.
+        </>,
+        <>
+          La barre est collante par défaut (<code>position: sticky</code>).
+        </>,
+        <>
+          <code>aria-current</code> change au clic, avant que le routage n’aboutisse.
+        </>,
+      ]}
+    />
   );
 }

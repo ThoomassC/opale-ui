@@ -1,14 +1,13 @@
 import { Sidebar } from '../../../opale';
-import { hrefFor } from '../../doc-model';
 import { UI_VERSION } from '../../version';
 import { Specimen } from '../../section';
-import { PageBody, PropsTable, UsageBlock } from '../api';
+import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { ComponentPageLayout } from '../component-page';
 import { SidebarCollapsibleScene } from './scenes';
 import { MaterialSwitch } from './material-switch';
 
-const USAGE = `import { Sidebar } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
+const USAGE = `import { Badge, Sidebar } from '@thomascaron/opale-ui';
 
 // \`collapsible\` est OBLIGATOIRE pour que Sidebar.Toggle rende quoi que ce soit.
 <Sidebar collapsible defaultValue="etapes">
@@ -140,7 +139,8 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'labels',
     type: 'Partial<SidebarLabels>',
-    defaultValue: "{ items: 'Navigation latérale', expand: 'Déplier le rail', collapse: 'Replier le rail' }",
+    defaultValue:
+      "{ items: 'Navigation latérale', expand: 'Déplier le rail', collapse: 'Replier le rail' }",
     description: (
       <>
         Les textes du rail, transmis par le contexte à <code>Sidebar.Items</code> et à{' '}
@@ -156,168 +156,145 @@ const PROPS: readonly PropRow[] = [
    rien charger. */
 export default function SidebarContent() {
   return (
-    <PageBody>
-      <UsageBlock label="Import et appels représentatifs de Sidebar" code={USAGE} />
+    <ComponentPageLayout
+      id="sidebar"
+      imports={['Sidebar']}
+      demo={
+        <Specimen
+          title="Pliable et contrôlée — repliez-la"
+          note={
+            <>
+              La scène impose 256 px de hauteur : une barre latérale haute de son seul contenu ne
+              ressemble pas à une barre latérale. Le pli est <strong>contrôlé ici</strong>, pour que
+              l’état soit affiché à côté de la barre — et il survit au changement de matériau :
+              passez au verre liquide rail replié, il le reste. Sur la photographie, le rail n’écrit
+              aucune encre en dur, il hérite de celle de la scène, et l’entrée retenue se lit par un
+              liseré plutôt que par la teinte primaire, dont le contraste dépendrait de ce qu’il y a
+              derrière. Repliez la barre et vérifiez au clavier : les libellés restent des noms de
+              boutons, ils sont seulement masqués à l’œil.
+            </>
+          }
+        >
+          <SidebarCollapsibleScene />
+        </Specimen>
+      }
+      examples={
+        <>
+          <UsageBlock label="Import et appels représentatifs de Sidebar" code={USAGE} />
+          <Specimen
+            title="Non pliable — et Sidebar.Toggle qui ne rend rien"
+            note={
+              <>
+                Cette barre porte un <code>Sidebar.Toggle</code> dans son en-tête, et vous ne le
+                voyez pas : sans <code>collapsible</code>, il rend <code>null</code>. C’est un choix{' '}
+                <strong>délibéré du composant</strong>, pas un oubli du spécimen — un bouton qui ne
+                peut rien faire est pire qu’un bouton absent : il occupe un cran de tabulation, il
+                s’annonce, et il ne répond pas.
+              </>
+            }
+          >
+            <MaterialSwitch name="Sidebar non pliable" tall>
+              {(liquidGlass) => (
+                <Sidebar liquidGlass={liquidGlass} defaultValue="carte" size="small">
+                  <Sidebar.Header>
+                    <strong>Voyage</strong>
+                    <Sidebar.Toggle />
+                  </Sidebar.Header>
 
-      <Specimen
-        title="Pliable et contrôlée — repliez-la"
-        note={
+                  <Sidebar.Items>
+                    <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
+                    <Sidebar.Item itemId="carte">Carte</Sidebar.Item>
+                  </Sidebar.Items>
+                </Sidebar>
+              )}
+            </MaterialSwitch>
+          </Specimen>
+        </>
+      }
+      props={
+        <>
+          <PropsTable
+            id="sidebar"
+            note={
+              <>
+                <code>SidebarProps</code> étend{' '}
+                <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> — moins son{' '}
+                <code>onToggle</code> du DOM, voir plus bas — et reprend{' '}
+                <strong>quatre props nommées</strong> de <code>GlassProps</code> :{' '}
+                <code>rootClassName</code>, <code>rootStyle</code>,{' '}
+                <code>enableLiquidAnimation</code>, <code>triggerAnimation</code>. Il n’intersecte
+                plus <code>GlassProps</code> en entier, qui apportait le <code>as</code> du verre —
+                de quoi remplacer l’
+                <code>&lt;aside&gt;</code> — et tous les attributs d’un <code>&lt;div&gt;</code>.
+                Chaque sous-composant étend l’élément qu’il rend — <code>&apos;div&apos;</code> pour
+                l’en-tête et le pied, <code>&apos;nav&apos;</code> pour <code>.Items</code>,{' '}
+                <code>&apos;button&apos;</code> pour <code>.Item</code> et <code>.Toggle</code>.{' '}
+                <code>Sidebar.useSidebar()</code> expose le contexte.
+              </>
+            }
+            rows={PROPS}
+          />
+        </>
+      }
+      states={[
+        {
+          state: 'disabled',
+          description: (
+            <>
+              <code>disabled</code> sur <code>Sidebar.Item</code> pose l’attribut natif du bouton ;
+              le clic est ignoré.
+            </>
+          ),
+        },
+      ]}
+      accessibility={{
+        keyboard: [
           <>
-            La scène impose 256 px de hauteur : une barre latérale haute de son seul contenu ne
-            ressemble pas à une barre latérale. Le pli est <strong>contrôlé ici</strong>, pour que
-            l’état soit affiché à côté de la barre — et il survit au changement de matériau :
-            passez en Liquid Glass rail replié, il le reste. Sur la photographie, le rail
-            n’écrit aucune encre en dur, il hérite de celle de la scène, et l’entrée retenue se
-            lit par un liseré plutôt que par la teinte primaire, dont le contraste dépendrait de
-            ce qu’il y a derrière. Repliez la barre et vérifiez au clavier : les libellés restent
-            des noms de boutons, ils sont seulement masqués à l’œil.
-          </>
-        }
-      >
-        <SidebarCollapsibleScene />
-      </Specimen>
-
-      <Specimen
-        title="Non pliable — et Sidebar.Toggle qui ne rend rien"
-        note={
+            Entrées et bascule sont des <code>&lt;button&gt;</code> natifs, chacun dans l’ordre de
+            tabulation : <kbd>Entrée</kbd> et <kbd>Espace</kbd> les activent. Pas de déplacement aux
+            flèches.
+          </>,
+        ],
+        semantics: [
           <>
-            Cette barre porte un <code>Sidebar.Toggle</code> dans son en-tête, et vous ne le voyez
-            pas : sans <code>collapsible</code>, il rend <code>null</code>. C’est un choix{' '}
-            <strong>délibéré du composant</strong>, pas un oubli du spécimen — un bouton qui ne peut
-            rien faire est pire qu’un bouton absent : il occupe un cran de tabulation, il s’annonce,
-            et il ne répond pas.
-          </>
-        }
-      >
-        <MaterialSwitch name="Sidebar non pliable" tall>
-          {(liquidGlass) => (
-            <Sidebar liquidGlass={liquidGlass} defaultValue="carte" size="small">
-              <Sidebar.Header>
-                <strong>Voyage</strong>
-                <Sidebar.Toggle />
-              </Sidebar.Header>
-
-              <Sidebar.Items>
-                <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
-                <Sidebar.Item itemId="carte">Carte</Sidebar.Item>
-              </Sidebar.Items>
-            </Sidebar>
-          )}
-        </MaterialSwitch>
-      </Specimen>
-
-      <PropsTable
-        id="sidebar"
-        note={
+            La racine est un <code>&lt;aside&gt;</code> (repère complémentaire) ;{' '}
+            <code>Sidebar.Items</code> est un <code>&lt;nav&gt;</code> nommé « Navigation latérale »
+            (<code>labels.items</code>), qu’un <code>aria-label</code> remplace.
+          </>,
           <>
-            <code>SidebarProps</code> étend{' '}
-            <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> — moins son{' '}
-            <code>onToggle</code> du DOM, voir plus bas — et reprend{' '}
-            <strong>quatre props nommées</strong> de <code>GlassProps</code> :{' '}
-            <code>rootClassName</code>, <code>rootStyle</code>, <code>enableLiquidAnimation</code>,{' '}
-            <code>triggerAnimation</code>. Il n’intersecte plus <code>GlassProps</code> en entier,
-            qui apportait le <code>as</code> du verre — de quoi remplacer l’
-            <code>&lt;aside&gt;</code> — et tous les attributs d’un <code>&lt;div&gt;</code>. Chaque
-            sous-composant étend l’élément qu’il rend — <code>&apos;div&apos;</code> pour l’en-tête
-            et le pied, <code>&apos;nav&apos;</code> pour <code>.Items</code>,{' '}
-            <code>&apos;button&apos;</code> pour <code>.Item</code> et <code>.Toggle</code>.{' '}
-            <code>Sidebar.useSidebar()</code> expose le contexte.
-          </>
-        }
-        rows={PROPS}
-      />
-
-      <p className="tc-doc-prose">
-        <strong>Ce que la réécriture a corrigé, et qui ne se voit pas à l’écran.</strong> Quatre
-        défauts d’accessibilité, hérités tels quels de la librairie d’où ce composant vient.{' '}
-        <strong>Le premier est le plus grave</strong> : une entrée repliée perdait son nom. Le
-        libellé était retiré du DOM au repli et le nom rattrapé par un <code>aria-label</code>{' '}
-        calculé depuis les enfants — mais seulement{' '}
-        <code>typeof children === &apos;string&apos;</code>. Toute entrée dont le libellé passait
-        par un élément — une traduction, un <code>&lt;span&gt;</code>, du texte enrichi — devenait
-        un <em>bouton anonyme</em> dès qu’on repliait le rail, ce que ni TypeScript ni React ne
-        signalent. Le libellé est désormais toujours rendu et seulement masqué à l’œil, si bien que
-        le nom est le même dans les deux états et ne dépend plus du type des enfants. Les trois
-        autres : le <code>&lt;nav&gt;</code> est nommé, l’entrée retenue porte{' '}
-        <code>aria-current=&quot;page&quot;</code>, et la bascule porte <code>aria-expanded</code> —
-        son nom disait l’action, rien ne disait l’état à froid.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>Ce qui reste, et qui n’est pas un oubli.</strong> Les entrées sont des boutons : pas
-        de <code>href</code>, donc ni clic du milieu, ni « ouvrir dans un nouvel onglet », ni
-        glisser vers la barre d’adresse. C’est le contrat public du composant —{' '}
-        <code>SidebarItemProps</code> étend <code>&lt;button&gt;</code> et son <code>onClick</code>{' '}
-        reçoit un <code>MouseEvent&lt;HTMLButtonElement&gt;</code> —, et en faire un composant
-        polymorphe serait une autre interface, pas une correction. Le badge, lui, est{' '}
-        <code>aria-hidden</code> : le laisser dans l’arbre ferait du nom du bouton « Analytics 4 »,
-        un nom qui ne correspond plus au libellé visible (WCAG 2.5.3) et qui change à chaque fois
-        que le compteur bouge. Ce qu’on y perd est réel — le compteur ne s’entend pas —, et une
-        entrée dont le compte est une information à part entière doit passer son propre{' '}
-        <code>aria-label</code>. Le sommaire de cette vitrine montre l’autre parti, celui d’une
-        vraie navigation : des <code>&lt;a&gt;</code> dans des <code>&lt;li&gt;</code> et des listes
-        nommées.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>
-          Une collision de types, trouvée en écrivant cette page — et corrigée depuis.
-        </strong>{' '}
-        <code>onToggle</code> était déclarée <code>(collapsed: boolean) =&gt; void</code>, mais{' '}
-        <code>SidebarProps</code> étendait{' '}
-        <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> en entier, qui apporte déjà
-        un <code>onToggle</code> — celui du DOM, l’événement de <code>&lt;details&gt;</code>.
-        TypeScript intersectait les deux signatures, si bien que le paramètre arrivait en{' '}
-        <code>boolean | ToggleEvent&lt;HTMLElement&gt;</code> : passer un <code>setCollapsed</code>{' '}
-        de React <em>ne compilait pas</em>, et il fallait un{' '}
-        <code>typeof next === &apos;boolean&apos;</code> qui ne servait à rien à l’exécution.{' '}
-        <strong>
-          Le <code>onToggle</code> du DOM est désormais retiré du type
-        </strong>
-        , et la signature documentée est enfin la vraie. Ce que cela coûte, en toute rigueur : un
-        appelant ne peut plus écouter l’événement <code>toggle</code> natif sur l’{' '}
-        <code>&lt;aside&gt;</code> par cette prop — un événement qu’un <code>&lt;aside&gt;</code> ne
-        déclenche que s’il porte un <code>popover</code>, et qui se branche alors sur son{' '}
-        <code>ref</code>. Le même motif guette n’importe quel type qui étend un élément du DOM et
-        redéclare un de ses gestionnaires ; les composants d’Opale l’évitent autrement, leur prop{' '}
-        <code>liquidGlass</code> rendant le verre sans emprunter le typage de{' '}
-        <code>GlassProps</code>.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>
-          Le piège de <code>badge</code>, mesuré en écrivant cette page.
-        </strong>{' '}
-        {/* LE MÉCANISME A ÉTÉ RÉÉCRIT, PAS LE PIÈGE. La phrase disait que
-          `liquidGlass` « délègue au ancien composant en verre » : ce n'est plus vrai,
-          il n'y a plus de composant tiers derrière la prop. `Opale.Badge`
-          rend lui-même `<Glass as="span">`, et c'est `Glass` — le nôtre — qui
-          enveloppe toujours son contenu dans un `<div>`. Le HTML invalide est
-          donc EXACTEMENT le même, pour une raison qui nous appartient
-          désormais : dire le contraire aurait laissé croire que la réécriture
-          avait réglé ce cas-là aussi. */}
-        Y passer un{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/opale-badge')}>
-          Badge
-        </a>{' '}
-        est tentant, et l’écriture nue est sûre : <code>Opale.Badge</code> rend un{' '}
-        <code>&lt;span&gt;</code>. <strong>Ajoutez-lui</strong> <code>liquidGlass</code>{' '}
-        <strong>et le HTML devient invalide</strong> : la pastille passe alors par{' '}
-        <code>Glass</code>, dont l’enveloppe est un <code>&lt;div&gt;</code> quel que soit le{' '}
-        <code>as</code> demandé, or <code>Sidebar.Item</code> rend un <code>&lt;button&gt;</code>.
-        Un bloc dans un bouton — que ni TypeScript ni React ne signalent. Le spécimen ci-dessus
-        emploie donc un <code>&lt;span&gt;</code> nu.
-      </p>
-
-      <p className="tc-doc-prose">
-        Opale n’a pas de barre latérale publiée : la sienne est celle du site de documentation,
-        écrite dans <code>src/showcase/doc-nav.tsx</code> et pas dans la librairie. Le composant de
-        chrome le plus proche est{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/topbar')}>
-          Topbar
-        </a>
-        .
-      </p>
-    </PageBody>
+            L’entrée retenue porte <code>aria-current=&quot;page&quot;</code>. Son nom est son
+            libellé, toujours rendu et seulement masqué à l’œil au repli : il ne change pas d’un
+            état à l’autre.
+          </>,
+          <>
+            L’icône, la vignette de repli et le badge sont <code>aria-hidden</code>.
+          </>,
+          <>
+            <code>Sidebar.Toggle</code> porte <code>aria-expanded</code> et{' '}
+            <code>aria-controls</code> vers l’<code>&lt;aside&gt;</code> ; il se nomme « Replier le
+            rail » ou « Déplier le rail » (<code>labels</code>) s’il n’a pas d’enfants.
+          </>,
+          <>
+            Sous <code>prefers-reduced-motion</code>, le pli se fait sans transition.
+          </>,
+        ],
+      }}
+      limits={[
+        <>
+          Les entrées sont des boutons, pas des liens : ni <code>href</code>, ni clic du milieu, ni
+          ouverture dans un nouvel onglet.
+        </>,
+        <>
+          Le badge n’est pas annoncé ; une entrée dont le compte est une information passe son
+          propre <code>aria-label</code>.
+        </>,
+        <>
+          Deux rails sur une page doivent recevoir deux noms distincts (<code>labels.items</code>).
+        </>,
+        <>
+          Sans <code>collapsible</code>, <code>Sidebar.Toggle</code> rend <code>null</code>.
+        </>,
+      ]}
+    />
   );
 }

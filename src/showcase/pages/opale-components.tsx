@@ -2,57 +2,21 @@ import { useState } from 'react';
 
 import { Opale } from '../../opale';
 import { CATALOG, type ShowcaseCatalogEntry } from '../../opale/catalog';
+import { catalogCategoryLabel } from '../catalog-category';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import { PropsTable, UsageBlock } from './api';
+import { COMPONENT_ALTERNATIVES } from './component-alternatives';
+import { ComponentPageLayout, InlineCode } from './component-page';
+import { CATALOG_A11Y } from './opale-a11y-data';
 import { CATALOG_API } from './opale-api-data';
 import { CatalogPreview, type PlaygroundConfig } from './catalog-preview';
+import { MaterialToggle } from './composants/material-switch';
 
-/* =============================================================================
-   L'EXEMPLE DIT SI LE VERRE EST ACTIF, PARCE QU'IL NE LE DISAIT PAS.
-
-   Le commutateur changeait la démonstration sans changer une ligne du code
-   affiché. Qui basculait le verre, aimait ce qu'il voyait, puis cliquait
-   « Afficher le code » repartait avec un extrait qui ne le reproduit PAS — il
-   n'y avait aucune trace de la prop qui fait toute la différence. Une
-   documentation dont l'exemple ne reproduit pas ce qu'il montre est pire
-   qu'une documentation absente.
-
-   LA PROP N'EST AJOUTÉE QU'AUX COMPOSANTS DONT L'APERÇU LA TRANSMET RÉELLEMENT.
-   Dix sur soixante-dix-sept la reçoivent aujourd'hui ; l'écrire sur les autres
-   donnerait un code qui compile et ne fait rien, ce qui est le second genre de
-   mensonge qu'on veut éviter ici. La liste est vérifiée par un test, qui la
-   compare à ce que `catalog-preview.tsx` transmet vraiment.
-
-   LES QUATRE DERNIERS VENUS — `Badge`, `Checkbox`, `Select`, `Slider` — sont
-   arrivés avec la suppression des doublons : leur homologue d’origine avait sa
-   propre page, et il est devenu la matière de ce commutateur. */
-/* LA LISTE DES COMPOSANTS QUI PORTENT VRAIMENT LE MATÉRIAU.
-
-   ELLE COMMANDE DEUX CHOSES, et c'est nouveau : l'extrait de code affiché —
-   qui ajoute ` liquidGlass` aux balises — ET la présence du commutateur
-   lui-même.
-
-   LE DÉFAUT QU'ON CORRIGE. La page montrait « Liquid Glass pour X » sur les
-   quatre-vingt-cinq composants du catalogue. Onze rendent le matériau. Pour
-   les autres, basculer l'interrupteur posait la photographie et le voile sous
-   un composant qui ne changeait pas : une quarantaine se retrouvaient avec
-   leur encre sombre sur un cliché sombre — la barre de progression, le
-   tableau, le fil d'Ariane, l'état vide. Le commutateur ne mentait pas
-   seulement, il ABÎMAIT la démonstration.
-
-   POURQUOI CACHER PLUTÔT QUE GRISER. Un interrupteur désactivé pose la
-   question « pourquoi ne puis-je pas ? » à quatre-vingts reprises. Son
-   absence ne pose aucune question : le matériau est une option de certains
-   composants, pas une propriété du catalogue. */
-/* LES COMPOSANTS QUI PEIGNENT UNE SURFACE, ET DONC QUI PORTENT LE MATÉRIAU.
-
-   Cette liste a triplé avec l'audit d'utilité : le matériau est une propriété
-   des SURFACES, et tout ce qui en peint une — une carte, un panneau, une
-   piste, un rail, un encart — doit pouvoir la rendre en verre. Ce qui n'en
-   peint pas n'y est pas, et la raison est dans `material-default.test.tsx` :
-   `Heading` rend un `<h2>`, `Divider` un `<hr>`, `Stack` une boîte sans
-   peinture. Leur donner la prop obligerait à inventer une plaque que personne
-   n'a demandée, ou à ne rien faire — c'est-à-dire à mentir. */
+/* Les composants qui peignent une surface, et donc qui portent le matériau.
+   Cette liste commande à la fois le commutateur de la démo et l'ajout de
+   ` liquidGlass` à l'extrait affiché : un composant qui ne rend pas le verre
+   n'a ni l'un ni l'autre. Un test la compare à ce que `catalog-preview.tsx`
+   transmet vraiment. */
 const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Autocomplete',
   'Badge',
@@ -129,10 +93,8 @@ function withLiquidGlass(code: string, name: string): string {
 /** Les fonctions du paquet qu'un extrait appelle directement, sans namespace. */
 const PACKAGE_FUNCTIONS = ['readCookieConsent'];
 
-/* L'EXTRAIT AFFICHÉ IMPORTE PAR NOM. Les exemples sont écrits avec `Opale.X`,
-   ce qui permet de viser une balise d'Opale sans ambiguïté (voir
-   `withLiquidGlass`) ; celui qu'on copie importe `X` directement, la forme
-   recommandée. */
+/* Les exemples sont écrits avec `Opale.X` pour viser une balise sans
+   ambiguïté (voir `withLiquidGlass`) ; l'extrait affiché importe `X` par nom. */
 function withNamedImports(code: string): string {
   const used = new Set([...code.matchAll(/\bOpale\.([A-Z]\w*)/g)].map(([, member]) => member));
   for (const name of PACKAGE_FUNCTIONS) {
@@ -369,10 +331,6 @@ function exampleCode(name: string, liquidGlass = false): string {
   La dernière version est disponible.
 </Opale.Feedback>`);
     case 'Rating':
-      /* L'EXTRAIT PAR DÉFAUT — `<Opale.Rating />` — NE MONTRAIT AUCUNE PROP.
-         On y lisait un composant sans réglage, alors que la note et le barème
-         sont exactement ce qu'on vient y régler : la page ne disait nulle part
-         OÙ le développeur pose son nombre d'étoiles. */
       return decorate(`// value : la note, au quart près — 0,25 / 0,5 / 0,75 / 1 par étoile.
 // max   : le nombre d'étoiles (5 par défaut).
 <Opale.Rating value={4.75} max={5} />`);
@@ -483,176 +441,181 @@ const rows = [
   rows={${tableMode === 'empty' ? '[]' : 'rows'}}${tableMode === 'loading' ? '\n  loading' : ''}${liquidGlass ? '\n  liquidGlass' : ''}
 />`
           : baseCode;
+  const playgroundControls =
+    entry.name === 'Button' || entry.name === 'Input' || entry.name === 'DataTable' ? (
+      <fieldset className="tc-doc-opale-playground" aria-label={`Réglages de ${displayName}`}>
+        <legend>Essayer les états</legend>
+        {entry.name === 'Button' && (
+          <>
+            <label>
+              Variante{' '}
+              <select
+                value={buttonVariant}
+                onChange={(event) =>
+                  setButtonVariant(event.currentTarget.value as PlaygroundConfig['buttonVariant'])
+                }
+              >
+                <option value="primary">Primaire</option>
+                <option value="secondary">Secondaire</option>
+                <option value="accent">Accent</option>
+                <option value="danger">Danger</option>
+              </select>
+            </label>
+            <label>
+              Taille{' '}
+              <select
+                value={buttonSize}
+                onChange={(event) =>
+                  setButtonSize(event.currentTarget.value as PlaygroundConfig['buttonSize'])
+                }
+              >
+                <option value="small">Petite</option>
+                <option value="medium">Moyenne</option>
+                <option value="large">Grande</option>
+              </select>
+            </label>
+            <Opale.Checkbox
+              className="tc-doc-opale-playground__check"
+              label="Chargement"
+              checked={buttonLoading}
+              onChange={(event) => setButtonLoading(event.currentTarget.checked)}
+            />
+          </>
+        )}
+        {entry.name === 'Input' && (
+          <>
+            <Opale.Checkbox
+              className="tc-doc-opale-playground__check"
+              label="Erreur"
+              checked={inputError}
+              onChange={(event) => setInputError(event.currentTarget.checked)}
+            />
+            <Opale.Checkbox
+              className="tc-doc-opale-playground__check"
+              label="Désactivé"
+              checked={inputDisabled}
+              onChange={(event) => setInputDisabled(event.currentTarget.checked)}
+            />
+          </>
+        )}
+        {entry.name === 'DataTable' && (
+          <>
+            <label>
+              État{' '}
+              <select
+                value={tableMode}
+                onChange={(event) =>
+                  setTableMode(event.currentTarget.value as PlaygroundConfig['tableMode'])
+                }
+              >
+                <option value="filled">Avec données</option>
+                <option value="empty">Vide</option>
+                <option value="loading">Chargement</option>
+              </select>
+            </label>
+            <label>
+              Densité{' '}
+              <select
+                value={tableSize}
+                onChange={(event) =>
+                  setTableSize(event.currentTarget.value as PlaygroundConfig['tableSize'])
+                }
+              >
+                <option value="medium">Confortable</option>
+                <option value="small">Compacte</option>
+              </select>
+            </label>
+            <Opale.Checkbox
+              className="tc-doc-opale-playground__check"
+              label="Lignes alternées"
+              checked={tableStriped}
+              onChange={(event) => setTableStriped(event.currentTarget.checked)}
+            />
+          </>
+        )}
+      </fieldset>
+    ) : null;
   const api = CATALOG_API[entry.name];
+  const a11y = CATALOG_A11Y[entry.name];
 
   if (!api) throw new Error(`API manquante pour ${entry.name}`);
+  if (!a11y) throw new Error(`Accessibilité manquante pour ${entry.name}`);
+
+  const namedCode = withNamedImports(code);
 
   return (
     <div className="tc-doc-opale-page">
-      <p className="tc-doc-lede">{entry.description}</p>
-      <div className="tc-doc-opale-meta">
-        <Opale.Badge>
-          {entry.category === 'Inputs'
-            ? 'Saisie'
-            : entry.category === 'Feedback'
-              ? 'Retours'
-              : entry.category}
-        </Opale.Badge>
-        <span>Composant Opale · TypeScript strict</span>
-      </div>
-      <section
-        className="tc-doc-specimen tc-doc-specimen--opale"
-        aria-label={`Démonstration ${displayName}`}
-      >
-        <div className="tc-doc-specimen__header">
-          <h2>Aperçu interactif</h2>
-        </div>
-        {supportsLiquidGlass && (
-          <div className="tc-doc-opale-material-toggle">
-            <div className="tc-doc-opale-material-toggle__text">
-              <strong>Rendu Liquid Glass</strong>
-              <span>Appliquer le matériau uniquement à ce composant.</span>
-            </div>
-            <Opale.Toggle
-              label={`Liquid Glass pour ${displayName}`}
-              checked={liquidGlass}
-              onChange={(event) => setLiquidGlass(event.currentTarget.checked)}
-            />
-          </div>
-        )}
-        {/* LE SUPPORT S'ASSOMBRIT AVEC LE MATÉRIAU, et ce n'est pas un effet de
-            mise en scène : un verre RÉFRACTE ce qui est derrière lui. Posé sur
-            la carte blanche, il n'avait rien à réfracter — on voyait un
-            rectangle pâle, et l'encre claire du bouton « Primaire » disparaissait
-            purement et simplement dans le fond. Le commutateur pose donc la
-            scène en même temps que la matière. */}
-        {(entry.name === 'Button' || entry.name === 'Input' || entry.name === 'DataTable') && (
-          <fieldset className="tc-doc-opale-playground" aria-label={`Réglages de ${displayName}`}>
-            <legend>Essayer les états</legend>
-            {entry.name === 'Button' && (
-              <>
-                <label>
-                  Variante{' '}
-                  <select
-                    value={buttonVariant}
-                    onChange={(event) =>
-                      setButtonVariant(
-                        event.currentTarget.value as PlaygroundConfig['buttonVariant'],
-                      )
-                    }
-                  >
-                    <option value="primary">Primaire</option>
-                    <option value="secondary">Secondaire</option>
-                    <option value="accent">Accent</option>
-                    <option value="danger">Danger</option>
-                  </select>
-                </label>
-                <label>
-                  Taille{' '}
-                  <select
-                    value={buttonSize}
-                    onChange={(event) =>
-                      setButtonSize(event.currentTarget.value as PlaygroundConfig['buttonSize'])
-                    }
-                  >
-                    <option value="small">Petite</option>
-                    <option value="medium">Moyenne</option>
-                    <option value="large">Grande</option>
-                  </select>
-                </label>
-                <Opale.Checkbox
-                  className="tc-doc-opale-playground__check"
-                  label="Chargement"
-                  checked={buttonLoading}
-                  onChange={(event) => setButtonLoading(event.currentTarget.checked)}
-                />
-              </>
-            )}
-            {entry.name === 'Input' && (
-              <>
-                <Opale.Checkbox
-                  className="tc-doc-opale-playground__check"
-                  label="Erreur"
-                  checked={inputError}
-                  onChange={(event) => setInputError(event.currentTarget.checked)}
-                />
-                <Opale.Checkbox
-                  className="tc-doc-opale-playground__check"
-                  label="Désactivé"
-                  checked={inputDisabled}
-                  onChange={(event) => setInputDisabled(event.currentTarget.checked)}
-                />
-              </>
-            )}
-            {entry.name === 'DataTable' && (
-              <>
-                <label>
-                  État{' '}
-                  <select
-                    value={tableMode}
-                    onChange={(event) =>
-                      setTableMode(event.currentTarget.value as PlaygroundConfig['tableMode'])
-                    }
-                  >
-                    <option value="filled">Avec données</option>
-                    <option value="empty">Vide</option>
-                    <option value="loading">Chargement</option>
-                  </select>
-                </label>
-                <label>
-                  Densité{' '}
-                  <select
-                    value={tableSize}
-                    onChange={(event) =>
-                      setTableSize(event.currentTarget.value as PlaygroundConfig['tableSize'])
-                    }
-                  >
-                    <option value="medium">Confortable</option>
-                    <option value="small">Compacte</option>
-                  </select>
-                </label>
-                <Opale.Checkbox
-                  className="tc-doc-opale-playground__check"
-                  label="Lignes alternées"
-                  checked={tableStriped}
-                  onChange={(event) => setTableStriped(event.currentTarget.checked)}
-                />
-              </>
-            )}
-          </fieldset>
-        )}
-        <div className="tc-doc-opale-preview" data-liquid-glass={liquidGlass ? 'true' : undefined}>
-          <CatalogPreview name={entry.name} liquidGlass={liquidGlass} playground={playground} />
-        </div>
-        {/* LA LIGNE D'`import` EST REMONTÉE ICI, ET CE N'EST PAS UN DÉTAIL DE
-            DÉPLACEMENT. La page affichait le même extrait DEUX fois : une plaque
-            figée en tête, et ce bloc dépliable — la première ne servait plus
-            qu'à occuper le haut de page avec ce que la seconde donne déjà, en
-            mieux (copiable, et suivant le commutateur de matériau).
-
-            Elle avait toutefois une chose que le bloc dépliable n'avait pas :
-            l'`import`. Sans lui, un extrait copié ne compile pas chez qui le
-            colle. Il part donc avec le reste plutôt que de disparaître avec la
-            plaque. */}
-        <UsageBlock label={`Exemple ${displayName}`} code={withNamedImports(code)} />
-      </section>
-      <PropsTable
+      <ComponentPageLayout
         id={catalogComponentSlug(entry.name).replace('/', '-')}
-        title="API et états"
-        note={api.states}
-        rows={[
-          ...api.rows,
-          ...(supportsLiquidGlass
-            ? [
-                {
-                  name: 'liquidGlass',
-                  type: 'boolean',
-                  defaultValue: 'false',
-                  description: 'Active le matériau en verre.',
-                },
-              ]
-            : []),
-        ]}
+        imports={[entry.name]}
+        alternative={COMPONENT_ALTERNATIVES[catalogComponentSlug(entry.name)]}
+        intro={
+          <>
+            <p className="tc-doc-lede">{entry.description}</p>
+            <div className="tc-doc-opale-meta">
+              <Opale.Badge>{catalogCategoryLabel(entry.category)}</Opale.Badge>
+              <span>Composant Opale · TypeScript strict</span>
+            </div>
+          </>
+        }
+        demo={
+          <section
+            className="tc-doc-specimen tc-doc-specimen--opale"
+            aria-label={`Démonstration ${displayName}`}
+          >
+            <p className="tc-doc-component-demo__note">{api.states}</p>
+            {supportsLiquidGlass && (
+              <MaterialToggle
+                name={displayName}
+                checked={liquidGlass}
+                onCheckedChange={setLiquidGlass}
+              />
+            )}
+            {playgroundControls}
+            {/* Le support s'assombrit avec le matériau : un verre ne se voit
+                qu'en réfractant ce qu'il y a derrière lui. */}
+            <div
+              className="tc-doc-opale-preview"
+              data-liquid-glass={liquidGlass ? 'true' : undefined}
+            >
+              <CatalogPreview name={entry.name} liquidGlass={liquidGlass} playground={playground} />
+            </div>
+          </section>
+        }
+        examples={
+          /* L'extrait suit le commutateur de matériau et les réglages de la démo. */
+          <UsageBlock label={`Exemple ${displayName}`} code={namedCode} />
+        }
+        props={
+          <PropsTable
+            id={catalogComponentSlug(entry.name).replace('/', '-')}
+            title={displayName}
+            rows={[
+              ...api.rows,
+              ...(supportsLiquidGlass
+                ? [
+                    {
+                      name: 'liquidGlass',
+                      type: 'boolean',
+                      defaultValue: 'false',
+                      description: 'Active le matériau en verre.',
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        }
+        states={a11y.states.map(({ state, text }) => ({
+          state,
+          description: <InlineCode text={text} />,
+        }))}
+        accessibility={{
+          keyboard: a11y.keyboard.map((text) => <InlineCode key={text} text={text} />),
+          semantics: a11y.semantics.map((text) => <InlineCode key={text} text={text} />),
+        }}
+        limits={a11y.limits.map((text) => (
+          <InlineCode key={text} text={text} />
+        ))}
       />
     </div>
   );

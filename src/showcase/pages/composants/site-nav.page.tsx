@@ -8,7 +8,7 @@ export const siteNavPage: DocPage = {
   title: 'SiteNav',
   lede: (
     <>
-      Une démonstration de barre liquid glass centrée. Les onglets sont cliquables sans changer de
+      Une démonstration de barre en verre liquide centrée. Les onglets sont cliquables sans changer de
       page ; <strong>une seule bulle</strong> glisse entre eux.
     </>
   ),

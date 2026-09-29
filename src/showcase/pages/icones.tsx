@@ -26,7 +26,6 @@ import { PageBody, UsageBlock } from './api';
    ========================================================================== */
 
 const USAGE = `import { Icon } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';
 
 // Décorative : le libellé voisin porte le sens, l'icône est masquée.
 <Icon name="map-pin" />

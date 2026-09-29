@@ -524,7 +524,7 @@ export function CatalogPreview({
           </div>
 
           <code className="tc-doc-inline-code">
-            {`<Opale.Toast tone="${toastTone}" position="${toastPlacement}" message="…" />`}
+            {`<Toast tone="${toastTone}" position="${toastPlacement}" message="…" />`}
           </code>
 
           <Opale.Button size="small" onClick={() => setToastOpen(true)}>

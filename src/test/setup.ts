@@ -1,6 +1,11 @@
 import { beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
+import { installInertFocus } from './inert';
+
+/** jsdom ignores `inert`; browsers refuse to focus inside it. See `inert.ts`. */
+installInertFocus();
+
 /**
  * Node 25 ships a native `localStorage` that jsdom does not replace, and whose
  * handle survives between test files. The theme hook writes to it, so tests

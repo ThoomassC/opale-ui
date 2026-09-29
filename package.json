@@ -2,7 +2,7 @@
   "name": "@thomascaron/opale-ui",
   "version": "3.6.0",
   "private": true,
-  "description": "Opale — le socle UI commun de portfolio et travels_in_world : jetons mesures, contrat de couleur executable, composants verre liquide.",
+  "description": "Opale — système de design React 19 : jetons mesurés, contrat de couleur exécutable, composants et matière verre liquide.",
   "author": "Thomas Caron",
   "license": "MIT",
   "repository": {
@@ -83,6 +83,7 @@
     "globals": "^17.12.0",
     "hack-font": "^3.3.0",
     "jsdom": "^29.1.1",
+    "postcss": "^8.5.28",
     "prettier": "^3.9.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

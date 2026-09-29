@@ -178,7 +178,7 @@ interface SurfaceProps extends ComponentPropsWithRef<'div'> {
    d'arrière-plan — qui IMITAIT le matériau. L'imitation se voyait dès qu'on
    comparait : la carte affichait du vrai verre sous le commutateur pendant que
    `StatCard`, bâtie sur cette même surface, gardait le lavis. Deux rendus du
-   même « Liquid Glass » sur la même page.
+   même « verre liquide » sur la même page.
 
    Le matériau étant désormais le nôtre, il n'y a plus de raison de l'imiter. */
 function Surface({ liquidGlass = false, className, children, ...props }: SurfaceProps) {

@@ -13,12 +13,10 @@ describe('Notes de versions — actions', () => {
     expect(screen.getByRole('heading', { name: 'Documentation et qualité' })).toBeInTheDocument();
 
     expect(screen.getByText('Guide de migration depuis la 3.1.1')).toBeVisible();
-    expect(screen.getByText('<Opale.Card liquidGlass>Contenu</Opale.Card>')).toBeVisible();
+    expect(screen.getByText('<Card liquidGlass>Contenu</Card>')).toBeVisible();
+    expect(screen.getByText('<IconActionButton icon="share" label="Partager" />')).toBeVisible();
     expect(
-      screen.getByText('<Opale.IconActionButton icon="share" label="Partager" />'),
-    ).toBeVisible();
-    expect(
-      screen.getByText('<Opale.Lightbox src="/visuel.png" alt="Aperçu du composant" open />'),
+      screen.getByText('<Lightbox src="/visuel.png" alt="Aperçu du composant" open />'),
     ).toBeVisible();
     /* Trois étapes pour la 3.2.0, une pour la 3.5.0 et la refonte de SvgMap,
        deux, facultatives, pour les nouveaux noms de la 3.6.0. */

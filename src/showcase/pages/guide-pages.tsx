@@ -62,12 +62,11 @@ export const utilisationPage = guidePage({
   lede: 'Composez une page Opale en partant des primitives et des composants dont vous avez besoin.',
   overview:
     'Chaque composant peut être utilisé indépendamment. Les exemples de la documentation restent interactifs afin de comparer les états et les variantes directement dans la page.',
-  code: `import { Button, Card, Form, Heading, Input, Stack } from '@thomascaron/opale-ui';
-import '@thomascaron/opale-ui/opale.css';`,
+  code: `import { Button, Card, Form, Heading, Input, Stack } from '@thomascaron/opale-ui';`,
   points: [
     'Commencez par une primitive de mise en page, puis ajoutez les composants métier.',
     'Conservez les libellés visibles et les états de focus dans chaque composition.',
-    'Activez Liquid Glass localement sur le composant à comparer.',
+    'Activez le verre liquide localement sur le composant à comparer.',
   ],
   recipes: [
     {
@@ -102,13 +101,13 @@ export const themingPage = guidePage({
   slug: 'theming',
   label: 'Thèmes',
   title: 'Thèmes',
-  lede: 'Le thème clair, le thème sombre et le matériau Liquid Glass partagent les mêmes composants.',
+  lede: 'Le thème clair, le thème sombre et le matériau verre liquide partagent les mêmes composants.',
   overview:
-    'Le thème global règle la lumière de l’interface. Le matériau Liquid Glass reste un choix local : il se déclenche composant par composant dans les spécimens de la vitrine.',
+    'Le thème global règle la lumière de l’interface. Le matériau verre liquide reste un choix local : il se déclenche composant par composant dans les spécimens de la vitrine.',
   code: '<Card liquidGlass title="Surface locale" />',
   points: [
     'Le soleil et la lune changent uniquement le thème global de la documentation.',
-    'Le mode Liquid Glass ne modifie pas les autres composants de la page.',
+    'Le verre liquide ne modifie pas les autres composants de la page.',
     'Les tokens de couleur restent la source de vérité des deux thèmes.',
   ],
   recipes: [
