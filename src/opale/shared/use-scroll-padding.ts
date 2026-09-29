@@ -37,14 +37,14 @@ function occupied(element: HTMLElement, edge: ScrollPaddingEdge): number {
   return Math.max(0, edge === 'top' ? rect.bottom : window.innerHeight - rect.top);
 }
 
-/** Réserve sur `edge` la place de l'élément, tant que `active` est vrai. */
+/** Réserve sur `edge` la place de l'élément — ou de la ref —, tant que `active` est vrai. */
 export function useScrollPadding(
-  ref: RefObject<HTMLElement | null>,
+  target: RefObject<HTMLElement | null> | HTMLElement | null,
   edge: ScrollPaddingEdge | null,
   active = true,
 ) {
   useEffect(() => {
-    const element = ref.current;
+    const element = target instanceof HTMLElement ? target : target?.current;
     if (!active || !edge || !element || typeof document === 'undefined') return undefined;
 
     const key = {};
@@ -63,5 +63,5 @@ export function useScrollPadding(
       reservations[edge].delete(key);
       apply(edge);
     };
-  }, [active, edge, ref]);
+  }, [active, edge, target]);
 }

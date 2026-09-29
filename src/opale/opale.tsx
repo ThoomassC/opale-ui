@@ -61,6 +61,7 @@ import type { OpalePlacement, OpaleSize, OpaleTone } from './shared';
 import { resolveLabels } from './shared/labels';
 import { mergeRefs } from './shared/merge-refs';
 import { useControllableState, useOptionalState } from './shared/use-controllable-state';
+import { useScrollPadding } from './shared/use-scroll-padding';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export type {
   PaginationLabels,
@@ -1801,6 +1802,7 @@ export function Toast({
   liquidGlass = false,
   labels: labelsProp,
   className,
+  ref,
   ...rest
 }: ToastProps) {
   /* LES DEUX RÉGIONS SONT MONTÉES EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
@@ -1832,8 +1834,19 @@ export function Toast({
      du matériau. */
   const Shell = liquidGlass ? Glass : 'div';
   const shellProps = liquidGlass ? ({ rootClassName: 'opale-toast--glass-root' } as const) : {};
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useCallback(
+    (node: HTMLDivElement | null) => mergeRefs(cardRef, ref)(node),
+    [ref],
+  );
   const card = open ? (
-    <Shell {...rest} {...shellProps} className={classes} data-opale-toast-tone={tone}>
+    <Shell
+      {...rest}
+      {...shellProps}
+      ref={cardRefs}
+      className={classes}
+      data-opale-toast-tone={tone}
+    >
       {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
 
           Le ton n'était qu'un filet de 4 px en ombre intérieure, rogné à ses
@@ -1880,6 +1893,8 @@ export function Toast({
      qui garantit son annonce —, montez le composant fermé et ouvrez-le ensuite,
      ou gardez une autre instance à la même place. */
   const anchor = useToastAnchor(position);
+  /* Le message fixe ne doit pas couvrir l'élément atteint au clavier. */
+  useScrollPadding(cardRef, position.startsWith('top') ? 'top' : 'bottom', open && anchor !== null);
 
   if (!anchor || !card) return null;
 
@@ -2551,6 +2566,9 @@ export function CookieBanner({
   const visible = open ?? !(decided ?? stored);
   const [wasVisible, setWasVisible] = useState(visible);
   const [leaving, setLeaving] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  /* Le bandeau fixe ne doit pas couvrir l'élément atteint au clavier. */
+  useScrollPadding(anchorRef, 'bottom', visible);
 
   /* La sortie animée suit un clic ou la fermeture pilotée par `open`. Une
      préférence déjà mémorisée, découverte après hydratation, se retire tout
@@ -2588,7 +2606,7 @@ export function CookieBanner({
     : {};
 
   return (
-    <div className="opale-cookie-banner-anchor">
+    <div ref={anchorRef} className="opale-cookie-banner-anchor">
       <div
         className={cx(
           toastMotion.card,

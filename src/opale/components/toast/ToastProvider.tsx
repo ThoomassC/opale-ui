@@ -15,6 +15,7 @@ import Glass from '../glass/Glass';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
+import { useScrollPadding } from '../../shared/use-scroll-padding';
 
 import styles from './style/Toast.module.css';
 
@@ -399,6 +400,26 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
   );
 }
 
+/* LA PILE D'UN COIN. Occupée, elle réserve sa place au bord de la fenêtre :
+   un toast fixe ne doit pas couvrir l'élément atteint au clavier. */
+function ToastStack({
+  position,
+  occupied,
+  children,
+}: {
+  readonly position: ToastPosition;
+  readonly occupied: boolean;
+  readonly children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useScrollPadding(ref, position.startsWith('top') ? 'top' : 'bottom', occupied);
+  return (
+    <div ref={ref} className={cx(styles.stack, positionClass[position])}>
+      {children}
+    </div>
+  );
+}
+
 export const useToast = () => {
   const context = useContext(ToastContext);
   /* Le message est en anglais et au mot près celui de l'origine : la page de
@@ -553,7 +574,11 @@ export const ToastProvider = ({
             {...{ [MODAL_EXEMPT_ATTRIBUTE]: '' }}
           >
             {POSITIONS.map((key) => (
-              <div key={key} className={cx(styles.stack, positionClass[key])}>
+              <ToastStack
+                key={key}
+                position={key}
+                occupied={grouped[key].polite.length + grouped[key].assertive.length > 0}
+              >
                 {/* `role="status"` implique `aria-atomic="true"`, ce qui ferait
                     relire TOUTE la pile à chaque arrivée. La remise à `false`
                     est donc obligatoire, pas décorative. `aria-relevant` borne
@@ -578,7 +603,7 @@ export const ToastProvider = ({
                 >
                   {grouped[key].assertive.map(renderCard)}
                 </div>
-              </div>
+              </ToastStack>
             ))}
           </div>,
           portalNode,
