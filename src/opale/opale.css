@@ -443,6 +443,8 @@
   font-family: var(--opale-font-body);
 }
 
+/* `.opale-dialog` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+   `Modal`. Elle reste pour les pages qui la posent à la main. */
 .opale-surface,
 .opale-card,
 .opale-input-shell,
@@ -1139,6 +1141,8 @@
   box-shadow: var(--opale-shadow-3);
 }
 
+/* `.opale-dialog__header`, `.opale-dialog__footer` : Déprécié depuis 3.7 —
+   aucun composant ne les pose, utilisez `Modal`. */
 .opale-card__header,
 .opale-card__footer,
 .opale-selection-bar,
@@ -1827,6 +1831,8 @@
 .opale-segmented--glass .opale-segmented__item[aria-pressed='true'] {
   color: var(--opale-glass-ink);
 }
+/* `.opale-chip` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+   `Badge` (`.opale-badge`), qui partage cette règle. */
 .opale-chip,
 .opale-badge {
   display: inline-flex;
@@ -2082,6 +2088,8 @@
 .opale-panel {
   padding: var(--opale-space-lg);
 }
+/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-dialog-backdrop` :
+   `Modal` porte son propre voile. La règle reste pour les pages qui la posent. */
 .opale-dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -2102,17 +2110,21 @@
    l'œil doit pouvoir s'arrêter. La gouttière `lg` (1,5 rem) sépare les bandes ;
    le corps garde sa gouttière `sm` entre ses propres lignes, pour que le
    message reste UN bloc et non trois phrases éparses. */
+/* Déprécié depuis 3.7 — `.opale-dialog` et ses parties ne sont posées par
+   aucun composant ; utilisez `Modal`. */
 .opale-dialog {
   display: grid;
   width: min(100%, 34rem);
   padding: var(--opale-space-lg);
   gap: var(--opale-space-lg);
 }
+/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
 .opale-dialog__body {
   display: grid;
   gap: var(--opale-space-sm);
   color: var(--opale-text-secondary);
 }
+/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   border: 0;
   background: transparent;
@@ -2179,7 +2191,8 @@
    sous le plancher de 24 px de WCAG 2.5.8 — et sans espacement compensatoire,
    le titre étant collé à côté. Les mêmes boutons de `Modal` (40 px) et de
    `Toast` (32 px) étaient corrects : seul ce chemin-ci était resté en arrière.
-   Il sert encore au `Toast` posé en flux. */
+   Aucun composant ne pose plus cette classe. */
+/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   display: inline-flex;
   inline-size: 2.5rem;
@@ -2263,6 +2276,8 @@
   transform: rotate(18deg);
 }
 
+/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-stat-grid` ; les
+   `StatCard` se rangent dans la grille de l'appelant. */
 .opale-stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
@@ -2612,6 +2627,8 @@
    changement d'ordre au bundler pour que le dialogue devienne un plan noir
    portant de l'encre presque noire. Le second `.opale-lightbox img` écrasait
    d'ailleurs déjà la hauteur voulue par la règle qui reste plus haut. */
+/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-upload-list`. La
+   règle reste pour les pages qui la posent à la main. */
 .opale-upload-list {
   display: grid;
   gap: var(--opale-space-xs);
