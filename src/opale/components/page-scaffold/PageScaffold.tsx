@@ -15,6 +15,7 @@ import { HeaderThemeToggle } from '../header-controls/HeaderThemeToggle';
 import { LanguageSelector } from '../header-controls/LanguageSelector';
 import Topbar from '../topbar/Topbar';
 import type { OpaleSize } from '../../shared';
+import { useScrollPadding } from '../../shared/use-scroll-padding';
 import type { SearchBarProps } from '../search-bar/SearchBar';
 import { PageScaffoldSearch } from './PageScaffoldSearch';
 import styles from './PageScaffold.module.css';
@@ -106,6 +107,13 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithRef<'div'>, 't
   contentWidth?: 'normal' | 'wide' | 'full';
   stickyHeader?: boolean;
   liquidGlass?: boolean;
+  /**
+   * Rend un lien d'évitement vers le contenu principal, visible au focus.
+   * Il déplace le focus sans écrire le fragment dans l'adresse. Défaut : `false`.
+   */
+  showSkipLink?: boolean;
+  /** Le texte du lien d'évitement. Défaut : « Aller au contenu », selon la langue. */
+  skipLinkLabel?: string;
   mainId?: string;
   /** Utile quand le gabarit est montré dans une page qui possède déjà un `<main>`. */
   mainAs?: 'main' | 'div';
@@ -138,6 +146,7 @@ const COPY = {
     copyright: 'Tous droits réservés.',
     theme: 'Changer le thème clair ou sombre',
     language: 'Langue de la page',
+    skipLink: 'Aller au contenu',
   },
   en: {
     home: 'Home',
@@ -158,6 +167,7 @@ const COPY = {
     copyright: 'All rights reserved.',
     theme: 'Switch between light and dark theme',
     language: 'Page language',
+    skipLink: 'Skip to content',
   },
   es: {
     home: 'Inicio',
@@ -178,6 +188,7 @@ const COPY = {
     copyright: 'Todos los derechos reservados.',
     theme: 'Cambiar entre tema claro y oscuro',
     language: 'Idioma de la página',
+    skipLink: 'Saltar al contenido',
   },
 } as const;
 
@@ -230,6 +241,8 @@ export function PageScaffold({
   contentWidth = 'normal',
   stickyHeader = false,
   liquidGlass = false,
+  showSkipLink = false,
+  skipLinkLabel,
   mainId,
   mainAs: Main = 'main',
   slots,
@@ -243,6 +256,9 @@ export function PageScaffold({
   const mobileId = `opale-page-menu-${generatedId}`;
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  /* L'en-tête collant ne doit pas couvrir l'élément atteint au clavier. */
+  useScrollPadding(headerRef, 'top', stickyHeader && slots?.header === undefined);
   const [menuOpen, setMenuOpen] = useState(false);
   const [localTheme, setLocalTheme] = useState<PageScaffoldTheme>(defaultTheme);
   const [localLanguage, setLocalLanguage] = useState<PageScaffoldLanguage>(defaultLanguage);
@@ -258,6 +274,15 @@ export function PageScaffold({
     { id: 'legal', href: '/mentions-legales', label: copy.legal },
     { id: 'privacy', href: '/confidentialite', label: copy.privacy },
   ];
+  /* Le fragment écrit dans l'adresse casserait un routeur par fragment :
+     le focus est déplacé à la main, le `href` reste le filet sans script. */
+  const skipToContent = (event: MouseEvent<HTMLAnchorElement>) => {
+    const target = document.getElementById(contentId);
+    if (!target) return;
+    event.preventDefault();
+    target.focus();
+    target.scrollIntoView?.({ block: 'start' });
+  };
   const changeTheme = () => {
     const next = activeTheme === 'light' ? 'dark' : 'light';
     if (theme === undefined) setLocalTheme(next);
@@ -315,7 +340,7 @@ export function PageScaffold({
       slots.brand
     ) : (
       <a
-        className={clsx(styles.brand, classNames?.brand)}
+        className={clsx('opale-page-scaffold__brand', styles.brand, classNames?.brand)}
         href={homeHref}
         aria-label={brandLabel ?? `${copy.home} — ${siteName}`}
       >
@@ -339,15 +364,17 @@ export function PageScaffold({
     ) : (
       <>
         <Topbar
+          ref={headerRef}
           elevated={false}
           size={headerSize}
           liquidGlass={liquidGlass}
           rootClassName={clsx(
+            'opale-page-scaffold__header-shell',
             styles.headerSurface,
             stickyHeader && styles.stickyHeader,
             classNames?.headerRoot,
           )}
-          className={clsx(styles.header, classNames?.header)}
+          className={clsx('opale-page-scaffold__header', styles.header, classNames?.header)}
         >
           <Topbar.Section className={styles.brandSection}>{brand}</Topbar.Section>
           {search ? (
@@ -359,7 +386,11 @@ export function PageScaffold({
                 links={pageNavigation}
                 activeId={activeId}
                 ariaLabel={navigationLabel ?? copy.navigation}
-                className={clsx(styles.navigation, classNames?.navigation)}
+                className={clsx(
+                  'opale-page-scaffold__navigation',
+                  styles.navigation,
+                  classNames?.navigation,
+                )}
                 onNavigate={onNavigate}
               >
                 {slots?.navigation}
@@ -371,7 +402,7 @@ export function PageScaffold({
           {showNavigation && pageNavigation.length > 0 ? (
             <button
               ref={menuButtonRef}
-              className={styles.menuButton}
+              className={clsx('opale-page-scaffold__menu-button', styles.menuButton)}
               type="button"
               aria-label={mobileMenuLabel ?? copy.menu}
               aria-expanded={menuOpen}
@@ -383,10 +414,12 @@ export function PageScaffold({
           ) : null}
           {slots?.actions !== undefined ? (
             slots.actions ? (
-              <Topbar.Actions className={styles.actions}>{slots.actions}</Topbar.Actions>
+              <Topbar.Actions className={clsx('opale-page-scaffold__actions', styles.actions)}>
+                {slots.actions}
+              </Topbar.Actions>
             ) : null
           ) : showThemeToggle || showLanguageSelector ? (
-            <Topbar.Actions className={styles.actions}>
+            <Topbar.Actions className={clsx('opale-page-scaffold__actions', styles.actions)}>
               {showThemeToggle ? (
                 <HeaderThemeToggle
                   isDark={activeTheme === 'dark'}
@@ -411,7 +444,7 @@ export function PageScaffold({
             links={pageNavigation}
             activeId={activeId}
             ariaLabel={`${navigationLabel ?? copy.navigation} — mobile`}
-            className={styles.mobileNavigation}
+            className={clsx('opale-page-scaffold__mobile-navigation', styles.mobileNavigation)}
             hidden={!menuOpen}
             onNavigate={(link, event) => {
               onNavigate?.(link, event);
@@ -429,7 +462,7 @@ export function PageScaffold({
     slots?.intro !== undefined ? (
       slots.intro
     ) : (
-      <div className={clsx(styles.intro, classNames?.intro)}>
+      <div className={clsx('opale-page-scaffold__intro', styles.intro, classNames?.intro)}>
         {(introEyebrow === undefined ? copy.welcome : introEyebrow) ? (
           <span className={styles.eyebrow}>
             {introEyebrow === undefined ? copy.welcome : introEyebrow}
@@ -446,7 +479,7 @@ export function PageScaffold({
     slots?.footer !== undefined ? (
       slots.footer
     ) : (
-      <footer className={clsx(styles.footer, classNames?.footer)}>
+      <footer className={clsx('opale-page-scaffold__footer', styles.footer, classNames?.footer)}>
         <div className={styles.footerTop}>
           <div>
             <strong>{siteName}</strong>
@@ -457,7 +490,7 @@ export function PageScaffold({
           {pageFooterLinks.length > 0 ? (
             <nav
               aria-label={footerNavigationLabel ?? copy.footerNavigation}
-              className={styles.footerLinks}
+              className={clsx('opale-page-scaffold__footer-links', styles.footerLinks)}
             >
               {pageFooterLinks.map((link) => (
                 <a key={link.id} href={link.href} target={link.target} rel={link.rel}>
@@ -469,7 +502,7 @@ export function PageScaffold({
         </div>
         {slots?.footerExtra}
         {showCopyright ? (
-          <div className={styles.copyright}>
+          <div className={clsx('opale-page-scaffold__copyright', styles.copyright)}>
             © {copyrightYear} {copyrightOwner ?? siteName}
             {(copyrightText === undefined ? copy.copyright : copyrightText) ? (
               <>. {copyrightText === undefined ? copy.copyright : copyrightText}</>
@@ -481,16 +514,30 @@ export function PageScaffold({
 
   return (
     <div
-      className={clsx(styles.root, className)}
+      className={clsx('opale-page-scaffold', styles.root, className)}
       data-opale-page-theme={activeTheme}
       lang={activeLanguage}
       {...rootProps}
     >
+      {showSkipLink ? (
+        <a
+          className={clsx('opale-page-scaffold__skip-link', styles.skipLink)}
+          href={`#${contentId}`}
+          onClick={skipToContent}
+        >
+          {skipLinkLabel ?? copy.skipLink}
+        </a>
+      ) : null}
       {header}
       <Main
         id={contentId}
         tabIndex={-1}
-        className={clsx(styles.main, styles[contentWidth], classNames?.main)}
+        className={clsx(
+          'opale-page-scaffold__main',
+          styles.main,
+          styles[contentWidth],
+          classNames?.main,
+        )}
       >
         {intro}
         {slots?.beforeContent}

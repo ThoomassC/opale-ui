@@ -24,7 +24,7 @@
    un toast en haut à droite rendrait tout le quart supérieur inutilisable. */
 .root {
   position: fixed;
-  z-index: 1100;
+  z-index: var(--opale-z-toast);
   inset: 0;
   pointer-events: none;
 }
@@ -101,7 +101,7 @@
 .card {
   width: 100%;
   pointer-events: auto;
-  animation-duration: 220ms;
+  animation-duration: var(--opale-motion);
   animation-timing-function: var(--opale-ease);
   animation-fill-mode: both;
 }
@@ -210,9 +210,15 @@
   outline-offset: var(--opale-focus-ring-offset);
 }
 
+.closeGlyph {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
 /* LES QUATRE ENTRÉES, ET LEURS QUATRE SORTIES.
 
-   Les durées — 220, 220, 240 et 200 ms — sont celles que la page de vitrine
+   Les quatre durent `--opale-motion` (220 ms), la durée que la page de vitrine
    documente et que `ToastProvider.tsx` utilise pour minuter le retrait. Les
    deux doivent rester d'accord : une sortie plus longue que la minuterie
    ferait disparaître la carte en plein mouvement. */
@@ -226,12 +232,10 @@
 
 .slideFromBottom {
   animation-name: opale-toast-enter-bottom;
-  animation-duration: 240ms;
 }
 
 .scale {
   animation-name: opale-toast-enter-scale;
-  animation-duration: 200ms;
 }
 
 .leaving.slideFromRight {

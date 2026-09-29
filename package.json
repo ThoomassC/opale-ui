@@ -14,6 +14,9 @@
     "url": "https://github.com/ThoomassC/opale-ui/issues"
   },
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "sideEffects": [
     "**/*.css"
   ],
@@ -43,10 +46,12 @@
     "preview": "vite preview",
     "build:lib": "rm -rf dist && tsc -p tsconfig.lib.json && npm run build:css && npm run build:opale && node scripts/fix-dts-extensions.mjs dist/opale dist/contract",
     "check:dist": "node scripts/check-dist.mjs",
+    "check:consumer": "node scripts/check-consumer.mjs",
+    "check:size": "node scripts/check-size.mjs",
     "build:css": "rm -rf dist/tokens && mkdir -p dist/tokens && cp src/tokens/*.css dist/tokens/",
     "build:opale": "rm -rf dist/opale && tsc -p tsconfig.opale.json && vite build --config vite.lib.config.ts && mkdir -p dist/opale/fonts && cp src/opale/fonts.css dist/opale/fonts.css && cp src/opale/fonts/* dist/opale/fonts/ && node scripts/link-fonts.mjs",
     "prepare": "npm run build:lib",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",

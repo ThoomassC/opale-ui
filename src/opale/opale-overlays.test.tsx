@@ -234,3 +234,60 @@ describe('CookieBanner', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 });
+
+describe('Surimpressions empilées', () => {
+  it('ne ferme que la modale du dessus sur Échap', () => {
+    const onPanel = vi.fn();
+    const onConfirm = vi.fn();
+    render(
+      <SidePanel open title="Détails" onOpenChange={onPanel}>
+        <ConfirmDialog open title="Supprimer ?" onOpenChange={onConfirm} />
+      </SidePanel>,
+    );
+
+    escape();
+
+    expect(onConfirm).toHaveBeenCalledExactlyOnceWith(false);
+    expect(onPanel).not.toHaveBeenCalled();
+  });
+
+  it('rend Échap à la modale du dessous quand celle du dessus se ferme', () => {
+    const onPanel = vi.fn();
+    const { rerender } = render(
+      <SidePanel open title="Détails" onOpenChange={onPanel}>
+        <ConfirmDialog open title="Supprimer ?" onOpenChange={() => {}} />
+      </SidePanel>,
+    );
+
+    rerender(
+      <SidePanel open title="Détails" onOpenChange={onPanel}>
+        <ConfirmDialog open={false} title="Supprimer ?" onOpenChange={() => {}} />
+      </SidePanel>,
+    );
+    escape();
+
+    expect(onPanel).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it('donne Échap à la dernière ouverte entre deux modales sœurs', () => {
+    const onFirst = vi.fn();
+    const onSecond = vi.fn();
+    const { rerender } = render(
+      <>
+        <SidePanel open title="Premier" onOpenChange={onFirst} />
+        <ConfirmDialog open={false} title="Second" onOpenChange={onSecond} />
+      </>,
+    );
+    rerender(
+      <>
+        <SidePanel open title="Premier" onOpenChange={onFirst} />
+        <ConfirmDialog open title="Second" onOpenChange={onSecond} />
+      </>,
+    );
+
+    escape();
+
+    expect(onSecond).toHaveBeenCalledExactlyOnceWith(false);
+    expect(onFirst).not.toHaveBeenCalled();
+  });
+});

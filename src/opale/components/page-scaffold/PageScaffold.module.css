@@ -1,6 +1,6 @@
 .root {
   --page-scaffold-max-width: 72rem;
-  --page-scaffold-gutter: clamp(1rem, 4vw, 3rem);
+  --page-scaffold-gutter: clamp(var(--opale-space-md), 4vw, var(--opale-space-2xl));
   container-type: inline-size;
   min-height: 100dvh;
   display: flex;
@@ -25,7 +25,7 @@
   width: 100%;
   padding-inline: var(--page-scaffold-gutter);
   color: var(--opale-text);
-  gap: clamp(0.75rem, 2vw, 2rem);
+  gap: clamp(var(--opale-space-sm), 2vw, 2rem);
 }
 
 .headerSurface {
@@ -34,7 +34,7 @@
 
 .stickyHeader {
   position: sticky;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   top: 0;
 }
 
@@ -45,7 +45,7 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--opale-space-sm);
   max-width: 15rem;
   color: var(--opale-text);
   text-decoration: none;
@@ -68,7 +68,7 @@
   flex: none;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.18rem;
+  gap: var(--opale-space-2xs);
 }
 
 .brandLogo {
@@ -87,7 +87,7 @@
 }
 
 .brandMark span {
-  border-radius: 0.1rem;
+  border-radius: var(--opale-radius-xs);
   background: var(--opale-primary);
 }
 
@@ -111,7 +111,7 @@
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 0.25rem;
+  gap: var(--opale-space-2xs);
   max-width: 100%;
   overflow-x: auto;
   white-space: nowrap;
@@ -134,7 +134,7 @@
   position: absolute;
   z-index: 3;
   inset-inline: 0;
-  inset-block-start: calc(100% + 0.5rem);
+  inset-block-start: calc(100% + var(--opale-space-xs));
   margin: 0;
   border: 1px solid var(--opale-divider);
   border-radius: var(--opale-radius-md);
@@ -147,7 +147,7 @@
   max-height: min(60dvh, 28rem);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0.4rem;
+  padding: var(--opale-space-xs);
   list-style: none;
 }
 
@@ -159,11 +159,11 @@
   position: relative;
   isolation: isolate;
   display: flex;
-  min-height: 2.75rem;
+  min-height: var(--opale-control-md);
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: var(--opale-space-xs);
+  padding: var(--opale-space-xs) var(--opale-space-sm);
   color: var(--opale-text);
   cursor: pointer;
 }
@@ -178,7 +178,7 @@
 }
 
 .searchSuggestion[aria-selected='true'] {
-  color: #fff;
+  color: var(--opale-on-fill);
 }
 
 .searchSuggestion[aria-selected='true']::before {
@@ -199,11 +199,11 @@
 }
 
 .searchSuggestion[aria-selected='true'] .searchSuggestionGroup {
-  color: #e8f8fb;
+  color: var(--opale-on-fill);
 }
 
 .searchNoResults {
-  padding: 0.85rem 1rem;
+  padding: var(--opale-space-sm) var(--opale-space-md);
 }
 
 @media (forced-colors: active) {
@@ -216,7 +216,7 @@
 .actions {
   flex: none;
   display: flex;
-  gap: 0.5rem;
+  gap: var(--opale-space-xs);
   margin-inline-start: auto;
 }
 
@@ -225,8 +225,8 @@
   position: relative;
   isolation: isolate;
   display: none;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: var(--opale-control-md);
+  height: var(--opale-control-md);
   flex: none;
   align-items: center;
   justify-content: center;
@@ -281,7 +281,7 @@
   display: block;
   width: 1.15rem;
   height: 2px;
-  border-radius: 2px;
+  border-radius: var(--opale-radius-xs);
   background: currentColor;
 }
 
@@ -304,7 +304,7 @@
 }
 
 .mobileNavigation {
-  padding: 0.75rem var(--page-scaffold-gutter) 1rem;
+  padding: var(--opale-space-sm) var(--page-scaffold-gutter) var(--opale-space-md);
   border-bottom: 1px solid var(--opale-divider);
   background: var(--opale-surface);
 }
@@ -344,9 +344,9 @@
 
 .eyebrow {
   display: inline-flex;
-  margin-block-end: 0.9rem;
+  margin-block-end: var(--opale-space-md);
   border-radius: var(--opale-radius-pill);
-  padding: 0.35rem 0.75rem;
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
   background: color-mix(in srgb, var(--opale-primary) 12%, var(--opale-surface));
   color: var(--opale-primary-on-surface);
   font-size: var(--opale-text-xs);
@@ -373,7 +373,7 @@
 }
 
 .footer {
-  padding: 2.5rem var(--page-scaffold-gutter) 1.5rem;
+  padding: 2.5rem var(--page-scaffold-gutter) var(--opale-space-lg);
   border-top: 1px solid var(--opale-divider);
   background: var(--opale-surface);
 }
@@ -397,7 +397,7 @@
 }
 
 .footerTop p {
-  margin: 0.6rem 0 0;
+  margin: var(--opale-space-xs) 0 0;
   color: var(--opale-text-secondary);
   line-height: var(--opale-leading-snug);
 }
@@ -406,7 +406,7 @@
   display: flex;
   flex-wrap: wrap;
   align-content: start;
-  gap: 0.5rem 1.5rem;
+  gap: var(--opale-space-xs) var(--opale-space-lg);
 }
 
 .footerLinks a {
@@ -421,7 +421,7 @@
 
 .copyright {
   margin-block-start: 2rem;
-  padding-block-start: 1rem;
+  padding-block-start: var(--opale-space-md);
   border-top: 1px solid var(--opale-divider);
   color: var(--opale-text-secondary);
   font-size: var(--opale-text-sm);
@@ -457,7 +457,7 @@
 @container (max-width: 40rem) {
   .header {
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: var(--opale-space-sm);
   }
 
   .brandSection {
@@ -473,4 +473,35 @@
   .footerTop {
     flex-direction: column;
   }
+}
+
+/* Le lien d'évitement : masqué à l'œil, jamais aux outils ; révélé au focus,
+   au-dessus de l'en-tête collant. */
+.skipLink:not(:focus) {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  margin: -1px;
+  padding: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skipLink:focus {
+  position: fixed;
+  /* Au-dessus de l'en-tête collant, comme tout ce qui doit se voir au clavier. */
+  z-index: var(--opale-z-toast);
+  top: var(--opale-space-xs);
+  left: var(--opale-space-xs);
+  border: 2px solid var(--opale-focus);
+  border-radius: var(--opale-radius-sm);
+  padding: var(--opale-space-sm) var(--opale-space-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  box-shadow: var(--opale-shadow-2);
+  font-weight: 700;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
 }

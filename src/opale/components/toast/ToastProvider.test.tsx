@@ -1,12 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  ToastProvider,
-  useToast,
-  type ToastDefinition,
-  type ToastProviderProps,
-} from './ToastProvider';
+import { ToastProvider, type ToastDefinition, type ToastProviderProps } from './ToastProvider';
+import { useToast } from './toast-context';
 import toastClasses from './style/Toast.module.css';
 
 /* =============================================================================
@@ -399,5 +395,75 @@ describe('ToastProvider — tone', () => {
 
     expect(surfaceOf('Toast mixte')).toHaveClass(toastClasses.success);
     expect(surfaceOf('Toast mixte')).not.toHaveClass(toastClasses.error);
+  });
+});
+
+describe('ToastProvider — la croix', () => {
+  it('dessine la croix du jeu d’icônes, comme la modale, au lieu du caractère ×', () => {
+    renderWithProvider(<Trigger label="Publier" toast={{ title: 'Publié' }} />, {
+      duration: Infinity,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Publier' }));
+    const close = screen.getByRole('button', { name: 'Fermer la notification' });
+
+    expect(close).toHaveTextContent('');
+    expect(close.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    expect(close.querySelector('svg')).toHaveClass(toastClasses.closeGlyph);
+  });
+});
+
+describe('ToastProvider — durée des messages urgents', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each([
+    ['error', { tone: 'error' }],
+    ['warning', { tone: 'warning' }],
+    ['variant error', { variant: 'error' }],
+  ] as const)('ne ferme pas seul un toast %s sans durée explicite', async (_, tone) => {
+    renderWithProvider(<Trigger label="Lancer" toast={{ title: 'Échec', ...tone }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lancer' }));
+    await advance(60_000);
+    await advance(1000);
+
+    expect(screen.getByText('Échec')).toBeInTheDocument();
+  });
+
+  it('ferme toujours seul un toast de succès après la durée par défaut', async () => {
+    renderWithProvider(<Trigger label="Lancer" toast={{ title: 'Publié', tone: 'success' }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lancer' }));
+    await advance(4000);
+    await advance(300);
+
+    expect(screen.queryByText('Publié')).not.toBeInTheDocument();
+  });
+
+  it('laisse une durée explicite gagner sur une erreur', async () => {
+    renderWithProvider(
+      <>
+        <Trigger label="Toast" toast={{ title: 'Échec bref', tone: 'error', duration: 1000 }} />
+        <Trigger label="Fournisseur" toast={{ title: 'Échec du fournisseur', tone: 'error' }} />
+      </>,
+      { duration: 2000 },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toast' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fournisseur' }));
+    await advance(1000);
+    await advance(300);
+    expect(screen.queryByText('Échec bref')).not.toBeInTheDocument();
+    expect(screen.getByText('Échec du fournisseur')).toBeInTheDocument();
+
+    await advance(1000);
+    await advance(300);
+    expect(screen.queryByText('Échec du fournisseur')).not.toBeInTheDocument();
   });
 });

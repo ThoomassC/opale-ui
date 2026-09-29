@@ -26,7 +26,13 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 
-import { breakingBlocker, highestTag, isBreakingEntry, releaseBlocker } from './release-guard.mjs';
+import {
+  branchBlocker,
+  breakingBlocker,
+  highestTag,
+  isBreakingEntry,
+  releaseBlocker,
+} from './release-guard.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -53,6 +59,13 @@ const tag = `v${version}`;
       produit une archive qui ne correspond à rien de reproductible. */
 if (git('status', '--porcelain')) {
   fail('Des modifications ne sont pas validées. Un tag doit désigner un commit, pas un brouillon.');
+}
+
+/* 1 bis. La version sort de `recette` : c'est la branche recettée. */
+const branchBlock = branchBlocker(git('rev-parse', '--abbrev-ref', 'HEAD'));
+
+if (branchBlock) {
+  fail(branchBlock);
 }
 
 /* 2. La vitrine doit annoncer la même version que le manifeste. `version.test.ts`

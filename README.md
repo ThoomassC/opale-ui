@@ -110,7 +110,7 @@ Tout est exporté à la racine.
 - **Les composants composés**, un dossier chacun sous `src/opale/components/` : `Glass`,
   `Modal`, `PageScaffold`, `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` (et le
   hook `useToast`) et `Topbar`.
-- **Le catalogue**, dans `src/opale/opale.tsx` : **52 fiches** réparties en sept familles —
+- **Le catalogue**, dans `src/opale/catalog/` : **52 fiches** réparties en sept familles —
   saisie, boutons spécialisés, affichage de données, navigation, retours, mise en page et
   modules. La vitrine génère une page de démonstration par fiche.
 
@@ -207,6 +207,7 @@ le fragment (`#/composants/opale-button`) : la vitrine se construit en statique 
 | `npm run coverage`    | La suite avec le rapport `v8`                                  |
 | `npm run build:lib`   | Construit le paquet dans `dist/` (appelé par `prepare`)        |
 | `npm run check:dist`  | Vérifie le paquet construit : `"use client"`, types, polices   |
+| `npm run check:consumer` | Emballe le paquet et le compile dans une application témoin (nodenext, bundler) |
 | `npm run build`       | Construit la vitrine statique dans `dist-showcase/`            |
 | `npm run typecheck`   | `tsc -b --noEmit`                                              |
 | `npm run lint`        | ESLint, `jsx-a11y` compris                                     |

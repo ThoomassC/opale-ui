@@ -1,9 +1,9 @@
 /*
- * Liquid-glass site navigation.
+ * La barre de navigation du site.
  *
- * The first values in each `var()` are the Opale roles. The fallbacks keep the
- * component usable when an application imports only `opale.css`; applications
- * that also import `tokens.css` retain the exact shared palette.
+ * La première valeur de chaque `var()` est un rôle d'Opale. Les replis gardent
+ * le composant utilisable quand l'application n'importe que `opale.css` ; celle
+ * qui importe aussi `tokens.css` retrouve la palette partagée exacte.
  */
 .bar {
   /* L'ACCENT EST LE PRIMAIRE D'OPALE, ET SON ENCRE CELLE DES REMPLISSAGES. La
@@ -32,7 +32,7 @@
 
   position: sticky;
   inset-block-start: 0;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   inline-size: 100%;
@@ -71,7 +71,7 @@
   min-inline-size: 0;
 }
 
-/* Four equal destinations reproduce the Travels in World navigation exactly. */
+/* Quatre destinations de même largeur : la disposition de référence. */
 .list {
   position: relative;
   display: grid;
@@ -148,12 +148,12 @@
   --liquid-bubble-ink: var(--site-nav-ink);
   --liquid-bubble-edge: color-mix(in srgb, var(--site-nav-ink) 58%, transparent);
   --liquid-bubble-highlight: var(--site-nav-ink);
-  --liquid-bubble-shadow-ink: rgba(15, 23, 42, 0.3);
+  --liquid-bubble-shadow-ink: color-mix(in srgb, var(--opale-glass-deep) 30%, transparent);
   z-index: 0;
   transform-origin: center;
   pointer-events: none;
   opacity: 1;
-  transition: inset-inline-start 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: inset-inline-start var(--opale-motion-slower) var(--opale-ease-out);
 }
 
 .list[data-active-index='1'] .movingBubble {
@@ -168,7 +168,7 @@
   inset-inline-start: calc(3px + ((100% - 30px) / 4 + 8px) * 3);
 }
 
-/* The active surface follows the actual number of demo/application tabs. */
+/* La surface active suit le nombre réel d'entrées. */
 .list[data-item-count='1'] {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
@@ -225,7 +225,7 @@
 }
 
 .list[data-moving='true'] .movingBubble {
-  animation: siteNavBubbleFlow 620ms var(--site-nav-motion-ease);
+  animation: siteNavBubbleFlow var(--opale-motion-slower) var(--site-nav-motion-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -313,6 +313,6 @@
 
   position: sticky;
   inset-block-start: 0;
-  z-index: 20;
+  z-index: var(--opale-z-sticky);
   inline-size: 100%;
 }

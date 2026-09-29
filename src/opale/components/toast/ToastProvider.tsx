@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -9,12 +7,16 @@ import {
   type PropsWithChildren,
   type ReactNode,
 } from 'react';
+import clsx from 'clsx';
 import { createPortal } from 'react-dom';
 
 import Glass from '../glass/Glass';
+import { IconGlyph } from '../icon';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
+import { useScrollPadding } from '../../shared/use-scroll-padding';
+import { ToastContext, type ToastContextValue } from './toast-context';
 
 import styles from './style/Toast.module.css';
 
@@ -106,6 +108,10 @@ export type ToastDefinition = {
   tone?: OpaleTone;
   /** @deprecated Depuis 3.6 — utilisez `tone` (`default` → `neutral`). */
   variant?: ToastVariant;
+  /**
+   * En millisecondes ; `Infinity` désarme la fermeture. Sans durée ici ni sur
+   * le fournisseur, `error` et `warning` restent jusqu'à leur fermeture.
+   */
   duration?: number;
   animation?: ToastAnimation;
   position?: ToastPosition;
@@ -141,6 +147,7 @@ export interface ToastLabels {
 const DEFAULT_TOAST_LABELS: ToastLabels = { close: 'Fermer la notification' };
 
 export type ToastProviderProps = PropsWithChildren<{
+  /** La durée par défaut, en millisecondes. Défaut : 4000, sauf `error` et `warning`. */
   duration?: number;
   animation?: ToastAnimation;
   position?: ToastPosition;
@@ -157,19 +164,6 @@ export type ToastProviderProps = PropsWithChildren<{
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<ToastLabels>;
 }>;
-
-type ToastContextValue = {
-  showToast: (toast: ToastDefinition) => string;
-  dismissToast: (id: string) => void;
-  clearToasts: () => void;
-  defaults: {
-    duration: number;
-    animation: ToastAnimation;
-    position: ToastPosition;
-    enableLiquidAnimation: boolean;
-    liquidGlass: boolean;
-  };
-};
 
 /* L'ordre de cette liste est l'ordre du DOM des six piles. Il n'a pas
    d'incidence visuelle — chaque pile est positionnée en absolu — mais il fixe
@@ -208,15 +202,15 @@ const positionClass: Record<ToastPosition, string> = {
   'bottom-center': styles.bottomCenter,
 };
 
-/* Les durées de sortie, en accord avec `Toast.module.css` et avec ce que la
-   vitrine documente. Elles minutent le RETRAIT du DOM : trop courtes, la carte
+/* Les durées de sortie, en accord avec `Toast.module.css` (`--opale-motion`)
+   et avec ce que la vitrine documente. Elles minutent le RETRAIT du DOM : trop courtes, la carte
    disparaît en plein mouvement ; trop longues, elle reste invisible à occuper
    sa place dans la pile. */
 const ANIMATION_MS: Record<ToastAnimation, number> = {
   'slide-from-right': 220,
   'slide-from-left': 220,
-  'slide-from-bottom': 240,
-  scale: 200,
+  'slide-from-bottom': 220,
+  scale: 220,
 };
 
 /* Le sens d'empilement. En haut, le plus récent se pose près du bord, donc en
@@ -231,11 +225,6 @@ const NEWEST_FIRST: Record<ToastPosition, boolean> = {
   'bottom-center': false,
 };
 
-const ToastContext = createContext<ToastContextValue | null>(null);
-
-const cx = (...values: readonly (string | false | null | undefined)[]) =>
-  values.filter(Boolean).join(' ');
-
 const generateToastId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Math.random().toString(36).slice(2);
@@ -248,7 +237,7 @@ const generateToastId = () => {
    et porte les deux classes. Le reste — le texte, le bouton de fermeture, la
    minuterie et sa pause — ne dépend d'aucune des deux.
    ========================================================================== */
-function Carte({
+function ToastSurface({
   liquidGlass,
   rootClassName,
   className,
@@ -264,7 +253,7 @@ function Carte({
   readonly children: ReactNode;
 }) {
   if (!liquidGlass) {
-    return <div className={cx(rootClassName, className, styles.plain)}>{children}</div>;
+    return <div className={clsx(rootClassName, className, styles.plain)}>{children}</div>;
   }
 
   return (
@@ -358,7 +347,12 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
 
   return (
     <div
-      className={cx(styles.card, animationClass[animation], dismissed && styles.leaving)}
+      className={clsx(
+        'opale-toast-provider__card',
+        styles.card,
+        animationClass[animation],
+        dismissed && styles.leaving,
+      )}
       data-testid="toast"
       /* Les quatre gestionnaires sont le dispositif WCAG 2.2.1, et il en faut
          quatre : la souris et le doigt passent par le pointeur, le clavier par
@@ -369,44 +363,65 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
       onFocus={pause}
       onBlur={resume}
     >
-      <Carte
+      <ToastSurface
         liquidGlass={liquidGlass}
-        rootClassName={cx(styles.surface, toneClass[tone])}
-        className={styles.body}
+        rootClassName={clsx('opale-toast-provider__surface', styles.surface, toneClass[tone])}
+        className={clsx('opale-toast-provider__body', styles.body)}
         enableLiquidAnimation={enableLiquidAnimation}
         triggerAnimation={entered}
       >
-        <div className={styles.text}>
-          {title && <p className={styles.title}>{title}</p>}
-          {description && <p className={styles.description}>{description}</p>}
+        <div className={clsx('opale-toast-provider__text', styles.text)}>
+          {title && <p className={clsx('opale-toast-provider__title', styles.title)}>{title}</p>}
+          {description && (
+            <p className={clsx('opale-toast-provider__description', styles.description)}>
+              {description}
+            </p>
+          )}
         </div>
 
         <button
           type="button"
-          className={styles.close}
+          className={clsx('opale-toast-provider__close', styles.close)}
           aria-label={labels.close}
           onClick={() => onDismiss(id)}
         >
-          <span aria-hidden="true">×</span>
+          {/* Le tracé de la croix d'Opale, comme dans `Modal` : pas le signe « × ». */}
+          <IconGlyph name="close" className={styles.closeGlyph} />
         </button>
-      </Carte>
+      </ToastSurface>
     </div>
   );
 }
 
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  /* Le message est en anglais et au mot près celui de l'origine : la page de
-     vitrine le cite entre guillemets, et un appelant a pu l'écrire dans un
-     test à lui. C'est une erreur de développement, pas un texte d'interface —
-     elle n'a donc pas à suivre la langue du produit. */
-  if (!context) throw new Error('useToast must be used within ToastProvider');
-  return context;
-};
+/* LA PILE D'UN COIN. Occupée, elle réserve sa place au bord de la fenêtre :
+   un toast fixe ne doit pas couvrir l'élément atteint au clavier. */
+function ToastStack({
+  position,
+  occupied,
+  children,
+}: {
+  readonly position: ToastPosition;
+  readonly occupied: boolean;
+  readonly children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useScrollPadding(ref, position.startsWith('top') ? 'top' : 'bottom', occupied);
+  return (
+    <div
+      ref={ref}
+      className={clsx('opale-toast-provider__stack', styles.stack, positionClass[position])}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** La durée d'un toast dont ni l'appel ni le fournisseur ne fixent la durée. */
+const DEFAULT_DURATION_MS = 4000;
 
 export const ToastProvider = ({
   children,
-  duration = 4000,
+  duration: durationProp,
   animation = 'slide-from-right',
   position = 'top-right',
   enableLiquidAnimation = true,
@@ -415,16 +430,23 @@ export const ToastProvider = ({
   labels: labelsProp,
 }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
+  const duration = durationProp ?? DEFAULT_DURATION_MS;
 
   const showToast = useCallback(
     (toast: ToastDefinition) => {
       const id = toast.id ?? generateToastId();
 
+      const tone = resolveTone(toast);
+      /* UN MESSAGE URGENT NE PART PAS SEUL (WCAG 2.2.1) : sans durée
+         explicite, `error` et `warning` attendent leur fermeture. */
       const record: ToastRecord = {
         ...toast,
         id,
-        tone: resolveTone(toast),
-        duration: toast.duration ?? duration,
+        tone,
+        duration:
+          toast.duration ??
+          durationProp ??
+          (ASSERTIVE_TONES.has(tone) ? Infinity : DEFAULT_DURATION_MS),
         animation: toast.animation ?? animation,
         position: toast.position ?? position,
         enableLiquidAnimation: toast.enableLiquidAnimation ?? enableLiquidAnimation,
@@ -448,7 +470,7 @@ export const ToastProvider = ({
 
       return id;
     },
-    [animation, duration, enableLiquidAnimation, liquidGlass, position],
+    [animation, durationProp, enableLiquidAnimation, liquidGlass, position],
   );
 
   const dismissToast = useCallback((id: string) => {
@@ -531,21 +553,25 @@ export const ToastProvider = ({
       {portalNode &&
         createPortal(
           <div
-            className={styles.root}
+            className={clsx('opale-toast-provider', styles.root)}
             data-testid="toast-portal"
             /* Une modale ouverte rend le reste de la page inerte ; les toasts
                lancés depuis elle doivent rester annoncés et refermables. */
             {...{ [MODAL_EXEMPT_ATTRIBUTE]: '' }}
           >
             {POSITIONS.map((key) => (
-              <div key={key} className={cx(styles.stack, positionClass[key])}>
+              <ToastStack
+                key={key}
+                position={key}
+                occupied={grouped[key].polite.length + grouped[key].assertive.length > 0}
+              >
                 {/* `role="status"` implique `aria-atomic="true"`, ce qui ferait
                     relire TOUTE la pile à chaque arrivée. La remise à `false`
                     est donc obligatoire, pas décorative. `aria-relevant` borne
                     l'annonce aux ajouts : le départ d'une carte n'a rien à
                     dire. */}
                 <div
-                  className={styles.region}
+                  className={clsx('opale-toast-provider__region', styles.region)}
                   role="status"
                   aria-live="polite"
                   aria-atomic="false"
@@ -555,7 +581,7 @@ export const ToastProvider = ({
                 </div>
 
                 <div
-                  className={styles.region}
+                  className={clsx('opale-toast-provider__region', styles.region)}
                   role="alert"
                   aria-live="assertive"
                   aria-atomic="false"
@@ -563,7 +589,7 @@ export const ToastProvider = ({
                 >
                   {grouped[key].assertive.map(renderCard)}
                 </div>
-              </div>
+              </ToastStack>
             ))}
           </div>,
           portalNode,

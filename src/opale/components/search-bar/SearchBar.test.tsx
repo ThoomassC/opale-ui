@@ -8,6 +8,19 @@ describe('SearchBar', () => {
     expect(Opale.SearchBar).toBe(SearchBar);
   });
 
+  it.each([false, true])('nomme le repère avec landmarkLabel (verre : %s)', (glass) => {
+    render(<SearchBar landmarkLabel="Recherche du catalogue" liquidGlass={glass} />);
+
+    expect(screen.getByRole('search', { name: 'Recherche du catalogue' })).toBeInTheDocument();
+  });
+
+  it.each([false, true])('ne pose pas de repère avec landmark={false} (verre : %s)', (glass) => {
+    render(<SearchBar landmark={false} liquidGlass={glass} />);
+
+    expect(screen.queryByRole('search')).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Rechercher' })).toBeInTheDocument();
+  });
+
   it('renders a labelled search field in a search landmark', () => {
     render(<SearchBar placeholder="Un voyage, un lieu, un pays…" />);
 

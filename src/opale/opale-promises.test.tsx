@@ -12,7 +12,8 @@ import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import opaleSheet from './opale.css?raw';
+import { declaration } from '../test/css-rules';
+import SHEET from './opale.css?raw';
 import { Modal } from './components/modal';
 import {
   Badge,
@@ -35,8 +36,6 @@ import {
    valaient d'être TENUES plutôt qu'effacées : ce fichier fixe leur
    comportement. Chaque bloc dit ce qui manquait, et le test le reproduit.
    ========================================================================== */
-
-const SHEET = opaleSheet.replace(/\/\*[\s\S]*?\*\//g, '');
 
 afterEach(() => {
   cleanup();
@@ -81,7 +80,7 @@ describe('Badge — le point de notification', () => {
   });
 
   it('devrait donner au point une taille fixe dans la feuille', () => {
-    expect(SHEET).toMatch(/\.opale-badge--dot\s*\{[^}]*inline-size:/);
+    expect(declaration(SHEET, '.opale-badge--dot', 'inline-size')).toMatch(/^[\d.]+rem$/);
   });
 });
 
@@ -90,8 +89,7 @@ describe('Badge — le point de notification', () => {
    `elevation={3}` et `elevation={0}` rendaient la même ombre.
    ------------------------------------------------------------------------- */
 describe('Card — les quatre élévations', () => {
-  const shadowOf = (level: number) =>
-    SHEET.match(new RegExp(`\\.opale-card--e${level}\\s*\\{[^}]*box-shadow:\\s*([^;]+);`))?.[1];
+  const shadowOf = (level: number) => declaration(SHEET, `.opale-card--e${level}`, 'box-shadow');
 
   it('devrait servir chacune des quatre classes d’élévation', () => {
     for (const level of [0, 1, 2, 3]) {
@@ -226,6 +224,45 @@ describe('CookieBanner — la mémorisation du choix', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Accepter' }));
     await waitForElementToBeRemoved(() => screen.queryByText('Cookies'));
     vi.restoreAllMocks();
+  });
+
+  /* Le choix se lit une fois par montage, pas à chaque rendu : le stockage est
+     synchrone et peut coûter. */
+  it('ne devrait pas relire le stockage à chaque rendu', () => {
+    const getItem = vi.spyOn(window.localStorage, 'getItem');
+    const { rerender } = render(<CookieBanner>Premier</CookieBanner>);
+    const reads = () => getItem.mock.calls.filter(([key]) => key === COOKIE_CONSENT_KEY).length;
+    const afterMount = reads();
+
+    rerender(<CookieBanner>Deuxième</CookieBanner>);
+    rerender(<CookieBanner>Troisième</CookieBanner>);
+    rerender(<CookieBanner>Quatrième</CookieBanner>);
+
+    expect(screen.getByText('Quatrième')).toBeInTheDocument();
+    expect(reads()).toBe(afterMount);
+    vi.restoreAllMocks();
+  });
+
+  it('devrait suivre un choix fait dans un autre onglet', () => {
+    render(<CookieBanner />);
+    expect(screen.getByText('Cookies')).toBeInTheDocument();
+
+    window.localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: COOKIE_CONSENT_KEY }));
+    });
+
+    expect(screen.queryByText('Cookies')).toBeNull();
+  });
+
+  it('devrait relire le stockage au montage suivant', () => {
+    const { unmount } = render(<CookieBanner />);
+    unmount();
+    window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+
+    render(<CookieBanner />);
+
+    expect(screen.queryByText('Cookies')).toBeNull();
   });
 });
 
@@ -396,7 +433,9 @@ describe('Dropzone — le glisser-déposer', () => {
   });
 
   it('devrait montrer le survol dans la feuille', () => {
-    expect(SHEET).toMatch(/\.opale-dropzone\[data-dragging='true'\]\s*\{/);
+    expect(declaration(SHEET, ".opale-dropzone[data-dragging='true']", 'background')).toMatch(
+      /var\(--opale-primary\)/,
+    );
   });
 });
 
@@ -627,17 +666,19 @@ describe('Badge — ce que la relecture a trouvé', () => {
      du point par une teinte à 62 % : sous verre, le point devenait
      translucide et perdait le contraste qui justifie son plein. */
   it('devrait garder le point plein sous verre', () => {
-    expect(SHEET).toMatch(
-      /\[data-opale-glass\] \.opale-badge\.opale-badge--dot[^{]*\{[^}]*background:\s*var\(--opale-badge-dot\)/,
-    );
+    expect(
+      declaration(SHEET, '[data-opale-glass] .opale-badge.opale-badge--dot', 'background'),
+    ).toBe('var(--opale-badge-dot)');
   });
 
   /* En contrastes forcés, `background` est remplacé par `Canvas` : le point
      prenait la couleur du fond et disparaissait. */
   it('devrait dessiner le point en contrastes forcés', () => {
-    expect(SHEET).toMatch(
-      /@media \(forced-colors: active\)\s*\{[^@]*\.opale-badge--dot\s*\{[^}]*CanvasText/,
-    );
+    expect(
+      declaration(SHEET, '.opale-badge--dot', 'background', {
+        within: '@media (forced-colors: active)',
+      }),
+    ).toBe('CanvasText');
   });
 });
 
@@ -744,14 +785,16 @@ describe('Card et Dropzone sous verre — ce que la relecture a trouvé', () => 
       </Card>,
     );
     expect(container.querySelector('.opale-card--glass-root--e3')).not.toBeNull();
-    for (const level of [0, 1, 2, 3]) {
-      expect(SHEET).toMatch(
-        new RegExp(`\\.opale-card--glass-root--e${level}\\s*\\{[^}]*box-shadow:`),
-      );
-    }
+    const glassShadows = [0, 1, 2, 3].map((level) =>
+      declaration(SHEET, `.opale-card--glass-root--e${level}`, 'box-shadow'),
+    );
+    expect(glassShadows).not.toContain(undefined);
+    expect(new Set(glassShadows).size).toBe(4);
   });
 
   it('devrait garder le survol du dépôt translucide sous verre', () => {
-    expect(SHEET).toMatch(/\.opale-dropzone--glass\[data-dragging='true'\]\s*\{[^}]*transparent/);
+    expect(
+      declaration(SHEET, ".opale-dropzone--glass[data-dragging='true']", 'background'),
+    ).toMatch(/, transparent\)$/);
   });
 });

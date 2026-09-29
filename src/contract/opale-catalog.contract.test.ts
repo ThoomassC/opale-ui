@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { stripComments } from './stylesheet';
 import { OPALE_CATALOG } from '../opale/opale';
 import opaleCss from '../opale/opale.css?raw';
-import opaleSource from '../opale/opale.tsx?raw';
+import { OPALE_CATALOG_SOURCE as opaleSource } from '../test/opale-source';
 import extrasSource from '../opale/opale-extras.tsx?raw';
 
 /* ============================================================================

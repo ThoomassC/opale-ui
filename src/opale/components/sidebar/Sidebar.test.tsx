@@ -348,4 +348,43 @@ describe('Sidebar — value, defaultValue, onValueChange, onCollapsedChange', ()
 
     expect(screen.getByRole('status')).toHaveTextContent('dashboard/dashboard');
   });
+
+  it('fait entendre le badge en description, sans changer le nom', () => {
+    renderSidebar();
+
+    const item = screen.getByRole('button', { name: 'Analytics' });
+    expect(item).toHaveAccessibleDescription('4');
+  });
+
+  it('décrit le badge par badgeLabel quand l’appelant le donne', () => {
+    render(
+      <Sidebar>
+        <Sidebar.Items>
+          <Sidebar.Item itemId="inbox" badge={4} badgeLabel="4 nouveaux">
+            Boîte
+          </Sidebar.Item>
+        </Sidebar.Items>
+      </Sidebar>,
+    );
+
+    const item = screen.getByRole('button', { name: 'Boîte' });
+    expect(item).toHaveAccessibleDescription('4 nouveaux');
+  });
+
+  it('garde la description de l’appelant avant celle du badge', () => {
+    render(
+      <Sidebar>
+        <Sidebar.Items>
+          <Sidebar.Item itemId="inbox" badge={4} aria-describedby="hint">
+            Boîte
+          </Sidebar.Item>
+        </Sidebar.Items>
+        <p id="hint">Messages reçus</p>
+      </Sidebar>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Boîte' })).toHaveAccessibleDescription(
+      'Messages reçus 4',
+    );
+  });
 });

@@ -21,8 +21,11 @@ const IMPORT = "@import './fonts.css';\n";
 
 const css = readFileSync(SHEET, 'utf8');
 /* `@charset` doit rester la toute première instruction de la feuille ; un
-   `@import` se place juste après, et avant toute règle. */
-const charset = /^@charset "[^"]+";\r?\n/.exec(css)?.[0] ?? '';
-const rest = css.slice(charset.length);
-if (!rest.startsWith(IMPORT)) writeFileSync(SHEET, charset + IMPORT + rest);
+   `@import` se place juste après, et avant toute règle. La feuille minifiée
+   enchaîne le `@charset` et la première règle sans retour à la ligne : il est
+   rétabli, pour que l'`@import` tienne sur sa propre ligne. */
+const charset = /^@charset "[^"]+";/.exec(css)?.[0] ?? '';
+const rest = css.slice(charset.length).replace(/^\r?\n/, '');
+const head = charset ? `${charset}\n` : '';
+if (!rest.startsWith(IMPORT)) writeFileSync(SHEET, head + IMPORT + rest);
 console.log(`${SHEET} : polices reliées par @import.`);

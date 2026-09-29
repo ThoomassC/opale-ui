@@ -113,6 +113,24 @@
      suit la matière (bleu de focus, encre du verre, `currentColor`). */
   --opale-focus-ring-width: 3px;
   --opale-focus-ring-offset: 3px;
+  /* Une seule échelle d'empilement pour les plans globaux, du plus bas au plus
+     haut : barre collante, liste déroulante, bandeau, dialogue, message. Un
+     message reste lisible au-dessus d'un dialogue ouvert. */
+  --opale-z-sticky: 20;
+  --opale-z-popover: 50;
+  --opale-z-overlay: 900;
+  --opale-z-modal: 1000;
+  --opale-z-toast: 1100;
+  /* Le voile des dialogues : sombre dans les deux thèmes, légèrement flouté.
+     C'est l'opacité qui détache le dialogue, pas le flou. */
+  --opale-scrim: rgb(12 15 13 / 0.62);
+  --opale-scrim-blur: 3px;
+  /* Un contrôle désactivé s'efface de moitié, quel qu'il soit. WCAG exempte
+     les composants désactivés du contraste de 1.4.3. */
+  --opale-disabled-opacity: 0.5;
+  /* `xs` arrondit les petits objets — un drapeau, un trait d'icône — sans en
+     faire des pastilles. */
+  --opale-radius-xs: 0.125rem;
   --opale-radius-sm: 0.75rem;
   --opale-radius-md: 1.375rem;
   --opale-radius-lg: 2.25rem;
@@ -224,9 +242,18 @@
   --opale-font-title:
     'Bricolage Grotesque', 'Chivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --opale-font-mono: 'Hack', ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  /* Cinq durées et trois courbes pour tout mouvement. `instant` suit un geste
+     (une piste qu'on tire), `slower` porte les déplacements amples et les
+     rebonds du verre. `ease-out` freine en arrivant ; `ease-spring` dépasse
+     sa cible et y revient. */
+  --opale-motion-instant: 90ms;
   --opale-motion-fast: 140ms;
   --opale-motion: 220ms;
+  --opale-motion-slow: 300ms;
+  --opale-motion-slower: 600ms;
   --opale-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --opale-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --opale-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --opale-drop-shadow-1: drop-shadow(0 0.0625rem 0.0625rem rgba(20, 30, 24, 0.06))
     drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.08));
   --opale-drop-shadow-2: drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.07))
@@ -234,6 +261,18 @@
   --opale-glass-surface: rgba(255, 255, 255, 0.58);
   --opale-glass-border: rgba(255, 255, 255, 0.72);
   --opale-glass-shadow: 0 1.25rem 3rem rgba(35, 69, 122, 0.16);
+  /* LA RECETTE DU VERRE LIQUIDE, UNE POUR TOUS. Le matériau `Glass`, la goutte
+     du curseur et la bulle de SiteNav regardent derrière eux avec ce flou et
+     cette saturation : un flou d'à peine un pixel, parce que c'est le
+     déplacement qui fait le verre, pas le dépoli. */
+  --opale-glass-backdrop-blur: 0.75px;
+  --opale-glass-saturate: 1.08;
+  /* Le verre DÉPOLI : la bulle de SiteNav ne réfracte pas, elle floute franchement
+     ce qui passe dessous pour rester lisible sur une photographie. */
+  --opale-glass-frost-blur: 12px;
+  --opale-glass-frost-saturate: 1.45;
+  /* Déprécié depuis 3.7 : aucun composant ne le lit. Le flou du matériau est
+     `--opale-glass-backdrop-blur`. Conservé pour les feuilles qui le lisent. */
   --opale-glass-blur: 18px;
   /* L'ENCRE DU VERRE EST UN JETON, PARCE QU'ELLE DÉPEND DE CE QU'IL Y A DERRIÈRE.
      Un verre est transparent : son texte se lit sur le FOND, pas sur lui. Sur la
@@ -264,6 +303,14 @@
   --opale-glass-ink: #fff;
   --opale-glass-ink-muted: rgba(255, 255, 255, 0.86);
   --opale-glass-scrim: rgba(7, 28, 43, 0.65);
+  /* LES TEINTES FIXES, IDENTIQUES DANS LES DEUX THÈMES. Le blanc des reflets
+     et le bleu nuit des ombres du verre, dosés sur place par `color-mix` ;
+     l'encre qui assombrit un fond au survol ; l'encre sombre posée sur
+     l'ambre, qui reste un jaune vif en thème sombre. */
+  --opale-glass-light: #ffffff;
+  --opale-glass-deep: #071c2b;
+  --opale-shade: #14100b;
+  --opale-on-accent: #241a03;
 
   /* L'OMBRE DOUCE DU FOCUS, ET POURQUOI ELLE A DEUX TONS.
 
@@ -400,6 +447,8 @@
   font-family: var(--opale-font-body);
 }
 
+/* `.opale-dialog` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+   `Modal`. Elle reste pour les pages qui la posent à la main. */
 .opale-surface,
 .opale-card,
 .opale-input-shell,
@@ -494,7 +543,7 @@
 
 .opale-button:disabled {
   cursor: not-allowed;
-  opacity: 0.52;
+  opacity: var(--opale-disabled-opacity);
 }
 
 .opale-button--primary {
@@ -520,18 +569,22 @@
 
 .opale-button--secondary {
   --opale-button-background: var(--opale-secondary-dark);
-  --opale-button-hover-background: color-mix(in srgb, var(--opale-secondary-dark) 86%, #14100b);
+  --opale-button-hover-background: color-mix(
+    in srgb,
+    var(--opale-secondary-dark) 86%,
+    var(--opale-shade)
+  );
 }
 
 .opale-button--accent {
   --opale-button-background: var(--opale-accent);
-  --opale-button-hover-background: color-mix(in srgb, var(--opale-accent) 86%, #14100b);
-  color: #241a03;
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-accent) 86%, var(--opale-shade));
+  color: var(--opale-on-accent);
 }
 
 .opale-button--danger {
   --opale-button-background: var(--opale-danger);
-  --opale-button-hover-background: color-mix(in srgb, var(--opale-danger) 86%, #14100b);
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-danger) 86%, var(--opale-shade));
 }
 
 .opale-button--tonal {
@@ -817,8 +870,8 @@
    souris n'a pas besoin d'anneau. */
 .opale-checkbox:focus-visible + [data-opale-glass],
 .opale-toggle:focus-visible + [data-opale-glass] {
-  --opale-glass-edge: rgba(255, 255, 255, 0.98);
-  --opale-glass-tint: rgba(7, 28, 43, 0.5);
+  --opale-glass-edge: color-mix(in srgb, var(--opale-glass-light) 98%, transparent);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-glass-deep) 50%, transparent);
   box-shadow: var(--opale-glass-focus-halo);
 }
 
@@ -843,7 +896,7 @@
    au lieu d'une photographie. Le champ se lit encore comme du verre — il
    réfracte toujours —, il est simplement moins bavard. */
 .opale-input--glass-root {
-  --opale-glass-tint: rgba(7, 28, 43, 0.42);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-glass-deep) 42%, transparent);
 }
 
 /* L'ENCRE DESCEND JUSQU'AU CHAMP ET JUSQU'À SON TEXTE INDICATIF.
@@ -964,7 +1017,7 @@
   --opale-glass-surface: color-mix(
     in srgb,
     var(--opale-toast-fill, transparent) 38%,
-    rgba(7, 28, 43, 0.5)
+    color-mix(in srgb, var(--opale-glass-deep) 50%, transparent)
   );
 }
 
@@ -1021,7 +1074,7 @@
 .opale-checkbox:checked + .opale-checkbox-mark,
 .opale-checkbox:checked + * .opale-checkbox-mark {
   background: color-mix(in srgb, var(--opale-primary) 82%, transparent);
-  color: #fff;
+  color: var(--opale-glass-ink);
 }
 .opale-checkbox:checked + .opale-checkbox-mark::before,
 .opale-checkbox:checked + * .opale-checkbox-mark::before {
@@ -1092,6 +1145,8 @@
   box-shadow: var(--opale-shadow-3);
 }
 
+/* `.opale-dialog__header`, `.opale-dialog__footer` : Déprécié depuis 3.7 —
+   aucun composant ne les pose, utilisez `Modal`. */
 .opale-card__header,
 .opale-card__footer,
 .opale-selection-bar,
@@ -1367,8 +1422,8 @@
 .opale-multiselect__mark::after {
   width: 0.6rem;
   height: 0.32rem;
-  border-left: 2px solid #fff;
-  border-bottom: 2px solid #fff;
+  border-left: 2px solid var(--opale-on-fill);
+  border-bottom: 2px solid var(--opale-on-fill);
   margin-block-start: -0.12rem;
   content: '';
   opacity: 0;
@@ -1593,10 +1648,14 @@
       (100% - var(--opale-range-bubble-width))
   );
   border-radius: var(--opale-radius-pill);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.3));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--opale-glass-light) 12%, transparent),
+    color-mix(in srgb, var(--opale-glass-light) 30%, transparent)
+  );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--opale-glass-light) 50%, transparent);
   pointer-events: none;
-  transition: inline-size 90ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: inline-size var(--opale-motion-instant) var(--opale-ease-out);
 }
 
 /* LA BULLE.
@@ -1633,12 +1692,13 @@
   border-radius: var(--opale-radius-sm);
   background: radial-gradient(
     120% 120% at 32% 26%,
-    rgba(255, 255, 255, 0.9),
-    rgba(255, 255, 255, 0.24) 46%,
-    rgba(255, 255, 255, 0.1) 74%
+    color-mix(in srgb, var(--opale-glass-light) 90%, transparent),
+    color-mix(in srgb, var(--opale-glass-light) 24%, transparent) 46%,
+    color-mix(in srgb, var(--opale-glass-light) 10%, transparent) 74%
   );
-  backdrop-filter: blur(1px) saturate(1.35);
-  -webkit-backdrop-filter: blur(1px) saturate(1.35);
+  backdrop-filter: blur(var(--opale-glass-backdrop-blur)) saturate(var(--opale-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--opale-glass-backdrop-blur))
+    saturate(var(--opale-glass-saturate));
   /* LE BORD FAIT LE TOUR, et ce n'est pas cosmétique. Le filet spéculaire du
      matériau n'éclaire que le quart haut-gauche — c'est ce qui donne à une
      surface de verre son air d'être éclairée d'en haut. Sur la bulle, cela
@@ -1647,17 +1707,17 @@
      difficile à lire. Le liseré complet et l'ombre portée en dessous donnent
      au contour les deux tons qu'il faut pour se détacher des deux côtés. */
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.75),
-    inset 1px 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 0 8px rgba(255, 255, 255, 0.45),
-    0 3px 10px rgba(7, 28, 43, 0.5);
+    inset 0 0 0 1px color-mix(in srgb, var(--opale-glass-light) 75%, transparent),
+    inset 1px 1px 0 color-mix(in srgb, var(--opale-glass-light) 95%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--opale-glass-light) 45%, transparent),
+    0 3px 10px color-mix(in srgb, var(--opale-glass-deep) 50%, transparent);
   pointer-events: none;
   scale: calc(var(--opale-range-grab, 1) * (1 + var(--opale-range-stretch, 0)))
     calc(var(--opale-range-grab, 1) * (1 - var(--opale-range-stretch, 0) * 0.65));
   transition:
-    inset-inline-start 90ms cubic-bezier(0.22, 1, 0.36, 1),
-    scale 170ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 130ms ease;
+    inset-inline-start var(--opale-motion-instant) var(--opale-ease-out),
+    scale var(--opale-motion-fast) var(--opale-ease-spring),
+    box-shadow var(--opale-motion-fast) var(--opale-ease);
 }
 
 /* LA PRISE. Le dépassement de la courbe au-delà de 1 fait le rebond de la
@@ -1670,10 +1730,10 @@
 
 .opale-range:active ~ .opale-range-bubble {
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
-    inset 1px 1px 0 rgba(255, 255, 255, 1),
-    inset 0 0 10px rgba(255, 255, 255, 0.6),
-    0 5px 16px rgba(7, 28, 43, 0.55);
+    inset 0 0 0 1px color-mix(in srgb, var(--opale-glass-light) 90%, transparent),
+    inset 1px 1px 0 var(--opale-glass-light),
+    inset 0 0 10px color-mix(in srgb, var(--opale-glass-light) 60%, transparent),
+    0 5px 16px color-mix(in srgb, var(--opale-glass-deep) 55%, transparent);
 }
 
 /* LE FOCUS SE POSE SUR LA POIGNÉE, PAS SUR LE RAIL.
@@ -1691,9 +1751,9 @@
    voulue. */
 .opale-range:focus-visible ~ .opale-range-bubble {
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
-    inset 1px 1px 0 rgba(255, 255, 255, 1),
-    inset 0 0 10px rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px color-mix(in srgb, var(--opale-glass-light) 90%, transparent),
+    inset 1px 1px 0 var(--opale-glass-light),
+    inset 0 0 10px color-mix(in srgb, var(--opale-glass-light) 60%, transparent),
     var(--opale-glass-focus-halo);
 }
 
@@ -1749,9 +1809,9 @@
    traverserait le composant depuis le coin haut-gauche à chaque montage. */
 .opale-segmented__indicator[data-animated='true'] {
   transition:
-    transform 0.28s var(--opale-ease),
-    width 0.28s var(--opale-ease),
-    height 0.28s var(--opale-ease);
+    transform var(--opale-motion-slow) var(--opale-ease),
+    width var(--opale-motion-slow) var(--opale-ease),
+    height var(--opale-motion-slow) var(--opale-ease);
 }
 .opale-segmented__item {
   position: relative;
@@ -1775,6 +1835,8 @@
 .opale-segmented--glass .opale-segmented__item[aria-pressed='true'] {
   color: var(--opale-glass-ink);
 }
+/* `.opale-chip` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+   `Badge` (`.opale-badge`), qui partage cette règle. */
 .opale-chip,
 .opale-badge {
   display: inline-flex;
@@ -1841,7 +1903,7 @@
    translation horizontale ; son enfant animé garde ainsi sa glissade verticale. */
 .opale-cookie-banner-anchor {
   position: fixed;
-  z-index: 900;
+  z-index: var(--opale-z-overlay);
   inset-inline-start: 50%;
   inset-block-end: calc(var(--opale-space-lg) + env(safe-area-inset-bottom, 0px));
   width: min(44rem, calc(100vw - 2 * var(--opale-space-lg)));
@@ -2011,12 +2073,19 @@
   color: var(--opale-glass-ink);
 }
 .opale-breadcrumb {
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
+/* Les maillons sont les `<li>` d'un `<ol>` : c'est la liste qui les aligne,
+   sans les numéros d'une liste ordonnée. */
+.opale-breadcrumb ol {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--opale-space-xs);
-  color: var(--opale-text-secondary);
-  font-size: var(--opale-text-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 /* LE LIEN NE SE DISTINGUE PLUS PAR LA SEULE COULEUR. Contre le texte gris qui
    l'entoure, le primaire ne donne que 1,08:1 : en niveaux de gris ou en vision
@@ -2030,14 +2099,18 @@
 .opale-panel {
   padding: var(--opale-space-lg);
 }
+/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-dialog-backdrop` :
+   `Modal` porte son propre voile. La règle reste pour les pages qui la posent. */
 .opale-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: var(--opale-z-modal);
   display: grid;
   place-items: center;
   padding: var(--opale-space-lg);
-  background: rgba(12, 15, 13, 0.46);
+  background: var(--opale-scrim);
+  backdrop-filter: blur(var(--opale-scrim-blur));
+  -webkit-backdrop-filter: blur(var(--opale-scrim-blur));
 }
 /* LE DIALOGUE RESPIRE : UNE GRILLE, ET UNE GOUTTIÈRE ENTRE SES TROIS BANDES.
 
@@ -2048,17 +2121,21 @@
    l'œil doit pouvoir s'arrêter. La gouttière `lg` (1,5 rem) sépare les bandes ;
    le corps garde sa gouttière `sm` entre ses propres lignes, pour que le
    message reste UN bloc et non trois phrases éparses. */
+/* Déprécié depuis 3.7 — `.opale-dialog` et ses parties ne sont posées par
+   aucun composant ; utilisez `Modal`. */
 .opale-dialog {
   display: grid;
   width: min(100%, 34rem);
   padding: var(--opale-space-lg);
   gap: var(--opale-space-lg);
 }
+/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
 .opale-dialog__body {
   display: grid;
   gap: var(--opale-space-sm);
   color: var(--opale-text-secondary);
 }
+/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   border: 0;
   background: transparent;
@@ -2079,6 +2156,28 @@
   display: grid;
   min-width: 0;
   gap: var(--opale-space-xs);
+}
+/* L'option active est désignée par `aria-activedescendant` : le focus reste
+   dans la recherche, donc c'est `aria-selected` qui porte l'anneau. */
+.opale-command-palette__option {
+  display: grid;
+  gap: 0.125rem;
+  border-radius: var(--opale-radius-md);
+  padding: var(--opale-space-sm) var(--opale-space-md);
+  cursor: pointer;
+}
+.opale-command-palette__option[aria-selected='true'] {
+  background: var(--opale-surface-sunken);
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
+}
+.opale-command-palette__option[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: var(--opale-disabled-opacity);
+}
+.opale-command-palette__option-description {
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
 }
 /* La modale en verre a une surface claire opaque : son libellé reprend l'encre
    du dialogue, pas l'encre blanche des composants posés sur une photographie. */
@@ -2125,7 +2224,8 @@
    sous le plancher de 24 px de WCAG 2.5.8 — et sans espacement compensatoire,
    le titre étant collé à côté. Les mêmes boutons de `Modal` (40 px) et de
    `Toast` (32 px) étaient corrects : seul ce chemin-ci était resté en arrière.
-   Il sert encore au `Toast` posé en flux. */
+   Aucun composant ne pose plus cette classe. */
+/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   display: inline-flex;
   inline-size: 2.5rem;
@@ -2209,6 +2309,8 @@
   transform: rotate(18deg);
 }
 
+/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-stat-grid` ; les
+   `StatCard` se rangent dans la grille de l'appelant. */
 .opale-stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
@@ -2420,31 +2522,31 @@
   color: var(--opale-glass-ink);
 }
 .opale-table-panel.opale-surface--glass .opale-table th {
-  background: rgba(8, 27, 43, 0.68);
-  border-bottom-color: rgba(255, 255, 255, 0.5);
+  background: color-mix(in srgb, var(--opale-glass-deep) 68%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--opale-glass-light) 50%, transparent);
 }
 .opale-table-panel.opale-surface--glass .opale-table td {
-  border-bottom-color: rgba(255, 255, 255, 0.32);
+  border-bottom-color: color-mix(in srgb, var(--opale-glass-light) 32%, transparent);
 }
 .opale-table-panel.opale-surface--glass .opale-table__count,
 .opale-table-panel.opale-surface--glass .opale-table__sort[data-sort] {
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--opale-glass-light) 16%, transparent);
 }
 .opale-table-panel.opale-surface--glass .opale-table__count,
 .opale-table-panel.opale-surface--glass .opale-table__state {
   color: var(--opale-glass-ink);
 }
 .opale-table-panel.opale-surface--glass .opale-table__state .opale-spinner {
-  border-color: rgba(255, 255, 255, 0.28);
+  border-color: color-mix(in srgb, var(--opale-glass-light) 28%, transparent);
   border-top-color: var(--opale-glass-ink);
 }
 .opale-table-panel.opale-surface--glass .opale-table__sort:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--opale-glass-light) 20%, transparent);
   color: var(--opale-glass-ink);
 }
 .opale-table-panel.opale-surface--glass .opale-table {
-  --opale-table-stripe: rgba(255, 255, 255, 0.065);
-  --opale-table-row-hover: rgba(255, 255, 255, 0.13);
+  --opale-table-stripe: color-mix(in srgb, var(--opale-glass-light) 6.5%, transparent);
+  --opale-table-row-hover: color-mix(in srgb, var(--opale-glass-light) 13%, transparent);
 }
 
 .opale-file-card {
@@ -2558,6 +2660,8 @@
    changement d'ordre au bundler pour que le dialogue devienne un plan noir
    portant de l'encre presque noire. Le second `.opale-lightbox img` écrasait
    d'ailleurs déjà la hauteur voulue par la règle qui reste plus haut. */
+/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-upload-list`. La
+   règle reste pour les pages qui la posent à la main. */
 .opale-upload-list {
   display: grid;
   gap: var(--opale-space-xs);
@@ -2725,7 +2829,7 @@
 }
 .opale-svg-map-controls [aria-disabled='true'] {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
 }
 /* L'INFOBULLE DIT LE NOM, et rien d'autre : le nom accessible de la région le
    dit déjà aux lecteurs d'écran, elle est donc cachée de l'arbre. */
@@ -2868,7 +2972,7 @@
      — le cas le plus fréquent — était peinte derrière le voile, illisible, et
      sa croix inatteignable : le clic tombait sur le voile, qui fermait le
      dialogue. `ToastProvider` avait déjà choisi 1100 pour cette raison. */
-  z-index: 1100;
+  z-index: var(--opale-z-toast);
   display: flex;
   /* LES MESSAGES D'UNE MÊME PLACE S'EMPILENT. L'ancre est partagée : deux
      cartes y sont deux éléments, posés l'un sous l'autre au lieu de se
@@ -3061,7 +3165,7 @@
   font-style: italic;
 }
 .opale-dropzone[data-disabled='true'] {
-  opacity: 0.55;
+  opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
 .opale-dropzone__error:not(:empty) {
@@ -3118,8 +3222,48 @@
   color: var(--opale-on-fill);
 }
 .opale-pagination button:disabled {
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
+}
+
+/* LA NOTE, LE LIEN, LE FIL D'ARIANE ET LA PAGINATION SOUS VERRE. L'enveloppe
+   épouse le contenu ; le contenu garde sa balise et son rôle, et prend l'encre
+   du matériau. Le lien reste souligné : sa couleur ne le distingue plus du
+   texte voisin (WCAG 1.4.1). */
+.opale-rating--glass-root,
+.opale-link--glass-root {
+  --opale-glass-radius: var(--opale-radius-pill);
+  display: inline-flex;
+  vertical-align: middle;
+}
+.opale-breadcrumb--glass-root,
+.opale-pagination--glass-root {
+  --opale-glass-radius: var(--opale-radius-md);
+}
+.opale-rating--glass,
+.opale-link--glass {
+  display: flex;
+  align-items: center;
+}
+.opale-rating--glass,
+.opale-link--glass,
+.opale-breadcrumb--glass,
+.opale-pagination--glass {
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+}
+.opale-link--glass,
+.opale-link--glass:hover,
+.opale-breadcrumb--glass,
+.opale-breadcrumb--glass a {
+  color: var(--opale-glass-ink);
+}
+.opale-link--glass {
+  text-decoration: underline;
+}
+.opale-pagination--glass button:not([aria-current='page']) {
+  border-color: color-mix(in srgb, var(--opale-glass-ink) 32%, transparent);
+  background: color-mix(in srgb, var(--opale-glass-ink) 10%, transparent);
+  color: var(--opale-glass-ink);
 }
 .opale-rating-input {
   margin: 0;
@@ -3165,7 +3309,7 @@
   pointer-events: none;
 }
 .opale-rating-input:disabled .opale-rating-input__option {
-  opacity: 0.5;
+  opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
 

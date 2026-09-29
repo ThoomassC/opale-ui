@@ -98,21 +98,13 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
     [query, searchablePages],
   );
 
-  /* TROIS ÉTATS ET NON DEUX, ET LA DISTINCTION EST ARRIVÉE PAR UN TEST ROUGE.
-
-     Il n'y avait qu'un drapeau, `isOpen && requête non vide`, qui servait à la
-     fois d'`aria-expanded` et de condition d'affichage. Depuis que la liste est
-     masquée quand elle n'a aucune option — pour ne pas exposer une `listbox`
-     sans `option`, ce qu'ARIA interdit —, les deux ne sont plus la même chose :
-     une requête sans résultat donnait `aria-expanded="true"` et un
-     `aria-controls` vers un élément retiré de l'arbre. C'est-à-dire l'annonce
-     d'une liste déployée alors qu'il n'y en a aucune.
-
+  /* Trois états distincts :
      — `hasQuery` : il y a quelque chose à chercher ;
-     — `isPanelOpen` : le panneau est ouvert, résultats ou message d'absence.
-       C'est l'état que `Échap` referme, et c'est lui qui décide du message ;
-     — `isListShown` : la liste est réellement affichée, donc réellement dans
-       l'arbre. C'est LUI que `aria-expanded` doit dire, et lui seul. */
+     — `isPanelOpen` : le panneau est ouvert, résultats ou message d'absence ;
+       c'est lui que `Échap` referme ;
+     — `isListShown` : la `listbox` est dans l'arbre, avec au moins une option.
+       C'est lui seul que dit `aria-expanded` : ARIA interdit une `listbox`
+       sans `option`. */
   const hasQuery = query.trim().length > 0;
   const isPanelOpen = isOpen && hasQuery;
   const isListShown = isPanelOpen && suggestions.length > 0;
@@ -123,48 +115,21 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
     setActiveIndex(-1);
   }
 
-  /* LE PANNEAU DOIT SUIVRE L'OPTION DÉSIGNÉE, ET RIEN NE LE FAISAIT.
-     `aria-activedescendant` déplace la désignation dans l'arbre
-     d'accessibilité ; il ne fait défiler AUCUN pixel. Mesuré sur un téléphone
-     couché (667 × 375) : 382 px de rangées dans une lucarne de 223 px, et
-     après cinq ↓ l'option courante avait son bord haut à 304 px pour un
-     panneau qui s'arrête à 288 — hors champ, `scrollTop` à 0. Le lecteur
-     d'écran annonçait la bonne option, l'écran n'en montrait aucune, et
-     `Entrée` ouvrait une page que personne n'avait vue désignée.
-
-     Ni l'APG ni ARIA 1.2 n'exigent ce défilement — vérifié aux deux sources.
-     Le fondement est WCAG 1.4.11 et 2.4.7 : un état qu'on ne peut pas voir
-     n'est pas un état.
-
-     `block: 'nearest'` et non `'center'` : le minimum de mouvement qui rende
-     l'option visible, pas un panneau qui se recentre à chaque flèche.
-
-     L'APPEL EST OPTIONNEL (`?.`) PARCE QUE jsdom NE L'IMPLÉMENTE PAS — même
-     arbitrage que `doc-shell.tsx`, qui emploie `scrollTop` plutôt que
-     `window.scrollTo` pour cette raison. Ici il n'y a pas d'équivalent, donc
-     l'appel est sauté sous test au lieu d'y lever.
-
-     `children[activeIndex]` ET NON UN SÉLECTEUR D'IDENTIFIANT : quand il y a
-     des suggestions, les `<li>` sont les seuls enfants de la liste — la rangée
-     « aucun résultat » est hors du `<ul>` —, donc l'index EST la position. Un
-     sélecteur demanderait `CSS.escape`, que jsdom n'a pas non plus. */
+  /* Le panneau fait défiler l'option désignée jusqu'à la rendre visible :
+     `aria-activedescendant` ne déplace aucun pixel, et une option désignée
+     hors champ n'est pas visible (WCAG 1.4.11, 2.4.7). `block: 'nearest'`
+     bouge le moins possible. L'appel est optionnel parce que jsdom ne
+     l'implémente pas ; l'index des enfants est la position de l'option, la
+     rangée « aucun résultat » vivant hors du `<ul>`. */
   useEffect(() => {
     if (activeIndex < 0) return;
     const option = listRef.current?.children[activeIndex];
     if (option instanceof HTMLElement) option.scrollIntoView?.({ block: 'nearest' });
   }, [activeIndex]);
 
-  /* L'ANNONCE EST DIFFÉRÉE, ET LE COMMENTAIRE QUI DISAIT LE CONTRAIRE ÉTAIT
-     FAUX. Il affirmait que `aria-live="polite"` « attend une pause dans la
-     frappe ». Non : `polite` MET EN FILE et rend la main à l'énoncé en cours,
-     il ne regroupe ni ne remplace. Mesuré sur le mot « button » — trois
-     mutations du nœud pour six lettres : « 6 pages trouvées. », « 2 pages
-     trouvées. », « 1 page trouvée. ». NVDA et JAWS énoncent chacune dès qu'ils
-     ont fini la précédente.
-
-     400 ms, et le report porte UNIQUEMENT sur la chaîne annoncée. Le filtrage
-     reste immédiat : ce qu'on voit ne doit pas attendre. C'est la seule
-     temporisation du composant, et elle n'est pas là pour la performance. */
+  /* Le compte annoncé attend 400 ms de calme dans la frappe : `aria-live="polite"`
+     met les annonces en file sans les regrouper. Le filtrage affiché, lui,
+     reste immédiat. */
   const [announced, setAnnounced] = useState('');
   const message = countMessage(query, total, language);
 
@@ -209,43 +174,13 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
       return;
     }
 
-    /* `Début` ET `Fin` NE SONT PLUS INTERCEPTÉES. Elles désignaient la première
-       et la dernière suggestion, `preventDefault` compris — ce que l'APG
-       autorise pour un combobox NON éditable, et refuse pour un champ de
-       saisie : « if the combobox is editable, returns focus to the combobox and
-       places the cursor on the first character ». Elle les marque en outre
-       OPTIONNELLES.
-
-       Le coût était mesuré : requête « buton », l'utilisateur voit sa faute au
-       début et appuie sur `Début` — `selectionStart` restait où il était, le
-       curseur ne bougeait pas, et la première suggestion se désignait à sa
-       place. Au clavier seul il ne restait que ← répété ; pour qui relit son
-       champ à la synthèse vocale avec `Début`/`Fin`, la relecture était
-       impossible dès qu'il y avait un résultat.
-
-       On perd un raccourci optionnel, on rend l'édition du texte. */
+    /* `Début` et `Fin` restent au champ : sur un combobox éditable, l'APG les
+       rend au déplacement du curseur dans le texte. */
 
     if (event.key === 'Enter') {
-      /* `preventDefault` AVANT LE TEST, ET C'EST LA CORRECTION D'UNE
-         CONTRADICTION AVEC LE COMMENTAIRE DE CETTE FONCTION. Il promet dix
-         lignes plus haut qu'`Entrée` est neutralisée « parce qu'un champ de
-         recherche qui dépend de l'absence de formulaire est un champ
-         fragile » — et l'appel était À L'INTÉRIEUR du `if`, donc il ne
-         couvrait que le chemin qui navigue déjà.
-
-         Le chemin non couvert était le MAJORITAIRE : taper « b » puis `Entrée`
-         sans avoir touché aux flèches. Enveloppé d'un `<form>`, le composant
-         soumettait — page rechargée, requête perdue. Mesuré touche par touche
-         sur `defaultPrevented` : toutes à `true` sauf `Entrée` sans option, à
-         `false`. Latent aujourd'hui, `doc-shell.tsx` ne posant aucun
-         formulaire ; armé au premier qui en poserait un.
-
-         SANS SUGGESTION COURANTE, `Entrée` NE FAIT TOUJOURS RIEN — et surtout
-         pas « ouvrir la première ». Valider une page qu'on n'a pas désignée
-         est le genre de raccourci qui envoie ailleurs celui qui tapait encore.
-         Neutraliser la touche et ne rien faire sont deux choses distinctes ;
-         c'est la seconde qui est le comportement, la première n'est qu'une
-         précaution. */
+      /* `Entrée` est toujours neutralisée, pour qu'un `<form>` englobant ne soit
+         jamais soumis. Elle n'ouvre que la suggestion désignée ; sans
+         désignation, elle ne fait rien — surtout pas ouvrir la première. */
       event.preventDefault();
       if (activeSuggestion) {
         choose(activeSuggestion.page.slug);
@@ -288,22 +223,9 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
         close();
       }}
     >
-      {/* UN VRAI `<label>`, MASQUÉ VISUELLEMENT, et non un `placeholder` seul :
-          celui-ci disparaît à la première frappe, donc le champ perdrait son
-          nom au moment où il en a le plus besoin. Vérifié dans l'arbre — le nom
-          reste « Rechercher une page » pendant la saisie, jamais le
-          `placeholder`.
-
-          CE COMMENTAIRE AJOUTAIT « et un `aria-label` n'est pas cliquable,
-          alors qu'un label agrandit la cible pour tout le monde ». C'ÉTAIT
-          FAUX ICI : ce label est `.tc-visually-hidden`, donc un rectangle de
-          1 × 1 px — il n'agrandit rien du tout. Ce qui agrandit la cible est
-          `align-self: stretch` sur le champ, dans `doc.css`. L'argument qui
-          reste, et il suffit, est celui du nom qui survit à la frappe.
-
-          Le `placeholder` dit « Rechercher », strictement contenu dans le nom
-          accessible : c'est ce que demande 2.5.3 pour qui pilote à la voix. Il
-          disait « Rechercher… », dont l'ellipse cassait la containment. */}
+      {/* Un vrai `<label>`, masqué visuellement : le nom « Rechercher une page »
+         survit à la frappe, contrairement au `placeholder`. Le `placeholder` est
+         contenu dans le nom accessible (WCAG 2.5.3). */}
       <label className="tc-visually-hidden" htmlFor={inputId}>
         {copy.searchLabel}
       </label>

@@ -220,11 +220,12 @@ export default function SidebarContent() {
                 <code>SidebarProps</code> étend{' '}
                 <code>ComponentPropsWithoutRef&lt;&apos;aside&apos;&gt;</code> — moins son{' '}
                 <code>onToggle</code> du DOM, voir plus bas — et reprend{' '}
-                <strong>quatre props nommées</strong> de <code>GlassProps</code> :{' '}
-                <code>rootClassName</code>, <code>rootStyle</code>,{' '}
-                <code>enableLiquidAnimation</code>, <code>triggerAnimation</code>. Il n’intersecte
-                plus <code>GlassProps</code> en entier, qui apportait le <code>as</code> du verre —
-                de quoi remplacer l’
+                <strong>des props nommées</strong> de <code>GlassProps</code> :{' '}
+                <code>rootClassName</code> et <code>rootStyle</code>, qui atteignent l’enveloppe du
+                verre ; <code>enableLiquidAnimation</code> et <code>triggerAnimation</code> restent
+                acceptés mais sont dépréciés depuis 3.7. Il n’intersecte plus{' '}
+                <code>GlassProps</code> en entier, qui apportait le <code>as</code> du verre — de
+                quoi remplacer l’
                 <code>&lt;aside&gt;</code> — et tous les attributs d’un <code>&lt;div&gt;</code>.
                 Chaque sous-composant étend l’élément qu’il rend — <code>&apos;div&apos;</code> pour
                 l’en-tête et le pied, <code>&apos;nav&apos;</code> pour <code>.Items</code>,{' '}

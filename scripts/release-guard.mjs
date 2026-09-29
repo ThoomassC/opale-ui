@@ -83,3 +83,17 @@ export function isBreakingEntry(releasesSource, version) {
   const entry = releasesSource.slice(start, next === -1 ? undefined : next);
   return /\bbreaking:\s*true\b/.test(entry);
 }
+
+/* LIV-08 — LES VERSIONS SORTENT DE `recette`. */
+const RELEASE_BRANCH = 'recette';
+
+/** Pourquoi on ne publie pas depuis `branch`, ou `null`. */
+export function branchBlocker(branch) {
+  if (branch === 'HEAD') {
+    return `HEAD est détachée : placez-vous sur ${RELEASE_BRANCH} pour publier.`;
+  }
+  if (branch !== RELEASE_BRANCH) {
+    return `On publie depuis ${RELEASE_BRANCH}, pas depuis « ${branch} ».`;
+  }
+  return null;
+}

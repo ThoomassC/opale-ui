@@ -42,7 +42,7 @@
      mouvement — rien ne se déplace, rien ne change de taille : une ombre prend
      sa densité. Le bloc anti-mouvement plus bas la coupe malgré tout, et c'est
      sans conséquence : l'indicateur est déjà là à la première image. */
-  transition: box-shadow 130ms ease;
+  transition: box-shadow var(--opale-motion-fast) var(--opale-ease);
 }
 
 /* LA RÉFRACTION EST LA SEULE COUCHE QUI REGARDE DERRIÈRE.
@@ -59,15 +59,37 @@
   z-index: 0;
   border-radius: inherit;
   inset: 0;
-  backdrop-filter: blur(0.75px) saturate(1.08);
-  -webkit-backdrop-filter: blur(0.75px) saturate(1.08);
+  backdrop-filter: blur(var(--opale-glass-backdrop-blur)) saturate(var(--opale-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--opale-glass-backdrop-blur))
+    saturate(var(--opale-glass-saturate));
   filter: url('#opale-glass-displacement');
   isolation: isolate;
   transform: scale(1.018);
   transform-origin: center;
   transition:
-    filter 0.3s ease,
-    transform 0.3s ease;
+    filter var(--opale-motion-slow) var(--opale-ease),
+    transform var(--opale-motion-slow) var(--opale-ease);
+}
+
+/* LE DÉPLACEMENT SE COUPE LÀ OÙ IL COÛTE LE PLUS OU SERT LE MOINS.
+
+   Le filtre SVG — bruit fractal puis déplacement — est recalculé à chaque
+   peinture de chaque verre, par-dessus le `backdrop-filter`. Il est retiré :
+   — pour qui demande moins de transparence ou moins de mouvement : le
+     gauchissement de l'arrière-plan est un effet, pas une information ;
+   — sur les petits écrans et sous un pointeur grossier, où le processeur
+     graphique est le plus souvent celui d'un téléphone ou d'une tablette.
+   Le flou, la saturation et la teinte restent : la matière se lit toujours
+   comme du verre. L'agrandissement ne servait qu'à masquer les bords du
+   déplacement ; il part avec lui. */
+@media (prefers-reduced-transparency: reduce),
+  (prefers-reduced-motion: reduce),
+  (max-width: 37.499rem),
+  (pointer: coarse) {
+  .refraction {
+    filter: none;
+    transform: none;
+  }
 }
 
 /* LE LAVIS A SON PROPRE JETON, ET LE NOM COMPTE.
@@ -91,10 +113,18 @@
   inset: 0;
   overflow: hidden;
   background:
-    radial-gradient(88% 125% at 8% 0%, rgba(255, 255, 255, 0.2), transparent 52%),
-    radial-gradient(80% 120% at 100% 100%, rgba(5, 35, 48, 0.16), transparent 58%),
-    var(--opale-glass-tint, rgba(255, 255, 255, 0.06));
-  transition: background 0.3s ease;
+    radial-gradient(
+      88% 125% at 8% 0%,
+      color-mix(in srgb, var(--opale-glass-light) 20%, transparent),
+      transparent 52%
+    ),
+    radial-gradient(
+      80% 120% at 100% 100%,
+      color-mix(in srgb, var(--opale-glass-deep) 16%, transparent),
+      transparent 58%
+    ),
+    var(--opale-glass-tint, color-mix(in srgb, var(--opale-glass-light) 6%, transparent));
+  transition: background var(--opale-motion-slow) var(--opale-ease);
 }
 
 .specular {
@@ -104,9 +134,11 @@
   inset: 0;
   overflow: hidden;
   box-shadow:
-    inset 1px 1px 0 var(--opale-glass-edge, rgba(255, 255, 255, 0.32)),
-    inset 0 0 5px var(--opale-glass-edge, rgba(255, 255, 255, 0.32));
-  transition: box-shadow 0.3s ease;
+    inset 1px 1px 0
+      var(--opale-glass-edge, color-mix(in srgb, var(--opale-glass-light) 32%, transparent)),
+    inset 0 0 5px
+      var(--opale-glass-edge, color-mix(in srgb, var(--opale-glass-light) 32%, transparent));
+  transition: box-shadow var(--opale-motion-slow) var(--opale-ease);
 }
 
 /* L'onde part du point cliqué. `translate(-50%, -50%)` la centre sur ce point
@@ -119,12 +151,12 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0.1) 40%,
+    color-mix(in srgb, var(--opale-glass-light) 30%, transparent) 0%,
+    color-mix(in srgb, var(--opale-glass-light) 10%, transparent) 40%,
     transparent 70%
   );
   pointer-events: none;
-  animation: opale-glass-ripple 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: opale-glass-ripple var(--opale-motion-slower) var(--opale-ease-spring);
 }
 
 /* LE CONTENU HÉRITE DE L'ENCRE DU MATÉRIAU, ET C'EST UN FILET DE SÉCURITÉ.
@@ -157,7 +189,7 @@
 .content {
   position: relative;
   z-index: 3;
-  color: var(--opale-glass-ink, #fff);
+  color: var(--opale-glass-ink);
 }
 
 .content:where(button, input, select, textarea) {
@@ -171,7 +203,7 @@
 }
 
 .squishing {
-  animation: opale-glass-squish 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: opale-glass-squish var(--opale-motion-slower) var(--opale-ease-spring);
 }
 
 @keyframes opale-glass-ripple {
@@ -210,8 +242,9 @@
 }
 
 /* WCAG 2.3.3 — l'onde et l'écrasement sont du mouvement non essentiel : ils
-   s'effacent pour qui demande moins d'animation. La réfraction, elle, reste :
-   c'est une apparence, pas un mouvement. */
+   s'effacent pour qui demande moins d'animation. Le flou de la réfraction,
+   lui, reste : c'est une apparence, pas un mouvement. Son déplacement est
+   coupé plus haut. */
 
 /* =============================================================================
    LE FOCUS EST UNE OMBRE DOUCE, ET RIEN D'AUTRE.
@@ -293,8 +326,8 @@
    couvre ce cas. */
 .glass:has(:focus-visible),
 .glass[data-opale-glass-focus='true'] {
-  --opale-glass-edge: rgba(255, 255, 255, 0.98);
-  --opale-glass-tint: rgba(7, 28, 43, 0.5);
+  --opale-glass-edge: color-mix(in srgb, var(--opale-glass-light) 98%, transparent);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-glass-deep) 50%, transparent);
   /* LA VALEUR DE REPLI N'EST PAS UNE COQUETTERIE. Ce module est toujours
      livré avec le composant ; `opale.css`, qui porte le jeton, doit être
      importé par le consommateur. S'il ne l'est pas, une `box-shadow` réduite
@@ -302,8 +335,8 @@
      disparaîtrait en silence. Le repli est la valeur du thème clair. */
   box-shadow: var(
     --opale-glass-focus-halo,
-    0 0 4px 2px rgba(255, 255, 255, 1),
-    0 0 12px 8px rgba(7, 28, 43, 0.9)
+    0 0 4px 2px var(--opale-glass-light),
+    0 0 12px 8px color-mix(in srgb, var(--opale-glass-deep) 90%, transparent)
   );
 }
 
@@ -320,10 +353,9 @@
 
      — IL NE SE RÉPÈTE PAS. Une seule passe, pas d'`infinite`.
 
-     — IL EST COURT. 240 ms contre les 800 ms de la version d'avant. Au-delà
-       d'un quart de seconde, un retour d'appui cesse d'être un retour et
-       devient une attente — et l'écrasement précédent durait plus longtemps
-       que le clic lui-même.
+     — IL EST COURT : `--opale-motion`, 220 ms. Au-delà d'un quart de
+       seconde, un retour d'appui cesse d'être un retour et devient une
+       attente — plus long que le clic lui-même.
 
      — IL EST PETIT. L'amplitude reste sous 4 % : la boîte ne bouge pas, donc
        rien ne se décale autour et aucun voisin ne saute. C'est ce qui permet
@@ -340,7 +372,7 @@
    c'est ce dépassement qui fait le rebond. Sans lui, on aurait un
    rétrécissement mou. */
 .glass[data-opale-glass-press='true']:active {
-  animation: opale-glass-press 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: opale-glass-press var(--opale-motion) var(--opale-ease-spring);
 }
 
 @keyframes opale-glass-press {

@@ -182,13 +182,14 @@ export default function TopbarContent() {
               <>
                 <code>TopbarProps</code> étend{' '}
                 <code>ComponentPropsWithoutRef&lt;&apos;header&apos;&gt;</code> et reprend{' '}
-                <strong>quatre props nommées</strong> de <code>GlassProps</code> —{' '}
-                <code>rootClassName</code>, <code>rootStyle</code>,{' '}
-                <code>enableLiquidAnimation</code>, <code>triggerAnimation</code>. Il n’intersecte
-                plus <code>GlassProps</code> en entier : cela exposait le <code>as</code> du verre,
-                avec lequel un appelant pouvait remplacer le <code>&lt;header&gt;</code> — donc
-                faire disparaître le point de repère <code>banner</code> — en passant une prop
-                qu’aucune documentation ne mentionnait. <code>Topbar.useTopbar()</code> ne rend que{' '}
+                <strong>des props nommées</strong> de <code>GlassProps</code> —{' '}
+                <code>rootClassName</code> et <code>rootStyle</code>, qui atteignent l’enveloppe du
+                verre ; <code>enableLiquidAnimation</code> et <code>triggerAnimation</code> restent
+                acceptés mais sont dépréciés depuis 3.7. Il n’intersecte plus{' '}
+                <code>GlassProps</code> en entier : cela exposait le <code>as</code> du verre, avec
+                lequel un appelant pouvait remplacer le <code>&lt;header&gt;</code> — donc faire
+                disparaître le point de repère <code>banner</code> — en passant une prop qu’aucune
+                documentation ne mentionnait. <code>Topbar.useTopbar()</code> ne rend que{' '}
                 <code>{'{ size }'}</code> — c’est tout ce que le contexte porte.
               </>
             }

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { declaration, declarations } from '../test/css-rules';
@@ -43,5 +43,37 @@ describe('Dropzone', () => {
     const action = screen.getByText('Sélectionner des fichiers');
     expect(action).toHaveClass('opale-dropzone__action');
     expect(declaration(opaleSource, '.opale-dropzone__action', 'font-style')).toBe('italic');
+  });
+
+  describe('le nom et l’erreur', () => {
+    /* jsdom ne blockifie pas les rangées de la grille : il colle les deux textes. */
+    const NAME = /^Ajoutez vos fichiers\s?Sélectionner des fichiers$/;
+    const reject = (input: HTMLInputElement) =>
+      fireEvent.change(input, {
+        target: { files: [new File(['a'], 'a.txt'), new File(['b'], 'b.txt')] },
+      });
+
+    it('garde le titre et l’action pour nom, et décrit l’erreur hors du libellé', () => {
+      const { container } = render(<Dropzone maxFiles={1} />);
+      const input = container.querySelector<HTMLInputElement>('input[type="file"]');
+      if (!input) throw new Error('champ de fichier absent');
+
+      expect(input).toHaveAccessibleName(NAME);
+      reject(input);
+
+      const alert = screen.getByRole('alert');
+      expect(alert).toHaveTextContent('Sélectionnez au maximum 1 fichier.');
+      expect(alert.closest('label')).toBeNull();
+      expect(input).toHaveAccessibleName(NAME);
+      expect(input).toHaveAccessibleDescription('Sélectionnez au maximum 1 fichier.');
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    it('ne décrit rien tant qu’il n’y a pas d’erreur', () => {
+      const { container } = render(<Dropzone />);
+      const input = container.querySelector<HTMLInputElement>('input[type="file"]');
+
+      expect(input).not.toHaveAttribute('aria-describedby');
+    });
   });
 });

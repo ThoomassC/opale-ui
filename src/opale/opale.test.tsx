@@ -647,6 +647,16 @@ describe('le nom des champs ne contient que leur libellé', () => {
         'soulignement, rien ne dit qu’un maillon est cliquable (WCAG 1.4.1).',
     ).toBe('underline');
   });
+
+  /* Les maillons vivent dans un `<ol>` : c'est lui qui les aligne, sans les
+     numéros par défaut d'une liste ordonnée. */
+  it('aligne les maillons du fil d’Ariane sur une ligne, sans numéros', () => {
+    const list = declarations(opaleSheet, '.opale-breadcrumb ol');
+    expect(list.get('display')).toBe('flex');
+    expect(list.get('list-style')).toBe('none');
+    expect(list.get('margin')).toBe('0');
+    expect(list.get('padding')).toBe('0');
+  });
 });
 
 /* =============================================================================

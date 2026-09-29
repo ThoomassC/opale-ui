@@ -1,5 +1,6 @@
-import { useId, type ComponentPropsWithRef } from 'react';
+import { useId, useLayoutEffect, useRef, type ComponentPropsWithRef } from 'react';
 
+import Glass from './components/glass/Glass';
 import { IconGlyph } from './components/icon';
 import { resolveLabels } from './shared/labels';
 import { useControllableState } from './shared/use-controllable-state';
@@ -73,6 +74,8 @@ export interface PaginationProps extends Omit<
   label?: string;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<PaginationLabels>;
+  /** Pose la pagination sur le matériau « verre liquide ». Originale par défaut. */
+  liquidGlass?: boolean;
 }
 
 /** Pagination contrôlable, utilisable au clavier avec des boutons natifs. */
@@ -86,6 +89,7 @@ export function Pagination({
   disabled = false,
   label,
   labels: labelsProp,
+  liquidGlass = false,
   className,
   ...rest
 }: PaginationProps) {
@@ -99,6 +103,21 @@ export function Pagination({
     setRequested(next);
     onChange?.(next);
   };
+  const stepRef = useRef<HTMLButtonElement | null>(null);
+  /* UNE FLÈCHE QUI DEVIENT INACTIVE SOUS LE FOCUS le rendrait à `<body>` :
+     il passe alors au bouton de la page courante. */
+  useLayoutEffect(() => {
+    const step = stepRef.current;
+    stepRef.current = null;
+    if (!step?.disabled) return;
+    const active = document.activeElement;
+    if (active !== step && active !== document.body && active !== null) return;
+    step.parentElement?.querySelector<HTMLButtonElement>('button[aria-current="page"]')?.focus();
+  });
+  const stepTo = (button: HTMLButtonElement, next: number) => {
+    stepRef.current = button;
+    choose(next);
+  };
   const total = Number.isFinite(pageCount) ? Math.max(0, Math.floor(pageCount)) : 0;
   const current = Number.isFinite(requested)
     ? Math.max(1, Math.min(total || 1, Math.floor(requested)))
@@ -106,16 +125,23 @@ export function Pagination({
   const visible = [...new Set([1, current - 1, current, current + 1, total])]
     .filter((number) => number >= 1 && number <= total)
     .sort((a, b) => a - b);
+  const Shell = liquidGlass ? Glass : 'nav';
+  const shellProps = liquidGlass
+    ? ({ as: 'nav', rootClassName: 'opale-pagination--glass-root' } as const)
+    : {};
   return (
-    <nav
+    <Shell
       aria-label={label ?? labels.navigation}
       {...rest}
-      className={['opale-pagination', className].filter(Boolean).join(' ')}
+      {...shellProps}
+      className={['opale-pagination', liquidGlass && 'opale-pagination--glass', className]
+        .filter(Boolean)
+        .join(' ')}
     >
       <button
         type="button"
         disabled={disabled || current <= 1}
-        onClick={() => choose(current - 1)}
+        onClick={(event) => stepTo(event.currentTarget, current - 1)}
         aria-label={labels.previous}
       >
         ‹
@@ -150,12 +176,12 @@ export function Pagination({
       <button
         type="button"
         disabled={disabled || total === 0 || current >= total}
-        onClick={() => choose(current + 1)}
+        onClick={(event) => stepTo(event.currentTarget, current + 1)}
         aria-label={labels.next}
       >
         ›
       </button>
-    </nav>
+    </Shell>
   );
 }
 

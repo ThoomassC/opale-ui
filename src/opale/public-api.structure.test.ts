@@ -37,6 +37,7 @@ const EXPORT_NAMES = [
   'Clipboard',
   'ClipboardProps',
   'CommandPalette',
+  'CommandPaletteItem',
   'CommandPaletteLabels',
   'CommandPaletteProps',
   'ConfirmDialog',

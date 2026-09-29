@@ -91,6 +91,8 @@ const FILTER_ID = 'opale-glass-displacement';
    seul `<svg>`. Le compteur vit au niveau du module — il est donc partagé par
    toutes les instances, ce qui est exactement la portée voulue. */
 let mountedGlassCount = 0;
+/** Le `<svg>` que le verre a créé ; celui d'un hôte ne lui appartient pas. */
+let ownedFilterHost: SVGSVGElement | null = null;
 
 function ensureFilterMounted(): () => void {
   mountedGlassCount += 1;
@@ -113,11 +115,15 @@ function ensureFilterMounted(): () => void {
         <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="12" xChannelSelector="R" yChannelSelector="G" />
       </filter>`;
     document.body.append(svg);
+    ownedFilterHost = svg;
   }
 
   return () => {
     mountedGlassCount -= 1;
-    if (mountedGlassCount === 0) document.getElementById(FILTER_ID)?.closest('svg')?.remove();
+    if (mountedGlassCount === 0) {
+      ownedFilterHost?.remove();
+      ownedFilterHost = null;
+    }
   };
 }
 
@@ -125,8 +131,14 @@ export type GlassProps<T extends ElementType = 'div'> = {
   /** L'élément rendu pour le CONTENU. L'enveloppe reste un `<div>`. */
   readonly as?: T;
   readonly children?: ReactNode;
-  /** Classe posée sur l'enveloppe, celle qui porte la silhouette et l'ombre. */
+  /**
+   * Classe posée sur l'enveloppe, celle qui porte la silhouette et l'ombre.
+   *
+   * Seul accès à l'enveloppe depuis l'appel : `className` et `style` vont au
+   * contenu. Sur un composant en version pleine, elle rejoint l'élément unique.
+   */
   readonly rootClassName?: string;
+  /** Style posé sur l'enveloppe — largeur, marges, position. Même portée que `rootClassName`. */
   readonly rootStyle?: CSSProperties;
   /** Fait naître une onde au point cliqué. */
   readonly enableLiquidAnimation?: boolean;
@@ -145,7 +157,18 @@ export type GlassSurfaceProps = Pick<
   'rootClassName' | 'rootStyle' | 'enableLiquidAnimation' | 'triggerAnimation'
 >;
 
-const RIPPLE_MS = 800;
+/* LES RÉGLAGES D'ONDE QU'UNE SURFACE ACCEPTE ENCORE. Une barre, un rail ou un
+   bandeau d'onglets ne sont pas des cibles d'activation : l'onde y est interne
+   au matériau. Les deux props gardent leur effet, sans être recommandées. */
+export type LegacySurfaceAnimationProps = {
+  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; une surface ne fait pas naître d'onde au clic. */
+  readonly enableLiquidAnimation?: boolean;
+  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; l'onde programmée est interne au matériau. */
+  readonly triggerAnimation?: boolean;
+};
+
+/* La durée de l'onde, `--opale-motion-slower` dans `Glass.module.css`. */
+const RIPPLE_MS = 600;
 
 function GlassInner<T extends ElementType = 'div'>(
   {

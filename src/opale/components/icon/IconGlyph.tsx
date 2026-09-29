@@ -3,8 +3,8 @@ import { OPALE_ICONS, type OpaleIconName } from './icons';
 /**
  * Le tracé d'une icône du jeu, sans enveloppe ni mise en forme.
  *
- * IL VIT ICI ET NON DANS `opale.tsx` pour une raison de dépendances : `Modal`
- * a besoin d'une croix dessinée, et `opale.tsx` importe `Modal`. Lui faire
+ * IL VIT ICI ET NON DANS LE CATALOGUE pour une raison de dépendances : `Modal`
+ * a besoin d'une croix dessinée, et le catalogue importe `Modal`. Lui faire
  * remonter `Icon` fermerait le cycle. Le jeu d'icônes, lui, ne dépend de rien.
  *
  * `aria-hidden` EST SUR LE `<svg>` ET NON SUR L'HÔTE : c'est l'hôte qui porte

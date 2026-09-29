@@ -32,8 +32,9 @@
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    /* Pas de cartes : elles pointeraient vers `src/`, qui n'est pas livré. */
+    "declarationMap": false,
+    "sourceMap": false,
     "outDir": "./dist",
     "rootDir": "./src",
     "allowImportingTsExtensions": false,

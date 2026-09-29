@@ -1,0 +1,33 @@
+/* =============================================================================
+   HACK, LA POLICE DU CODE DE LA VITRINE — TROIS FACES, EN WOFF2.
+
+   Hack ne sert qu'au code (`--opale-font-mono`) : le romain, le gras des
+   balises et des commandes, l'italique des commentaires. Le gras italique
+   n'est demandé nulle part. La feuille du paquet déclarait les quatre faces en
+   woff2 ET en woff ; tout navigateur visé lit le woff2, donc le woff n'était
+   jamais téléchargé — seulement copié dans `dist-showcase`.
+
+   Hack typeface, https://github.com/source-foundry/Hack
+   Licence : https://github.com/source-foundry/Hack/blob/master/LICENSE.md
+   ========================================================================== */
+@font-face {
+  font-family: 'Hack';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('hack-font/build/web/fonts/hack-regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Hack';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('hack-font/build/web/fonts/hack-bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Hack';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('hack-font/build/web/fonts/hack-italic.woff2') format('woff2');
+}

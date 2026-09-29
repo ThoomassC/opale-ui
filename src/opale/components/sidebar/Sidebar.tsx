@@ -13,7 +13,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import Glass, { type GlassSurfaceProps } from '../glass/Glass';
+import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import type { OpaleSize } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
 import { useControllableState } from '../../shared/use-controllable-state';
@@ -151,7 +151,8 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * état.
    */
   liquidGlass?: boolean;
-} & GlassSurfaceProps;
+} & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
+  LegacySurfaceAnimationProps;
 
 const widthClassMap: Record<SidebarSize, string> = {
   small: styles.small,
@@ -178,6 +179,10 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       liquidGlass = false,
       className,
       rootClassName,
+      rootStyle,
+      style,
+      enableLiquidAnimation = false,
+      triggerAnimation = false,
       children,
       id,
       ...rest
@@ -263,12 +268,19 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       ],
     );
 
-    const enveloppe = clsx(
+    const shellClasses = clsx(
+      'opale-sidebar__shell',
       styles.sidebarRoot,
       collapsed ? styles.collapsed : widthClassMap[size],
       rootClassName,
     );
-    const contenu = clsx(styles.sidebar, collapsed && styles.sidebarCollapsed, className);
+    const contentClasses = clsx(
+      'opale-sidebar',
+      collapsed && 'opale-sidebar--collapsed',
+      styles.sidebar,
+      collapsed && styles.sidebarCollapsed,
+      className,
+    );
 
     if (!liquidGlass) {
       return (
@@ -276,7 +288,8 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
           <aside
             ref={ref}
             id={sidebarId}
-            className={clsx(enveloppe, contenu, styles.plain)}
+            className={clsx(shellClasses, contentClasses, styles.plain)}
+            style={rootStyle ? { ...rootStyle, ...style } : style}
             {...rest}
           >
             {children}
@@ -295,10 +308,12 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
              qui part sous le doigt à chaque sélection d'entrée ferait clignoter
              la surface entière d'un rail qu'on parcourt. Le retour visuel
              appartient à l'entrée, qui l'a. */
-          enableLiquidAnimation={false}
-          triggerAnimation={false}
-          rootClassName={enveloppe}
-          className={contenu}
+          enableLiquidAnimation={enableLiquidAnimation}
+          triggerAnimation={triggerAnimation}
+          rootClassName={shellClasses}
+          rootStyle={rootStyle}
+          className={contentClasses}
+          style={style}
           {...rest}
         >
           {children}
@@ -319,7 +334,12 @@ const SidebarHeader = forwardRef<HTMLDivElement, SidebarHeaderProps>(
     return (
       <div
         ref={ref}
-        className={clsx(styles.header, collapsed && styles.headerCollapsed, className)}
+        className={clsx(
+          'opale-sidebar__header',
+          styles.header,
+          collapsed && styles.headerCollapsed,
+          className,
+        )}
         {...rest}
       />
     );
@@ -332,7 +352,7 @@ export type SidebarFooterProps = ComponentPropsWithoutRef<'div'>;
 
 const SidebarFooter = forwardRef<HTMLDivElement, SidebarFooterProps>(
   ({ className, ...rest }, ref) => (
-    <div ref={ref} className={clsx(styles.footer, className)} {...rest} />
+    <div ref={ref} className={clsx('opale-sidebar__footer', styles.footer, className)} {...rest} />
   ),
 );
 
@@ -369,7 +389,7 @@ const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ..
     <nav
       ref={ref}
       aria-label={context?.labels?.items ?? DEFAULT_SIDEBAR_LABELS.items}
-      className={clsx(styles.items, className)}
+      className={clsx('opale-sidebar__items', styles.items, className)}
       {...rest}
     />
   );
@@ -381,6 +401,8 @@ export type SidebarItemProps = ComponentPropsWithoutRef<'button'> & {
   itemId: string;
   icon?: ReactNode;
   badge?: ReactNode;
+  /** Ce que le badge dit au lecteur d'écran, en description. Défaut : le badge. */
+  badgeLabel?: ReactNode;
   collapsedFallback?: ReactNode;
 };
 
@@ -406,10 +428,26 @@ const getCollapsedFallback = (collapsedFallback: ReactNode | undefined, children
 
 const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
   (
-    { itemId, icon, badge, collapsedFallback, disabled, className, children, onClick, ...rest },
+    {
+      itemId,
+      icon,
+      badge,
+      badgeLabel,
+      collapsedFallback,
+      disabled,
+      className,
+      children,
+      onClick,
+      'aria-describedby': ariaDescribedBy,
+      ...rest
+    },
     ref,
   ) => {
     const { collapsed, handleItemSelect, value } = useSidebarContext('Sidebar.Item');
+    const badgeId = useId();
+    const describedBy = badge
+      ? [ariaDescribedBy, badgeId].filter(Boolean).join(' ')
+      : ariaDescribedBy;
 
     const isActive = value === itemId;
 
@@ -435,6 +473,7 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
         ref={ref}
         type="button"
         className={clsx(
+          'opale-sidebar__item',
           styles.item,
           collapsed && styles.itemCollapsed,
           isActive && styles.itemActive,
@@ -448,16 +487,20 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
            attribut global : il est valide sur un `<button>` comme sur un `<a>`,
            même si ce rail gagnerait par ailleurs à être fait de liens. */
         aria-current={isActive ? 'page' : undefined}
+        aria-describedby={describedBy}
         {...rest}
       >
         {icon ? (
-          <span className={styles.itemIcon} aria-hidden="true">
+          <span className={clsx('opale-sidebar__item-icon', styles.itemIcon)} aria-hidden="true">
             {icon}
           </span>
         ) : null}
 
         {collapsed && !icon ? (
-          <span className={styles.itemFallback} aria-hidden="true">
+          <span
+            className={clsx('opale-sidebar__item-fallback', styles.itemFallback)}
+            aria-hidden="true"
+          >
             {getCollapsedFallback(collapsedFallback, children)}
           </span>
         ) : null}
@@ -467,21 +510,21 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
             accessible dans les deux états, quel que soit le type du libellé.
             Voir la feuille pour le détail du défaut que cela corrige. */}
         <span className={clsx(styles.itemContent, collapsed && styles.itemContentHidden)}>
-          <span className={styles.itemText}>{children}</span>
+          <span className={clsx('opale-sidebar__item-label', styles.itemText)}>{children}</span>
 
-          {/* LE BADGE EST `aria-hidden`, ET C'EST UNE LIMITE ASSUMÉE, PAS UN
-              OUBLI. Le laisser dans l'arbre ferait du nom du bouton
-              « Analytics 4 » — un nom qui ne correspond plus au libellé visible
-              (WCAG 2.5.3, « Label in Name ») et qui change à chaque fois que le
-              compteur bouge, donc un nom sur lequel aucune commande vocale ne
-              peut s'appuyer. Ce qu'on perd en échange est réel : le compteur ne
-              s'entend pas. Une entrée dont le compte est une information à part
-              entière doit passer son propre `aria-label` — « Analytics, 4
-              nouveaux » —, ce que la prop permet. */}
+          {/* LE BADGE VISIBLE EST `aria-hidden` : dans le nom, il ferait
+              « Analytics 4 », un nom qui bouge avec le compteur (WCAG 2.5.3).
+              Il s'entend en DESCRIPTION, par un texte masqué que
+              `aria-describedby` désigne. */}
           {badge ? (
-            <span className={styles.itemBadge} aria-hidden="true">
-              {badge}
-            </span>
+            <>
+              <span className={clsx('opale-sidebar__badge', styles.itemBadge)} aria-hidden="true">
+                {badge}
+              </span>
+              <span id={badgeId} hidden>
+                {badgeLabel ?? badge}
+              </span>
+            </>
           ) : null}
         </span>
       </button>
@@ -538,7 +581,7 @@ const SidebarToggle = forwardRef<HTMLButtonElement, SidebarToggleProps>(
       <button
         ref={ref}
         type="button"
-        className={clsx(styles.toggle, className)}
+        className={clsx('opale-sidebar__toggle', styles.toggle, className)}
         /* LE NOM DIT L'ACTION, `aria-expanded` DIT L'ÉTAT, et les deux sont
            nécessaires. Le nom seul ne répond qu'à « que va-t-il se passer si
            j'appuie ? » ; il ne répond pas à « où en suis-je ? » posé à froid,
