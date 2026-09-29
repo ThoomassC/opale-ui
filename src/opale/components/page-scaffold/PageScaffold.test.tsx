@@ -328,4 +328,80 @@ describe('PageScaffold — headerSize', () => {
 
     expect(screen.getByRole('banner')).toHaveClass(topbarClasses[legacy]);
   });
+
+  it('ouvre la page par un lien d’évitement quand showSkipLink le demande', async () => {
+    const user = userEvent.setup();
+    render(
+      <PageScaffold mainId="contenu" showSkipLink>
+        Contenu
+      </PageScaffold>,
+    );
+
+    await user.tab();
+    const skip = screen.getByRole('link', { name: 'Aller au contenu' });
+    expect(skip).toHaveFocus();
+    expect(skip).toHaveAttribute('href', '#contenu');
+
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('main')).toHaveFocus();
+  });
+
+  it('ne touche pas au fragment de l’adresse en suivant le lien d’évitement', async () => {
+    const user = userEvent.setup();
+    const before = window.location.hash;
+    render(
+      <PageScaffold mainId="contenu" showSkipLink>
+        Contenu
+      </PageScaffold>,
+    );
+
+    await user.click(screen.getByRole('link', { name: 'Aller au contenu' }));
+
+    expect(window.location.hash).toBe(before);
+    expect(screen.getByRole('main')).toHaveFocus();
+  });
+
+  it('traduit le lien d’évitement et accepte un texte propre', () => {
+    const { rerender } = render(
+      <PageScaffold language="en" showSkipLink>
+        Content
+      </PageScaffold>,
+    );
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toBeInTheDocument();
+
+    rerender(
+      <PageScaffold language="en" showSkipLink skipLinkLabel="Jump to article">
+        Content
+      </PageScaffold>,
+    );
+    expect(screen.getByRole('link', { name: 'Jump to article' })).toBeInTheDocument();
+  });
+
+  it('réserve la hauteur de l’en-tête collant en scroll-padding-top', () => {
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const height = this.tagName === 'HEADER' ? 72 : 0;
+        return new DOMRect(0, 0, 100, height);
+      });
+    const root = document.documentElement;
+
+    const { unmount } = render(<PageScaffold stickyHeader>Contenu</PageScaffold>);
+    expect(root.style.getPropertyValue('scroll-padding-top')).toBe('72px');
+
+    unmount();
+    expect(root.style.getPropertyValue('scroll-padding-top')).toBe('');
+    rect.mockRestore();
+  });
+
+  it('ne réserve rien sans en-tête collant', () => {
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue(new DOMRect(0, 0, 100, 72));
+
+    render(<PageScaffold>Contenu</PageScaffold>);
+
+    expect(document.documentElement.style.getPropertyValue('scroll-padding-top')).toBe('');
+    rect.mockRestore();
+  });
 });

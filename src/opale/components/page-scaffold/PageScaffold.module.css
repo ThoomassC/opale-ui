@@ -474,3 +474,33 @@
     flex-direction: column;
   }
 }
+
+/* Le lien d'évitement : masqué à l'œil, jamais aux outils ; révélé au focus,
+   au-dessus de l'en-tête collant. */
+.skipLink:not(:focus) {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  margin: -1px;
+  padding: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skipLink:focus {
+  position: fixed;
+  z-index: 100;
+  top: 0.5rem;
+  left: 0.5rem;
+  border: 2px solid var(--opale-focus);
+  border-radius: var(--opale-radius-sm);
+  padding: 0.65rem 1rem;
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  box-shadow: var(--opale-shadow-2);
+  font-weight: 700;
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
