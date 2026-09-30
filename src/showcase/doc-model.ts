@@ -1,20 +1,10 @@
 import type { ReactNode } from 'react';
 
-/* =============================================================================
-   LE MODÈLE DE LA VITRINE — une page par sujet, une entrée de nav par page.
-
-   La vitrine était UNE page de charte qui déroulait sept sections ; elle est
-   désormais un site de documentation : une barre de navigation à gauche, une
-   page à droite, et une entrée de navigation par composant publié. Le routage
-   passe par le FRAGMENT (`#/composants/button`) et non par l'historique
-   `pushState` : la vitrine est servie en statique depuis `dist-showcase/`, sans
-   serveur capable de réécrire une URL profonde vers `index.html`. Un chemin
-   réel se casserait donc au premier rechargement, et au premier lien partagé.
-
-   Ce fichier ne contient que le MODÈLE — les types, les groupes, la lecture du
-   fragment. Les pages elles-mêmes vivent dans `pages/`, la coquille dans
-   `doc-shell.tsx` : aucun des deux n'a besoin de connaître l'autre.
-   ========================================================================== */
+/* Le modèle de la vitrine : une page par sujet, une entrée de nav par page.
+   Le routage passe par le fragment (`#/composants/button`) : la vitrine est
+   servie en statique, sans réécriture d'URL profonde. Ce fichier ne porte que
+   les types, les groupes et la lecture du fragment ; les pages vivent dans
+   `pages/`, la coquille dans `doc-shell.tsx`. */
 
 /** Les trois familles de la barre de gauche, dans l'ordre où elle les sert. */
 export type DocGroupId = 'introduction' | 'fondations' | 'composants';
@@ -38,6 +28,8 @@ export interface DocPage {
   readonly group: DocGroupId;
   /** Le `<h1>` de la page, et le titre du document. */
   readonly title: string;
+  /** Terms used to find an API, an old name, or a concept beyond the page title. */
+  readonly searchTerms?: readonly string[];
   /** Le chapeau, rendu par la coquille juste sous le titre. */
   readonly lede?: ReactNode;
   /**
@@ -46,6 +38,280 @@ export interface DocPage {
    * là rendrait les vingt pages non affichées à chaque chargement.
    */
   readonly render: () => ReactNode;
+}
+
+/** Une entrée de la navigation visuelle inspirée de la référence V3. */
+export interface DocNavEntry {
+  readonly label: string;
+  readonly page: DocPage;
+}
+
+/** Une famille du sommaire, résolue contre le registre réel des pages. */
+export interface DocNavSection {
+  readonly id: string;
+  readonly label: string;
+  readonly entries: readonly DocNavEntry[];
+}
+
+/* Ces pages sont accessibles depuis les onglets permanents du header. Elles
+   ne doivent donc pas être répétées dans le rail latéral. */
+const HEADER_NAV_SLUGS = new Set(['', 'installation', 'notes-de-versions']);
+
+interface DocNavEntryDefinition {
+  readonly label: string;
+  readonly slug: string;
+}
+
+interface DocNavSectionDefinition {
+  readonly id: string;
+  readonly label: string;
+  readonly entries: readonly DocNavEntryDefinition[];
+}
+
+function kebabCase(value: string): string {
+  return value.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+function normalizeCatalogLabel(value: string): string {
+  return value === 'BackgroundSurface' ? 'Background' : value;
+}
+
+/* Le libellé affiché d'un composant du catalogue. Aucun préfixe n'est retiré :
+   un nom qui commence par « Opale » resterait intact. */
+export function catalogComponentLabel(name: string): string {
+  return normalizeCatalogLabel(name);
+}
+
+export function catalogComponentSlug(name: string): string {
+  return `composants/opale-${kebabCase(catalogComponentLabel(name))}`;
+}
+
+function opaleEntry(name: string, label = name): DocNavEntryDefinition {
+  return { label: normalizeCatalogLabel(label), slug: catalogComponentSlug(name) };
+}
+
+/**
+ * Le plan du sommaire V3, relevé dans l'application de référence.
+ *
+ * Les pages restent libres de leur groupe historique (`GROUPS`) : cette liste
+ * décrit seulement l'ordre éditorial du rail. C'est ce qui permet de copier
+ * le sommaire sans déplacer ni supprimer les pages déjà publiées par Opale.
+ */
+export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
+  {
+    id: 'prise-en-main',
+    label: 'PRISE EN MAIN',
+    entries: [
+      { label: 'Utilisation', slug: 'utilisation' },
+      { label: 'PageScaffold', slug: 'composants/page-scaffold' },
+      /* « Thèmes » et non « Theming » : le sommaire tient ses libellés à part
+         de ceux des pages, donc renommer la page ne suffisait pas — la
+         navigation aurait gardé l'anglicisme. Le slug reste `theming`, déjà
+         dans les signets et dans les tables de traduction. */
+      { label: 'Thèmes', slug: 'theming' },
+      { label: 'Personnaliser', slug: 'personnaliser' },
+      { label: 'Typographie', slug: 'typographie' },
+      { label: 'Icônes', slug: 'icones' },
+      { label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' },
+    ],
+  },
+  {
+    id: 'fondations',
+    label: 'FONDATIONS',
+    entries: [
+      { label: 'La palette', slug: 'palette' },
+      { label: 'Espacement et rayons', slug: 'espacement' },
+      { label: 'Élévation', slug: 'elevation' },
+      { label: 'Verre', slug: 'verre' },
+      { label: 'Le verre liquide', slug: 'verre-liquide' },
+      { label: 'Accessibilité', slug: 'accessibilite' },
+    ],
+  },
+  {
+    id: 'inputs',
+    label: 'SAISIE',
+    entries: [
+      opaleEntry('Button', 'Button'),
+      opaleEntry('Pressable', 'Pressable'),
+      opaleEntry('InlineInput', 'InlineInput'),
+      opaleEntry('Input', 'Input'),
+      opaleEntry('Textarea', 'Textarea'),
+      opaleEntry('Checkbox', 'Checkbox'),
+      opaleEntry('RadioGroup', 'RadioGroup'),
+      opaleEntry('Toggle', 'Toggle'),
+      opaleEntry('Slider', 'Slider'),
+      opaleEntry('MultiSelect', 'MultiSelect'),
+      opaleEntry('Select', 'Select'),
+      opaleEntry('Autocomplete', 'Autocomplete'),
+      opaleEntry('Form', 'Form'),
+      opaleEntry('Field', 'Field'),
+      opaleEntry('SegmentedControl', 'SegmentedControl'),
+      opaleEntry('RatingInput', 'RatingInput'),
+      /* Une entrée par composant : la matière en verre se documente sur la page du
+         composant, par `liquidGlass`. `navSectionsForPages` saute en silence un
+         slug qu'aucune page ne sert, donc aucune entrée ne doit viser une page
+         absente. */
+      { label: 'SearchBar', slug: 'composants/search-bar' },
+    ],
+  },
+  {
+    id: 'boutons-specialises',
+    label: 'BOUTONS SPÉCIALISÉS',
+    entries: [opaleEntry('IconActionButton', 'IconActionButton')],
+  },
+  {
+    id: 'affichage-de-donnees',
+    label: 'AFFICHAGE DE DONNÉES',
+    entries: [
+      opaleEntry('Card', 'Card'),
+      opaleEntry('CardGrid', 'CardGrid'),
+      opaleEntry('DataTable', 'DataTable'),
+      opaleEntry('Pagination', 'Pagination'),
+      opaleEntry('DescriptionList', 'DescriptionList'),
+      opaleEntry('BulletList', 'BulletList'),
+      opaleEntry('Badge', 'Badge'),
+      opaleEntry('Rating', 'Rating'),
+      opaleEntry('StatCard', 'StatCard'),
+      opaleEntry('Donut', 'Donut'),
+      opaleEntry('LegalLinks', 'LegalLinks'),
+      opaleEntry('Heading', 'Heading'),
+      opaleEntry('Text', 'Text'),
+      opaleEntry('Icon', 'Icon'),
+      /* `Badge` et `Card` d’origine sont partis pour la même raison que les six
+         de SAISIE : ils doublonnaient `opaleEntry('Badge')` et
+         `opaleEntry('Card')` juste au-dessus. `Glass` est parti à son tour :
+         ce n'est pas un composant mais le matériau des autres, et la page
+         « Le verre liquide » le documente en tant que tel. */
+    ],
+  },
+  {
+    id: 'feedback',
+    label: 'RETOURS',
+    entries: [
+      opaleEntry('Feedback', 'Feedback'),
+      opaleEntry('Toast', 'Toast'),
+      opaleEntry('Spinner', 'Spinner'),
+      opaleEntry('Skeleton', 'Skeleton'),
+      opaleEntry('ProgressBar', 'ProgressBar'),
+      opaleEntry('ConfirmDialog', 'ConfirmDialog'),
+      opaleEntry('EmptyState', 'EmptyState'),
+      { label: 'Modal', slug: 'composants/modal' },
+      /* « ToastProvider » ET NON « Toast » : le doublon de cette section
+         n'était pas un composant mais un NOM. L’ancien composant n'expose pas de
+         `Toast` — il expose une file (`ToastProvider` + `useToast`) portaillée
+         sur `document.body`, là où `opaleEntry('Toast')` ci-dessus
+         documente une notification rendue en place. Les deux restent, sous
+         deux noms qui les distinguent enfin. */
+      { label: 'ToastProvider', slug: 'composants/toast-provider' },
+    ],
+  },
+  {
+    /* LES SURIMPRESSIONS ANCRÉES DE LA 3.10.0 : une infobulle, un panneau et
+       un menu d'actions, posés dans un portail contre leur déclencheur. */
+    id: 'couches-flottantes',
+    label: 'COUCHES FLOTTANTES',
+    entries: [
+      opaleEntry('Tooltip', 'Tooltip'),
+      opaleEntry('Popover', 'Popover'),
+      opaleEntry('DropdownMenu', 'DropdownMenu'),
+    ],
+  },
+  {
+    id: 'navigation',
+    label: 'NAVIGATION',
+    entries: [
+      opaleEntry('Navbar', 'Navbar'),
+      opaleEntry('Menu', 'Menu'),
+      opaleEntry('Link', 'Link'),
+      opaleEntry('SidePanel', 'SidePanel'),
+      opaleEntry('CommandPalette', 'CommandPalette'),
+      opaleEntry('Breadcrumb', 'Breadcrumb'),
+      opaleEntry('CookieBanner', 'CookieBanner'),
+      opaleEntry('SelectionBar', 'SelectionBar'),
+      { label: 'Tabs', slug: 'composants/tabs' },
+      { label: 'Sidebar', slug: 'composants/sidebar' },
+      { label: 'SiteNav', slug: 'composants/site-nav' },
+      { label: 'Topbar', slug: 'composants/topbar' },
+    ],
+  },
+  {
+    id: 'mise-en-page',
+    label: 'MISE EN PAGE',
+    entries: [
+      opaleEntry('Stack', 'Stack'),
+      opaleEntry('Grid', 'Grid'),
+      opaleEntry('Layout', 'Layout'),
+      opaleEntry('Divider', 'Divider'),
+      opaleEntry('BackgroundSurface', 'Background'),
+    ],
+  },
+  {
+    id: 'modules',
+    label: 'MODULES',
+    entries: [
+      opaleEntry('FileCard', 'FileCard'),
+      opaleEntry('Dropzone', 'Dropzone'),
+      opaleEntry('Lightbox', 'Lightbox'),
+      opaleEntry('Clipboard', 'Clipboard'),
+      opaleEntry('SvgMap', 'SvgMap'),
+    ],
+  },
+];
+
+const OPALE_NAV_MARKER_SLUG = 'composants/opale-button';
+
+function legacyNavSectionsForPages(pages: readonly DocPage[]): readonly DocNavSection[] {
+  return GROUPS.flatMap((group) => {
+    const entries = pages
+      .filter((page) => page.group === group.id)
+      .map((page) => ({ label: page.label, page }));
+
+    return entries.length > 0 ? [{ id: group.id, label: group.label, entries }] : [];
+  });
+}
+
+/**
+ * Résout le plan V3 contre le registre fourni.
+ *
+ * Les petits registres de test et les intégrations historiques qui ne
+ * contiennent pas le catalogue V3 gardent l'ancien classement par
+ * familles. Le registre de la vitrine V3, lui, contient le marqueur du
+ * catalogue et reçoit le plan thématique complet ci-dessus. Les pages
+ * historiques sont volontairement intégrées à la famille qui correspond à
+ * leur rôle : il n'existe pas de catégorie « Opale » fourre-tout.
+ */
+export function navSectionsForPages(pages: readonly DocPage[]): readonly DocNavSection[] {
+  if (!pages.some((page) => page.slug === OPALE_NAV_MARKER_SLUG)) {
+    return legacyNavSectionsForPages(pages);
+  }
+
+  const bySlug = new Map(pages.map((page) => [page.slug, page]));
+  const assignedSlugs = new Set<string>();
+  const sections = OPALE_NAV_SECTIONS.flatMap((section) => {
+    const entries = section.entries.flatMap((definition) => {
+      const page = bySlug.get(definition.slug);
+
+      if (!page) return [];
+
+      assignedSlugs.add(page.slug);
+      return [{ label: definition.label, page }];
+    });
+
+    return entries.length > 0 ? [{ ...section, entries }] : [];
+  });
+
+  const unassignedEntries = pages
+    .filter((page) => !assignedSlugs.has(page.slug) && !HEADER_NAV_SLUGS.has(page.slug))
+    .map((page) => ({ label: page.label, page }));
+
+  return unassignedEntries.length > 0
+    ? [...sections, { id: 'autres', label: 'AUTRES', entries: unassignedEntries }]
+    : sections;
+}
+
+/** Les entrées dans l'ordre visuel du rail — utile aux contrôles de registre. */
+export function navEntriesForPages(pages: readonly DocPage[]): readonly DocNavEntry[] {
+  return navSectionsForPages(pages).flatMap((section) => section.entries);
 }
 
 /** L'accueil. Sert aussi de repli pour un fragment qu'on ne connaît pas. */

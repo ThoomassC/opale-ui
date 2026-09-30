@@ -1,44 +1,14 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
-/* =============================================================================
-   CETTE PAGE A ÉTÉ RÉDUITE, PAS SUPPRIMÉE, ET LA DISTINCTION EST LE SUJET.
-
-   Elle documentait DEUX choses que la 2.0 sépare :
-
-   1. LE THÈME « verre liquide » d'Opale — un porteur `data-material="glass"`
-      sur `<html>`, la feuille `src/styles/glass.css` qui le lit, et sept
-      composants repeints par elle (`Button`, `Field`, `IconTile`, `Input`,
-      `Message`, `Pill`, `Tag`). Tout cela est supprimé : la feuille n'existe
-      plus, les composants non plus, et le porteur n'a plus AUCUN consommateur —
-      vérifié, `data-material` n'apparaît nulle part dans `src/tokens/**`, dans
-      `src/magic/**` ni dans `doc.css`. La bascule « Verre liquide » de la barre
-      du haut a donc été retirée avec le reste : un bouton `aria-pressed` qui
-      n'allume rien est un défaut, pas une commodité.
-
-   2. LES JETONS DU MATÉRIAU — `--glass-fill`, `--glass-blur`, `--glass-border`,
-      `--glass-specular`… Ceux-là SURVIVENT : ils sont déclarés dans
-      `src/tokens/materials.css`, que `tokens.css` importe, donc ils sont
-      toujours publiés par `@thomascaron/opale/tokens.css`. Et ils sont toujours
-      MESURÉS : `src/contract/glass.contract.test.ts` lit `materials.css` et
-      recalcule ses onze sections à chaque exécution de la suite.
-
-   D'OÙ LE RENVERSEMENT DE CETTE PAGE. Elle montrait un matériau appliqué ; elle
-   documente désormais un matériau DISPONIBLE MAIS PLUS APPLIQUÉ. C'est une
-   nuance qu'un lecteur ne peut pas deviner d'une liste de jetons, et c'est
-   pourquoi le premier spécimen la dit avant tout le reste.
-
-   LE SEUL SPÉCIMEN VISUEL EST RECONSTRUIT À LA MAIN, et il est étiqueté comme
-   tel. Aucune feuille publiée ne compose plus ces jetons : les peindre ici
-   demande de réécrire en style en ligne ce que `glass.css` faisait, ce qui est
-   légitime pour une démonstration mais ne doit pas se lire comme une API. Les
-   valeurs employées sont toutes des `var(--glass-*)` — aucune couleur
-   littérale, la règle de `doc.css` vaut aussi pour ce qui est écrit en ligne.
-   ========================================================================== */
+/* Les jetons du matériau (`--glass-*`), déclarés dans `src/tokens/materials.css`,
+   publiés par `tokens.css` et mesurés par `glass.contract.test.ts`. Aucune
+   feuille publiée ne les applique : la page documente un matériau disponible,
+   et son seul spécimen visuel, recomposé en `var(--glass-*)`, est étiqueté
+   comme tel. */
 
 interface MaterialToken {
   readonly token: string;
@@ -158,12 +128,8 @@ const TOKENS: readonly MaterialToken[] = [
 
 const TOKENS_TITLE_ID = 'verre-jetons-title';
 
-/* LA SCÈNE DE DÉMONSTRATION, ÉCRITE EN STYLE EN LIGNE ET ASSUMÉE COMME TELLE.
-   `doc.css` s'interdit toute couleur littérale et ne porte plus de règle de
-   verre ; ces trois objets composent les jetons comme le ferait un
-   consommateur, en `var()` uniquement. Le motif du fond est fait de deux rôles
-   de la charte pour que le flou ait quelque chose à flouter — sans arête
-   derrière lui, un `backdrop-filter` ne se voit pas. */
+/* La scène de démonstration, en style en ligne et en `var()` seulement, comme
+   l'écrirait un consommateur. Le fond rayé donne au flou une arête à flouter. */
 const GROUND: CSSProperties = {
   background: 'repeating-linear-gradient(115deg, var(--accent) 0 18px, var(--surface) 18px 36px)',
   borderRadius: 'var(--radius-lg)',
@@ -183,19 +149,11 @@ const PANE: CSSProperties = {
   maxInlineSize: '28ch',
 };
 
-export const verrePage: DocPage = {
-  slug: 'verre',
-  label: 'Verre',
-  group: 'fondations',
-  title: 'Verre',
-  lede: (
-    <>
-      Onze jetons de matériau — remplissage, flou, ménisque, liseré, spéculaire, ombre — toujours
-      publiés et toujours mesurés par le contrat. <strong>Plus rien ne les applique</strong> : la
-      feuille et les composants qui les consommaient ne sont pas dans la 2.0.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `verre.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function VerreContent() {
+  return (
     <PageBody>
       <Specimen
         title="Ce qui reste, et ce qui est parti"
@@ -210,7 +168,7 @@ export const verrePage: DocPage = {
           <li>
             <strong>Les onze jetons restent publiés.</strong> Ils sont déclarés dans{' '}
             <code>src/tokens/materials.css</code>, que <code>tokens.css</code> importe : un
-            consommateur de <code>@thomascaron/opale/tokens.css</code> les a tous.
+            consommateur de <code>@thomascaron/opale-ui/tokens.css</code> les a tous.
           </li>
           <li>
             <strong>Ils restent mesurés.</strong> <code>glass.contract.test.ts</code> lit cette
@@ -220,7 +178,7 @@ export const verrePage: DocPage = {
           </li>
           <li>
             <strong>La feuille qui les composait est supprimée.</strong> <code>glass.css</code>{' '}
-            n’est plus publiée, et le point d’entrée <code>@thomascaron/opale/glass.css</code>{' '}
+            n’est plus publiée, et le point d’entrée <code>@thomascaron/opale-ui/glass.css</code>{' '}
             n’existe plus dans <code>exports</code>. Composer ces jetons est désormais le travail de
             l’appelant.
           </li>
@@ -229,7 +187,7 @@ export const verrePage: DocPage = {
               Le porteur <code>data-material=&quot;glass&quot;</code> n’a plus aucun lecteur.
             </strong>{' '}
             Vérifié : l’attribut n’apparaît ni dans <code>src/tokens/**</code>, ni dans{' '}
-            <code>src/magic/**</code>, ni dans <code>doc.css</code>. La bascule « Verre liquide » de
+            <code>src/opale/**</code>, ni dans <code>doc.css</code>. La bascule « Verre liquide » de
             la barre du haut a donc été retirée de cette vitrine — un bouton qui annonce un état
             sans rien changer est un défaut d’accessibilité, pas une commodité.
           </li>
@@ -271,9 +229,9 @@ export const verrePage: DocPage = {
           sont <strong>pas thémés</strong> ; le remplissage, le liseré et l’ombre le sont.
         </p>
         {/* Même recette que les autres tableaux de la vitrine : un conteneur à
-            défilement horizontal doit être atteignable au clavier (WCAG 2.1.1),
-            et la liste blanche par défaut de la règle `jsx-a11y` ne modélise
-            pas ce cas. */}
+          défilement horizontal doit être atteignable au clavier (WCAG 2.1.1),
+          et la liste blanche par défaut de la règle `jsx-a11y` ne modélise
+          pas ce cas. */}
         <div
           className="tc-doc-tablewrap"
           tabIndex={0}
@@ -306,14 +264,14 @@ export const verrePage: DocPage = {
       </div>
 
       <p className="tc-doc-prose tc-doc-aside">
-        Le verre des quatorze composants publiés n’a <strong>rien à voir</strong> avec celui-ci : il
-        est écrit dans <code>src/magic/**</code>, n’emploie aucun de ces jetons, et n’est couvert
-        par aucun contrat — voir{' '}
-        <a className="tc-doc-link" href={hrefFor('composants/glass')}>
-          Glass
+        Le verre des composants publiés n’a <strong>rien à voir</strong> avec celui-ci : il est
+        écrit dans <code>src/opale/**</code>, n’emploie aucun de ces jetons, et n’est couvert par
+        aucun contrat — voir{' '}
+        <a className="tc-doc-link" href={hrefFor('verre-liquide')}>
+          Le verre liquide
         </a>
         . Deux matériaux du même nom, mesuré pour l’un, pas pour l’autre.
       </p>
     </PageBody>
-  ),
-};
+  );
+}

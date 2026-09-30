@@ -1,16 +1,9 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 
 /**
- * Le seul état de tout le dépôt, et il vit dans la VITRINE — pas dans
- * `src/components`. La librairie reste sans hook pour rester utilisable telle
- * quelle en Server Component ; c'est le document qui se paie une bascule.
- *
- * ET IL N'Y A PAS D'ENTRÉE `./client` : ce hook n'est pas publiable, parce
- * qu'il n'y a pas UNE bascule à publier mais trois mécaniques incompatibles.
- * Celle-ci veut deux états et écrit toujours `data-theme` ; celle qu'il
- * faudrait à un site prérendu veut un script en `<head>` ou un cookie, pas un
- * `localStorage` lu dans un initialiseur de `useState` — qui produit un flash.
- * Publier l'une reviendrait à publier la mauvaise deux fois.
+ * La bascule de thème de la vitrine, non publiée : la librairie reste sans
+ * hook. Elle gère deux thèmes et écrit `data-theme` ; le verre liquide reste
+ * hors de cet état, chaque page de composant le pilote localement.
  */
 export type Theme = 'light' | 'dark';
 
@@ -22,12 +15,8 @@ function isTheme(value: string | null): value is Theme {
 }
 
 /**
- * Le choix explicite de l'utilisateur, ou `null` s'il n'en a jamais fait.
- *
- * `null` n'est pas un défaut, c'est une information : tant qu'il vaut `null`,
- * l'OS est la référence. Le « system » que persistait la bascule à trois états
- * n'est plus un thème connu, il se relit donc comme `null` — la migration est
- * silencieuse et dit exactement ce que l'ancienne valeur voulait dire.
+ * Le choix explicite de l'utilisateur, ou `null` s'il n'en a jamais fait :
+ * l'OS fait alors référence. Une valeur inconnue (dont « system ») se lit `null`.
  */
 function readStoredTheme(): Theme | null {
   try {
@@ -63,43 +52,11 @@ function readSystemPrefersDarkOnServer(): boolean {
 const UNPAINTED = 'rgba(0, 0, 0, 0)';
 
 /**
- * La couleur que la barre d'adresse mobile doit prendre : LE FOND RÉELLEMENT
- * PEINT, lu sur `body`.
+ * La couleur de la barre d'adresse mobile : le fond calculé de `body`, que
+ * `tokens.css` puis `doc.css` peignent, et non un jeton recopié ici.
  *
- * CE N'EST PLUS `--site-background`, ET C'EST UNE CORRECTION. La vitrine a
- * désormais un sol BLANC : `doc.css` déclare son propre jeton `--doc-ground` et
- * peint `body` avec, sans toucher au jeton publié `--site-background` — qui
- * reste `#deedf0`, mesuré, et sert les deux consommateurs. Lire le jeton faisait
- * donc annoncer du mist par-dessus une page blanche : la barre d'adresse mentait
- * d'exactement l'écart entre le paquet et son propre document.
- *
- * LE FOND PEINT PLUTÔT QU'UN AUTRE JETON, et le choix se défend. Lire
- * `--doc-ground` aurait corrigé le symptôme en gardant la maladie : le hook
- * saurait encore QUEL jeton peint le sol, donc il redeviendrait faux le jour où
- * ce n'est plus celui-là — un renommage, une seconde couche, un consommateur qui
- * ne charge pas `doc.css`. Le fond calculé de `body`, lui, est juste par
- * construction : c'est la couleur que l'œil voit, quelle que soit la règle qui
- * l'a posée. Aucun repli sur un jeton n'est donc gardé — il serait mort partout
- * où il compte (dans un navigateur `body` est toujours peint ; sous jsdom
- * `--doc-ground` ne résout pas plus que `--site-background`) et il rouvrirait la
- * porte par laquelle le défaut est entré.
- *
- * ET RIEN N'EST RECOPIÉ EN CONSTANTE TYPESCRIPT : la valeur reste lue dans la
- * feuille, ce que défendent l'en-tête d'`index.html` et celui de ce fichier. Le
- * portfolio, dont cette bascule est reprise, code ses deux fonds en dur avec un
- * commentaire qui reconnaît devoir « rester aligné » — c'est la dérive que ce
- * dépôt existe pour empêcher, et le fond peint est la lecture qui n'a aucune
- * seconde copie à tenir.
- *
- * `body` ET NON `documentElement` : c'est `body` que `tokens.css` puis `doc.css`
- * peignent. La racine, elle, n'est peinte par personne et rend `transparent`.
- *
- * L'appelant doit avoir posé `data-theme` AVANT d'appeler : la valeur calculée
- * dépend du thème actif, lire d'abord rendrait la couleur du thème qu'on quitte.
- *
- * Une chaîne vide est un résultat normal, pas une anomalie — page non peinte,
- * ou `var()` que jsdom ne substitue pas. L'appelant n'écrit alors rien du tout :
- * ne pas annoncer de couleur est toujours préférable à en annoncer une fausse.
+ * L'appelant pose `data-theme` avant d'appeler. Une chaîne vide (page non
+ * peinte, `var()` non substitué sous jsdom) veut dire : ne rien écrire.
  */
 function readPaintedGround(): string {
   const painted = getComputedStyle(document.body).getPropertyValue('background-color').trim();
@@ -124,32 +81,13 @@ export interface ThemeControl {
 }
 
 /**
- * Bascule clair / sombre, à DEUX états.
+ * Bascule clair / sombre, à deux états. Le thème appliqué se dérive pendant le
+ * rendu : choix mémorisé, sinon préférence système (`useSyncExternalStore`).
  *
- * Le thème appliqué est dérivé pendant le rendu — choix explicite mémorisé s'il
- * existe, sinon préférence du système — jamais reconstruit dans un effet.
- *
- * `useSyncExternalStore` plutôt qu'un `useEffect` + `useState` : la préférence
- * système est un magasin extérieur, pas un état dérivé, l'abonnement se nettoie
- * tout seul et le hook a un instantané serveur. Le seul `useEffect` ici
- * synchronise deux systèmes extérieurs — l'attribut `data-theme` du document et
- * la balise `theme-color` — ce pour quoi il est fait.
- *
- * `localStorage` N'EST ÉCRIT QU'AU CLIC, jamais au montage, et cette fois la
- * garantie est structurelle plutôt que gardée : l'écriture ne vit que dans
- * `toggleTheme`. Persister au montage effacerait la différence entre « n'a
- * jamais choisi » et « a choisi », et rendrait le premier état irréversible
- * sans vider le stockage à la main. Le double montage du mode strict de React
- * n'écrit donc rien sans qu'aucune référence n'ait à s'en souvenir — la version
- * précédente y employait un `useRef` mémorisant la dernière valeur persistée,
- * devenu inutile du jour où l'écriture a quitté l'effet.
- *
- * L'attribut `data-theme`, lui, n'est posé QUE dans l'effet et jamais pendant
- * le rendu : avant hydratation le document reste nu, et c'est le bloc
- * `@media (prefers-color-scheme: dark)` de `roles.css` qui porte le thème.
- * C'est le seul chemin dont dispose un consommateur prérendu sans JavaScript,
- * et c'est pourquoi ce bloc reste vivant même si cette bascule ne l'atteint
- * plus jamais.
+ * `localStorage` n'est écrit que dans `toggleTheme`, jamais au montage : « n'a
+ * jamais choisi » reste distinct de « a choisi ». `data-theme` et `theme-color`
+ * ne sont posés que dans l'effet ; avant hydratation, le bloc
+ * `@media (prefers-color-scheme: dark)` de `roles.css` porte le thème.
  */
 export function useTheme(): ThemeControl {
   const [storedTheme, setStoredTheme] = useState<Theme | null>(readStoredTheme);
@@ -175,8 +113,7 @@ export function useTheme(): ThemeControl {
     meta.setAttribute('content', ground);
   }, [theme]);
 
-  const toggleTheme = useCallback(() => {
-    const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
+  const setTheme = useCallback((nextTheme: Theme) => {
 
     try {
       window.localStorage.setItem(STORAGE_KEY, nextTheme);
@@ -185,7 +122,15 @@ export function useTheme(): ThemeControl {
     }
 
     setStoredTheme(nextTheme);
-  }, [theme]);
+  }, []);
 
-  return { theme, isDarkTheme: theme === 'dark', toggleTheme };
+  const toggleTheme = useCallback(() => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  }, [setTheme, theme]);
+
+  return {
+    theme,
+    isDarkTheme: theme === 'dark',
+    toggleTheme,
+  };
 }

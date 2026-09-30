@@ -1,4 +1,3 @@
-import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
@@ -14,16 +13,19 @@ const TYPE_STEPS: readonly TypeStep[] = [
   { token: '--text-base', size: '16 px', usage: 'texte courant — le pas de référence' },
   { token: '--text-md', size: '19 px', usage: 'chapeau de page, chapeau de spécimen' },
   { token: '--text-lg', size: '23 px', usage: 'titre de carte, titre de spécimen' },
-  /* Aucun emploi dans la vitrine depuis que les sections numérotées ont
-     disparu, et `section-heading.css` le refuse explicitement pour son niveau 2.
-     Le pas reste dans l'échelle, mais l'annoncer « titre de section » serait
-     faux : ce site n'en a plus. */
+  /* Sans emploi dans la vitrine ; `section-heading.css` le refuse au niveau 2. */
   { token: '--text-xl', size: '28 px', usage: 'inemployé — le pas laissé libre entre 23 et 30' },
-  { token: '--text-display-sm', size: '24 → 34 px (fluide)', usage: 'titre de page secondaire' },
+  /* Publiés, mais la vitrine borne ses titres elle-même
+     (`clamp()` sur `.tc-doc-page__title`). */
+  {
+    token: '--text-display-sm',
+    size: '24 → 34 px (fluide)',
+    usage: 'titre secondaire — publié, inemployé par la vitrine',
+  },
   {
     token: '--text-display-md',
     size: '30 → 52 px (fluide)',
-    usage: 'titre d’ouverture — le `<h1>` de chaque page',
+    usage: 'titre d’ouverture — la vitrine lui préfère sa propre borne fluide',
   },
 ];
 
@@ -33,36 +35,38 @@ interface FontFamily {
   readonly note: string;
 }
 
+/* Les familles qui peignent la vitrine : Bricolage Grotesque (titres, chiffres
+   de l'accueil), Chivo (le reste), Hack (le code). Les jetons cités sont les
+   `--opale-font-*` : les `--font-*` de `roles.css` existent encore mais sont
+   recouverts par la couche V3. */
 const FAMILIES: readonly FontFamily[] = [
   {
-    token: '--font-display',
-    name: 'Iowan Old Style, Palatino, Georgia',
-    note: 'Les titres — serif de système, donc zéro requête.',
+    token: '--opale-font-title',
+    name: 'Bricolage Grotesque — opsz 72, graisse 600',
+    note: 'Les titres de page et les chiffres de l’accueil, et eux seuls.',
   },
   {
-    token: '--font-sans',
-    name: 'ui-sans-serif, system-ui, Segoe UI, Roboto',
-    note: 'Tout le reste : texte courant, contrôles, étiquettes.',
+    token: '--opale-font-body',
+    name: 'Chivo, system-ui, Segoe UI, Roboto',
+    note: 'Tout le reste : texte courant, contrôles, étiquettes, sommaire, onglets.',
   },
   {
-    token: '--font-mono',
-    name: 'ui-monospace, SF Mono, Menlo, Consolas',
-    note: 'Les mesures : hexadécimaux, ratios, noms de jetons.',
+    token: '--opale-font-display',
+    name: 'Chivo, system-ui, Segoe UI, Roboto',
+    note: 'Les titres des composants de la librairie — métrique, donut, plaques.',
+  },
+  {
+    token: '--opale-font-mono',
+    name: 'Hack, ui-monospace, Cascadia Code, Consolas',
+    note: 'Les mesures et le code : hexadécimaux, ratios, noms de jetons.',
   },
 ];
 
-export const typographiePage: DocPage = {
-  slug: 'typographie',
-  label: 'Typographie',
-  group: 'fondations',
-  title: 'Typographie',
-  lede: (
-    <>
-      Huit pas, rapports 1,15 en bas d’échelle et 1,20 en haut. Trois familles, toutes systèmes :
-      aucune requête hors origine.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `typographie.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function TypographieContent() {
+  return (
     <PageBody>
       <Specimen title="Les huit pas" note="Le texte courant est borné à --measure (66 caractères).">
         <ul className="tc-doc-scale">
@@ -81,7 +85,10 @@ export const typographiePage: DocPage = {
         </ul>
       </Specimen>
 
-      <Specimen title="Les trois familles">
+      <Specimen
+        title="Les quatre familles"
+        note="Bricolage Grotesque, Chivo et Hack sont servis localement."
+      >
         <ul className="tc-doc-scale">
           {FAMILIES.map((family) => (
             <li className="tc-doc-scale__row" key={family.token}>
@@ -101,5 +108,5 @@ export const typographiePage: DocPage = {
         </ul>
       </Specimen>
     </PageBody>
-  ),
-};
+  );
+}

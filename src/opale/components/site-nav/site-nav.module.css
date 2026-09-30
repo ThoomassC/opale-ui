@@ -1,0 +1,373 @@
+/*
+ * La barre de navigation du site.
+ *
+ * La première valeur de chaque `var()` est un rôle d'Opale. Les replis gardent
+ * le composant utilisable quand l'application n'importe que `opale.css` ; celle
+ * qui importe aussi `tokens.css` retrouve la palette partagée exacte.
+ */
+.bar {
+  /* L'ACCENT EST LE PRIMAIRE D'OPALE, ET SON ENCRE CELLE DES REMPLISSAGES. La
+     barre lisait `--accent-active` de l'ancien jeu : teal (#005d6f) au milieu
+     d'une interface bleue. `--opale-on-fill` bascule avec le thème — claire
+     sur le bleu du clair, sombre sur le bleu moyen du sombre. */
+  --site-nav-accent: var(--opale-primary);
+  --site-nav-ink: var(--opale-on-fill);
+  /* 97 % ET NON PLUS 86 % (ACC-18). Le palier de 86 % avait été mesuré en
+     clair et sous verre — 4,51:1 sur l'aplat clair. En thème sombre l'encre
+     est SOMBRE sur un bleu moyen, et le même mélange tombait à 4,11:1 (relevé
+     axe : #161f26 sur #577fbe), sous le seuil AA d'un texte de 14 px.
+     Calculé sur les jetons, voile de la liste compris : 97 % donne 4,62:1 en
+     sombre et 5,24:1 en clair ; le premier palier sombre conforme est 94 %.
+     La hiérarchie avec l'entrée courante tient par la bulle, pas par cet
+     écart d'encre, qui n'était déjà presque plus visible. */
+  --site-nav-quiet-ink: color-mix(in srgb, var(--site-nav-ink) 97%, transparent);
+  --site-nav-space-2: var(--opale-space-xs);
+  --site-nav-space-3: var(--opale-space-sm);
+  --site-nav-space-4: var(--opale-space-md);
+  --site-nav-space-5: var(--opale-space-lg);
+  --site-nav-radius-pill: var(--opale-radius-pill);
+  --site-nav-text-sm: var(--opale-text-sm);
+  --site-nav-weight-semibold: 600;
+  --site-nav-motion-color: var(--opale-motion-fast);
+  --site-nav-motion-ease: var(--opale-ease);
+  /* Les deux dimensions de mise en page de la barre, surchargeables. */
+  --site-nav-content-width: 72rem;
+  --site-nav-height: 4rem;
+
+  /* TOUTES LES BOÎTES DE LA BARRE SE MESURENT BORDURE COMPRISE (ACC-06).
+     Sans feuille de reset, le navigateur applique `content-box` : chaque
+     `inline-size: 100%` s'ajoutait au rembourrage et à la bordure. Mesuré
+     sous Chromium chez un consommateur qui n'importe que `opale.css`, à
+     320 px : le lien faisait 123 px dans un `<li>` de 101 px, la liste 328 px
+     et l'intérieur 344 px — la page défilait et « CONTACT » était rogné ; à
+     1280 px, l'intérieur débordait déjà de 24 px de chaque côté. La vitrine
+     ne le montrait pas : `tokens.css` pose `border-box` partout. Déclaré ici,
+     le rendu d'un hôte sans reset rejoint celui de référence, et celui d'un
+     hôte avec reset ne bouge pas d'un pixel. */
+  box-sizing: border-box;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--opale-z-sticky);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  inline-size: 100%;
+  overflow: visible;
+  background: var(--site-nav-accent);
+  color: var(--site-nav-ink);
+}
+
+.brandZone {
+  box-sizing: border-box;
+  grid-area: 1 / 1;
+  z-index: 1;
+  display: flex;
+  align-self: center;
+  justify-self: start;
+  padding-inline-start: max(
+    var(--site-nav-space-5),
+    calc((100% - var(--site-nav-content-width)) / 2 + var(--site-nav-space-5))
+  );
+}
+
+.inner {
+  box-sizing: border-box;
+  grid-area: 1 / 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: 'left links right';
+  align-items: center;
+  justify-self: center;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--site-nav-height);
+  gap: var(--site-nav-space-4);
+  padding-inline: var(--site-nav-space-5);
+}
+
+.inner > nav {
+  grid-area: links;
+  min-inline-size: 0;
+}
+
+/* Quatre destinations de même largeur : la disposition de référence. */
+.list {
+  box-sizing: border-box;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--site-nav-space-2);
+  margin: 0;
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--site-nav-ink) 16%, transparent);
+  border-radius: var(--site-nav-radius-pill);
+  background: color-mix(in srgb, var(--site-nav-ink) 7%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--site-nav-ink) 12%, transparent);
+  list-style: none;
+  touch-action: none;
+}
+
+.list > li {
+  min-inline-size: 0;
+}
+
+.link {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  min-block-size: 2.75rem;
+  padding-inline: var(--site-nav-space-3);
+  border: 1px solid transparent;
+  border-radius: var(--site-nav-radius-pill);
+  color: var(--site-nav-quiet-ink);
+  font-size: var(--site-nav-text-sm);
+  font-weight: var(--site-nav-weight-semibold);
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  /* LE LIBELLÉ PASSE À LA LIGNE PLUTÔT QUE DE DÉBORDER (ACC-06, WCAG 1.4.10).
+     La cause du débordement était le modèle de boîte (voir `.bar`) ; une fois
+     les boîtes mesurées bordure comprise, un libellé plus long que sa colonne
+     — texte agrandi à 200 %, traduction — passe encore à la ligne plutôt que
+     de sortir de la barre. `anywhere` abaisse la largeur minimale du libellé,
+     donc la colonne `minmax(0, 1fr)` peut rétrécir ; quand le libellé tient,
+     rien ne change, et la bulle suit la hauteur de la ligne (`inset-block`). */
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: color var(--site-nav-motion-color) var(--site-nav-motion-ease);
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--site-nav-ink);
+}
+
+/* La couleur seule ne suffit pas à signaler le focus (WCAG 2.4.7) : l'anneau
+   prend l'encre de la barre, lisible sur la matière pleine comme sur le verre. */
+.link:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--site-nav-ink);
+  outline-offset: var(--opale-focus-ring-offset);
+  border-radius: var(--opale-radius-pill);
+}
+
+.link[aria-current='page'] {
+  cursor: grab;
+}
+
+.list[data-dragging='true'] .link[aria-current='page'] {
+  cursor: grabbing;
+}
+
+.list[data-dragging='true'] .movingBubble {
+  animation: none;
+  transition: none;
+}
+
+.movingBubble {
+  position: absolute;
+  inset-block: 3px;
+  inset-inline-start: 3px;
+  inline-size: calc((100% - 30px) / 4);
+  --liquid-bubble-fill: color-mix(in srgb, var(--site-nav-ink) 14%, transparent);
+  --liquid-bubble-ink: var(--site-nav-ink);
+  --liquid-bubble-edge: color-mix(in srgb, var(--site-nav-ink) 58%, transparent);
+  --liquid-bubble-highlight: var(--site-nav-ink);
+  --liquid-bubble-shadow-ink: color-mix(in srgb, var(--opale-glass-deep) 30%, transparent);
+  z-index: 0;
+  transform-origin: center;
+  pointer-events: none;
+  opacity: 1;
+  transition: inset-inline-start var(--opale-motion-slower) var(--opale-ease-out);
+}
+
+.list[data-active-index='1'] .movingBubble {
+  inset-inline-start: calc(3px + (100% - 30px) / 4 + 8px);
+}
+
+.list[data-active-index='2'] .movingBubble {
+  inset-inline-start: calc(3px + ((100% - 30px) / 4 + 8px) * 2);
+}
+
+.list[data-active-index='3'] .movingBubble {
+  inset-inline-start: calc(3px + ((100% - 30px) / 4 + 8px) * 3);
+}
+
+/* La surface active suit le nombre réel d'entrées. */
+.list[data-item-count='1'] {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.list[data-item-count='1'] .movingBubble {
+  inline-size: calc(100% - 6px);
+}
+
+.list[data-item-count='2'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.list[data-item-count='2'] .movingBubble {
+  inline-size: calc((100% - 14px) / 2);
+}
+
+.list[data-item-count='2'][data-active-index='1'] .movingBubble {
+  inset-inline-start: calc(3px + (100% - 14px) / 2 + 8px);
+}
+
+.list[data-item-count='3'] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.list[data-item-count='3'] .movingBubble {
+  inline-size: calc((100% - 22px) / 3);
+}
+
+.list[data-item-count='3'][data-active-index='1'] .movingBubble {
+  inset-inline-start: calc(3px + (100% - 22px) / 3 + 8px);
+}
+
+.list[data-item-count='3'][data-active-index='2'] .movingBubble {
+  inset-inline-start: calc(3px + ((100% - 22px) / 3 + 8px) * 2);
+}
+
+@keyframes siteNavBubbleFlow {
+  0%,
+  100% {
+    transform: scaleX(1) scaleY(1);
+  }
+
+  28% {
+    transform: scaleX(1.08) scaleY(0.96);
+  }
+
+  56% {
+    transform: scaleX(1.14) scaleY(0.94);
+  }
+
+  82% {
+    transform: scaleX(0.98) scaleY(1.02);
+  }
+}
+
+.list[data-moving='true'] .movingBubble {
+  animation: siteNavBubbleFlow var(--opale-motion-slower) var(--site-nav-motion-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movingBubble,
+  .list[data-moving='true'] .movingBubble {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 58rem) {
+  .bar {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0;
+    padding-block: var(--site-nav-space-2);
+  }
+
+  .brandZone,
+  .inner {
+    grid-area: auto;
+  }
+
+  .brandZone {
+    align-self: stretch;
+    padding-inline-start: var(--site-nav-space-3);
+  }
+
+  .inner {
+    display: block;
+    min-block-size: 0;
+    padding-inline: var(--site-nav-space-3);
+    padding-block-start: var(--site-nav-space-2);
+  }
+
+  .inner > nav {
+    inline-size: 100%;
+  }
+
+  .list {
+    gap: var(--site-nav-space-2);
+    inline-size: 100%;
+  }
+
+  .link {
+    padding-inline: var(--site-nav-space-2);
+    font-size: var(--opale-text-xs);
+    letter-spacing: 0.05em;
+  }
+}
+
+@media (max-width: 30rem) {
+  .link {
+    padding-inline: calc(var(--site-nav-space-2) + 2px);
+    /* L'interlettrage des capitales coûte une lettre par libellé à 320 px. */
+    letter-spacing: 0.02em;
+  }
+}
+
+/* =============================================================================
+   CONTRASTES FORCÉS (ACC-04).
+
+   La page courante n'était dite que par la bulle, peinte en fonds et en
+   ombres que le mode supprime : elle devenait trois cercles superposés, et
+   l'entrée courante ne se distinguait plus des autres. La bulle est retirée ;
+   la page courante prend la paire système de la sélection.
+   ========================================================================== */
+@media (forced-colors: active) {
+  .movingBubble {
+    display: none;
+  }
+
+  .link[aria-current='page'] {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .link:focus-visible {
+    outline-color: CanvasText;
+  }
+}
+
+/* =============================================================================
+   LA BARRE EN VERRE LIQUIDE.
+
+   L'APLAT D'ACCENT DOIT PARTIR, sinon il n'y a pas de verre : `--site-nav-accent`
+   est un fond OPAQUE, et un matériau posé derrière un fond opaque ne réfracte
+   rien du tout. La barre devient donc transparente et laisse le voile, la
+   distorsion et le liseré de `Glass` faire la surface.
+
+   L'ENCRE NE BOUGE PAS. Elle était déjà claire — c'est celle qui se lit sur
+   l'accent — et le voile du matériau est sombre : les deux contextes demandent
+   la même encre, ce qui est une chance et non un hasard. `--site-nav-quiet-ink`
+   garde son mélange (97 %, voir `.bar`), au-dessus des 85 % mesurés sur le cliché.
+
+   LA BARRE RESTE COLLANTE, donc le verre se déplace sur la page pendant qu'on
+   défile : c'est exactement la situation où le matériau a quelque chose à
+   montrer, et la seule où il vaut son coût.
+   ========================================================================== */
+.glass {
+  /* Sous verre, la barre n'a plus d'aplat : son encre est celle du matériau,
+     claire sur la photographie dans les deux thèmes. */
+  --site-nav-ink: var(--opale-glass-ink);
+  background: transparent;
+}
+
+.glassRoot {
+  --opale-glass-width: 100%;
+  --opale-glass-radius: 0;
+
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--opale-z-sticky);
+  inline-size: 100%;
+}

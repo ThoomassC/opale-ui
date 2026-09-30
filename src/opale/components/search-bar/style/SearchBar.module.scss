@@ -1,0 +1,146 @@
+.root {
+  --opale-glass-radius: var(--opale-squircle-radius, 1.375rem);
+  width: 100%;
+}
+
+.searchBar {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-height: var(--opale-control-md);
+  align-items: center;
+  gap: var(--opale-space-xs, 0.5rem);
+  padding-inline: var(--opale-space-sm, 0.75rem);
+  border: 1px solid color-mix(in srgb, var(--opale-glass-light) 72%, transparent);
+  border-radius: inherit;
+  background: transparent;
+  color: var(--opale-glass-ink);
+  transition: border-color var(--opale-motion-fast) var(--opale-ease);
+}
+
+.searchBar:focus-within {
+  border-color: var(--opale-primary-light);
+}
+
+/* Le verre ne garde ni halo extérieur ni assombrissement au focus :
+   seul son contour prend le bleu du contrôle. */
+.root:has([data-opale-glass-layer='content'] .input:focus) {
+  --opale-glass-edge: var(--opale-primary-light);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-glass-light) 6%, transparent);
+  box-shadow: none;
+}
+
+/* Au clavier, l'anneau commun cerne la barre : sur le verre, dont le halo est
+   éteint ci-dessus, le contour bleu seul ne se distinguait pas du repos. */
+.root:has(.input:focus-visible) {
+  outline: var(--opale-focus-ring-width) solid var(--opale-glass-ink);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+
+.plain:has(.input:focus-visible) {
+  outline-color: var(--opale-focus);
+}
+
+.icon {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: currentColor;
+}
+
+.input {
+  min-width: 0;
+  flex: 1;
+  align-self: stretch;
+  padding: 0;
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+}
+
+/* Le champ intérieur ne dessine pas de focus : le contour arrondi
+   de la barre porte seul l'état actif. */
+.input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.input::placeholder {
+  color: color-mix(in srgb, currentColor 76%, transparent);
+}
+
+.input::-webkit-search-cancel-button {
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+}
+
+.small {
+  font-size: var(--opale-text-xs);
+}
+
+.medium {
+  font-size: var(--opale-text-sm);
+}
+
+.large {
+  font-size: var(--opale-text-md);
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: var(--opale-disabled-opacity);
+}
+
+/* Le dessin plein reprend la recherche de la barre d’en-tête : un filet
+   superelliptique de 1 px, un fond opaque et aucun halo supplémentaire. */
+.plain {
+  --opale-search-border: color-mix(in srgb, var(--opale-text-secondary) 44%, transparent);
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  background: transparent;
+  color: var(--opale-text);
+}
+
+.plain::before,
+.plain::after {
+  position: absolute;
+  clip-path: var(--opale-squircle-clip);
+  content: '';
+  pointer-events: none;
+}
+
+.plain::before {
+  z-index: -2;
+  inset: 0;
+  background: var(--opale-search-border);
+  transition: background var(--opale-motion) var(--opale-ease);
+}
+
+.plain::after {
+  z-index: -1;
+  inset: 1px;
+  background: var(--opale-surface);
+}
+
+.plain:focus-within {
+  --opale-search-border: var(--opale-primary);
+}
+
+.plain .icon {
+  color: var(--opale-primary-on-surface);
+}
+
+.plain .input::placeholder {
+  color: var(--opale-text-secondary);
+}
+
+/* La croix d'effacement du navigateur était inversée en blanc pour le verre ;
+   sur un fond clair, elle disparaissait. */
+.plain .input::-webkit-search-cancel-button {
+  filter: none;
+}

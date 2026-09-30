@@ -1,0 +1,346 @@
+/* =============================================================================
+   LA BOÎTE DE DIALOGUE MODALE — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce écrite en directives Tailwind, où trente-deux
+   déclarations sur trente-cinq venaient d'utilitaires et où les seules
+   couleurs étaient `text-white`, `bg-slate-950/60` et six `white/xx`. Aucune
+   n'était un jeton ; le composant était donc, seul de la librairie, hors du
+   contrat de couleur d'Opale.
+
+   CE QUE LE PASSAGE AUX JETONS CHANGE VRAIMENT, ET CE N'EST PAS COSMÉTIQUE.
+   L'ancien panneau était TRANSLUCIDE avec une encre blanche en dur. Sur le
+   voile sombre ça tenait ; sur un thème clair, ou dès qu'un appelant posait
+   son propre `portalContainer` sur un fond pâle, le texte blanc se perdait.
+   Le panneau est désormais rempli à 88 % de `--opale-surface` et écrit avec
+   `--opale-text` : le couple encre/fond redevient celui que le contrat de
+   couleur mesure déjà partout ailleurs, dans les deux thèmes.
+
+   CE QUI SE PERD : le panneau laisse beaucoup moins passer le décor derrière
+   lui. C'était l'effet recherché par l'amont — un verre très transparent —,
+   mais un dialogue modal a d'abord à se lire, et la réfraction de `Glass`
+   reste visible sur l'arête et dans les angles.
+   ========================================================================== */
+
+.container {
+  position: fixed;
+  z-index: var(--opale-z-modal);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--opale-space-2xl) var(--opale-space-md);
+}
+
+/* LE VOILE, ET POURQUOI IL N'EST PAS UN NOIR PUR ÉCRIT EN DUR.
+
+   Un voile doit être sombre dans LES DEUX thèmes : c'est lui qui dit « la page
+   est derrière ». Aucun jeton d'Opale n'est sombre dans les deux — `--opale-
+   text` l'est en clair et pâle en sombre, `--opale-background` fait l'inverse.
+   Le voile prend donc son propre réglage, `--opale-modal-scrim`, avec pour
+   valeur par défaut le voile commun `--opale-scrim` : le fond sombre d'Opale
+   (`#0c0f0d`, la valeur de `--opale-background` du thème sombre) à 62 %. Un
+   hôte qui veut un autre voile pose la variable sur n'importe quel ancêtre ;
+   c'est la même mécanique que `--opale-glass-radius` chez `Glass`.
+
+   LE FLOU EST FAIBLE À DESSEIN — 3 px (`--opale-scrim-blur`), pas 10. Mesuré sur la version amont :
+   à 10 px la page derrière devenait une bouillie sans que la modale s'en
+   détache davantage, le flou emportant justement les arêtes qui servaient de
+   repère. C'est l'OPACITÉ qui sépare, pas le flou. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--opale-modal-scrim, var(--opale-scrim));
+  backdrop-filter: blur(var(--opale-scrim-blur));
+  -webkit-backdrop-filter: blur(var(--opale-scrim-blur));
+  animation: opale-modal-veil var(--opale-motion) var(--opale-ease) both;
+}
+
+/* LA COQUILLE — POSÉE SUR `rootClassName`, ET C'EST LE POINT.
+
+   `Glass` applique `className` à sa couche de CONTENU, qui est un enfant de
+   l'enveloppe, laquelle porte `overflow: hidden`. Le rayon et l'ombre écrits
+   sur le contenu atterrissaient donc sur un élément rogné par son parent : la
+   version amont n'avait en pratique ni angle arrondi ni ombre, sa seule
+   démarcation étant le voile. Tout ce qui dessine la SILHOUETTE vit ici.
+
+   Le lavis de `Glass` lit `--opale-glass-tint` : l'ancien réglage de
+   `--opale-glass-surface` n'atteignait aucune couche et laissait le texte sombre
+   sur une photographie. La teinte suit la surface du thème tout en gardant
+   visibles la réfraction et le filet du matériau. */
+.shell {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-height: 100%;
+
+  --opale-glass-radius: var(--opale-radius-lg);
+  --opale-modal-tint: color-mix(in srgb, var(--opale-surface) 88%, transparent);
+  --opale-glass-tint: var(--opale-modal-tint);
+  --opale-glass-highlight: var(--opale-glass-border);
+
+  /* Deux ombres et une seule intention : détacher la coquille du voile. Le
+     filet de 1 px reprend l'arête de verre du thème, l'ombre portée creuse la
+     distance. Les deux sont sur l'ENVELOPPE — posées sur le contenu, l'`overflow:
+     hidden` de l'enveloppe les rognerait, ce qui est exactement le défaut
+     décrit plus haut. */
+  box-shadow:
+    0 0 0 1px var(--opale-glass-border),
+    var(--opale-shadow-4);
+  animation: opale-modal-rise var(--opale-motion) var(--opale-ease) both;
+}
+
+/* Le focus du verre assombrit normalement son lavis. Le dialogue conserve sa
+   surface lisible quand le panneau ou l'un de ses boutons reçoit le focus. */
+.shell[data-opale-glass]:has(:focus-visible) {
+  --opale-glass-tint: var(--opale-modal-tint);
+}
+
+/* Les trois crans. Ils gardent les largeurs de l'amont — 28, 36 et 42 rem,
+   c'est-à-dire ses `max-w-md`, `max-w-xl` et `max-w-2xl` — parce que la page
+   de vitrine les documente comme « la largeur maximale » et que rien ne
+   justifiait de les bouger en même temps que le reste. */
+.sm {
+  max-width: 28rem;
+}
+
+.md {
+  max-width: 36rem;
+}
+
+.lg {
+  max-width: 42rem;
+}
+
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  /* `min-height: 0` est ce qui autorise le corps à défiler : sans lui, un
+     enfant flex refuse de descendre sous sa hauteur de contenu et c'est la
+     coquille entière qui déborde de l'écran. */
+  min-height: 0;
+  padding: var(--opale-space-xl);
+  border-radius: inherit;
+  color: var(--opale-text);
+  font-family: var(--opale-font-body);
+}
+
+/* LE PANNEAU REÇOIT LE FOCUS À L'OUVERTURE, DONC IL NE DOIT PAS CLIGNOTER.
+   `:focus` est muet — c'est un focus PROGRAMMÉ, personne ne l'a demandé au
+   clavier —, mais `:focus-visible` reste dessiné : si l'utilisateur revient
+   sur le panneau au clavier, il doit voir où il est. Supprimer les deux serait
+   le raccourci facile, et une infraction à WCAG 2.4.7. */
+.panel:focus {
+  outline: none;
+}
+
+.panel:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
+}
+
+/* L'EN-TÊTE EST SÉPARÉ DU CORPS PAR UN FILET, ET IL LE FALLAIT. Titre, texte
+   et boutons flottaient dans une même boîte blanche sans aucune articulation :
+   rien ne disait où finissait la question et où commençait la réponse. Le
+   filet est posé en `box-shadow` et non en `border-bottom` pour qu'il ne
+   compte pas dans la hauteur — un bord de 1 px décalerait de 1 px tout ce qui
+   suit, y compris entre les deux matières. */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--opale-space-lg);
+}
+
+/* LE FILET N'EST TIRÉ QUE S'IL SÉPARE QUELQUE CHOSE. Sans titre ni
+   description, l'en-tête ne contient que la croix : une ligne pleine largeur
+   sous un bouton isolé n'articule rien, elle barre le haut du panneau. */
+.header:has(.heading) {
+  padding-bottom: var(--opale-space-lg);
+
+  /* LE FILET EST TIRÉ DE L'ENCRE, PAS DE `--opale-divider`. Mesuré, ce dernier
+     tient 1,30:1 contre la surface claire et 1,09:1 contre la sombre : en
+     thème sombre le trait était rigoureusement invisible, donc l'articulation
+     qu'il apporte n'existait que la moitié du temps. Un mélange d'encre suit
+     la polarité du thème tout seul. */
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--opale-text) 16%, transparent);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--opale-space-xs);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--opale-text);
+  font-family: var(--opale-font-title);
+  font-size: var(--opale-text-xl);
+  font-weight: 600;
+  line-height: var(--opale-leading-tight);
+  letter-spacing: -0.01em;
+}
+
+.description {
+  margin: 0;
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-md);
+  line-height: var(--opale-leading-snug);
+}
+
+/* LA CROIX NE CONCURRENCE PLUS LE TITRE.
+
+   Elle portait un cercle plein et bordé, à l'encre du texte : deux formes
+   fermées de même valeur en haut du dialogue, dont la plus petite tirait l'œil
+   la première. Le cercle ne s'allume donc plus qu'au survol et au focus, et
+   l'encre passe au secondaire — le titre redevient ce qu'on lit d'abord.
+
+   LA CIBLE EST DE 44 px (WCAG 2.5.5, niveau AAA) alors qu'elle en faisait 40,
+   et les marges NÉGATIVES sont ce qui permet de l'agrandir sans écarter le
+   titre ni décaler l'en-tête : la cible déborde dans le rembourrage du
+   panneau, où il n'y a rien.
+
+   `margin-top` NÉGATIF ALIGNE LE CENTRE DE LA CROIX SUR LA PREMIÈRE LIGNE DU
+   TITRE. L'en-tête est aligné en haut — il le faut, à cause du sous-titre
+   optionnel —, ce qui posait une cible de 44 px en face d'une ligne de 29 : la
+   croix tombait cinq pixels trop bas. */
+.close {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  /* `auto` À GAUCHE RANGE LA CROIX AU BOUT DE L'EN-TÊTE, MÊME SEULE. Avec un
+     titre, `space-between` la poussait déjà à droite ; sans titre — une
+     visionneuse d'image —, elle était le seul enfant et tombait à gauche. */
+  margin: -0.55rem -0.65rem -0.55rem auto;
+  border-radius: var(--opale-radius-pill);
+  background: transparent;
+  color: var(--opale-text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--opale-motion-fast) var(--opale-ease),
+    border-color var(--opale-motion-fast) var(--opale-ease),
+    color var(--opale-motion-fast) var(--opale-ease);
+}
+
+.closeGlyph {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.close:hover {
+  border-color: var(--opale-divider);
+  background: color-mix(in srgb, var(--opale-text) 8%, var(--opale-surface));
+  color: var(--opale-text);
+}
+
+.close:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--opale-space-lg);
+  overflow-y: auto;
+  padding-right: var(--opale-space-2xs);
+  color: var(--opale-text);
+  font-size: var(--opale-text-md);
+  line-height: var(--opale-leading-relaxed);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--opale-space-sm);
+  margin-top: var(--opale-space-lg);
+}
+
+/* LE FILET DU PIED NE SE TIRE QU'APRÈS UN CORPS. Une confirmation n'a plus de
+   corps depuis que sa phrase est passée en DESCRIPTION du dialogue — et les
+   deux filets se retrouvaient alors face à face, séparés par une bande vide :
+   deux lignes qui ne séparent rien de rien. Le sélecteur de frère adjacent dit
+   exactement la condition — il y a quelque chose au-dessus à détacher. */
+.body + .footer {
+  padding-top: var(--opale-space-lg);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--opale-text) 16%, transparent);
+}
+
+@keyframes opale-modal-veil {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes opale-modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* WCAG 2.3.3 — la montée du panneau est du mouvement décoratif. Le fondu
+   reste : il n'est pas un mouvement, et c'est lui qui évite l'apparition
+   brutale que la réduction d'animation n'a jamais demandée. */
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    animation-name: opale-modal-veil;
+  }
+}
+
+/* =============================================================================
+   LA VERSION ORIGINALE DU PANNEAU.
+
+   Le dialogue ne savait rendre que du verre : sans matériau, il n'avait ni
+   fond, ni bord, ni ombre — il empruntait tout à l'enveloppe et devenait
+   transparent dès qu'on la retirait. Ce bloc lui donne la surface pleine
+   d'Opale.
+
+   LA SILHOUETTE ET LA TAILLE NE SONT PAS REPRISES : le rayon, la largeur
+   maximale et le débordement restent ceux de `.shell` et des trois tailles,
+   qui se posent maintenant sur le même élément que `.panel`.
+   ========================================================================== */
+.plain {
+  /* LE RAYON EST ÉCRIT ICI, ET SON ABSENCE ÉTAIT LE DÉFAUT DES CONTOURS.
+
+     `.panel` demande `border-radius: inherit` — ce qui est juste en verre, où
+     il est une couche de contenu à l'intérieur de l'enveloppe arrondie de
+     `Glass`. En rendu original il n'y a pas d'enveloppe : `.shell` et `.panel`
+     atterrissent sur le MÊME élément, `inherit` remonte donc au conteneur du
+     voile, qui n'a aucun rayon, et la valeur calculée était `0px`. Le dialogue
+     original était un rectangle à angles vifs — mesuré au navigateur — quand
+     sa version en verre était arrondie. */
+  border: 1px solid color-mix(in srgb, var(--opale-text) 14%, transparent);
+  border-radius: var(--opale-radius-lg);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+
+  /* TROIS COUCHES, ET CHACUNE FAIT UN TRAVAIL DIFFÉRENT. Le liseré interne
+     clair détache le bord haut de la surface ; l'anneau extérieur sombre donne
+     l'arête que `--opale-divider` seul ne donnait pas — 1,09:1 contre le
+     blanc, c'est-à-dire rien ; l'ombre portée creuse la distance au voile. */
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--opale-glass-light) 55%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--opale-text) 8%, transparent),
+    var(--opale-shadow-4);
+}

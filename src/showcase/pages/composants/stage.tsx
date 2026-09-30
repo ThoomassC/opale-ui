@@ -1,82 +1,21 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-/* =============================================================================
-   L'IMPORT DE `magic.scss` A ÉTÉ RETIRÉ D'ICI, ET IL FAUT DIRE POURQUOI.
-
-   Ce fichier portait `import '../../../magic/magic.scss';`, posé comme
-   correctif : mesuré sur la vitrine construite, la feuille était ABSENTE du
-   bundle — pas de Nunito, pas le reste du Preflight, aucune des neuf couleurs
-   de thème, et pas même la couche `@tailwind utilities` d'où sortent
-   `rounded-full` et `pointer-events-none`. Panne entièrement muette : les
-   composants se peignaient quand même, puisque chaque `*.module.scss` arrive
-   par l'import de son propre composant.
-
-   La cause a depuis été mesurée et elle n'est pas celle qu'on croyait — ce
-   n'est pas la feuille qui est élaguée, c'est le baril `src/magic/index.ts`,
-   dont Rollup a le droit de jeter les instructions de premier niveau dès que
-   `sideEffects` est un tableau. Le raisonnement complet, avec les sept
-   variantes de `sideEffects` essayées, est en tête de `src/main.tsx`, qui porte
-   désormais l'import : les instructions du module d'ENTRÉE sont toujours
-   conservées.
-
-   `stage.tsx` ÉTAIT UN BON ENDROIT POUR UN CORRECTIF ET UN MAUVAIS ENDROIT
-   POUR LA RÈGLE. Il était le seul module que les quatorze pages importent
-   toutes, donc le seul où l'import ne pouvait pas être oublié en ajoutant une
-   page — mais une feuille dont dépend l'application entière n'a rien à faire
-   dans une brique de mise en page de la documentation. Vérifié après retrait,
-   sur `dist-showcase/` reconstruit : la feuille est bien dans le bundle (voir
-   la mesure au pied de ce commentaire dans le rapport de migration).
-   ========================================================================== */
-
-/* =============================================================================
-   LES BRIQUES PARTAGÉES PAR LES QUATORZE PAGES DE COMPOSANTS.
-
-   `pages/api.tsx` sert les trois briques de toute page de composant — `PageBody`,
-   `UsageBlock`, `PropsTable`. Ce fichier sert les DEUX qui ne valent que pour
-   les composants vendorés : la scène sombre, et l'avertissement qui dit d'où
-   vient ce code.
-
-   LE PRÉFIXE `Magic` EST GARDÉ, ET IL NE NOMME PLUS UN GROUPE DE LA VITRINE.
-   Le groupe « Magic » a disparu en 2.0 : ces quatorze composants ne sont plus
-   un second point d'entrée à part, ils SONT ce que publie l'entrée racine. Le
-   préfixe nomme désormais leur PROVENANCE — `react-magic-ui` —, qui reste vraie
-   et reste la raison d'être de ces briques. Le renommer coûterait aussi les six
-   classes `.tc-doc-magicstage*` de `doc.css` pour ne rien gagner.
-
-   Aucune classe nouvelle inventée ici : `doc.css` porte `.tc-doc-magicstage*`,
-   et tout le reste réemploie le vocabulaire existant de la vitrine.
-   ========================================================================== */
+/* Les briques propres aux pages des composants composés : la scène et ses
+   cellules légendées (`pages/api.tsx` sert les briques communes).
+   `motion.scss` s'importe dans `src/main.tsx`, module d'entrée, et non ici.
+   Le préfixe `opale-mod-` des modules CSS est un contrat : le filet
+   anti-mouvement de `motion.scss` le vise. `doc.css` porte `.tc-doc-stage*`. */
 
 /**
- * LE SOL DES SCÈNES, ET LA SEULE COULEUR LITTÉRALE DE CE DOSSIER.
- *
- * Trois arrêts, et ils ne sont pas un goût. Les composants de `src/magic/**`
- * écrivent leur libellé en `#ffffff` EN DUR : le fond doit donc être sombre,
- * sans quoi le composant est illisible — mesuré, blanc sur la plaque de
- * spécimen d'Opale (`--surface`, rgb(235,244,246)) vaut 1,12:1, et blanc sur le
- * sol blanc de la vitrine vaut 1,00:1.
- *
- * L'ORDRE DES TEINTES EST LE LEUR — bleu, violet, nuit —, repris de leur propre
- * `--color-gradient` (`magic.scss`, écart nº 5). La LUMINOSITÉ, elle, est
- * abaissée, et c'est mesuré : leurs arrêts d'origine sont `#38adf1` et
- * `#7852f7`, sur lesquels le blanc ne tient que 2,50:1 et 4,83:1 — leur propre
- * dégradé ne porterait pas leur propre libellé. Les trois arrêts ci-dessous
- * donnent, contre `#ffffff` :
- *
- *   #17314f → 13,22:1     #2a2350 → 14,44:1     #101a2c → 17,41:1
- *
- * Le dégradé interpole entre les arrêts, donc 13,22:1 est le plancher de la
- * scène entière. Le seuil AA du texte courant est 4,5:1.
- *
- * ÉCRIT ICI ET NON DANS `doc.css`, comme les plaques de la page palette : la
- * feuille de la vitrine garde sa règle « aucune couleur littérale », et une
- * scène qui documente le thème d'un AUTRE projet ne doit pas suivre celui du
- * lecteur. Aucun jeton `--tc-*` n'est employé : ce dossier est hors du contrat de
- * couleur d'Opale, et le peindre avec un jeton publié affirmerait le contraire.
+ * Le sol des scènes, seule couleur littérale de ce dossier : la photographie
+ * commune au site, parce qu'un verre posé sur un aplat ne réfracte rien.
+ * Le voile uniforme de 65 % est le premier palier mesuré où le texte blanc
+ * tient 4,5:1 partout, y compris à travers le verre.
  */
-export const MAGIC_STAGE_GROUND = 'linear-gradient(150deg, #17314f 0%, #2a2350 42%, #101a2c 100%)';
+export const STAGE_GROUND =
+  "linear-gradient(0deg, rgba(7, 28, 43, 0.65), rgba(7, 28, 43, 0.65)), url('/glass-landscape.jpg') center / cover no-repeat";
 
-export interface MagicStageProps {
+export interface StageProps {
   /** Empile les enfants au lieu de les aligner — pour un composant pleine largeur. */
   readonly stack?: boolean;
   /** Impose 256 px de hauteur — pour `Sidebar` et `Modal`, qui n'en ont pas. */
@@ -86,24 +25,24 @@ export interface MagicStageProps {
   readonly children: ReactNode;
 }
 
-/** La scène sombre sur laquelle un composant vendoré se voit. */
-export function MagicStage({ stack = false, tall = false, background, children }: MagicStageProps) {
+/** La scène sombre sur laquelle un ancien composant en verre se voit. */
+export function Stage({ stack = false, tall = false, background, children }: StageProps) {
   const classNames = [
-    'tc-doc-magicstage',
-    stack ? 'tc-doc-magicstage--stack' : '',
-    tall ? 'tc-doc-magicstage--tall' : '',
+    'tc-doc-stage',
+    stack ? 'tc-doc-stage--stack' : '',
+    tall ? 'tc-doc-stage--tall' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <div className={classNames} style={{ background: background ?? MAGIC_STAGE_GROUND }}>
+    <div className={classNames} style={{ background: background ?? STAGE_GROUND }}>
       {children}
     </div>
   );
 }
 
-export interface MagicCellProps {
+export interface StageCellProps {
   /** La légende — ce que la figure MONTRE, pas le libellé du composant. */
   readonly label: ReactNode;
   readonly children: ReactNode;
@@ -116,11 +55,11 @@ export interface MagicCellProps {
  * sur la page de `Button` d'Opale : cinq contrôles au libellé identique sont
  * indiscernables dans une liste, et un texte posé à côté n'est relié à rien.
  */
-export function MagicCell({ label, children }: MagicCellProps) {
+export function StageCell({ label, children }: StageCellProps) {
   return (
-    <figure className="tc-doc-magicstage__cell">
+    <figure className="tc-doc-stage__cell">
       {children}
-      <figcaption className="tc-doc-magicstage__label">{label}</figcaption>
+      <figcaption className="tc-doc-stage__label">{label}</figcaption>
     </figure>
   );
 }
@@ -131,32 +70,14 @@ export function MagicCell({ label, children }: MagicCellProps) {
  * Rendue par `Specimen note=…`, donc dans un `<p>` juste au-dessus de la scène
  * — la contrainte est écrite à côté de ce qu'elle contraint, et non reléguée en
  * bas de page. Elle tient dans une phrase parce qu'elle est répétée quatorze
- * fois ; le développement est dans `MagicPreamble`, une fois par page.
+ * fois ; la page « Installation » porte seule la commande d'installation.
  */
-export function MagicGroundNote() {
+export function StageGroundNote() {
   return (
     <>
       Fond sombre <strong>obligatoire</strong> : le libellé de ce composant est <code>#ffffff</code>{' '}
       en dur, et sur la plaque claire d’un spécimen d’Opale il tombe à 1,12:1 — il disparaît. La
       scène porte donc son propre dégradé, plancher mesuré 13,22:1.
     </>
-  );
-}
-
-/**
- * Le chapeau commun aux quatorze pages : d'où vient ce code, et ce qu'il n'est
- * pas.
- *
- * DIT SUR CHAQUE PAGE ET NON UNE SEULE FOIS DANS LA NOTE DU GROUPE. Une page de
- * documentation s'atteint par son adresse — `#/composants/button` est un lien qu'on
- * partage — et la note du sommaire est à gauche, pliable, et absente d'un
- * copier-coller. Un lecteur qui arrive ici doit apprendre sur la page qu'il lit
- * que ce composant n'est pas d'Opale et qu'aucun de ses ratios n'a été mesuré.
- */
-export function MagicPreamble() {
-  return (
-    <p className="tc-doc-install">
-      <code>npm i &quot;@thomascaron/opale@github:ThoomassC/opale#v2.0.0&quot;</code>
-    </p>
   );
 }

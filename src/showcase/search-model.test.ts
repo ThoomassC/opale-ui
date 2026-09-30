@@ -31,6 +31,7 @@ interface PageSeed {
   readonly group: DocGroupId;
   /** Absent, le titre vaut le libellé — le cas courant du registre. */
   readonly title?: string;
+  readonly searchTerms?: readonly string[];
 }
 
 /**
@@ -44,6 +45,7 @@ function pageOf(seed: PageSeed): DocPage {
     label: seed.label,
     group: seed.group,
     title: seed.title ?? seed.label,
+    searchTerms: seed.searchTerms,
     render: () => null,
   };
 }
@@ -140,8 +142,8 @@ describe('searchPages — la requête sans contenu', () => {
 });
 
 describe('searchPages — le classement, rang par rang', () => {
-  /* UNE SEULE REQUÊTE POUR LES CINQ RANGS, et c'est ce qui rend l'ordre
-     comparable : « on » est atteignable par chacun des cinq chemins, y compris
+  /* UNE SEULE REQUÊTE POUR LES SIX RANGS, et c'est ce qui rend l'ordre
+     comparable : « on » est atteignable par chacun des six chemins, y compris
      par le nom de groupe (« Introduction »), qu'aucune autre requête courte ne
      touche sans toucher aussi un libellé. */
   const QUERY = 'on';
@@ -158,28 +160,30 @@ describe('searchPages — le classement, rang par rang', () => {
     group: 'fondations',
     title: 'Le contrat de couleur',
   });
+  /** Seul un terme d'API ou un ancien nom contient la requête. */
+  const SEARCH_TERM = pageOf({ label: 'Aide', group: 'composants', searchTerms: ['Ancienne fonction'] });
   /** Ni le libellé ni le titre : seul le nom du groupe « Introduction ». */
   const GROUP_INFIX = pageOf({ label: 'Repères', group: 'introduction', title: 'Les repères' });
 
   /** Volontairement à l'envers du classement attendu : le tri doit tout bouger. */
-  const PAGES = [GROUP_INFIX, TITLE_INFIX, LABEL_INFIX, WORD_PREFIX, LABEL_PREFIX];
+  const PAGES = [GROUP_INFIX, SEARCH_TERM, TITLE_INFIX, LABEL_INFIX, WORD_PREFIX, LABEL_PREFIX];
 
-  it('devrait classer préfixe de libellé, préfixe de mot, infixe de libellé, infixe de titre, puis nom de groupe', () => {
+  it('classe libellé, titre, termes de recherche, puis nom de groupe', () => {
     const result = searchPages(PAGES, QUERY);
 
     expect(
       labelsOf(result),
       `ordre rendu : ${labelsOf(result).join(' < ') || '(vide)'} — le classement ` +
         `est la seule chose qui distingue une recherche utile d'un filtre`,
-    ).toEqual(['Onglets', 'Barre onglet', 'Contraste', 'Palette', 'Repères']);
+    ).toEqual(['Onglets', 'Barre onglet', 'Contraste', 'Palette', 'Aide', 'Repères']);
   });
 
   it('devrait rendre des rangs strictement croissants dans l’ordre de sortie', () => {
     const ranks = searchPages(PAGES, QUERY).suggestions.map((suggestion) => suggestion.rank);
 
-    // Cinq rangs distincts et croissants : c'est ce qui garantit que les cinq
+    // Six rangs distincts et croissants : c'est ce qui garantit que les six
     // chemins de `rankOf` sont bien pris, et qu'aucun n'en recouvre un autre.
-    expect(ranks).toEqual([0, 1, 2, 3, 4]);
+    expect(ranks).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   it.each([
@@ -187,9 +191,21 @@ describe('searchPages — le classement, rang par rang', () => {
     ['un préfixe de mot', 'ongle', 'Barre onglet'],
     ['un infixe de libellé', 'trast', 'Contraste'],
     ['un infixe de titre', 'contrat', 'Palette'],
+    ['un ancien nom', 'ancien', 'Aide'],
     ['un nom de groupe seul', 'introduc', 'Repères'],
   ])('devrait trouver par %s', (_case, query, expected) => {
     expect(labelsOf(searchPages(PAGES, query))).toContain(expected);
+  });
+
+  it('retrouve une page par propriété API et par plusieurs termes', () => {
+    const CARD = pageOf({
+      label: 'Card',
+      group: 'composants',
+      searchTerms: ['Glass', 'liquidGlass', 'surface vitrée'],
+    });
+
+    expect(labelsOf(searchPages([CARD], 'liquidGlass'))).toEqual(['Card']);
+    expect(labelsOf(searchPages([CARD], 'Glass surface'))).toEqual(['Card']);
   });
 
   it('devrait préférer un préfixe de mot à un infixe de libellé', () => {

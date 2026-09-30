@@ -1,16 +1,22 @@
-import { Button, Glass } from '../../magic';
+import Glass from '../../opale/components/glass/Glass';
+
+/* Cette page documente le matériau : c'est la seule à appeler `Glass`
+   directement, par son chemin, pour montrer `rootClassName` et `rootStyle`
+   que la prop `liquidGlass` ne transmet pas. Son bouton de démonstration est
+   `<Glass as="button">` avec les classes d'Opale. */
 import type { CSSProperties } from 'react';
 import type { DocPage } from '../doc-model';
 import { Specimen } from '../section';
 import { PageBody, UsageBlock } from './api';
-import { MagicCell, MagicStage } from './composants/stage';
+import { LiquidGlassFilter } from './liquid-glass-filter';
+import { StageCell, Stage } from './composants/stage';
 
 const LANDSCAPE_GROUND =
-  "linear-gradient(180deg, rgba(7, 28, 43, 0.08), rgba(7, 28, 43, 0.22)), url('/glass-landscape.jpg') center / cover no-repeat";
+  "linear-gradient(0deg, rgba(7, 28, 43, 0.65), rgba(7, 28, 43, 0.65)), url('/glass-landscape.jpg') center / cover no-repeat";
 
 const TRANSPARENT_MODAL_STYLE = {
-  '--lg-bg-color': 'rgba(255, 255, 255, 0.06)',
-  '--lg-highlight': 'rgba(255, 255, 255, 0.32)',
+  '--opale-glass-tint': 'rgba(255, 255, 255, 0.06)',
+  '--opale-glass-edge': 'rgba(255, 255, 255, 0.32)',
 } as CSSProperties;
 
 const SQUIRE_CIRCLE_STYLE = {
@@ -20,43 +26,10 @@ const SQUIRE_CIRCLE_STYLE = {
   borderRadius: '0.75rem',
 } as CSSProperties;
 
-function LiquidGlassFilter() {
-  return (
-    <svg className="tc-doc-liquid-filter" aria-hidden="true">
-      <filter
-        id="tc-doc-liquid-modal-dist"
-        x="-20%"
-        y="-20%"
-        width="140%"
-        height="140%"
-      >
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.025 0.018"
-          numOctaves="2"
-          seed="18"
-          result="liquidNoise"
-        />
-        <feGaussianBlur in="liquidNoise" stdDeviation="0.7" result="softNoise" />
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="softNoise"
-          scale="12"
-          xChannelSelector="R"
-          yChannelSelector="G"
-        />
-      </filter>
-    </svg>
-  );
-}
+const USAGE = `import { Button, Card } from '@thomascaron/opale-ui';
 
-const USAGE = `npm i "@thomascaron/opale@github:ThoomassC/opale#v2.0.0"
-
-import { Button, Glass } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
-
-<Glass enableLiquidAnimation>Modale</Glass>
-<Button text="Continuer" />`;
+<Card liquidGlass title="Verre liquide" />
+<Button liquidGlass>Continuer</Button>`;
 
 export const verreLiquidePage: DocPage = {
   slug: 'verre-liquide',
@@ -66,10 +39,10 @@ export const verreLiquidePage: DocPage = {
   render: () => (
     <PageBody>
       <Specimen title="Verre liquide">
-        <MagicStage background={LANDSCAPE_GROUND}>
+        <Stage background={LANDSCAPE_GROUND}>
           <LiquidGlassFilter />
 
-          <MagicCell label="Modale + déformation">
+          <StageCell label="Modale + déformation">
             <Glass
               enableLiquidAnimation={false}
               rootClassName="tc-doc-liquid-modal"
@@ -79,17 +52,17 @@ export const verreLiquidePage: DocPage = {
                 style={{
                   display: 'grid',
                   gap: '10px',
-                  minInlineSize: '260px',
+                  minInlineSize: 'min(260px, 100%)',
                   padding: '22px 26px',
                 }}
               >
-                <strong style={{ fontSize: '18px' }}>Liquid Glass</strong>
+                <strong style={{ fontSize: '18px' }}>Verre liquide</strong>
                 <span>Une surface nette, légèrement déformée.</span>
               </div>
             </Glass>
-          </MagicCell>
+          </StageCell>
 
-          <MagicCell label="Bouton + déformation">
+          <StageCell label="Bouton + déformation">
             <div
               style={{
                 display: 'grid',
@@ -97,22 +70,33 @@ export const verreLiquidePage: DocPage = {
                 minBlockSize: '108px',
               }}
             >
-              <Button
-                text="Continuer"
+              <Glass
+                as="button"
+                type="button"
                 className="tc-doc-liquid-action-button"
-                rootClassName="tc-doc-liquid-modal"
+                /* LA RACINE A SA PROPRE CLASSE, en plus de celle de la scène :
+                   c'est elle qui porte la silhouette du bouton d'Opale — le
+                   rayon du verre et le découpage en squircle — que la modale
+                   voisine, elle, ne doit pas prendre. */
+                rootClassName="tc-doc-liquid-modal tc-doc-liquid-action-button__root"
                 rootStyle={TRANSPARENT_MODAL_STYLE}
-              />
+                enableLiquidAnimation
+              >
+                Continuer
+              </Glass>
             </div>
-          </MagicCell>
+          </StageCell>
 
-          <MagicCell label="squire-circle">
+          <StageCell label="squire-circle">
             <div className="tc-doc-squire-circle__stage">
-              <Button
+              <Glass
+                as="button"
+                type="button"
                 aria-label="squire-circle"
                 className="tc-doc-squire-circle__button"
                 rootClassName="tc-doc-liquid-modal tc-doc-squire-circle__root"
                 rootStyle={SQUIRE_CIRCLE_STYLE}
+                enableLiquidAnimation
               >
                 <svg
                   className="tc-doc-squire-circle__app-icon"
@@ -144,7 +128,13 @@ export const verreLiquidePage: DocPage = {
                     <clipPath id="tc-doc-squire-drop-clip">
                       <path d="M16 3.25c5.75 5.25 9.1 9.5 9.1 15.1a9.1 9.1 0 0 1-18.2 0c0-5.6 3.35-9.85 9.1-15.1Z" />
                     </clipPath>
-                    <filter id="tc-doc-squire-drop-soft" x="-30%" y="-30%" width="160%" height="160%">
+                    <filter
+                      id="tc-doc-squire-drop-soft"
+                      x="-30%"
+                      y="-30%"
+                      width="160%"
+                      height="160%"
+                    >
                       <feGaussianBlur stdDeviation="0.45" />
                     </filter>
                   </defs>
@@ -181,13 +171,13 @@ export const verreLiquidePage: DocPage = {
                     />
                   </g>
                 </svg>
-              </Button>
+              </Glass>
             </div>
-          </MagicCell>
-        </MagicStage>
+          </StageCell>
+        </Stage>
       </Specimen>
 
-      <UsageBlock label="Installation et import de Glass" code={USAGE} />
+      <UsageBlock label="Activer le matériau" code={USAGE} />
     </PageBody>
   ),
 };

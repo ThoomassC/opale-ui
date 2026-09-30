@@ -1,12 +1,13 @@
-import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
-import { PageBody, PropsTable, UsageBlock } from '../api';
+import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
+import { COMPONENT_ALTERNATIVES } from '../component-alternatives';
+import { ComponentPageLayout } from '../component-page';
+import { MaterialSwitch } from './material-switch';
 import { ToastPositionScene, ToastVariantScene } from './scenes';
-import { MagicGroundNote, MagicPreamble } from './stage';
+import { StageGroundNote } from './stage';
 
-const USAGE = `import { ToastProvider, useToast } from '@thomascaron/opale';
-import '@thomascaron/opale/opale.css';
+const USAGE = `import { Button, ToastProvider, useToast } from '@thomascaron/opale-ui';
 
 // 1. Le fournisseur, AUTOUR de l'arbre qui déclenchera les toasts.
 <ToastProvider position="bottom-right" duration={4000}>
@@ -19,9 +20,10 @@ function Publish() {
 
   return (
     <Button
-      text="Publier"
-      onClick={() => showToast({ title: 'Étape publiée', variant: 'success' })}
-    />
+      onClick={() => showToast({ title: 'Étape publiée', tone: 'success' })}
+    >
+      Publier
+    </Button>
   );
 }`;
 
@@ -44,7 +46,12 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         Millisecondes avant fermeture automatique. <code>Infinity</code> désarme la minuterie : le
-        toast reste jusqu’à un clic ou un <code>dismissToast</code>.
+        toast reste jusqu’à un clic ou un <code>dismissToast</code>. Sans durée passée ici ni au
+        toast, <code>error</code> et <code>warning</code> restent jusqu’à leur fermeture.{' '}
+        <strong>
+          La minuterie se met en pause au survol et dès que le focus entre dans la carte
+        </strong>
+        , puis reprend le temps qui restait — pas la durée entière.
       </>
     ),
   },
@@ -56,6 +63,9 @@ const PROPS: readonly PropRow[] = [
       <>
         Le coin par défaut. Chaque toast peut le surcharger, et les toasts sont regroupés par
         position — six piles possibles, empilées du plus récent en haut ou en bas selon le coin.
+        Chaque pile est elle-même coupée en deux régions live, une polie et une assertive : à
+        l’intérieur d’un coin, les <code>error</code> se groupent donc entre eux plutôt que de
+        s’intercaler par ordre d’arrivée. Voir plus bas.
       </>
     ),
   },
@@ -65,8 +75,8 @@ const PROPS: readonly PropRow[] = [
     defaultValue: "'slide-from-right'",
     description: (
       <>
-        L’entrée par défaut, surchargeable par toast. La durée de sortie est indexée sur ce choix —
-        220, 220, 240 ou 200 ms.
+        L’entrée par défaut, surchargeable par toast. Les quatre sorties durent 220 ms
+        (<code>--opale-motion</code>).
       </>
     ),
   },
@@ -74,7 +84,19 @@ const PROPS: readonly PropRow[] = [
     name: 'ToastProvider portalContainer',
     type: 'HTMLElement | null',
     defaultValue: 'document.body',
-    description: 'L’hôte du portail, résolu après le montage.',
+    description: (
+      <>
+        L’hôte du portail, <strong>résolu pendant le rendu</strong> et non après un effet. Les
+        régions live y sont montées <em>avec</em> le fournisseur, donc avant le premier toast —
+        c’est la condition pour qu’une insertion soit annoncée.
+      </>
+    ),
+  },
+  {
+    name: 'ToastProvider labels',
+    type: 'Partial<ToastLabels>',
+    defaultValue: "{ close: 'Fermer la notification' }",
+    description: 'Les textes des cartes de la file ; une clé omise garde son défaut français.',
   },
   {
     name: 'useToast().showToast',
@@ -82,9 +104,15 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         Empile un toast et rend son identifiant. <code>ToastDefinition</code> accepte{' '}
-        <code>id</code>, <code>title</code>, <code>description</code>, <code>variant</code>,{' '}
+        <code>id</code>, <code>title</code>, <code>description</code>, <code>tone</code>,{' '}
         <code>duration</code>, <code>animation</code>, <code>position</code>,{' '}
-        <code>enableLiquidAnimation</code> et <code>onClose</code>.
+        <code>enableLiquidAnimation</code> et <code>onClose</code>.{' '}
+        <strong>
+          Un <code>id</code> déjà présent dans la file remplace son toast au lieu d’en empiler un
+          second
+        </strong>{' '}
+        — c’est ce qui rend la prop utilisable pour un message qui se met à jour
+        («&nbsp;Enregistrement…&nbsp;» puis «&nbsp;Enregistré&nbsp;»).
       </>
     ),
   },
@@ -100,97 +128,133 @@ const PROPS: readonly PropRow[] = [
   },
 ];
 
-export const toastPage: DocPage = {
-  slug: 'composants/toast',
-  label: 'Toast',
-  group: 'composants',
-  title: 'Toast',
-  lede: (
-    <>
-      Le seul composant de la librairie qui ne s’importe pas comme un composant : c’est un{' '}
-      <strong>fournisseur plus un hook</strong>. <code>ToastProvider</code> enveloppe l’arbre et
-      porte la file, <code>useToast()</code> donne <code>showToast</code>, <code>dismissToast</code>{' '}
-      et <code>clearToasts</code>, et les toasts se peignent dans un portail sur{' '}
-      <code>document.body</code>. Quatre variantes, six positions, quatre animations.
-    </>
-  ),
-  render: () => (
-    <PageBody>
-      <MagicPreamble />
-
-      <UsageBlock label="Le montage de Toast, en deux temps" code={USAGE} />
-
-      <p className="tc-doc-prose">
-        <strong>Ce que son montage exige, et l’ordre compte.</strong> Un <code>ToastProvider</code>{' '}
-        doit envelopper <em>tout</em> l’arbre qui déclenchera des toasts, et <code>useToast()</code>{' '}
-        doit être appelé <em>à l’intérieur</em> de cet arbre — hors du fournisseur, le hook{' '}
-        <strong>jette</strong> « <code>useToast must be used within ToastProvider</code> ».
-        Corollaire de conception : le déclencheur ne peut pas être le composant qui rend le
-        fournisseur, puisqu’un fournisseur ne se consomme pas lui-même. Chaque scène de cette page
-        monte donc son propre <code>ToastProvider</code>, et ses boutons sont des composants séparés
-        — c’est la contrainte, écrite en code.
-      </p>
-
-      <Specimen
-        title="Les quatre variantes — déclenchez-les"
-        note={
+/* La page « ToastProvider » : la file de toasts (`ToastProvider`, `useToast`),
+   portaillée dans les coins de l'écran. `Opale.Toast` est un autre mécanisme,
+   rendu sur place et piloté par `open` : il a sa propre page. Les métadonnées
+   de la page vivent dans `toast.page.tsx`, lu par le sommaire sans rien charger. */
+export default function ToastContent() {
+  return (
+    <ComponentPageLayout
+      id="toast"
+      imports={['ToastProvider', 'useToast']}
+      alternative={COMPONENT_ALTERNATIVES['composants/toast-provider']}
+      demo={
+        <Specimen
+          title="Les cinq tons — déclenchez-les"
+          note={
+            <>
+              <strong>
+                Les toasts sont portaillés dans <code>document.body</code> : ils apparaissent en
+                haut à droite de la fenêtre, pas dans la scène.
+              </strong>{' '}
+              Ils se ferment seuls au bout de 4 s — sauf l’erreur et l’avertissement, qui attendent
+              —, à la croix, ou avec « Tout fermer » — et{' '}
+              <strong>la minuterie s’arrête tant que le pointeur est dessus</strong>, donc
+              survolez-en un pour le garder le temps de le lire. La scène est sombre pour ses
+              boutons, qui sont ceux de la librairie. <StageGroundNote />
+            </>
+          }
+        >
+          <MaterialSwitch name="ToastProvider">
+            {(liquidGlass) => <ToastVariantScene liquidGlass={liquidGlass} />}
+          </MaterialSwitch>
+        </Specimen>
+      }
+      examples={
+        <>
+          <UsageBlock label="Le montage de ToastProvider, en deux temps" code={USAGE} />
+          <Specimen
+            title="Positions, animations, et une durée infinie"
+            note={
+              <>
+                Ce fournisseur est réglé sur <code>duration={'{Infinity}'}</code> : rien ne se ferme
+                tout seul, il faut la croix ou « Tout fermer ». Les trois boutons visent trois coins
+                différents — les piles sont indépendantes.
+              </>
+            }
+          >
+            <ToastPositionScene />
+          </Specimen>
+        </>
+      }
+      props={
+        <>
+          <PropsTable
+            id="toast"
+            title="L’interface — le fournisseur et le hook"
+            note={
+              <>
+                <code>ToastProvider</code> est un composant de configuration : ses cinq props sont
+                les <em>défauts</em> de la file, et chaque appel à <code>showToast</code> peut les
+                surcharger.{' '}
+                <strong>
+                  Cette file n’exporte aucun composant <code>Toast</code>
+                </strong>{' '}
+                — sa carte est interne et n’est atteignable que par <code>showToast</code>. Le{' '}
+                <code>Opale.Toast</code> que publie le paquet est un composant à part, rendu en
+                place : il n’est pas la carte de cette file.
+              </>
+            }
+            rows={PROPS}
+          />
+        </>
+      }
+      states={[
+        {
+          state: 'error',
+          description: (
+            <>
+              Les tons <code>warning</code> et <code>error</code> entrent dans la région assertive{' '}
+              <code>role=&quot;alert&quot;</code> de leur coin ; les autres dans la région polie{' '}
+              <code>role=&quot;status&quot;</code>.
+            </>
+          ),
+        },
+      ]}
+      accessibility={{
+        keyboard: [
           <>
-            <strong>
-              Les toasts sont portaillés dans <code>document.body</code> : ils apparaissent en haut
-              à droite de la fenêtre, pas dans la scène.
-            </strong>{' '}
-            Ils se ferment seuls au bout de 4 s, à la croix, ou avec « Tout fermer ». La scène est
-            sombre pour ses boutons, qui sont ceux de la librairie. <MagicGroundNote />
-          </>
-        }
-      >
-        <ToastVariantScene />
-      </Specimen>
-
-      <Specimen
-        title="Positions, animations, et une durée infinie"
-        note={
+            Le focus n’est jamais déplacé vers un toast. La croix est un <code>&lt;button&gt;</code>{' '}
+            natif.
+          </>,
           <>
-            Ce fournisseur est réglé sur <code>duration={'{Infinity}'}</code> : rien ne se ferme
-            tout seul, il faut la croix ou « Tout fermer ». Les trois boutons visent trois coins
-            différents — les piles sont indépendantes.
-          </>
-        }
-      >
-        <ToastPositionScene />
-      </Specimen>
-
-      <PropsTable
-        id="magic-toast"
-        title="L’interface — le fournisseur et le hook"
-        note={
+            La minuterie se met en pause au survol et dès que le focus entre dans la carte, puis
+            reprend le temps restant.
+          </>,
+        ],
+        semantics: [
           <>
-            <code>ToastProvider</code> est un composant de configuration : ses cinq props sont les{' '}
-            <em>défauts</em> de la file, et chaque appel à <code>showToast</code> peut les
-            surcharger. Aucun composant <code>Toast</code> n’est exporté — la carte est interne.
-          </>
-        }
-        rows={PROPS}
-      />
-
-      <p className="tc-doc-prose">
-        <strong>Ce que sa région live fait, et ce qu’elle ne fait pas.</strong> Chaque carte porte{' '}
-        <code>role=&quot;status&quot;</code> et <code>aria-live=&quot;polite&quot;</code>, donc son
-        contenu est annoncé à l’apparition. Mais l’attribut est posé sur le nœud{' '}
-        <em>qui vient d’apparaître</em> plutôt que sur un conteneur persistant : selon le lecteur
-        d’écran, une région live insérée en même temps que son contenu peut n’être pas annoncée du
-        tout. C’est le seul motif de la librairie où le doute porte sur le comportement d’une
-        technologie d’assistance et non sur le code — et il n’a pas été mesuré ici. Le bouton de
-        fermeture, lui, porte <code>aria-label=&quot;close toast&quot;</code>, en anglais et non
-        surchargeable.
-      </p>
-
-      <p className="tc-doc-prose">
-        <strong>Il n’y a plus de message d’état dans le flux.</strong> La 1.0 publiait un{' '}
-        <code>Message</code> posé <em>à côté</em> de ce qui l’avait produit — donc lisible sans
-        limite de temps, et retrouvable en relisant la page. La 2.0 ne le publie plus : le seul
-        moyen d’annoncer un état est cette carte flottante, qui s’efface au bout de quatre secondes.
-      </p>
-    </PageBody>
-  ),
-};
+            Chaque coin porte deux régions live vides, montées avec le fournisseur :{' '}
+            <code>role=&quot;status&quot;</code> (<code>aria-live=&quot;polite&quot;</code>) et{' '}
+            <code>role=&quot;alert&quot;</code> (<code>aria-live=&quot;assertive&quot;</code>),
+            toutes deux <code>aria-atomic=&quot;false&quot;</code>.
+          </>,
+          <>
+            La croix est nommée « Fermer la notification » (<code>labels.close</code>) ; son glyphe
+            est <code>aria-hidden</code>.
+          </>,
+          <>
+            Le portail reste actif et audible pendant qu’une <code>Modal</code> est ouverte.
+          </>,
+          <>
+            Sous <code>prefers-reduced-motion</code>, glissements et mise à l’échelle deviennent des
+            fondus.
+          </>,
+        ],
+      }}
+      limits={[
+        <>
+          Dans un même coin, les messages urgents se groupent entre eux au lieu de suivre l’ordre
+          d’arrivée.
+        </>,
+        <>
+          <kbd>Échap</kbd> ne ferme pas un toast ; seule la croix, la minuterie ou{' '}
+          <code>dismissToast</code> le font.
+        </>,
+        <>
+          <code>useToast</code> jette hors d’un <code>ToastProvider</code>.
+        </>,
+      ]}
+    />
+  );
+}

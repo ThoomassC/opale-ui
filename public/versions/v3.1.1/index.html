@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      LA MARQUE, ET POURQUOI CES DEUX COULEURS-LÀ.
+
+      Le fichier qui était ici n'était pas celui d'Opale : un éclair violet
+      exporté de Figma, arrivé avec le PREMIER commit du dépôt (`aeaad09`) en
+      même temps que `icons.svg`, et jamais remplacé depuis. Ses couleurs —
+      #863bff, #7e14ff, #47bfff — n'existent nulle part dans la charte, et pas
+      seulement « par goût » : mesuré en OKLab, #7e14ff porte une chroma de
+      0,288 quand la couleur la plus saturée de TOUTE la palette,
+      `--tc-violet-498`, plafonne à 0,096 ; et #47bfff se pose à 236,3° de
+      teinte, hors de la bande froide 205-225° que `primitives.css` s'impose.
+      La famille violette de la charte est de surcroît « réservée à la pastille
+      "à venir", et à rien d'autre ».
+
+      Le dessin actuel est une goutte, parce que c'est ce que la librairie est
+      devenue en 2.0 : du verre liquide. Ses deux couleurs sont des jetons, et
+      chacune est mesurée :
+
+        fond      `--tc-teal-515`    #087487
+        goutte    `--tc-mist-936`    #deedf0   ->  4,53:1 sur le fond
+
+      LE FOND EST LE SEUL PRIMITIF DE LA CHARTE QUI NE BASCULE PAS. `roles.css`
+      sert `--tc-teal-515` pour `--accent` dans ses TROIS blocs de thème
+      (lignes 146, 291 et 349). Une tuile pleine dans cette teinte se lit donc
+      à l'identique sur un onglet clair et sur un onglet sombre, sans requête de
+      préférence — qu'un favicon ne pourrait de toute façon pas honorer partout.
+      DEUX FICHIERS ET NON UN, parce qu'iOS n'accepte pas le SVG pour une icône
+      d'écran d'accueil. Le PNG est donc à FOND PERDU, sans coins arrondis :
+      c'est iOS qui applique son propre masque, et une tuile déjà arrondie s'y
+      verrait rognée deux fois. Vérifié en décodant le PNG produit — (0,0) et
+      (179,179) valent bien #087487.
+
+      Aucun nom de jeton n'est cité DANS le SVG, et ce n'est pas un oubli :
+      deux tirets consécutifs sont illégaux dans un commentaire XML. Le fichier
+      cesse alors d'être analysable, le navigateur n'affiche AUCUNE erreur, et
+      l'onglet retombe silencieusement sur son icône par défaut. C'est arrivé
+      une fois pendant l'écriture de ce dessin.
+
+      NON VÉRIFIÉ : le rendu réel sur un onglet Safari et sur un écran d'accueil
+      iOS. Les quatre tailles ont été mesurées dans Chromium seul.
+    -->
+    <link rel="icon" type="image/svg+xml" href="/versions/v3.1.1/favicon.svg" />
+    <link rel="apple-touch-icon" href="/versions/v3.1.1/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Documentation de @thomascaron/opale 3.0 — design system inspiré de OpaleUI, trois thèmes et composants liquid glass activables à la carte."
+    />
+    <!--
+      La couleur de la barre d'adresse mobile, et la SEULE copie en dur de
+      `--site-background` dans tout le dépôt.
+
+      Elle est là parce qu'un attribut HTML ne peut pas citer un jeton CSS : la
+      valeur initiale doit être écrite, et c'est le fond CLAIR — `--site-background`
+      vaut `var(--tc-mist-936)` en thème clair, soit #deedf0 (voir `tokens/roles.css`
+      et `tokens/primitives.css`). Le clair et non le sombre : c'est le thème que
+      la page sert quand rien n'est mémorisé et que l'OS ne demande rien.
+
+      Ensuite elle ne se recopie plus. `useTheme` relit LE FOND RÉELLEMENT PEINT
+      — la valeur calculée de `background-color` sur `body`, jamais une constante
+      TypeScript, et plus le jeton `--site-background` — et réécrit le `content` à
+      chaque bascule. La distinction n'est pas théorique : la vitrine a un sol
+      BLANC (`--doc-ground` dans `doc.css`) alors que le jeton publié vaut
+      toujours #deedf0, si bien que lire le jeton annonçait du mist sur une page
+      blanche. Dès le premier passage de l'effet, cette valeur écrite ici est donc
+      remplacée par le blanc ; elle ne couvre que l'avant-premier-rendu, où le
+      mist reste le meilleur aveu disponible d'un attribut qui ne sait pas lire
+      une feuille.
+
+      Sans cette balise le hook sort proprement sur `null` : la bascule marche, et
+      la barre d'adresse reste au thème clair en thème sombre, panne muette que
+      rien ne signale.
+    -->
+    <meta name="theme-color" content="#f7f4ef" />
+    <!--
+      Le titre AVANT le premier rendu. La coquille (`doc-shell.tsx`) le réécrit
+      en « <titre de la page> — @thomascaron/opale » dès qu'elle connaît la page,
+      et à chaque navigation ; celui-ci est donc ce que voient l'onglet pendant
+      le chargement, un partage de lien et un lecteur sans JavaScript. Il ne
+      nomme AUCUNE page en particulier : le fragment décide de la page, et il
+      n'est pas lisible d'ici.
+    -->
+    <title>Documentation — @thomascaron/opale</title>
+    <!--
+      Le seul script bloquant de la page : il pose le thème choisi avant la
+      première peinture.
+
+      Sans lui pour le THÈME, quelqu'un qui a choisi « sombre » sur un système
+      clair voit un flash clair : la feuille de jetons sert
+      `prefers-color-scheme` jusqu'à ce que React monte et pose `data-theme`.
+
+      Le matériau Liquid Glass n'est pas global : chaque page de composant le
+      déclenche après interaction, sur son propre spécimen.
+
+      `data-theme` écrit bien ses deux valeurs, parce que `light` doit pouvoir
+      contredire un OS en sombre.
+
+      Volontairement synchrone et sans `type="module"` : un module est différé,
+      donc il s'exécuterait après la première peinture — c'est-à-dire trop tard
+      pour ce qu'il est censé empêcher.
+    -->
+    <script>
+      try {
+        var storedTheme = localStorage.getItem('tc-theme');
+        if (storedTheme === 'dark' || storedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', storedTheme);
+        }
+      } catch (error) {
+        /* Stockage refusé : les états de base feront l'affaire. */
+      }
+    </script>
+    <script type="module" crossorigin src="/versions/v3.1.1/assets/index-U-wvWKzj.js"></script>
+    <link rel="stylesheet" crossorigin href="/versions/v3.1.1/assets/index-ChoNKPkw.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

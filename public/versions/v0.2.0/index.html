@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/versions/v0.2.0/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Charte graphique de @thomascaron/ui — la palette teal et cuivre, les échelles et les composants partagés par portfolio et travels_in_world."
+    />
+    <title>Charte graphique — @thomascaron/ui</title>
+    <!--
+      Le seul script bloquant de la page, et il tient en six lignes.
+
+      Sans lui, quelqu'un qui a choisi « sombre » sur un système clair voit un
+      flash clair : la feuille de jetons sert `prefers-color-scheme` jusqu'à ce
+      que React monte et pose `data-theme`. Poser l'attribut ici, avant le
+      premier rendu, supprime le flash. Le `try` couvre la navigation privée,
+      où la simple lecture du stockage lève.
+
+      Volontairement synchrone et sans `type="module"` : un module est différé,
+      donc il s'exécuterait après la première peinture — c'est-à-dire trop tard
+      pour ce qu'il est censé empêcher.
+    -->
+    <script>
+      try {
+        var stored = localStorage.getItem('tc-theme');
+        if (stored === 'dark' || stored === 'light') {
+          document.documentElement.setAttribute('data-theme', stored);
+        }
+      } catch (error) {
+        /* Stockage refusé : la préférence système fera l'affaire. */
+      }
+    </script>
+    <script type="module" crossorigin src="/versions/v0.2.0/assets/index-Rl76AOPk.js"></script>
+    <link rel="stylesheet" crossorigin href="/versions/v0.2.0/assets/index-D8ncwjGh.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

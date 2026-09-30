@@ -1,4 +1,24 @@
-import type { ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
+
+import { DocHeadingLevel } from './doc-heading-level';
+
+/** Le titre d'un bloc de documentation, au niveau fixé par `DocHeadingLevel`. */
+export function DocHeading({
+  id,
+  className,
+  children,
+}: {
+  readonly id?: string;
+  readonly className: string;
+  readonly children: ReactNode;
+}) {
+  const Tag = useContext(DocHeadingLevel) === 3 ? 'h3' : 'h2';
+  return (
+    <Tag className={className} id={id}>
+      {children}
+    </Tag>
+  );
+}
 
 export interface SpecimenProps {
   title: string;
@@ -17,16 +37,15 @@ export interface SpecimenProps {
  * rotors — cinquante-neuf fois sur le site. Le `<h2>` structure déjà le
  * spécimen, et lui apparaît dans le plan de titres.
  *
- * Le titre est un `<h2>` : la coquille de documentation rend le `<h1>` de la
- * page, si bien qu'un spécimen se pose juste sous lui — et les titres à
- * l'intérieur d'un spécimen commencent donc à `<h3>`. La classe reste
+ * Le titre est un `<h2>` sous le `<h1>` de la coquille, ou un `<h3>` dans une
+ * section du gabarit de composant (voir `DocHeadingLevel`). La classe reste
  * `tc-doc-specimen__title` : c'est le niveau VISUEL voulu, indépendamment du
  * niveau de titre.
  */
 export function Specimen({ title, note, inline = false, children }: SpecimenProps) {
   return (
     <div className="tc-doc-specimen">
-      <h2 className="tc-doc-specimen__title">{title}</h2>
+      <DocHeading className="tc-doc-specimen__title">{title}</DocHeading>
       {note ? <p className="tc-doc-specimen__note">{note}</p> : null}
       <div
         className={

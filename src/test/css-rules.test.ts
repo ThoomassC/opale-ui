@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import docSource from '../styles/doc.css?raw';
-import { parseRules, ruleBody } from './css-rules';
+import {
+  atRules,
+  declaration,
+  declarations,
+  parseRules,
+  ruleBody,
+  selectorsDeclaring,
+} from './css-rules';
 
 /* =============================================================================
    LE LECTEUR DE CSS SE TESTE, PARCE QUE TROIS GARDES EN DÉPENDENT.
@@ -104,6 +111,15 @@ describe('le lecteur de règles CSS', () => {
     expect(ruleBody(groupe, '.b')).toMatch(/partage/);
   });
 
+  it('ne devrait pas refermer une règle sur une accolade citée dans une chaîne', () => {
+    /* Le balayage à accolades d'avant postcss ignorait les chaînes : le `}` de
+       `content` refermait `.a`, et `.b` n'existait plus. */
+    const chaine = `.a { content: "}"; color: un; }\n.b { color: deux; }`;
+
+    expect(ruleBody(chaine, '.a')).toMatch(/color:\s*un/);
+    expect(ruleBody(chaine, '.b')).toMatch(/color:\s*deux/);
+  });
+
   it('devrait lire doc.css en entier sans laisser de règle dans un corps', () => {
     /* LA GARDE DE L'HYPOTHÈSE DU MODULE : il ne gère pas le CSS imbriqué (une
        règle DANS une règle), au motif qu'aucune feuille du dépôt n'en contient.
@@ -119,5 +135,90 @@ describe('le lecteur de règles CSS', () => {
     ).toEqual([]);
 
     expect(parseRules(docSource).length, 'doc.css devrait rendre des règles').toBeGreaterThan(100);
+  });
+});
+
+/* =============================================================================
+   `declarations` : CE QUE LA FEUILLE RETIENT, PAS CE QU'ELLE MENTIONNE.
+
+   Une expression rationnelle sur un corps de règle réussit dès qu'une
+   déclaration correspond, même écrasée trois lignes plus bas. Ces cas tiennent
+   les trois différences qui comptent : la dernière valeur gagne, le contexte
+   est exact, et `!important` n'est pas perdu.
+   ========================================================================== */
+describe('les déclarations retenues pour un sélecteur', () => {
+  it('devrait retenir la dernière valeur écrite, règles du même sélecteur fusionnées', () => {
+    const feuille = `.a { color: rouge; margin: 0; }\n.a { color: bleu; }`;
+
+    expect(Object.fromEntries(declarations(feuille, '.a'))).toEqual({
+      color: 'bleu',
+      margin: '0',
+    });
+  });
+
+  it('devrait ignorer par défaut les règles posées dans une at-rule', () => {
+    const feuille = `.a { color: base; }\n@media (min-width: 60rem) { .a { color: large; } }`;
+
+    expect(declaration(feuille, '.a', 'color')).toBe('base');
+    expect(declaration(feuille, '.a', 'color', { within: '@media (min-width:60rem)' })).toBe(
+      'large',
+    );
+  });
+
+  it('devrait exiger la pile d’at-rules complète quand on la donne', () => {
+    const feuille = `@supports (display: grid) { @media (x) { .a { color: niche; } } }`;
+
+    expect(declaration(feuille, '.a', 'color', { within: '@media (x)' })).toBeUndefined();
+    expect(
+      declaration(feuille, '.a', 'color', { within: ['@supports (display: grid)', '@media (x)'] }),
+    ).toBe('niche');
+  });
+
+  it('devrait garder !important dans la valeur', () => {
+    expect(declaration('.a { color: red !important; }', '.a', 'color')).toBe('red !important');
+  });
+
+  it('devrait ne rien rendre pour un sélecteur absent ou seulement préfixe', () => {
+    const feuille = `.a__alltitle { color: deux; }`;
+
+    expect(declarations(feuille, '.a__all').size).toBe(0);
+  });
+
+  it('devrait trouver un sélecteur au sein d’une liste, virgules entre parenthèses respectées', () => {
+    const feuille = `:is(.x, .y) .a,\n.b { color: partage; }`;
+
+    expect(declaration(feuille, '.b', 'color')).toBe('partage');
+    expect(declaration(feuille, ':is(.x, .y) .a', 'color')).toBe('partage');
+  });
+
+  it('ne devrait pas lire une valeur citée en commentaire', () => {
+    expect(declaration('.a { /* color: faux; */ color: vrai; }', '.a', 'color')).toBe('vrai');
+  });
+
+  it('devrait ramener une valeur écrite sur plusieurs lignes à une seule', () => {
+    const feuille = `.a {\n  box-shadow: inset 0 1px 0 red,\n    0 0 0 1px blue;\n}`;
+
+    expect(declaration(feuille, '.a', 'box-shadow')).toBe('inset 0 1px 0 red, 0 0 0 1px blue');
+  });
+});
+
+describe('les sélecteurs qui déclarent une propriété', () => {
+  it('devrait les lister tous contextes confondus, listes de sélecteurs dépliées', () => {
+    const feuille = `.a { color: x; }\n.b, .c { margin: 0; }\n@media (x) { .d, .e { color: y; } }`;
+
+    expect(selectorsDeclaring(feuille, 'color')).toEqual(['.a', '.d', '.e']);
+  });
+});
+
+describe('les at-rules d’une feuille', () => {
+  it('devrait rendre les paramètres de chaque at-rule du nom demandé, blocs ou non', () => {
+    const feuille = `@import url('a.css');\n@media (x) { @import url('b.css'); }\n@font-face { font-family: F; }`;
+
+    expect(atRules(feuille, 'import')).toEqual(["url('a.css')", "url('b.css')"]);
+    expect(atRules(feuille, 'font-face')).toEqual(['']);
+  });
+
+  it('ne devrait pas lire une at-rule citée en commentaire', () => {
+    expect(atRules("/* @import url('x.css'); */ .a { color: red; }", 'import')).toEqual([]);
   });
 });

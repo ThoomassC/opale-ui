@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/versions/v0.3.0/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Charte graphique de @thomascaron/ui — la palette teal et cuivre, les échelles et les composants partagés par portfolio et travels_in_world."
+    />
+    <!--
+      La couleur de la barre d'adresse mobile, et la SEULE copie en dur de
+      `--site-background` dans tout le dépôt.
+
+      Elle est là parce qu'un attribut HTML ne peut pas citer un jeton CSS : la
+      valeur initiale doit être écrite, et c'est le fond CLAIR — `--site-background`
+      vaut `var(--tc-mist-936)` en thème clair, soit #deedf0 (voir `tokens/roles.css`
+      et `tokens/primitives.css`). Le clair et non le sombre : c'est le thème que
+      la page sert quand rien n'est mémorisé et que l'OS ne demande rien.
+
+      Ensuite elle ne se recopie plus. `useTheme` relit `--site-background` dans
+      la feuille — jamais une constante TypeScript — et réécrit le `content` à
+      chaque bascule. Sans cette balise le hook sort proprement sur `null` : la
+      bascule marche, et la barre d'adresse reste au thème clair en thème sombre,
+      panne muette que rien ne signale.
+    -->
+    <meta name="theme-color" content="#deedf0" />
+    <title>Charte graphique — @thomascaron/ui</title>
+    <!--
+      Le seul script bloquant de la page, et il tient en six lignes.
+
+      Sans lui, quelqu'un qui a choisi « sombre » sur un système clair voit un
+      flash clair : la feuille de jetons sert `prefers-color-scheme` jusqu'à ce
+      que React monte et pose `data-theme`. Poser l'attribut ici, avant le
+      premier rendu, supprime le flash. Le `try` couvre la navigation privée,
+      où la simple lecture du stockage lève.
+
+      Volontairement synchrone et sans `type="module"` : un module est différé,
+      donc il s'exécuterait après la première peinture — c'est-à-dire trop tard
+      pour ce qu'il est censé empêcher.
+    -->
+    <script>
+      try {
+        var stored = localStorage.getItem('tc-theme');
+        if (stored === 'dark' || stored === 'light') {
+          document.documentElement.setAttribute('data-theme', stored);
+        }
+      } catch (error) {
+        /* Stockage refusé : la préférence système fera l'affaire. */
+      }
+    </script>
+    <script type="module" crossorigin src="/versions/v0.3.0/assets/index-CZCpq_WQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/versions/v0.3.0/assets/index-BuacWjwZ.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+{
+  /* Type declarations for the package's ROOT entry point, and nothing else.
+
+     Vite emits the JavaScript and the stylesheet for `src/opale`; it does not
+     emit `.d.ts`. Rather than add `vite-plugin-dts` (which pulls in
+     api-extractor and pins itself against a TypeScript version this repo is
+     ahead of), the declarations come straight from `tsc` in a declaration-only
+     pass. The `*.module.scss` imports never reach the output: they are value
+     imports used inside component bodies, so nothing in a `.d.ts` refers to
+     them, and `tsc` does not re-emit the ambient `src/opale/scss.d.ts`.
+
+     `rootDir` is `src/opale`, so `src/opale/index.ts` lands on
+     `dist/opale/index.d.ts` — the path declared in `exports["."]`. In 2.0
+     that is the ROOT entry point: `src/opale/**` is no longer a second entry
+     alongside a `tsc`-built `src/index.ts`, it IS the components. The folder
+     keeps its name because that is what carries the MIT provenance — every
+     file has a banner and `THIRD-PARTY-NOTICES.md` cites the path. */
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": false,
+    "outDir": "./dist/opale",
+    "rootDir": "./src/opale",
+    "allowImportingTsExtensions": false,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.opale.tsbuildinfo"
+  },
+  "include": ["src/opale"],
+  "exclude": ["src/opale/**/*.test.ts", "src/opale/**/*.test.tsx"]
+}

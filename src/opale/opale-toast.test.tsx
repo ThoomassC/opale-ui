@@ -1,0 +1,481 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Profiler } from 'react';
+import { renderToString } from 'react-dom/server';
+import { describe, expect, it, vi } from 'vitest';
+
+import opaleSheet from './opale.css?raw';
+import { compositeOver, contrastRatio, withAlpha } from '../contract/color';
+import { parseThemes, resolveToken } from '../contract/stylesheet';
+import type { Theme } from '../contract/stylesheet';
+import { declarations } from '../test/css-rules';
+import { Opale } from './index';
+import { CatalogPreview } from '../showcase/pages/catalog-preview';
+import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
+
+/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
+expectOnlyDeprecationWarnings();
+
+/* =============================================================================
+   `Opale.Toast` — LE TON ET LA PLACE.
+
+   Le composant rendait une surface grise au milieu du flux : « Modifications
+   enregistrées » et « Publication refusée » s'affichaient à l'identique, à
+   l'endroit du code plutôt qu'à un endroit de l'écran. Les cas ci-dessous
+   tiennent les deux réglages ajoutés, et surtout la politesse de l'annonce —
+   qui est la seule partie que l'œil ne vérifie pas.
+   ========================================================================== */
+
+const TONES = ['neutral', 'success', 'warning', 'error', 'info'] as const;
+
+const PLACEMENTS = [
+  'top-left',
+  'top-center',
+  'top-right',
+  'bottom-left',
+  'bottom-center',
+  'bottom-right',
+] as const;
+
+describe('la place à l’écran', () => {
+  it.each(PLACEMENTS)('devrait ancrer le message en %s', (position) => {
+    const { baseElement } = render(<Opale.Toast message="Publié" position={position} />);
+
+    expect(baseElement.querySelector(`.opale-toast-anchor--${position}`)).not.toBeNull();
+  });
+
+  /* LE PORTAIL EST LE POINT. Rendu en flux, le message se serait affiché là où
+     le composant est appelé — c'est-à-dire n'importe où —, ce qui rend la prop
+     `position` décorative. Le conteneur de rendu reste donc VIDE. */
+  it('devrait rendre le message hors de son conteneur d’appel', () => {
+    const { container } = render(<Opale.Toast message="Publié" position="top-left" />);
+
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByText('Publié')).toBeInTheDocument();
+  });
+
+  it('devrait poser l’ancre en bas à droite par défaut', () => {
+    const { baseElement } = render(<Opale.Toast message="Publié" />);
+
+    expect(baseElement.querySelector('.opale-toast-anchor--bottom-right')).not.toBeNull();
+  });
+});
+
+describe('le ton', () => {
+  it.each(TONES)('devrait marquer le ton %s sur la carte', (tone) => {
+    render(<Opale.Toast message="Publié" tone={tone} />);
+
+    expect(screen.getByText('Publié').closest('[data-opale-toast-tone]')).toHaveAttribute(
+      'data-opale-toast-tone',
+      tone,
+    );
+  });
+
+  /* LA COULEUR EST PORTÉE PAR UNE CLASSE, PAS SEULEMENT PAR UN ATTRIBUT DE
+     DONNÉE : c'est la classe que la feuille lit. Un ton qui poserait
+     l'attribut sans la classe serait annoncé et invisible. */
+  it.each(['success', 'warning', 'error', 'info'] as const)(
+    'devrait donner sa classe de couleur au ton %s',
+    (tone) => {
+      render(<Opale.Toast message="Publié" tone={tone} />);
+
+      expect(screen.getByText('Publié').closest('.opale-toast')).toHaveClass(
+        `opale-toast--${tone}`,
+      );
+    },
+  );
+
+  it('ne devrait pas colorer le ton neutre', () => {
+    render(<Opale.Toast message="Publié" tone="neutral" />);
+
+    expect(screen.getByText('Publié').closest('.opale-toast')?.className).not.toMatch(
+      /opale-toast--/,
+    );
+  });
+});
+
+/* =============================================================================
+   LA POLITESSE DE L'ANNONCE.
+
+   C'est la moitié invisible du ton, et celle qu'aucune relecture visuelle ne
+   rattrape : un échec annoncé poliment arrive après ce que l'utilisateur est
+   en train de lire, donc trop tard pour l'empêcher d'agir.
+   ========================================================================== */
+describe('les régions live', () => {
+  it.each(['error', 'warning'] as const)('devrait annoncer %s de façon assertive', (tone) => {
+    render(<Opale.Toast message="Refusé" tone={tone} />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Refusé');
+  });
+
+  it.each(['neutral', 'success', 'info'] as const)('devrait annoncer %s poliment', (tone) => {
+    render(<Opale.Toast message="Publié" tone={tone} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Publié');
+  });
+
+  /* LES DEUX RÉGIONS SONT MONTÉES AVANT LE MESSAGE. Une région live insérée en
+     même temps que son contenu n'est pas surveillée à l'instant de
+     l'insertion : l'annonce se perd (WCAG 4.1.3). Fermé, le composant doit
+     donc laisser ses deux régions en place et vides. */
+  it('devrait garder ses deux régions montées quand il est fermé', () => {
+    render(<Opale.Toast message="Publié" open={false} />);
+
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(screen.getByRole('alert')).toBeEmptyDOMElement();
+  });
+});
+
+describe('la fermeture', () => {
+  it('devrait nommer sa croix et appeler onClose', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<Opale.Toast message="Publié" onClose={onClose} />);
+
+    await user.click(screen.getByRole('button', { name: 'Fermer la notification' }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ne devrait pas poser de croix sans onClose', () => {
+    render(<Opale.Toast message="Publié" />);
+
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});
+
+/* =============================================================================
+   L'APERÇU DU CATALOGUE DOIT PROPOSER TOUT CE QUE LE COMPOSANT ACCEPTE.
+
+   Les deux listes de l'aperçu sont recopiées des types ; une place ajoutée au
+   composant et oubliée là serait publiée sans pouvoir être essayée, ce que
+   rien d'autre ne signale.
+   ========================================================================== */
+describe('l’aperçu du catalogue', () => {
+  it('devrait offrir les six places et les cinq tons', () => {
+    render(<CatalogPreview name="Toast" liquidGlass={false} />);
+
+    const places = screen.getByRole('combobox', { name: 'Place à l’écran' });
+    const tons = screen.getByRole('combobox', { name: 'Ton' });
+
+    expect([...places.querySelectorAll('option')].map((o) => o.value)).toEqual([...PLACEMENTS]);
+    expect([...tons.querySelectorAll('option')].map((o) => o.value)).toEqual([...TONES]);
+  });
+
+  /* « ÇA L'AFFICHE PILE LÀ OÙ C'EST INDIQUÉ DANS LE CODE » : la ligne montrée
+     sous les sélecteurs et l'ancre réellement posée doivent citer la MÊME
+     place. Les laisser diverger est précisément ce qui rendait l'aperçu
+     inutile. */
+  it('devrait poser l’ancre exactement là où sa ligne de code l’annonce', async () => {
+    const user = userEvent.setup();
+    const { baseElement } = render(<CatalogPreview name="Toast" liquidGlass={false} />);
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Place à l’écran' }),
+      'top-center',
+    );
+
+    expect(screen.getByText(/position="top-center"/)).toBeInTheDocument();
+    expect(baseElement.querySelector('.opale-toast-anchor--top-center')).not.toBeNull();
+  });
+});
+
+/* =============================================================================
+   LA COULEUR N'EST PAS LE SEUL SIGNAL.
+
+   Relevé dans le DOM avant correction : le balisage des cinq tons ne différait
+   que par une variable de couleur — ni icône, ni titre, même encre. En vision
+   des couleurs réduite, en contrastes forcés ou sur un écran monochrome,
+   « La carte n'a pas été régénérée » et « Étape publiée » étaient le même
+   objet. C'est WCAG 1.4.1, et la distinction status/alert n'y répond pas :
+   elle sauve le lecteur d'écran, pas l'utilisateur voyant.
+   ========================================================================== */
+describe('le ton se voit autrement que par la couleur', () => {
+  it.each(['success', 'warning', 'error', 'info'] as const)(
+    'devrait doubler le ton %s par une icône',
+    (tone) => {
+      render(<Opale.Toast message="Publié" tone={tone} />);
+
+      expect(
+        screen.getByText('Publié').closest('.opale-toast')?.querySelector('svg'),
+      ).not.toBeNull();
+    },
+  );
+
+  /* LES QUATRE DESSINS DOIVENT DIFFÉRER ENTRE EUX, et la comparaison porte sur
+     le TRACÉ ENTIER : `x-circle` et `info` partagent leur premier chemin — le
+     cercle —, donc comparer le premier `<path>` aurait déclaré identiques deux
+     icônes qui ne le sont pas, et laissé passer une vraie collision ailleurs. */
+  it('devrait donner aux quatre tons colorés quatre dessins distincts', () => {
+    const dessins = (['success', 'warning', 'error', 'info'] as const).map((tone) => {
+      const vue = render(<Opale.Toast message={tone} tone={tone} />);
+      const carte = vue.baseElement.querySelector(`[data-opale-toast-tone='${tone}']`);
+
+      return [...(carte?.querySelectorAll('path') ?? [])].map((p) => p.getAttribute('d')).join('|');
+    });
+
+    expect(new Set(dessins).size).toBe(4);
+  });
+
+  /* `neutral` N'A PAS DE COULEUR, donc il n'a rien à doubler. Lui coller une
+     icône reviendrait à inventer un ton là où le composant n'en annonce pas. */
+  it('ne devrait pas poser d’icône sur le ton neutre', () => {
+    render(<Opale.Toast message="Publié" tone="neutral" />);
+
+    expect(screen.getByText('Publié').closest('.opale-toast')?.querySelector('svg')).toBeNull();
+  });
+
+  /* L'ICÔNE EST MUETTE : l'urgence est déjà portée par la région live dans
+     laquelle le message entre. Un nom accessible ferait annoncer « attention »
+     avant chaque avertissement. */
+  it('devrait masquer l’icône de ton aux technologies d’assistance', () => {
+    render(<Opale.Toast message="Refusé" tone="error" />);
+
+    const svg = screen.getByText('Refusé').closest('.opale-toast')?.querySelector('svg');
+
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+  });
+});
+
+/* =============================================================================
+   LE TON PLEIN.
+
+   Le ton n'était qu'un filet de 4 px posé en `inset` À L'INTÉRIEUR d'un rayon
+   de 1,375 rem : la bordure arrondie le rognait à ses deux extrémités, et il
+   n'en restait qu'une virgule collée au bord gauche — environ un pour cent de
+   la carte. Ce qui manquait à la couleur était de la SURFACE, pas de la
+   saturation.
+
+   CE QUE LE REMPLISSAGE COÛTE, et ce que les cas ci-dessous tiennent : le
+   message se lit désormais SUR la couleur, donc le seuil applicable passe de
+   3:1 à 4,5:1. Les jetons bruts ne le tiennent pas — l'ambre sous une encre
+   claire donne 4,07:1 —, d'où l'assombrissement, qui est une condition de
+   lisibilité et non un goût.
+   ========================================================================== */
+describe('le ton plein', () => {
+  /** Ce que la feuille retient pour un sélecteur exact — jsdom ne fait pas de mise en page. */
+  const rule = (selector: string) => declarations(opaleSheet, selector);
+
+  it('devrait peindre la carte avec le remplissage du ton et écrire avec son encre', () => {
+    const carte = rule('.opale-toast');
+
+    expect(carte.get('background')).toBe('var(--opale-toast-fill, var(--opale-surface))');
+    expect(carte.get('color')).toBe('var(--opale-toast-fill-ink, var(--opale-text))');
+  });
+
+  /* LE REPLI EST CE QUI TIENT `neutral`. Sans ton, les deux variables ne sont
+     pas déclarées : la carte doit retomber sur la surface et l'encre d'Opale,
+     pas sur `transparent` — un message sans fond posé sur la page. */
+  it('devrait rendre le ton neutre sur la surface d’Opale', () => {
+    render(<Opale.Toast message="Publié" tone="neutral" />);
+
+    const carte = screen.getByText('Publié').closest('.opale-toast');
+
+    expect(carte?.className).not.toMatch(/opale-toast--/);
+    expect(carte?.querySelector('svg')).toBeNull();
+  });
+
+  /* LE TON PASSE PAR LES JETONS DE THÈME. Le remplissage et son encre étaient
+     écrits dans chaque ton, puis corrigés sous `:root[data-theme='dark']` :
+     un toast dans une section sombre d'une page claire gardait l'encre du
+     clair. `--opale-fill-*` et `--opale-on-fill` sont redéfinis dans chaque
+     bloc de thème, local compris. */
+  const TONES = { success: 'success', warning: 'warning', error: 'danger', info: 'info' } as const;
+
+  it.each(Object.entries(TONES))(
+    'devrait remplir le ton %s par son jeton de thème et écrire avec l’encre des remplissages',
+    (tone, token) => {
+      const corps = rule(`.opale-toast--${tone}`);
+
+      expect(corps.get('--opale-toast-fill')).toBe(`var(--opale-fill-${token})`);
+      expect(corps.get('--opale-toast-fill-ink')).toBe('var(--opale-on-fill)');
+    },
+  );
+
+  /* L'ASSOMBRISSEMENT EST LA CONDITION DE LISIBILITÉ, ET IL SE MESURE. En clair,
+     le ton assombri de 20 % porte l'encre claire (l'ambre seul tiendrait
+     4,07:1) ; en sombre, le ton clair *-on-surface porte l'encre sombre. */
+  const themes = new Map<string, Theme>(parseThemes(opaleSheet).map((t) => [t.name, t]));
+
+  /** Un jeton résolu, `color-mix(in srgb, A N%, B)` composé comme le peint le navigateur. */
+  function paint(theme: Theme, token: string): string {
+    const value = resolveToken(theme, token);
+    const mix = /^color-mix\(in srgb,\s*(.+?)\s+(\d+)%,\s*(.+)\)$/.exec(value);
+    return mix ? compositeOver(withAlpha(mix[1], Number(mix[2]) / 100), mix[3]) : value;
+  }
+
+  for (const name of ['light', 'dark-explicit'] as const) {
+    it.each(Object.values(TONES))(
+      `devrait tenir 4,5:1 sur le remplissage %s en ${name}`,
+      (token) => {
+        const theme = themes.get(name) as Theme;
+        expect(
+          contrastRatio(paint(theme, '--opale-on-fill'), paint(theme, `--opale-fill-${token}`)),
+        ).toBeGreaterThanOrEqual(4.5);
+      },
+    );
+  }
+
+  /* SOUS VERRE, LA CARTE GARDE SON APLAT, DONC SON ENCRE. `.opale-toast` vient
+     après `.opale-toast--glass` dans la feuille, à spécificité égale : le
+     remplissage du ton l'emporte sur le fond transparent, et la carte de verre
+     est peinte pleine. L'encre, elle, venait du matériau — le contenu de
+     `Glass` et `[data-opale-glass] .opale-toast__message` posent
+     `--opale-glass-ink`. Mesuré au navigateur en verre sombre : #fff sur
+     l'ambre #f0b366, 1,85:1 ; les quatre tons de 1,85 à 2,15:1 ; et, sous
+     `data-opale-glass-ink="page"` posé sur <html>, l'encre de la page sur le
+     remplissage, de 1,63 à 3,26:1 dans les deux thèmes. */
+  it('devrait écrire la carte de verre avec l’encre de son remplissage', () => {
+    expect(rule('.opale-toast.opale-toast--glass').get('color')).toBe(
+      'var(--opale-toast-fill-ink, var(--opale-text))',
+    );
+    for (const part of ['message', 'close']) {
+      expect(
+        rule(`[data-opale-glass] .opale-toast--glass .opale-toast__${part}`).get('color'),
+        part,
+      ).toBe('inherit');
+    }
+  });
+
+  /* LA CROIX EST POSÉE SUR LA COULEUR. Une encre secondaire y serait un gris
+     sur du vert, et un anneau de focus bleu sur une carte rouge ne se verrait
+     pas : les deux se composent à partir de l'encre de la carte. */
+  it('devrait faire hériter la croix de l’encre de la carte', () => {
+    expect(rule('.opale-toast__close').get('color')).toBe('inherit');
+    expect(rule('.opale-toast__close:focus-visible').get('outline')).toMatch(/ currentColor$/);
+  });
+});
+
+/* =============================================================================
+   LES ANCRES PARTAGÉES — L'EMPILEMENT ET L'ORDRE DE TABULATION.
+
+   Deux limites documentées à la création du composant, levées d'un seul
+   geste. Chaque instance montait sa propre ancre plein écran en fin de
+   `<body>` : deux messages à la même place se recouvraient au pixel près, et
+   la croix d'un message posé en haut était le DERNIER arrêt clavier de la
+   page. Il y a désormais une ancre par place, partagée, montée à la première
+   instance et retirée à la dernière ; celles du haut vivent en tête de
+   `<body>`.
+   ========================================================================== */
+describe('les ancres partagées', () => {
+  it('devrait empiler deux messages à la même place dans une seule ancre', () => {
+    const { baseElement } = render(
+      <>
+        <Opale.Toast message="Premier" tone="success" />
+        <Opale.Toast message="Second" tone="info" />
+      </>,
+    );
+
+    const anchors = baseElement.querySelectorAll('.opale-toast-anchor--bottom-right');
+    expect(anchors, 'Une place, une ancre.').toHaveLength(1);
+    expect(anchors[0]).toHaveTextContent('Premier');
+    expect(anchors[0]).toHaveTextContent('Second');
+    // Une seule région polie pour la place : getByRole ne lève plus.
+    expect(screen.getByRole('status')).toHaveTextContent('PremierSecond');
+  });
+
+  it('devrait garder l’ancre tant qu’une instance l’occupe, et la retirer à la dernière', async () => {
+    const { rerender, unmount, baseElement } = render(
+      <>
+        <Opale.Toast message="Premier" />
+        <Opale.Toast message="Second" />
+      </>,
+    );
+    rerender(<Opale.Toast message="Premier" />);
+    expect(baseElement.querySelectorAll('.opale-toast-anchor--bottom-right')).toHaveLength(1);
+
+    unmount();
+    // Le retrait attend la fin du commit (voir le cas du remplacement, plus bas).
+    await Promise.resolve();
+    expect(document.querySelector('.opale-toast-anchor--bottom-right')).toBeNull();
+  });
+
+  it('devrait poser les ancres du haut avant la page, celles du bas après', () => {
+    const { container } = render(
+      <>
+        <Opale.Toast message="En haut" position="top-left" />
+        <Opale.Toast message="En bas" position="bottom-left" />
+      </>,
+    );
+    const top = document.querySelector('.opale-toast-anchor--top-left') as HTMLElement;
+    const bottom = document.querySelector('.opale-toast-anchor--bottom-left') as HTMLElement;
+
+    expect(top.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      bottom.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBeTruthy();
+  });
+
+  /* LA CROIX D'UN MESSAGE EN HAUT ÉTAIT LE 106ᵉ ARRÊT SUR 106. Elle vient
+     maintenant avant la page, comme elle vient avant elle à l'écran. */
+  it('devrait placer la croix d’un message du haut avant la page dans l’ordre de tabulation', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Action de la page</button>
+        <Opale.Toast message="En haut" position="top-right" onClose={() => {}} />
+      </>,
+    );
+
+    await user.tab();
+
+    expect(document.activeElement).toHaveAccessibleName('Fermer la notification');
+  });
+
+  it('devrait déplacer le message dans la région assertive quand son ton le devient', () => {
+    const { rerender } = render(<Opale.Toast message="Envoi" tone="info" />);
+    expect(screen.getByRole('status')).toHaveTextContent('Envoi');
+
+    rerender(<Opale.Toast message="Échec" tone="error" />);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(screen.getByRole('alert')).toHaveTextContent('Échec');
+  });
+
+  it('devrait empiler les cartes en colonne dans la feuille', () => {
+    const anchor = declarations(opaleSheet, '.opale-toast-anchor');
+    expect(anchor.get('flex-direction')).toBe('column');
+    expect(anchor.get('gap')).toBeDefined();
+  });
+
+  it('devrait ne rien rendre côté serveur', () => {
+    expect(renderToString(<Opale.Toast message="x" />)).toBe('');
+  });
+
+  /* UN MESSAGE QUI EN REMPLACE UN AUTRE DÉTRUISAIT L'ANCRE. Démonter l'ancien et
+     monter le nouveau tombent dans le même commit : le compteur passait par
+     zéro, l'ancre était retirée puis recréée, et le message entrait dans une
+     région live née dans la même tâche — une annonce qui peut se perdre. */
+  it('devrait garder la même ancre quand un message en remplace un autre', async () => {
+    const { rerender } = render(<Opale.Toast key="a" message="Premier" />);
+    const before = document.querySelector('.opale-toast-anchor--bottom-right');
+
+    rerender(<Opale.Toast key="b" message="Second" />);
+    await Promise.resolve();
+
+    const after = document.querySelector('.opale-toast-anchor--bottom-right');
+    expect(after, 'Même nœud, régions déjà surveillées.').toBe(before);
+    expect(after).toHaveTextContent('Second');
+  });
+});
+
+describe('le coût d’un montage', () => {
+  /* Monter un message ne doit pas refaire le rendu de ceux déjà affichés : leur
+     ancre n'a pas changé. */
+  it.each([
+    ['à la même place', 'bottom-right'],
+    ['à une autre place', 'top-left'],
+  ] as const)('ne devrait pas refaire le rendu des messages montés %s', (_, position) => {
+    const commits = vi.fn();
+    render(
+      <Profiler id="premier" onRender={commits}>
+        <Opale.Toast message="Premier" position="bottom-right" />
+      </Profiler>,
+    );
+    commits.mockClear();
+
+    render(<Opale.Toast message="Second" position={position} />);
+
+    expect(screen.getByText('Second')).toBeInTheDocument();
+    expect(commits).not.toHaveBeenCalled();
+  });
+});

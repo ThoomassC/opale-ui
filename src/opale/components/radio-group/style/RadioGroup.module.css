@@ -1,0 +1,168 @@
+/* =============================================================================
+   LE GROUPE DE BOUTONS RADIO — FEUILLE D'OPALE.
+
+   Le rond reprend la case à cocher (`.opale-checkbox-mark`) trait pour trait —
+   même taille, même bord primaire, même aplat une fois coché — et ne change
+   que de forme : un cercle, et un point au lieu d'une coche. Sous verre, le
+   bord et le fond rendent la main au matériau, comme pour la case.
+
+   Les sélecteurs du rond portent deux classes : ils doivent l'emporter sur
+   les règles génériques du verre, quel que soit l'ordre des feuilles.
+   ========================================================================== */
+
+.group {
+  display: grid;
+  gap: var(--opale-space-xs);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.legend {
+  /* Une légende n'est pas un élément de la grille de son `fieldset` : l'écart
+     se pose donc en marge. */
+  margin-block-end: var(--opale-space-xs);
+  padding: 0;
+}
+
+.options {
+  display: grid;
+  gap: var(--opale-space-sm);
+}
+.group[data-orientation='horizontal'] .options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-sm) var(--opale-space-lg);
+}
+
+.row {
+  --opale-radio-size: 1.25rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--opale-radio-size) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--opale-space-sm);
+  color: var(--opale-text);
+  font-size: var(--opale-text-md);
+  cursor: pointer;
+}
+.small {
+  --opale-radio-size: 1rem;
+  font-size: var(--opale-text-sm);
+}
+.large {
+  --opale-radio-size: 1.5rem;
+  font-size: var(--opale-text-lg);
+}
+
+/* Le natif reste dans la rangée, sous le rond : invisible mais focalisable, et
+   ramené à l'écran par le défilement quand il prend le focus. */
+.radio {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  block-size: 1px;
+  inline-size: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.row .mark {
+  box-sizing: border-box;
+  display: grid;
+  inline-size: var(--opale-radio-size);
+  block-size: var(--opale-radio-size);
+  place-items: center;
+  border: 2px solid var(--opale-primary);
+  border-radius: 50%;
+  background: var(--opale-surface);
+  transition: background var(--opale-motion) var(--opale-ease);
+}
+.glassRoot {
+  --opale-glass-radius: 50%;
+}
+.label {
+  grid-column: 2;
+}
+.description {
+  grid-column: 2;
+}
+
+.radio:checked + .mark,
+.radio:checked + * .mark {
+  background: var(--opale-primary);
+}
+.radio:checked + .mark::before,
+.radio:checked + * .mark::before {
+  content: '';
+  inline-size: 40%;
+  block-size: 40%;
+  border-radius: 50%;
+  background: var(--opale-on-primary);
+}
+
+/* L'anneau de focus, celui de toute la famille. */
+.radio:focus-visible + .mark {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+.radio:focus-visible + [data-opale-glass] {
+  --opale-glass-edge: color-mix(in srgb, var(--opale-glass-light) 98%, transparent);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-glass-deep) 50%, transparent);
+  box-shadow: var(--opale-glass-focus-halo);
+}
+
+/* Un groupe en erreur borde ses ronds à l'encre du danger. */
+.group[aria-invalid='true'] .row .mark {
+  border-color: var(--opale-danger);
+}
+
+.radio:disabled ~ * {
+  opacity: var(--opale-disabled-opacity);
+}
+.row:has(.radio:disabled) {
+  cursor: not-allowed;
+}
+
+/* Sous verre : le rond rend son bord et son fond au matériau. */
+.row .markGlass {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.radio:checked + * .markGlass {
+  background: color-mix(in srgb, var(--opale-primary) 82%, transparent);
+}
+.radio:checked + * .markGlass::before {
+  background: var(--opale-glass-ink);
+}
+[data-opale-glass-ink='page'] .radio:checked + * .markGlass::before {
+  background: var(--opale-on-primary);
+}
+
+@media (forced-colors: active) {
+  .row .mark,
+  .row .markGlass {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: Canvas;
+  }
+  .radio:checked + .mark,
+  .radio:checked + * .mark {
+    border-color: Highlight;
+    background: Canvas;
+  }
+  .radio:checked + .mark::before,
+  .radio:checked + * .mark::before {
+    background: Highlight;
+  }
+  .radio:focus-visible + .mark,
+  .radio:focus-visible + [data-opale-glass] {
+    outline: var(--opale-focus-ring-width) solid CanvasText;
+    outline-offset: var(--opale-focus-ring-offset);
+  }
+  .radio:disabled + .mark,
+  .radio:disabled + * .mark {
+    border-color: GrayText;
+  }
+}

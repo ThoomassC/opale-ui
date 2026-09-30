@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/versions/v1.1.0/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Documentation de @thomascaron/ui — la palette teal et cuivre mesurée, les échelles, et une page par composant du socle partagé par portfolio et travels_in_world."
+    />
+    <!--
+      La couleur de la barre d'adresse mobile, et la SEULE copie en dur de
+      `--site-background` dans tout le dépôt.
+
+      Elle est là parce qu'un attribut HTML ne peut pas citer un jeton CSS : la
+      valeur initiale doit être écrite, et c'est le fond CLAIR — `--site-background`
+      vaut `var(--tc-mist-936)` en thème clair, soit #deedf0 (voir `tokens/roles.css`
+      et `tokens/primitives.css`). Le clair et non le sombre : c'est le thème que
+      la page sert quand rien n'est mémorisé et que l'OS ne demande rien.
+
+      Ensuite elle ne se recopie plus. `useTheme` relit LE FOND RÉELLEMENT PEINT
+      — la valeur calculée de `background-color` sur `body`, jamais une constante
+      TypeScript, et plus le jeton `--site-background` — et réécrit le `content` à
+      chaque bascule. La distinction n'est pas théorique : la vitrine a un sol
+      BLANC (`--doc-ground` dans `doc.css`) alors que le jeton publié vaut
+      toujours #deedf0, si bien que lire le jeton annonçait du mist sur une page
+      blanche. Dès le premier passage de l'effet, cette valeur écrite ici est donc
+      remplacée par le blanc ; elle ne couvre que l'avant-premier-rendu, où le
+      mist reste le meilleur aveu disponible d'un attribut qui ne sait pas lire
+      une feuille.
+
+      Sans cette balise le hook sort proprement sur `null` : la bascule marche, et
+      la barre d'adresse reste au thème clair en thème sombre, panne muette que
+      rien ne signale.
+    -->
+    <meta name="theme-color" content="#deedf0" />
+    <!--
+      Le titre AVANT le premier rendu. La coquille (`doc-shell.tsx`) le réécrit
+      en « <titre de la page> — @thomascaron/ui » dès qu'elle connaît la page,
+      et à chaque navigation ; celui-ci est donc ce que voient l'onglet pendant
+      le chargement, un partage de lien et un lecteur sans JavaScript. Il ne
+      nomme AUCUNE page en particulier : le fragment décide de la page, et il
+      n'est pas lisible d'ici.
+    -->
+    <title>Documentation — @thomascaron/ui</title>
+    <!--
+      Le seul script bloquant de la page, et il pose LES DEUX attributs de
+      présentation — le thème et le matériau.
+
+      Sans lui pour le THÈME, quelqu'un qui a choisi « sombre » sur un système
+      clair voit un flash clair : la feuille de jetons sert
+      `prefers-color-scheme` jusqu'à ce que React monte et pose `data-theme`.
+
+      Sans lui pour le MATÉRIAU, le flash est PIRE, et c'est ce qui justifie
+      d'étendre ce script plutôt que d'en ajouter un second. Un changement de
+      matériau n'est pas un échange de couleur sur le sol de la page : c'est
+      l'apparition d'un `backdrop-filter`, d'un ménisque et d'un liseré
+      spéculaire sur TOUTES les surfaces qui flottent au-dessus — barre du haut,
+      sommaire, cartes, planches, spécimens. Le flash ne serait pas une teinte
+      qui bouge, il serait la page entière qui change de nature une fois React
+      monté. Poser l'attribut ici, avant la première peinture, le supprime.
+
+      UN SEUL SCRIPT, UN SEUL `try`, et c'est voulu : les deux lectures
+      partagent le même mode de défaillance. En navigation privée, la SIMPLE
+      LECTURE du stockage lève — la première lecture emporte donc la seconde, et
+      la page rend son état de base (préférence système pour le thème, aplat
+      pour le matériau), qui est exactement le bon repli.
+
+      `data-material` NE PREND QU'UNE VALEUR, `glass` : l'aplat, c'est l'absence
+      d'attribut, jamais `data-material="flat"`. La feuille n'a aucun sélecteur
+      pour `flat` parce qu'aucune préférence système ne peut imposer le verre —
+      il n'existe pas de `prefers-material` — donc il n'y a rien à contredire.
+      `data-theme`, lui, écrit bien ses deux valeurs, parce que `light` doit
+      pouvoir contredire un OS en sombre. La symétrie apparente des deux
+      attributs s'arrête là, et `use-material.ts` porte le même avertissement.
+
+      Volontairement synchrone et sans `type="module"` : un module est différé,
+      donc il s'exécuterait après la première peinture — c'est-à-dire trop tard
+      pour ce qu'il est censé empêcher.
+    -->
+    <script>
+      try {
+        var storedTheme = localStorage.getItem('tc-theme');
+        if (storedTheme === 'dark' || storedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', storedTheme);
+        }
+        if (localStorage.getItem('tc-material') === 'glass') {
+          document.documentElement.setAttribute('data-material', 'glass');
+        }
+      } catch (error) {
+        /* Stockage refusé : les états de base feront l'affaire. */
+      }
+    </script>
+    <script type="module" crossorigin src="/versions/v1.1.0/assets/index-zi3-PY17.js"></script>
+    <link rel="stylesheet" crossorigin href="/versions/v1.1.0/assets/index-CvsXwIns.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,44 +1,69 @@
 {
-  "name": "@thomascaron/opale",
-  "version": "2.0.0",
+  "name": "@thomascaron/opale-ui",
+  "version": "3.10.0",
   "private": true,
-  "description": "Opale — le socle UI commun de portfolio et travels_in_world : jetons mesures, contrat de couleur executable, composants verre liquide.",
+  "description": "Opale — système de design React 19 : jetons mesurés, contrat de couleur exécutable, composants et matière verre liquide.",
   "author": "Thomas Caron",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThoomassC/opale-ui.git"
+  },
+  "homepage": "https://opale-ui-recette.vercel.app",
+  "bugs": {
+    "url": "https://github.com/ThoomassC/opale-ui/issues"
+  },
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "sideEffects": [
     "**/*.css"
   ],
   "files": [
     "dist",
     "README.md",
-    "THIRD-PARTY-NOTICES.md"
+    "CHANGELOG.md",
+    "THIRD-PARTY-NOTICES.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
-      "types": "./dist/magic/index.d.ts",
-      "import": "./dist/magic/index.js"
+      "types": "./dist/opale/index.d.ts",
+      "import": "./dist/opale/index.js",
+      "default": "./dist/opale/index.js"
     },
     "./contract": {
       "types": "./dist/contract/index.d.ts",
-      "import": "./dist/contract/index.js"
+      "import": "./dist/contract/index.js",
+      "default": "./dist/contract/index.js"
     },
     "./tokens.css": "./dist/tokens/tokens.css",
-    "./opale.css": "./dist/magic/magic.css",
+    "./opale.css": "./dist/opale/opale.css",
+    "./opale.layered.css": "./dist/opale/opale.layered.css",
+    "./opale-nofonts.css": "./dist/opale/opale-nofonts.css",
+    "./opale-nofonts.layered.css": "./dist/opale/opale-nofonts.layered.css",
+    "./fonts.css": "./dist/opale/fonts.css",
     "./package.json": "./package.json"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "build:lib": "rm -rf dist && tsc -p tsconfig.lib.json && npm run build:css && npm run build:magic",
+    "build:lib": "rm -rf dist && tsc -p tsconfig.lib.json && npm run build:css && npm run build:opale && node scripts/fix-dts-extensions.mjs dist/opale dist/contract",
+    "check:dist": "node scripts/check-dist.mjs",
+    "check:consumer": "node scripts/check-consumer.mjs",
+    "check:size": "node scripts/check-size.mjs",
+    "changelog": "node scripts/changelog.mjs",
     "build:css": "rm -rf dist/tokens && mkdir -p dist/tokens && cp src/tokens/*.css dist/tokens/",
-    "build:magic": "rm -rf dist/magic && tsc -p tsconfig.magic.json && vite build --config vite.magic.config.ts",
+    "build:opale": "rm -rf dist/opale && tsc -p tsconfig.opale.json && vite build --config vite.lib.config.ts && mkdir -p dist/opale/fonts && cp src/opale/fonts.css dist/opale/fonts.css && cp src/opale/fonts/* dist/opale/fonts/ && node scripts/link-fonts.mjs && node scripts/css-variants.mjs",
     "prepare": "npm run build:lib",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
+    "release": "node scripts/release.mjs",
     "typecheck": "tsc -b --noEmit"
   },
   "peerDependencies": {
@@ -50,30 +75,37 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@svg-maps/france.departments": "^2.0.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
+    "@types/d3-geo": "^3.1.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
     "@vitejs/plugin-react": "^6.1.0",
-    "@vitest/coverage-v8": "^3.2.7",
-    "autoprefixer": "^10.4.22",
+    "@vitest/coverage-v8": "^5.0.3",
+    "d3-geo": "^3.1.1",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^17.12.0",
+    "hack-font": "^3.3.0",
     "jsdom": "^29.1.1",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.28",
     "prettier": "^3.9.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "sass": "^1.86.4",
-    "tailwindcss": "^3.4.18",
+    "topojson-client": "^3.1.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.69.0",
     "vite": "^8.2.2",
-    "vitest": "^3.2.7"
+    "vitest": "^5.0.3",
+    "world-atlas": "^2.0.2"
   }
 }

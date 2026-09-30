@@ -11,6 +11,9 @@ export default defineConfig({
     // modules out and `import sheet from './x.css?raw'` returns an empty
     // string — the colour contract would then pass by reading nothing at all.
     css: true,
+    // Les worktrees de `.claude/` sont des copies du dépôt : sans cette
+    // exclusion, `vitest run` rejoue la suite une fois par copie.
+    exclude: ['**/node_modules/**', '**/dist/**', '.claude/**'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],

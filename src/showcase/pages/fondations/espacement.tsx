@@ -1,4 +1,3 @@
-import type { DocPage } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
@@ -20,19 +19,11 @@ const RADII: readonly { token: string; px: string; usage: string }[] = [
   { token: '--radius-pill', px: '999 px', usage: 'bouton, pastille' },
 ];
 
-export const espacementPage: DocPage = {
-  slug: 'espacement',
-  label: 'Espacement et rayons',
-  group: 'fondations',
-  title: 'Espacement et rayons',
-  lede: (
-    <>
-      Une grille de 4 px, huit pas, aucune valeur hors liste. Deux exceptions, hors échelle parce
-      qu’elles répondent au doigt : <code className="tc-doc-inlinecode">--target-min</code> (44 px)
-      et <code className="tc-doc-inlinecode">--target-button</code> (48 px).
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `espacement.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function EspacementContent() {
+  return (
     <PageBody>
       <Specimen title="Les huit pas d’espacement">
         <ul className="tc-doc-scale">
@@ -69,5 +60,5 @@ export const espacementPage: DocPage = {
         ))}
       </Specimen>
     </PageBody>
-  ),
-};
+  );
+}

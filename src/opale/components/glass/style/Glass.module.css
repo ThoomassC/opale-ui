@@ -1,0 +1,414 @@
+/* =============================================================================
+   LE MATÉRIAU VERRE — FEUILLE D'OPALE.
+
+   Elle remplace une feuille tierce écrite en `@apply` Tailwind. Les valeurs
+   visuelles — 0,75 px de flou, 1,08 de saturation, l'échelle 1,018, les deux
+   dégradés radiaux — sont celles réglées à l'œil sur la page « Le verre
+   liquide », qui reste la référence du matériau. Ce sont donc les MÊMES
+   chiffres, portés par nos propres noms et nos propres jetons.
+
+   AUCUNE BORDURE N'EST PEINTE. Le bord vient du seul filet spéculaire, en
+   `inset box-shadow`. Une `border` en plus donnerait deux contours, et c'est
+   le défaut le plus visible d'un faux verre.
+   ========================================================================== */
+
+/* LA GÉOMÉTRIE SE RÈGLE PAR VARIABLES, ET C'EST LA SEULE FAÇON QUI MARCHE.
+
+   Cette feuille est un MODULE CSS : le bundler l'injecte APRÈS `opale.css`. À
+   poids de sélecteur égal, c'est l'ordre qui tranche, et il donne raison à ce
+   fichier. Une règle d'habillage écrite ailleurs — `.opale-button--glass-root
+   { border-radius: 0 }` — perdait donc en silence.
+
+   Ce que cela donnait à l'écran, mesuré : le bouton gardait un rayon de 22 px
+   qui ROGNAIT sa silhouette en squircle (l'enveloppe porte `overflow: hidden`,
+   donc son rayon découpe tout ce qu'elle contient) ; la case à cocher de 20 px
+   devenait un CERCLE au lieu d'un carré à coins de 6 px ; et le champ de
+   saisie tombait de 561 à 218 px, `fit-content` l'emportant sur le `width:
+   100%` demandé.
+
+   Les trois valeurs passent donc par des variables que CE fichier lit. Une
+   variable posée sur l'élément par une autre feuille est simplement LUE ici :
+   il n'y a plus de conflit de cascade à arbitrer, donc plus un seul
+   `!important` à écrire. C'est l'appelant qui décide de sa forme, ce qui est
+   la bonne répartition — le matériau ne connaît pas la silhouette de ce qu'il
+   habille. */
+.glass {
+  position: relative;
+  z-index: 0;
+  width: var(--opale-glass-width, fit-content);
+  overflow: hidden;
+  border-radius: var(--opale-glass-radius, var(--opale-radius-md, 1.375rem));
+  /* Le halo s'établit au lieu d'apparaître d'un coup. Ce n'est pas du
+     mouvement — rien ne se déplace, rien ne change de taille : une ombre prend
+     sa densité. Le bloc anti-mouvement plus bas la coupe malgré tout, et c'est
+     sans conséquence : l'indicateur est déjà là à la première image. */
+  transition: box-shadow var(--opale-motion-fast) var(--opale-ease);
+}
+
+/* LA RÉFRACTION EST LA SEULE COUCHE QUI REGARDE DERRIÈRE.
+
+   `backdrop-filter` échantillonne l'arrière-plan ; le `filter` de déplacement
+   le gauchit. L'échelle 1,018 déborde très légèrement pour que le déplacement
+   n'expose pas de bord vide au ras du cadre.
+
+   `isolation: isolate` la tient dans son propre plan de composition : sans
+   elle, le flou déborde sur les couches voisines quand le conteneur est
+   lui-même transformé. */
+.refraction {
+  position: absolute;
+  z-index: 0;
+  border-radius: inherit;
+  inset: 0;
+  backdrop-filter: blur(var(--opale-glass-backdrop-blur)) saturate(var(--opale-glass-saturate));
+  -webkit-backdrop-filter: blur(var(--opale-glass-backdrop-blur))
+    saturate(var(--opale-glass-saturate));
+  filter: url('#opale-glass-displacement');
+  isolation: isolate;
+  transform: scale(1.018);
+  transform-origin: center;
+  transition:
+    filter var(--opale-motion-slow) var(--opale-ease),
+    transform var(--opale-motion-slow) var(--opale-ease);
+}
+
+/* LE DÉPLACEMENT SE COUPE LÀ OÙ IL COÛTE LE PLUS OU SERT LE MOINS.
+
+   Le filtre SVG — bruit fractal puis déplacement — est recalculé à chaque
+   peinture de chaque verre, par-dessus le `backdrop-filter`. Il est retiré :
+   — pour qui demande moins de transparence ou moins de mouvement : le
+     gauchissement de l'arrière-plan est un effet, pas une information ;
+   — sur les petits écrans et sous un pointeur grossier, où le processeur
+     graphique est le plus souvent celui d'un téléphone ou d'une tablette.
+   Le flou, la saturation et la teinte restent : la matière se lit toujours
+   comme du verre. L'agrandissement ne servait qu'à masquer les bords du
+   déplacement ; il part avec lui. */
+@media (prefers-reduced-transparency: reduce),
+  (prefers-reduced-motion: reduce),
+  (max-width: 37.499rem),
+  (pointer: coarse) {
+  .refraction {
+    filter: none;
+    transform: none;
+  }
+}
+
+/* LE LAVIS A SON PROPRE JETON, ET LE NOM COMPTE.
+
+   Il lisait d'abord `--opale-glass-surface`. Ce jeton existait déjà — il
+   décrivait le lavis CSS qui IMITAIT le verre avant qu'on écrive le matériau,
+   et il vaut `rgba(255, 255, 255, 0.58)` en thème clair. Le verre peignait donc
+   sa teinte à 58 % d'opacité là où la référence est à 6 % : laiteux au lieu de
+   translucide, c'est-à-dire exactement l'imitation qu'il remplaçait.
+
+   Réutiliser un nom de jeton pour un autre sens ne casse rien et ne rougit
+   nulle part — la valeur est simplement fausse. D'où `--opale-glass-tint` et
+   `--opale-glass-edge`, qui n'appartiennent qu'au matériau.
+
+   Les deux dégradés de bombé passent AVANT la teinte : la lumière vient du coin
+   haut gauche, l'ombre du coin bas droit. */
+.tint {
+  position: absolute;
+  z-index: 1;
+  border-radius: inherit;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      88% 125% at 8% 0%,
+      color-mix(in srgb, var(--opale-glass-light) 20%, transparent),
+      transparent 52%
+    ),
+    radial-gradient(
+      80% 120% at 100% 100%,
+      color-mix(in srgb, var(--opale-glass-deep) 16%, transparent),
+      transparent 58%
+    ),
+    var(--opale-glass-tint, color-mix(in srgb, var(--opale-glass-light) 6%, transparent));
+  transition: background var(--opale-motion-slow) var(--opale-ease);
+}
+
+.specular {
+  position: absolute;
+  z-index: 2;
+  border-radius: inherit;
+  inset: 0;
+  overflow: hidden;
+  box-shadow:
+    inset 1px 1px 0
+      var(--opale-glass-edge, color-mix(in srgb, var(--opale-glass-light) 32%, transparent)),
+    inset 0 0 5px
+      var(--opale-glass-edge, color-mix(in srgb, var(--opale-glass-light) 32%, transparent));
+  transition: box-shadow var(--opale-motion-slow) var(--opale-ease);
+}
+
+/* L'onde part du point cliqué. `translate(-50%, -50%)` la centre sur ce point
+   plutôt que sur son coin — sans quoi elle naîtrait en bas à droite du doigt. */
+.ripple {
+  position: absolute;
+  z-index: 2;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--opale-glass-light) 30%, transparent) 0%,
+    color-mix(in srgb, var(--opale-glass-light) 10%, transparent) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: opale-glass-ripple var(--opale-motion-slower) var(--opale-ease-spring);
+}
+
+/* LE CONTENU HÉRITE DE L'ENCRE DU MATÉRIAU, ET C'EST UN FILET DE SÉCURITÉ.
+
+   Sans cette ligne, un `<Glass>` nu — sans classe de composant — prend le NOIR
+   par défaut du navigateur. Posé sur une image sombre, son libellé disparaît.
+   Ce n'est pas une hypothèse : deux boutons de démonstration sont tombés dans
+   ce trou en passant au matériau d'Opale, mesurés à 3,78:1.
+
+   Le défaut d'un composant doit être la valeur SÛRE, pas celle de l'agent
+   utilisateur. Un composant qui pose sa propre encre l'emporte de toute façon
+   sur ce repli. */
+/* LE CONTENU NEUTRALISE LE CHROME DU NAVIGATEUR, ET C'EST UNE RÉGRESSION
+   RÉPARÉE.
+
+   `<Glass as="button">` rendait un `<button>` avec ses valeurs par défaut :
+   `appearance: auto`, `background: rgb(239, 239, 239)` — le gris « buttonface »
+   — et une bordure `outset`. Le contenu était donc OPAQUE : il recouvrait
+   intégralement les trois couches, et le verre ne se voyait pas du tout.
+   Mesuré, l'encre blanche sur ce gris : **1,15:1**.
+
+   D'OÙ CELA VENAIT : Tailwind était une dépendance du paquet, et son Preflight
+   remettait `background: transparent` sur les boutons. En le retirant, on a
+   retiré ce reset sans le remplacer. Le matériau doit le poser lui-même, sinon
+   `as="button"` est un piège pour tout consommateur — et il l'a été pour deux
+   boutons de la vitrine.
+
+   `font: inherit` EST DU MÊME ORDRE : un bouton natif n'hérite pas de la
+   police du document, il prend celle du système. */
+.content {
+  /* LA LARGEUR NE TRAVERSE PAS LE VERRE (THM-18). `--opale-glass-width` est
+     héritée : une carte de verre à `100%` la transmettait à chaque verre posé
+     dedans, et la coche d'une case devenait une piste pleine largeur qui
+     rejetait son libellé hors de la carte. Remise ici à l'initiale, la
+     variable invalide retombe sur le défaut de `.glass` — `fit-content` — pour
+     tout verre imbriqué qui ne la règle pas lui-même. Le rayon, lui, reste
+     hérité : `Modal` et la barre de la vitrine le posent au-dessus du verre. */
+  --opale-glass-width: initial;
+  position: relative;
+  z-index: 3;
+  color: var(--opale-glass-ink);
+}
+
+.content:where(button, input, select, textarea) {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+.content:where(button) {
+  cursor: pointer;
+}
+
+.squishing {
+  animation: opale-glass-squish var(--opale-motion-slower) var(--opale-ease-spring);
+}
+
+@keyframes opale-glass-ripple {
+  0% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.6);
+  }
+}
+
+/* Le léger écrasement au clic : une matière qui répond. Les écarts sont sous
+   2 %, donc la mise en page ne bouge pas. */
+@keyframes opale-glass-squish {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  20% {
+    transform: scale(0.985, 1.015);
+  }
+  40% {
+    transform: scale(1.008, 0.992);
+  }
+  60% {
+    transform: scale(0.992, 1.008);
+  }
+  80% {
+    transform: scale(1.005, 0.995);
+  }
+}
+
+/* WCAG 2.3.3 — l'onde et l'écrasement sont du mouvement non essentiel : ils
+   s'effacent pour qui demande moins d'animation. Le flou de la réfraction,
+   lui, reste : c'est une apparence, pas un mouvement. Son déplacement est
+   coupé plus haut. */
+
+/* =============================================================================
+   LE FOCUS EST UNE OMBRE DOUCE, ET RIEN D'AUTRE.
+
+   LE CONTEXTE, PARCE QU'IL EXPLIQUE LA FORME DE CETTE RÈGLE. Le propriétaire a
+   demandé le retrait de l'anneau de focus bleu partout dans la vitrine : trois
+   jetons de couleur y sont mis à `transparent`, et un test l'épingle. Mesuré
+   sur un champ de verre avant toute règle : `outline-width: 0px`,
+   `outline-style: none`, aucune ombre — soit AUCUN indicateur, ce qui est un
+   échec du critère 2.4.7.
+
+   CE QUI A ÉTÉ CHOISI, ET CE QUI A ÉTÉ ÉCARTÉ. Dix traitements ont été
+   proposés côte à côte sur la photographie des scènes. Le retenu ne dessine
+   AUCUN trait : la silhouette se détache par une ombre floue posée autour
+   d'elle. C'est le seul de la série qui n'ajoute pas de géométrie au
+   composant — il change ce qu'il y a AUTOUR, pas le composant lui-même.
+
+   POURQUOI `box-shadow` ET NON `filter: drop-shadow()`. Une ombre portée
+   suivrait la silhouette RÉELLE, découpage compris, là où `box-shadow` ne
+   connaît que le `border-radius`. Elle est pourtant exclue, et c'est mesuré :
+   un `filter` sur un ancêtre crée une nouvelle racine de fond, ce qui coupe
+   net le `backdrop-filter` de la couche de réfraction. Vérifié au navigateur
+   sur la page « Le verre liquide », réfraction poussée à
+   `blur(6px) saturate(4) hue-rotate(120deg)` pour rendre la panne
+   indiscutable : sans `filter` sur l'enveloppe, l'intérieur du bouton vire au
+   magenta ; avec, le paysage repasse intact — la réfraction avait disparu.
+   Un verre sans réfraction n'est plus du verre : l'ombre portée est donc
+   inutilisable ici, quel que soit son avantage de forme.
+
+   CE QUE CE CHOIX COÛTE EN FORME. Sur le bouton, la silhouette est un squircle
+   et l'ombre suit un rectangle arrondi : les deux s'écartent d'environ deux
+   pixels aux diagonales. Le rayon de l'enveloppe est réglé pour que le
+   rectangle CONTIENNE le squircle — voir `.opale-button--glass-root` dans
+   `opale.css`, qui documente le calcul —, et le flou de l'ombre est plus large
+   que l'écart. Ce n'est pas exact, c'est imperceptible, et c'est dit.
+
+   LE HALO EST EXTÉRIEUR, DONC UN DÉCOUPAGE LE TUERAIT. C'est la troisième
+   fois que ce piège se présente sur ce composant : un `clip-path` rogne
+   l'`outline` de son propre élément, et il rogne tout autant son `box-shadow`
+   extérieur. Le bouton porte donc désormais son découpage sur ses COUCHES et
+   non sur son enveloppe. Un garde le vérifie, parce que rien ne rougit quand
+   un halo n'est pas peint.
+
+   LE CRITÈRE EXACT, PARCE QUE JE L'AI MAL NOMMÉ AILLEURS. Le plancher de 3:1
+   d'un indicateur de focus vient de 1.4.11 « Contraste des éléments non
+   textuels », niveau AA. Le 2.4.11 de WCAG 2.2 est « Focus non masqué » et ne
+   parle pas de contraste ; les règles d'aire et d'épaisseur sont 2.4.13, de
+   niveau AAA.
+
+   L'ARÊTE ET LE LAVIS ACCOMPAGNENT LE HALO, et ce n'est pas de l'ornement :
+   une ombre sombre seule ne se distingue pas d'un fond sombre. Le filet
+   spéculaire passe au blanc franc et le lavis se densifie, si bien que
+   l'indicateur est toujours un CONTRASTE — clair contre sombre — et non une
+   seule couleur qui espère tomber sur le bon fond. Les valeurs viennent de la
+   mesure consignée dans `opale-liquid-glass.test.tsx`.
+
+   `:has(:focus-visible)` ET NON `:focus-within`, ET C'EST UNE CORRECTION.
+   `:focus-within` s'allume sur n'importe quelle prise de focus, CLIC DE
+   SOURIS COMPRIS : l'indicateur restait donc affiché après qu'on avait lâché
+   le bouton ou la poignée du curseur, jusqu'au prochain clic ailleurs. C'est
+   la gêne que `:focus-visible` a été inventé pour supprimer — le navigateur
+   ne l'accorde qu'au clavier, sauf pour ce qui attend une saisie textuelle,
+   où il l'accorde aussi à la souris. Un champ garde donc son halo au clic,
+   un bouton non, et c'est exactement le comportement attendu des deux.
+
+   `:has()` ET NON `:focus-visible` SEUL : la pseudo-classe doit être évaluée
+   sur le CONTENU, qui est un enfant de l'enveloppe. L'enveloppe, elle, n'est
+   pas focalisable.
+
+   CE QUI RESTE OUVERT. Un verre CONTENEUR — une modale, un rail — s'allume
+   aussi quand l'un de ses descendants reçoit le focus au clavier. Le halo
+   cerne alors tout le panneau au lieu du contrôle. Le défaut précède cette
+   correction et n'est pas traité ici : le distinguer demande de marquer les
+   verres qui sont des surfaces, ce que le matériau ne sait pas encore.
+
+   NI L'UN NI L'AUTRE NE SUFFIT pour la case à cocher et l'interrupteur : leur
+   contrôle natif est posé À CÔTÉ du verre, pas dedans. L'attribut
+   `data-opale-glass-focus`, qu'une règle voisine pose depuis le contrôle,
+   couvre ce cas. */
+.glass:has(:focus-visible),
+.glass[data-opale-glass-focus='true'] {
+  --opale-glass-edge: color-mix(in srgb, var(--opale-glass-light) 98%, transparent);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-glass-deep) 50%, transparent);
+  /* LA VALEUR DE REPLI N'EST PAS UNE COQUETTERIE. Ce module est toujours
+     livré avec le composant ; `opale.css`, qui porte le jeton, doit être
+     importé par le consommateur. S'il ne l'est pas, une `box-shadow` réduite
+     à une variable absente devient invalide et retombe à `none` : le focus
+     disparaîtrait en silence. Le repli est la valeur du thème clair. */
+  box-shadow: var(
+    --opale-glass-focus-halo,
+    0 0 4px 2px var(--opale-glass-light),
+    0 0 12px 8px color-mix(in srgb, var(--opale-glass-deep) 90%, transparent)
+  );
+}
+
+/* =============================================================================
+   LE REBOND, ET LA LIMITE QU'IL NE DOIT PAS FRANCHIR.
+
+   Une matière qui répond au doigt est agréable ; une matière qui gigote est
+   fatigante, et sur un écran entier de composants elle devient hostile. Quatre
+   règles, tenues ici :
+
+     — IL NE PART QUE SUR UNE ACTION. `:active` uniquement : rien ne bouge au
+       survol, rien au chargement, rien tout seul. WCAG 2.2.2 vise le mouvement
+       que l'utilisateur n'a pas demandé — celui-ci, il l'a demandé en appuyant.
+
+     — IL NE SE RÉPÈTE PAS. Une seule passe, pas d'`infinite`.
+
+     — IL EST COURT : `--opale-motion`, 220 ms. Au-delà d'un quart de
+       seconde, un retour d'appui cesse d'être un retour et devient une
+       attente — plus long que le clic lui-même.
+
+     — IL EST PETIT. L'amplitude reste sous 4 % : la boîte ne bouge pas, donc
+       rien ne se décale autour et aucun voisin ne saute. C'est ce qui permet
+       d'en mettre partout sans gêner.
+
+     — IL NE PART QUE SUR CE QU'ON PRESSE. C'est la cinquième règle, et elle
+       manquait. `:active` ne vise pas que l'élément touché : il remonte à tous
+       ses ANCÊTRES. Écrit `.glass:active`, le rebond partait donc sur le
+       conteneur autant que sur le bouton — cliquer une entrée du sommaire
+       faisait sauter le sommaire entier. L'attribut, posé par `Glass` sur les
+       seuls verres activables, est la condition qui manquait.
+
+   `cubic-bezier(.34, 1.56, .64, 1)` DÉPASSE VOLONTAIREMENT 1 sur la sortie :
+   c'est ce dépassement qui fait le rebond. Sans lui, on aurait un
+   rétrécissement mou. */
+.glass[data-opale-glass-press='true']:active {
+  animation: opale-glass-press var(--opale-motion) var(--opale-ease-spring);
+}
+
+@keyframes opale-glass-press {
+  0% {
+    transform: scale(1);
+  }
+  38% {
+    transform: scale(0.965);
+  }
+  70% {
+    transform: scale(1.018);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple,
+  .squishing,
+  .glass[data-opale-glass-press='true']:active {
+    animation: none;
+  }
+
+  /* LA LUEUR DE FOCUS RESTE, ET CE N'EST PAS UN OUBLI. Demander moins
+     d'animation n'est pas renoncer à savoir où l'on est : l'indicateur de focus
+     est une information, pas un effet. Seule sa TRANSITION disparaît. */
+  .glass {
+    transition: none;
+  }
+}

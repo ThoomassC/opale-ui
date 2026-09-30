@@ -26,6 +26,9 @@ dist-ssr
 # La vitrine se construit à part de la librairie.
 dist-showcase
 
+# Archives construites par `npm run release`, avant d'être attachées.
+dist-release
+
 # Rapport de couverture, régénéré par `npm run coverage`.
 coverage
 .vercel

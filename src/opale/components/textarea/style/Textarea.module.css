@@ -1,0 +1,66 @@
+/* =============================================================================
+   LA ZONE DE TEXTE — FEUILLE D'OPALE.
+
+   La boîte, l'encre, la police et l'anneau de focus viennent de
+   `.opale-input-shell` et `.opale-input`, que le natif porte aussi : une zone
+   de texte et un champ de saisie voisins sont la même matière. Cette feuille
+   ne règle que ce qui distingue plusieurs lignes d'une seule.
+
+   LA PREMIÈRE LIGNE S'ALIGNE SUR UN CHAMP D'UNE LIGNE. La marge verticale est
+   la moitié de ce qui reste de la hauteur de contrôle (`--opale-control-md`,
+   redéfinie par `size` sur l'enveloppe) une fois la ligne et les deux bords
+   ôtés : posée à côté d'un `Input`, la zone commence à la même hauteur.
+   ========================================================================== */
+
+.field {
+  --opale-textarea-font: var(--opale-text-md);
+  min-inline-size: 0;
+}
+.small {
+  --opale-textarea-font: var(--opale-text-sm);
+}
+.medium {
+  --opale-textarea-font: var(--opale-text-md);
+}
+.large {
+  --opale-textarea-font: var(--opale-text-lg);
+}
+
+/* La coquille d'un champ centre une ligne ; celle-ci en porte plusieurs.
+   Deux classes : la règle doit l'emporter sur `.opale-input-shell` quel que
+   soit l'ordre de chargement des feuilles. */
+.field .shell {
+  align-items: stretch;
+  padding-inline-end: var(--opale-space-xs);
+}
+
+.field .textarea {
+  /* Repli des navigateurs sans l'unité `lh`. */
+  --opale-textarea-pad: var(--opale-space-xs);
+  --opale-textarea-pad: max(0px, calc((var(--opale-control-md) - 1lh - 2px) / 2));
+  box-sizing: border-box;
+  display: block;
+  padding-block: var(--opale-textarea-pad);
+  padding-inline: 0;
+  font-size: var(--opale-textarea-font);
+  resize: vertical;
+}
+
+/* La hauteur suit le texte : la poignée tirerait contre elle. */
+.field .auto {
+  resize: none;
+  overflow-y: auto;
+}
+.field .capped {
+  max-height: calc(var(--opale-textarea-max-rows) * 1lh + 2 * var(--opale-textarea-pad));
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--opale-space-sm);
+}
+.count {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}

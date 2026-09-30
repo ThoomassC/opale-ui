@@ -1,15 +1,8 @@
 import type { Plate } from '../../palette-data';
 
-/* =============================================================================
-   LA PLAQUE DE PALETTE, DANS SON PROPRE FICHIER.
-
-   Elle vivait dans `palette.tsx`, qui n'exporte qu'un objet `DocPage` : un
-   fichier qui définit un composant tout en exportant autre chose qu'un
-   composant n'est pas un point de remplacement à chaud valide, et
-   `react-refresh/only-export-components` le signalait. La séparation est donc
-   la correction, pas un déplacement de confort — ici le seul export EST le
-   composant.
-   ========================================================================== */
+/* La plaque de palette, seul export de ce fichier :
+   `react-refresh/only-export-components` refuse un composant déclaré à côté
+   d'un export `DocPage`. */
 
 /**
  * Une plaque de palette. Fond, encre et filet sont posés en **style en

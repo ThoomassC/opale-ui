@@ -2,8 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, recette]
   pull_request:
+
+# Lecture seule : la CI vérifie, elle ne publie rien.
+permissions:
+  contents: read
+
+# Un nouveau push sur la même branche rend le précédent inutile.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -13,7 +22,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       # `--ignore-scripts` skips `prepare`, which would build the library
@@ -29,12 +38,88 @@ jobs:
 
       # The colour contract lives here. It recomputes every ratio the token
       # sheet claims in its comments, on the three themes. This is the step
-      # that would have caught the six tokens drifting apart.
+      # that would have caught the six tokens drifting apart. It also
+      # regenerates CHANGELOG.md from the release notes and compares.
       - name: Contrat de couleur et tests
         run: npm test
 
       - name: Build de la librairie
         run: npm run build:lib
 
+      # Ce que le build livre : "use client" en tête du bundle, déclarations
+      # lisibles en nodenext, polices hors de la feuille bloquante, variantes
+      # en couche et sans polices dérivées d'opale.css. Rien de cela n'existe
+      # avant `dist/`, donc aucun test ne le voit.
+      - name: Contrôle de ce qui est livré
+        run: npm run check:dist
+
+      # Un import isolé ne doit tirer que son composant : le paquet est émis
+      # module par module, et ce budget le vérifie sur une application jetable.
+      - name: Budget de poids
+        run: npm run check:size
+
+      # Le paquet emballé comme l'archive de release (manifeste réduit),
+      # installé dans une application jetable et compilé en nodenext puis en
+      # bundler : `files`, `exports` et déclarations tels qu'un consommateur
+      # les reçoit.
+      - name: Application consommatrice
+        run: npm run check:consumer
+
       - name: Build de la charte
         run: npm run build
+
+  # ROB-13 — `engines` promet Node 20.19 et 22.12 et plus : les versions
+  # promises installent, testent et construisent le paquet. Node 24 est déjà
+  # couvert par `verify`. Vitest 5 ne déclare plus Node 20 ; il y tourne
+  # aujourd'hui (mesuré sur 20.19.0) — si cela cesse, c'est ce job qui le dira,
+  # et ce qui compte pour un consommateur (build, archive, résolution) reste
+  # vérifié par les deux dernières étapes.
+  node:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.19', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: Tests
+        run: npm test
+
+      - name: Build de la librairie
+        run: npm run build:lib
+
+      - name: Application consommatrice
+        run: npm run check:consumer
+
+  # ROB-13 — `peerDependencies` accepte React 19.0 : la suite tourne aussi sur
+  # la plus ancienne 19.0 publiée. Les types restent ceux du dépôt ; c'est le
+  # comportement à l'exécution qui est vérifié.
+  react-min:
+    name: React 19.0 (plancher des peerDependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: React et React DOM au plancher
+        run: |
+          npm install --no-save --ignore-scripts react@~19.0.0 react-dom@~19.0.0
+          node -e "for (const p of ['react', 'react-dom']) { const v = require(p + '/package.json').version; console.log(p, v); if (!v.startsWith('19.0.')) process.exit(1); }"
+
+      - name: Tests
+        run: npm test

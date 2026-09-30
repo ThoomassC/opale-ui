@@ -1,37 +1,46 @@
 # Third-party notices
 
-Ce fichier existe pour une raison juridique et non documentaire : la licence MIT
-exige que sa notice de droit d'auteur soit **incluse dans toute copie ou portion
-substantielle** du logiciel. `src/magic/` est une portion substantielle.
+Ce fichier recense ce que la distribution d'Opale contient et qui n'est pas
+d'Opale : des **polices**, et rien d'autre. Aucun code tiers n'est embarqué —
+tout ce que `@thomascaron/opale-ui` publie est écrit par Opale, sous la licence
+MIT du dépôt (`LICENSE`).
 
-Il est écrit en anglais pour la partie citée — une licence se recopie, elle ne se
+Les textes de licence sont en anglais : une licence se recopie, elle ne se
 traduit pas.
 
 ---
 
-## react-magic-ui
+## Hack — obligation en cours
 
-- **Ce qui en vient** : les quatorze composants de `src/magic/`, ainsi que leurs
-  feuilles `*.module.scss`. Depuis la 2.0, ce ne sont plus un sous-chemin du
-  paquet mais **son point d'entrée racine** — `import { Button } from
-  '@thomascaron/opale'` sert ce code, et `@thomascaron/opale/opale.css` sert sa
-  feuille. Le code est gardé **fidèle au caractère** ; les seuls écarts sont
-  énumérés dans `src/magic/README.md` et chaque fichier porte un bandeau qui dit
-  d'où il vient.
-- **Ce qui n'en vient pas** : ce qui reste d'Opale, c'est-à-dire la charte et son
-  garde. Les jetons de `src/tokens/` (publiés en `./tokens.css`) et le contrat de
-  couleur exécutable de `src/contract/` (publié en `./contract`) ne contiennent
-  aucune ligne de ce projet. Les dix-huit composants de `src/components/` et les
-  points d'entrée CSS de la 1.x n'en contenaient pas davantage ; ils ont été
-  supprimés en 2.0 et ne sont donc plus à distinguer.
-- **Source** : <https://github.com/tweeedlex/react-magic-ui>
-- **Version copiée** : 1.0.9
-- **Licence** : MIT
+**Celle-ci est due, et il faut la laisser où elle est.** La police monospace des
+exemples de code de la vitrine est distribuée : `npm run build` émet ses fichiers
+dans `dist-showcase/assets/` (vérifié — `hack-regular-*.woff2`,
+`hack-italic-*.woff`, `hack-bold-*.woff2` et leurs pairs), et c'est ce dossier
+qui est déployé. Distribuer la police, c'est en distribuer une copie ; la clause
+MIT s'applique donc pleinement, ainsi que la licence Bitstream Vera que le projet
+reproduit.
+
+**Le paquet npm, lui, n'embarque pas la police** : `dist/` n'en contient aucun
+fichier, et `hack-font` est une dépendance de développement. L'obligation porte
+sur la vitrine déployée, pas sur `@thomascaron/opale-ui`.
+
+- **Ce qui en vient** : la police monospace des exemples de code de la vitrine.
+- **Source** : <https://github.com/source-foundry/Hack>
+- **Version** : 3.3.0
+- **Licence** : MIT, avec les notices Bitstream Vera reproduites par le projet.
 
 ```
+The work in the Hack project is Copyright 2018 Source Foundry Authors and
+licensed under the MIT License.
+
+The work in the DejaVu project was committed to the public domain.
+
+Bitstream Vera Sans Mono Copyright 2003 Bitstream Inc. and licensed under the
+Bitstream Vera License with Reserved Font Names "Bitstream" and "Vera".
+
 MIT License
 
-Copyright (c) 2025 tweeedlex
+Copyright (c) 2018 Source Foundry Authors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,31 +59,249 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+BITSTREAM VERA LICENSE
+
+Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved. Bitstream Vera is a
+trademark of Bitstream, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+the fonts accompanying this license ("Fonts") and associated documentation
+files (the "Font Software"), to reproduce and distribute the Font Software,
+including without limitation the rights to use, copy, merge, publish,
+distribute, and/or sell copies of the Font Software, and to permit persons to
+whom the Font Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright and trademark notices and this permission notice shall be
+included in all copies of one or more of the Font Software typefaces.
+
+The Font Software may be modified, altered, or added to, and in particular the
+designs of glyphs or characters in the Fonts may be modified and additional
+glyphs or characters may be added to the Fonts, only if the fonts are renamed
+to names not containing either the words "Bitstream" or the word "Vera".
+
+This License becomes null and void to the extent applicable to Fonts or Font
+Software that has been modified and is distributed under the "Bitstream Vera"
+names.
+
+The Font Software may be sold as part of a larger software package but no copy
+of one or more of the Font Software typefaces may be sold by itself.
+
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT,
+TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME FOUNDATION
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL,
+SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO
+USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.
+
+Except as contained in this notice, the names of Gnome, the Gnome Foundation,
+and Bitstream Inc., shall not be used in advertising or otherwise to promote
+the sale, use or other dealings in this Font Software without prior written
+authorization from the Gnome Foundation or Bitstream Inc., respectively. For
+further information, contact: fonts at gnome dot org.
 ```
 
 ---
 
-## Ce qu'Opale, elle, ne dit pas
+## Polices embarquées
 
-**Opale n'a aucun fichier de licence à elle**, et `package.json` porte
-`"private": true`. En l'absence de licence explicite, le droit d'auteur par
-défaut s'applique : tous droits réservés. C'est cohérent avec un paquet privé
-consommé par `portfolio` et `travels_in_world`, et ça n'entre pas en conflit avec
-la MIT ci-dessus — la MIT autorise la sous-licence, donc rien n'oblige Opale à
-être MIT parce qu'elle en incorpore.
+`opale.css` sert Bricolage Grotesque et Chivo depuis le paquet, sans requête vers Google Fonts. Les deux familles sont distribuées sous SIL Open Font License 1.1 ; leurs licences complètes suivent à la fin de ce document.
 
-**La 2.0 donne du poids à ce silence, et c'est le point à retenir de cette
-section.** En 1.x, le code MIT était un sous-chemin optionnel à côté de dix-huit
-composants maison ; il est devenu le point d'entrée racine, et les composants
-maison ont disparu. Ce que le paquet publie aujourd'hui, c'est donc **du code MIT
-de tweeedlex à la racine, plus une charte et un contrat qui sont les seules
-parties dont Thomas Caron est l'auteur**. Un paquet dont la surface principale est
-sous une licence permissive et dont le tout est « tous droits réservés » par
-défaut n'est pas une contradiction juridique, mais c'est une combinaison qu'un
-lecteur extérieur ne peut pas deviner : elle mérite d'être écrite plutôt que
-laissée à l'absence de fichier.
+## Bricolage Grotesque — SIL Open Font License 1.1
 
-Ce serait à trancher le jour où le paquet est publié pour de vrai — et ce jour-là,
-la question n'est plus « quelle licence pour Opale » mais « quelle licence pour une
-charte de quelques centaines de lignes et un contrat de test, distribués avec
-quatorze composants MIT qui ne sont pas d'elle ». C'est signalé ici, pas décidé.
+```text
+Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+```
+
+## Chivo — SIL Open Font License 1.1
+
+```text
+Copyright 2019 The Chivo Project Authors (https://github.com/Omnibus-Type/Chivo)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+```

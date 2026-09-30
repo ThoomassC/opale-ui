@@ -113,7 +113,7 @@ describe('GROUPS', () => {
 
      TROIS GROUPES ET NON CINQ, ET LA LISTE A ÉTÉ RÉDUITE PLUTÔT QUE RELÂCHÉE.
      La 2.0 supprime `compositions` — ses deux pages assemblaient des composants
-     qui ne sont plus publiés — et supprime `magic` EN TANT QUE GROUPE, ses
+     qui ne sont plus publiés — et supprime le groupe des composants en verre EN TANT QUE GROUPE, ses
      quatorze pages étant montées dans `composants`. Le libellé de ce test
      pourrait tenir sur `GROUPS.length`, et ce serait un test plus faible : ce
      qu'on épingle est l'ORDRE et les NOMS, parce qu'un groupe renommé change

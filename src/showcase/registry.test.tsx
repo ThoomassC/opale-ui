@@ -1,27 +1,34 @@
 import { cleanup, render } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /* L'ENTRÉE RACINE DU PAQUET, ET ELLE A CHANGÉ DE FICHIER EN 2.0.
    C'était `src/index.ts`, qui réexportait dix-huit composants écrits ici ;
-   c'est désormais `src/magic/index.ts`, que `package.json` déclare en
-   `exports["."] -> ./dist/magic/index.js`. Le test lit donc la MÊME chose
+   c'est désormais `src/opale/index.ts`, que `package.json` déclare en
+   `exports["."] -> ./dist/opale/index.js`. Le test lit donc la MÊME chose
    qu'avant — les exports réels de ce qu'un consommateur installe — à un chemin
    près.
 
-   IMPORT RELATIF ET NON `@thomascaron/opale`, ET C'EST MESURÉ. Le paquet est
+   IMPORT RELATIF ET NON `@thomascaron/opale-ui`, ET C'EST MESURÉ. Le paquet est
    auto-référençable (son `package.json` a un `name` et un `exports`), donc
-   `@thomascaron/opale` RÉSOUT — mais vers `dist/`, le produit du build :
+   `@thomascaron/opale-ui` RÉSOUT — mais vers `dist/`, le produit du build :
    `tsc --traceResolution` le confirme (« successfully resolved to
-   .../dist/magic/index.d.ts »), et Vitest y charge `dist/magic/index.js`. La
+   .../dist/opale/index.d.ts »), et Vitest y charge `dist/opale/index.js`. La
    suite éprouverait alors un artefact de build au lieu de la source, et
    passerait au vert sur une source cassée tant que `dist/` est encore frais.
    Le spécimen relatif désigne la source, dans les trois outils, sans
    configuration. Voir la note de `vite.config.ts`. */
-import * as library from '../magic';
+import * as library from '../opale';
+import { resetDeprecationWarnings } from '../opale/deprecations';
 
 import type { DocPage } from './doc-model';
-import { GROUPS, HOME_SLUG, parseSlug } from './doc-model';
+import { GROUPS, HOME_SLUG, catalogComponentLabel, parseSlug } from './doc-model';
 import { PAGES } from './pages';
+import { preloadPages } from './pages/lazy-page';
+
+/* Les fondations, les composants et le catalogue se chargent à la demande :
+   les monter d'un coup suppose de les charger d'avance, sans quoi chaque page
+   suspendrait sur son emplacement d'attente. */
+beforeAll(() => preloadPages());
 
 /* ============================================================================
    POURQUOI CE FICHIER EXISTE
@@ -47,10 +54,17 @@ import { PAGES } from './pages';
  * `ToastProvider` est le fournisseur de contexte du système de notification :
  * seul, il ne rend rien de visible et n'a pas de spécimen à montrer. Ce qui
  * s'emploie est le couple `ToastProvider` + `useToast`, et les deux se
- * documentent donc sur la page « Toast ». La correspondance est écrite ici, et
+ * documentent donc sur la même page. La correspondance est écrite ici, et
  * non retirée en silence de la liste des composants à documenter : une
  * exclusion muette est le mécanisme même par lequel un composant finit sans
  * page.
+ *
+ * LE LIBELLÉ VISÉ EST `ToastProvider` ET NON PLUS « Toast », et ce n'est pas
+ * cosmétique. La page s'appelait « Toast », comme `Opale.Toast` : deux entrées
+ * du même nom dans FEEDBACK, pour deux mécanismes sans rapport — une file
+ * portaillée d'un côté, une notification rendue en place de l'autre. La page a
+ * donc pris le nom de ce qu'elle documente. Si cette ligne gardait « Toast »,
+ * le garde exigerait une page portant un libellé que plus personne ne sert.
  *
  * `useToast` N'EST PAS DANS CETTE LISTE ET N'A PAS À Y ÊTRE : le filtre
  * ci-dessous ne retient que les exports dont le nom commence par une majuscule,
@@ -58,7 +72,11 @@ import { PAGES } from './pages';
  * rien ici ne l'exige — c'est une limite connue de ce garde, pas un oubli.
  */
 const DOCUMENTED_WITH: Readonly<Record<string, string>> = {
-  ToastProvider: 'Toast',
+  ToastProvider: 'ToastProvider',
+  /* Les commandes de zoom de la carte, rendues par `SvgMap` lui-même et
+     détachables sur une vue partagée : elles n'ont de sens qu'avec une carte,
+     et se documentent sur sa page — comme `useSvgMapViewport`. */
+  SvgMapControls: 'SvgMap',
 };
 
 /** Ce qui doit finir dans une URL : minuscules, chiffres, tirets, barres. */
@@ -102,7 +120,7 @@ function isComponent(value: unknown): boolean {
 }
 
 /**
- * Les composants publiés par l'entrée racine, `src/magic/index.ts`.
+ * Les composants publiés par l'entrée racine, `src/opale/index.ts`.
  *
  * Reconnus par la FORME de l'export et non par une liste recopiée : un export
  * dont le nom commence par une majuscule et dont la valeur est un composant.
@@ -119,18 +137,122 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
  *
  * Une borne large (« plus de dix ») tolérerait une perte silencieuse de
  * détection : le fichier passerait au vert en ne regardant plus que la moitié
- * des exports. En ajoutant un composant à `src/magic/index.ts`, ce chiffre
+ * des exports. En ajoutant un composant à `src/opale/index.ts`, ce chiffre
  * monte d'un — et il faut aussi lui écrire une page, ce que le test suivant
  * exige.
  *
- * DIX-HUIT EN 1.0, SEIZE EN 2.0. L'entrée racine publie les quatorze composants
+ * SEIZE COMPOSANTS HISTORIQUES, PLUS LE CATALOGUE OPALE DE LA V3. L'entrée
+ * racine publie les composants historiques et les nouvelles briques compatibles.
  * verre liquide historiques, ainsi que `SiteNav` et `SearchBar`.
  */
-const PUBLISHED_COMPONENT_COUNT = 16;
+/* 85, ET CHAQUE UNITÉ PERDUE EST UNE PORTE FERMÉE, PAS UN COMPOSANT SUPPRIMÉ.
+   Le compte était 93 ; le bouton l'a fait tomber à 92 ; les sept derniers
+   doublons — `Badge`, `Card`, `Checkbox`, `Input`, `Select`, `Slider` et
+   `Switch` — le mettent à 85.
+
+   POURQUOI IL BAISSE : ce garde compte les exports de `src/opale/index.ts`, et
+   ces sept-là ne sont plus réexportés par `src/opale/components/index.ts`. Ils
+   sont devenus la matière derrière la prop `liquidGlass` de leur jumeau Opale,
+   que le catalogue importe par chemin direct. Les sept MODULES existent
+   toujours, leur code tourne toujours à l'écran dès qu'on active le verre —
+   ils n'ont simplement plus de nom public, donc plus de page à exiger.
+
+   IL RESTE HUIT EXPORTS NON PRÉFIXÉS `Opale` : `Modal`, `SearchBar`,
+   `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider`, `Topbar` et `PageScaffold`.
+   Le dernier est revenu en 3.3.0 avec une vraie structure et un menu accessible.
+   Chacun a sa page dans `src/showcase/pages/composants/`. `Glass` a
+   quitté la liste : le matériau n'est pas un composant, et `liquidGlass`
+   est proposé par les surfaces concernées. Si ce
+   chiffre bouge sans qu'un composant ait été ajouté ou retiré, c'est le barril
+   qu'il faut relire. */
+/* 85 AVANT LE RETRAIT DE QUATRE PASSE-PLATS.
+
+   `Carousel` rendait `<div className="opale-card-grid">` — la classe de
+   `CardGrid` — sans défilement ni navigation ; `FileUploader` rendait
+   `<Dropzone/>` en perdant ses `children` ; `SlidingIndicator` rendait la
+   piste de `SegmentedControl` sans l'indicateur qui glisse ; et
+   `ShapeBackground` était `BackgroundSurface` plus un `::after`, désormais sa
+   prop `shape`. Aucun des quatre n'avait d'usage hors de sa propre
+   démonstration. Rupture d'API assumée, à consigner dans les notes de
+   version. */
+/* 80 AVANT L'AUDIT D'UTILITÉ, ET VOICI LE CRITÈRE QUI A RETIRÉ LES
+   VINGT-QUATRE : un composant mérite sa place s'il porte quelque chose qu'un
+   consommateur n'obtient pas en écrivant UNE ligne de JSX avec les pièces
+   d'Opale déjà publiées — un comportement, un contrat d'accessibilité, ou une
+   peinture non triviale. Quatre familles y ont échoué :
+
+   — LES PASSE-PLATS. `I18n` et `LocalStore` rendaient `<>{children}</>` : zéro
+     balisage, zéro comportement. Un fournisseur qui ne fournit rien.
+   — LES ALIAS À LIBELLÉ EN DUR. `Http` et `Validation` rendaient un
+     `StatusChip` — lequel rendait un `Badge` —, `Sound` un `Toggle` étiqueté
+     « Sons », `ThemeToggle` un `Toggle` étiqueté « Thème » qui ne changeait
+     aucun thème, `LanguageSelector` un `Select` de trois langues écrites dans
+     la librairie, `SettingsMenu` un `Menu` étiqueté « Réglages », et les cinq
+     boutons spécialisés un `Button` dont le mot français était figé — donc
+     inutilisables hors du français.
+   — LES DIV À CLASSE. `Scrollbar`, `PageScaffold`, `PageContent`, `Separator`
+     et `Toolbar` : un élément, une classe, rien d'autre. `Toolbar` était en
+     outre un faux ami, sans `role="toolbar"` ni navigation au clavier.
+   — LES PROMESSES NON TENUES. `Map` annonçait « marqueurs, bulles et clic » et
+     rendait un `<div>` vide — `SvgMap`, à côté, est la vraie carte ; `Legend`
+     ignorait la couleur de ses entrées, dans un composant dont c'est le seul
+     objet ; `RouteGuard` était de la logique de routage, et un garde qui ne
+     fait que cacher de l'interface n'a pas sa place dans une librairie d'UI ;
+     `Game` était une démonstration ; `Countdown` dérivait et ignorait
+     l'échéance absolue que sa fiche promettait.
+
+   Rupture d'API assumée, à consigner dans les notes de version. */
+/* 61 DEPUIS LA 3.5.0 : `SvgMapControls` rejoint le catalogue avec la refonte
+   de la carte SVG. */
+/* 73 DEPUIS LA 3.9.2 : les douze parties de `Tabs`, `Sidebar` et `Topbar`
+   (`TabsList`, `SidebarItem`, `TopbarBrand`…) sont aussi publiées sous leur
+   nom, pour les Server Components. Elles se documentent sur la page de leur
+   composant (`COMPOUND_PART_OWNERS`). */
+/* 91 DEPUIS LA 3.10.0 : sept composants — `Textarea`, `RadioGroup`, `Field`,
+   `Grid`, `Tooltip`, `Popover` et `DropdownMenu` — et onze parties publiées
+   sous leur nom : `Radio`, `PopoverTrigger`, `PopoverContent` et les huit
+   `DropdownMenu…`. Les parties se documentent sur la page de leur composant
+   (`NAMED_PART_OWNERS`). */
+const PUBLISHED_COMPONENT_COUNT = 91;
+
+/**
+ * Les parties publiées SANS membre statique sur leur composant, vers leur
+ * propriétaire. `Popover` et `DropdownMenu` n'exposent pas `Popover.Trigger` :
+ * leurs parties ne sont publiées que sous leur nom, donc le calcul ci-dessous,
+ * qui lit les membres, ne les voit pas. Le préfixe suffit à les rattacher ;
+ * `Radio` ne porte pas celui de `RadioGroup` et s'écrit en toutes lettres.
+ */
+const NAMED_PART_PREFIXES: readonly string[] = ['DropdownMenu', 'Popover'];
+const NAMED_PART_OWNERS: Readonly<Record<string, string>> = { Radio: 'RadioGroup' };
+
+/** Le propriétaire d'une partie publiée sous son seul nom, s'il en a un. */
+function namedPartOwner(component: string): string | undefined {
+  const prefix = NAMED_PART_PREFIXES.find(
+    (owner) => component !== owner && component.startsWith(owner),
+  );
+  return prefix ?? NAMED_PART_OWNERS[component];
+}
+
+/**
+ * Les parties des composants composés, vers leur propriétaire : `TabsList` →
+ * `Tabs`. Publiées sous leur nom pour les Server Components (`Tabs.List` ne s'y
+ * lit pas), elles restent des pièces de leur composant et se documentent sur
+ * sa page. Dérivé des exports, comme `PUBLISHED_COMPONENTS`.
+ */
+const COMPOUND_PART_OWNERS: ReadonlyMap<string, string> = new Map(
+  Object.entries(library).flatMap(([owner, value]) =>
+    isComponent(value) && (typeof value === 'object' || typeof value === 'function') && value
+      ? Object.keys(value)
+          .filter((member) => /^[A-Z]/.test(member))
+          .map((member): [string, string] => [`${owner}${member}`, owner])
+      : [],
+  ),
+);
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {
-  return DOCUMENTED_WITH[component] ?? component;
+  const owner = COMPOUND_PART_OWNERS.get(component) ?? namedPartOwner(component) ?? component;
+  return DOCUMENTED_WITH[owner] ?? catalogComponentLabel(owner);
 }
 
 /** `ChipList` → `chip-list`. Le slug d'une page de composant. */
@@ -139,6 +261,8 @@ function kebabCase(label: string): string {
 }
 
 const COMPONENT_PAGES: readonly DocPage[] = PAGES.filter((page) => page.group === 'composants');
+const COMPONENT_PAGE_CASES: readonly (readonly [slug: string, page: DocPage])[] =
+  COMPONENT_PAGES.map((page) => [page.slug, page]);
 
 /**
  * Une page par cas, le slug d'abord.
@@ -199,14 +323,14 @@ afterEach(() => {
 
 describe('Le registre des pages', () => {
   describe('la couverture des composants publiés', () => {
-    it('devrait trouver les 16 composants publiés par l’entrée racine', () => {
+    it('devrait trouver les composants publiés par l’entrée racine', () => {
       /* Garde-fou du garde-fou : si la reconnaissance des exports cassait, le
          test suivant passerait sur une liste tronquée et ne dirait plus rien. */
       expect(
         PUBLISHED_COMPONENTS,
         `${PUBLISHED_COMPONENTS.length} composants reconnus au lieu de ` +
           `${PUBLISHED_COMPONENT_COUNT} : ${PUBLISHED_COMPONENTS.join(', ')}\n` +
-          `— si vous venez d'AJOUTER un composant à src/magic/index.ts, montez ` +
+          `— si vous venez d'AJOUTER un composant à src/opale/index.ts, montez ` +
           `PUBLISHED_COMPONENT_COUNT d'un et écrivez-lui sa page ;\n` +
           `— si vous n'avez rien ajouté, c'est la détection qui a cassé (memo, ` +
           `forwardRef et lazy rendent des objets, pas des fonctions).`,
@@ -314,12 +438,16 @@ describe('Le registre des pages', () => {
     });
 
     it('devrait nommer chaque page de composant par le kebab-case de son libellé', () => {
-      const wrong = COMPONENT_PAGES.filter(
-        (page) => page.slug !== `${COMPONENT_PREFIX}${kebabCase(page.label)}`,
-      ).map(
-        (page) =>
-          `${page.label} : « ${page.slug} » au lieu de « ${COMPONENT_PREFIX}${kebabCase(page.label)} »`,
-      );
+      const wrong = COMPONENT_PAGES.filter((page) => {
+        const prefix = page.slug.startsWith(`${COMPONENT_PREFIX}opale-`) ? 'opale-' : '';
+
+        return page.slug !== `${COMPONENT_PREFIX}${prefix}${kebabCase(page.label)}`;
+      }).map((page) => {
+        const prefix = page.slug.startsWith(`${COMPONENT_PREFIX}opale-`) ? 'opale-' : '';
+        const expected = `${COMPONENT_PREFIX}${prefix}${kebabCase(page.label)}`;
+
+        return `${page.label} : « ${page.slug} » au lieu de « ${expected} »`;
+      });
 
       expect(
         wrong,
@@ -331,15 +459,28 @@ describe('Le registre des pages', () => {
 
   describe('le rendu de chaque page', () => {
     let errors: string[] = [];
+    let opaleWarnings: string[] = [];
+    const originalWarn = console.warn;
 
     beforeEach(() => {
       errors = [];
+      opaleWarnings = [];
+      /* LA VITRINE N'EMPLOIE NI NOM DÉPRÉCIÉ NI INTERRUPTEUR SANS NOM : ce que
+         `no-deprecated-api.structure.test.ts` lit dans le code, ceci le voit à
+         l'exécution. Remis à zéro par page, pour nommer la page fautive ; les
+         autres avertissements repartent tels quels. */
+      resetDeprecationWarnings();
+      vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+        const message = args.map((arg) => String(arg)).join(' ');
+        if (message.startsWith('[Opale]')) opaleWarnings.push(message);
+        else originalWarn(...args);
+      });
       /* `console.error` reste espionné et non avalé : le message part dans
          l'assertion. Les trois composants d'Opale qui s'en servaient pour
          signaler un emploi fautif — `Pill` sans libellé lisible, `TimelineItem`
          à un niveau de titre qu'il ne déclare pas, `Button` mal appelé — ne
          sont plus publiés, donc CE GARDE NE COUVRE PLUS CE QU'IL COUVRAIT :
-         aucun des quatorze composants vendorés ne rapporte un emploi fautif,
+         aucun des quatorze anciens composants en verre ne rapporte un emploi fautif,
          ni par `console.error` ni autrement. Ce qu'il attrape encore est ce que
          React écrit lui-même — clé manquante, prop inconnue sur un élément
          du DOM, mise à jour hors du rendu —, et c'est la raison qui le garde. */
@@ -357,7 +498,32 @@ describe('Le registre des pages', () => {
         errors,
         `la page « ${page.slug} » a écrit dans console.error :\n${errors.join('\n')}`,
       ).toEqual([]);
+      expect(
+        opaleWarnings,
+        `la page « ${page.slug} » a déclenché un avertissement d’Opale`,
+      ).toEqual([]);
     });
+
+    it.each(COMPONENT_PAGE_CASES)(
+      'la page composant « %s » devrait proposer afficher et copier son code',
+      (_slug, page) => {
+        const { container } = render(<>{page.render()}</>);
+        const labels = [...container.querySelectorAll<HTMLButtonElement>('button')].map((button) =>
+          button.textContent?.trim(),
+        );
+
+        expect(labels.filter((label) => label === 'Afficher le code')).toHaveLength(1);
+        expect(labels.filter((label) => label === 'Copier')).toHaveLength(1);
+
+        const toggle = container.querySelector<HTMLButtonElement>(
+          'button[aria-expanded="false"][aria-controls]',
+        );
+        const controlled = toggle?.getAttribute('aria-controls');
+
+        expect(controlled).toBeTruthy();
+        expect(controlled ? document.getElementById(controlled) : null).not.toBeNull();
+      },
+    );
 
     /* La coquille rend le `<h1>` — le `title` de la page. Une page qui en rend
        un second donne deux titres de premier niveau au document, donc deux
@@ -382,14 +548,14 @@ describe('Le registre des pages', () => {
        « l'équivalent d'Opale », par un lien vers sa page : `composants/tag`,
        `composants/pill`, `composants/field`, `composants/backdrop`,
        `composants/message`, `composants/date-range`, `composants/timeline`,
-       `composants/glass-lens`, plus les quatre pages `magic/*` liées entre
-       elles. La 2.0 supprime les dix-sept pages d'Opale et déplace les
+       `composants/glass-lens`, plus les quatre pages de l'ancien groupe du verre
+       liées entre elles. La 2.0 supprime les dix-sept pages d'Opale et déplace les
        quatorze autres : chacun de ces liens serait tombé sur un fragment
        inconnu, donc — la vitrine étant servie en statique — sur l'ACCUEIL,
        silencieusement, sans 404 et sans rien de rouge.
 
        Deux d'entre eux étaient pires qu'un lien mort : la page du `Card`
-       vendoré liait `composants/card` et celle de l'`Input` vendoré
+       d’origine liait `composants/card` et celle de l'`Input` d’origine
        `composants/input` pour désigner le composant d'Opale du même nom. Après
        le déplacement, ces adresses existent — et désignent LA PAGE ELLE-MÊME.
        Un lien « voir l'équivalent d'Opale » qui ramène où l'on est déjà ne
@@ -406,7 +572,10 @@ describe('Le registre des pages', () => {
 
       const broken = [...container.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')]
         .map((anchor) => anchor.getAttribute('href') ?? '')
-        .filter((href) => !known.has(parseSlug(href)))
+        .filter((href) => {
+          if (!href.startsWith('#/') && document.getElementById(href.slice(1))) return false;
+          return !known.has(parseSlug(href));
+        })
         .map((href) => `« ${href} » → slug « ${parseSlug(href)} »`);
 
       expect(
@@ -423,7 +592,7 @@ describe('Le registre des pages', () => {
     /* Le second cas, celui qu'un test d'existence laisse passer : un lien qui
        pointe sur la page qui le porte. Il ne casse rien et ne mène nulle part —
        et c'est exactement ce qu'ont produit `composants/card` et
-       `composants/input` quand les pages vendorées ont pris l'adresse des
+       `composants/input` quand les anciennes pages du verre ont pris l'adresse des
        composants d'Opale auxquels elles renvoyaient. */
     it.each(PAGE_CASES)('la page « %s » ne devrait pas se lier à elle-même', (_slug, page) => {
       const { container } = render(<>{page.render()}</>);

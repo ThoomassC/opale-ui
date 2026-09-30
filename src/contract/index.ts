@@ -60,3 +60,29 @@ export {
   resolveBackdrop,
   withWash,
 } from './backdrop.js';
+
+/*
+ * LA VALIDATION D'UNE MARQUE. Surcharger `--opale-primary` suffit à habiller
+ * Opale, mais l'encre des boutons pleins reste celle du saphir : le vert
+ * #16a34a y tombe à 3,16:1. `checkBrand` mesure les paires qui comptent et
+ * propose l'encre à poser sur `--opale-on-primary`, `--opale-on-secondary`,
+ * `--opale-on-danger` ou `--opale-on-accent`.
+ */
+export type {
+  BrandColors,
+  BrandContrastCheck,
+  BrandInkSuggestion,
+  BrandInkToken,
+  BrandReport,
+  BrandRole,
+  BrandRoleReport,
+  BrandTheme,
+  BrandThemeReference,
+  CheckBrandOptions,
+} from './brand.js';
+export {
+  BRAND_GRAPHIC_MINIMUM,
+  BRAND_TEXT_MINIMUM,
+  BRAND_THEME_REFERENCE,
+  checkBrand,
+} from './brand.js';

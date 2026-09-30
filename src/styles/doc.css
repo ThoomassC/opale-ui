@@ -149,12 +149,14 @@ body {
    LA COQUILLE EST SOMBRE DANS LES DEUX THÈMES, ET CE N'EST PAS UN GOÛT.
 
    La barre du haut est un `Topbar` et le sommaire un `Sidebar` : deux
-   composants de `src/magic/**`, dont les feuilles posent tous les deux
-   `@apply text-white` sur leur élément racine (`Sidebar.module.scss:7`,
-   `Topbar.module.scss:7`). Le sol clair de la vitrine est BLANC
+   composants de `src/opale/**`. Leurs feuilles posaient toutes deux une encre
+   BLANCHE en dur sur leur élément racine ; réécrites par Opale, elles n'en
+   imposent plus aucune et héritent. La règle ci-dessous reste néanmoins utile —
+   elle pose l'encre de la vitrine plutôt que de compter sur l'héritage d'un
+   composant tiers. Le sol clair de la vitrine est BLANC
    (`--doc-ground`), donc du blanc sur du blanc : 1,00:1, invisible. Et le
-   matériau lui-même disparaît avec l'encre — `.glassOverlay` peint du blanc à
-   0,10 et `.glassSpecular` des reflets blancs à 0,25 : posé sur du blanc, le
+   matériau lui-même disparaît avec l'encre — la couche de lavis peint du blanc
+   à 0,10 et le filet spéculaire des reflets blancs à 0,25 : posé sur du blanc, le
    verre EST le pixel du blanc (mesuré ailleurs dans cette feuille : ΔE OKLab
    0,00 contre le sol).
 
@@ -278,7 +280,7 @@ body {
 
   /* L'arrondi demandé. Le conteneur porte déjà 24 px de coussin, donc le plan
      flotte et ses angles se lisent. */
-  --lg-radius: 22px;
+  --opale-glass-radius: 22px;
 }
 
 /* LA SURFACE VISIBLE DE LA COQUILLE. `background` sur l'enveloppe la place
@@ -292,12 +294,15 @@ body {
   border: 1px solid var(--doc-shell-edge);
 }
 
-/* LES DEUX COMPOSANTS POSENT `text-white`, ET IL FAUT LE REPRENDRE.
-   `Sidebar.module.scss:7` et `Topbar.module.scss:7` déclarent tous deux
-   `@apply text-white`. Sur la surface blanche, ce blanc mesure **1,00:1** :
-   invisible. Le sélecteur pèse (0,2,0) contre le (0,1,0) du module, donc il
-   gagne quel que soit l'ordre d'émission des feuilles — dépendre de l'ordre
-   est exactement ce qui a fait échouer le pli du sommaire. */
+/* L'ENCRE EST POSÉE ICI, ET CE N'EST PLUS UN RATTRAPAGE.
+   Les deux composants déclaraient une encre blanche en dur : sur la surface
+   blanche de la vitrine, elle mesurait **1,00:1** — invisible. Réécrits par
+   Opale, ils n'imposent plus de couleur et héritent de leur hôte. Cette règle
+   n'est donc plus une contre-mesure mais la DÉCLARATION de l'encre de la
+   coquille, ce qu'elle aurait toujours dû être. Le poids (0,2,0) est conservé :
+   il rend le résultat indépendant de l'ordre d'émission des feuilles, et
+   dépendre de cet ordre est exactement ce qui a fait échouer le pli du
+   sommaire. */
 .tc-doc-topbar .tc-doc-topbar__bar,
 .tc-doc-nav .tc-doc-nav__panel {
   color: var(--text-body); /* 8,12:1 */
@@ -338,16 +343,15 @@ body {
 
 .tc-doc code {
   font-family: var(--font-mono);
-  font-size: 0.9em;
+  /* `0.9em` se compose avec son parent : sous une légende de 12 px, le code
+     tombait à 10,8 px. Le plancher de lecture est `--text-xs`. */
+  font-size: max(0.9em, var(--text-xs));
 }
 
-/* --- Lien d'évitement ------------------------------------------------------ */
-
 /* --- L'ÉCHELLE DE PROFONDEUR DE LA VITRINE, ÉCRITE UNE FOIS ---------------
-   Quatre calques se disputent le même contexte d'empilement — la racine —, et
+   Trois calques se disputent le même contexte d'empilement — la racine —, et
    l'ordre entre eux n'est PAS arbitraire :
 
-     3  le lien d'évitement       au-dessus de tout, c'est sa raison d'être
      2  la barre du haut          et, dans son contexte, le panneau de recherche
      1  la pastille de version    au-dessus des entrées qui défilent sous elle
      -  le contenu                `z-index: auto`
@@ -362,35 +366,6 @@ body {
    Le panneau garde `z-index: 2` DANS le contexte de la barre : la barre étant
    elle-même un contexte d'empilement (elle a un `z-index` numérique), ce 2 ne
    se compare qu'à ses frères, pas à l'échelle ci-dessus. */
-
-.tc-doc-skip {
-  position: absolute;
-  inset-block-start: var(--space-2);
-  inset-inline-start: var(--space-2);
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  min-block-size: var(--target-min);
-  padding-inline: var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--text-on-accent);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
-  transform: translateY(calc(-1 * (var(--space-8) + var(--space-4))));
-  transition: transform var(--motion-move) var(--motion-ease);
-}
-
-.tc-doc-skip:focus-visible {
-  transform: translateY(0);
-  /* Même correction que le bloc de focus des composants : l'outline porte
-     l'anneau EXTÉRIEUR, sans quoi il repeint la bande 2-4 px. */
-  outline: 3px solid var(--focus-outer);
-  outline-offset: 2px;
-  box-shadow:
-    0 0 0 2px var(--focus-inner),
-    0 0 0 5px var(--focus-outer);
-}
 
 /* --- Barre du haut ----------------------------------------------------------
    Une barre fine et collante, sur toute la largeur : l'identité du paquet à
@@ -452,7 +427,7 @@ body {
 
      C'est accepté plutôt que corrigé, pour une raison qui se vérifie : le lien
      GARDE SON NOM ACCESSIBLE. Le texte est clippé par `overflow: hidden`, pas
-     retiré du DOM, donc le lien s'annonce toujours « @thomascaron/opale, lien » et
+     retiré du DOM, donc le lien s'annonce toujours « @thomascaron/opale-ui, lien » et
      reste une cible de 44 px vers l'accueil. Ce qui se perd est la lecture du
      nom à l'œil sur un téléphone — le motif « logo seul en étroit », qui est
      celui de tout le monde, et non une dégradation silencieuse. */
@@ -1658,7 +1633,7 @@ body {
    de `Glass` est émise après celle des composants : cette déclaration battait
    donc `.collapsed { width: 88px }` que `Sidebar` pose lui-même sur
    l'enveloppe par `rootClassName`. Mesuré, replié, l'enveloppe portait bien
-   `opale-magic-collapsed-YDT-N` et sortait quand même à 260 px. L'écart
+   `opale-mod-collapsed-YDT-N` et sortait quand même à 260 px. L'écart
    désactivait en silence les classes de largeur de TOUT composant — chez un
    consommateur aussi, pas seulement ici.
 
@@ -1666,13 +1641,15 @@ body {
    VEUT. Le sélecteur exclut l'état replié, si bien que la largeur du composant
    reprend la main dès que le rail se plie : le pli est celui de la librairie.
 
-   `[class*='glassContainer']` VISE UNE CLASSE HACHÉE, et c'est le seul crochet
-   disponible — le nom émis est `opale-magic-glassContainer-<hash>`, dont le
-   préfixe est fixé par `generateScopedName` dans les deux configs Vite. Il
-   casserait si ce gabarit changeait ; c'est le prix d'un composant qui n'expose
-   pas sa largeur. */
-.tc-doc-topbar > [class*='glassContainer'],
-.tc-doc-nav > [class*='glassContainer'] {
+   `[data-opale-glass]` EST UN CONTRAT, ET CE N'EST PLUS UNE DEVINETTE. Cette
+   règle visait `[class*='glassContainer']` : une classe hachée à la
+   compilation, qu'on attrapait par le préfixe de son gabarit. Elle a cassé net
+   le jour où le matériau a été réécrit et où la couche a changé de nom — et
+   elle l'a fait EN SILENCE, un sélecteur sans correspondance ne rougissant
+   nulle part. L'attribut, lui, est posé exprès pour l'hôte et documenté comme
+   tel dans `Glass.tsx`. */
+.tc-doc-topbar > [data-opale-glass],
+.tc-doc-nav > [data-opale-glass] {
   inline-size: 100%;
 }
 
@@ -1931,7 +1908,7 @@ body {
       padding var(--motion-move) var(--motion-ease);
   }
 
-  .tc-doc-nav > [class*='glassContainer'] {
+  .tc-doc-nav > [data-opale-glass] {
     inline-size: 100%;
   }
 
@@ -2063,7 +2040,7 @@ body {
     border-block-end: 0;
   }
 
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [class*='glassContainer'] {
+  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
     inline-size: 100%;
   }
 
@@ -2101,7 +2078,7 @@ body {
     flex: 0 0 calc(100% - 3rem - var(--space-2) - var(--space-4));
   }
 
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [class*='glassContainer'] {
+  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
     overflow: visible;
   }
 
@@ -2112,14 +2089,14 @@ body {
   /* En mode fermé, les couches du verre s'arrêtent au bouton : aucune petite
      plaque ne reste autour de lui. */
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassFilter'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='refraction'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassOverlay'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='tint'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassSpecular'] {
+    > [data-opale-glass]
+    > [data-opale-glass-layer='specular'] {
     display: none;
   }
 
@@ -2141,7 +2118,7 @@ body {
   }
 }
 
-/* --- Démonstration Liquid Glass -------------------------------------------
+/* --- Démonstration du verre liquide --------------------------------------
    Cette couche documente la recette globale de `Glass` sur la scène paysage :
    transparence basse, relief de bulle, filet spéculaire et filtre de
    déplacement doux. Les composants de la librairie l'emploient désormais
@@ -2155,36 +2132,131 @@ body {
   pointer-events: none;
 }
 
-.tc-doc-liquid-modal > [class*='glassFilter'] {
+.tc-doc-liquid-modal > [data-opale-glass-layer='refraction'] {
   backdrop-filter: blur(0.75px) saturate(1.08);
   -webkit-backdrop-filter: blur(0.75px) saturate(1.08);
   filter: url('#tc-doc-liquid-modal-dist');
   transform: scale(1.018);
 }
 
-.tc-doc-liquid-modal > [class*='glassOverlay'] {
+.tc-doc-liquid-modal > [data-opale-glass-layer='tint'] {
   overflow: hidden;
   background:
     radial-gradient(88% 125% at 8% 0%, rgba(255, 255, 255, 0.2), transparent 52%),
     radial-gradient(80% 120% at 100% 100%, rgba(5, 35, 48, 0.16), transparent 58%),
-    var(--lg-bg-color);
+    var(--opale-glass-tint);
 }
 
 /* Le relief reste diffus : les gradients donnent le bombé sans dessiner
    d'arc circulaire. Le seul contour visible vient du calque spéculaire natif
    de `Glass`, afin que la modale et le bouton n'aient qu'une bordure. */
 
-.tc-doc-liquid-modal > [class*='glassContent'].tc-doc-liquid-action-button:hover,
-.tc-doc-liquid-modal > [class*='glassContent'].tc-doc-squire-circle__button:hover {
+.tc-doc-liquid-modal > [data-opale-glass-layer='content'].tc-doc-liquid-action-button:hover,
+.tc-doc-liquid-modal > [data-opale-glass-layer='content'].tc-doc-squire-circle__button:hover {
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* LE BOUTON DE DÉMONSTRATION AVAIT PERDU SON ENCRE, et c'est une régression de
+   la réécriture du matériau : il était un composant tiers qui peignait son
+   libellé en blanc, il est devenu un `<Glass as="button">` nu, donc il a hérité
+   du noir par défaut du navigateur. Mesuré sur le pire pixel de la scène
+   voilée : **3,78:1** — sous le seuil. Le blanc y tient 5,56:1.
+
+   IL AVAIT AUSSI PERDU SA TAILLE, et ce second oubli se voyait bien plus.
+
+   CE QUI S'EST PASSÉ. Le bouton portait les classes du composant tiers —
+   `btn medium` — qui lui donnaient son coussin et son échelle. Elles sont
+   parties avec la librairie ; le `<Glass as="button">` qui l'a remplacé s'est
+   retrouvé avec le `padding: 1px 6px` du navigateur. Mesuré, avant et après :
+   **133 × 52 → 88 × 28**, et `700 18px/28px → 16px hérité`. Le pavé de verre
+   était devenu une puce.
+
+   ET CELA DÉPLAÇAIT LE SQUIRCLE. Les trois cellules de la scène se répartissent
+   par `space-between` : en perdant quarante-cinq pixels de largeur, le bouton
+   changeait le retour à la ligne, et la goutte passait du plan d'eau — où son
+   verre se lit — au ciel, où il ne réfracte plus grand-chose. Rendre au bouton
+   ses dimensions remet la scène dans son ordre.
+
+   LA SPÉCIFICITÉ EST LE PIÈGE ICI, et c'est pour cela que le sélecteur porte
+   aussi l'attribut de couche. `Glass.module.css` déclare
+   `.content:where(button) { font: inherit }` — `:where()` ne pèse rien, donc
+   cette règle et une simple classe sont à égalité, et c'est l'ordre des
+   feuilles dans le paquet qui tranche. Il tranchait contre celle-ci : la
+   déclaration `font` écrite plus haut n'a jamais été appliquée. */
+/* IL N'AVAIT PAS NON PLUS LA FORME D'UN BOUTON D'OPALE, et la page est
+   précisément celle qui documente le matériau : son bouton de démonstration
+   doit être le bouton de la librairie.
+
+   CE QUI LES SÉPARAIT, mesuré au navigateur sur `Opale.Button liquidGlass` :
+   la librairie découpe ses QUATRE couches au squircle
+   (`clip-path: var(--opale-squircle-clip)`) et donne 0,9375 rem de rayon à
+   l'enveloppe. Le bouton de la page n'avait aucun découpage, 12 px de rayon
+   sur son contenu et 22 px sur son enveloppe — un rectangle arrondi ordinaire
+   là où la librairie dessine un carré-cercle.
+
+   LA HAUTEUR SUIT LA FORME, ET CE N'EST PAS UN CAPRICE. Le coin du squircle
+   est plafonné à `min(1.375rem, 50%)`, soit 22 px : à 44 px de haut — la
+   hauteur du bouton d'Opale — ces 22 px valent exactement la moitié, et le
+   coin se referme en demi-cercle ; à 52 px ils n'en valent plus que 42 %, et
+   la même règle dessine une forme visiblement moins ronde. Rendre la
+   silhouette identique demandait donc de rendre aussi la hauteur. La largeur,
+   elle, reste généreuse : c'est une démonstration, on la regarde.
+
+   LE DÉCOUPAGE EST SUR LES COUCHES, PAS SUR L'ENVELOPPE, exactement comme
+   `.opale-button--glass-root` : un `clip-path` rogne l'`outline` et la
+   `box-shadow` de son propre élément, et c'est l'enveloppe qui porte le halo
+   de focus du matériau. La clipper effacerait l'indicateur de focus. */
+.tc-doc-liquid-action-button__root {
+  --opale-glass-radius: 0.9375rem;
+}
+
+.tc-doc-liquid-action-button__root > * {
+  clip-path: var(--opale-squircle-clip);
+}
+
+[data-opale-glass-layer='content'].tc-doc-liquid-action-button {
+  display: grid;
+  min-block-size: var(--target-min);
+  padding: 0.375rem 1.5rem;
+
+  /* LE RAYON EST REMIS À ZÉRO : la silhouette vient du découpage. En garder un
+     laisserait croire que les deux dessinent le même bord, alors que seul le
+     second est visible. */
+  border-radius: 0;
+  place-items: center;
+  color: var(--tc-white);
+  font: 700 1.125rem/1.75rem var(--font-sans);
+}
+
+/* LA GOUTTE N'ÉTAIT PAS CENTRÉE, ET ELLE NE POUVAIT PAS L'ÊTRE.
+
+   Le bouton est `inline-block` avec `text-align: center` — ce qui centre du
+   TEXTE. Son enfant est un `<svg>` en `display: block`, c'est-à-dire une boîte
+   de bloc, que `text-align` ne déplace pas d'un pixel. Mesuré : 28 px d'icône
+   dans 44 px de bouton, marge gauche **−1 px** et marge droite **17 px** — la
+   goutte était collée au bord, et même un pixel en dehors, à cause d'un
+   `translateX(-1px)` posé pour compenser autre chose. Une grille centre les
+   deux axes d'un seul coup, et le décalage manuel disparaît avec sa cause. */
 .tc-doc-squire-circle__button {
+  display: grid;
   inline-size: 100%;
   block-size: 100%;
   padding: 0;
   border-radius: 0.75rem;
   background: transparent;
+  place-items: center;
+}
+
+/* LE SQUIRE-CIRCLE EST ENFIN UN SQUIRCLE. Il dessinait un rectangle à coins
+   arrondis de 12 px, seul des trois objets de la scène à ne pas porter la
+   silhouette d'Opale. Même recette que le bouton « Continuer » et que
+   `Opale.Button` sous verre : le découpage sur chacune des couches, jamais sur
+   l'enveloppe, dont le halo de focus serait rogné. À 44 px de côté, le coin
+   plafonné à `min(1.375rem, 50%)` vaut la moitié exacte : c'est la
+   superellipse pleine, la forme entre carré et cercle qui donne son nom à la
+   cellule. */
+.tc-doc-squire-circle__root > * {
+  clip-path: var(--opale-squircle-clip);
 }
 
 /* Le contrôle reprend la même empreinte que la bascule de thème. Les trois
@@ -2201,20 +2273,19 @@ body {
   inline-size: 1.75rem;
   block-size: 1.75rem;
   overflow: visible;
-  transform: translateX(-1px);
 }
 
-/* La scène Liquid Glass expose trois variantes : elles respirent sur toute la
+/* La scène du verre liquide expose trois variantes : elles respirent sur toute la
    largeur disponible, et chaque nom reste centré sous l’objet qu’il décrit. */
-.tc-doc-magicstage:has(.tc-doc-squire-circle__root) {
+.tc-doc-stage:has(.tc-doc-squire-circle__root) {
   justify-content: space-between;
 }
 
-.tc-doc-magicstage:has(.tc-doc-squire-circle__root) .tc-doc-magicstage__cell {
+.tc-doc-stage:has(.tc-doc-squire-circle__root) .tc-doc-stage__cell {
   align-items: center;
 }
 
-.tc-doc-magicstage:has(.tc-doc-squire-circle__root) .tc-doc-magicstage__label {
+.tc-doc-stage:has(.tc-doc-squire-circle__root) .tc-doc-stage__label {
   inline-size: 100%;
   text-align: center;
 }
@@ -2395,10 +2466,171 @@ body {
   font-size: var(--text-sm);
 }
 
-/* Les pages de composants vont droit à l'essentiel : installation, import et
-   démonstration. Les détails d'API, les chapeaux et les commentaires restent
-   dans le source, mais ne prennent plus de place dans la vitrine. */
-.tc-doc-main--components .tc-doc-prose,
+/* --- Notes de versions -----------------------------------------------------
+   La page garde deux registres visibles : le repère de la version courante,
+   puis une pile de versions. Les archives sont des applications autonomes,
+   pas de simples ancres vers du texte : le bouton principal reste donc une
+   vraie cible, tandis que le lien Git donne la provenance immuable.
+   -------------------------------------------------------------------------- */
+
+.tc-doc-release-callout {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-5);
+  border: 1px solid var(--accent-secondary);
+  border-inline-start-width: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--panel-surface);
+}
+
+.tc-doc-release-callout__eyebrow {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tc-doc-release-callout__version {
+  margin: var(--space-1) 0 0;
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.tc-doc-release-callout__text {
+  margin: 0;
+  max-inline-size: var(--measure);
+  color: var(--text-body);
+  font-size: var(--text-sm);
+}
+
+.tc-doc-release-list {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.tc-doc-release {
+  padding: var(--space-5);
+  border: 1px solid var(--doc-card-edge);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.tc-doc-release--current {
+  border-color: var(--accent);
+}
+
+.tc-doc-release__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--rule);
+}
+
+.tc-doc-release__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tc-doc-release__version {
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--panel-surface);
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.tc-doc-release__status {
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--accent-quiet);
+  color: var(--text-accent);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.tc-doc-release__status--breaking {
+  background: var(--panel-surface);
+  color: var(--text-muted);
+}
+
+.tc-doc-release__date {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.tc-doc-release__title {
+  margin: var(--space-4) 0 0;
+  max-inline-size: var(--measure);
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-heading);
+}
+
+.tc-doc-release__changes {
+  margin-block-start: var(--space-4);
+}
+
+.tc-doc-release__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-block-start: var(--space-5);
+}
+
+.tc-doc-release__action {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-min);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--motion-color) var(--motion-ease),
+    border-color var(--motion-color) var(--motion-ease);
+}
+
+.tc-doc-release__action:hover {
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+}
+
+.tc-doc-release__source {
+  font-size: var(--text-sm);
+}
+
+.tc-doc-release-footnote {
+  margin: 0;
+}
+
+/* Les pages de composants vont droit à l'essentiel ; hors du gabarit
+   (`doc-v3.css`), titres et notes de spécimen restent discrets. La prose
+   n'est plus masquée : ce qui en reste est un contrat ou une attribution de
+   licence, et doit se lire. */
 .tc-doc-main--components .tc-doc-specimen__note,
 .tc-doc-main--components .tc-doc-specimen__title,
 .tc-doc-main--components .tc-doc-props {
@@ -2955,7 +3187,7 @@ body {
    coûtaient deux choses : une boîte en ligne atomique, qui ne se coupe plus en
    fin de ligne, et un interligne irrégulier dans chaque paragraphe qui héberge
    un lien. Le plancher reste là où il a un sens — `.tc-doc-nav__link`,
-   `.tc-doc-topbar__brand`, `.tc-doc-themetoggle`, `.tc-doc-skip` — qui sont
+   `.tc-doc-topbar__brand`, `.tc-doc-themetoggle` — qui sont
    des contrôles isolés, pas des mots dans une phrase. */
 /* LES LIENS DE PROSE NE RÉPONDAIENT PAS AU POINTEUR, et c'était un manque et
    non un choix : l'élément interactif le plus fréquent du site ne déclarait
@@ -3087,6 +3319,9 @@ body {
 }
 
 .tc-doc-checklist li {
+  /* La mesure se reprend sur l'élément : le `ch` de la liste est celui de son
+     corps de 16 px, et les entrées en 14 px y logeaient 95 caractères. */
+  max-inline-size: var(--measure);
   padding-inline-start: var(--space-3);
   font-size: var(--text-sm);
 }
@@ -3134,31 +3369,96 @@ body {
    pixels et les six se répartissent. Cette scène-ci, plus haute, est celle qui
    ressemble à ce que verra un consommateur. */
 
-/* --- Scène de /magic ---------------------------------------------------------
+/* --- Scène des composants en verre -------------------------------------------
    La plaque de spécimen d'Opale est un aplat CLAIR (`--surface`, rgb(235,244,246)
    en thème clair, sur un sol `--doc-ground` blanc). Les quatorze composants de
-   `src/magic/**` écrivent leur libellé en `#ffffff` EN DUR : posés sur cette
+   `src/opale/**` écrivent leur libellé en `#ffffff` EN DUR : posés sur cette
    plaque, ils y disparaissent. Mesuré : blanc sur `--surface` = 1,12:1, blanc
-   sur le sol blanc de la vitrine = 1,00:1. Chaque spécimen de `/magic` porte
+   sur le sol blanc de la vitrine = 1,00:1. Chaque spécimen de ces composants porte
    donc sa propre scène sombre, et ce n'est pas une préférence de mise en scène :
    c'est la condition sans laquelle le composant ne se voit pas.
 
    LE FOND N'EST PAS ICI, ET C'EST DÉLIBÉRÉ. Ces règles ne portent que la mise
    en page ; le dégradé est un `style` en ligne posé par
-   `showcase/pages/magic/stage.tsx`, avec ses trois hexadécimaux et ses trois
+   `showcase/pages/composants/stage.tsx`, avec ses trois hexadécimaux et ses trois
    ratios mesurés en commentaire. C'est la MÊME dérogation que les plaques de la
    page palette, pour la même raison : une scène qui documente le thème d'un
    autre projet ne suit pas celui du lecteur, et `doc.css` garde sa règle
-   « aucune couleur littérale ». `/magic` est par ailleurs hors du contrat de
+   « aucune couleur littérale ». Ces composants sont par ailleurs hors du contrat de
    couleur d'Opale et n'emploie aucun jeton `--tc-*` — peindre sa scène avec un
    jeton publié affirmerait le contraire.
 
    `--tc-white` sur les LÉGENDES est l'exception qui confirme la frontière : ce
    texte-là est de la prose de vitrine posée sur la scène, pas du composant
-   vendoré. C'est Opale qui l'écrit, donc c'est un jeton d'Opale qui le peint.
+   d’origine. C'est Opale qui l'écrit, donc c'est un jeton d'Opale qui le peint.
    -------------------------------------------------------------------------- */
 
-.tc-doc-magicstage {
+/* L'OMBRE PORTÉE N'EST PAS UN EFFET, C'EST CE QUI REND LE TEXTE LISIBLE.
+
+   La scène était un dégradé sombre, dont le point le plus clair tenait
+   13,22:1 avec le blanc : une encre blanche y était sûre partout, sans
+   artifice. Elle est devenue une PHOTOGRAPHIE — le matériau a besoin d'un
+   arrière-plan détaillé pour réfracter quelque chose —, et un cliché n'a pas
+   de plancher de contraste : le ciel et les reflets de l'eau y sont presque
+   blancs.
+
+   Un contraste ne se calcule pas contre une image, donc on ne peut pas se
+   contenter d'en mesurer un et de le déclarer. L'ombre porte le texte sur
+   TOUTES les zones du cliché, y compris les plus claires, en ajoutant un bord
+   sombre sous chaque glyphe. C'est la même technique que sous les
+   démonstrations de verre du catalogue, et pour la même raison. */
+/* =============================================================================
+   LA SCÈNE UNIE, POUR L'ÉTAT ORIGINAL.
+
+   Les six composants à dossier ne savaient rendre que du verre : leur page les
+   montrait donc toujours sur la photographie, qui est le seul terrain où un
+   matériau réfractant se voit. Maintenant qu'ils ont aussi leur version
+   pleine, il fallait un terrain pour elle — et ce n'est pas la photo : une
+   surface unie posée sur un paysage n'apprend rien, elle le cache.
+
+   MÊME BOÎTE QUE LA SCÈNE DE VERRE, à dessein : on compare deux matières, pas
+   deux mises en page. Seuls le fond et l'encre changent.
+   ========================================================================== */
+/* La rangée de déclencheurs d'une scène qui n'en pose plus : la file de
+   notifications reçoit la sienne du commutateur de matière. */
+.tc-doc-opale-scenerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.tc-doc-opale-plainstage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--opale-surface-sunken);
+  color: var(--opale-text);
+}
+
+.tc-doc-opale-plainstage--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* LE LIBELLÉ D'UNE FIGURE SUIT LA SCÈNE QUI LE PORTE. Écrit pour la
+   photographie, il est clair et ombré ; sur la surface unie, il doit reprendre
+   l'encre de la page, sans quoi il devient blanc sur gris pâle. */
+.tc-doc-opale-plainstage .tc-doc-stage__label,
+.tc-doc-opale-plainstage .tc-doc-stage__cell {
+  color: var(--opale-text);
+  text-shadow: none;
+}
+
+.tc-doc-opale-plainstage--tall {
+  min-block-size: 22rem;
+  align-items: flex-start;
+}
+
+.tc-doc-stage {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -3166,11 +3466,37 @@ body {
   padding: var(--space-6);
   border-radius: var(--radius-md);
   color: var(--tc-white);
+  text-shadow: 0 1px 3px rgba(7, 28, 43, 0.55);
+}
+
+/* LA PASTILLE D'OPALE NE SAIT PAS QU'ELLE EST SUR UNE PHOTO, ET C'EST À LA
+   SCÈNE DE LE LUI DIRE.
+
+   `.opale-badge` peint son libellé en `--opale-primary` sur un lavis du même
+   bleu à 13 % : un couple pensé pour la carte blanche de la vitrine, où il est
+   juste. Posé sur le cliché voilé, il ne l'est plus du tout — mesuré, le saphir
+   `#315c9e` contre le pixel le plus clair de la scène donne **1,20:1**. Le
+   libellé est illisible, et rien ne le signalait : la pastille est correcte,
+   c'est son contexte qui a changé.
+
+   Le composant n'a aucun moyen de savoir sur quoi on le pose. C'est donc la
+   scène qui redéclare l'encre de ce qu'elle accueille — et elle épaissit le
+   lavis, sans quoi le blanc se retrouverait sur la photo plutôt que sur la
+   pastille. Mesuré après correction : blanc sur le lavis épaissi, 5,1:1. */
+.tc-doc-stage .opale-badge {
+  background: color-mix(in srgb, var(--opale-primary) 62%, transparent);
+  color: var(--tc-white);
+}
+.tc-doc-stage .opale-badge--accent {
+  background: color-mix(in srgb, var(--opale-accent-dark) 90%, transparent);
+}
+.tc-doc-stage .opale-badge--danger {
+  background: color-mix(in srgb, var(--opale-danger) 72%, transparent);
 }
 
 /* Les scènes d'un composant qui prend toute la largeur — `Topbar`, `Tabs`,
    `Modal` — s'empilent au lieu de s'aligner. */
-.tc-doc-magicstage--stack {
+.tc-doc-stage--stack {
   flex-direction: column;
   align-items: stretch;
 }
@@ -3178,12 +3504,12 @@ body {
 /* `Sidebar` et `Modal` ont besoin de hauteur pour se juger : une barre latérale
    haute de son seul contenu ne ressemble pas à une barre latérale, et un modal
    se peint par-dessus la page entière. 256 px = quatre pas de `--space-8`. */
-.tc-doc-magicstage--tall {
+.tc-doc-stage--tall {
   min-block-size: calc(var(--space-8) * 4);
 }
 
 /* La rangée d'une scène : plusieurs variantes d'affilée, chacune légendée. */
-.tc-doc-magicstage__cell {
+.tc-doc-stage__cell {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -3193,7 +3519,7 @@ body {
 
 /* La légende d'une figure de scène. En mono et en `--text-xs` comme les
    légendes de `.tc-doc-states__label`, mais en blanc : le fond est sombre. */
-.tc-doc-magicstage__label {
+.tc-doc-stage__label {
   color: var(--tc-white);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -3211,9 +3537,9 @@ body {
 .tc-doc-nav__glass {
   --doc-shell-ground: var(--surface);
   --doc-shell-edge: var(--rule);
-  --lg-bg-color: var(--panel-surface);
-  --lg-highlight: var(--border-subtle);
-  --lg-text: var(--text-body);
+  --opale-glass-tint: var(--panel-surface);
+  --opale-glass-edge: var(--border-subtle);
+  --opale-glass-ink: var(--text-body);
   background: var(--doc-shell-ground);
   border-color: var(--doc-shell-edge);
 }
@@ -3223,9 +3549,9 @@ body {
      laisse le décor vivre derrière lui au lieu de poser un aplat opaque. */
   --doc-shell-ground: transparent;
   --doc-shell-edge: transparent;
-  --lg-bg-color: color-mix(in srgb, var(--tc-white) 6%, transparent);
-  --lg-highlight: color-mix(in srgb, var(--tc-white) 32%, transparent);
-  --lg-radius: 0;
+  --opale-glass-tint: color-mix(in srgb, var(--tc-white) 6%, transparent);
+  --opale-glass-edge: color-mix(in srgb, var(--tc-white) 32%, transparent);
+  --opale-glass-radius: 0;
   background: transparent;
   border-radius: 0;
   border-color: transparent;
@@ -3235,9 +3561,9 @@ body {
 .tc-doc-nav__glass {
   --doc-shell-ground: transparent;
   --doc-shell-edge: transparent;
-  --lg-bg-color: color-mix(in srgb, var(--tc-white) 6%, transparent);
-  --lg-highlight: color-mix(in srgb, var(--tc-white) 32%, transparent);
-  --lg-radius: var(--radius-lg);
+  --opale-glass-tint: color-mix(in srgb, var(--tc-white) 6%, transparent);
+  --opale-glass-edge: color-mix(in srgb, var(--tc-white) 32%, transparent);
+  --opale-glass-radius: var(--radius-lg);
   background: transparent;
   border-color: transparent;
 }
@@ -3430,28 +3756,28 @@ body {
     transition: padding-inline var(--motion-move) var(--motion-ease);
   }
 
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [class*='glassContainer'] {
+  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
     inline-size: 100%;
     padding-block: var(--space-2);
     background: transparent;
     border: 0;
     border-radius: 0;
-    --lg-bg-color: transparent;
-    --lg-highlight: transparent;
+    --opale-glass-tint: transparent;
+    --opale-glass-edge: transparent;
   }
 
   /* En mode plié, le verre appartient au contrôle et non à un rail qui
      l'entoure. Les couches de l'enveloppe sont désactivées pour qu'il ne
      reste aucune mini-modale visible autour de la flèche. */
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassFilter'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='refraction'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassOverlay'],
+    > [data-opale-glass]
+    > [data-opale-glass-layer='tint'],
   .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [class*='glassContainer']
-    > [class*='glassSpecular'] {
+    > [data-opale-glass]
+    > [data-opale-glass-layer='specular'] {
     display: none;
   }
 
@@ -3586,5 +3912,14 @@ body {
   .tc-doc-nav:has(.tc-doc-nav__all[open]) .tc-doc-nav__head {
     align-items: flex-start;
     padding-block-start: 0;
+  }
+
+  .tc-doc-release-callout {
+    grid-template-columns: 1fr;
+  }
+
+  .tc-doc-release__header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

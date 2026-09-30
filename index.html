@@ -16,23 +16,32 @@
       La famille violette de la charte est de surcroît « réservée à la pastille
       "à venir", et à rien d'autre ».
 
-      Le dessin actuel est une goutte, parce que c'est ce que la librairie est
-      devenue en 2.0 : du verre liquide. Ses deux couleurs sont des jetons, et
-      chacune est mesurée :
+      Le dessin est une goutte de verre, parce que c'est ce que la librairie est
+      devenue en 2.0 : du verre liquide. Une goutte translucide, cerclée de
+      clair, avec un reflet en croissant. Ses quatre couleurs sont des jetons,
+      et chacune est mesurée :
 
-        fond      `--tc-teal-515`    #087487
-        goutte    `--tc-mist-936`    #deedf0   ->  4,53:1 sur le fond
+        fond      `--opale-primary-dark`   #23457a
+        goutte    `--opale-primary-light`  #5f87c4  ->  2,61:1 sur le fond
+        contour   `--tc-mist-936`          #deedf0  ->  7,93:1 sur le fond
+        reflet    `--opale-surface-base`   #fbfaf9  ->  3,50:1 sur la goutte
 
-      LE FOND EST LE SEUL PRIMITIF DE LA CHARTE QUI NE BASCULE PAS. `roles.css`
-      sert `--tc-teal-515` pour `--accent` dans ses TROIS blocs de thème
-      (lignes 146, 291 et 349). Une tuile pleine dans cette teinte se lit donc
-      à l'identique sur un onglet clair et sur un onglet sombre, sans requête de
-      préférence — qu'un favicon ne pourrait de toute façon pas honorer partout.
+      LA SILHOUETTE TIENT PAR LE CONTOUR, PAS PAR LA GOUTTE. La goutte à 2,61:1
+      est voulue : c'est ce qui la fait lire comme translucide. C'est le contour
+      à 7,93:1 qui la découpe sur la tuile, et lui seul qui reste net à 16 px ;
+      le reflet, lui, s'efface sous 20 px, sans que la forme en souffre.
+
+      LE BLEU ET NON PLUS LE TEAL. La tuile d'avant, `--tc-teal-515` (#087487),
+      contredisait tout le reste de l'en-tête — le « UI » du nom, le tag de
+      version, les boutons — qui parle `--opale-primary`. Ce sont les valeurs du
+      thème CLAIR : ces jetons basculent en sombre, mais un favicon ne suit pas
+      le thème de la page, et une tuile pleine porte son propre contraste — elle
+      se lit donc à l'identique sur un onglet clair et sur un onglet sombre.
       DEUX FICHIERS ET NON UN, parce qu'iOS n'accepte pas le SVG pour une icône
       d'écran d'accueil. Le PNG est donc à FOND PERDU, sans coins arrondis :
       c'est iOS qui applique son propre masque, et une tuile déjà arrondie s'y
       verrait rognée deux fois. Vérifié en décodant le PNG produit — (0,0) et
-      (179,179) valent bien #087487.
+      (179,179) valent bien #23457a.
 
       Aucun nom de jeton n'est cité DANS le SVG, et ce n'est pas un oubli :
       deux tirets consécutifs sont illégaux dans un commentaire XML. Le fichier
@@ -48,7 +57,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Documentation de @thomascaron/opale 2.0 — la charte mesurée (palette teal et cuivre, échelles, contrat de couleur exécutable) et une page par composant verre liquide, vendorés de react-magic-ui sous licence MIT."
+      content="Documentation de @thomascaron/opale 3.0 — design system inspiré de OpaleUI, trois thèmes et composants liquid glass activables à la carte."
     />
     <!--
       La couleur de la barre d'adresse mobile, et la SEULE copie en dur de
@@ -75,7 +84,7 @@
       la barre d'adresse reste au thème clair en thème sombre, panne muette que
       rien ne signale.
     -->
-    <meta name="theme-color" content="#deedf0" />
+    <meta name="theme-color" content="#f7f4ef" />
     <!--
       Le titre AVANT le premier rendu. La coquille (`doc-shell.tsx`) le réécrit
       en « <titre de la page> — @thomascaron/opale » dès qu'elle connaît la page,
@@ -86,35 +95,18 @@
     -->
     <title>Documentation — @thomascaron/opale</title>
     <!--
-      Le seul script bloquant de la page, et il pose LES DEUX attributs de
-      présentation — le thème et le matériau.
+      Le seul script bloquant de la page : il pose le thème choisi avant la
+      première peinture.
 
       Sans lui pour le THÈME, quelqu'un qui a choisi « sombre » sur un système
       clair voit un flash clair : la feuille de jetons sert
       `prefers-color-scheme` jusqu'à ce que React monte et pose `data-theme`.
 
-      Sans lui pour le MATÉRIAU, le flash est PIRE, et c'est ce qui justifie
-      d'étendre ce script plutôt que d'en ajouter un second. Un changement de
-      matériau n'est pas un échange de couleur sur le sol de la page : c'est
-      l'apparition d'un `backdrop-filter`, d'un ménisque et d'un liseré
-      spéculaire sur TOUTES les surfaces qui flottent au-dessus — barre du haut,
-      sommaire, cartes, planches, spécimens. Le flash ne serait pas une teinte
-      qui bouge, il serait la page entière qui change de nature une fois React
-      monté. Poser l'attribut ici, avant la première peinture, le supprime.
+      Le matériau Liquid Glass n'est pas global : chaque page de composant le
+      déclenche après interaction, sur son propre spécimen.
 
-      UN SEUL SCRIPT, UN SEUL `try`, et c'est voulu : les deux lectures
-      partagent le même mode de défaillance. En navigation privée, la SIMPLE
-      LECTURE du stockage lève — la première lecture emporte donc la seconde, et
-      la page rend son état de base (préférence système pour le thème, aplat
-      pour le matériau), qui est exactement le bon repli.
-
-      `data-material` NE PREND QU'UNE VALEUR, `glass` : l'aplat, c'est l'absence
-      d'attribut, jamais `data-material="flat"`. La feuille n'a aucun sélecteur
-      pour `flat` parce qu'aucune préférence système ne peut imposer le verre —
-      il n'existe pas de `prefers-material` — donc il n'y a rien à contredire.
-      `data-theme`, lui, écrit bien ses deux valeurs, parce que `light` doit
-      pouvoir contredire un OS en sombre. La symétrie apparente des deux
-      attributs s'arrête là, et `use-material.ts` porte le même avertissement.
+      `data-theme` écrit bien ses deux valeurs, parce que `light` doit pouvoir
+      contredire un OS en sombre.
 
       Volontairement synchrone et sans `type="module"` : un module est différé,
       donc il s'exécuterait après la première peinture — c'est-à-dire trop tard
@@ -125,9 +117,6 @@
         var storedTheme = localStorage.getItem('tc-theme');
         if (storedTheme === 'dark' || storedTheme === 'light') {
           document.documentElement.setAttribute('data-theme', storedTheme);
-        }
-        if (localStorage.getItem('tc-material') === 'glass') {
-          document.documentElement.setAttribute('data-material', 'glass');
         }
       } catch (error) {
         /* Stockage refusé : les états de base feront l'affaire. */

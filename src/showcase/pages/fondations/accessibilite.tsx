@@ -1,40 +1,12 @@
-import type { DocPage } from '../../doc-model';
 import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
-/* =============================================================================
-   CE QUE CETTE PAGE A PERDU, ET POURQUOI ELLE LE DIT AU LIEU DE SE TAIRE.
-
-   Elle portait TROIS engagements, chacun démontré sur des composants d'Opale :
-   le double anneau de focus (sur `Button`, `Field`, `Input`), la couleur comme
-   simple renfort (sur les trois tons de `Pill` et les trois variantes de `Tag`,
-   côte à côte en couleur et en niveaux de gris), et la taille de cible. La 2.0
-   ne publie plus un seul de ces composants.
-
-   DEUX DES TROIS TIENNENT ENCORE, PARCE QU'ILS SONT PORTÉS PAR LES JETONS :
-
-   - L'ANNEAU tient, et sa démonstration est même devenue plus juste.
-     `tokens.css` déclare une règle `:focus-visible` universelle — un sélecteur
-     nu, poids (0,1,0) — donc l'anneau ne vient d'aucun composant : il vient de
-     la feuille de jetons, et n'importe quel élément focusable de la page en
-     hérite. Le spécimen emploie donc des éléments NATIFS non habillés. C'est
-     exactement ce que la garantie dit, et la version précédente le cachait
-     derrière trois composants.
-   - LA TAILLE DE CIBLE tient : `--target-min` (44 px) et `--target-button`
-     (48 px) sont des jetons, et le spécimen ne les a jamais démontrés
-     autrement que par deux boîtes mesurées.
-
-   LE TROISIÈME EST PERDU, ET SON SPÉCIMEN A ÉTÉ RETIRÉ. « La couleur n'est
-   qu'un renfort » était une garantie sur des COMPOSANTS : les trois tons de
-   `Pill` mesuraient 1,16:1 l'un contre l'autre en simulation deutéranope, et ce
-   qui les séparait était le glyphe et le libellé. Rien de tel ne survit. Le
-   redémontrer sur les composants vendorés serait un mensonge : leurs six
-   variantes de badge n'ont ni glyphe imposé ni libellé de repli, et aucun de
-   leurs ratios n'a été mesuré. Le spécimen est donc remplacé par le paragraphe
-   qui dit ce qui n'est plus garanti — un état vide honnête, pas une
-   démonstration recyclée.
-   ========================================================================== */
+/* Les garanties d'accessibilité portées par les jetons : l'anneau de focus
+   (règle `:focus-visible` universelle de `tokens.css`, montrée sur des éléments
+   natifs) et la taille de cible (`--target-min`, `--target-button`).
+   « La couleur n'est qu'un renfort » n'est pas garanti par les composants
+   actuels : la page le dit au lieu de le démontrer. */
 
 const FOCUS_RECIPE = `outline: 3px solid var(--focus-outer);
 outline-offset: 2px;
@@ -42,20 +14,11 @@ box-shadow:
   0 0 0 2px var(--focus-inner),
   0 0 0 5px var(--focus-outer);`;
 
-export const accessibilitePage: DocPage = {
-  slug: 'accessibilite',
-  label: 'Accessibilité',
-  group: 'fondations',
-  title: 'Le contrat d’accessibilité',
-  lede: (
-    <>
-      Deux engagements portés par les jetons, vérifiables sur cette page : le focus se voit sur
-      n’importe quel fond, et rien de cliquable ne descend sous la taille du doigt.{' '}
-      <strong>Ce contrat ne couvre pas les quatorze composants publiés</strong> — ils sont vendorés
-      et n’emploient aucun de ces jetons.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `accessibilite.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function AccessibiliteContent() {
+  return (
     <PageBody>
       <Specimen
         title="Le double anneau de focus"
@@ -75,16 +38,16 @@ export const accessibilitePage: DocPage = {
             Un lien vers la palette
           </a>
           {/* `<label for>` explicite, et non un `<label>` enveloppant : c'est
-              la sémantique que la charte demande partout, et la seule qui
-              survive à un champ déplacé dans la mise en page. */}
+            la sémantique que la charte demande partout, et la seule qui
+            survive à un champ déplacé dans la mise en page. */}
           <span>
             <label htmlFor="demo-focus">Un champ&nbsp;</label>
             <input id="demo-focus" type="text" placeholder="Tabulez jusqu’ici" />
           </span>
         </div>
         {/* Même raison que le tableau de la page palette : un bloc de code qui
-            défile doit être atteignable au clavier (WCAG 2.1.1), et la liste
-            blanche par défaut de la règle jsx-a11y ne modélise pas ce cas. */}
+          défile doit être atteignable au clavier (WCAG 2.1.1), et la liste
+          blanche par défaut de la règle jsx-a11y ne modélise pas ce cas. */}
         <pre
           className="tc-doc-code"
           tabIndex={0}
@@ -135,13 +98,13 @@ export const accessibilitePage: DocPage = {
             <em>mouvement</em> n’est pas une demande de moins de <em>retour d’information</em>.
           </li>
           <li>
-            Zéro requête hors origine : pas de police distante, pas de <code>@font-face</code>, pas
-            même un <code>preconnect</code> — y compris dans la feuille des composants, dont l’
-            <code>@import</code> Google Fonts d’origine a été retiré à la reprise du code.
+            Zéro requête de police hors origine : Bricolage Grotesque et Chivo sont servies
+            localement par <code>@font-face</code>, sans <code>preconnect</code> ni
+            <code>@import</code> Google Fonts.
           </li>
           <li>
             Le double anneau de focus s’applique à <strong>tout</strong> élément focusable de la
-            page, composant vendoré compris : il est déclaré sur un sélecteur nu, pas sur une
+            page, composants compris : il est déclaré sur un sélecteur nu, pas sur une
             classe.
           </li>
           <li>
@@ -161,25 +124,22 @@ export const accessibilitePage: DocPage = {
             portait sur les trois tons de <code>Pill</code> et les trois variantes de{' '}
             <code>Tag</code> — indiscernables en simulation deutéranope (1,16:1 l’un contre
             l’autre), donc séparés par un glyphe et un libellé obligatoires. Ces composants ne sont
-            plus publiés, et les six variantes de{' '}
-            <a className="tc-doc-link" href={hrefFor('composants/badge')}>
+            plus publiés, et les trois tons de{' '}
+            {/* `Opale.Badge` expose trois tons — `primary`, `accent`, `danger` —, que
+               seule la teinte distingue. */}
+            <a className="tc-doc-link" href={hrefFor('composants/opale-badge')}>
               Badge
             </a>{' '}
             n’imposent ni glyphe ni libellé de repli.
           </li>
           <li>
-            <strong>Aucun état visuel n’est plus garanti sans JavaScript.</strong> La 1.0 portait
-            survol, appui, focus, erreur et attente en sélecteurs CSS, sur des composants sans état.
-            Les quatorze composants publiés tiennent de l’état React et exigent{' '}
-            <code>&quot;use client&quot;</code>.
+            <strong>Les états visuels demandent JavaScript.</strong> Les composants tiennent de
+            l’état React ; le bundle porte déjà la directive <code>&quot;use client&quot;</code>.
           </li>
           <li>
-            <strong>La sémantique native n’est plus garantie.</strong> La règle était{' '}
-            <code>&lt;button&gt;</code>, <code>&lt;a href&gt;</code>, <code>&lt;label for&gt;</code>{' '}
-            d’abord, ARIA ensuite. Les composants vendorés s’en écartent — la case à cocher est un{' '}
-            <code>&lt;button&gt;</code> sans <code>role</code> ni <code>aria-checked</code>, son
-            libellé est un <code>&lt;span onClick&gt;</code> —, et ces écarts sont documentés page
-            par page au lieu d’être corrigés.
+            <strong>La sémantique native d’abord.</strong> <code>&lt;button&gt;</code>,{' '}
+            <code>&lt;a href&gt;</code>, <code>&lt;label for&gt;</code>, ARIA ensuite : la case à
+            cocher et l’interrupteur sont des <code>&lt;input&gt;</code> natifs.
           </li>
           <li>
             <strong>Aucun ratio de contraste n’est mesuré sur un composant.</strong> Le contrat
@@ -188,5 +148,5 @@ export const accessibilitePage: DocPage = {
         </ul>
       </Specimen>
     </PageBody>
-  ),
-};
+  );
+}

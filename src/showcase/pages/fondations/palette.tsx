@@ -1,36 +1,39 @@
-import type { DocPage } from '../../doc-model';
+import { OPALE_PLATES } from '../../opale-palette-data';
 import { PLATES, SEMANTIC_ROWS } from '../../palette-data';
 import { PageBody } from '../api';
 import { PalettePlate } from './palette-plate';
 
-export const palettePage: DocPage = {
-  slug: 'palette',
-  label: 'La palette',
-  group: 'fondations',
-  title: 'La palette',
-  lede: (
-    <>
-      Deux thèmes, une seule matière : les plaques sont rendues avec leurs hexadécimaux littéraux et
-      ne suivent donc pas le thème de la page. Les jetons translucides affichent leur valeur{' '}
-      <code>rgba()</code> déclarée puis l’aplat qu’elle donne sur son support — c’est cet aplat que
-      la pastille peint.
-    </>
-  ),
-  render: () => (
+/* LE CONTENU DE LA PAGE, chargé à la navigation. Ses métadonnées — titre,
+   chapô, adresse — vivent dans `palette.page.tsx`, que le sommaire lit sans
+   rien charger. */
+export default function PaletteContent() {
+  return (
     <PageBody>
+      {/* Les trois lois nomment les couleurs que la vitrine peint. */}
       <ul className="tc-doc-laws">
         <li className="tc-doc-laws__item tc-doc-laws__item--teal">
-          <strong>Le teal est l’encre des actions.</strong> Boutons, liens, focus, pastilles, états.
+          <strong>Le saphir est l’encre des actions.</strong> Boutons, liens, onglet courant, entrée
+          active du sommaire.
         </li>
         <li className="tc-doc-laws__item tc-doc-laws__item--copper">
-          <strong>Le cuivre est le décor et l’éditorial.</strong> Il ne porte jamais un contrôle.
+          <strong>Le bleu d’acier et l’ambre accompagnent.</strong> Ils décorent et signalent, ils
+          ne portent jamais l’action principale.
         </li>
         <li className="tc-doc-laws__item tc-doc-laws__item--neutral">
-          <strong>Les neutres sont le teal vidé de sa chroma</strong> : la même teinte, sans
-          saturation.
+          <strong>Les neutres sont crème, jamais gris</strong> : le sol, les trois surfaces et les
+          filets partagent la même teinte chaude.
         </li>
       </ul>
 
+      {/* D'abord la palette `--opale-*`, celle que le lecteur a sous les yeux. */}
+      <div className="tc-doc-plates">
+        {OPALE_PLATES.map((plate) => (
+          <PalettePlate plate={plate} key={plate.id} />
+        ))}
+      </div>
+
+      {/* Ensuite, ce que publie `tokens.css` : les rôles qu'installe un
+        consommateur, tenus contre la feuille par `palette-data.test.ts`. */}
       <div className="tc-doc-plates">
         {PLATES.map((plate) => (
           <PalettePlate plate={plate} key={plate.id} />
@@ -51,12 +54,12 @@ export const palettePage: DocPage = {
         </p>
 
         {/* `tabIndex` + `role="group"` : le tableau porte une largeur plancher
-            de 704 px, donc il défile horizontalement dès 320 px. Une zone qui
-            défile et que rien ne rend focusable est inatteignable au clavier
-            sur Safari — quatre colonnes sur sept y étaient perdues. La liste
-            blanche par défaut de la règle `jsx-a11y/no-noninteractive-tabindex`
-            ne connaît que `tabpanel` ; `eslint.config.js` y a depuis ajouté
-            `group`, qui est le rôle correct pour une telle zone. */}
+          de 704 px, donc il défile horizontalement dès 320 px. Une zone qui
+          défile et que rien ne rend focusable est inatteignable au clavier
+          sur Safari — quatre colonnes sur sept y étaient perdues. La liste
+          blanche par défaut de la règle `jsx-a11y/no-noninteractive-tabindex`
+          ne connaît que `tabpanel` ; `eslint.config.js` y a depuis ajouté
+          `group`, qui est le rôle correct pour une telle zone. */}
         <div
           className="tc-doc-tablewrap"
           tabIndex={0}
@@ -112,5 +115,5 @@ export const palettePage: DocPage = {
         </div>
       </article>
     </PageBody>
-  ),
-};
+  );
+}

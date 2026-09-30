@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      LA MARQUE, ET POURQUOI CES DEUX COULEURS-LÀ.
+
+      Le fichier qui était ici n'était pas celui d'Opale : un éclair violet
+      exporté de Figma, arrivé avec le PREMIER commit du dépôt (`aeaad09`) en
+      même temps que `icons.svg`, et jamais remplacé depuis. Ses couleurs —
+      #863bff, #7e14ff, #47bfff — n'existent nulle part dans la charte, et pas
+      seulement « par goût » : mesuré en OKLab, #7e14ff porte une chroma de
+      0,288 quand la couleur la plus saturée de TOUTE la palette,
+      `--tc-violet-498`, plafonne à 0,096 ; et #47bfff se pose à 236,3° de
+      teinte, hors de la bande froide 205-225° que `primitives.css` s'impose.
+      La famille violette de la charte est de surcroît « réservée à la pastille
+      "à venir", et à rien d'autre ».
+
+      Le dessin actuel est une goutte, parce que c'est ce que la librairie est
+      devenue en 2.0 : du verre liquide. Ses deux couleurs sont des jetons, et
+      chacune est mesurée :
+
+        fond      `--tc-teal-515`    #087487
+        goutte    `--tc-mist-936`    #deedf0   ->  4,53:1 sur le fond
+
+      LE FOND EST LE SEUL PRIMITIF DE LA CHARTE QUI NE BASCULE PAS. `roles.css`
+      sert `--tc-teal-515` pour `--accent` dans ses TROIS blocs de thème
+      (lignes 146, 291 et 349). Une tuile pleine dans cette teinte se lit donc
+      à l'identique sur un onglet clair et sur un onglet sombre, sans requête de
+      préférence — qu'un favicon ne pourrait de toute façon pas honorer partout.
+      DEUX FICHIERS ET NON UN, parce qu'iOS n'accepte pas le SVG pour une icône
+      d'écran d'accueil. Le PNG est donc à FOND PERDU, sans coins arrondis :
+      c'est iOS qui applique son propre masque, et une tuile déjà arrondie s'y
+      verrait rognée deux fois. Vérifié en décodant le PNG produit — (0,0) et
+      (179,179) valent bien #087487.
+
+      Aucun nom de jeton n'est cité DANS le SVG, et ce n'est pas un oubli :
+      deux tirets consécutifs sont illégaux dans un commentaire XML. Le fichier
+      cesse alors d'être analysable, le navigateur n'affiche AUCUNE erreur, et
+      l'onglet retombe silencieusement sur son icône par défaut. C'est arrivé
+      une fois pendant l'écriture de ce dessin.
+
+      NON VÉRIFIÉ : le rendu réel sur un onglet Safari et sur un écran d'accueil
+      iOS. Les quatre tailles ont été mesurées dans Chromium seul.
+    -->
+    <link rel="icon" type="image/svg+xml" href="/versions/v2.1.0/favicon.svg" />
+    <link rel="apple-touch-icon" href="/versions/v2.1.0/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Documentation de @thomascaron/opale 2.0 — la charte mesurée (palette teal et cuivre, échelles, contrat de couleur exécutable) et une page par composant verre liquide, vendorés de react-magic-ui sous licence MIT."
+    />
+    <!--
+      La couleur de la barre d'adresse mobile, et la SEULE copie en dur de
+      `--site-background` dans tout le dépôt.
+
+      Elle est là parce qu'un attribut HTML ne peut pas citer un jeton CSS : la
+      valeur initiale doit être écrite, et c'est le fond CLAIR — `--site-background`
+      vaut `var(--tc-mist-936)` en thème clair, soit #deedf0 (voir `tokens/roles.css`
+      et `tokens/primitives.css`). Le clair et non le sombre : c'est le thème que
+      la page sert quand rien n'est mémorisé et que l'OS ne demande rien.
+
+      Ensuite elle ne se recopie plus. `useTheme` relit LE FOND RÉELLEMENT PEINT
+      — la valeur calculée de `background-color` sur `body`, jamais une constante
+      TypeScript, et plus le jeton `--site-background` — et réécrit le `content` à
+      chaque bascule. La distinction n'est pas théorique : la vitrine a un sol
+      BLANC (`--doc-ground` dans `doc.css`) alors que le jeton publié vaut
+      toujours #deedf0, si bien que lire le jeton annonçait du mist sur une page
+      blanche. Dès le premier passage de l'effet, cette valeur écrite ici est donc
+      remplacée par le blanc ; elle ne couvre que l'avant-premier-rendu, où le
+      mist reste le meilleur aveu disponible d'un attribut qui ne sait pas lire
+      une feuille.
+
+      Sans cette balise le hook sort proprement sur `null` : la bascule marche, et
+      la barre d'adresse reste au thème clair en thème sombre, panne muette que
+      rien ne signale.
+    -->
+    <meta name="theme-color" content="#deedf0" />
+    <!--
+      Le titre AVANT le premier rendu. La coquille (`doc-shell.tsx`) le réécrit
+      en « <titre de la page> — @thomascaron/opale » dès qu'elle connaît la page,
+      et à chaque navigation ; celui-ci est donc ce que voient l'onglet pendant
+      le chargement, un partage de lien et un lecteur sans JavaScript. Il ne
+      nomme AUCUNE page en particulier : le fragment décide de la page, et il
+      n'est pas lisible d'ici.
+    -->
+    <title>Documentation — @thomascaron/opale</title>
+    <!--
+      Le seul script bloquant de la page, et il pose LES DEUX attributs de
+      présentation — le thème et le matériau.
+
+      Sans lui pour le THÈME, quelqu'un qui a choisi « sombre » sur un système
+      clair voit un flash clair : la feuille de jetons sert
+      `prefers-color-scheme` jusqu'à ce que React monte et pose `data-theme`.
+
+      Sans lui pour le MATÉRIAU, le flash est PIRE, et c'est ce qui justifie
+      d'étendre ce script plutôt que d'en ajouter un second. Un changement de
+      matériau n'est pas un échange de couleur sur le sol de la page : c'est
+      l'apparition d'un `backdrop-filter`, d'un ménisque et d'un liseré
+      spéculaire sur TOUTES les surfaces qui flottent au-dessus — barre du haut,
+      sommaire, cartes, planches, spécimens. Le flash ne serait pas une teinte
+      qui bouge, il serait la page entière qui change de nature une fois React
+      monté. Poser l'attribut ici, avant la première peinture, le supprime.
+
+      UN SEUL SCRIPT, UN SEUL `try`, et c'est voulu : les deux lectures
+      partagent le même mode de défaillance. En navigation privée, la SIMPLE
+      LECTURE du stockage lève — la première lecture emporte donc la seconde, et
+      la page rend son état de base (préférence système pour le thème, aplat
+      pour le matériau), qui est exactement le bon repli.
+
+      `data-material` NE PREND QU'UNE VALEUR, `glass` : l'aplat, c'est l'absence
+      d'attribut, jamais `data-material="flat"`. La feuille n'a aucun sélecteur
+      pour `flat` parce qu'aucune préférence système ne peut imposer le verre —
+      il n'existe pas de `prefers-material` — donc il n'y a rien à contredire.
+      `data-theme`, lui, écrit bien ses deux valeurs, parce que `light` doit
+      pouvoir contredire un OS en sombre. La symétrie apparente des deux
+      attributs s'arrête là, et `use-material.ts` porte le même avertissement.
+
+      Volontairement synchrone et sans `type="module"` : un module est différé,
+      donc il s'exécuterait après la première peinture — c'est-à-dire trop tard
+      pour ce qu'il est censé empêcher.
+    -->
+    <script>
+      try {
+        var storedTheme = localStorage.getItem('tc-theme');
+        if (storedTheme === 'dark' || storedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', storedTheme);
+        }
+        if (localStorage.getItem('tc-material') === 'glass') {
+          document.documentElement.setAttribute('data-material', 'glass');
+        }
+      } catch (error) {
+        /* Stockage refusé : les états de base feront l'affaire. */
+      }
+    </script>
+    <script type="module" crossorigin src="/versions/v2.1.0/assets/index-BZoOcSGL.js"></script>
+    <link rel="stylesheet" crossorigin href="/versions/v2.1.0/assets/index-Bf3vKoYH.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
