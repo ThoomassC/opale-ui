@@ -1,0 +1,557 @@
+<title>Opale V4 · Planche de DA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Chivo:wght@400;500;700&family=Geist:wght@400..600&display=swap">
+<style>
+/* Mise en page : la planche défile comme le futur accueil — une bande pleine par décision,
+   le fond de la page suit la bande visible (ScrollSection), la documentation reste sobre. */
+:root {
+  /* Fonds par section : papier suit le thème, ambre, nuit et bleu sont fixes. */
+  --paper: #fbfaf9;
+  --paper-ink: #14100b;
+  --paper-ink-2: #5c574d;
+  --paper-sunken: #efebe4;
+  --amber: #f4ad15;
+  --amber-ink: #14100b;
+  --night: #121713;
+  --night-ink: #f3f1ec;
+  --blue: #315c9e;
+  --blue-ink: #ffffff;
+  --focus: #315c9e;
+
+  /* Typographie : Bricolage en affiche, Chivo en texte (les deux déjà livrées par Opale). */
+  --font-display: 'Bricolage Grotesque', 'Bricolage Grotesque Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Chivo', 'Chivo Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-alt: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --step-display: clamp(3rem, 1.2rem + 7.6vw, 8.25rem);
+  --step-h2: clamp(2.25rem, 1.4rem + 3.6vw, 4.5rem);
+  --step-h3: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  --step-lead: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --step-body: 1.0625rem;
+  --step-small: 0.8125rem;
+
+  /* Mouvement : quatre durées, une courbe, une distance. */
+  --dur-fast: 160ms;
+  --dur-base: 320ms;
+  --dur-slow: 640ms;
+  --dur-reveal: 720ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --rise: 1.5rem;
+  --stagger: 60ms;
+
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 3rem);
+  --max: 82rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1.375rem;
+  --radius-lg: 2.25rem;
+
+  --g-bg: var(--paper);
+  --g-fg: var(--paper-ink);
+  --g-fg-2: var(--paper-ink-2);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1d221e; --paper-ink: #f3f1ec; --paper-ink-2: #b8b3a7; --paper-sunken: #121713;
+    --focus: #a9c7f4; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1d221e; --paper-ink: #f3f1ec; --paper-ink-2: #b8b3a7; --paper-sunken: #121713;
+  --focus: #a9c7f4; color-scheme: dark;
+}
+:root[data-ground="amber"] { --g-bg: var(--amber); --g-fg: var(--amber-ink); --g-fg-2: color-mix(in srgb, var(--amber-ink) 78%, var(--amber)); }
+:root[data-ground="night"] { --g-bg: var(--night); --g-fg: var(--night-ink); --g-fg-2: color-mix(in srgb, var(--night-ink) 72%, var(--night)); }
+:root[data-ground="blue"]  { --g-bg: var(--blue);  --g-fg: var(--blue-ink);  --g-fg-2: color-mix(in srgb, var(--blue-ink) 82%, var(--blue)); }
+
+* { box-sizing: border-box; }
+body {
+  background: var(--g-bg);
+  color: var(--g-fg);
+  font-family: var(--font-body);
+  font-size: var(--step-body);
+  line-height: 1.6;
+  transition: background-color var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
+  -webkit-font-smoothing: antialiased;
+}
+:root[data-motion="reduced"] body { transition: none; }
+@media (prefers-reduced-motion: reduce) { body { transition: none; } }
+
+.wrap { max-width: var(--max); margin-inline: auto; padding-inline: var(--gutter); }
+section { padding-block: clamp(4rem, 2rem + 8vw, 9rem); }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.035em; line-height: 0.98; margin: 0; text-wrap: balance; font-optical-sizing: auto; }
+h2 { font-size: var(--step-h2); }
+h3 { font-size: var(--step-h3); letter-spacing: -0.02em; line-height: 1.1; }
+p { margin: 0; max-width: 62ch; }
+.muted { color: var(--g-fg-2); }
+.eyebrow { font-family: var(--font-mono); font-size: var(--step-small); letter-spacing: 0.08em; text-transform: uppercase; color: var(--g-fg-2); }
+.lead { font-size: var(--step-lead); line-height: 1.45; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+a { color: inherit; text-underline-offset: 0.2em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+[data-ground-section="amber"] :focus-visible, [data-ground-section="blue"] :focus-visible, [data-ground-section="night"] :focus-visible { outline-color: currentColor; }
+.stack { display: grid; gap: 1.25rem; }
+.head { display: grid; gap: 1.25rem; margin-bottom: clamp(2rem, 1rem + 3vw, 4rem); }
+
+/* Barre de la planche */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--g-bg) 88%, transparent); backdrop-filter: blur(12px); transition: background-color var(--dur-slow) var(--ease-out); }
+.bar .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding-block: 0.75rem; }
+.brand { font-family: var(--font-display); font-weight: 600; font-size: 1.125rem; letter-spacing: -0.02em; }
+.brand span { color: var(--g-fg-2); font-weight: 400; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.pill, button.pill { font: 500 0.8125rem/1 var(--font-body); padding: 0.55rem 0.9rem; border-radius: 999rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); background: transparent; color: inherit; cursor: pointer; }
+button.pill[aria-pressed="true"] { background: var(--g-fg); color: var(--g-bg); border-color: var(--g-fg); }
+.status { font: 500 0.75rem/1 var(--font-mono); padding: 0.45rem 0.7rem; border-radius: 999rem; background: color-mix(in srgb, currentColor 10%, transparent); }
+
+/* Ouverture */
+.hero { padding-block: clamp(3.5rem, 2rem + 6vw, 7.5rem) clamp(3rem, 2rem + 5vw, 6rem); }
+.hero h1 { font-size: var(--step-display); max-width: 14ch; }
+.hero-grid { display: grid; gap: 2.5rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 60rem) { .hero-grid { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: end; } }
+.principles { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); margin-top: clamp(3rem, 2rem + 4vw, 5rem); padding-top: 1.5rem; border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
+.principles div { display: grid; gap: 0.5rem; align-content: start; }
+.principles b { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; letter-spacing: -0.015em; }
+
+/* Typographie */
+.type-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 60rem) { .type-grid { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+.specimen { display: grid; gap: 1.75rem; min-width: 0; }
+.specimen[data-font="alt"] h1, .specimen[data-font="alt"] h2, .specimen[data-font="alt"] h3 { font-family: var(--font-alt); letter-spacing: -0.04em; }
+.specimen[data-font="alt"] .sp-body { font-family: var(--font-alt); }
+.sp-row { display: grid; gap: 0.35rem; }
+.sp-row h1 { font-size: clamp(2.75rem, 1rem + 6vw, 6.5rem); }
+.scale { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.scale td { padding: 0.6rem 0; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); vertical-align: top; }
+.scale td:last-child { text-align: right; font-family: var(--font-mono); font-size: 0.8125rem; color: var(--g-fg-2); font-variant-numeric: tabular-nums; }
+.options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.reco { display: inline-flex; align-items: center; gap: 0.4rem; font: 600 0.75rem/1 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; padding: 0.4rem 0.65rem; border-radius: 999rem; background: var(--g-fg); color: var(--g-bg); width: fit-content; }
+
+/* Couleurs */
+.grounds { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.ground { border-radius: var(--radius-md); padding: 1.5rem; min-height: 15rem; display: grid; align-content: space-between; gap: 1.5rem; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+.ground h3 { font-size: 1.875rem; }
+.ground dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.75rem; font: 0.8125rem/1.5 var(--font-mono); }
+.ground dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.g-paper { background: var(--paper); color: var(--paper-ink); }
+.g-amber { background: var(--amber); color: var(--amber-ink); }
+.g-night { background: var(--night); color: var(--night-ink); }
+.g-blue  { background: var(--blue);  color: var(--blue-ink); }
+.sequence { display: flex; gap: 0.35rem; margin-top: 1.5rem; height: 3rem; border-radius: 999rem; overflow: hidden; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+.sequence span { flex: 1; display: grid; place-items: center; font: 500 0.75rem/1 var(--font-mono); }
+
+/* Grille */
+.grid-demo { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(0.5rem, 0.25rem + 1vw, 1.5rem); padding-block: 1.5rem; }
+.grid-demo .col { height: 9rem; border-radius: 0.5rem; background: color-mix(in srgb, currentColor 9%, transparent); }
+.grid-demo .over { position: absolute; inset: 1.5rem 0; display: grid; grid-template-columns: inherit; gap: inherit; align-content: center; }
+.grid-demo .over > div { border-radius: var(--radius-sm); padding: 0.75rem 1rem; background: var(--g-fg); color: var(--g-bg); font: 500 0.8125rem/1.3 var(--font-body); }
+.o-title { grid-column: 1 / span 8; }
+.o-aside { grid-column: 10 / span 3; }
+@media (max-width: 40rem) { .o-title { grid-column: 1 / -1; } .o-aside { grid-column: 1 / -1; margin-top: 0.5rem; } }
+.tokens { display: grid; gap: 0.75rem 2rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); margin-top: 1rem; font-size: 0.9375rem; }
+.tokens div { display: flex; justify-content: space-between; gap: 1rem; padding-block: 0.5rem; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+.tokens span:last-child { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--g-fg-2); }
+
+/* Mouvement : démonstrations */
+.demo { display: grid; gap: 1rem; padding-block: 2.5rem; border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent); }
+.demo-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.75rem 2rem; }
+.demo-head h3 { font-size: clamp(1.5rem, 1.2rem + 1vw, 2.25rem); }
+.demo-head p { font-size: 0.9375rem; }
+.tag { font: 500 0.75rem/1 var(--font-mono); padding: 0.4rem 0.6rem; border-radius: 999rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); white-space: nowrap; }
+
+/* Carousel */
+.carousel { display: grid; gap: 1rem; }
+.track { display: grid; grid-auto-flow: column; grid-auto-columns: min(78%, 22rem); gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 0; overscroll-behavior-x: contain; padding-bottom: 0.75rem; scrollbar-width: thin; cursor: grab; }
+.track.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.track > article { scroll-snap-align: start; border-radius: var(--radius-md); padding: 1.5rem; min-height: 17rem; display: grid; align-content: space-between; gap: 1rem; background: color-mix(in srgb, currentColor 7%, transparent); border: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.track > article h4 { margin: 0; font: 500 2rem/1 var(--font-display); letter-spacing: -0.03em; }
+.track > article p { font-size: 0.9375rem; color: var(--g-fg-2); }
+.glyph { height: 6rem; border-radius: var(--radius-sm); position: relative; overflow: hidden; background: color-mix(in srgb, currentColor 6%, transparent); }
+.glyph i { position: absolute; display: block; border-radius: 999rem; background: currentColor; }
+.car-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.car-nav .btns { display: flex; gap: 0.5rem; }
+.round { width: 2.75rem; height: 2.75rem; border-radius: 50%; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); background: transparent; color: inherit; font-size: 1.125rem; cursor: pointer; display: grid; place-items: center; }
+.round:disabled { opacity: 0.35; cursor: default; }
+.dots { display: flex; gap: 0.4rem; }
+.dots button { width: 1.5rem; height: 1.5rem; border: 0; padding: 0; background: transparent; cursor: pointer; display: grid; place-items: center; }
+.dots button::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 999rem; background: currentColor; opacity: 0.3; transition: width var(--dur-base) var(--ease-out), opacity var(--dur-base); }
+.dots button[aria-current="true"]::before { width: 1.25rem; opacity: 1; }
+
+/* Reveal : natif avec animation-timeline, repli IntersectionObserver ; au repos, tout est visible. */
+.reveal-row { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.reveal-row > div { border-radius: var(--radius-sm); padding: 1.25rem; min-height: 8rem; background: color-mix(in srgb, currentColor 8%, transparent); font-family: var(--font-display); font-size: 1.375rem; letter-spacing: -0.02em; display: grid; align-content: end; }
+@keyframes rise { from { opacity: 0; transform: translateY(var(--rise)); } to { opacity: 1; transform: none; } }
+@supports (animation-timeline: view()) {
+  :root:not([data-motion="reduced"]) .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+}
+.js-io :root:not([data-motion="reduced"]) .reveal, :root.js-io:not([data-motion="reduced"]) .reveal.is-pending { opacity: 0; transform: translateY(var(--rise)); }
+:root.js-io .reveal { transition: opacity var(--dur-reveal) var(--ease-out), transform var(--dur-reveal) var(--ease-out); transition-delay: calc(var(--i, 0) * var(--stagger)); }
+@media (prefers-reduced-motion: reduce) { .reveal { animation: none !important; opacity: 1 !important; transform: none !important; } }
+
+/* Marquee */
+.marquee { overflow: hidden; border-block: 1px solid color-mix(in srgb, currentColor 22%, transparent); padding-block: 1.25rem; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.marquee-track { display: flex; width: max-content; gap: 3rem; animation: slide 28s linear infinite; }
+.marquee-track span { font: 500 clamp(1.75rem, 1.2rem + 2vw, 3rem)/1 var(--font-display); letter-spacing: -0.03em; white-space: nowrap; }
+.marquee-track span::after { content: '✳'; margin-left: 3rem; font-size: 0.6em; vertical-align: middle; }
+.marquee:hover .marquee-track, .marquee:focus-within .marquee-track, .marquee[data-paused="true"] .marquee-track { animation-play-state: paused; }
+:root[data-motion="reduced"] .marquee-track { animation: none; }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+@keyframes slide { to { transform: translateX(-50%); } }
+
+/* SplitHeading */
+.split { font-size: clamp(2.25rem, 1.2rem + 4vw, 5rem); }
+.split .w { display: inline-block; }
+.split.play .w { animation: word var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i) * 70ms); }
+:root[data-motion="reduced"] .split.play .w { animation: fade var(--dur-fast) linear both; animation-delay: 0ms; }
+@media (prefers-reduced-motion: reduce) { .split.play .w { animation: fade var(--dur-fast) linear both; animation-delay: 0ms; } }
+@keyframes word { from { opacity: 0; transform: translateY(0.35em); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0.4; } to { opacity: 1; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Maquette de l'accueil */
+.story { display: grid; gap: 0.75rem; }
+.frame { border-radius: var(--radius-md); padding: clamp(1.25rem, 1rem + 1.5vw, 2rem); display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr); border: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+@media (min-width: 52rem) { .frame { grid-template-columns: 9rem minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; } }
+.frame .num { font: 500 0.8125rem/1.4 var(--font-mono); opacity: 0.75; }
+.frame b { font: 500 1.5rem/1.1 var(--font-display); letter-spacing: -0.02em; }
+.frame p { font-size: 0.9375rem; }
+.frame .uses { font: 0.8125rem/1.6 var(--font-mono); opacity: 0.85; }
+
+/* Questions */
+.qs { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+.q { border-radius: var(--radius-md); padding: 1.5rem; display: grid; gap: 0.75rem; align-content: start; background: color-mix(in srgb, currentColor 7%, transparent); }
+.q h3 { font-size: 1.5rem; }
+.q .choice { display: grid; gap: 0.25rem; font-size: 0.9375rem; }
+.q .choice strong { font-weight: 700; }
+footer { padding-block: 3rem; font-size: 0.875rem; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem 2rem; justify-content: space-between; }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand">Opale <span>V4 · planche de DA</span></div>
+    <div class="controls">
+      <span class="status">Phase 1 · à valider</span>
+      <button class="pill" id="motion-toggle" type="button" aria-pressed="false">Simuler le mouvement réduit</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero" data-ground-section="paper">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="stack">
+          <p class="eyebrow">Direction proposée pour le site d'Opale</p>
+          <h1>Des sites qui bougent, sans rien cacher.</h1>
+        </div>
+        <p class="lead muted">L'accueil d'Opale devient un récit en bandes pleines, construit avec ses propres composants. Le style emprunte à Zypsy le rythme et l'ampleur, et garde la palette, les polices et les règles d'Opale.</p>
+      </div>
+      <div class="principles">
+        <div><b>Le récit à l'accueil</b><p class="muted">Grands titres, fonds qui changent, carrousel au glisser. Seulement sur la page d'accueil et sur tes sites perso.</p></div>
+        <div><b>La sobriété dans la doc</b><p class="muted">Même typographie, même palette, aucun effet au défilement. On y vient pour lire et copier.</p></div>
+        <div><b>Rien n'attend un script</b><p class="muted">Tout est visible au repos, sans JavaScript et en mouvement réduit. L'animation ne fait qu'amener le contenu.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section data-ground-section="amber" id="typo">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">01 · Typographie</p>
+        <h2>Bricolage en grand, Chivo pour lire.</h2>
+        <p class="lead">Les deux polices sont déjà livrées par Opale, sous licence OFL. La nouveauté tient à l'usage : des titres très grands, en graisse 500, serrés à −3,5 %, et beaucoup d'air autour.</p>
+      </div>
+      <div class="type-grid">
+        <div class="specimen" id="specimen" data-font="current">
+          <div class="options" role="group" aria-label="Police des titres">
+            <button class="pill" type="button" data-font-choice="current" aria-pressed="true">A · Bricolage + Chivo (actuelles)</button>
+            <button class="pill" type="button" data-font-choice="alt" aria-pressed="false">B · Geist, plus neutre</button>
+          </div>
+          <div class="sp-row"><span class="eyebrow">Affiche · clamp 48 → 132 px · 500 · −3,5 %</span><h1>Construire vite, bien.</h1></div>
+          <div class="sp-row"><span class="eyebrow">Titre de section · 36 → 72 px</span><h2>Cinq composants de mouvement</h2></div>
+          <div class="sp-row"><span class="eyebrow">Sous-titre · 22 → 30 px</span><h3>Un carrousel qu'on glisse à la souris comme au doigt</h3></div>
+          <div class="sp-row"><span class="eyebrow">Texte · 17 px · 1,6</span><p class="sp-body">Chaque composant respecte le mouvement réduit, reste lisible sans JavaScript et passe les contrôles d'accessibilité d'Opale avant d'être publié.</p></div>
+        </div>
+        <div class="stack" style="align-content:start">
+          <span class="reco">Recommandé : A</span>
+          <p>Bricolage donne du caractère aux grands titres. Geist se rapproche de la neutralité d'Aspekta, la police de Zypsy, mais Opale perdrait sa voix. Aspekta reste possible : elle est sous OFL 1.1 et s'auto-héberge comme les polices actuelles.</p>
+          <table class="scale">
+            <tbody>
+              <tr><td>Affiche</td><td>clamp(3rem → 8.25rem)</td></tr>
+              <tr><td>Titre de section</td><td>clamp(2.25rem → 4.5rem)</td></tr>
+              <tr><td>Sous-titre</td><td>clamp(1.375rem → 1.875rem)</td></tr>
+              <tr><td>Chapô</td><td>clamp(1.125rem → 1.375rem)</td></tr>
+              <tr><td>Texte</td><td>1.0625rem</td></tr>
+              <tr><td>Légende, code</td><td>0.8125rem mono</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-ground-section="paper" id="couleurs">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">02 · Couleurs</p>
+        <h2>Quatre fonds pleins, tous tirés d'Opale.</h2>
+        <p class="lead muted">Zypsy alterne jaune, noir et crème. Opale a déjà l'équivalent : l'ambre, l'encre et le papier. Le bleu primaire devient le quatrième fond. Les contrastes ci-dessous sont calculés dans la page.</p>
+      </div>
+      <div class="grounds">
+        <div class="ground g-paper"><h3>Papier</h3><dl><dt>Fond</dt><dd>--opale-surface-base</dd><dt>Encre</dt><dd>--opale-text</dd><dt>Contraste</dt><dd data-contrast="paper-ink,paper"></dd></dl></div>
+        <div class="ground g-amber"><h3>Ambre</h3><dl><dt>Fond</dt><dd>--opale-accent</dd><dt>Encre</dt><dd>--opale-text clair</dd><dt>Contraste</dt><dd data-contrast="amber-ink,amber"></dd></dl></div>
+        <div class="ground g-night"><h3>Nuit</h3><dl><dt>Fond</dt><dd>surface enfoncée sombre</dd><dt>Encre</dt><dd>--opale-text sombre</dd><dt>Contraste</dt><dd data-contrast="night-ink,night"></dd></dl></div>
+        <div class="ground g-blue"><h3>Bleu</h3><dl><dt>Fond</dt><dd>--opale-primary</dd><dt>Encre</dt><dd>blanc</dd><dt>Contraste</dt><dd data-contrast="blue-ink,blue"></dd></dl></div>
+      </div>
+      <div class="sequence" aria-label="Ordre des fonds sur l'accueil proposé">
+        <span class="g-paper">accroche</span><span class="g-amber">composants</span><span class="g-night">qualités</span><span class="g-paper">exemples</span><span class="g-blue">installer</span>
+      </div>
+      <p class="muted" style="margin-top:1rem">Le papier suit le thème clair ou sombre ; l'ambre, la nuit et le bleu restent identiques dans les deux thèmes, avec leur encre fixée.</p>
+    </div>
+  </section>
+
+  <section data-ground-section="night" id="grille">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">03 · Grille et rythme</p>
+        <h2>Douze colonnes, de l'air entre les bandes.</h2>
+        <p class="lead muted">Une grille de 12 colonnes sur 82 rem au plus. Les titres occupent 8 colonnes, les notes 3, et chaque bande respire de 64 à 144 px en haut comme en bas.</p>
+      </div>
+      <div class="grid-demo" aria-hidden="true">
+        <div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div>
+        <div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div>
+        <div class="over"><div class="o-title">Titre · colonnes 1 à 8</div><div class="o-aside">Note · 10 à 12</div></div>
+      </div>
+      <div class="tokens">
+        <div><span>Colonnes</span><span>12</span></div>
+        <div><span>Largeur maximale</span><span>82rem</span></div>
+        <div><span>Marge latérale</span><span>16 → 48 px</span></div>
+        <div><span>Bande, haut et bas</span><span>64 → 144 px</span></div>
+        <div><span>Rayons</span><span>12 · 22 · 36 px</span></div>
+        <div><span>Gouttière</span><span>8 → 24 px</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section data-ground-section="paper" id="mouvement">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">04 · Mouvement</p>
+        <h2>Cinq gestes, quatre durées, une courbe.</h2>
+        <p class="lead muted">Chaque démonstration ci-dessous tourne en CSS natif, sans GSAP ni Swiper. Le bouton « Simuler le mouvement réduit », en haut, montre ce que voit quelqu'un qui a demandé moins d'animations.</p>
+      </div>
+      <div class="tokens" style="margin-bottom:1rem">
+        <div><span>Rapide · survol, focus</span><span>160 ms</span></div>
+        <div><span>Base · ouverture</span><span>320 ms</span></div>
+        <div><span>Lent · fond de section</span><span>640 ms</span></div>
+        <div><span>Apparition</span><span>720 ms · 24 px</span></div>
+        <div><span>Courbe</span><span>cubic-bezier(.2,.7,.2,1)</span></div>
+        <div><span>Cascade</span><span>60 ms par élément</span></div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-head"><h3>Carousel</h3><span class="tag">scroll-snap + pointeur</span></div>
+        <p class="muted">Glisse à la souris, au doigt ou au trackpad ; flèches et points au clavier. Aucune lecture automatique par défaut.</p>
+        <div class="carousel" role="region" aria-roledescription="carrousel" aria-label="Composants d'Opale">
+          <div class="track" id="track" tabindex="0">
+            <article aria-roledescription="diapositive" aria-label="1 sur 6"><div class="glyph" aria-hidden="true"><i style="left:1.25rem;top:2.1rem;width:8rem;height:1.9rem"></i></div><div><h4>Button</h4><p>Saisie · tons, tailles, verre liquide en option</p></div></article>
+            <article aria-roledescription="diapositive" aria-label="2 sur 6"><div class="glyph" aria-hidden="true"><i style="left:1.25rem;top:1rem;right:1.25rem;height:0.6rem"></i><i style="left:1.25rem;top:2.2rem;width:60%;height:0.6rem;opacity:.5"></i><i style="left:1.25rem;top:3.4rem;width:40%;height:0.6rem;opacity:.5"></i></div><div><h4>Textarea</h4><p>Formulaires · grandit avec le texte, compteur annoncé</p></div></article>
+            <article aria-roledescription="diapositive" aria-label="3 sur 6"><div class="glyph" aria-hidden="true"><i style="left:1.25rem;top:1rem;width:4.5rem;height:1.6rem"></i><i style="left:2.5rem;top:3.1rem;width:9rem;height:2rem;border-radius:.6rem;opacity:.6"></i></div><div><h4>Popover</h4><p>Couches flottantes · focus gardé, Échap rendu</p></div></article>
+            <article aria-roledescription="diapositive" aria-label="4 sur 6"><div class="glyph" aria-hidden="true"><i style="left:1.25rem;top:1rem;right:1.25rem;height:0.5rem"></i><i style="left:1.25rem;top:2.1rem;right:1.25rem;height:0.5rem;opacity:.45"></i><i style="left:1.25rem;top:3.2rem;right:1.25rem;height:0.5rem;opacity:.45"></i><i style="left:1.25rem;top:4.3rem;right:1.25rem;height:0.5rem;opacity:.45"></i></div><div><h4>DataTable</h4><p>Affichage · générique, sélection de lignes</p></div></article>
+            <article aria-roledescription="diapositive" aria-label="5 sur 6"><div class="glyph" aria-hidden="true"><i style="left:1.25rem;top:1.9rem;width:3rem;height:3rem;border-radius:.6rem"></i><i style="left:4.75rem;top:1.9rem;width:3rem;height:3rem;border-radius:.6rem;opacity:.55"></i><i style="left:8.25rem;top:1.9rem;width:3rem;height:3rem;border-radius:.6rem;opacity:.3"></i></div><div><h4>Carousel</h4><p>Nouveau en V4 · ce que tu glisses en ce moment</p></div></article>
+            <article aria-roledescription="diapositive" aria-label="6 sur 6"><div class="glyph" aria-hidden="true"><i style="left:1.25rem;top:1rem;width:70%;height:1.2rem"></i><i style="left:1.25rem;top:2.8rem;width:45%;height:1.2rem;opacity:.5"></i></div><div><h4>SplitHeading</h4><p>Nouveau en V4 · un titre qui arrive mot à mot</p></div></article>
+          </div>
+          <div class="car-nav">
+            <p class="mono muted" id="car-status" aria-live="polite">1 sur 6</p>
+            <div class="dots" id="dots" role="group" aria-label="Choisir une diapositive"></div>
+            <div class="btns"><button class="round" type="button" id="prev" aria-label="Diapositive précédente">←</button><button class="round" type="button" id="next" aria-label="Diapositive suivante">→</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-head"><h3>Reveal</h3><span class="tag">animation-timeline: view()</span></div>
+        <p class="muted">Les blocs montent de 24 px en entrant à l'écran, en cascade. Sans le support natif, IntersectionObserver prend le relais ; avec le mouvement réduit, ils sont simplement là.</p>
+        <div class="reveal-row">
+          <div class="reveal" style="--i:0">Accessible</div>
+          <div class="reveal" style="--i:1">Sans dépendance</div>
+          <div class="reveal" style="--i:2">Rendu serveur</div>
+          <div class="reveal" style="--i:3">Verre liquide</div>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-head"><h3>Marquee</h3><button class="pill" type="button" id="marquee-toggle" aria-pressed="false">Mettre en pause</button></div>
+        <p class="muted">Pause au survol, au focus et par bouton. La copie qui boucle est masquée aux lecteurs d'écran.</p>
+        <div class="marquee" id="marquee">
+          <div class="marquee-track">
+            <span>WCAG 2.2 AA</span><span>React 19</span><span>Next.js 16</span><span>91 composants</span><span>Aucune dépendance</span>
+            <span aria-hidden="true">WCAG 2.2 AA</span><span aria-hidden="true">React 19</span><span aria-hidden="true">Next.js 16</span><span aria-hidden="true">91 composants</span><span aria-hidden="true">Aucune dépendance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-head"><h3>SplitHeading</h3><button class="pill" type="button" id="split-replay">Rejouer</button></div>
+        <p class="muted">Le titre arrive mot à mot. Le lecteur d'écran lit la phrase entière, une seule fois.</p>
+        <h2 class="split" id="split"><span class="sr-only">Un titre qui prend son temps.</span><span aria-hidden="true" id="split-words">Un titre qui prend son temps.</span></h2>
+      </div>
+
+      <div class="demo">
+        <div class="demo-head"><h3>ScrollSection</h3><span class="tag">thème local par section</span></div>
+        <p class="muted">Tu le vois depuis le début : le fond de toute la page suit la bande visible, en fondu de 640 ms. En mouvement réduit, il change sans transition. Chaque couple fond et encre passe AA.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-ground-section="blue" id="accueil">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">05 · Maquette de l'accueil</p>
+        <h2>Cinq bandes, cinq composants.</h2>
+        <p class="lead">L'accueil ne contient que des composants publiés d'Opale. Chaque bande dit ce qu'elle montre et avec quoi elle est faite.</p>
+      </div>
+      <div class="story">
+        <div class="frame g-paper"><span class="num">Bande 1 · papier</span><b>Accroche</b><div class="stack" style="gap:.35rem"><p>Grand titre, une phrase, deux actions : « Installer » et « Voir les composants ».</p><span class="uses">SplitHeading · Button</span></div></div>
+        <div class="frame g-amber"><span class="num">Bande 2 · ambre</span><b>Les composants</b><div class="stack" style="gap:.35rem"><p>Un carrousel de démos vivantes, par famille : saisie, formulaires, couches flottantes, affichage.</p><span class="uses">Carousel · Reveal</span></div></div>
+        <div class="frame g-night"><span class="num">Bande 3 · nuit</span><b>Les qualités</b><div class="stack" style="gap:.35rem"><p>Accessible, sans dépendance, rendu serveur, verre liquide : un bandeau puis quatre preuves chiffrées.</p><span class="uses">Marquee · Reveal</span></div></div>
+        <div class="frame g-paper"><span class="num">Bande 4 · papier</span><b>Des pages entières</b><div class="stack" style="gap:.35rem"><p>PageScaffold et deux exemples de pages complètes, en grand format.</p><span class="uses">PageScaffold · Reveal</span></div></div>
+        <div class="frame g-blue"><span class="num">Bande 5 · bleu</span><b>Installer</b><div class="stack" style="gap:.35rem"><p>La commande d'installation, prête à copier, et le lien vers la migration 4.0.</p><span class="uses">Clipboard · Button</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section data-ground-section="paper" id="questions">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">06 · À trancher pour franchir la porte 1</p>
+        <h2>Cinq réponses, et la DA est fixée.</h2>
+        <p class="lead muted">Réponds dans le chat ou commente le cahier de refonte. Chaque réponse s'inscrit dans les décisions actées.</p>
+      </div>
+      <div class="qs">
+        <div class="q"><h3>Typographie</h3><div class="choice"><strong>Recommandé : garder Bricolage + Chivo</strong><span class="muted">Autres choix : Geist (option B ci-dessus) ou Aspekta, libre et auto-hébergée.</span></div></div>
+        <div class="q"><h3>Palette</h3><div class="choice"><strong>Recommandé : les quatre fonds tirés d'Opale</strong><span class="muted">Autre choix : redéfinir la palette. Ce serait une nouvelle marque, avec tous les contrastes à remesurer.</span></div></div>
+        <div class="q"><h3>Verre liquide</h3><div class="choice"><strong>Recommandé : il reste la signature</strong><span class="muted">Il apparaît sur la barre de navigation et sur les démos, jamais sur les fonds pleins, où il perdrait son relief.</span></div></div>
+        <div class="q"><h3>Visuels</h3><div class="choice"><strong>Recommandé : seulement des composants Opale en situation</strong><span class="muted">Autre choix : ajouter des captures de tes sites perso, si tu en as à montrer.</span></div></div>
+        <div class="q"><h3>Premier site perso</h3><div class="choice"><strong>À toi de le nommer</strong><span class="muted">Il servira de terrain d'essai aux composants de mouvement, en dehors de la vitrine.</span></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer data-ground-section="paper">
+  <div class="wrap"><span class="muted">Opale V4 · planche de DA · 30/09/2026</span><span class="muted">Source : docs/v4/planche-da.html sur claude/refonte-V4.0.0</span></div>
+</footer>
+
+<script>
+(() => {
+  const root = document.documentElement;
+
+  /* Mouvement réduit simulé */
+  const motionBtn = document.getElementById('motion-toggle');
+  motionBtn.addEventListener('click', () => {
+    const on = motionBtn.getAttribute('aria-pressed') !== 'true';
+    motionBtn.setAttribute('aria-pressed', String(on));
+    if (on) root.dataset.motion = 'reduced'; else delete root.dataset.motion;
+    document.querySelectorAll('.reveal').forEach((el) => el.classList.remove('is-pending'));
+  });
+  const reduced = () => root.dataset.motion === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Contrastes calculés depuis les jetons */
+  const css = getComputedStyle(root);
+  const rgb = (v) => { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = v; const h = c.fillStyle; if (h[0] === '#') return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); return h.match(/\d+/g).slice(0, 3).map(Number); };
+  const lum = (c) => { const f = (x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const fillContrast = () => document.querySelectorAll('[data-contrast]').forEach((el) => {
+    const [fg, bg] = el.dataset.contrast.split(',').map((t) => rgb(css.getPropertyValue('--' + t).trim()));
+    const a = lum(fg), b = lum(bg), r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    el.textContent = r.toFixed(2).replace('.', ',') + ':1 · ' + (r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : 'insuffisant');
+  });
+  fillContrast();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', fillContrast);
+
+  /* ScrollSection : le fond de la page suit la bande visible */
+  const sections = document.querySelectorAll('[data-ground-section]');
+  const ground = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      const g = e.target.dataset.groundSection;
+      if (g === 'paper') delete root.dataset.ground; else root.dataset.ground = g;
+    });
+  }, { rootMargin: '-45% 0px -45% 0px' });
+  sections.forEach((s) => ground.observe(s));
+
+  /* Typographie A / B */
+  const specimen = document.getElementById('specimen');
+  document.querySelectorAll('[data-font-choice]').forEach((b) => b.addEventListener('click', () => {
+    specimen.dataset.font = b.dataset.fontChoice;
+    document.querySelectorAll('[data-font-choice]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+  }));
+
+  /* Carousel */
+  const track = document.getElementById('track');
+  const slides = [...track.children];
+  const status = document.getElementById('car-status');
+  const dots = document.getElementById('dots');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  slides.forEach((s, i) => {
+    const d = document.createElement('button');
+    d.type = 'button'; d.setAttribute('aria-label', 'Diapositive ' + (i + 1));
+    d.addEventListener('click', () => go(i));
+    dots.appendChild(d);
+  });
+  const current = () => { const x = track.scrollLeft; let best = 0; slides.forEach((s, i) => { if (Math.abs(s.offsetLeft - track.offsetLeft - x) < Math.abs(slides[best].offsetLeft - track.offsetLeft - x)) best = i; }); return best; };
+  const maxScroll = () => track.scrollWidth - track.clientWidth - 2;
+  const sync = () => {
+    const i = track.scrollLeft >= maxScroll() ? slides.length - 1 : current();
+    status.textContent = (i + 1) + ' sur ' + slides.length;
+    [...dots.children].forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
+    prev.disabled = track.scrollLeft <= 2;
+    next.disabled = track.scrollLeft >= maxScroll();
+    slides.forEach((s) => { const r = s.getBoundingClientRect(), t = track.getBoundingClientRect(); s.inert = r.right <= t.left + 4 || r.left >= t.right - 4; });
+  };
+  const go = (i) => { const k = Math.max(0, Math.min(slides.length - 1, i)); track.scrollTo({ left: slides[k].offsetLeft - track.offsetLeft, behavior: reduced() ? 'auto' : 'smooth' }); };
+  prev.addEventListener('click', () => go(current() - 1));
+  next.addEventListener('click', () => go(current() + 1));
+  track.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); go(current() + 1); } if (e.key === 'ArrowLeft') { e.preventDefault(); go(current() - 1); } });
+  let raf = 0; track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); }, { passive: true });
+  addEventListener('resize', sync);
+  /* Glisser à la souris : le toucher et le trackpad défilent déjà nativement */
+  let startX = 0, startScroll = 0, dragging = false, moved = false;
+  track.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse' || e.button !== 0) return; dragging = true; moved = false; startX = e.clientX; startScroll = track.scrollLeft; });
+  addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - startX; if (Math.abs(dx) > 4) { moved = true; track.classList.add('is-dragging'); } track.scrollLeft = startScroll - dx; });
+  addEventListener('pointerup', () => { if (!dragging) return; dragging = false; track.classList.remove('is-dragging'); if (moved) go(current()); });
+  track.addEventListener('click', (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+  sync();
+
+  /* Reveal : repli IntersectionObserver sans animation-timeline */
+  if (!CSS.supports('animation-timeline: view()') && 'IntersectionObserver' in window) {
+    root.classList.add('js-io');
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.remove('is-pending'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' });
+    document.querySelectorAll('.reveal').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < innerHeight) return; /* déjà visible au chargement : rien à cacher */
+      el.classList.add('is-pending'); io.observe(el);
+    });
+  }
+
+  /* Marquee */
+  const marquee = document.getElementById('marquee');
+  const mBtn = document.getElementById('marquee-toggle');
+  mBtn.addEventListener('click', () => {
+    const paused = marquee.dataset.paused !== 'true';
+    marquee.dataset.paused = String(paused);
+    mBtn.setAttribute('aria-pressed', String(paused));
+    mBtn.textContent = paused ? 'Reprendre' : 'Mettre en pause';
+  });
+
+  /* SplitHeading : découpage au rendu, rejoué quand le titre entre à l'écran */
+  const split = document.getElementById('split');
+  const words = document.getElementById('split-words');
+  words.innerHTML = words.textContent.trim().split(/\s+/).map((w, i) => '<span class="w" style="--i:' + i + '">' + w + '</span>').join(' ');
+  const play = () => { split.classList.remove('play'); void split.offsetWidth; split.classList.add('play'); };
+  document.getElementById('split-replay').addEventListener('click', play);
+  new IntersectionObserver((entries, o) => entries.forEach((e) => { if (e.isIntersecting) { play(); o.disconnect(); } }), { threshold: 0.6 }).observe(split);
+})();
+</script>
