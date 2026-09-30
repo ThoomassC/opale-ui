@@ -141,6 +141,7 @@ const DEFAULT_SVG_MAP_LABELS: SvgMapLabels = {
 export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelect' | 'children'> {
   /** Vue d'ensemble du dessin, au format de l'attribut `viewBox`. */
   readonly viewBox: string;
+  /** Les régions dessinées, dans l'ordre de parcours au clavier. */
   readonly regions: readonly SvgMapRegion[];
   /** Nom de la carte, annoncé par les lecteurs d'écran ; gagne sur `labels.map`. */
   readonly label?: string;
@@ -171,6 +172,9 @@ export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelec
    * dispense pas de l'équivalent.
    */
   readonly selectable?: boolean;
+  /**
+   * Appelée avec l'`id` de la région choisie, au clic, sur Entrée ou Espace. Demande `selectable`.
+   */
   readonly onSelect?: (id: string) => void;
   /**
    * Les régions retenues, si l'appelant en tient la liste : elles sont
@@ -210,7 +214,11 @@ export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelec
   readonly children?: ReactNode;
   /** Remplace les textes français par défaut, clé par clé. */
   readonly labels?: Partial<SvgMapLabels>;
+  /**
+   * Rend la plaque et les commandes intégrées dans le matériau « verre liquide ». Défaut : `false`.
+   */
   readonly liquidGlass?: boolean;
+  /** Une classe ajoutée à côté de `.opale-svg-map`, sur la racine. */
   readonly className?: string;
 }
 
@@ -655,7 +663,9 @@ export interface SvgMapControlsProps extends Omit<ComponentPropsWithRef<'div'>, 
    * qu'il lui a donnée ; `SvgMap` les demande pour ses commandes intégrées.
    */
   readonly pan?: boolean;
+  /** Rend la barre de commandes dans le matériau « verre liquide ». Défaut : `false`. */
   readonly liquidGlass?: boolean;
+  /** Une classe ajoutée à côté de `.opale-svg-map-controls`. */
   readonly className?: string;
 }
 

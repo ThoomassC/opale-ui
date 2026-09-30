@@ -22,11 +22,23 @@ export interface PublicProp {
   readonly deprecated: boolean;
 }
 
+/* Une prop publique vue par la couverture JSDoc : `own` si au moins une de ses
+   déclarations vit dans les sources d'Opale (et non dans `@types/react` ou le
+   DOM), `documented` si l'une de ces déclarations porte une JSDoc — commentaire
+   ou balise, `@deprecated` compris. */
+export interface PublicPropDoc {
+  readonly name: string;
+  readonly own: boolean;
+  readonly documented: boolean;
+}
+
 export interface PublicApi {
   /** Les noms exportés par l'entrée racine, triés. */
   readonly exportNames: readonly string[];
   /** Les props d'un type exporté (`ButtonProps`…), ou `undefined` s'il n'est pas exporté. */
   propsOfType(typeName: string): readonly PublicProp[] | undefined;
+  /** La couverture JSDoc des props d'un type exporté, ou `undefined` s'il n'est pas exporté. */
+  propDocsOfType(typeName: string): readonly PublicPropDoc[] | undefined;
   /** Vrai si l'export porte `@deprecated` ; `undefined` s'il n'est pas exporté. */
   isDeprecated(exportName: string): boolean | undefined;
   /** Les membres de la valeur exportée (`Opale.Background`…) qui portent `@deprecated`, triés. */
@@ -58,6 +70,40 @@ function resolveAlias(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol {
 const isDeprecatedSymbol = (checker: ts.TypeChecker, symbol: ts.Symbol) =>
   symbol.getJsDocTags(checker).some((tag) => tag.name === 'deprecated');
 
+const OPALE_SOURCES = join(ROOT, 'src/opale/');
+
+/* La JSDoc est lue sur la déclaration d'origine : une prop reprise par `Omit`
+   ou `Pick` garde celle du type dont elle vient. Une prop redéclarée (branche
+   d'union, surcharge d'un attribut DOM) doit l'être documentée partout. */
+function docOfDeclarations(declarations: readonly ts.Declaration[]) {
+  const own = declarations.filter((declaration) =>
+    resolve(declaration.getSourceFile().fileName).startsWith(OPALE_SOURCES),
+  );
+  return {
+    own: own.length > 0,
+    documented:
+      own.length > 0 &&
+      own.every((declaration) => ts.getJSDocCommentsAndTags(declaration).length > 0),
+  };
+}
+
+/* Une union de props (`{ variant: 'a' } | { variant: 'b', extra }`) n'expose
+   que ses membres communs : on lit chaque branche. */
+function propsAcrossUnion(checker: ts.TypeChecker, type: ts.Type): Map<string, ts.Declaration[]> {
+  const byName = new Map<string, ts.Declaration[]>();
+  const branches = type.isUnion() ? type.types : [type];
+  for (const branch of branches) {
+    for (const prop of checker.getPropertiesOfType(branch)) {
+      const known = byName.get(prop.getName()) ?? [];
+      for (const declaration of prop.declarations ?? []) {
+        if (!known.includes(declaration)) known.push(declaration);
+      }
+      byName.set(prop.getName(), known);
+    }
+  }
+  return byName;
+}
+
 let cached: PublicApi | undefined;
 
 export function loadPublicApi(): PublicApi {
@@ -87,6 +133,17 @@ export function loadPublicApi(): PublicApi {
         name: prop.getName(),
         required: !(prop.flags & ts.SymbolFlags.Optional),
         deprecated: isDeprecatedSymbol(checker, prop),
+      }));
+    },
+    propDocsOfType(typeName) {
+      const exported = exports.get(typeName);
+      if (!exported) return undefined;
+      const symbol = resolveAlias(checker, exported);
+      if (!(symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.TypeAlias))) return undefined;
+      const type = checker.getDeclaredTypeOfSymbol(symbol);
+      return [...propsAcrossUnion(checker, type)].map(([name, declarations]) => ({
+        name,
+        ...docOfDeclarations(declarations),
       }));
     },
     isDeprecated(exportName) {

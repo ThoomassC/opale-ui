@@ -22,7 +22,9 @@ const DEFAULT_SEARCH_BAR_LABELS: SearchBarLabels = {
 };
 
 export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
+  /** La hauteur du champ. Défaut : `medium`. */
   size?: 'small' | 'medium' | 'large';
+  /** L'icône de tête, décorative. Défaut : la loupe Opale. */
   icon?: ReactNode;
   /** L'onde qui naît au clic dans le champ en verre. Défaut : `true`. */
   enableLiquidAnimation?: boolean;

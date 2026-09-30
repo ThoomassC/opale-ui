@@ -152,6 +152,7 @@ function ensureFilterMounted(node: Element): () => void {
 export type GlassProps<T extends ElementType = 'div'> = {
   /** L'élément rendu pour le CONTENU. L'enveloppe reste un `<div>`. */
   readonly as?: T;
+  /** Le contenu posé dans la matière. */
   readonly children?: ReactNode;
   /**
    * Classe posée sur l'enveloppe, celle qui porte la silhouette et l'ombre.

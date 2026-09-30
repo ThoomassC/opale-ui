@@ -8,6 +8,7 @@ import {
   type MouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
+import { shouldHandleNavigation, type NavigateHandler } from '../../shared/navigate';
 import { LiquidBubble } from './liquid-bubble';
 import styles from './site-nav.module.css';
 import type { SiteNavItem } from './site-nav';
@@ -15,15 +16,12 @@ import type { SiteNavItem } from './site-nav';
 export type NavBubbleProps = {
   readonly items: readonly SiteNavItem[];
   readonly activeKey?: string;
-  readonly onNavigate?: (item: SiteNavItem, event: MouseEvent<HTMLAnchorElement>) => void;
+  readonly onNavigate?: NavigateHandler<SiteNavItem>;
 };
 
 /* La durée du glissement de la bulle, `--opale-motion-slower` dans
    `site-nav.module.css` : la bulle reste « en mouvement » jusqu'à son arrivée. */
 const BUBBLE_FLOW_MS = 600;
-
-const isModifiedClick = (event: MouseEvent<HTMLAnchorElement>): boolean =>
-  event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
 
 type OptimisticSelection = {
   readonly sourceKey: string | undefined;
@@ -116,7 +114,9 @@ export function NavBubble({ items, activeKey, onNavigate }: NavBubbleProps) {
       return;
     }
     if (isDragCommit) dragCommitKeyRef.current = undefined;
-    if (isModifiedClick(event) || event.currentTarget.target === '_blank') return;
+    /* La règle commune d'Opale (`shared/navigate.ts`) : un clic modifié, du
+       milieu ou vers un autre onglet reste au navigateur, bulle comprise. */
+    if (!shouldHandleNavigation(event)) return;
     if (item.id === displayedKey && !isDragCommit) return;
 
     moveBubbleTo(item.id);
