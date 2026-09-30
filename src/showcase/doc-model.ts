@@ -109,6 +109,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
          navigation aurait gardé l'anglicisme. Le slug reste `theming`, déjà
          dans les signets et dans les tables de traduction. */
       { label: 'Thèmes', slug: 'theming' },
+      { label: 'Personnaliser', slug: 'personnaliser' },
       { label: 'Typographie', slug: 'typographie' },
       { label: 'Icônes', slug: 'icones' },
       { label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' },
