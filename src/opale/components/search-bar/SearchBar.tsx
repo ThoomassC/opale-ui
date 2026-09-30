@@ -2,7 +2,24 @@ import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from 'react
 import clsx from 'clsx';
 import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
+import { resolveLabels } from '../../shared/labels';
 import styles from './style/SearchBar.module.scss';
+
+/** Les textes de `SearchBar`. */
+export interface SearchBarLabels {
+  /**
+   * Le nom du repère `search`, quand ni `landmarkLabel` ni `aria-label` ne le
+   * donnent. Défaut : « Recherche ».
+   */
+  landmark: string;
+  /** Le nom du champ quand rien d'autre ne le nomme. Défaut : « Rechercher ». */
+  field: string;
+}
+
+const DEFAULT_SEARCH_BAR_LABELS: SearchBarLabels = {
+  landmark: 'Recherche',
+  field: 'Rechercher',
+};
 
 export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   size?: 'small' | 'medium' | 'large';
@@ -13,8 +30,13 @@ export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   enableClickAnimation?: boolean;
   /** Pose le repère `search` autour du champ. Défaut : `true`. */
   landmark?: boolean;
-  /** Le nom du repère `search`, utile quand la page en compte plusieurs. */
+  /**
+   * Le nom du repère `search`, utile quand la page en compte plusieurs.
+   * Défaut : l'`aria-label` du champ, sinon `labels.landmark`.
+   */
   landmarkLabel?: string;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<SearchBarLabels>;
   /**
    * Rend la barre dans le matériau « verre liquide ».
    *
@@ -37,6 +59,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       enableClickAnimation,
       landmark = true,
       landmarkLabel,
+      labels: labelsProp,
       liquidGlass = false,
       className,
       ['aria-label']: ariaLabel,
@@ -45,6 +68,12 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
     ref,
   ) => {
     warnDeprecatedProps('SearchBar', { enableClickAnimation });
+    const labels = resolveLabels(DEFAULT_SEARCH_BAR_LABELS, labelsProp);
+    /* LE REPÈRE A UN NOM PAR DÉFAUT (ACC-22). Deux repères `search` sans nom
+       sur une page ne se distinguent pas dans la liste des régions. Le nom suit
+       d'abord celui du champ quand l'appelant l'a écrit — deux barres nommées
+       différemment donnent deux repères distincts —, puis « Recherche ». */
+    const landmarkName = landmark ? (landmarkLabel ?? ariaLabel ?? labels.landmark) : undefined;
     /* LE CONTENU EST ÉCRIT UNE FOIS. Les deux matières n'ont pas la même
        enveloppe — le verre en a une, la version pleine n'en a pas besoin —,
        mais l'icône, le champ, son nom et ses classes ne dépendent d'aucune
@@ -87,7 +116,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
            (WCAG 2.5.3). Un `id` compte aussi, puisqu'un `<label for>` peut
            s'y accrocher depuis l'extérieur du composant. */
           aria-label={
-            ariaLabel ?? (props['aria-labelledby'] || props.id ? undefined : 'Rechercher')
+            ariaLabel ?? (props['aria-labelledby'] || props.id ? undefined : labels.field)
           }
           className={clsx(
             'opale-search-bar__input',
@@ -104,7 +133,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       return (
         <div
           role={landmark ? 'search' : undefined}
-          aria-label={landmark ? landmarkLabel : undefined}
+          aria-label={landmarkName}
           className={clsx(
             'opale-search-bar__shell',
             'opale-search-bar',
@@ -121,7 +150,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
     return (
       <Glass
         role={landmark ? 'search' : undefined}
-        aria-label={landmark ? landmarkLabel : undefined}
+        aria-label={landmarkName}
         rootClassName={clsx('opale-search-bar__shell', styles.root)}
         rootStyle={{ width: '100%' }}
         enableLiquidAnimation={!disabled && (enableLiquidAnimation ?? enableClickAnimation ?? true)}

@@ -157,10 +157,22 @@ function useTabsContext(component: string): TabsContextValue {
 const classes = (...values: readonly (string | false | undefined)[]): string =>
   values.filter(Boolean).join(' ');
 
-/* Une valeur d'onglet est écrite par l'appelant et se retrouve dans un `id` :
-   tout ce qui n'est pas sûr dans un identifiant est remplacé. Le `useId` qui
-   préfixe garde l'unicité même si deux valeurs se réduisent au même mot. */
-const sanitizeIdPart = (part: string): string => part.replace(/[^a-zA-Z0-9_-]/g, '-');
+/* UNE VALEUR D'ONGLET EST ÉCRITE PAR L'APPELANT ET SE RETROUVE DANS UN `id`,
+   ET L'ENCODAGE DOIT ÊTRE INJECTIF (ROB-07). Il remplaçait tout caractère
+   douteux par « - » : « a b » et « a.b » donnaient le même identifiant dans le
+   même Tabs, et `aria-controls` désignait le mauvais panneau. Le préfixe
+   `useId` ne sépare que les INSTANCES, pas les valeurs d'une même instance.
+
+   Lettres ASCII, chiffres et « - » passent tels quels : les identifiants des
+   valeurs simples ne bougent pas. Tout autre caractère — « _ » compris, qui
+   sert d'échappement — devient `_<code hexadécimal>_`. Deux valeurs
+   différentes ne peuvent donc plus se rencontrer. */
+const encodeIdPart = (part: string): string =>
+  Array.from(part, (character) =>
+    /^[a-zA-Z0-9-]$/.test(character)
+      ? character
+      : `_${(character.codePointAt(0) ?? 0).toString(16)}_`,
+  ).join('');
 
 /** Les déclencheurs de cette liste, dans l'ordre du document. */
 function tabsOf(list: HTMLElement): readonly HTMLElement[] {
@@ -379,11 +391,11 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
 
   const baseId = useId();
   const getTriggerId = useCallback(
-    (triggerValue: string) => `${baseId}-trigger-${sanitizeIdPart(triggerValue)}`,
+    (triggerValue: string) => `${baseId}-trigger-${encodeIdPart(triggerValue)}`,
     [baseId],
   );
   const getContentId = useCallback(
-    (triggerValue: string) => `${baseId}-content-${sanitizeIdPart(triggerValue)}`,
+    (triggerValue: string) => `${baseId}-content-${encodeIdPart(triggerValue)}`,
     [baseId],
   );
 

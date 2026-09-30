@@ -3,10 +3,14 @@ import {
   forwardRef,
   useCallback,
   useContext,
+  useEffect,
   useId,
   useMemo,
+  useState,
   type ComponentPropsWithoutRef,
+  type FocusEvent,
   type ForwardRefExoticComponent,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   type RefAttributes,
@@ -450,12 +454,49 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
       className,
       children,
       onClick,
+      onKeyDown,
+      onBlur,
+      onMouseEnter,
+      onMouseLeave,
       'aria-describedby': ariaDescribedBy,
       ...rest
     },
     ref,
   ) => {
     const { collapsed, handleItemSelect, value } = useSidebarContext('Sidebar.Item');
+    /* L'INFOBULLE DU RAIL REPLIÉ (ACC-25, WCAG 1.4.13). Replié, une entrée ne
+       montre qu'une icône ou une initiale : l'utilisateur voyant — souris,
+       clavier, commande vocale — devait deviner la cible. L'infobulle n'est
+       PAS un second texte : c'est le libellé déjà rendu, masqué à l'œil, que
+       la feuille déroule au survol et au focus. Le nom accessible ne bouge
+       donc pas, et aucun `title` ne le double (un `title` ne s'affiche pas au
+       focus et ne se congédie pas).
+
+       Échap la congédie sans déplacer le focus ; elle revient au prochain
+       focus ou au prochain survol. L'événement n'est PAS arrêté : l'infobulle
+       ne peut pas savoir si elle est peinte (`:focus-visible` n'existe qu'en
+       CSS), et avaler l'Échap d'un tiroir qui contient le rail serait pire
+       qu'une infobulle qui se ferme avec lui. */
+    const [tooltipDismissed, setTooltipDismissed] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    const tooltip = collapsed ? (tooltipDismissed ? 'dismissed' : 'true') : undefined;
+
+    /* ÉCHAP AU SURVOL, FOCUS AILLEURS. Écouté sur l'entrée seule, Échap ne
+       congédiait que l'infobulle ouverte au clavier : ouverte à la souris,
+       elle restait peinte tant que le pointeur restait dessus (relevé sous
+       Chromium, WCAG 1.4.13). Le document est un système extérieur au rendu,
+       d'où l'effet : l'écoute n'existe que pendant le survol d'une entrée
+       repliée dont l'infobulle est montrée, et part avec le pointeur ou au
+       démontage. Même règle que sur l'entrée : l'événement n'est pas arrêté. */
+    const listening = collapsed && hovered && !tooltipDismissed;
+    useEffect(() => {
+      if (!listening) return undefined;
+      const handleDocumentKeyDown = (event: globalThis.KeyboardEvent) => {
+        if (event.key === 'Escape') setTooltipDismissed(true);
+      };
+      document.addEventListener('keydown', handleDocumentKeyDown);
+      return () => document.removeEventListener('keydown', handleDocumentKeyDown);
+    }, [listening]);
     const badgeId = useId();
     const describedBy = badge
       ? [ariaDescribedBy, badgeId].filter(Boolean).join(' ')
@@ -480,6 +521,32 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
       onClick?.(event);
     };
 
+    const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+      if (collapsed && event.key === 'Escape') setTooltipDismissed(true);
+      onKeyDown?.(event);
+    };
+
+    const handleBlur = (event: FocusEvent<HTMLButtonElement>) => {
+      setTooltipDismissed(false);
+      onBlur?.(event);
+    };
+
+    /* Le pointeur qui s'en va rend l'infobulle au prochain survol — sauf si
+       l'entrée garde le focus : elle réapparaîtrait sous le clavier qui vient
+       de la congédier. */
+    const handleMouseEnter = (event: MouseEvent<HTMLButtonElement>) => {
+      setHovered(true);
+      onMouseEnter?.(event);
+    };
+
+    const handleMouseLeave = (event: MouseEvent<HTMLButtonElement>) => {
+      setHovered(false);
+      if (event.currentTarget.ownerDocument.activeElement !== event.currentTarget) {
+        setTooltipDismissed(false);
+      }
+      onMouseLeave?.(event);
+    };
+
     return (
       <button
         ref={ref}
@@ -492,7 +559,12 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
           className,
         )}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         disabled={disabled}
+        data-opale-tooltip={tooltip}
         /* L'ENTRÉE RETENUE EST LA PAGE COURANTE, ET ELLE LE DIT. C'est la seule
            façon pour un lecteur d'écran d'apprendre « vous êtes ici » ; la
            classe qui l'assombrit ne s'entend pas. `aria-current` est un

@@ -11,6 +11,7 @@ interface PageScaffoldSearchProps {
   readonly label: string;
   readonly suggestionsLabel: string;
   readonly noResultsLabel: string;
+  readonly suggestionCountLabel: (count: number) => string;
   readonly suggestions?: readonly PageScaffoldSearchSuggestion[];
   readonly onSuggestionSelect?: (suggestion: PageScaffoldSearchSuggestion) => void;
   readonly navigate?: (href: string) => void;
@@ -40,6 +41,7 @@ export function PageScaffoldSearch({
   label,
   suggestionsLabel,
   noResultsLabel,
+  suggestionCountLabel,
   suggestions,
   onSuggestionSelect,
   navigate = defaultNavigate,
@@ -212,14 +214,26 @@ export function PageScaffoldSearch({
               </li>
             ))}
           </ul>
-          {panelOpen && matches.length === 0 ? (
-            <p
-              className={clsx('opale-page-scaffold__no-results', styles.searchNoResults)}
-              role="status"
-            >
-              {noResultsLabel}
-            </p>
-          ) : null}
+          {/* UNE RÉGION DE STATUT PERMANENTE (ACC-24). « Aucun résultat » naissait
+              avec sa région `status`, donc sans annonce fiable, et l'arrivée des
+              suggestions n'était dite que par `aria-expanded`. La région est
+              désormais montée avec la liste, vide ; elle dit le compte des
+              suggestions ou leur absence. Le message visible reste le même
+              paragraphe : il n'est affiché que quand rien ne correspond. */}
+          <p
+            className={clsx(
+              panelOpen && matches.length === 0
+                ? ['opale-page-scaffold__no-results', styles.searchNoResults]
+                : 'opale-visually-hidden',
+            )}
+            role="status"
+          >
+            {panelOpen
+              ? matches.length === 0
+                ? noResultsLabel
+                : suggestionCountLabel(matches.length)
+              : null}
+          </p>
         </>
       ) : null}
     </form>
