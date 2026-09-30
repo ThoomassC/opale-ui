@@ -13,6 +13,8 @@ import {
   type ReactNode,
 } from 'react';
 
+import { treeRootOf } from '../../shared/tree-root';
+
 import styles from './style/Glass.module.css';
 
 /* =============================================================================
@@ -87,18 +89,38 @@ const PRESSABLE_TAGS = new Set(['button', 'a', 'summary']);
 /** L'identifiant du filtre de déplacement, cité par la feuille. */
 const FILTER_ID = 'opale-glass-displacement';
 
-/* Le filtre est un singleton de document : autant de verres qu'on veut, un
-   seul `<svg>`. Le compteur vit au niveau du module — il est donc partagé par
-   toutes les instances, ce qui est exactement la portée voulue. */
-let mountedGlassCount = 0;
-/** Le `<svg>` que le verre a créé ; celui d'un hôte ne lui appartient pas. */
-let ownedFilterHost: SVGSVGElement | null = null;
+/* LE FILTRE EST UN SINGLETON PAR PORTÉE D'ARBRE : autant de verres qu'on veut,
+   un seul `<svg>` par document ou par racine fantôme (ROB-09). `url(#…)` se
+   résout dans la portée de l'élément filtré ; un filtre posé dans le `<body>`
+   du document global était donc introuvable pour un verre rendu dans une
+   racine fantôme ou dans une iframe, et le déplacement disparaissait sans
+   rien dire. Les compteurs vivent au niveau du module, partagés par toutes
+   les instances d'une même portée — exactement la portée voulue. Une entrée
+   est retirée avec le dernier verre de sa portée : la table ne retient aucune
+   racine fantôme défunte. */
+interface FilterMount {
+  count: number;
+  /** Le `<svg>` que le verre a créé ; celui d'un hôte ne lui appartient pas. */
+  owned: SVGSVGElement | null;
+}
 
-function ensureFilterMounted(): () => void {
-  mountedGlassCount += 1;
+const filterMounts = new Map<Document | ShadowRoot, FilterMount>();
 
-  if (mountedGlassCount === 1 && !document.getElementById(FILTER_ID)) {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+/** Là où le `<svg>` du filtre se pose : le `<body>` d'un document, ou la racine fantôme elle-même. */
+function filterParentOf(scope: Document | ShadowRoot): ParentNode {
+  return 'body' in scope ? (scope.body ?? scope.documentElement) : scope;
+}
+
+function ensureFilterMounted(node: Element): () => void {
+  const scope = treeRootOf(node) ?? node.ownerDocument;
+  const mount = filterMounts.get(scope) ?? { count: 0, owned: null };
+  filterMounts.set(scope, mount);
+  mount.count += 1;
+
+  if (mount.count === 1 && !scope.getElementById(FILTER_ID)) {
+    /* Créé par le document du verre, pas par `document` : un élément d'une
+       iframe appartient au document de l'iframe. */
+    const svg = node.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('aria-hidden', 'true');
     svg.setAttribute('width', '0');
     svg.setAttribute('height', '0');
@@ -114,15 +136,15 @@ function ensureFilterMounted(): () => void {
         <feGaussianBlur in="noise" stdDeviation="0.7" result="softNoise" />
         <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="12" xChannelSelector="R" yChannelSelector="G" />
       </filter>`;
-    document.body.append(svg);
-    ownedFilterHost = svg;
+    filterParentOf(scope).append(svg);
+    mount.owned = svg;
   }
 
   return () => {
-    mountedGlassCount -= 1;
-    if (mountedGlassCount === 0) {
-      ownedFilterHost?.remove();
-      ownedFilterHost = null;
+    mount.count -= 1;
+    if (mount.count === 0) {
+      mount.owned?.remove();
+      filterMounts.delete(scope);
     }
   };
 }
@@ -197,7 +219,9 @@ function GlassInner<T extends ElementType = 'div'>(
      quand deux clics se suivent plus vite qu'elle. */
   const [ripple, setRipple] = useState<{ x: number; y: number; seq: number } | null>(null);
 
-  useEffect(() => ensureFilterMounted(), []);
+  /* L'enveloppe est montée quand l'effet passe : c'est d'elle qu'on lit la
+     portée d'arbre du filtre. */
+  useEffect(() => (container.current ? ensureFilterMounted(container.current) : undefined), []);
 
   /* L'onde s'efface d'elle-même. Le `key` la remonte à neuf quand deux clics
      se suivent plus vite que l'animation : sans lui, le second clic ne

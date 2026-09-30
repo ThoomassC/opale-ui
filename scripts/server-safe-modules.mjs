@@ -28,8 +28,10 @@ export const SERVER_SAFE_BARRELS = Object.freeze(['index', 'opale', 'opale-names
 export const SERVER_SAFE_DATA_MODULES = Object.freeze([
   'catalog',
   'catalog/cookie-consent',
+  'components/icon/glyphs',
   'components/icon/icons',
   'components/site-nav/default-items',
+  'theme/theme-script',
 ]);
 
 /** Tous les modules livrés sans directive. */

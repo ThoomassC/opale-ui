@@ -544,7 +544,7 @@ describe('les constats sérieux de l’audit', () => {
   it('borne aussi les animations en boucle quand on demande moins de mouvement', () => {
     /* LA FEUILLE EN COMPTE PLUSIEURS — le curseur a le sien. On retient celui
        qui borne les animations, puisque c'est de lui qu'il s'agit. */
-    const filet = declarations(opaleSheet, '*', {
+    const filet = declarations(opaleSheet, ":where([class^='opale-'], [class*=' opale-'])", {
       within: '@media (prefers-reduced-motion: reduce)',
     });
 

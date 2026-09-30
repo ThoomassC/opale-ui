@@ -312,7 +312,23 @@ export const Pressable = forwardRef<HTMLButtonElement, Omit<PressableProps, 'ref
 );
 Pressable.displayName = 'Pressable';
 
+/**
+ * Les props de `Input`.
+ *
+ * DEUX DESTINATIONS, ET C'EST VOULU (DX-03). `className` va à l'ENVELOPPE —
+ * `.opale-field`, qui porte libellé, aide et erreur.
+ * Tout le reste — `id`, `name`, `style`, `ref`, `aria-*`, `data-*`, les
+ * gestionnaires — va à l'`<input>` natif :
+ * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
+ * vrai contrôle.
+ *
+ * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
+ * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-input` depuis
+ * la classe de l'enveloppe.
+ */
 export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'> {
+  /** Va à l'enveloppe, pas au contrôle natif. Voir `InputProps`. */
+  className?: string;
   label?: ReactNode;
   helperText?: ReactNode;
   error?: ReactNode;
@@ -430,7 +446,24 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
 });
 Input.displayName = 'Input';
 
+/**
+ * Les props de `Checkbox`.
+ *
+ * DEUX DESTINATIONS, ET C'EST VOULU (DX-03). `className` va à l'ENVELOPPE —
+ * le `<label class="opale-checkbox-row">`, case et libellé.
+ * Tout le reste — `id`, `name`, `style`, `ref`, `aria-*`, `data-*`, les
+ * gestionnaires — va à l'`<input type="checkbox">` natif :
+ * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
+ * vrai contrôle.
+ * L'erreur, elle, est rendue en frère de cette rangée, hors de l'enveloppe.
+ *
+ * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
+ * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-checkbox` depuis
+ * la classe de l'enveloppe.
+ */
 export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+  /** Va à l'enveloppe, pas au contrôle natif. Voir `CheckboxProps`. */
+  className?: string;
   label?: ReactNode;
   description?: ReactNode;
   /**
@@ -575,7 +608,24 @@ export function Checkbox({
   );
 }
 
+/**
+ * Les props de `Toggle`.
+ *
+ * DEUX DESTINATIONS, ET C'EST VOULU (DX-03). `className` va à l'ENVELOPPE —
+ * le `<label class="opale-toggle-row">`, interrupteur et libellé.
+ * Tout le reste — `id`, `name`, `style`, `ref`, `aria-*`, `data-*`, les
+ * gestionnaires — va à l'`<input type="checkbox">` natif :
+ * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
+ * vrai contrôle.
+ * L'erreur, elle, est rendue en frère de cette rangée, hors de l'enveloppe.
+ *
+ * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
+ * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-toggle` depuis
+ * la classe de l'enveloppe.
+ */
 export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+  /** Va à l'enveloppe, pas au contrôle natif. Voir `ToggleProps`. */
+  className?: string;
   label?: ReactNode;
   /**
    * L'erreur, annoncée et décrite ; rend l'interrupteur invalide. Rendue en
@@ -650,7 +700,23 @@ export function Toggle({
   );
 }
 
+/**
+ * Les props de `Slider`.
+ *
+ * DEUX DESTINATIONS, ET C'EST VOULU (DX-03). `className` va à l'ENVELOPPE —
+ * `.opale-field`, qui porte libellé et valeur.
+ * Tout le reste — `id`, `name`, `style`, `ref`, `aria-*`, `data-*`, les
+ * gestionnaires — va à l'`<input type="range">` natif :
+ * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
+ * vrai contrôle.
+ *
+ * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
+ * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-range` depuis
+ * la classe de l'enveloppe.
+ */
 export interface SliderProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+  /** Va à l'enveloppe, pas au contrôle natif. Voir `SliderProps`. */
+  className?: string;
   label?: ReactNode;
   valueLabel?: ReactNode;
   /** La valeur dite en mots, en `aria-valuetext` : « 3 sur 10 ». */
@@ -880,7 +946,23 @@ export function Slider({
   );
 }
 
+/**
+ * Les props de `Select`.
+ *
+ * DEUX DESTINATIONS, ET C'EST VOULU (DX-03). `className` va à l'ENVELOPPE —
+ * `.opale-field`, qui porte libellé, aide et erreur.
+ * Tout le reste — `id`, `name`, `style`, `ref`, `aria-*`, `data-*`, les
+ * gestionnaires — va au `<select>` natif :
+ * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
+ * vrai contrôle.
+ *
+ * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
+ * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-select` depuis
+ * la classe de l'enveloppe.
+ */
 export interface SelectProps extends ComponentPropsWithRef<'select'> {
+  /** Va à l'enveloppe, pas au contrôle natif. Voir `SelectProps`. */
+  className?: string;
   label?: ReactNode;
   helperText?: ReactNode;
   /** L'erreur, annoncée et décrite à la place de l'aide ; rend le champ invalide. */

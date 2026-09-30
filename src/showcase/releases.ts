@@ -49,6 +49,60 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V394_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'À votre marque',
+    changes: [
+      {
+        title: 'Une page pour personnaliser',
+        detail:
+          'La page « Personnaliser » liste les jetons publics, stables en 3.x, avec leurs valeurs claires et sombres, et donne la recette d’une marque. checkBrand, dans le contrat, mesure les contrastes d’une couleur de marque et propose l’encre qui tient.',
+        links: [{ label: 'Personnaliser', slug: 'personnaliser' }],
+      },
+      {
+        title: 'Une couleur, tous ses états',
+        detail:
+          'data-opale-brand="derive" calcule survol, éclairci et anneau de focus depuis --opale-primary ; data-opale-scope applique une marque ou un rayon à un seul sous-arbre ; chaque aplat a son encre (--opale-on-primary, --opale-on-secondary, --opale-on-danger). Sans ces attributs, rien ne change.',
+        links: [{ label: 'Personnaliser', slug: 'personnaliser' }],
+      },
+      {
+        title: 'Le thème du système, sans flash',
+        detail:
+          'PageScaffold accepte defaultTheme="system" et themeStorageKey ; useOpaleTheme pilote le thème du document et opaleThemeScript le pose avant l’affichage, pour Next.js comme pour Vite.',
+        links: [{ label: 'PageScaffold', slug: 'composants/page-scaffold' }],
+      },
+    ],
+  },
+  {
+    title: 'Le paquet',
+    changes: [
+      {
+        title: 'Des feuilles pour chaque projet',
+        detail:
+          'opale.layered.css range Opale dans @layer opale, pour que les utilitaires de Tailwind v4 l’emportent ; opale-nofonts.css laisse vos propres polices. Les polices de repli sont calées sur Chivo et Bricolage pour limiter le saut au chargement, et le mouvement réduit ne touche plus que les éléments d’Opale.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+      {
+        title: 'Plus léger et mieux suivi',
+        detail:
+          'Modal, les toasts, Rating et FileCard n’embarquent plus le jeu d’icônes entier (Modal : 10 → 5,7 ko compressés). SvgMap ne relit plus ses tracés à chaque rendu. L’archive publie un package.json épuré et un CHANGELOG ; la CI teste Node 20, 22 et 24 et React 19.0.',
+        links: [{ label: 'Installation', slug: 'installation' }],
+      },
+    ],
+  },
+  {
+    title: 'Finitions',
+    changes: [
+      {
+        title: 'Des contours et du verre qui tiennent',
+        detail:
+          'Le contour du bouton ghost est continu, l’anneau de focus suit la forme du bouton, les rayons et espacements des composants suivent l’échelle, le verre fonctionne dans un Shadow DOM, et un champ de verre ne déborde plus d’une Card de verre. Toast accepte title et description, comme showToast.',
+        links: [{ label: 'Le verre liquide', slug: 'verre-liquide' }],
+      },
+    ],
+  },
+];
+
 const V393_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Lisible partout',
@@ -1005,6 +1059,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.9.4',
+    publishedAt: '2026-09-30',
+    dateLabel: '30 septembre 2026',
+    summary:
+      'À la marque de chaque projet : des jetons publics documentés, une couleur qui dérive ses états, un thème système sans flash, des feuilles pour Tailwind et sans polices, un paquet plus léger. Sans rupture.',
+    sections: V394_RELEASE_SECTIONS,
+    changes: V394_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Page « Personnaliser » et checkBrand.', 'Feuille en @layer pour Tailwind v4.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.9.3',
     publishedAt: '2026-09-30',
     dateLabel: '30 septembre 2026',
@@ -1015,8 +1083,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Verre lisible sur une page claire.', 'Contrastes forcés pris en charge.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.9.4, sur son tag. */
+    appHref: '/versions/v3.9.3/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.9.3`,
   },
   {
     version: '3.9.2',

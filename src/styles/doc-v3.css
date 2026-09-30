@@ -3280,3 +3280,23 @@ body {
 .tc-doc-main--components .tc-doc-component-page .tc-doc-props {
   display: block;
 }
+
+/* LE MOUVEMENT RÉDUIT DE LA VITRINE, À SON NOM. Jusqu'à la 3.9.3, la règle
+   globale d'`opale.css` (`*`) couvrait aussi les éléments `tc-doc-*` ; depuis
+   la 3.9.4 elle ne vise plus que les éléments d'Opale, pour ne pas imposer son
+   `!important` aux pages hôtes. La vitrine reprend donc ce filet pour elle-même.
+   `tokens.css` ne borne que les propriétés animées, pas les durées. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .tc-doc,
+  .tc-doc *,
+  .tc-doc *::before,
+  .tc-doc *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

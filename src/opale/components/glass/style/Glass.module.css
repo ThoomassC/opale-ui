@@ -187,6 +187,14 @@
    `font: inherit` EST DU MÊME ORDRE : un bouton natif n'hérite pas de la
    police du document, il prend celle du système. */
 .content {
+  /* LA LARGEUR NE TRAVERSE PAS LE VERRE (THM-18). `--opale-glass-width` est
+     héritée : une carte de verre à `100%` la transmettait à chaque verre posé
+     dedans, et la coche d'une case devenait une piste pleine largeur qui
+     rejetait son libellé hors de la carte. Remise ici à l'initiale, la
+     variable invalide retombe sur le défaut de `.glass` — `fit-content` — pour
+     tout verre imbriqué qui ne la règle pas lui-même. Le rayon, lui, reste
+     hérité : `Modal` et la barre de la vitrine le posent au-dessus du verre. */
+  --opale-glass-width: initial;
   position: relative;
   z-index: 3;
   color: var(--opale-glass-ink);

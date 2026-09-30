@@ -27,6 +27,24 @@
    identique, ce qui est le comportement attendu d'un dessin, pas d'un texte.
    ========================================================================== */
 
+/* LES DESSINS QUE LES COMPOSANTS AFFICHENT EUX-MÊMES — la croix d'un dialogue,
+   l'étoile d'une note — vivent dans `glyphs.ts`, un tracé par constante, pour
+   qu'un `Modal` importé seul n'embarque pas cette table. Le catalogue reprend
+   ces constantes telles quelles : un dessin n'a qu'une source. */
+import {
+  GLYPH_ALERT_TRIANGLE,
+  GLYPH_ARCHIVE,
+  GLYPH_CHECK_CIRCLE,
+  GLYPH_CHEVRON_DOWN,
+  GLYPH_CHEVRON_UP,
+  GLYPH_CLOSE,
+  GLYPH_FILE,
+  GLYPH_INFO,
+  GLYPH_SORT,
+  GLYPH_STAR,
+  GLYPH_X_CIRCLE,
+} from './glyphs';
+
 /**
  * Un cercle écrit en commandes d'arc.
  *
@@ -58,8 +76,8 @@ export const OPALE_ICONS = {
   'arrow-down': ['M12 4v16', 'M19 13l-7 7-7-7'],
   'arrow-left': ['M20 12H4', 'M11 19l-7-7 7-7'],
   'arrow-right': ['M4 12h16', 'M13 5l7 7-7 7'],
-  'chevron-up': ['M5 15l7-7 7 7'],
-  'chevron-down': ['M5 9l7 7 7-7'],
+  'chevron-up': GLYPH_CHEVRON_UP,
+  'chevron-down': GLYPH_CHEVRON_DOWN,
   'chevron-left': ['M15 5l-7 7 7 7'],
   'chevron-right': ['M9 5l7 7-7 7'],
   'chevrons-left': ['M13 6l-6 6 6 6', 'M19 6l-6 6 6 6'],
@@ -67,7 +85,7 @@ export const OPALE_ICONS = {
   'corner-turn': ['M4 8h9a4 4 0 0 1 4 4v8', 'M8 4L4 8l4 4'],
   home: ['M3 11l9-7.5L21 11', 'M5.5 9.6V19a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.6', 'M10 20v-5.5h4V20'],
   menu: ['M4 7h16', 'M4 12h16', 'M4 17h16'],
-  close: ['M6 6l12 12', 'M18 6L6 18'],
+  close: GLYPH_CLOSE,
   'external-link': ['M14 4h6v6', 'M20 4l-8.5 8.5', 'M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'],
   'more-horizontal': [dot(5.5, 12), dot(12, 12), dot(18.5, 12)],
   'more-vertical': [dot(12, 5.5), dot(12, 12), dot(12, 18.5)],
@@ -84,7 +102,7 @@ export const OPALE_ICONS = {
   upload: ['M12 20.5V9', 'M7 13.5l5-5 5 5', 'M4 3.5h16'],
   refresh: ['M20.2 12a8.2 8.2 0 1 1-2.5-5.9', 'M20.5 3.8v5h-5'],
   filter: ['M3.5 5h17l-6.6 7.6V19l-3.8 2v-9.4z'],
-  sort: ['M7 4.5v15', 'M3.8 16.2L7 19.5l3.2-3.3', 'M17 19.5v-15', 'M13.8 7.8L17 4.5l3.2 3.3'],
+  sort: GLYPH_SORT,
   share: [circle(6, 12, 2.2), circle(18, 6.5, 2.2), circle(18, 17.5, 2.2), 'M8 10.9l8-3.3', 'M8 13.1l8 3.3'],
   save: ['M5 4h11l3 3v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z', 'M8 4v5h7V4', 'M8 20.5V14h8v6.5'],
   print: ['M7 9.5V4h10v5.5', 'M7 18H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2', 'M7 14.5h10V21H7z'],
@@ -92,13 +110,13 @@ export const OPALE_ICONS = {
   'drag-handle': [dot(9.5, 6.5), dot(14.5, 6.5), dot(9.5, 12), dot(14.5, 12), dot(9.5, 17.5), dot(14.5, 17.5)],
 
   /* --- Fichiers --------------------------------------------------------- */
-  file: ['M13.5 3.5H7a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z', 'M13.5 3.5V8H18'],
+  file: GLYPH_FILE,
   'file-text': ['M13.5 3.5H7a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z', 'M13.5 3.5V8H18', 'M9 12.5h6', 'M9 16h4'],
   folder: ['M3.5 6.5a1 1 0 0 1 1-1h4.3l2 2.5h7.7a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1h-14a1 1 0 0 1-1-1z'],
   'folder-open': ['M3.5 18.5V6.5a1 1 0 0 1 1-1h4.3l2 2.5h7.7a1 1 0 0 1 1 1v1.5', 'M3.5 18.5l2.4-7h15.1l-2.4 7z'],
   image: ['M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z', circle(9, 10, 1.7), 'M3.5 17l4.5-4.5 3.5 3.5 3-3 6 6'],
   paperclip: ['M19 11.5l-7.3 7.3a4.3 4.3 0 0 1-6.1-6.1l8-8a2.9 2.9 0 0 1 4.1 4.1l-8 8a1.5 1.5 0 0 1-2.1-2.1l7.3-7.3'],
-  archive: ['M3.5 4.5h17v4h-17z', 'M5 8.5v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-10', 'M10 12.5h4'],
+  archive: GLYPH_ARCHIVE,
   clipboard: ['M9 4.5H7a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-14a1 1 0 0 0-1-1h-2', 'M9 3h6v3.5H9z'],
   book: ['M4 4.5h6a3 3 0 0 1 2 5.2V20a3 3 0 0 0-2-.8H4z', 'M20 4.5h-6a3 3 0 0 0-2 5.2V20a3 3 0 0 1 2-.8h6z'],
   layers: ['M12 3.5l8.5 4.6L12 12.7 3.5 8.1z', 'M3.5 12.5L12 17l8.5-4.5', 'M3.5 16.5L12 21l8.5-4.5'],
@@ -123,13 +141,13 @@ export const OPALE_ICONS = {
   'shield-check': ['M12 3.2l7.5 2.8v6c0 4.4-3 8.2-7.5 9.8-4.5-1.6-7.5-5.4-7.5-9.8v-6z', 'M8.8 12l2.3 2.3 4.1-4.6'],
 
   /* --- État ------------------------------------------------------------- */
-  info: [circle(12, 12, 8.5), 'M12 11v5.5', 'M12 7.8v.6'],
-  'alert-triangle': ['M12 3.8L21 19.8H3z', 'M12 10v4.2', 'M12 17.2v.6'],
+  info: GLYPH_INFO,
+  'alert-triangle': GLYPH_ALERT_TRIANGLE,
   'alert-circle': [circle(12, 12, 8.5), 'M12 7.5v5.5', 'M12 16.2v.6'],
-  'check-circle': [circle(12, 12, 8.5), 'M8.2 12.2l2.7 2.7 5-5.4'],
-  'x-circle': [circle(12, 12, 8.5), 'M9.2 9.2l5.6 5.6', 'M14.8 9.2l-5.6 5.6'],
+  'check-circle': GLYPH_CHECK_CIRCLE,
+  'x-circle': GLYPH_X_CIRCLE,
   'help-circle': [circle(12, 12, 8.5), 'M9.6 9.4a2.5 2.5 0 1 1 2.9 3v1.5', 'M12.5 16.8v.6'],
-  star: ['M12 3.6l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 10l6.1-.9z'],
+  star: GLYPH_STAR,
   heart: ['M12 20.3l-7.1-7a4.4 4.4 0 0 1 7.1-5 4.4 4.4 0 0 1 7.1 5z'],
   bookmark: ['M6.5 3.8h11a1 1 0 0 1 1 1v15.4L12 16.3l-6.5 3.9V4.8a1 1 0 0 1 1-1z'],
   flag: ['M5.5 21V3.8', 'M5.5 4.6h11.9l-2.1 4 2.1 4H5.5z'],

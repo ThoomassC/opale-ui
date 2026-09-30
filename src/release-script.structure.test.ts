@@ -44,7 +44,7 @@ describe('scripts/release.mjs', () => {
     const verified = releaseSource.indexOf('CHECKS_ON_BUILD) run(');
     expect(releaseSource.indexOf('CHECKS_BEFORE_BUILD) run(')).toBeGreaterThan(0);
     expect(verified).toBeGreaterThan(releaseSource.indexOf("run('npm', 'run', 'build:lib')"));
-    expect(verified).toBeLessThan(releaseSource.indexOf("['pack',"));
+    expect(verified).toBeLessThan(releaseSource.indexOf('packStaged(root'));
     expect(verified).toBeLessThan(releaseSource.indexOf("git('tag', '-a'"));
   });
 });

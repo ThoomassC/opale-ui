@@ -4,6 +4,7 @@ import { introductionPage } from './introduction';
 import { installationPage } from './installation';
 import { themingPage, utilisationPage } from './guide-pages';
 import { iconesPage } from './icones';
+import { personnaliserPage } from './personnaliser.page';
 import { migrationPage } from './migrer-vers-4';
 import { verreLiquidePage } from './verre-liquide';
 import { notesVersionsPage } from './notes-de-versions';
@@ -38,6 +39,8 @@ export const PAGES: readonly DocPage[] = [
   installationPage,
   utilisationPage,
   themingPage,
+  /* Juste après « Thèmes » : le thème choisi, on l'habille à sa marque. */
+  personnaliserPage,
   iconesPage,
   /* La dernière 3.x prépare la suivante : la liste des anciens noms, déduite
      de `src/opale/deprecations.ts`. */

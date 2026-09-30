@@ -56,8 +56,8 @@ describe('les couleurs littérales', () => {
 
   it('pose l’encre des remplissages sur la coche de la liste multiple', () => {
     const mark = declarations(opaleSource, '.opale-multiselect__mark::after');
-    expect(mark.get('border-left')).toBe('2px solid var(--opale-on-fill)');
-    expect(mark.get('border-bottom')).toBe('2px solid var(--opale-on-fill)');
+    expect(mark.get('border-left')).toBe('2px solid var(--opale-on-primary)');
+    expect(mark.get('border-bottom')).toBe('2px solid var(--opale-on-primary)');
   });
 
   it('pose l’encre des remplissages sur la suggestion choisie de PageScaffold', () => {

@@ -3,7 +3,7 @@ import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Opale, useSvgMapViewport } from './index';
+import { Opale, useOpaleTheme, useSvgMapViewport } from './index';
 
 /* =============================================================================
    RENDU SERVEUR PUIS HYDRATATION, POUR CHAQUE COMPOSANT DU NAMESPACE — ROB-12.
@@ -50,6 +50,16 @@ function SvgMapWithControls() {
       <Opale.SvgMap viewBox="0 0 20 20" regions={regions} viewport={viewport} />
       <Opale.SvgMapControls viewport={viewport} />
     </>
+  );
+}
+
+/* Le thème mémorisé que ni le serveur ni l'hydratation ne doivent lire. */
+function ThemeProbe() {
+  const { theme, resolvedTheme } = useOpaleTheme({ storageKey: 'ssr-theme' });
+  return (
+    <p data-choice={theme} data-resolved={resolvedTheme}>
+      {resolvedTheme}
+    </p>
   );
 }
 
@@ -206,6 +216,17 @@ const SCENARIOS: Record<string, () => ReactElement> = {
       </tbody>
     </table>
   ),
+  'gabarit en thème système': () => (
+    <Opale.PageScaffold siteName="t" defaultTheme="system">
+      x
+    </Opale.PageScaffold>
+  ),
+  'gabarit au thème mémorisé': () => (
+    <Opale.PageScaffold siteName="t" themeStorageKey="ssr-theme">
+      <Opale.Toast message="m" />
+    </Opale.PageScaffold>
+  ),
+  'useOpaleTheme mémorisé': () => <ThemeProbe />,
   'modale ouverte dans un gabarit sombre': () => (
     <Opale.PageScaffold siteName="t" defaultTheme="dark">
       <Opale.Modal open title="Sombre" onOpenChange={noop}>
@@ -299,6 +320,19 @@ describe('rendu serveur puis hydratation, sous StrictMode', () => {
     expect(serverParagraph).not.toBeNull();
     expect(hydrated.host.querySelector('main p')).toBe(serverParagraph);
     expect(document.querySelector('[data-testid="toast-portal"]')).not.toBeNull();
+  });
+
+  it('applique le thème mémorisé du gabarit une fois l’hydratation faite', async () => {
+    const hydrated = await serverRenderThenHydrate(SCENARIOS['gabarit au thème mémorisé'], () =>
+      localStorage.setItem('ssr-theme', 'dark'),
+    );
+    mounted.push(hydrated);
+
+    expect(hydrated.errors).toEqual([]);
+    expect(hydrated.host.querySelector('.opale-page-scaffold')).toHaveAttribute(
+      'data-opale-page-theme',
+      'dark',
+    );
   });
 
   it('ouvre la modale rendue ouverte, une fois l’hydratation faite', async () => {

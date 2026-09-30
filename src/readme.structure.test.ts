@@ -59,6 +59,24 @@ describe('le README', () => {
     expect(readme).not.toMatch(/n'est pas minifié/);
   });
 
+  /* THM-08, THM-16 — un point d'entrée que le README ne nomme pas n'existe pour
+     personne. */
+  it('nomme chaque point d’entrée du paquet dans son tableau', () => {
+    for (const specifier of Object.keys(manifest.exports)) {
+      expect(readme).toContain(`| \`${specifier}\``);
+    }
+  });
+
+  it('donne l’ordre des couches pour Tailwind v4', () => {
+    expect(readme).toContain('@layer theme, base, opale, components, utilities;');
+    expect(readme).toContain("@import '@thomascaron/opale-ui/opale.layered.css';");
+  });
+
+  it('renvoie à la page Personnaliser et au journal des versions', () => {
+    expect(readme).toContain('#/personnaliser');
+    expect(readme).toContain('(./CHANGELOG.md)');
+  });
+
   it('décrit le paquet sans nommer les applications qui le consomment', () => {
     expect(manifest.description).not.toMatch(/portfolio|travels_in_world/i);
     expect(readme).not.toMatch(/travels_in_world/);

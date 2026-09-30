@@ -13,7 +13,15 @@ import {
 import clsx from 'clsx';
 
 import Glass from '../components/glass/Glass';
-import { IconGlyph, OPALE_ICONS, isOpaleIconName, type OpaleIconName } from '../components/icon';
+import { IconGlyph, isOpaleIconName, type OpaleIconName } from '../components/icon';
+import {
+  GLYPH_ARCHIVE,
+  GLYPH_CHEVRON_DOWN,
+  GLYPH_CHEVRON_UP,
+  GLYPH_SORT,
+  GLYPH_STAR,
+} from '../components/icon/glyphs';
+import { IconPaths } from '../components/icon/IconPaths';
 import type { OpaleSize } from '../shared';
 import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
@@ -303,7 +311,7 @@ function formatRating(value: number): string {
 }
 
 /** Le tracé de l'étoile, emprunté au jeu d'icônes. Une seule silhouette dans le dépôt. */
-const RATING_STAR = OPALE_ICONS.star[0];
+const RATING_STAR = GLYPH_STAR[0];
 
 /**
  * Où couper la largeur de l'étoile pour en peindre la fraction demandée.
@@ -798,13 +806,13 @@ export function DataTable({
                         onClick={() => toggle(column)}
                       >
                         {column.label}
-                        <IconGlyph
-                          name={
+                        <IconPaths
+                          paths={
                             active === 'ascending'
-                              ? 'chevron-up'
+                              ? GLYPH_CHEVRON_UP
                               : active === 'descending'
-                                ? 'chevron-down'
-                                : 'sort'
+                                ? GLYPH_CHEVRON_DOWN
+                                : GLYPH_SORT
                           }
                           className="opale-table__sort-icon"
                         />
@@ -832,7 +840,7 @@ export function DataTable({
               <tr>
                 <td colSpan={Math.max(1, columns.length)} className="opale-table__state-cell">
                   <div className="opale-table__state">
-                    <IconGlyph name="archive" className="opale-table__state-icon" />
+                    <IconPaths paths={GLYPH_ARCHIVE} className="opale-table__state-icon" />
                     <span>{labels.empty}</span>
                   </div>
                 </td>

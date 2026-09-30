@@ -71,9 +71,9 @@ describe('le verre sur la page', () => {
   });
 
   it.each([
-    ['primary', 'var(--opale-primary)', 'var(--opale-on-fill)'],
-    ['secondary', 'var(--opale-secondary-dark)', 'var(--opale-on-fill)'],
-    ['danger', 'var(--opale-danger)', 'var(--opale-on-fill)'],
+    ['primary', 'var(--opale-primary)', 'var(--opale-on-primary)'],
+    ['secondary', 'var(--opale-secondary-dark)', 'var(--opale-on-secondary)'],
+    ['danger', 'var(--opale-danger)', 'var(--opale-on-danger)'],
     ['accent', 'var(--opale-accent)', 'var(--opale-on-accent)'],
   ])('rend au bouton %s son aplat, donc la hiérarchie des actions', (variant, fill, ink) => {
     const button = declarations(
@@ -98,7 +98,7 @@ describe('le verre sur la page', () => {
       `${PAGE} .opale-badge--glass`,
       `${PAGE} .opale-checkbox:checked + * .opale-checkbox-mark`,
     ]) {
-      expect(declaration(opaleSource, selector, 'color'), selector).toBe('var(--opale-on-fill)');
+      expect(declaration(opaleSource, selector, 'color'), selector).toBe('var(--opale-on-primary)');
     }
     expect(
       declaration(opaleSource, `${PAGE} [data-opale-glass] .opale-progress__value`, 'background'),

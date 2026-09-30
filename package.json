@@ -1,6 +1,6 @@
 {
   "name": "@thomascaron/opale-ui",
-  "version": "3.9.3",
+  "version": "3.9.4",
   "private": true,
   "description": "Opale — système de design React 19 : jetons mesurés, contrat de couleur exécutable, composants et matière verre liquide.",
   "author": "Thomas Caron",
@@ -23,6 +23,7 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "THIRD-PARTY-NOTICES.md",
     "LICENSE"
   ],
@@ -39,6 +40,9 @@
     },
     "./tokens.css": "./dist/tokens/tokens.css",
     "./opale.css": "./dist/opale/opale.css",
+    "./opale.layered.css": "./dist/opale/opale.layered.css",
+    "./opale-nofonts.css": "./dist/opale/opale-nofonts.css",
+    "./opale-nofonts.layered.css": "./dist/opale/opale-nofonts.layered.css",
     "./fonts.css": "./dist/opale/fonts.css",
     "./package.json": "./package.json"
   },
@@ -50,8 +54,9 @@
     "check:dist": "node scripts/check-dist.mjs",
     "check:consumer": "node scripts/check-consumer.mjs",
     "check:size": "node scripts/check-size.mjs",
+    "changelog": "node scripts/changelog.mjs",
     "build:css": "rm -rf dist/tokens && mkdir -p dist/tokens && cp src/tokens/*.css dist/tokens/",
-    "build:opale": "rm -rf dist/opale && tsc -p tsconfig.opale.json && vite build --config vite.lib.config.ts && mkdir -p dist/opale/fonts && cp src/opale/fonts.css dist/opale/fonts.css && cp src/opale/fonts/* dist/opale/fonts/ && node scripts/link-fonts.mjs",
+    "build:opale": "rm -rf dist/opale && tsc -p tsconfig.opale.json && vite build --config vite.lib.config.ts && mkdir -p dist/opale/fonts && cp src/opale/fonts.css dist/opale/fonts.css && cp src/opale/fonts/* dist/opale/fonts/ && node scripts/link-fonts.mjs && node scripts/css-variants.mjs",
     "prepare": "npm run build:lib",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
@@ -81,8 +86,9 @@
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
     "@vitejs/plugin-react": "^6.1.0",
-    "@vitest/coverage-v8": "^3.2.7",
+    "@vitest/coverage-v8": "^5.0.3",
     "d3-geo": "^3.1.1",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -99,7 +105,7 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.69.0",
     "vite": "^8.2.2",
-    "vitest": "^3.2.7",
+    "vitest": "^5.0.3",
     "world-atlas": "^2.0.2"
   }
 }
