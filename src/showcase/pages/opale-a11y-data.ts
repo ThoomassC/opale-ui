@@ -667,4 +667,132 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Le succès s’efface après 2 secondes ; l’échec reste affiché jusqu’au prochain essai.',
     ],
   },
+  Textarea: {
+    states: [
+      { state: 'disabled', text: '`disabled` est transmis au `<textarea>` natif.' },
+      {
+        state: 'error',
+        text: '`error` pose `aria-invalid` et remplace l’aide par un message en `role="alert"`, désigné par `aria-describedby`.',
+      },
+    ],
+    keyboard: [
+      '`<textarea>` natif : Entrée ajoute une ligne, Tab quitte le champ.',
+      'Avec `autoResize`, la hauteur suit la saisie sans rendu React ; au-delà de `maxRows`, le champ défile.',
+    ],
+    semantics: [
+      'Libellé en `<label for>`, hors de la coquille ; l’aide ou l’erreur est une description.',
+      'Le compte visible est `aria-hidden` : lu à chaque touche, il serait insupportable.',
+      'Avec `maxLength`, la limite est une description lue au focus, et le reste est annoncé poliment après une pause de frappe, jamais au montage.',
+      'Sans libellé ni nom ARIA, un avertissement l’écrit en développement.',
+    ],
+    limits: [
+      'Avec `autoResize`, la poignée de redimensionnement disparaît.',
+      'Sans `maxLength`, `showCount` affiche le compte sans rien annoncer.',
+    ],
+  },
+  RadioGroup: {
+    states: [
+      {
+        state: 'disabled',
+        text: '`disabled` désactive tout le groupe par le `<fieldset>` natif ; une option `disabled` reste visible sans pouvoir être cochée.',
+      },
+      {
+        state: 'error',
+        text: '`error` pose `aria-invalid` sur le groupe et ajoute un message en `role="alert"` à sa description.',
+      },
+    ],
+    keyboard: [
+      'Radios natifs : Tab entre dans le groupe sur le radio coché, les flèches changent le choix, Espace coche.',
+    ],
+    semantics: [
+      '`<fieldset role="radiogroup">` nommé par sa `<legend>` (`label`), ou par `aria-label`.',
+      'L’aide et l’erreur décrivent le groupe, lues à l’entrée et non répétées à chaque flèche.',
+      'Chaque radio est nommé par son libellé et décrit par sa `description`.',
+      '`required` pose `required` sur chaque radio et `aria-required` sur le groupe.',
+    ],
+    limits: [
+      '`ref`, `onChange` et `onBlur` vont à chaque radio : la ref est appelée une fois par radio.',
+    ],
+  },
+  Field: {
+    states: [
+      {
+        state: 'error',
+        text: '`error` pose `aria-invalid` sur le contrôle et ajoute un message en `role="alert"` après l’aide, qui reste affichée.',
+      },
+    ],
+    keyboard: ['Le clavier est celui du contrôle fourni : le champ n’en ajoute aucun.'],
+    semantics: [
+      'Le libellé est un `<label for>` et nomme aussi par `aria-labelledby` ce que `for` ne nomme pas : un `role="combobox"`, un bouton maison.',
+      'Le contrôle reçoit `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid` et `aria-required` par la fonction enfant ou par `useFieldProps()`.',
+      'La marque `*` de `required` est `aria-hidden` : `aria-required` dit déjà « obligatoire ».',
+    ],
+    limits: [
+      'Rien n’est posé d’office : un contrôle qui n’étale pas les props reçues reste sans nom.',
+      '`required` ne pose pas la validation native : c’est au contrôle de la porter.',
+    ],
+  },
+  Grid: {
+    states: [],
+    keyboard: [],
+    semantics: [
+      'Un `<div>` sans rôle : l’ordre de lecture est celui du code, quelle que soit la colonne.',
+    ],
+    limits: [
+      'Un nombre de colonnes fixe ne passe pas à une colonne sur un écran étroit : préférez une largeur minimale de piste.',
+    ],
+  },
+  Tooltip: {
+    states: [],
+    keyboard: [
+      'Le focus du déclencheur l’ouvre sans délai ; Échap la retire sans déplacer le focus, et la touche est consommée.',
+    ],
+    semantics: [
+      'La bulle porte `role="tooltip"` et s’ajoute à l’`aria-describedby` du déclencheur, sans remplacer sa description.',
+      'Survolable et persistante (WCAG 1.4.13) : le pointeur peut passer du déclencheur à la bulle.',
+      'Aucun nœud n’est rendu à la place de l’infobulle : l’enfant est le déclencheur.',
+    ],
+    limits: [
+      'Rien au toucher : une information essentielle va dans la page, un contenu interactif dans un `Popover`.',
+      'Le contenu n’est pas focalisable.',
+    ],
+  },
+  Popover: {
+    states: [],
+    keyboard: [
+      'Le déclencheur est un `<button>` natif : Entrée et Espace ouvrent et ferment.',
+      'À l’ouverture, le focus va au premier élément focalisable du panneau.',
+      'Échap ferme et rend le focus au déclencheur ; la touche est consommée, une modale englobante reste ouverte.',
+      'Non modal, Tab depuis le dernier élément ferme et poursuit après le déclencheur.',
+    ],
+    semantics: [
+      'Le panneau est un `role="dialog"` nommé par son déclencheur.',
+      'Le déclencheur annonce `aria-haspopup="dialog"`, `aria-expanded` et, ouvert, `aria-controls`.',
+      'Avec `modal`, le focus est piégé, le reste de la page est `inert` et `aria-modal="true"` est posé.',
+    ],
+    limits: ['L’appui au dehors ferme sans déplacer le focus.'],
+  },
+  DropdownMenu: {
+    states: [
+      {
+        state: 'disabled',
+        text: 'Un élément `disabled` reste atteignable aux flèches et porte `aria-disabled`, sans s’activer.',
+      },
+    ],
+    keyboard: [
+      'Sur le bouton, Entrée, Espace ou Flèche bas ouvrent sur le premier élément, Flèche haut sur le dernier.',
+      'Dans le menu, les flèches bouclent, Début et Fin vont aux extrémités, une lettre saute à l’élément qui commence par elle.',
+      'Entrée et Espace activent ; un élément referme le menu, une case ou un choix exclusif le laisse ouvert.',
+      'Échap ferme et rend le focus au bouton ; Tab ferme et poursuit depuis le bouton.',
+    ],
+    semantics: [
+      'Le bouton annonce `aria-haspopup="menu"` et `aria-expanded` ; le menu `role="menu"` est nommé par lui.',
+      'Éléments `menuitem`, `menuitemcheckbox` et `menuitemradio`, avec `aria-checked` pour les deux derniers.',
+      'Les groupes portent `role="group"`, nommés par leur `label` ; le filet `role="separator"`.',
+    ],
+    limits: [
+      'Pas de sous-menus.',
+      'Aucun élément n’est un arrêt de tabulation : le menu n’est pas une étape de la page.',
+    ],
+  },
 };

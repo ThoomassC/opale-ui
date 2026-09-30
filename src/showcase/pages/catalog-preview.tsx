@@ -1,7 +1,16 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
 import { Opale } from '../../opale';
-import { CATALOG } from '../../opale/catalog';
+import { SHOWCASE_CATALOG } from '../showcase-catalog';
+import {
+  DropdownMenuDemo,
+  FieldDemo,
+  GridDemo,
+  PopoverDemo,
+  RadioGroupDemo,
+  TextareaDemo,
+  TooltipDemo,
+} from './catalog-preview-additions';
 import type { DataTableSize, OpalePlacement, OpaleTone } from '../../opale';
 
 const OPTIONS = [
@@ -310,7 +319,7 @@ export function CatalogPreview({
           <Opale.StatCard
             liquidGlass={liquidGlass}
             label="Composants"
-            value={String(CATALOG.length)}
+            value={String(SHOWCASE_CATALOG.length)}
             delta="Catalogue complet"
           />
           <Opale.StatCard
@@ -723,7 +732,7 @@ export function CatalogPreview({
         <Opale.FileCard
           liquidGlass={liquidGlass}
           name="design-system.fig"
-          size="2,4 Mo"
+          fileSize="2,4 Mo"
           selected={selectedFile}
           onClick={() => setSelectedFile((value) => !value)}
         />
@@ -784,6 +793,27 @@ export function CatalogPreview({
           ]}
         />
       );
+      break;
+    case 'Textarea':
+      preview = <TextareaDemo liquidGlass={liquidGlass} />;
+      break;
+    case 'RadioGroup':
+      preview = <RadioGroupDemo liquidGlass={liquidGlass} />;
+      break;
+    case 'Field':
+      preview = <FieldDemo />;
+      break;
+    case 'Grid':
+      preview = <GridDemo />;
+      break;
+    case 'Tooltip':
+      preview = <TooltipDemo liquidGlass={liquidGlass} />;
+      break;
+    case 'Popover':
+      preview = <PopoverDemo liquidGlass={liquidGlass} />;
+      break;
+    case 'DropdownMenu':
+      preview = <DropdownMenuDemo liquidGlass={liquidGlass} />;
       break;
     default:
       preview = (

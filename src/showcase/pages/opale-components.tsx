@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 import { Opale } from '../../opale';
-import { CATALOG, type ShowcaseCatalogEntry } from '../../opale/catalog';
+import type { ShowcaseCatalogEntry } from '../../opale/catalog';
+import { SHOWCASE_CATALOG } from '../showcase-catalog';
 import { catalogCategoryLabel } from '../catalog-category';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import { PropsTable, UsageBlock } from './api';
@@ -30,6 +31,7 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'ConfirmDialog',
   'CookieBanner',
   'DataTable',
+  'DropdownMenu',
   'Dropzone',
   'EmptyState',
   'Feedback',
@@ -43,7 +45,9 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'MultiSelect',
   'Navbar',
   'Pagination',
+  'Popover',
   'Pressable',
+  'RadioGroup',
   'ProgressBar',
   'Rating',
   'SegmentedControl',
@@ -53,13 +57,41 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Slider',
   'StatCard',
   'SvgMap',
+  'Textarea',
   'Toast',
   'Toggle',
+  'Tooltip',
 ];
+
+/* La balise qui reçoit le matériau quand ce n'est pas celle du composant : les
+   cartes de la grille, le panneau du popover, la liste du menu. */
+const LIQUID_GLASS_TARGET: Readonly<Record<string, string>> = {
+  CardGrid: 'StatCard',
+  DropdownMenu: 'DropdownMenuContent',
+  Popover: 'PopoverContent',
+};
+
+/* Les pièces à importer avec le composant, quand il se compose de plusieurs
+   exports. La première est celle de la page. */
+const PAGE_IMPORTS: Readonly<Record<string, readonly string[]>> = {
+  DropdownMenu: [
+    'DropdownMenu',
+    'DropdownMenuTrigger',
+    'DropdownMenuContent',
+    'DropdownMenuItem',
+    'DropdownMenuCheckboxItem',
+    'DropdownMenuRadioGroup',
+    'DropdownMenuRadioItem',
+    'DropdownMenuSeparator',
+  ],
+  Field: ['Field', 'useFieldProps'],
+  Popover: ['Popover', 'PopoverTrigger', 'PopoverContent'],
+  RadioGroup: ['RadioGroup', 'Radio'],
+};
 
 /** Ajoute la prop à la balise ouvrante ciblée, y compris avec des callbacks `=>` dans les attributs. */
 function withLiquidGlass(code: string, name: string): string {
-  const target = name === 'CardGrid' ? 'StatCard' : catalogComponentLabel(name);
+  const target = LIQUID_GLASS_TARGET[name] ?? catalogComponentLabel(name);
   const starts = [...code.matchAll(new RegExp(`<Opale\\.${target}(?=[\\s/>])`, 'g'))];
   const insertions: number[] = [];
 
@@ -95,7 +127,7 @@ function withLiquidGlass(code: string, name: string): string {
 }
 
 /** Les fonctions du paquet qu'un extrait appelle directement, sans namespace. */
-const PACKAGE_FUNCTIONS = ['readCookieConsent'];
+const PACKAGE_FUNCTIONS = ['readCookieConsent', 'useFieldProps'];
 
 /* Les exemples sont écrits avec `Opale.X` pour viser une balise sans
    ambiguïté (voir `withLiquidGlass`) ; l'extrait affiché importe `X` par nom. */
@@ -254,6 +286,115 @@ export function ResultsPagination() {
     { id: 'sud', path: 'M10 70 H140 V110 H10 Z', name: 'Sud' },
   ]}
 />`,
+  Textarea: `// autoResize : de minRows (3) à maxRows lignes, puis le champ défile.
+// showCount + maxLength : la limite est décrite, le reste annoncé après une pause.
+<Opale.Textarea
+  label="Commentaire"
+  helperText="Le champ grandit avec le texte, jusqu’à six lignes."
+  autoResize
+  maxRows={6}
+  showCount
+  maxLength={200}
+/>`,
+  RadioGroup: `import { useState } from 'react';
+
+export function PlanChoice() {
+  const [plan, setPlan] = useState('');
+  return <>
+    <Opale.RadioGroup
+      label="Formule"
+      required
+      value={plan}
+      onValueChange={setPlan}
+      error={plan === '' ? 'Choisissez une formule.' : undefined}
+      options={[
+        { value: 'free', label: 'Gratuit', description: 'Un projet, sans équipe.' },
+        { value: 'pro', label: 'Pro', description: 'Projets illimités.' },
+        { value: 'team', label: 'Équipe', disabled: true },
+      ]}
+    />
+    <Opale.RadioGroup
+      label="Facturation"
+      orientation="horizontal"
+      size="small"
+      defaultValue="yearly"
+      options={[{ value: 'monthly', label: 'Mensuel' }, { value: 'yearly', label: 'Annuel' }]}
+    />
+  </>;
+}`,
+  Field: `// 1. La fonction enfant reçoit id et aria-* : à étaler sur l'élément focalisable.
+<Opale.Field label="Nombre de places" description="De 1 à 9." required>
+  {(fieldProps) => (
+    <span {...fieldProps} role="spinbutton" tabIndex={0} aria-valuenow={seats}>{seats}</span>
+  )}
+</Opale.Field>
+
+// 2. Un contrôle réutilisable lit les mêmes props par useFieldProps().
+function SeatStepper({ value }) {
+  const fieldProps = useFieldProps();
+  return <span {...fieldProps} role="spinbutton" tabIndex={0} aria-valuenow={value}>{value}</span>;
+}
+
+<Opale.Field label="Nombre de places">
+  <SeatStepper value={seats} />
+</Opale.Field>`,
+  Grid: `// Un nombre : autant de colonnes égales, qui rétrécissent sans déborder.
+<Opale.Grid columns={3} gap="sm">
+  <div>Design</div><div>Code</div><div>Tests</div>
+</Opale.Grid>
+
+// Une longueur : la largeur minimale d'une piste ; une seule colonne en dessous.
+<Opale.Grid columns="9rem">
+  <div>Design</div><div>Code</div><div>Tests</div>
+</Opale.Grid>`,
+  Tooltip: `// Une description courte, au survol et au focus : jamais une information essentielle.
+<Opale.Tooltip content="Enregistre le brouillon sans le publier.">
+  <Opale.Button variant="secondary">Enregistrer</Opale.Button>
+</Opale.Tooltip>`,
+  Popover: `import { useState } from 'react';
+
+export function RenameProject() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Opale.Popover open={open} onOpenChange={setOpen}>
+      <Opale.PopoverTrigger className="opale-button opale-button--secondary">
+        Renommer le projet
+      </Opale.PopoverTrigger>
+      <Opale.PopoverContent placement="bottom" align="start">
+        <form onSubmit={(event) => { event.preventDefault(); setOpen(false); }}>
+          <Opale.Input label="Nom du projet" name="name" required />
+          <Opale.Button type="submit" size="small">Enregistrer</Opale.Button>
+        </form>
+      </Opale.PopoverContent>
+    </Opale.Popover>
+  );
+}`,
+  DropdownMenu: `import { useState } from 'react';
+
+export function ProjectActions() {
+  const [grid, setGrid] = useState(true);
+  const [sort, setSort] = useState('name');
+  return (
+    <Opale.DropdownMenu>
+      <Opale.DropdownMenuTrigger className="opale-button opale-button--secondary">
+        Actions
+      </Opale.DropdownMenuTrigger>
+      <Opale.DropdownMenuContent>
+        <Opale.DropdownMenuItem onSelect={() => duplicate()}>Dupliquer</Opale.DropdownMenuItem>
+        <Opale.DropdownMenuItem disabled>Archiver</Opale.DropdownMenuItem>
+        <Opale.DropdownMenuSeparator />
+        <Opale.DropdownMenuCheckboxItem checked={grid} onCheckedChange={setGrid}>
+          Afficher la grille
+        </Opale.DropdownMenuCheckboxItem>
+        <Opale.DropdownMenuSeparator />
+        <Opale.DropdownMenuRadioGroup label="Tri" value={sort} onValueChange={setSort}>
+          <Opale.DropdownMenuRadioItem value="name">Trier par nom</Opale.DropdownMenuRadioItem>
+          <Opale.DropdownMenuRadioItem value="date">Trier par date</Opale.DropdownMenuRadioItem>
+        </Opale.DropdownMenuRadioGroup>
+      </Opale.DropdownMenuContent>
+    </Opale.DropdownMenu>
+  );
+}`,
 };
 
 function exampleCode(name: string, liquidGlass = false): string {
@@ -299,7 +440,7 @@ function exampleCode(name: string, liquidGlass = false): string {
 </Opale.Card>`);
     case 'CardGrid':
       return decorate(`<Opale.CardGrid>
-  <Opale.StatCard label="Composants" value="${CATALOG.length}" delta="Catalogue Opale" />
+  <Opale.StatCard label="Composants" value="${SHOWCASE_CATALOG.length}" delta="Catalogue Opale" />
   <Opale.StatCard label="Thèmes" value="2 globaux + 1 matériau" />
 </Opale.CardGrid>`);
     case 'Badge':
@@ -359,7 +500,7 @@ function exampleCode(name: string, liquidGlass = false): string {
 
 export function FileSelection() {
   const [selected, setSelected] = useState(false);
-  return <Opale.FileCard name="design-system.fig" size="2,4 Mo"
+  return <Opale.FileCard name="design-system.fig" fileSize="2,4 Mo"
     selected={selected} onClick={() => setSelected((value) => !value)} />;
 }`);
     case 'Clipboard':
@@ -551,7 +692,7 @@ const rows = [
     <div className="tc-doc-opale-page">
       <ComponentPageLayout
         id={catalogComponentSlug(entry.name).replace('/', '-')}
-        imports={[entry.name]}
+        imports={PAGE_IMPORTS[entry.name] ?? [entry.name]}
         alternative={COMPONENT_ALTERNATIVES[catalogComponentSlug(entry.name)]}
         intro={
           <>
@@ -591,23 +732,34 @@ const rows = [
           <UsageBlock label={`Exemple ${displayName}`} code={namedCode} />
         }
         props={
-          <PropsTable
-            id={catalogComponentSlug(entry.name).replace('/', '-')}
-            title={displayName}
-            rows={[
-              ...api.rows,
-              ...(supportsLiquidGlass
-                ? [
-                    {
-                      name: 'liquidGlass',
-                      type: 'boolean',
-                      defaultValue: 'false',
-                      description: 'Active le matériau en verre.',
-                    },
-                  ]
-                : []),
-            ]}
-          />
+          <>
+            <PropsTable
+              id={catalogComponentSlug(entry.name).replace('/', '-')}
+              title={displayName}
+              rows={[
+                ...api.rows,
+                ...(supportsLiquidGlass
+                  ? [
+                      {
+                        name: 'liquidGlass',
+                        type: 'boolean',
+                        defaultValue: 'false',
+                        description: 'Active le matériau en verre.',
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+            {/* Les parties publiées sous leur nom, chacune sous son tableau. */}
+            {api.parts?.map((part) => (
+              <PropsTable
+                key={part.name}
+                id={`${catalogComponentSlug(entry.name).replace('/', '-')}-${part.name}`}
+                title={part.name}
+                rows={part.rows}
+              />
+            ))}
+          </>
         }
         states={a11y.states.map(({ state, text }) => ({
           state,

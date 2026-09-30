@@ -93,9 +93,33 @@ const PROPS: readonly PropRow[] = [
         L’identité de l’entrée : ce que reçoit <code>onValueChange</code>, et ce que{' '}
         <code>value</code> compare. L’entrée retenue porte{' '}
         <code>aria-current=&quot;page&quot;</code>. Le{' '}
-        <strong>nom accessible du bouton est son libellé</strong>, lu dans le contenu — plus aucun{' '}
+        <strong>nom accessible de l’entrée est son libellé</strong>, lu dans le contenu — plus aucun{' '}
         <code>aria-label</code> n’est calculé à votre place, et passer le vôtre l’emporte comme sur
         n’importe quel bouton.
+      </>
+    ),
+  },
+  {
+    name: 'Sidebar.Item href',
+    type: 'string',
+    description: (
+      <>
+        Sa présence rend un <strong>vrai lien</strong> <code>&lt;a href&gt;</code> au lieu d’un{' '}
+        <code>&lt;button&gt;</code> : il navigue sans script et s’ouvre dans un onglet au clic du
+        milieu. Retenu, il porte <code>aria-current=&quot;page&quot;</code> comme le bouton ;{' '}
+        <code>disabled</code> lui retire son adresse et le dit <code>aria-disabled</code>.
+      </>
+    ),
+  },
+  {
+    name: 'onNavigate',
+    type: '(item: { id: string; href: string }, event: MouseEvent<HTMLAnchorElement>) => void',
+    description: (
+      <>
+        Le crochet du routeur, pour les entrées avec <code>href</code>. Sur un clic gauche simple,
+        le rail retient l’entrée, annule la navigation native puis l’appelle ; Ctrl, Cmd, Maj, Alt,
+        le clic du milieu et un <code>target</code> vers un autre onglet restent au navigateur.
+        Next.js : <code>{'(item) => router.push(item.href)'}</code>.
       </>
     ),
   },
