@@ -270,7 +270,9 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   Toast: {
     states: 'Notification pilotée par l’application dans le coin choisi de l’écran.',
     rows: [
-      prop('message', 'ReactNode', 'Contenu de la notification.', undefined, true),
+      prop('message', 'ReactNode', 'Contenu de la notification.'),
+      prop('title', 'ReactNode', 'Titre, comme dans showToast ; avec message, reste l’infobulle HTML.'),
+      prop('description', 'ReactNode', 'Détail sous le titre, comme dans showToast.'),
       prop('open', 'boolean', 'Affiche ou masque le message.', 'true'),
       prop('onOpenChange', '(open: boolean) => void', 'Fermeture demandée par la croix.'),
       prop('tone', 'OpaleTone', 'Sens et couleur du message.', 'neutral'),

@@ -5,5 +5,6 @@ export type {
   PageScaffoldSearchSuggestion,
   PageScaffoldSlots,
   PageScaffoldTheme,
+  PageScaffoldThemePreference,
   PageScaffoldLanguage,
 } from './PageScaffold';

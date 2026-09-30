@@ -12,7 +12,8 @@ import { createPortal } from 'react-dom';
 
 import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
-import { IconGlyph } from '../icon';
+import { GLYPH_CLOSE } from '../icon/glyphs';
+import { IconPaths } from '../icon/IconPaths';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
 import { rememberFocusOrigin, returnFocus } from '../../shared/focus-return';
@@ -20,6 +21,7 @@ import { resolveLabels } from '../../shared/labels';
 import { useDocumentBody } from '../../shared/use-document-body';
 import { useDocumentPageTheme } from '../../shared/use-page-theme';
 import { useScrollPadding } from '../../shared/use-scroll-padding';
+import { resolveToastText } from './toast-content';
 import { ToastContext, type ToastContextValue } from './toast-context';
 
 import styles from './style/Toast.module.css';
@@ -112,7 +114,13 @@ export type ToastDefinition = {
    * disparaît sans prévenir le sien, puisqu'il n'a pas été fermé.
    */
   id?: string;
+  /** Le texte principal. Même rôle que `message` ; l'emporte si les deux sont donnés. */
   title?: ReactNode;
+  /**
+   * Le texte principal, sous le nom qu'emploie `Toast`. Alias de `title`, non
+   * déprécié ; donner les deux écrit un avertissement de développement.
+   */
+  message?: ReactNode;
   description?: ReactNode;
   /** Le ton : couleur de la carte et urgence de l'annonce. Défaut : `neutral`. */
   tone?: OpaleTone;
@@ -411,7 +419,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
           onClick={() => onDismiss(id)}
         >
           {/* Le tracé de la croix d'Opale, comme dans `Modal` : pas le signe « × ». */}
-          <IconGlyph name="close" className={styles.closeGlyph} />
+          <IconPaths paths={GLYPH_CLOSE} className={styles.closeGlyph} />
         </button>
       </ToastSurface>
     </div>
@@ -469,6 +477,7 @@ export const ToastProvider = ({
       revisions.current += 1;
       const record: ToastRecord = {
         ...toast,
+        title: resolveToastText('showToast', toast.title, toast.message),
         id,
         revision: revisions.current,
         tone,

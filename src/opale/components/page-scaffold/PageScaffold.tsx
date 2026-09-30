@@ -17,6 +17,7 @@ import Topbar from '../topbar/Topbar';
 import type { OpaleSize } from '../../shared';
 import { PageThemeContext } from '../../shared/page-theme-context';
 import { useScrollPadding } from '../../shared/use-scroll-padding';
+import { useHydrated, useThemePreference } from '../../theme/use-opale-theme';
 import type { SearchBarProps } from '../search-bar/SearchBar';
 import { PageScaffoldSearch } from './PageScaffoldSearch';
 import styles from './PageScaffold.module.css';
@@ -31,6 +32,11 @@ export interface PageScaffoldLink {
 }
 
 export type PageScaffoldTheme = 'light' | 'dark';
+/**
+ * La préférence de départ du gabarit autonome : un thème, ou `system`, qui suit
+ * `prefers-color-scheme` en direct.
+ */
+export type PageScaffoldThemePreference = PageScaffoldTheme | 'system';
 export type PageScaffoldLanguage = 'fr' | 'en' | 'es';
 
 /** Proposition de recherche propre au site, affichée sous le champ. */
@@ -71,7 +77,36 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithRef<'div'>, 't
   mobileMenuLabel?: string;
   /** Thème et langue contrôlés, ou valeurs initiales en mode autonome. */
   theme?: PageScaffoldTheme;
-  defaultTheme?: PageScaffoldTheme;
+  /**
+   * Le thème de départ en mode autonome. Défaut : `light`.
+   *
+   * `system` suit `prefers-color-scheme`, en direct, jusqu'à ce que la bascule
+   * fixe un choix. Le serveur ne connaît pas l'OS : la racine y est rendue
+   * sans thème local et hérite de `<html>` — posez `opaleThemeScript` dans
+   * `<head>`, avec le même `defaultTheme`, pour qu'elle soit juste dès la
+   * première peinture.
+   */
+  defaultTheme?: PageScaffoldThemePreference;
+  /**
+   * Mémorise le choix de la bascule dans `localStorage` sous cette clé, et le
+   * relit au chargement. Sans clé, rien n'est écrit. Ignoré quand `theme` est
+   * contrôlé. Comme pour `system`, le serveur rend la racine sans thème local :
+   * passez au script la même clé ET le même `defaultTheme` pour éviter le flash.
+   * Le script suit le système par défaut, le gabarit part du clair :
+   *
+   * ```tsx
+   * // app/layout.tsx, dans <head>
+   * <script
+   *   dangerouslySetInnerHTML={{
+   *     __html: opaleThemeScript({ storageKey: 'site-theme', defaultTheme: 'light' }),
+   *   }}
+   * />
+   * // la page
+   * <PageScaffold themeStorageKey="site-theme" defaultTheme="light" />
+   * ```
+   */
+  themeStorageKey?: string;
+  /** Appelée au clic de la bascule, avec le thème résolu. Un changement de l'OS ne l'appelle pas. */
   onThemeChange?: (theme: PageScaffoldTheme) => void;
   language?: PageScaffoldLanguage;
   defaultLanguage?: PageScaffoldLanguage;
@@ -223,6 +258,7 @@ export function PageScaffold({
   mobileMenuLabel,
   theme,
   defaultTheme = 'light',
+  themeStorageKey,
   onThemeChange,
   language,
   defaultLanguage = 'fr',
@@ -276,9 +312,25 @@ export function PageScaffold({
   /* L'en-tête collant ne doit pas couvrir l'élément atteint au clavier. */
   useScrollPadding(headerRef, 'top', stickyHeader && slots?.header === undefined);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [localTheme, setLocalTheme] = useState<PageScaffoldTheme>(defaultTheme);
+  /* LE THÈME AUTONOME, MÉMORISÉ OU SYSTÈME (THM-22). La préférence est lue
+     comme un magasin externe, jamais dans un effet. Sa racine ne va pas sur
+     `<html>` : elle reste locale, sur `data-opale-page-theme`.
+
+     CE QUE LE SERVEUR NE PEUT PAS SAVOIR, IL NE L'ÉCRIT PAS. Un clair écrit
+     d'office sous un OS sombre ferait un flash — et le corriger à
+     l'hydratation, un écart. La racine est donc rendue SANS thème local tant
+     que l'hydratation n'est pas passée : elle hérite de `<html>`, que
+     `opaleThemeScript` a posé avant la peinture. Le défaut `light`, lui, se
+     sait au serveur et reste écrit comme en 3.9.3. */
+  const { resolvedTheme: localTheme, setTheme: setLocalTheme } = useThemePreference(
+    themeStorageKey,
+    defaultTheme,
+  );
+  const hydrated = useHydrated();
+  const unknownOnServer = themeStorageKey !== undefined || defaultTheme === 'system';
   const [localLanguage, setLocalLanguage] = useState<PageScaffoldLanguage>(defaultLanguage);
-  const activeTheme = theme ?? localTheme;
+  const activeTheme: PageScaffoldTheme | null =
+    theme ?? (unknownOnServer && !hydrated ? null : localTheme);
   const activeLanguage = language ?? localLanguage;
   const copy = COPY[activeLanguage];
   const pageNavigation = navigation ?? [
@@ -300,7 +352,7 @@ export function PageScaffold({
     target.scrollIntoView?.({ block: 'start' });
   };
   const changeTheme = () => {
-    const next = activeTheme === 'light' ? 'dark' : 'light';
+    const next = activeTheme === 'dark' ? 'light' : 'dark';
     if (theme === undefined) setLocalTheme(next);
     onThemeChange?.(next);
   };
@@ -537,7 +589,7 @@ export function PageScaffold({
     <PageThemeContext.Provider value={activeTheme}>
       <div
         className={clsx('opale-page-scaffold', styles.root, className)}
-        data-opale-page-theme={activeTheme}
+        data-opale-page-theme={activeTheme ?? undefined}
         lang={activeLanguage}
         {...rootProps}
       >

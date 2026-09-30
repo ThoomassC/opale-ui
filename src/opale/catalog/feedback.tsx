@@ -16,7 +16,14 @@ import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 
 import Glass from '../components/glass/Glass';
-import { IconGlyph, type OpaleIconName } from '../components/icon';
+import {
+  GLYPH_ALERT_TRIANGLE,
+  GLYPH_CHECK_CIRCLE,
+  GLYPH_INFO,
+  GLYPH_X_CIRCLE,
+  type IconPathData,
+} from '../components/icon/glyphs';
+import { IconPaths } from '../components/icon/IconPaths';
 /* `Modal` PORTE LE MOTIF DIALOGUE, ET QUATRE COMPOSANTS D'ICI EN VIVAIENT SANS.
 
    `ConfirmDialog`, `SidePanel`, `CommandPalette` et `Lightbox` peignaient
@@ -32,6 +39,7 @@ import { IconGlyph, type OpaleIconName } from '../components/icon';
    donc ce qu'ils auraient toujours dû être : des PRÉRÉGLAGES. */
 import { Modal, type ModalLabels } from '../components/modal';
 import type { ToastLabels } from '../components/toast';
+import { resolveToastText } from '../components/toast/toast-content';
 import type { OpalePlacement, OpaleTone } from '../shared';
 import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
@@ -216,12 +224,12 @@ const ASSERTIVE_TONES = new Set<OpaleTone>(['error', 'warning']);
  * `neutral` N'EN A PAS, et c'est cohérent : il n'a pas de couleur non plus. Il
  * n'y a rien à doubler.
  */
-const TONE_ICON: Record<OpaleTone, OpaleIconName | null> = {
+const TONE_ICON: Record<OpaleTone, IconPathData | null> = {
   neutral: null,
-  success: 'check-circle',
-  warning: 'alert-triangle',
-  error: 'x-circle',
-  info: 'info',
+  success: GLYPH_CHECK_CIRCLE,
+  warning: GLYPH_ALERT_TRIANGLE,
+  error: GLYPH_X_CIRCLE,
+  info: GLYPH_INFO,
 };
 
 /* L'ANCRE S'OBTIENT PAR UN MAGASIN EXTERNE, pas par un état posé dans un
@@ -241,8 +249,23 @@ function useToastAnchor(position: OpalePlacement): ToastAnchor | null {
   );
 }
 
-export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
-  message: ReactNode;
+/**
+ * Les props de `Toast`.
+ *
+ * LE TEXTE A DEUX NOMS, COMME DANS `showToast` : `message` ou `title`, au
+ * choix, et `description` pour une seconde ligne. Aucun n'est déprécié.
+ */
+export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children' | 'title'> {
+  /** Le texte du message. Même rôle que `title` ; l'emporte si les deux sont donnés. */
+  message?: ReactNode;
+  /**
+   * Le texte du message, sous le nom qu'emploie `showToast`. Avec `message`, il
+   * reste ce qu'il était jusqu'en 3.9.3 — l'attribut HTML `title` de la carte —,
+   * et un avertissement de développement le signale.
+   */
+  title?: ReactNode;
+  /** Une seconde ligne, sous le texte principal, comme dans `showToast`. */
+  description?: ReactNode;
   /** Affiché par défaut ; l'appelant tient l'état ouvert. */
   open?: boolean;
   /** Appelée avec `false` sur la croix. Sa présence rend la croix. */
@@ -282,6 +305,8 @@ function applyThemeToGlassRoot(node: HTMLElement, theme: 'light' | 'dark' | null
 
 export function Toast({
   message,
+  title,
+  description,
   open = true,
   onOpenChange,
   onClose,
@@ -308,6 +333,11 @@ export function Toast({
      ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
      posées d'avance, vides, et le message entre dans celle de son ton. */
   warnDeprecatedProps('Toast', { onClose });
+  /* `message` ET `title` (DOCS-04). Seul, `title` est le texte ; auprès de
+     `message`, il redevient l'attribut natif qu'il était en 3.9.3. */
+  const text = resolveToastText('Toast', message, title);
+  const nativeTitle = message !== undefined && typeof title === 'string' ? title : undefined;
+  const hasDescription = description !== undefined && description !== null && description !== false;
   const closeClick = closeClickHandler(onOpenChange, onClose);
   const labels = resolveLabels(DEFAULT_TOAST_LABELS, labelsProp);
   const assertive = ASSERTIVE_TONES.has(tone);
@@ -356,15 +386,13 @@ export function Toast({
     open && anchor !== null && announcedIn !== anchor && !toastAnchorSettled(anchor);
   useEffect(() => {
     if (!waitingForRegion || anchor === null) return undefined;
-    const timeout = window.setTimeout(
-      () => setAnnouncedIn(anchor),
-      toastAnchorSettleDelay(anchor),
-    );
+    const timeout = window.setTimeout(() => setAnnouncedIn(anchor), toastAnchorSettleDelay(anchor));
     return () => window.clearTimeout(timeout);
   }, [anchor, waitingForRegion]);
   const card = open ? (
     <Shell
       {...rest}
+      title={nativeTitle}
       {...shellProps}
       ref={cardRefs}
       className={classes}
@@ -392,7 +420,7 @@ export function Toast({
           `neutral` N'A PAS D'ICÔNE puisqu'il n'a pas de ton : sa carte reste
           la surface d'Opale sous l'encre d'Opale, et il n'y a rien à
           doubler. */}
-      {TONE_ICON[tone] && <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />}
+      {TONE_ICON[tone] && <IconPaths paths={TONE_ICON[tone]} className="opale-toast__icon" />}
       {/* MASQUÉ LE TEMPS QUE LA RÉGION S'INSTALLE, PUIS RÉINSÉRÉ. La clé change
           quand l'attente prend fin : le texte entre alors dans une région déjà
           surveillée, et il n'est dit qu'une fois. L'œil, lui, le voit dès le
@@ -402,7 +430,14 @@ export function Toast({
         className="opale-toast__message"
         aria-hidden={waitingForRegion ? true : undefined}
       >
-        {message}
+        {hasDescription ? (
+          <>
+            <span className="opale-toast__title">{text}</span>
+            <span className="opale-toast__description">{description}</span>
+          </>
+        ) : (
+          text
+        )}
       </span>
       {closeClick && (
         <button
@@ -461,10 +496,22 @@ export function Spinner({ label = 'Chargement', className, ...rest }: SpinnerPro
   );
 }
 
-/** Les props de `ProgressBar`. `ref` et les attributs vont à l'élément `progressbar`. */
+/**
+ * Les props de `ProgressBar`.
+ *
+ * DEUX DESTINATIONS, COMME POUR LES CHAMPS (DX-03). `className` va à
+ * l'ENVELOPPE — `.opale-field`, qui porte le libellé. Tout le reste — `id`,
+ * `style`, `ref`, `aria-*`, `data-*`, les gestionnaires — va à l'élément
+ * `role="progressbar"`.
+ *
+ * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
+ * (candidat 3.10) : pour habiller la barre, ciblez `.opale-progress` depuis la
+ * classe de l'enveloppe.
+ */
 export interface ProgressBarProps extends ComponentPropsWithRef<'div'> {
   value?: number;
   label?: string;
+  /** Va à l'enveloppe, pas à l'élément `progressbar`. Voir `ProgressBarProps`. */
   className?: string;
   liquidGlass?: boolean;
 }

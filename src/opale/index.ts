@@ -10,3 +10,16 @@ import './opale.css';
 export * from './components';
 export * from './opale';
 export type * from './shared';
+/* LE THÈME DU DOCUMENT (THM-22), importé module par module et non par un
+   baril : `theme-script` est un module de DONNÉES, livré sans "use client",
+   pour qu'un `layout.tsx` serveur obtienne la chaîne du script et non une
+   référence client. Un baril `theme/index` recevrait la directive, et la
+   ferait porter à ce qu'il réexporte. */
+export { opaleThemeScript } from './theme/theme-script';
+export type {
+  OpaleResolvedTheme,
+  OpaleThemePreference,
+  OpaleThemeScriptOptions,
+} from './theme/theme-script';
+export { useOpaleTheme } from './theme/use-opale-theme';
+export type { UseOpaleThemeOptions, UseOpaleThemeResult } from './theme/use-opale-theme';
