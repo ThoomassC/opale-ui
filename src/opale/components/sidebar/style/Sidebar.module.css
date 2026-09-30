@@ -302,6 +302,54 @@
   white-space: nowrap;
 }
 
+/* L'INFOBULLE D'UNE ENTRÉE REPLIÉE EST SON PROPRE LIBELLÉ (ACC-25).
+
+   Replié, le rail ne montre qu'une icône ou une initiale. Au survol et au
+   focus clavier, le libellé masqué ci-dessus est DÉROULÉ à droite de la
+   vignette : même nœud, même texte, donc aucun second nom à tenir en phase
+   et un nom accessible inchangé. `Sidebar.Item` pose `data-opale-tooltip` à
+   `true` sur une entrée repliée, et à `dismissed` quand Échap l'a congédiée
+   (WCAG 1.4.13) : ce second état ne correspond à aucune règle, l'infobulle
+   reste donc rognée jusqu'au prochain focus ou au prochain survol.
+
+   ELLE EST SURVOLABLE, parce qu'elle est DANS le bouton : le pointeur qui s'y
+   pose survole encore l'entrée. Le pont ci-dessous comble l'écart entre la
+   vignette et la bulle, sans quoi le pointeur le traversant la ferait tomber.
+
+   LIMITE CONNUE : en verre liquide, l'enveloppe de `Glass` porte
+   `overflow: hidden` et rogne la bulle au bord du rail. La surface pleine, qui
+   est le défaut, n'a pas ce défaut. */
+.item[data-opale-tooltip='true']:hover > .itemContentHidden,
+.item[data-opale-tooltip='true']:focus-visible > .itemContentHidden {
+  z-index: var(--opale-z-popover);
+  inset-block-start: 50%;
+  inset-inline-start: calc(100% + var(--opale-space-xs));
+  width: max-content;
+  max-width: 16rem;
+  height: auto;
+  box-sizing: border-box;
+  margin: 0;
+  border-radius: var(--opale-radius-sm);
+  padding: var(--opale-space-2xs) var(--opale-space-xs);
+  background: var(--opale-text);
+  box-shadow: var(--opale-shadow-2);
+  color: var(--opale-surface);
+  clip-path: none;
+  font-size: var(--opale-text-xs);
+  font-weight: 600;
+  pointer-events: auto;
+  transform: translateY(-50%);
+}
+
+/* Le pont, invisible : il prolonge l'entrée jusqu'à la bulle. */
+.item[data-opale-tooltip='true']:hover::after {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 100%;
+  width: var(--opale-space-xs);
+  content: '';
+}
+
 /* La lettre de repli, quand l'entrée n'a pas d'icône : il faut bien peindre
    QUELQUE CHOSE dans un rail de 88 px dont les libellés sont masqués. Elle est
    `aria-hidden` — c'est une vignette, pas un nom. SANS FOND PROPRE, pour la
@@ -414,4 +462,32 @@
 .plain .footer {
   border-top-color: var(--opale-divider);
   color: var(--opale-text-secondary);
+}
+
+/* =============================================================================
+   CONTRASTES FORCÉS (ACC-04, WCAG 1.4.11).
+
+   Le mode contraste élevé de Windows remplace les fonds par `Canvas` et
+   supprime les ombres : le voile ET le liseré intérieur de l'entrée retenue
+   disparaissaient, et elle ne se distinguait plus des autres. Elle prend ici
+   la couleur système de sélection, en fond plein — la forme que l'utilisateur
+   connaît déjà de ses listes.
+
+   L'infobulle perd son ombre avec le reste : un filet lui rend son bord.
+   ========================================================================== */
+@media (forced-colors: active) {
+  .itemActive,
+  .item.itemActive:hover:not(:disabled),
+  .plain .itemActive,
+  .plain .item.itemActive:hover:not(:disabled) {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .item[data-opale-tooltip='true']:hover > .itemContentHidden,
+  .item[data-opale-tooltip='true']:focus-visible > .itemContentHidden {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
 }

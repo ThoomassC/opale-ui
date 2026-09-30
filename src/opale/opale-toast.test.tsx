@@ -316,6 +316,27 @@ describe('le ton plein', () => {
     );
   }
 
+  /* SOUS VERRE, LA CARTE GARDE SON APLAT, DONC SON ENCRE. `.opale-toast` vient
+     après `.opale-toast--glass` dans la feuille, à spécificité égale : le
+     remplissage du ton l'emporte sur le fond transparent, et la carte de verre
+     est peinte pleine. L'encre, elle, venait du matériau — le contenu de
+     `Glass` et `[data-opale-glass] .opale-toast__message` posent
+     `--opale-glass-ink`. Mesuré au navigateur en verre sombre : #fff sur
+     l'ambre #f0b366, 1,85:1 ; les quatre tons de 1,85 à 2,15:1 ; et, sous
+     `data-opale-glass-ink="page"` posé sur <html>, l'encre de la page sur le
+     remplissage, de 1,63 à 3,26:1 dans les deux thèmes. */
+  it('devrait écrire la carte de verre avec l’encre de son remplissage', () => {
+    expect(rule('.opale-toast.opale-toast--glass').get('color')).toBe(
+      'var(--opale-toast-fill-ink, var(--opale-text))',
+    );
+    for (const part of ['message', 'close']) {
+      expect(
+        rule(`[data-opale-glass] .opale-toast--glass .opale-toast__${part}`).get('color'),
+        part,
+      ).toBe('inherit');
+    }
+  });
+
   /* LA CROIX EST POSÉE SUR LA COULEUR. Une encre secondaire y serait un gris
      sur du vert, et un anneau de focus bleu sur une carte rouge ne se verrait
      pas : les deux se composent à partir de l'encre de la carte. */

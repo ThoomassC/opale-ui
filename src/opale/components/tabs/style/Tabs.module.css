@@ -169,6 +169,19 @@
   outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 
+/* L'ONGLET RETENU EST SOULIGNÉ, SOUS VERRE COMME SANS (ACC-03). Sa pastille
+   ne tenait que 1,19:1 sur la liste et son libellé ne changeait que de
+   teinte : en niveaux de gris, en vision des couleurs réduite ou en
+   contrastes forcés, rien ne disait quel onglet était ouvert (WCAG 1.4.1,
+   1.4.11). Le soulignement prend l'encre du libellé — celle du verre ou le
+   primaire de la version pleine —, donc il contraste là où le texte
+   contraste ; il ne change ni la boîte ni la ligne de base. */
+.tabsTrigger[aria-selected='true'] {
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.3em;
+}
+
 .tabsTrigger:disabled {
   opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
@@ -288,4 +301,42 @@
   color: var(--opale-text-secondary);
   cursor: not-allowed;
   opacity: var(--opale-disabled-opacity);
+}
+
+/* EN CONTRASTES FORCÉS, LA PASTILLE DEVIENT LA COULEUR DE SÉLECTION (ACC-04).
+   Son voile est un fond peint : le système le remplaçait par le canevas, et
+   seule restait la position du soulignement. Le système peint alors le repère
+   à sa propre paire de couleurs.
+
+   L'ONGLET RETENU PORTE AUSSI L'APLAT, et ce n'est pas un doublon. La pastille
+   n'apparaît qu'après la première mesure en JavaScript ; une encre de
+   sélection posée sur le seul canevas serait illisible d'ici là. Le libellé
+   peint donc son propre fond, sous son encre : la paire est toujours complète. */
+@media (forced-colors: active) {
+  .tabsIndicator {
+    forced-color-adjust: none;
+    background: Highlight;
+    box-shadow: none;
+  }
+  .tabsTrigger[aria-selected='true'] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  /* L'anneau est tiré vers l'intérieur, donc sur l'aplat de sélection. */
+  .tabsTrigger[aria-selected='true']:focus-visible {
+    outline-color: HighlightText;
+  }
+}
+
+/* MODE « ENCRE DE LA PAGE » DU VERRE (ACC-01), voir `opale.css`. */
+/* LES ONGLETS DE VERRE REPRENNENT LES JETONS DE LA VERSION PLEINE. Leurs cinq
+   jetons sont écrits pour la scène sombre (plus haut) ; la
+   pastille devient le lavis primaire d'Opale et l'anneau revient au saphir. */
+:global([data-opale-glass-ink='page']) :global(.opale-tabs__shell)[data-opale-glass] .tabs {
+  --opale-tabs-ink: var(--opale-text);
+  --opale-tabs-focus: var(--opale-focus);
+  --opale-tabs-surface: color-mix(in srgb, var(--opale-surface) 56%, transparent);
+  --opale-tabs-indicator: color-mix(in srgb, var(--opale-primary) 14%, transparent);
+  --opale-tabs-highlight: transparent;
 }
