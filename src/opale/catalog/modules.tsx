@@ -16,7 +16,8 @@ import {
 import clsx from 'clsx';
 
 import Glass from '../components/glass/Glass';
-import { IconGlyph } from '../components/icon';
+import { GLYPH_FILE } from '../components/icon/glyphs';
+import { IconPaths } from '../components/icon/IconPaths';
 import { Modal, type ModalLabels } from '../components/modal';
 import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
@@ -73,7 +74,7 @@ export function FileCard({
       selected={selected}
       onClick={onClick}
     >
-      <IconGlyph name="file" className="opale-file-card__icon" />
+      <IconPaths paths={GLYPH_FILE} className="opale-file-card__icon" />
       <span className="opale-file-card__text">
         <strong>{name}</strong>
         {size && <small className="opale-field__helper">{size}</small>}

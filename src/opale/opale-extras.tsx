@@ -1,7 +1,8 @@
 import { useId, useLayoutEffect, useRef, type ComponentPropsWithRef } from 'react';
 
 import Glass from './components/glass/Glass';
-import { IconGlyph } from './components/icon';
+import { GLYPH_STAR } from './components/icon/glyphs';
+import { IconPaths } from './components/icon/IconPaths';
 import { warnDeprecatedProps } from './deprecations';
 import { resolveLabels } from './shared/labels';
 import { useControllableState } from './shared/use-controllable-state';
@@ -246,7 +247,7 @@ export function RatingInput({
               }}
               aria-label={`${number} sur ${total}`}
             />
-            <IconGlyph name="star" aria-hidden="true" />
+            <IconPaths paths={GLYPH_STAR} />
           </label>
         ))}
       </div>

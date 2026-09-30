@@ -16,10 +16,15 @@ import { createPortal } from 'react-dom';
 
 import Glass, { type GlassProps } from '../glass/Glass';
 
-import { IconGlyph } from '../icon';
+/* LA CROIX PAR SON TRACÉ, PAS PAR SON NOM : un nom se résout dans le catalogue
+   entier, et un `Modal` importé seul embarquait ainsi les cent vingt dessins du
+   jeu (`icon-graph.structure.test.ts`). Imports directs, sans le baril. */
+import { GLYPH_CLOSE } from '../icon/glyphs';
+import { IconPaths } from '../icon/IconPaths';
 import { warnDeprecatedProps } from '../../deprecations';
 import { resolveLabels } from '../../shared/labels';
 import { mergeRefs } from '../../shared/merge-refs';
+import { activeElementOf } from '../../shared/tree-root';
 import {
   lockBodyScroll,
   OVERLAY_EXEMPT_ATTRIBUTE,
@@ -493,7 +498,10 @@ const Modal = ({
 
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
+      /* L'ÉLÉMENT ACTIF SE LIT DANS LA PORTÉE DU PANNEAU (ROB-09). Dans une
+         racine fantôme, `document.activeElement` est l'hôte : aucun bord
+         n'était reconnu et `Tab` sortait du dialogue. */
+      const active = activeElementOf(panel);
 
       if (event.shiftKey ? active === first || active === panel : active === last) {
         event.preventDefault();
@@ -613,7 +621,7 @@ const Modal = ({
                     un peu haut et un peu à gauche dans son cercle. Le tracé du
                     jeu d'Opale a l'épaisseur de trait de toutes les autres
                     icônes et se centre sur sa grille. */}
-                  <IconGlyph name="close" className={styles.closeGlyph} />
+                  <IconPaths paths={GLYPH_CLOSE} className={styles.closeGlyph} />
                 </button>
               )}
             </div>

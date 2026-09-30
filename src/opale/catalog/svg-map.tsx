@@ -19,7 +19,8 @@ import {
   type SvgMapWheel,
   type UseSvgMapViewportResult,
 } from '../components/svg-map';
-import { pathBounds, type Bounds } from '../components/svg-map/path-bounds';
+import { type Bounds } from '../components/svg-map/path-bounds';
+import { useRegionBounds } from '../components/svg-map/useRegionBounds';
 import { useSvgMapGestures } from '../components/svg-map/useSvgMapGestures';
 import { parseViewBox as parseSvgViewBox, zoomOf } from '../components/svg-map/viewport';
 import { holdsFocus } from '../shared/focus-return';
@@ -267,20 +268,11 @@ export function SvgMap({
     wheel,
   });
 
-  /* UN TRACÉ ILLISIBLE N'EMPORTE PAS LA CARTE. Il est dessiné quand même — le
-     navigateur fait de son mieux avec — mais n'a pas de boîte : le cadrage
-     l'ignore au lieu de faire tomber toute la page. */
-  const bounds = useMemo(() => {
-    const map = new Map<string, Bounds>();
-    for (const region of regions) {
-      try {
-        map.set(region.id, pathBounds(region.path));
-      } catch {
-        /* Région sans boîte : voir ci-dessus. */
-      }
-    }
-    return map;
-  }, [regions]);
+  /* LES BOÎTES SUIVENT LE CONTENU DES RÉGIONS, PAS L'IDENTITÉ DU TABLEAU : un
+     `regions={items.map(…)}` écrit par l'appelant ne fait plus relire tous les
+     tracés à chaque rendu. Un tracé illisible est dessiné quand même, sans
+     boîte : le cadrage l'ignore au lieu de faire tomber la page. */
+  const bounds = useRegionBounds(regions);
   const { registerRegions } = viewport;
   useLayoutEffect(() => registerRegions(bounds), [bounds, registerRegions]);
 
