@@ -3,6 +3,25 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
+## 3.10.0 — 30 septembre 2026
+
+Les composants qui manquaient pour un vrai projet : Textarea, RadioGroup, Field, Tooltip, Popover, DropdownMenu et Grid, le routeur partout, DataTable générique. Uniquement des ajouts.
+
+### Formulaires complets
+
+- **Textarea, RadioGroup et Field** — Textarea (hauteur automatique, compteur de caractères), RadioGroup et Radio (fieldset, légende, erreur, orientation), et Field, qui donne libellé, aide et erreur à n’importe quel contrôle maison. Ils suivent les conventions d’Input et marchent dans un formulaire natif comme avec react-hook-form.
+- **Des champs à la bonne taille** — size sur Input, Select, Checkbox, Toggle et SegmentedControl ; controlClassName pour styler le contrôle natif ; Select gagne onValueChange, placeholder et des options désactivées.
+
+### Couches flottantes
+
+- **Tooltip, Popover et DropdownMenu** — Une infobulle au survol et au focus, fermée par Échap et survolable ; un panneau ancré, modal ou non, qui rend le focus ; un menu déroulant au motif APG (flèches, recherche par lettre, cases et radios). Ouverts depuis une Modal, ils s’affichent au-dessus d’elle.
+
+### Routeur et affichage
+
+- **Votre routeur partout** — onNavigate sur Navbar, Menu, Breadcrumb, LegalLinks, le pied de PageScaffold et Sidebar, dont les entrées acceptent href. Un clic simple passe par votre routeur ; Ctrl, Cmd et le clic du milieu restent au navigateur.
+- **Des tableaux et des mises en page plus souples** — DataTable devient générique (cell, sortValue, getRowId) et sait sélectionner des lignes ; Badge gagne les tons succès, avertissement, info et neutre ; Stack a gap, align, justify et as, Grid arrive ; Heading va jusqu’au niveau 6 ; ConfirmDialog a un ton danger et attend une promesse sans double envoi.
+- **Traduisible et documenté** — Clipboard, Rating, RatingInput, FileCard, Breadcrumb, SelectionBar et LegalLinks prennent labels. Chaque prop publique a sa JSDoc, verrouillée par un test. FileCard.size devient fileSize ; l’ancien nom reste jusqu’à la 4.0.0.
+
 ## 3.9.4 — 30 septembre 2026
 
 À la marque de chaque projet : des jetons publics documentés, une couleur qui dérive ses états, un thème système sans flash, des feuilles pour Tailwind et sans polices, un paquet plus léger. Sans rupture.

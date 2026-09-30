@@ -49,6 +49,60 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V3100_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Formulaires complets',
+    changes: [
+      {
+        title: 'Textarea, RadioGroup et Field',
+        detail:
+          'Textarea (hauteur automatique, compteur de caractères), RadioGroup et Radio (fieldset, légende, erreur, orientation), et Field, qui donne libellé, aide et erreur à n’importe quel contrôle maison. Ils suivent les conventions d’Input et marchent dans un formulaire natif comme avec react-hook-form.',
+        links: [{ label: 'Textarea', slug: 'composants/opale-textarea' }],
+      },
+      {
+        title: 'Des champs à la bonne taille',
+        detail:
+          'size sur Input, Select, Checkbox, Toggle et SegmentedControl ; controlClassName pour styler le contrôle natif ; Select gagne onValueChange, placeholder et des options désactivées.',
+        links: [{ label: 'RadioGroup', slug: 'composants/opale-radio-group' }],
+      },
+    ],
+  },
+  {
+    title: 'Couches flottantes',
+    changes: [
+      {
+        title: 'Tooltip, Popover et DropdownMenu',
+        detail:
+          'Une infobulle au survol et au focus, fermée par Échap et survolable ; un panneau ancré, modal ou non, qui rend le focus ; un menu déroulant au motif APG (flèches, recherche par lettre, cases et radios). Ouverts depuis une Modal, ils s’affichent au-dessus d’elle.',
+        links: [{ label: 'DropdownMenu', slug: 'composants/opale-dropdown-menu' }],
+      },
+    ],
+  },
+  {
+    title: 'Routeur et affichage',
+    changes: [
+      {
+        title: 'Votre routeur partout',
+        detail:
+          'onNavigate sur Navbar, Menu, Breadcrumb, LegalLinks, le pied de PageScaffold et Sidebar, dont les entrées acceptent href. Un clic simple passe par votre routeur ; Ctrl, Cmd et le clic du milieu restent au navigateur.',
+        links: [{ label: 'Sidebar', slug: 'composants/sidebar' }],
+      },
+      {
+        title: 'Des tableaux et des mises en page plus souples',
+        detail:
+          'DataTable devient générique (cell, sortValue, getRowId) et sait sélectionner des lignes ; Badge gagne les tons succès, avertissement, info et neutre ; Stack a gap, align, justify et as, Grid arrive ; Heading va jusqu’au niveau 6 ; ConfirmDialog a un ton danger et attend une promesse sans double envoi.',
+        links: [{ label: 'Grid', slug: 'composants/opale-grid' }],
+      },
+      {
+        title: 'Traduisible et documenté',
+        detail:
+          'Clipboard, Rating, RatingInput, FileCard, Breadcrumb, SelectionBar et LegalLinks prennent labels. Chaque prop publique a sa JSDoc, verrouillée par un test. FileCard.size devient fileSize ; l’ancien nom reste jusqu’à la 4.0.0.',
+        links: [{ label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' }],
+      },
+    ],
+  },
+];
+
 const V394_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'À votre marque',
@@ -1059,6 +1113,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.10.0',
+    publishedAt: '2026-09-30',
+    dateLabel: '30 septembre 2026',
+    summary:
+      'Les composants qui manquaient pour un vrai projet : Textarea, RadioGroup, Field, Tooltip, Popover, DropdownMenu et Grid, le routeur partout, DataTable générique. Uniquement des ajouts.',
+    sections: V3100_RELEASE_SECTIONS,
+    changes: V3100_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Textarea, RadioGroup et Field.', 'Tooltip, Popover et DropdownMenu.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.9.4',
     publishedAt: '2026-09-30',
     dateLabel: '30 septembre 2026',
@@ -1069,8 +1137,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Page « Personnaliser » et checkBrand.', 'Feuille en @layer pour Tailwind v4.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.10.0, sur son tag. */
+    appHref: '/versions/v3.9.4/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.9.4`,
   },
   {
     version: '3.9.3',

@@ -49,7 +49,8 @@ import { Button, Modal } from '@thomascaron/opale-ui';
   `node16`/`nodenext`. Chaque composant exporte son type de props (`ButtonProps`,
   `ModalProps`…).
 - Le namespace `Opale` (`Opale.Button`) désigne les mêmes composants ; l'import nommé reste la
-  forme recommandée, et la seule qui marche partout.
+  forme recommandée, et la seule qui marche partout. `Opale.*` référence tout le catalogue : un
+  seul `Opale.Button` embarque le catalogue entier, là où `import { Button }` n’embarque que lui.
 
 ### Avec Tailwind v4 : la feuille en couche
 
