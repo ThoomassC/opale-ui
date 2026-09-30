@@ -171,8 +171,11 @@ const DEFAULT_TOAST_LABELS: ToastLabels = { close: 'Fermer la notification' };
 export type ToastProviderProps = PropsWithChildren<{
   /** La durée par défaut, en millisecondes. Défaut : 4000, sauf `error` et `warning`. */
   duration?: number;
+  /** L'entrée des notifications. Défaut : `slide-from-right`. */
   animation?: ToastAnimation;
+  /** La pile par défaut, qu'une notification peut remplacer. Défaut : `top-right`. */
   position?: ToastPosition;
+  /** L'onde qui parcourt une notification en verre à son apparition. Défaut : `true`. */
   enableLiquidAnimation?: boolean;
   /**
    * Rend la notification dans le matériau « verre liquide ».
@@ -182,6 +185,7 @@ export type ToastProviderProps = PropsWithChildren<{
    * état.
    */
   liquidGlass?: boolean;
+  /** L'élément qui reçoit les piles. Défaut : `document.body`. */
   portalContainer?: HTMLElement | null;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<ToastLabels>;

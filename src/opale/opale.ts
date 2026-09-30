@@ -53,6 +53,7 @@ export type { CookieConsent } from './catalog/cookie-consent';
 export type {
   PaginationLabels,
   PaginationProps,
+  RatingInputLabels,
   RatingInputProps,
   SkeletonProps,
 } from './opale-extras';

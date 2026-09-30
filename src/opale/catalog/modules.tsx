@@ -22,32 +22,62 @@ import { Modal, type ModalLabels } from '../components/modal';
 import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
-import { Button, type ButtonProps } from './forms';
+import { Button, type ButtonLabels, type ButtonProps } from './forms';
 import { closeHandler, closeClickHandler } from './close-handlers';
+
+/** Les textes de `FileCard`. */
+export interface FileCardLabels {
+  /**
+   * Dit la sélection d'une carte non cliquable, qui n'a pas d'`aria-pressed`
+   * pour l'annoncer. Défaut : « Sélectionné ».
+   */
+  selected: string;
+}
+
+const DEFAULT_FILE_CARD_LABELS: FileCardLabels = { selected: 'Sélectionné' };
 
 /**
  * Les props de `FileCard`. La coquille est un `<button>` quand `onClick` est
  * passé, un `<div>` sinon : `ref` et les attributs visent donc un `HTMLElement`.
  */
 export interface FileCardProps extends Omit<HTMLAttributes<HTMLElement>, 'onClick'> {
+  /** Le nom du fichier, affiché sur la carte. */
   name: string;
+  /** Le poids du fichier, tel qu'il s'affiche : « 2 Mo ». */
+  fileSize?: string;
+  /**
+   * @deprecated Depuis 3.10 — utilisez `fileSize`. Partout ailleurs dans Opale,
+   * `size` est l'échelle `OpaleSize` ; ici c'était le poids du fichier.
+   */
   size?: string;
+  /** La carte est retenue, annoncée `aria-pressed` quand elle est cliquable. Défaut : `false`. */
   selected?: boolean;
+  /** Rend la carte cliquable : la coquille devient un `<button>`. Absente, un `<div>`. */
   onClick?: () => void;
+  /** Rend la carte dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<FileCardLabels>;
+  /** La référence de la coquille, `<button>` ou `<div>` selon `onClick`. */
   ref?: Ref<HTMLElement>;
 }
 
 export function FileCard({
   name,
+  fileSize,
   size,
   selected = false,
   onClick,
   liquidGlass = false,
+  labels: labelsProp,
   className,
   ref,
   ...rest
 }: FileCardProps) {
+  warnDeprecatedProps('FileCard', { size });
+  /* `fileSize` gagne ; l'ancien `size` ne sert que s'il est seul. */
+  const weight = fileSize ?? size;
+  const labels = resolveLabels(DEFAULT_FILE_CARD_LABELS, labelsProp);
   /* Une ref d'`HTMLElement` ne se pose pas telle quelle sur un `<button>` : la
      fonction qui l'enveloppe, elle, convient aux deux balises. */
   const shellRef = useCallback((node: HTMLElement | null) => mergeRefs(ref)(node), [ref]);
@@ -77,8 +107,8 @@ export function FileCard({
       <IconPaths paths={GLYPH_FILE} className="opale-file-card__icon" />
       <span className="opale-file-card__text">
         <strong>{name}</strong>
-        {size && <small className="opale-field__helper">{size}</small>}
-        {selected && !onClick && <span className="opale-visually-hidden">Sélectionné</span>}
+        {weight && <small className="opale-field__helper">{weight}</small>}
+        {selected && !onClick && <span className="opale-visually-hidden">{labels.selected}</span>}
       </span>
     </FileCardShell>
   );
@@ -169,13 +199,27 @@ export interface DropzoneProps extends Omit<
   ComponentPropsWithRef<'label'>,
   'children' | 'onError'
 > {
+  /** Appelée avec les fichiers retenus, choisis ou déposés, une fois les contrôles passés. */
   onFiles?: (files: FileList) => void;
+  /**
+   * Appelée avec le message d'un refus (nombre, poids, type), aussi affiché et annoncé dans la
+   * zone.
+   */
   onError?: (message: string) => void;
+  /** Le texte de la zone. Défaut : `labels.prompt`. */
   children?: ReactNode;
+  /** Les types acceptés, au format de l'attribut natif : `image/*,.pdf`. Vérifié aussi au dépôt. */
   accept?: string;
+  /**
+   * Le nombre maximal de fichiers par sélection. Absent : aucune limite ; `1` avec
+   * `multiple={false}`.
+   */
   maxFiles?: number;
+  /** Le poids maximal d'un fichier, en octets. Absent : aucune limite. */
   maxSizeBytes?: number;
+  /** Rend la zone inactive : ni choix, ni dépôt. Défaut : `false`. */
   disabled?: boolean;
+  /** Rend la zone dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
   /** Remplace les textes français par défaut, clé par clé. `children` gagne sur `labels.prompt`. */
   labels?: Partial<DropzoneLabels>;
@@ -360,6 +404,7 @@ const DEFAULT_LIGHTBOX_LABELS: LightboxLabels = { close: 'Fermer', dialog: 'Aper
 
 /** Les props de `Lightbox`. `ref` et les attributs vont au panneau. */
 export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title' | 'children'> {
+  /** L'adresse de l'image montrée. Absente, la visionneuse ne s'ouvre pas, même avec `open`. */
   src?: string;
   /* `alt` EST OBLIGATOIRE, ET IL NE PEUT PAS EN ÊTRE AUTREMENT. Sa valeur par
      défaut était la chaîne vide, c'est-à-dire « cette image est décorative » —
@@ -367,7 +412,9 @@ export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title
      appelant distrait produisait une lightbox vide pour qui ne voit pas, sans
      le moindre signal. Une prop obligatoire dit « décris-moi » ; un défaut
      vide dit « ce n'est pas grave ». Rupture d'API assumée. */
+  /** La description de l'image, obligatoire : la visionneuse n'existe que pour la montrer. */
   alt: string;
+  /** Ouverte ou non, pilotée par l'appelant. Défaut : `false`. */
   open?: boolean;
   /** Appelée avec `false` sur Échap, le voile, la croix ou Fermer. */
   onOpenChange?: (open: boolean) => void;
@@ -381,6 +428,7 @@ export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title
    * ou `onClose`) ; son nom et la gestion du focus sont inchangés.
    */
   footerClose?: boolean;
+  /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -445,26 +493,55 @@ const CLIPBOARD_RESET_MS = 2000;
 
 type ClipboardState = 'idle' | 'copied' | 'failed';
 
-const CLIPBOARD_STATUS: Record<ClipboardState, string> = {
-  idle: '',
-  copied: 'Copié dans le presse-papier',
+/** Les textes de `Clipboard`. */
+export interface ClipboardLabels {
+  /** Le bouton au repos, quand `children` n'est pas passé. Défaut : « Copier ». */
+  copy: string;
+  /** Le bouton après une copie réussie. Défaut : « Copié ». */
+  copied: string;
+  /** L'annonce d'une copie réussie. Défaut : « Copié dans le presse-papier ». */
+  copiedStatus: string;
+  /** Le bouton et l'annonce d'un échec. Défaut : « Échec de la copie ». */
+  failed: string;
+}
+
+const DEFAULT_CLIPBOARD_LABELS: ClipboardLabels = {
+  copy: 'Copier',
+  copied: 'Copié',
+  copiedStatus: 'Copié dans le presse-papier',
   failed: 'Échec de la copie',
 };
 
 /** Les props de `Clipboard`. `ref` et les attributs vont au bouton de copie. */
-export interface ClipboardProps extends Omit<ButtonProps, 'children' | 'value'> {
+export interface ClipboardProps extends Omit<ButtonProps, 'children' | 'value' | 'labels'> {
+  /** Le texte copié dans le presse-papier au clic. */
   value: string;
+  /** Rend le bouton dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
+  /** Le texte du bouton au repos ; gagne sur `labels.copy`. */
   children?: ReactNode;
+  /**
+   * Remplace les textes français par défaut, clé par clé. `loading` reste
+   * celui du bouton (`ButtonLabels`), transmis tel quel : il était accepté
+   * avant que `Clipboard` n'ait ses propres textes.
+   */
+  labels?: Partial<ClipboardLabels> & Partial<ButtonLabels>;
 }
 
 export function Clipboard({
   value,
   liquidGlass = false,
-  children = 'Copier',
+  children,
+  labels: labelsProp,
   onClick,
   ...rest
 }: ClipboardProps) {
+  const labels = resolveLabels(DEFAULT_CLIPBOARD_LABELS, labelsProp);
+  const status: Record<ClipboardState, string> = {
+    idle: '',
+    copied: labels.copiedStatus,
+    failed: labels.failed,
+  };
   const [state, setState] = useState<ClipboardState>('idle');
   const reset = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -499,15 +576,22 @@ export function Clipboard({
         variant="tonal"
         {...rest}
         liquidGlass={liquidGlass}
+        labels={labelsProp?.loading === undefined ? undefined : { loading: labelsProp.loading }}
         onClick={(event) => {
           void copy();
           onClick?.(event);
         }}
       >
-        {state === 'copied' ? 'Copié' : state === 'failed' ? 'Échec de la copie' : children}
+        {state === 'copied'
+          ? labels.copied
+          : state === 'failed'
+            ? labels.failed
+            : children === undefined
+              ? labels.copy
+              : children}
       </Button>
       <span className="opale-visually-hidden" role="status">
-        {CLIPBOARD_STATUS[state]}
+        {status[state]}
       </span>
     </>
   );

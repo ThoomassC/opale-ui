@@ -1853,6 +1853,15 @@
 .opale-card__title {
   font-size: var(--opale-text-lg);
 }
+/* LES NIVEAUX 5 ET 6 (DX-16). Les niveaux 1 à 4 gardent la taille du
+   navigateur, comme avant ; 5 et 6 tombaient à 0,83 et 0,67 em — 10,7 px pour
+   un h6. Ils prennent les deux plus petits pas de l'échelle. */
+h5.opale-heading {
+  font-size: var(--opale-text-sm);
+}
+h6.opale-heading {
+  font-size: var(--opale-text-xs);
+}
 .opale-card__subtitle {
   margin: 0;
   color: var(--opale-text-secondary);
@@ -2161,6 +2170,11 @@
   cursor: not-allowed;
   background: none;
 }
+/* UNE OPTION DÉSACTIVÉE SEULE, dans une liste active : même effacement. */
+.opale-multiselect__option[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: var(--opale-disabled-opacity);
+}
 
 .opale-checkbox-row,
 .opale-toggle-row {
@@ -2230,6 +2244,71 @@
    hérité, où qu'il soit posé. */
 .opale-toggle-thumb:dir(rtl) {
   --opale-inline-direction: -1;
+}
+
+/* =============================================================================
+   LA TAILLE DES CHAMPS, DE LA CASE ET DE L'INTERRUPTEUR (DX-11).
+
+   `medium` n'a pas de classe : le rendu par défaut reste celui de toujours, au
+   pixel. `small` et `large` suivent la même échelle que `Button` — un champ
+   `small` à côté d'un bouton `small` s'aligne sur `--opale-control-sm`.
+
+   LA COURSE DE LA POIGNÉE SE CALCULE, ELLE NE SE DEVINE PAS : piste − poignée
+   − deux marges. En `medium`, 3,25 − 1,25 − 2 × 0,25 = 1,5 rem, la valeur de
+   la règle cochée. En `small`, 2,5 − 1 − 2 × 0,1875 = 1,125 rem ; en `large`,
+   3,75 − 1,5 − 2 × 0,25 = 1,75 rem. La translation garde le multiplicateur
+   `--opale-inline-direction`, que `:dir(rtl)` pose sur la poignée : de droite
+   à gauche, elle glisse vers la gauche (ACC-20). Les deux formes du voisinage
+   — `+ .opale-toggle-track` en plein, `+ * .opale-toggle-track` sous verre,
+   où la piste vit dans l'enveloppe — sont reprises, comme la règle cochée.
+   ========================================================================== */
+.opale-field--small .opale-input-shell {
+  min-height: var(--opale-control-sm);
+  padding-inline: var(--opale-space-sm);
+}
+.opale-field--large .opale-input-shell {
+  min-height: var(--opale-control-lg);
+}
+.opale-field--small .opale-input,
+.opale-field--small .opale-select {
+  font-size: var(--opale-text-sm);
+}
+.opale-field--large .opale-input,
+.opale-field--large .opale-select {
+  font-size: var(--opale-text-lg);
+}
+.opale-checkbox-row--small .opale-checkbox-mark {
+  width: 1rem;
+  height: 1rem;
+}
+.opale-checkbox-row--large .opale-checkbox-mark {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.opale-toggle-row--small .opale-toggle-track {
+  width: 2.5rem;
+  height: 1.375rem;
+}
+.opale-toggle-row--small .opale-toggle-thumb {
+  width: 1rem;
+  height: 1rem;
+  margin-inline-start: 0.1875rem;
+}
+.opale-toggle-row--small .opale-toggle:checked + .opale-toggle-track .opale-toggle-thumb,
+.opale-toggle-row--small .opale-toggle:checked + * .opale-toggle-track .opale-toggle-thumb {
+  transform: translateX(calc(1.125rem * var(--opale-inline-direction, 1)));
+}
+.opale-toggle-row--large .opale-toggle-track {
+  width: 3.75rem;
+  height: 2rem;
+}
+.opale-toggle-row--large .opale-toggle-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.opale-toggle-row--large .opale-toggle:checked + .opale-toggle-track .opale-toggle-thumb,
+.opale-toggle-row--large .opale-toggle:checked + * .opale-toggle-track .opale-toggle-thumb {
+  transform: translateX(calc(1.75rem * var(--opale-inline-direction, 1)));
 }
 
 /* LA CASE « MIXTE » (DX-12) : l'état `indeterminate` du natif, posé par la
@@ -2564,6 +2643,21 @@
 .opale-segmented--glass .opale-segmented__item[aria-pressed='true'] {
   color: var(--opale-glass-ink);
 }
+/* LA TAILLE DU CONTRÔLE SEGMENTÉ (DX-11). `medium` reste sans classe. */
+.opale-segmented--small .opale-segmented__item {
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  font-size: var(--opale-text-xs);
+}
+.opale-segmented--large .opale-segmented__item {
+  padding: var(--opale-space-sm) var(--opale-space-lg);
+  font-size: var(--opale-text-md);
+}
+/* UN SEGMENT DÉSACTIVÉ S'EFFACE de l'opacité commune des contrôles désactivés,
+   et le pointeur le dit. */
+.opale-segmented__item:disabled {
+  cursor: not-allowed;
+  opacity: var(--opale-disabled-opacity);
+}
 /* `.opale-chip` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
    `Badge` (`.opale-badge`), qui partage cette règle. */
 .opale-chip,
@@ -2587,6 +2681,51 @@
   background: color-mix(in srgb, var(--opale-danger) 14%, transparent);
   color: var(--opale-danger-on-surface);
 }
+/* LES TONS D'`OpaleTone` (DX-10). « Payé », « En attente », « Échec » : le
+   statut d'une ligne de tableau de bord n'était pas exprimable. Ce sont des
+   pastilles PLEINES, comme les notifications du même ton : remplissage
+   `--opale-fill-*`, encre `--opale-on-fill`, deux jetons déjà redéfinis dans
+   chaque bloc de thème. Un lavis à 14 % sous l'encre du rôle a été mesuré et
+   écarté : l'avertissement tombait à 4,05:1 sur la surface creusée claire, le
+   succès à 3,54:1. Le plein ne dépend pas du sol. Le neutre remplit de
+   l'encre secondaire, qui porte l'encre des remplissages dans les deux thèmes.
+   `opale-badge-tones.contract.test.ts` mesure les quatre sur les trois sols
+   des trois thèmes.
+
+   SOUS VERRE, LE PLEIN RESTE PLEIN. `[data-opale-glass] .opale-badge` pèse
+   0,2,0 et `[data-opale-glass-ink='page'] …` 0,3,0 : l'un comme l'autre
+   repeignait la pastille en primaire. Le sélecteur `:is()` monte à 0,3,0 et
+   vient après eux : le statut garde sa couleur, et son contraste, quel que
+   soit le paysage. */
+.opale-badge--success,
+:is([data-opale-glass] .opale-badge, .opale-badge--glass).opale-badge--success {
+  background: var(--opale-fill-success);
+  color: var(--opale-on-fill);
+}
+.opale-badge--warning,
+:is([data-opale-glass] .opale-badge, .opale-badge--glass).opale-badge--warning {
+  background: var(--opale-fill-warning);
+  color: var(--opale-on-fill);
+}
+.opale-badge--info,
+:is([data-opale-glass] .opale-badge, .opale-badge--glass).opale-badge--info {
+  background: var(--opale-fill-info);
+  color: var(--opale-on-fill);
+}
+.opale-badge--neutral,
+:is([data-opale-glass] .opale-badge, .opale-badge--glass).opale-badge--neutral {
+  background: var(--opale-text-secondary);
+  color: var(--opale-on-fill);
+}
+/* LA TAILLE (DX-11). `medium` est la pastille de toujours, sans classe. */
+.opale-badge--small {
+  padding-block: 0;
+  padding-inline: var(--opale-space-xs);
+}
+.opale-badge--large {
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  font-size: var(--opale-text-sm);
+}
 /* LE POINT DE NOTIFICATION. Plein et non teinté : à dix pixels, le fond à 13 %
    de la pastille ne se distinguerait pas du support (WCAG 1.4.11 demande 3:1
    à un élément graphique qui porte l'information). Le ton reste celui de la
@@ -2603,6 +2742,18 @@
 }
 .opale-badge--dot.opale-badge--danger {
   --opale-badge-dot: var(--opale-danger-on-surface);
+}
+.opale-badge--dot.opale-badge--success {
+  --opale-badge-dot: var(--opale-fill-success);
+}
+.opale-badge--dot.opale-badge--warning {
+  --opale-badge-dot: var(--opale-fill-warning);
+}
+.opale-badge--dot.opale-badge--info {
+  --opale-badge-dot: var(--opale-fill-info);
+}
+.opale-badge--dot.opale-badge--neutral {
+  --opale-badge-dot: var(--opale-text-secondary);
 }
 /* SOUS VERRE, LE POINT RESTE PLEIN. `[data-opale-glass] .opale-badge` pèse
    0,2,0 et posait une teinte à 62 % sur la réfraction : le point devenait
@@ -2701,6 +2852,12 @@
     min-width: 0;
   }
 }
+/* LE TON NEUTRE (DX-10) : l'encre de la page sur la surface, sans couleur de
+   signal. Il n'interrompt rien et ne demande aucune icône de plus. */
+.opale-feedback--neutral {
+  color: var(--opale-text);
+  background: color-mix(in srgb, var(--opale-text-secondary) 6%, var(--opale-surface));
+}
 .opale-feedback--success {
   color: var(--opale-success-on-surface);
   background: color-mix(in srgb, var(--opale-success) 9%, var(--opale-surface));
@@ -2724,6 +2881,17 @@
   border-top-color: var(--opale-primary);
   border-radius: 50%;
   animation: opale-spin 0.8s linear infinite;
+}
+/* LA TAILLE DU TÉMOIN (DX-11). `medium` reste le témoin de 24 px, sans classe. */
+.opale-spinner--small {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+.opale-spinner--large {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-width: 4px;
 }
 /* LE TÉMOIN D'UN BOUTON PREND L'ENCRE DU BOUTON (THM-15). Aux couleurs de la
    page, il posait un arc primaire sur un aplat primaire : invisible, et seul
@@ -2991,6 +3159,76 @@
 .opale-stack--wrap {
   flex-wrap: wrap;
 }
+/* L'ESPACEMENT, L'ALIGNEMENT ET LA RÉPARTITION (DX-16). Sans prop, la pile
+   garde `--opale-space-md` et l'alignement par défaut de flexbox. Une liste
+   rendue par `as="ul"`/`"ol"` perd ses puces et son retrait : c'est une pile,
+   pas un texte. */
+ul.opale-stack,
+ol.opale-stack {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.opale-stack--gap-none,
+.opale-grid--gap-none {
+  gap: 0;
+}
+.opale-stack--gap-xs,
+.opale-grid--gap-xs {
+  gap: var(--opale-space-xs);
+}
+.opale-stack--gap-sm,
+.opale-grid--gap-sm {
+  gap: var(--opale-space-sm);
+}
+.opale-stack--gap-md,
+.opale-grid--gap-md {
+  gap: var(--opale-space-md);
+}
+.opale-stack--gap-lg,
+.opale-grid--gap-lg {
+  gap: var(--opale-space-lg);
+}
+.opale-stack--gap-xl,
+.opale-grid--gap-xl {
+  gap: var(--opale-space-xl);
+}
+.opale-stack--align-start {
+  align-items: flex-start;
+}
+.opale-stack--align-center {
+  align-items: center;
+}
+.opale-stack--align-end {
+  align-items: flex-end;
+}
+.opale-stack--align-stretch {
+  align-items: stretch;
+}
+.opale-stack--align-baseline {
+  align-items: baseline;
+}
+.opale-stack--justify-start {
+  justify-content: flex-start;
+}
+.opale-stack--justify-center {
+  justify-content: center;
+}
+.opale-stack--justify-end {
+  justify-content: flex-end;
+}
+.opale-stack--justify-between {
+  justify-content: space-between;
+}
+/* LA GRILLE GÉNÉRIQUE (DX-16). Sans `columns`, elle se remplit comme
+   `CardGrid`, mais sur l'espacement courant ; `columns` écrit la piste dans
+   `--opale-grid-columns`. `minmax(0, 1fr)` et `min(…, 100%)` empêchent une
+   colonne de pousser la page à l'horizontale (WCAG 1.4.10). */
+.opale-grid {
+  display: grid;
+  grid-template-columns: var(--opale-grid-columns, repeat(auto-fit, minmax(min(15rem, 100%), 1fr)));
+  gap: var(--opale-space-md);
+}
 .opale-layout {
   display: grid;
   min-height: 100%;
@@ -3168,6 +3406,16 @@
   font-size: var(--opale-text-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+/* LA COLONNE DE SÉLECTION (DX-07) : aussi étroite que sa case. La rangée de
+   la case garde sa cible de 24 px ; elle ne pousse pas la ligne. */
+.opale-table .opale-table__select {
+  width: 1%;
+  padding-inline-end: 0;
+  white-space: nowrap;
+}
+.opale-table tbody tr[data-selected='true'] {
+  background: var(--opale-table-row-hover);
 }
 .opale-table [data-align='center'] {
   text-align: center;

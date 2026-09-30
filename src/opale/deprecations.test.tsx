@@ -31,6 +31,7 @@ import {
   ConfirmDialog,
   DataTable,
   Feedback,
+  FileCard,
   Lightbox,
   MultiSelect,
   Navbar,
@@ -44,6 +45,7 @@ import {
   type ConfirmDialogProps,
   type DataTableProps,
   type FeedbackProps,
+  type FileCardProps,
   type LightboxProps,
   type MultiSelectProps,
   type NavbarProps,
@@ -167,6 +169,7 @@ describe('les nouveaux noms', () => {
         <SidePanel onOpenChange={() => undefined} />
         <CommandPalette onValueChange={() => undefined} onOpenChange={() => undefined} />
         <Lightbox src="a.png" alt="A" onOpenChange={() => undefined} />
+        <FileCard name="a.pdf" fileSize="2 Mo" />
         <Toggle label="Wi-Fi" />
         <FireToast />
       </ToastProvider>,
@@ -203,6 +206,7 @@ const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
     </ToastProvider>
   ),
   DataTable: (p) => <DataTable {...(p as Partial<DataTableProps>)} />,
+  FileCard: (p) => <FileCard name="a.pdf" {...(p as Partial<FileCardProps>)} />,
   Lightbox: (p) => <Lightbox src="a.png" alt="A" {...(p as Partial<LightboxProps>)} />,
   Feedback: (p) => <Feedback {...(p as Partial<FeedbackProps>)}>Texte</Feedback>,
   Toast: (p) => <Toast message="Enregistré" {...(p as Partial<ToastProps>)} />,
@@ -243,6 +247,7 @@ const SAMPLES: Readonly<Record<string, unknown>> = {
   severity: 'warning',
   values: ['a'],
   page: 1,
+  size: '2 Mo',
 };
 
 describe('chaque prop dépréciée de la table', () => {
