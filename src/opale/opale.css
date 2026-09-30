@@ -31,6 +31,15 @@
      local de PageScaffold : texte des boutons à 2,82:1 dans une section
      sombre. Redéfinis dans chaque bloc, ils héritent comme le reste. */
   --opale-on-fill: #fbfaf9;
+  /* UNE ENCRE PAR RÔLE, QUI VAUT L'ENCRE COMMUNE. Primaire, secondaire et
+     danger partageaient `--opale-on-fill` : une marque claire (jaune, cyan)
+     qui réclamait une encre sombre sur SON primaire rendait du même coup le
+     bouton danger illisible. Chaque aplat lit désormais son encre ; sans
+     surcharge, les trois retombent sur `--opale-on-fill` et rien ne bouge.
+     Dérivés, ils sont redits sur chaque thème local et sur `data-opale-scope`. */
+  --opale-on-primary: var(--opale-on-fill);
+  --opale-on-secondary: var(--opale-on-fill);
+  --opale-on-danger: var(--opale-on-fill);
   /* LE BORD D'UN CONTRÔLE N'EST PAS LE LISERÉ D'UNE CARTE. `--opale-divider`
      sépare deux surfaces (1,30:1) ; un champ, lui, doit se voir pour qu'on
      sache où saisir (WCAG 1.4.11). L'encre à 55 % tient 4,16:1 sur la surface,
@@ -58,6 +67,19 @@
      5,52:1 avec l'encre claire, contre 4,75 pour l'olive qu'il remplace. */
   --opale-secondary: #5990b0;
   --opale-secondary-dark: #3a6b8a;
+  /* LA RECETTE DE `data-opale-brand="derive"`, ÉCRITE PAR THÈME. Sous cet
+     attribut, les états de la marque se calculent (voir « LA MARQUE SE
+     DÉRIVE ») ; ces quatre parts disent seulement de COMBIEN. Elles ont été
+     ajustées pour que la marque d'Opale, dérivée, retombe à moins de 2 ΔE
+     OKLab de ses valeurs écrites. Sans l'attribut, personne ne les lit.
+     - survol : le primaire s'approche de l'encre du thème (plus sombre ici) ;
+     - teinte : le primaire s'éclaircit vers le blanc ;
+     - secondaire : le fond du bouton s'assombrit vers le noir ;
+     - encre du danger : en clair, le danger lui-même (100 %). */
+  --opale-brand-mix-hover: 74%;
+  --opale-brand-mix-light: 74%;
+  --opale-brand-mix-secondary: 81%;
+  --opale-brand-mix-danger-ink: 100%;
   --opale-accent: #f4ad15;
   /* L'AMBRE A BESOIN D'UNE VERSION SOMBRE, comme le saphir et le bleu d'acier
      ont la leur. `--opale-accent` est un jaune vif : il porte une encre sombre
@@ -247,14 +269,59 @@
   --opale-space-lg: 1.5rem;
   --opale-space-xl: 2.25rem;
   --opale-space-2xl: 3rem;
+  /* LES ESPACEMENTS DES COMPOSANTS, NOMMÉS À LEUR VALEUR D'AVANT.
+
+     Ils étaient écrits en `rem` littéraux, souvent entre deux pas de la
+     grille (5,6 px, 10,4 px, 11,2 px) : resserrer `--opale-space-*` pour une
+     console dense resserrait cartes et champs, mais ni boutons, ni pastilles,
+     ni segments. Les ramener sur la grille aurait déplacé des pixels dans un
+     correctif ; ils deviennent donc des jetons DE MÊME VALEUR, qu'un hôte
+     règle avec le reste de sa densité. Le recalage sur la grille de 4 px
+     attend la 4.0. Quand une valeur tombait déjà sur l'échelle, c'est le pas
+     de l'échelle qui la remplace. Ils ne portent pas le préfixe
+     `--opale-space-`, réservé aux sept pas de l'échelle : ce sont des réglages
+     de composant. Restent écrits trois littéraux de GÉOMÉTRIE — la poignée
+     centrée dans sa piste, la tuile d'icône d'un fichier, le recalage de la
+     coche —, que la densité ne doit pas décentrer. */
+  --opale-button-padding-block: 0.375rem;
+  --opale-button-padding-inline: 1.25rem;
+  --opale-button-padding-inline-sm: 0.875rem;
+  --opale-button-padding-inline-lg: 1.625rem;
+  --opale-badge-gap: 0.35rem;
+  --opale-badge-padding-inline: 0.65rem;
+  /* Les trois lignes d'une statistique : libellé, valeur, évolution. */
+  --opale-stat-card-gap: 0.35rem;
+  /* Le retrait latéral d'un élément compact : segment, entrée de navigation,
+     cellule de tableau. */
+  --opale-item-padding-inline: 0.875rem;
+  --opale-nav-item-padding-block: 0.7rem;
+  /* Les lignes serrées d'une pile : options d'une liste, étoiles, nom et
+     taille d'un fichier. */
+  --opale-stack-gap: 0.15rem;
+  /* L'écart d'une grappe de petites commandes : boutons de pagination,
+     libellé et flèche d'un tri. */
+  --opale-cluster-gap: 0.375rem;
+  --opale-table-count-padding-inline: 0.625rem;
+  --opale-table-state-padding-block: 2rem;
+  --opale-description-row-gap: 0.65rem;
+  --opale-list-indent: 1.25rem;
+  --opale-command-option-gap: 0.125rem;
+  --opale-toast-padding-block: 0.625rem;
   --opale-shadow-1:
     0 0.0625rem 0.125rem rgba(20, 30, 24, 0.06), 0 0.0625rem 0.1875rem rgba(20, 30, 24, 0.1);
   --opale-shadow-2:
     0 0.125rem 0.375rem rgba(20, 30, 24, 0.08), 0 0.25rem 0.75rem rgba(20, 30, 24, 0.1);
   --opale-shadow-3: 0 0.375rem 1rem rgba(20, 30, 24, 0.12);
   --opale-shadow-4: 0 0.75rem 1.75rem rgba(20, 30, 24, 0.16);
-  --opale-font-body: 'Chivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --opale-font-display: 'Chivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* `'… Fallback'` SUIT CHAQUE POLICE WEB : une face locale (Arial) recalée
+     sur ses métriques, déclarée dans `fonts.css`. Pendant le chargement, le
+     texte occupe déjà la place qu'il aura ; il ne saute plus au changement.
+     Une fois la police chargée, elle ne sert plus — et sans `fonts.css`, le
+     nom est inconnu et le navigateur passe au suivant. */
+  --opale-font-body:
+    'Chivo', 'Chivo Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --opale-font-display:
+    'Chivo', 'Chivo Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   /* LE TITRE A SON PROPRE JETON, DISTINCT DE `--opale-font-display`, ET LA
      DISTINCTION EST CE QUI BORNE LE CHANGEMENT. `--opale-font-display` habille
      aussi le titre du rail, les titres de plaques, `.opale-text--metric`, le
@@ -263,7 +330,8 @@
      donc qu'aux titres de pages et aux chiffres de l'accueil, et le reste de
      la vitrine garde son Chivo. */
   --opale-font-title:
-    'Bricolage Grotesque', 'Chivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    'Bricolage Grotesque', 'Bricolage Grotesque Fallback', 'Chivo', 'Chivo Fallback', system-ui,
+    -apple-system, 'Segoe UI', Roboto, sans-serif;
   --opale-font-mono: 'Hack', ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, monospace;
   /* Cinq durées et trois courbes pour tout mouvement. `instant` suit un geste
      (une piste qu'on tire), `slower` porte les déplacements amples et les
@@ -404,6 +472,9 @@
      tombait sous 3,5:1. Les tons de toast passent par le jeton clair
      *-on-surface : un remplissage assombri serait noir sur un sol noir. */
   --opale-on-fill: #0c0f0d;
+  --opale-on-primary: var(--opale-on-fill);
+  --opale-on-secondary: var(--opale-on-fill);
+  --opale-on-danger: var(--opale-on-fill);
   --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
   --opale-fill-success: var(--opale-success-on-surface);
   --opale-fill-warning: var(--opale-warning-on-surface);
@@ -427,6 +498,14 @@
      couple encre/fond du thème sombre est un chantier à part. */
   --opale-secondary: #8fb5cd;
   --opale-secondary-dark: #6f9cba;
+  /* LA RECETTE DE DÉRIVATION DU SOMBRE. Le survol y ÉCLAIRCIT — il s'approche
+     de l'encre, qui est claire —, la teinte y monte assez haut pour servir
+     d'encre de surface, et l'encre du danger s'éclaircit comme ses voisines
+     *-on-surface. */
+  --opale-brand-mix-hover: 82%;
+  --opale-brand-mix-light: 48%;
+  --opale-brand-mix-secondary: 89%;
+  --opale-brand-mix-danger-ink: 72%;
   --opale-danger: #e2726b;
   --opale-divider: #2c322d;
   --opale-focus: #a9c7f4;
@@ -465,6 +544,145 @@
   --opale-danger-on-surface: #f09a94;
 }
 
+/* LA PORTÉE LOCALE : `data-opale-scope`.
+
+   UN JETON DÉRIVÉ SE RÉSOUT LÀ OÙ IL EST DÉCLARÉ, puis hérite de sa valeur
+   déjà calculée. Déclaré sur `:root`, `--opale-primary-on-surface` y vaut le
+   saphir une fois pour toutes : un conteneur qui pose `--opale-primary: vert`
+   obtenait des aplats verts, mais des liens, des boutons ghost et des encres
+   de pastille bleus ; un conteneur à `--opale-radius-md: 0` avait des champs
+   carrés et des boutons arrondis (audit THM-03).
+
+   L'attribut, facultatif, redit ces dérivés sur le sous-arbre qui le porte —
+   la même liste que sur le thème local de PageScaffold, que
+   `opale-brand-tokens.contract.test.ts` garde identique à celle des blocs
+   racine. Sans l'attribut, rien ne change. `data-opale-brand="derive"` le
+   sous-entend : une marque dérivée localement doit l'être jusqu'au bout.
+
+   LE THÈME DU SOUS-ARBRE EST CELUI DE SON PLUS PROCHE CONTEXTE. Quatre règles
+   de même poids, départagées par l'ordre : clair par défaut, sombre sous une
+   racine sombre, puis le plus proche gabarit (`data-opale-page-theme`), sur
+   deux niveaux d'imbrication. En sombre, les encres de signal écrites en dur
+   (`--opale-success-on-surface`…) sont redites `inherit` : la portée garde la
+   valeur du thème, ou celle que l'hôte y a posée. Un gabarit qui porte
+   lui-même l'attribut est exclu : son propre bloc redit déjà tout. */
+:is([data-opale-scope], [data-opale-brand='derive']):not(:where([data-opale-page-theme])) {
+  --opale-on-primary: var(--opale-on-fill);
+  --opale-on-secondary: var(--opale-on-fill);
+  --opale-on-danger: var(--opale-on-fill);
+  --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
+  --opale-fill-success: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
+  --opale-fill-warning: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
+  --opale-fill-danger: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
+  --opale-fill-info: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
+  --opale-primary-on-surface: var(--opale-primary);
+  --opale-success-on-surface: var(--opale-success);
+  --opale-info-on-surface: var(--opale-info);
+  --opale-danger-on-surface: var(--opale-danger);
+  --opale-squircle-radius: min(var(--opale-radius-md), 50%);
+  --opale-squircle-clip: polygon(
+    0% var(--opale-squircle-radius),
+    calc(var(--opale-squircle-radius) * 0.0057) calc(var(--opale-squircle-radius) * 0.7427),
+    calc(var(--opale-squircle-radius) * 0.0228) calc(var(--opale-squircle-radius) * 0.5939),
+    calc(var(--opale-squircle-radius) * 0.0514) calc(var(--opale-squircle-radius) * 0.4729),
+    calc(var(--opale-squircle-radius) * 0.0914) calc(var(--opale-squircle-radius) * 0.37),
+    calc(var(--opale-squircle-radius) * 0.143) calc(var(--opale-squircle-radius) * 0.2817),
+    calc(var(--opale-squircle-radius) * 0.2063) calc(var(--opale-squircle-radius) * 0.2063),
+    calc(var(--opale-squircle-radius) * 0.2817) calc(var(--opale-squircle-radius) * 0.143),
+    calc(var(--opale-squircle-radius) * 0.37) calc(var(--opale-squircle-radius) * 0.0914),
+    calc(var(--opale-squircle-radius) * 0.4729) calc(var(--opale-squircle-radius) * 0.0514),
+    calc(var(--opale-squircle-radius) * 0.5939) calc(var(--opale-squircle-radius) * 0.0228),
+    calc(var(--opale-squircle-radius) * 0.7427) calc(var(--opale-squircle-radius) * 0.0057),
+    var(--opale-squircle-radius) 0%,
+    calc(100% - var(--opale-squircle-radius)) 0%,
+    calc(100% - var(--opale-squircle-radius) * 0.7427) calc(var(--opale-squircle-radius) * 0.0057),
+    calc(100% - var(--opale-squircle-radius) * 0.5939) calc(var(--opale-squircle-radius) * 0.0228),
+    calc(100% - var(--opale-squircle-radius) * 0.4729) calc(var(--opale-squircle-radius) * 0.0514),
+    calc(100% - var(--opale-squircle-radius) * 0.37) calc(var(--opale-squircle-radius) * 0.0914),
+    calc(100% - var(--opale-squircle-radius) * 0.2817) calc(var(--opale-squircle-radius) * 0.143),
+    calc(100% - var(--opale-squircle-radius) * 0.2063) calc(var(--opale-squircle-radius) * 0.2063),
+    calc(100% - var(--opale-squircle-radius) * 0.143) calc(var(--opale-squircle-radius) * 0.2817),
+    calc(100% - var(--opale-squircle-radius) * 0.0914) calc(var(--opale-squircle-radius) * 0.37),
+    calc(100% - var(--opale-squircle-radius) * 0.0514) calc(var(--opale-squircle-radius) * 0.4729),
+    calc(100% - var(--opale-squircle-radius) * 0.0228) calc(var(--opale-squircle-radius) * 0.5939),
+    calc(100% - var(--opale-squircle-radius) * 0.0057) calc(var(--opale-squircle-radius) * 0.7427),
+    100% var(--opale-squircle-radius),
+    100% calc(100% - var(--opale-squircle-radius)),
+    calc(100% - var(--opale-squircle-radius) * 0.0057)
+      calc(100% - var(--opale-squircle-radius) * 0.7427),
+    calc(100% - var(--opale-squircle-radius) * 0.0228)
+      calc(100% - var(--opale-squircle-radius) * 0.5939),
+    calc(100% - var(--opale-squircle-radius) * 0.0514)
+      calc(100% - var(--opale-squircle-radius) * 0.4729),
+    calc(100% - var(--opale-squircle-radius) * 0.0914)
+      calc(100% - var(--opale-squircle-radius) * 0.37),
+    calc(100% - var(--opale-squircle-radius) * 0.143)
+      calc(100% - var(--opale-squircle-radius) * 0.2817),
+    calc(100% - var(--opale-squircle-radius) * 0.2063)
+      calc(100% - var(--opale-squircle-radius) * 0.2063),
+    calc(100% - var(--opale-squircle-radius) * 0.2817)
+      calc(100% - var(--opale-squircle-radius) * 0.143),
+    calc(100% - var(--opale-squircle-radius) * 0.37)
+      calc(100% - var(--opale-squircle-radius) * 0.0914),
+    calc(100% - var(--opale-squircle-radius) * 0.4729)
+      calc(100% - var(--opale-squircle-radius) * 0.0514),
+    calc(100% - var(--opale-squircle-radius) * 0.5939)
+      calc(100% - var(--opale-squircle-radius) * 0.0228),
+    calc(100% - var(--opale-squircle-radius) * 0.7427)
+      calc(100% - var(--opale-squircle-radius) * 0.0057),
+    calc(100% - var(--opale-squircle-radius)) 100%,
+    var(--opale-squircle-radius) 100%,
+    calc(var(--opale-squircle-radius) * 0.7427) calc(100% - var(--opale-squircle-radius) * 0.0057),
+    calc(var(--opale-squircle-radius) * 0.5939) calc(100% - var(--opale-squircle-radius) * 0.0228),
+    calc(var(--opale-squircle-radius) * 0.4729) calc(100% - var(--opale-squircle-radius) * 0.0514),
+    calc(var(--opale-squircle-radius) * 0.37) calc(100% - var(--opale-squircle-radius) * 0.0914),
+    calc(var(--opale-squircle-radius) * 0.2817) calc(100% - var(--opale-squircle-radius) * 0.143),
+    calc(var(--opale-squircle-radius) * 0.2063) calc(100% - var(--opale-squircle-radius) * 0.2063),
+    calc(var(--opale-squircle-radius) * 0.143) calc(100% - var(--opale-squircle-radius) * 0.2817),
+    calc(var(--opale-squircle-radius) * 0.0914) calc(100% - var(--opale-squircle-radius) * 0.37),
+    calc(var(--opale-squircle-radius) * 0.0514) calc(100% - var(--opale-squircle-radius) * 0.4729),
+    calc(var(--opale-squircle-radius) * 0.0228) calc(100% - var(--opale-squircle-radius) * 0.5939),
+    calc(var(--opale-squircle-radius) * 0.0057) calc(100% - var(--opale-squircle-radius) * 0.7427),
+    0% calc(100% - var(--opale-squircle-radius))
+  );
+}
+
+:where(:root[data-theme='dark'])
+  :is([data-opale-scope], [data-opale-brand='derive']):not(:where([data-opale-page-theme])),
+:where([data-opale-page-theme='dark'])
+  :is([data-opale-scope], [data-opale-brand='derive']):not(
+    :where(
+      [data-opale-page-theme='dark'] [data-opale-page-theme='light'] *,
+      [data-opale-page-theme]
+    )
+  ) {
+  --opale-fill-success: var(--opale-success-on-surface);
+  --opale-fill-warning: var(--opale-warning-on-surface);
+  --opale-fill-danger: var(--opale-danger-on-surface);
+  --opale-fill-info: var(--opale-info-on-surface);
+  --opale-primary-on-surface: var(--opale-primary-light);
+  --opale-success-on-surface: inherit;
+  --opale-info-on-surface: inherit;
+  --opale-danger-on-surface: inherit;
+}
+
+:where([data-opale-page-theme='light'])
+  :is([data-opale-scope], [data-opale-brand='derive']):not(
+    :where(
+      [data-opale-page-theme='light'] [data-opale-page-theme='dark'] *,
+      [data-opale-page-theme]
+    )
+  ) {
+  --opale-fill-success: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
+  --opale-fill-warning: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
+  --opale-fill-danger: color-mix(in srgb, var(--opale-danger) 80%, var(--opale-text));
+  --opale-fill-info: color-mix(in srgb, var(--opale-info) 80%, var(--opale-text));
+  --opale-primary-on-surface: var(--opale-primary);
+  --opale-success-on-surface: var(--opale-success);
+  --opale-info-on-surface: var(--opale-info);
+  --opale-danger-on-surface: var(--opale-danger);
+}
+
 /* LES JETONS DÉRIVÉS SE RECALCULENT SUR LE THÈME LOCAL.
 
    Un jeton écrit `var(--opale-primary)` ou `color-mix(… var(--opale-text) …)`
@@ -476,6 +694,9 @@
    `opale-page-theme.contract.test.ts` refuse que ces listes divergent de
    celles des blocs racine. */
 [data-opale-page-theme='light'] {
+  --opale-on-primary: var(--opale-on-fill);
+  --opale-on-secondary: var(--opale-on-fill);
+  --opale-on-danger: var(--opale-on-fill);
   --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
   --opale-fill-success: color-mix(in srgb, var(--opale-success) 80%, var(--opale-text));
   --opale-fill-warning: color-mix(in srgb, var(--opale-warning) 80%, var(--opale-text));
@@ -554,12 +775,67 @@
 }
 
 [data-opale-page-theme='dark'] {
+  --opale-on-primary: var(--opale-on-fill);
+  --opale-on-secondary: var(--opale-on-fill);
+  --opale-on-danger: var(--opale-on-fill);
   --opale-field-border: color-mix(in srgb, var(--opale-text) 55%, var(--opale-surface));
   --opale-fill-success: var(--opale-success-on-surface);
   --opale-fill-warning: var(--opale-warning-on-surface);
   --opale-fill-danger: var(--opale-danger-on-surface);
   --opale-fill-info: var(--opale-info-on-surface);
   --opale-primary-on-surface: var(--opale-primary-light);
+}
+
+/* LA MARQUE SE DÉRIVE : `data-opale-brand="derive"`.
+
+   LA RECETTE « UNE SEULE COULEUR » NE TENAIT QUE L'APLAT AU REPOS. Surcharger
+   le seul `--opale-primary` donnait un bouton vert qui repassait au marine au
+   survol, un anneau de focus saphir, un lavis tonal bleu pâle sous une encre
+   verte, et un secondaire bleu acier (audit THM-02). Les états de la marque
+   étaient ÉCRITS, pas calculés : il fallait en connaître une douzaine.
+
+   Sous l'attribut — sur `<html>` ou sur n'importe quel sous-arbre —, ils se
+   calculent depuis la marque, en OKLab, où assombrir garde la teinte :
+   - survol (`--opale-primary-dark`) : le primaire s'approche de l'encre du
+     thème — il fonce en clair, il s'éclaircit en sombre ;
+   - teinte (`--opale-primary-light`) : le primaire vers le blanc ; c'est elle
+     qui fait le lavis tonal, et l'encre des surfaces du thème sombre ;
+   - anneau (`--opale-focus`) : l'encre du primaire sur les surfaces ;
+   - fond du secondaire, encre du danger sur les surfaces.
+   Les parts viennent des recettes de chaque thème (`--opale-brand-mix-*`).
+   Tout ce qui s'écrivait déjà en `color-mix` depuis la marque — voile du
+   survol ghost, piste du spinner, lavis de pastille — suivait déjà.
+
+   SANS L'ATTRIBUT, LES VALEURS ÉCRITES RESTENT, À L'OCTET PRÈS. Avec, et sans
+   autre surcharge, la marque d'Opale retombe à moins de 2 ΔE OKLab d'elle-même.
+   L'attribut sous-entend `data-opale-scope` : les dérivés de surface sont redits
+   là où il est posé. `:root[…]` pèse deux classes, comme la racine sombre ; un
+   jeton d'état qu'un hôte écrit sur `:root` perd donc contre la dérivation :
+   qui écrit ses états n'a pas à la demander. */
+:root[data-opale-brand='derive'],
+[data-opale-brand='derive'],
+:where([data-opale-brand='derive']) :is([data-opale-page-theme], [data-opale-scope]) {
+  --opale-primary-dark: color-mix(
+    in oklab,
+    var(--opale-primary) var(--opale-brand-mix-hover),
+    var(--opale-text)
+  );
+  --opale-primary-light: color-mix(
+    in oklab,
+    var(--opale-primary) var(--opale-brand-mix-light),
+    white
+  );
+  --opale-secondary-dark: color-mix(
+    in oklab,
+    var(--opale-secondary) var(--opale-brand-mix-secondary),
+    black
+  );
+  --opale-danger-on-surface: color-mix(
+    in oklab,
+    var(--opale-danger) var(--opale-brand-mix-danger-ink),
+    white
+  );
+  --opale-focus: var(--opale-primary-on-surface);
 }
 
 /* LE GABARIT EST UNE SURFACE D'OPALE : IL POSE SON SCHÉMA DE COULEURS. La
@@ -642,6 +918,19 @@
   outline-offset: var(--opale-focus-ring-offset);
 }
 
+/* L'ANNEAU DU BOUTON ÉPOUSE SA SILHOUETTE. La boîte du bouton est un rectangle
+   à `border-radius: 0` — la forme est peinte par le `clip-path` de `::before` —,
+   si bien que l'anneau de 3 px dessinait un rectangle à angles vifs autour d'un
+   squircle, à côté des champs, des cases et des cartes dont l'anneau suit le
+   rayon (audit THM-13). Au focus seulement, la boîte prend un rayon : l'outline
+   le suit, le découpage des couches n'en dépend pas, et rien ne change au repos.
+   0,68 r est l'arc qui passe par le même point diagonal que le squircle, le
+   réglage que la vitrine appliquait déjà à ses propres contrôles. Un seul
+   langage : même couleur, même largeur, même décalage que partout ailleurs. */
+.opale-button:focus-visible {
+  border-radius: calc(var(--opale-squircle-radius) * 0.68);
+}
+
 .opale-button {
   --opale-button-background: var(--opale-primary);
   --opale-button-hover-background: var(--opale-primary-dark);
@@ -655,9 +944,9 @@
   gap: var(--opale-space-xs);
   border: 0;
   border-radius: 0;
-  padding: 0.375rem 1.25rem;
+  padding: var(--opale-button-padding-block) var(--opale-button-padding-inline);
   background: transparent;
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
   cursor: pointer;
   font: 600 var(--opale-text-sm) / var(--opale-leading-relaxed) var(--opale-font-body);
   text-transform: none;
@@ -741,6 +1030,7 @@
     var(--opale-secondary-dark) 86%,
     var(--opale-shade)
   );
+  color: var(--opale-on-secondary);
 }
 
 .opale-button--accent {
@@ -752,6 +1042,7 @@
 .opale-button--danger {
   --opale-button-background: var(--opale-danger);
   --opale-button-hover-background: color-mix(in srgb, var(--opale-danger) 86%, var(--opale-shade));
+  color: var(--opale-on-danger);
 }
 
 .opale-button--tonal {
@@ -774,17 +1065,27 @@
   color: var(--opale-primary-on-surface);
 }
 
+/* LE CONTOUR DU GHOST EST CONTINU.
+
+   Il était tracé par un masque xor — un cadre RECTANGULAIRE d'un pixel —,
+   rogné ensuite par le `clip-path` du squircle : aux quatre angles, le cadre
+   passait hors de la forme et disparaissait, et sur les côtés le découpage
+   mangeait la moitié du pixel. On voyait quatre fragments disjoints (audit
+   THM-14), dans les deux thèmes.
+
+   Le trait est désormais une bordure d'un pixel, sans découpage, arrondie à
+   0,68 r : l'arc qui passe par le même point diagonal que le squircle, et que
+   l'anneau de focus du bouton reprend. Mesuré contre les sommets du polygone,
+   il s'en écarte de moins d'un demi-pixel sur tout le tour. Un anneau
+   polygonal exact (deux boucles en pair-impair) a été essayé et écarté : si
+   un hôte écrit `--opale-radius-md: 0` sans unité, `min(0, 50%)` est invalide,
+   le `clip-path` tombe à `none` et le contour devenait un aplat plein. La
+   bordure, elle, retombe alors sur un rectangle, comme ses voisins. */
 .opale-button--ghost::after {
   display: block;
   box-sizing: border-box;
-  padding: 1px;
-  background: var(--opale-primary);
-  clip-path: var(--opale-squircle-clip);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  border: 1px solid var(--opale-primary);
+  border-radius: calc(var(--opale-squircle-radius) * 0.68);
 }
 
 /* Une action uniquement iconique garde une cible carrée et une encre lisible.
@@ -831,13 +1132,13 @@
 
 .opale-button--small {
   min-height: var(--opale-control-sm);
-  padding: 0.25rem 0.875rem;
+  padding: var(--opale-space-2xs) var(--opale-button-padding-inline-sm);
   font-size: var(--opale-text-xs);
 }
 
 .opale-button--large {
   min-height: var(--opale-control-lg);
-  padding: 0.5rem 1.625rem;
+  padding: var(--opale-space-xs) var(--opale-button-padding-inline-lg);
   font-size: var(--opale-text-md);
 }
 
@@ -951,18 +1252,23 @@
   --opale-glass-radius: var(--opale-radius-pill);
 }
 .opale-checkbox--glass-root {
-  --opale-glass-radius: 0.375rem;
+  --opale-glass-radius: calc(var(--opale-radius-sm) / 2);
 }
 .opale-toggle--glass-root {
   --opale-glass-radius: var(--opale-radius-pill);
 }
 
 /* LE CONTENU S'ÉTIRE AVEC SON ENVELOPPE. Élargir la seule enveloppe laissait la
-   coquille du champ à sa largeur propre au milieu d'un verre pleine largeur. */
+   coquille du champ à sa largeur propre au milieu d'un verre pleine largeur.
+   `border-box` : à `width: 100%` en boîte de contenu, le retrait de 24 px de la
+   carte s'AJOUTAIT à la largeur de l'enveloppe, et le champ « Nom » d'une carte
+   de verre débordait de 25 px (mesuré sous Chromium, THM-18). Ces classes
+   n'existent que sous verre : une carte pleine ne bouge pas. */
 .opale-input-shell--glass,
 .opale-range-shell--glass,
 .opale-card--glass,
 .opale-surface--glass {
+  box-sizing: border-box;
   width: 100%;
 }
 
@@ -1356,7 +1662,7 @@
 [data-opale-glass-ink='page'] .opale-button--glass.opale-button--primary {
   --opale-button-background: var(--opale-primary);
   --opale-button-hover-background: var(--opale-primary-dark);
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
 }
 [data-opale-glass-ink='page'] .opale-button--glass.opale-button--secondary {
   --opale-button-background: var(--opale-secondary-dark);
@@ -1365,12 +1671,12 @@
     var(--opale-secondary-dark) 86%,
     var(--opale-shade)
   );
-  color: var(--opale-on-fill);
+  color: var(--opale-on-secondary);
 }
 [data-opale-glass-ink='page'] .opale-button--glass.opale-button--danger {
   --opale-button-background: var(--opale-danger);
   --opale-button-hover-background: color-mix(in srgb, var(--opale-danger) 86%, var(--opale-shade));
-  color: var(--opale-on-fill);
+  color: var(--opale-on-danger);
 }
 [data-opale-glass-ink='page'] .opale-button--glass.opale-button--accent {
   --opale-button-background: var(--opale-accent);
@@ -1393,7 +1699,7 @@
 [data-opale-glass-ink='page'] [data-opale-glass] .opale-badge,
 [data-opale-glass-ink='page'] .opale-badge--glass {
   background: var(--opale-primary);
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
 }
 /* L'ACCENT PASSE PAR `--opale-accent-ink`, PAS PAR `--opale-accent-dark`. Le
    brun n'est pas redéfini en sombre, alors que l'encre des remplissages y
@@ -1407,6 +1713,7 @@
 [data-opale-glass-ink='page'] [data-opale-glass] .opale-badge--danger,
 [data-opale-glass-ink='page'] .opale-badge--glass.opale-badge--danger {
   background: var(--opale-danger);
+  color: var(--opale-on-danger);
 }
 [data-opale-glass-ink='page'] [data-opale-glass] .opale-badge.opale-badge--dot,
 [data-opale-glass-ink='page'] .opale-badge--glass.opale-badge--dot {
@@ -1414,7 +1721,7 @@
 }
 [data-opale-glass-ink='page'] .opale-checkbox:checked + .opale-checkbox-mark,
 [data-opale-glass-ink='page'] .opale-checkbox:checked + * .opale-checkbox-mark {
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
 }
 [data-opale-glass-ink='page'] [data-opale-glass] .opale-progress__value {
   background: var(--opale-primary);
@@ -1494,6 +1801,15 @@
 }
 .opale-card--e3 {
   box-shadow: var(--opale-shadow-3);
+}
+/* LA CARTE DE VERRE NE REPREND PAS L'OMBRE DE SON CRAN. Les crans sont écrits
+   APRÈS la règle du verre qui retire l'ombre, au même poids : `--e1`, posé par
+   défaut, rendait son ombre à la carte, et le verre montrait deux contours —
+   l'ombre de la carte, rognée, sous celle de l'enveloppe. Le poids de deux
+   classes rend la règle indépendante de l'ordre ; le cran passe à l'enveloppe,
+   juste en dessous. Une carte pleine ne porte pas `--glass` : rien n'y bouge. */
+.opale-card.opale-card--glass {
+  box-shadow: none;
 }
 /* SOUS VERRE, LE CRAN VA À L'ENVELOPPE. Le verre clôt sa boîte
    (`overflow: hidden`) : une ombre posée sur la carte y était rognée, et
@@ -1714,7 +2030,7 @@
 
 .opale-multiselect {
   display: grid;
-  gap: 0.15rem;
+  gap: var(--opale-stack-gap);
   padding: var(--opale-space-2xs);
   border: 1px solid var(--opale-field-border);
   border-radius: var(--opale-radius-md);
@@ -1780,7 +2096,7 @@
   flex: none;
   place-items: center;
   border: 2px solid var(--opale-primary);
-  border-radius: 0.375rem;
+  border-radius: calc(var(--opale-radius-sm) / 2);
   transition: background var(--opale-motion) var(--opale-ease);
 }
 /* La coche est dessinée et non écrite : un caractère « ✓ » suivrait la police
@@ -1788,8 +2104,8 @@
 .opale-multiselect__mark::after {
   width: 0.6rem;
   height: 0.32rem;
-  border-left: 2px solid var(--opale-on-fill);
-  border-bottom: 2px solid var(--opale-on-fill);
+  border-left: 2px solid var(--opale-on-primary);
+  border-bottom: 2px solid var(--opale-on-primary);
   margin-block-start: -0.12rem;
   content: '';
   opacity: 0;
@@ -1866,11 +2182,11 @@
   height: 1.25rem;
   place-items: center;
   border: 2px solid var(--opale-primary);
-  border-radius: 0.375rem;
+  border-radius: calc(var(--opale-radius-sm) / 2);
 }
 .opale-checkbox:checked + .opale-checkbox-mark {
   background: var(--opale-primary);
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
 }
 .opale-checkbox:checked + .opale-checkbox-mark::before {
   content: '✓';
@@ -1924,7 +2240,7 @@
 .opale-checkbox:indeterminate + .opale-checkbox-mark,
 .opale-checkbox:indeterminate + * .opale-checkbox-mark {
   background: var(--opale-primary);
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
 }
 .opale-checkbox:indeterminate + .opale-checkbox-mark::before,
 .opale-checkbox:indeterminate + * .opale-checkbox-mark::before {
@@ -2188,8 +2504,8 @@
   position: relative;
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.25rem;
+  gap: var(--opale-space-2xs);
+  padding: var(--opale-space-2xs);
   border-radius: var(--opale-radius-pill);
   background: var(--opale-surface-sunken);
 }
@@ -2231,7 +2547,7 @@
   z-index: 1;
   border: 0;
   border-radius: var(--opale-radius-pill);
-  padding: 0.5rem 0.875rem;
+  padding: var(--opale-space-xs) var(--opale-item-padding-inline);
   background: transparent;
   color: var(--opale-text-secondary);
   cursor: pointer;
@@ -2255,9 +2571,9 @@
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--opale-badge-gap);
   border-radius: var(--opale-radius-pill);
-  padding: 0.25rem 0.65rem;
+  padding: var(--opale-space-2xs) var(--opale-badge-padding-inline);
   background: color-mix(in srgb, var(--opale-primary) 13%, transparent);
   color: var(--opale-primary-on-surface);
   font-size: var(--opale-text-xs);
@@ -2445,7 +2761,7 @@
   gap: var(--opale-space-sm);
   border: 0;
   border-radius: var(--opale-radius-sm);
-  padding: 0.7rem 0.875rem;
+  padding: var(--opale-nav-item-padding-block) var(--opale-item-padding-inline);
   background: transparent;
   color: var(--opale-text-secondary);
   text-align: left;
@@ -2580,7 +2896,7 @@
   display: grid;
   min-width: 0;
   gap: var(--opale-space-md);
-  padding-inline: 0.25rem;
+  padding-inline: var(--opale-space-2xs);
 }
 .opale-command-palette__results {
   display: grid;
@@ -2591,7 +2907,7 @@
    dans la recherche, donc c'est `aria-selected` qui porte l'anneau. */
 .opale-command-palette__option {
   display: grid;
-  gap: 0.125rem;
+  gap: var(--opale-command-option-gap);
   border-radius: var(--opale-radius-md);
   padding: var(--opale-space-sm) var(--opale-space-md);
   cursor: pointer;
@@ -2748,7 +3064,7 @@
 }
 .opale-stat-card {
   display: grid;
-  gap: 0.35rem;
+  gap: var(--opale-stat-card-gap);
   padding: var(--opale-space-lg);
 }
 .opale-stat-card__label {
@@ -2765,7 +3081,7 @@
 .opale-description-list {
   display: grid;
   grid-template-columns: minmax(8rem, 0.6fr) 1fr;
-  gap: 0.65rem 1.5rem;
+  gap: var(--opale-description-row-gap) var(--opale-space-lg);
 }
 .opale-description-list dt {
   color: var(--opale-text-secondary);
@@ -2779,12 +3095,12 @@
   display: grid;
   gap: var(--opale-space-xs);
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: var(--opale-list-indent);
   color: var(--opale-text-secondary);
 }
 .opale-rating {
   display: inline-flex;
-  gap: 0.15rem;
+  gap: var(--opale-stack-gap);
   color: var(--opale-accent-graphic);
   line-height: 1;
 }
@@ -2842,7 +3158,7 @@
 }
 .opale-table th,
 .opale-table td {
-  padding: 0.75rem 0.875rem;
+  padding: var(--opale-space-sm) var(--opale-item-padding-inline);
   border-bottom: 1px solid var(--opale-divider);
   text-align: start;
 }
@@ -2861,7 +3177,7 @@
 }
 .opale-table--compact th,
 .opale-table--compact td {
-  padding-block: 0.5rem;
+  padding-block: var(--opale-space-xs);
 }
 .opale-table--striped tbody tr:nth-child(even) {
   background: var(--opale-table-stripe);
@@ -2874,13 +3190,13 @@
   border-bottom: 0;
 }
 .opale-table .opale-table__state-cell {
-  padding-block: 2rem;
+  padding-block: var(--opale-table-state-padding-block);
 }
 .opale-table__state {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: var(--opale-space-sm);
   color: var(--opale-text-secondary);
   text-align: center;
 }
@@ -2908,7 +3224,7 @@
   padding-block-start: var(--opale-space-sm);
 }
 .opale-table__count {
-  padding: 0.25rem 0.625rem;
+  padding: var(--opale-space-2xs) var(--opale-table-count-padding-inline);
   border-radius: var(--opale-radius-pill);
   background: color-mix(in srgb, var(--opale-primary) 10%, var(--opale-surface));
   color: var(--opale-primary-on-surface);
@@ -2923,9 +3239,9 @@
   display: inline-flex;
   min-block-size: 1.5rem;
   align-items: center;
-  gap: 0.375rem;
-  margin: -0.25rem -0.5rem;
-  padding: 0.25rem 0.5rem;
+  gap: var(--opale-cluster-gap);
+  margin: calc(-1 * var(--opale-space-2xs)) calc(-1 * var(--opale-space-xs));
+  padding: var(--opale-space-2xs) var(--opale-space-xs);
   border: 0;
   border-radius: var(--opale-radius-sm);
   background: transparent;
@@ -3013,7 +3329,7 @@
   border-radius: 50%;
   content: '✓';
   background: var(--opale-primary);
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
   font-size: var(--opale-text-xs);
   line-height: 1;
 }
@@ -3041,7 +3357,7 @@
   min-inline-size: 0;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.15rem;
+  gap: var(--opale-stack-gap);
   text-align: start;
 }
 
@@ -3462,7 +3778,7 @@
   }
   .opale-description-list {
     grid-template-columns: 1fr;
-    gap: 0.25rem;
+    gap: var(--opale-space-2xs);
   }
 }
 
@@ -3477,10 +3793,23 @@
      La durée reste quasi nulle plutôt que `none` : une animation de durée
      infime SE TERMINE, donc `animationend` est bien émis et le code qui
      l'attend ne reste pas suspendu. C'est le même choix que `motion.scss`,
-     dont ce bloc n'avait pas repris la seconde ligne. */
-  *,
-  *::before,
-  *::after {
+     dont ce bloc n'avait pas repris la seconde ligne.
+
+     LE BLOC NE VISE QUE LES ÉLÉMENTS D'OPALE ET CE QU'ILS CONTIENNENT. Il
+     visait `*` : importer la feuille imposait ses `!important` à TOUTE la page
+     hôte — un indicateur de chargement de l'application, une animation déjà
+     adaptée au mouvement réduit, le `scroll-behavior` de `<html>` —, sans
+     recours autre qu'un `!important` de plus (audit THM-09). Le reste de la
+     feuille est préfixé, et `motion.scss` fait déjà de même. Les classes des
+     modules (`opale-mod-…`) portent le préfixe ; les descendants sont gardés,
+     parce que certaines règles d'Opale animent des éléments sans classe
+     (`.opale-pagination button`). `:where()` laisse le poids à zéro, comme `*`. */
+  :where([class^='opale-'], [class*=' opale-']),
+  :where([class^='opale-'], [class*=' opale-']) *,
+  :where([class^='opale-'], [class*=' opale-'])::before,
+  :where([class^='opale-'], [class*=' opale-'])::after,
+  :where([class^='opale-'], [class*=' opale-']) *::before,
+  :where([class^='opale-'], [class*=' opale-']) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
@@ -3522,8 +3851,10 @@
      ci-dessous en tirent leurs deux alignements. */
   flex-direction: column;
   gap: var(--opale-space-sm);
-  padding: calc(1rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px))
-    calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));
+  padding: calc(var(--opale-space-md) + env(safe-area-inset-top, 0px))
+    calc(var(--opale-space-md) + env(safe-area-inset-right, 0px))
+    calc(var(--opale-space-md) + env(safe-area-inset-bottom, 0px))
+    calc(var(--opale-space-md) + env(safe-area-inset-left, 0px));
   inset: 0;
   pointer-events: none;
 }
@@ -3566,13 +3897,14 @@
   display: flex;
   max-inline-size: min(26rem, calc(100vw - 2rem));
   align-items: center;
-  padding: 0.625rem 0.75rem 0.625rem 1rem;
+  padding: var(--opale-toast-padding-block) var(--opale-space-sm) var(--opale-toast-padding-block)
+    var(--opale-space-md);
   border: 1px solid var(--opale-toast-fill, var(--opale-divider));
   border-radius: var(--opale-radius-md);
   background: var(--opale-toast-fill, var(--opale-surface));
   box-shadow: var(--opale-shadow-3);
   color: var(--opale-toast-fill-ink, var(--opale-text));
-  gap: 0.75rem;
+  gap: var(--opale-space-sm);
   pointer-events: auto;
 }
 
@@ -3647,6 +3979,19 @@
   line-height: var(--opale-leading-snug);
 }
 
+/* UN TITRE ET UNE DESCRIPTION, QUAND LE MESSAGE EN A DEUX. Les deux parties
+   sont des `<span>` rendus dans le message : posées en bloc, elles passent
+   l'une sous l'autre, et seul le titre prend la graisse qui le désigne comme
+   tel. Elles n'existent que si l'appelant fournit une description : un toast
+   à simple `message` ne rend aucune de ces classes, et rien n'y bouge. */
+.opale-toast__title,
+.opale-toast__description {
+  display: block;
+}
+.opale-toast__title {
+  font-weight: 600;
+}
+
 /* LA CROIX EST SUR LA COULEUR, donc elle hérite de l'encre de la carte :
    `--opale-text-secondary` y serait un gris sur du vert, c'est-à-dire illisible
    dans un thème et invisible dans l'autre. Le survol et l'anneau de focus se
@@ -3660,7 +4005,8 @@
   min-width: 2.75rem;
   min-height: 2.75rem;
   flex: 0 0 auto;
-  margin: -0.5rem -0.5rem -0.5rem 0;
+  margin: calc(-1 * var(--opale-space-xs)) calc(-1 * var(--opale-space-xs))
+    calc(-1 * var(--opale-space-xs)) 0;
   border: 0;
   border-radius: var(--opale-radius-sm);
   background: transparent;
@@ -3674,7 +4020,7 @@
 .opale-toast__close::before {
   position: absolute;
   inset: 0.5625rem;
-  border-radius: 0.5rem;
+  border-radius: calc(var(--opale-radius-sm) / 1.5);
   background: transparent;
   content: '';
   pointer-events: none;
@@ -3730,7 +4076,7 @@
   animation: opale-skeleton-shimmer 1.6s ease-in-out infinite;
 }
 .opale-skeleton--rounded {
-  border-radius: 999px;
+  border-radius: var(--opale-radius-pill);
 }
 @keyframes opale-skeleton-shimmer {
   to {
@@ -3746,7 +4092,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.375rem;
+  gap: var(--opale-cluster-gap);
 }
 .opale-pagination button {
   min-inline-size: var(--opale-control-md);
@@ -3761,7 +4107,7 @@
 .opale-pagination button[aria-current='page'] {
   border-color: var(--opale-primary);
   background: var(--opale-primary);
-  color: var(--opale-on-fill);
+  color: var(--opale-on-primary);
 }
 .opale-pagination button:disabled {
   opacity: var(--opale-disabled-opacity);
@@ -3833,12 +4179,12 @@
   color: var(--opale-text);
 }
 .opale-rating-input legend {
-  margin-block-end: 0.5rem;
+  margin-block-end: var(--opale-space-xs);
   font-weight: 600;
 }
 .opale-rating-input__options {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--opale-space-2xs);
 }
 .opale-rating-input__option {
   position: relative;
@@ -3880,7 +4226,7 @@
 
 @media (max-width: 30rem) {
   .opale-pagination {
-    gap: 0.25rem;
+    gap: var(--opale-space-2xs);
   }
   .opale-pagination button {
     min-inline-size: var(--opale-control-sm);

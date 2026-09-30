@@ -49,7 +49,11 @@ describe('la forme interactive OpaleUI', () => {
 
     expect(button.get('min-height')).toBe('var(--opale-control-md)');
     expect(root.get('--opale-control-md')).toBe('2.75rem');
-    expect(button.get('padding')).toBe('0.375rem 1.25rem');
+    expect(button.get('padding')).toBe(
+      'var(--opale-button-padding-block) var(--opale-button-padding-inline)',
+    );
+    expect(root.get('--opale-button-padding-block')).toBe('0.375rem');
+    expect(root.get('--opale-button-padding-inline')).toBe('1.25rem');
     expect(button.get('font')).toMatch(
       /^600 var\(--opale-text-sm\) ?\/ ?var\(--opale-leading-relaxed\)/,
     );

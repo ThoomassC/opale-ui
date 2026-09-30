@@ -29,3 +29,93 @@
   font-display: swap;
   src: url('./fonts/chivo-latin.woff2') format('woff2');
 }
+
+/* =============================================================================
+   LES FACES DE REPLI, AUX MÉTRIQUES DE CHIVO ET DE BRICOLAGE.
+
+   `font-display: swap` montre le texte tout de suite, dans la police suivante
+   de la pile, puis le repeint quand la police web arrive. Sans réglage, ce
+   remplaçant n'a ni la chasse ni les hampes de Chivo : les lignes se
+   rallongent ou se raccourcissent au changement, les boutons changent de
+   largeur, et la page saute (audit THM-16, CLS).
+
+   Chaque face ci-dessous est une police LOCALE — Arial, ou son équivalent
+   métrique Liberation Sans, Helvetica à défaut — recalée sur la police
+   qu'elle remplace : `size-adjust` égale la chasse moyenne sur un texte
+   français, `ascent-override`, `descent-override` et `line-gap-override`
+   rendent la même hauteur de ligne. Les valeurs sont MESURÉES sur les woff2
+   livrés (tables `hmtx`, `OS/2` et `hhea`) contre Arial, à la manière de
+   Capsize. DEUX FACES PAR FAMILLE : Arial n'a qu'un romain et un gras, et un
+   gras synthétisé depuis le romain n'a pas la chasse du vrai. Le gras de
+   Chivo est mesuré à 600 — la graisse des boutons —, celui de Bricolage à
+   700, la graisse de ses titres.
+
+   `unicode-range` BORNE CHAQUE FACE AUX GLYPHES DE SA POLICE. Un caractère
+   absent de Chivo (✓, →, espace fine insécable) ne doit pas tomber sur Arial
+   mais, comme avant, sur la police du système : sans cette borne, le repli
+   changerait le rendu même une fois Chivo chargée.
+
+   `local()` seulement : rien n'est téléchargé. Sur un système sans aucune de
+   ces polices, la face n'existe pas et la pile passe au suivant. */
+@font-face {
+  font-family: 'Chivo Fallback';
+  font-style: normal;
+  font-weight: 400 500;
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 106.16%;
+  ascent-override: 88.55%;
+  descent-override: 23.55%;
+  line-gap-override: 0%;
+  unicode-range:
+    U+0020-007E, U+00A0-00FF, U+0102, U+0131, U+0152-0153, U+02BC, U+02C6, U+02DA, U+02DC,
+    U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2009, U+2013-2014, U+2018-201A, U+201C-201E,
+    U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122, U+2212, U+2215, U+FEFF;
+}
+@font-face {
+  font-family: 'Chivo Fallback';
+  font-style: normal;
+  font-weight: 600 700;
+  src:
+    local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'),
+    local('Helvetica Bold');
+  size-adjust: 100.89%;
+  ascent-override: 93.17%;
+  descent-override: 24.78%;
+  line-gap-override: 0%;
+  unicode-range:
+    U+0020-007E, U+00A0-00FF, U+0102, U+0131, U+0152-0153, U+02BC, U+02C6, U+02DA, U+02DC,
+    U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2009, U+2013-2014, U+2018-201A, U+201C-201E,
+    U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122, U+2212, U+2215, U+FEFF;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque Fallback';
+  font-style: normal;
+  font-weight: 400 500;
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 92.77%;
+  ascent-override: 100.25%;
+  descent-override: 29.11%;
+  line-gap-override: 0%;
+  unicode-range:
+    U+0020-007E, U+00A0-00A3, U+00A5-00AC, U+00AE-00FF, U+0102, U+0131, U+0152-0153, U+02C6, U+02DA,
+    U+02DC, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2002, U+2009, U+200B, U+2013-2014,
+    U+2018-201A, U+201C-201E, U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122,
+    U+2191, U+2193, U+2212;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque Fallback';
+  font-style: normal;
+  font-weight: 600 800;
+  src:
+    local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'),
+    local('Helvetica Bold');
+  size-adjust: 91.14%;
+  ascent-override: 102.04%;
+  descent-override: 29.62%;
+  line-gap-override: 0%;
+  unicode-range:
+    U+0020-007E, U+00A0-00A3, U+00A5-00AC, U+00AE-00FF, U+0102, U+0131, U+0152-0153, U+02C6, U+02DA,
+    U+02DC, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+2002, U+2009, U+200B, U+2013-2014,
+    U+2018-201A, U+201C-201E, U+2022, U+2026, U+2032-2033, U+2039-203A, U+2044, U+20AC, U+2122,
+    U+2191, U+2193, U+2212;
+}
