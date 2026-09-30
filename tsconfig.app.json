@@ -4,7 +4,10 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    /* `node` est déclaré depuis Vitest 5 : Vitest 3 tirait les types de Node
+       par ses propres déclarations, et les tests de structure (node:fs,
+       import.meta.dirname) en dépendaient sans le dire. */
+    "types": ["vite/client", "node"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 

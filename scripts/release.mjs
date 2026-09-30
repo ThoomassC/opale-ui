@@ -51,6 +51,7 @@ import {
   releaseAssetUrl,
   releaseBlocker,
 } from './release-guard.mjs';
+import { packStaged } from './pack.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -189,14 +190,9 @@ try {
   run('npm', 'run', 'build:lib');
   for (const script of CHECKS_ON_BUILD) run('npm', 'run', script);
 
-  const produced = execFileSync(
-    'npm',
-    ['pack', '--silent', '--ignore-scripts', '--pack-destination', work],
-    { cwd: root, encoding: 'utf8' },
-  )
-    .trim()
-    .split('\n')
-    .at(-1);
+  /* INT-16 — emballée depuis un dossier de préparation, avec un manifeste
+     sans scripts ni dépendances de développement (voir `pack.mjs`). */
+  const produced = packStaged(root, work);
 
   if (produced !== asset || !existsSync(tarball)) {
     throw new Error(`npm pack a produit « ${produced} », la garde attend « ${asset} ».`);

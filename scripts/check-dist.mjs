@@ -15,6 +15,13 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import process from 'node:process';
 
+import {
+  LAYER_NAME,
+  SHEET_VARIANTS,
+  layerSheet,
+  stripFontsImport,
+  topLevelLayers,
+} from './css-variants.mjs';
 import { SERVER_SAFE_MODULES, isServerSafeModule } from './server-safe-modules.mjs';
 
 const failures = [];
@@ -68,6 +75,44 @@ check(
   !/\/\*(?!!|\$vite\$)/.test(css),
   "dist/opale/opale.css contient encore des commentaires : la feuille n'est pas minifiée.",
 );
+/* THM-08, THM-16 — les variantes sont la même feuille : en couche, sans
+   polices, ou les deux. Chacune est recalculée depuis `opale.css` et comparée
+   à l'octet près ; la version en couche n'a qu'une règle de premier niveau,
+   `@layer opale`, et garde son `@import` devant, faute de quoi il serait
+   ignoré par le navigateur. */
+const variants = {};
+for (const variant of SHEET_VARIANTS) {
+  const path = join('dist/opale', variant);
+  check(existsSync(path), `${path} est absent.`);
+  variants[variant] = existsSync(path) ? readFileSync(path, 'utf8') : '';
+}
+const expectedVariants = {
+  'opale.layered.css': layerSheet(css),
+  'opale-nofonts.css': stripFontsImport(css),
+  'opale-nofonts.layered.css': layerSheet(stripFontsImport(css)),
+};
+for (const [variant, expected] of Object.entries(expectedVariants)) {
+  check(variants[variant] === expected, `dist/opale/${variant} ne dérive pas d'opale.css.`);
+}
+for (const variant of ['opale.layered.css', 'opale-nofonts.layered.css']) {
+  let layers = [];
+  try {
+    layers = topLevelLayers(variants[variant]);
+  } catch (error) {
+    failures.push(`dist/opale/${variant} : ${error.message}.`);
+  }
+  check(
+    layers.length === 1 && layers[0] === LAYER_NAME,
+    `dist/opale/${variant} n'a pas une seule règle de premier niveau @layer ${LAYER_NAME} (${JSON.stringify(layers)}).`,
+  );
+}
+check(
+  /^(@charset "[^"]+";\r?\n)?@import '\.\/fonts\.css';\r?\n@layer opale\{/.test(variants['opale.layered.css']),
+  "dist/opale/opale.layered.css ne relie pas ses polices avant la couche.",
+);
+for (const variant of ['opale-nofonts.css', 'opale-nofonts.layered.css']) {
+  check(!/@import/.test(variants[variant]), `dist/opale/${variant} importe encore une feuille.`);
+}
 for (const font of ['bricolage-grotesque-latin.woff2', 'chivo-latin.woff2']) {
   check(existsSync(join('dist/opale/fonts', font)), `dist/opale/fonts/${font} est absent.`);
 }
@@ -111,5 +156,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `✓ dist/ livrable : "use client" sur les modules client (${SERVER_SAFE_MODULES.length} modules sans code client épargnés), déclarations nodenext, polices à part.`,
+  `✓ dist/ livrable : "use client" sur les modules client (${SERVER_SAFE_MODULES.length} modules sans code client épargnés), déclarations nodenext, polices à part, feuilles en couche et sans polices.`,
 );

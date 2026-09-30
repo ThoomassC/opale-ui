@@ -18,9 +18,20 @@
    ========================================================================== */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+
+import { SHEET_VARIANTS } from './css-variants.mjs';
+import { packStaged } from './pack.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const work = mkdtempSync(join(tmpdir(), 'opale-consumer-'));
@@ -29,10 +40,8 @@ const run = (command, args, cwd) =>
   execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
 
 try {
-  const tarball = run('npm', ['pack', '--silent', '--ignore-scripts', '--pack-destination', work], root)
-    .trim()
-    .split('\n')
-    .at(-1);
+  /* L'archive de la release, emballée de la même façon (INT-16). */
+  const tarball = packStaged(root, work);
 
   const app = join(work, 'app');
   const target = join(app, 'node_modules', '@thomascaron', 'opale-ui');
@@ -44,12 +53,24 @@ try {
     'dist/opale/index.js',
     'dist/opale/index.d.ts',
     'dist/opale/opale.css',
+    ...SHEET_VARIANTS.map((variant) => `dist/opale/${variant}`),
     'dist/contract/index.js',
+    'CHANGELOG.md',
   ].filter((file) => !existsSync(join(target, file)));
   if (missing.length > 0) {
     throw new Error(`l'archive n'est pas construite, il lui manque : ${missing.join(', ')}`);
   }
   console.log(`✓ ${tarball} arrive construite, sans script d'installation.`);
+
+  /* INT-16 — le manifeste de l'archive est celui d'un paquet, pas du dépôt :
+     ni scripts (dont `prepare`), ni dépendances de développement, ni
+     `private`. */
+  const packed = JSON.parse(readFileSync(join(target, 'package.json'), 'utf8'));
+  const leaked = ['scripts', 'devDependencies', 'private'].filter((field) => field in packed);
+  if (leaked.length > 0) {
+    throw new Error(`le package.json de l'archive porte encore : ${leaked.join(', ')}`);
+  }
+  console.log("✓ le package.json de l'archive n'a ni scripts, ni devDependencies, ni private.");
 
   /* React et ses types viennent du dépôt : l'application ne teste que le
      paquet, pas le registre. */
@@ -66,7 +87,13 @@ try {
   writeFileSync(
     join(app, 'require.cjs'),
     `const assert = require('node:assert');
-for (const specifier of ['@thomascaron/opale-ui', '@thomascaron/opale-ui/contract']) {
+for (const specifier of [
+  '@thomascaron/opale-ui',
+  '@thomascaron/opale-ui/contract',
+  ...${JSON.stringify(['opale.css', 'fonts.css', ...SHEET_VARIANTS])}.map(
+    (sheet) => '@thomascaron/opale-ui/' + sheet,
+  ),
+]) {
   require.resolve(specifier);
 }
 const { contrastRatio } = require('@thomascaron/opale-ui/contract');
@@ -74,10 +101,13 @@ assert.strictEqual(Math.round(contrastRatio('#ffffff', '#000000')), 21);
 `,
   );
   run(process.execPath, ['require.cjs'], app);
-  console.log('✓ les entrées se résolvent aussi par require() (condition « default »).');
+  console.log('✓ les entrées et les quatre feuilles se résolvent aussi par require() (condition « default »).');
   writeFileSync(
     join(app, 'index.tsx'),
     `import '@thomascaron/opale-ui/opale.css';
+import '@thomascaron/opale-ui/opale.layered.css';
+import '@thomascaron/opale-ui/opale-nofonts.css';
+import '@thomascaron/opale-ui/opale-nofonts.layered.css';
 import {
   Button,
   ICON_NAMES,
