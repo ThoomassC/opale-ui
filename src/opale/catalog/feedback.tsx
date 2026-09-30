@@ -40,7 +40,7 @@ import { IconPaths } from '../components/icon/IconPaths';
 import { Modal, type ModalLabels } from '../components/modal';
 import type { ToastLabels } from '../components/toast';
 import { resolveToastText } from '../components/toast/toast-content';
-import type { OpalePlacement, OpaleTone } from '../shared';
+import type { OpalePlacement, OpaleSize, OpaleTone } from '../shared';
 import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
@@ -84,23 +84,32 @@ import {
    écrivait `severity` tel quel : « info », « error », en anglais et en bas de
    casse, lu ainsi par les lecteurs d'écran (WCAG 3.1.2). */
 const FEEDBACK_TITLES = {
+  neutral: 'Remarque',
   success: 'Succès',
   info: 'Information',
   warning: 'Attention',
   error: 'Erreur',
 } as const;
 
-/** La nature d'un retour : sa couleur, son titre par défaut et l'urgence de son annonce. */
-export type FeedbackTone = 'success' | 'info' | 'warning' | 'error';
+/**
+ * La nature d'un retour : sa couleur, son titre par défaut et l'urgence de son
+ * annonce. Les cinq tons d'`OpaleTone` ; `neutral`, ajouté en 3.10, n'a pas de
+ * couleur de signal et s'annonce poliment.
+ */
+export type FeedbackTone = OpaleTone;
 
 export interface FeedbackProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** Le ton de l'encart : sa couleur, son titre par défaut et son rôle. Défaut : `info`. */
   tone?: FeedbackTone;
   /** @deprecated Depuis 3.6 — utilisez `tone`. */
   severity?: FeedbackTone;
+  /** Le titre de l'encart. Défaut : celui du ton (« Information », « Erreur »…). */
   title?: ReactNode;
+  /** Le message, sous le titre. */
   children: ReactNode;
+  /** Une classe ajoutée à côté de `.opale-feedback`. */
   className?: string;
+  /** Rend l'encart dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -266,7 +275,12 @@ export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   title?: ReactNode;
   /** Une seconde ligne, sous le texte principal, comme dans `showToast`. */
   description?: ReactNode;
-  /** Affiché par défaut ; l'appelant tient l'état ouvert. */
+  /**
+   * L'appelant tient l'état ouvert. DÉFAUT SURPRENANT : `true`, là où
+   * `ConfirmDialog`, `SidePanel`, `CommandPalette` et `Lightbox` sont fermés
+   * par défaut et où `Modal` exige `open`. Le motif prévu est
+   * `{saved && <Toast … />}` ; pour un message monté d'avance, passez `open`.
+   */
   open?: boolean;
   /** Appelée avec `false` sur la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
@@ -280,6 +294,7 @@ export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   position?: OpalePlacement;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<ToastLabels>;
+  /** Une classe ajoutée à la carte de la notification. */
   className?: string;
 }
 
@@ -475,7 +490,11 @@ export function Toast({
 }
 
 export interface SpinnerProps extends ComponentPropsWithRef<'span'> {
+  /** Le texte d'attente, affiché et annoncé. Défaut : « Chargement ». */
   label?: string;
+  /** La taille du témoin : 16, 24 ou 40 px. Défaut : `medium` (24 px). */
+  size?: OpaleSize;
+  /** Une classe ajoutée à côté de `.opale-stack`. */
   className?: string;
 }
 
@@ -487,10 +506,18 @@ export interface SpinnerProps extends ComponentPropsWithRef<'span'> {
  * dont l'issue doit être entendue, gardez une région montée et n'y changez que
  * le texte.
  */
-export function Spinner({ label = 'Chargement', className, ...rest }: SpinnerProps) {
+export function Spinner({
+  label = 'Chargement',
+  size = 'medium',
+  className,
+  ...rest
+}: SpinnerProps) {
   return (
     <span {...rest} className={clsx('opale-stack', className)} role="status">
-      <span className="opale-spinner" aria-hidden="true" />
+      <span
+        className={clsx('opale-spinner', size !== 'medium' && `opale-spinner--${size}`)}
+        aria-hidden="true"
+      />
       <span>{label}</span>
     </span>
   );
@@ -509,10 +536,19 @@ export function Spinner({ label = 'Chargement', className, ...rest }: SpinnerPro
  * classe de l'enveloppe.
  */
 export interface ProgressBarProps extends ComponentPropsWithRef<'div'> {
+  /** L'avancement, en pour cent, borné à [0, 100]. Défaut : `0`. */
   value?: number;
+  /**
+   * Le libellé visible, qui nomme la barre. Sans libellé, nommez-la par `aria-label` ou
+   * `aria-labelledby`.
+   */
   label?: string;
   /** Va à l'enveloppe, pas à l'élément `progressbar`. Voir `ProgressBarProps`. */
   className?: string;
+  /**
+   * Rend la piste dans le matériau « verre liquide » ; le remplissage reste opaque. Défaut :
+   * `false`.
+   */
   liquidGlass?: boolean;
 }
 
@@ -581,19 +617,41 @@ export interface ConfirmDialogLabels extends ModalLabels {
   confirm: string;
 }
 
+/** Le ton d'une confirmation : `danger` pour une action destructrice. */
+export type ConfirmDialogTone = 'default' | 'danger';
+
 /** Les props de `ConfirmDialog`. `ref` et les attributs vont au panneau du dialogue. */
 export interface ConfirmDialogProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
+  /** Ouvert ou non, piloté par l'appelant. Défaut : `false`. */
   open?: boolean;
+  /** Le titre du dialogue. Défaut : `labels.title`, « Confirmer ». */
   title?: ReactNode;
+  /** Le corps du dialogue, qui en devient la description : ce que l'action va faire. */
   children?: ReactNode;
-  /** Appelée sur Confirmer. Le dialogue ne se ferme pas seul : l'appelant ferme après son action. */
-  onConfirm?: () => void;
+  /**
+   * Appelée sur Confirmer. Le dialogue ne se ferme pas seul : l'appelant ferme
+   * après son action. Si elle rend une PROMESSE, le dialogue attend : Confirmer
+   * passe en chargement et ignore les clics suivants, Annuler, Échap, le voile
+   * et la croix sont sans effet, jusqu'à ce que la promesse soit tenue ou
+   * rompue. Un rejet n'est pas avalé : il remonte comme sans le dialogue.
+   */
+  onConfirm?: () => void | PromiseLike<unknown>;
+  /** `danger` rend Confirmer en bouton de danger. Défaut : `default` (primaire). */
+  tone?: ConfirmDialogTone;
+  /**
+   * L'action est en cours, tenue par l'appelant : Confirmer passe en attente,
+   * et Annuler, Échap, le voile et la croix sont bloqués. Une promesse rendue
+   * par `onConfirm` met seulement Confirmer en attente (pas de double envoi) et
+   * laisse Annuler possible. Défaut : `false`.
+   */
+  loading?: boolean;
   /** `false` sur Annuler, Échap, le voile ou la croix. Jamais sur Confirmer. */
   onOpenChange?: (open: boolean) => void;
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onCancel?: () => void;
   /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
   labels?: Partial<ConfirmDialogLabels>;
+  /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -604,6 +662,14 @@ const DEFAULT_CONFIRM_DIALOG_LABELS: ConfirmDialogLabels = {
   confirm: 'Confirmer',
 };
 
+function isThenable(value: unknown): value is PromiseLike<unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { then?: unknown }).then === 'function'
+  );
+}
+
 export function ConfirmDialog({
   open = false,
   title,
@@ -613,11 +679,47 @@ export function ConfirmDialog({
   onCancel,
   labels: labelsProp,
   liquidGlass = false,
+  tone = 'default',
+  loading = false,
   ...rest
 }: ConfirmDialogProps) {
   warnDeprecatedProps('ConfirmDialog', { onCancel });
-  const close = closeHandler(onOpenChange, onCancel);
   const labels = resolveLabels(DEFAULT_CONFIRM_DIALOG_LABELS, labelsProp);
+  /* UN DOUBLE CLIC NE CONFIRME PAS DEUX FOIS (DX-17). Sur un appel réseau, le
+     second clic partait avant la réponse : double suppression, double envoi.
+     La promesse rendue par `onConfirm` tient le dialogue occupé. La `ref`
+     ferme la porte dès le premier clic, avant même que l'état ne soit rendu ;
+     l'état, lui, fait voir et entendre l'attente (`Button loading`). */
+  const [pending, setPending] = useState(false);
+  const inFlight = useRef(false);
+  const busy = loading || pending;
+  /* ANNULER RESTE POSSIBLE PENDANT UNE PROMESSE. En 3.9, le retour de
+     `onConfirm` était ignoré et l'utilisateur pouvait toujours renoncer ; un
+     `onConfirm={() => mutation.mutateAsync()}` existant ne doit pas le priver
+     d'Annuler, ni le coincer si la promesse ne se termine jamais. Seul
+     `loading`, que l'appelant pose exprès, verrouille aussi la fermeture. */
+  const locked = loading;
+  const close = closeHandler(onOpenChange, onCancel);
+  const guardedClose =
+    close &&
+    ((next: boolean) => {
+      if (!locked) close(next);
+    });
+  const confirm = () => {
+    if (busy || inFlight.current || !onConfirm) return;
+    const result = onConfirm();
+    if (!isThenable(result)) return;
+    inFlight.current = true;
+    setPending(true);
+    const settle = () => {
+      inFlight.current = false;
+      setPending(false);
+    };
+    result.then(settle, (error: unknown) => {
+      settle();
+      throw error;
+    });
+  };
   /* L'IDENTIFIANT DU TITRE ÉTAIT EN DUR — `id="opale-confirm-title"` — ce qui
      faisait résoudre `aria-labelledby` sur le mauvais titre dès que deux
      confirmations coexistaient. `Modal` le dérive d'un `useId`.
@@ -635,17 +737,27 @@ export function ConfirmDialog({
     <Modal
       {...rest}
       open={open}
-      onOpenChange={close}
+      onOpenChange={guardedClose}
       liquidGlass={liquidGlass}
       labels={{ close: labels.close }}
       title={title === undefined ? labels.title : title}
       description={children}
       footer={
         <>
-          <Button variant="text" onClick={closeClickHandler(onOpenChange, onCancel)}>
+          <Button
+            variant="text"
+            disabled={locked}
+            onClick={closeClickHandler(onOpenChange, onCancel)}
+          >
             {labels.cancel}
           </Button>
-          <Button onClick={onConfirm}>{labels.confirm}</Button>
+          <Button
+            variant={tone === 'danger' ? 'danger' : 'primary'}
+            loading={busy}
+            onClick={confirm}
+          >
+            {labels.confirm}
+          </Button>
         </>
       }
     />
@@ -653,9 +765,13 @@ export function ConfirmDialog({
 }
 
 export interface EmptyStateProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
+  /** Le titre de l'état vide. Défaut : « Aucun résultat ». */
   title?: ReactNode;
+  /** Le texte sous le titre : pourquoi c'est vide. */
   description?: ReactNode;
+  /** L'action suivante proposée, un `Button` le plus souvent. */
   action?: ReactNode;
+  /** Rend la carte dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 

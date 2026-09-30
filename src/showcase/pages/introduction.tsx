@@ -1,4 +1,4 @@
-import { CATALOG } from '../../opale/catalog';
+import { SHOWCASE_CATALOG } from '../showcase-catalog';
 import { currentDeploymentLabel } from '../deployment-environment';
 import type { DocPage } from '../doc-model';
 import { hrefFor } from '../doc-model';
@@ -6,7 +6,7 @@ import { CURRENT_RELEASE } from '../releases';
 import { UI_VERSION } from '../version';
 import { PageBody } from './api';
 
-const COMPONENT_COUNT = CATALOG.length;
+const COMPONENT_COUNT = SHOWCASE_CATALOG.length;
 
 const HOME_STATS = [
   { value: String(COMPONENT_COUNT), label: 'composants Opale' },

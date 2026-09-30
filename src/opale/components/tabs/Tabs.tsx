@@ -337,8 +337,14 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
   readonly value?: string;
   /** L'onglet initial en mode non contrôlé. */
   readonly defaultValue?: string;
+  /** Appelée avec la valeur de l'onglet activé, en mode contrôlé comme non contrôlé. */
   readonly onValueChange?: (next: string) => void;
+  /**
+   * `auto` active l'onglet dès qu'il reçoit le focus aux flèches ; `manual` attend Entrée ou
+   * Espace. Défaut : `auto`.
+   */
   readonly activationMode?: TabsActivationMode;
+  /** Le sens de la liste, qui fixe les flèches de navigation. Défaut : `horizontal`. */
   readonly orientation?: TabsOrientation;
   /**
    * Rend les onglets dans le matériau « verre liquide ».
@@ -464,6 +470,7 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
 TabsBase.displayName = 'Tabs';
 
 export type TabsListProps = ComponentPropsWithoutRef<'div'> & {
+  /** Les `Tabs.Trigger` de la liste. */
   readonly children: ReactNode;
 };
 
@@ -588,6 +595,7 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsList(
 TabsList.displayName = 'Tabs.List';
 
 export type TabsTriggerProps = ComponentPropsWithoutRef<'button'> & {
+  /** La valeur de l'onglet, unique dans `Tabs`, partagée avec son `Tabs.Content`. */
   readonly value: string;
 };
 
@@ -703,6 +711,7 @@ const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(function Tab
 TabsTrigger.displayName = 'Tabs.Trigger';
 
 export type TabsContentProps = ComponentPropsWithoutRef<'div'> & {
+  /** La valeur du `Tabs.Trigger` qui affiche ce panneau. */
   readonly value: string;
   /** Ne monte le panneau qu'à sa première ouverture. Ensuite il reste monté. */
   readonly lazyMount?: boolean;

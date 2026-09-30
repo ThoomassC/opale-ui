@@ -13,6 +13,7 @@ import {
   type ChangeEvent,
   type AriaRole,
   type ComponentPropsWithRef,
+  type CSSProperties,
   type FocusEvent,
   type KeyboardEvent,
   type MouseEvent,
@@ -39,6 +40,46 @@ export type ButtonVariant =
 export interface SelectOption {
   value: string;
   label: ReactNode;
+  /**
+   * Rend le choix visible mais impossible à retenir. Honoré par `Select`
+   * (`<option disabled>`), `MultiSelect` (`aria-disabled`, la bascule est
+   * refusée) et `SegmentedControl` (`<button disabled>`). Défaut : `false`.
+   */
+  disabled?: boolean;
+}
+
+/* =============================================================================
+   LA TAILLE D'UN CHAMP PASSE PAR LE JETON DE HAUTEUR, PAS PAR UNE RÈGLE NEUVE.
+
+   La coquille d'un champ (`.opale-input-shell`) tient sa hauteur de
+   `--opale-control-md`, comme le bouton moyen. Redéfinir ce jeton sur
+   l'enveloppe, et sur elle seule, fait prendre au champ la hauteur du bouton
+   `small` ou `large` voisin — y compris sous le cran « au doigt » qui fait
+   grandir toute l'échelle, puisque la valeur empruntée est elle-même un jeton.
+   `medium` ne pose rien : le balisage par défaut est celui de la 3.9.
+
+   La classe `opale-field--<taille>` accompagne le jeton, pour le reste du
+   réglage (corps de texte, marges) et pour l'appelant qui veut s'y accrocher.
+   ========================================================================== */
+const CONTROL_HEIGHT_TOKEN: Readonly<Record<OpaleSize, string | undefined>> = {
+  small: 'var(--opale-control-sm)',
+  medium: undefined,
+  large: 'var(--opale-control-lg)',
+};
+
+function isOpaleSize(size: unknown): size is OpaleSize {
+  return size === 'small' || size === 'medium' || size === 'large';
+}
+
+/** La classe de taille d'un bloc, absente pour `medium` comme pour une valeur inconnue. */
+function sizeModifier(block: string, size: unknown): string | false {
+  return isOpaleSize(size) && size !== 'medium' && `${block}--${size}`;
+}
+
+/** Le jeton de hauteur redéfini sur l'enveloppe d'un champ, ou rien pour `medium`. */
+function fieldSizeStyle(size: unknown): CSSProperties | undefined {
+  const height = isOpaleSize(size) ? CONTROL_HEIGHT_TOKEN[size] : undefined;
+  return height ? ({ '--opale-control-md': height } as CSSProperties) : undefined;
 }
 
 /* =============================================================================
@@ -88,7 +129,18 @@ const DEFAULT_BUTTON_LABELS: ButtonLabels = {
 };
 
 export interface ButtonProps extends ComponentPropsWithRef<'button'> {
+  /**
+   * Le type natif. Défaut : `button`, et non `submit` comme en HTML : un
+   * bouton d'Opale ne soumet un formulaire que si on le demande
+   * (`type="submit"`).
+   */
+  type?: 'button' | 'submit' | 'reset';
+  /**
+   * Le rôle visuel du bouton : `primary` pour l'action principale, `danger` pour une action
+   * destructive, `ghost` ou `text` pour une action discrète. Défaut : `primary`.
+   */
   variant?: ButtonVariant;
+  /** La hauteur du bouton, partagée avec les champs de même taille. Défaut : `medium`. */
   size?: OpaleSize;
   /**
    * Bloque l'action et affiche une progression. Le bouton reste FOCALISABLE :
@@ -100,8 +152,11 @@ export interface ButtonProps extends ComponentPropsWithRef<'button'> {
    * et sa perte, eux, restent vécus.
    */
   loading?: boolean;
+  /** Une icône décorative avant le libellé. Ignorée sous verre. */
   startIcon?: ReactNode;
+  /** Une icône décorative après le libellé. Ignorée sous verre. */
   endIcon?: ReactNode;
+  /** Étire le bouton sur toute la largeur de son conteneur. Défaut : `false`. Ignoré sous verre. */
   fullWidth?: boolean;
   /**
    * Rend le bouton sur le matériau « verre liquide ». L'encre du verre est
@@ -322,17 +377,41 @@ Pressable.displayName = 'Pressable';
  * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
  * vrai contrôle.
  *
- * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
- * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-input` depuis
- * la classe de l'enveloppe.
+ * Depuis 3.10, `controlClassName` habille le contrôle lui-même — l'`<input>`
+ * natif, à côté de `.opale-input` (ou de `.opale-search-bar__input` avec
+ * `type="search"`).
+ *
+ * L'ATTRIBUT NATIF `size` N'EST PAS PRIS EN CHARGE, et ne l'a jamais été : il
+ * était déjà retiré du type. `size` est l'échelle d'Opale (voir la prop).
  */
 export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'> {
   /** Va à l'enveloppe, pas au contrôle natif. Voir `InputProps`. */
   className?: string;
+  /** Va au contrôle natif, à côté de sa classe d'Opale. Voir `InputProps`. */
+  controlClassName?: string;
+  /**
+   * La hauteur du champ, alignée sur celle du `Button` de même taille :
+   * `small`, `medium` ou `large`. Défaut : `medium`. Ce n'est PAS l'attribut
+   * natif `size` (une largeur en caractères), qui n'est pas pris en charge.
+   */
+  size?: OpaleSize;
+  /**
+   * Le libellé visible, relié au champ par un `<label>`. Sans libellé, nommez le champ par
+   * `aria-label`.
+   */
   label?: ReactNode;
+  /**
+   * L'aide sous le champ, reliée par `aria-describedby`. Remplacée par `error` quand elle est
+   * présente.
+   */
   helperText?: ReactNode;
+  /**
+   * L'erreur, annoncée et décrite à la place de l'aide ; rend le champ invalide (`aria-invalid`).
+   */
   error?: ReactNode;
+  /** Une icône décorative en tête du champ. */
   icon?: ReactNode;
+  /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
   /** Avec `type="search"`, pose le repère `search` autour du champ. Défaut : `true`. */
   searchLandmark?: boolean;
@@ -353,6 +432,8 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
     searchLandmark,
     searchLandmarkLabel,
     className,
+    controlClassName,
+    size = 'medium',
     id,
     'aria-describedby': ariaDescribedBy,
     'aria-invalid': ariaInvalid,
@@ -384,7 +465,10 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
      Le libellé redevient donc un `<label htmlFor>` — le clic dessus focalise
      toujours le champ —, et le message devient une description annoncée. */
   return (
-    <div className={clsx('opale-field', className)}>
+    <div
+      className={clsx('opale-field', sizeModifier('opale-field', size), className)}
+      style={fieldSizeStyle(size)}
+    >
       {label && (
         <label className="opale-field__label" htmlFor={inputId}>
           {label}
@@ -405,6 +489,8 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
           {...props}
           ref={ref}
           id={inputId}
+          className={controlClassName}
+          size={isOpaleSize(size) ? size : undefined}
           icon={icon}
           liquidGlass={liquidGlass}
           landmark={searchLandmark}
@@ -422,7 +508,7 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
           <input
             ref={ref}
             id={inputId}
-            className="opale-input"
+            className={clsx('opale-input', controlClassName)}
             {...props}
             aria-invalid={invalid}
             aria-describedby={described}
@@ -457,14 +543,27 @@ Input.displayName = 'Input';
  * vrai contrôle.
  * L'erreur, elle, est rendue en frère de cette rangée, hors de l'enveloppe.
  *
- * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
- * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-checkbox` depuis
- * la classe de l'enveloppe.
+ * Depuis 3.10, `controlClassName` va à l'`<input type="checkbox">` natif, à
+ * côté de `.opale-checkbox`. Ce natif est INVISIBLE — il couvre la rangée et
+ * reçoit le clic : pour peindre la case, ciblez `.opale-checkbox-mark` depuis
+ * la classe de l'enveloppe, ou `.ma-classe:checked + * .opale-checkbox-mark`
+ * depuis `controlClassName`.
  */
-export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'size'> {
   /** Va à l'enveloppe, pas au contrôle natif. Voir `CheckboxProps`. */
   className?: string;
+  /** Va au contrôle natif, invisible, à côté de `.opale-checkbox`. Voir `CheckboxProps`. */
+  controlClassName?: string;
+  /**
+   * La taille de la case : `small`, `medium` ou `large`. Défaut : `medium`.
+   * Pose `opale-checkbox-row--<taille>` sur la rangée. L'attribut natif `size`
+   * n'a aucun effet sur une case et n'est pas transmis ; un nombre, accepté en
+   * 3.9 par le type natif, reste accepté et ignoré.
+   */
+  size?: OpaleSize | number;
+  /** Le libellé cliquable de la case, qui la nomme. */
   label?: ReactNode;
+  /** Le texte sous le libellé, relié à la case par `aria-describedby`. */
   description?: ReactNode;
   /**
    * L'erreur, annoncée et décrite après la description ; rend la case invalide.
@@ -487,6 +586,7 @@ export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'typ
    * (`ref.current.indeterminate = true`, la seule voie avant la 3.9.3) tient.
    */
   indeterminate?: boolean;
+  /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -497,6 +597,8 @@ export function Checkbox({
   indeterminate,
   liquidGlass = false,
   className,
+  controlClassName,
+  size = 'medium',
   onChange,
   ref,
   'aria-label': ariaLabel,
@@ -558,14 +660,16 @@ export function Checkbox({
      une occasion de désynchronisation de moins — et `onChange` redevient un
      simple passe-plat. */
   const row = (
-    <label className={clsx('opale-checkbox-row', className)}>
+    <label
+      className={clsx('opale-checkbox-row', sizeModifier('opale-checkbox-row', size), className)}
+    >
       {/* LA DESCRIPTION EST DÉCRITE, PLUS NOMMÉE. Rendue dans le `<label>`,
           elle entrait dans le nom de la case : « Recevoir les notifications
           Les nouveautés du design system ». Le nom d'une case doit être ce
           qu'on coche, et le reste une description (WCAG 1.3.1). */}
       <input
         type="checkbox"
-        className="opale-checkbox"
+        className={clsx('opale-checkbox', controlClassName)}
         /* `aria-labelledby` DÉSIGNE LE SEUL LIBELLÉ, et il faut cette précision.
            Ajouter `aria-describedby` ne suffisait pas : la rangée EST un
            `<label>`, donc tout ce qu'elle contient — description comprise —
@@ -619,19 +723,30 @@ export function Checkbox({
  * vrai contrôle.
  * L'erreur, elle, est rendue en frère de cette rangée, hors de l'enveloppe.
  *
- * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
- * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-toggle` depuis
- * la classe de l'enveloppe.
+ * Depuis 3.10, `controlClassName` va à l'`<input type="checkbox">` natif, à
+ * côté de `.opale-toggle`. Ce natif est INVISIBLE : pour peindre la piste,
+ * ciblez `.opale-toggle-track` depuis la classe de l'enveloppe.
  */
-export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'size'> {
   /** Va à l'enveloppe, pas au contrôle natif. Voir `ToggleProps`. */
   className?: string;
+  /** Va au contrôle natif, invisible, à côté de `.opale-toggle`. Voir `ToggleProps`. */
+  controlClassName?: string;
+  /**
+   * La taille de l'interrupteur : `small`, `medium` ou `large`. Défaut :
+   * `medium`. Pose `opale-toggle-row--<taille>` sur la rangée. L'attribut
+   * natif `size` n'a aucun effet sur une case et n'est pas transmis ; un
+   * nombre, accepté en 3.9 par le type natif, reste accepté et ignoré.
+   */
+  size?: OpaleSize | number;
+  /** Le libellé cliquable de l'interrupteur, qui le nomme. */
   label?: ReactNode;
   /**
    * L'erreur, annoncée et décrite ; rend l'interrupteur invalide. Rendue en
    * frère de la rangée, comme celle de `Checkbox` : voir sa documentation.
    */
   error?: ReactNode;
+  /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
   /**
    * Le rôle exposé à la technologie d'assistance. `"switch"` est recommandé :
@@ -649,6 +764,8 @@ export function Toggle({
   error,
   liquidGlass = false,
   className,
+  controlClassName,
+  size = 'medium',
   onChange,
   ref,
   'aria-describedby': ariaDescribedBy,
@@ -670,10 +787,10 @@ export function Toggle({
      d'Opale, et `.opale-toggle:checked` les peint depuis le CSS. Le verre
      habille la piste sans se mêler de son état. */
   const row = (
-    <label className={clsx('opale-toggle-row', className)}>
+    <label className={clsx('opale-toggle-row', sizeModifier('opale-toggle-row', size), className)}>
       <input
         type="checkbox"
-        className="opale-toggle"
+        className={clsx('opale-toggle', controlClassName)}
         onChange={onChange}
         {...props}
         aria-invalid={error ? true : ariaInvalid}
@@ -710,19 +827,26 @@ export function Toggle({
  * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
  * vrai contrôle.
  *
- * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
- * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-range` depuis
- * la classe de l'enveloppe.
+ * Depuis 3.10, `controlClassName` va à l'`<input type="range">` natif, à côté
+ * de `.opale-range`.
  */
 export interface SliderProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   /** Va à l'enveloppe, pas au contrôle natif. Voir `SliderProps`. */
   className?: string;
+  /** Va au contrôle natif, à côté de `.opale-range`. Voir `SliderProps`. */
+  controlClassName?: string;
+  /** Le libellé visible du curseur, qui le nomme. */
   label?: ReactNode;
+  /**
+   * La valeur affichée à côté du libellé. Défaut : la valeur courante, suivie au glissement.
+   * Visuelle seulement : voir `valueText` pour la technologie d'assistance.
+   */
   valueLabel?: ReactNode;
   /** La valeur dite en mots, en `aria-valuetext` : « 3 sur 10 ». */
   valueText?: string;
   /** Dérive `aria-valuetext` de la valeur, à chaque déplacement. `valueText` gagne. */
   getValueText?: (value: number) => string;
+  /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -763,6 +887,7 @@ export function Slider({
   getValueText,
   liquidGlass = false,
   className,
+  controlClassName,
   onChange,
   ref,
   ...props
@@ -874,7 +999,7 @@ export function Slider({
       ref={controlRef}
       id={sliderId}
       type="range"
-      className="opale-range"
+      className={clsx('opale-range', controlClassName)}
       aria-valuetext={valueText}
       onChange={handleChange}
       {...props}
@@ -956,19 +1081,54 @@ export function Slider({
  * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
  * vrai contrôle.
  *
- * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
- * (candidat 3.10) : pour habiller le contrôle, ciblez `.opale-select` depuis
- * la classe de l'enveloppe.
+ * Depuis 3.10, `controlClassName` va au `<select>` natif, à côté de
+ * `.opale-select`.
  */
-export interface SelectProps extends ComponentPropsWithRef<'select'> {
+export interface SelectProps extends Omit<ComponentPropsWithRef<'select'>, 'size'> {
   /** Va à l'enveloppe, pas au contrôle natif. Voir `SelectProps`. */
   className?: string;
+  /** Va au contrôle natif, à côté de `.opale-select`. Voir `SelectProps`. */
+  controlClassName?: string;
+  /** Le libellé visible, relié à la liste par un `<label>`. */
   label?: ReactNode;
+  /**
+   * L'aide sous la liste, reliée par `aria-describedby`. Remplacée par `error` quand elle est
+   * présente.
+   */
   helperText?: ReactNode;
   /** L'erreur, annoncée et décrite à la place de l'aide ; rend le champ invalide. */
   error?: ReactNode;
+  /** Les choix, rendus avant `children`. Un choix `disabled` reste lisible sans être retenu. */
   options?: readonly SelectOption[];
+  /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
+  /**
+   * La hauteur du champ, alignée sur celle du `Button` de même taille :
+   * `small`, `medium` ou `large`. Défaut : `medium`.
+   *
+   * UN NOMBRE GARDE SON SENS NATIF, comme en 3.9 : le nombre de rangées
+   * visibles, qui fait du champ une liste ouverte. Il est conservé pour la
+   * compatibilité ; pour une liste ouverte à choix multiple, préférez
+   * `MultiSelect`.
+   */
+  size?: OpaleSize | number;
+  /**
+   * Appelée à chaque choix avec la valeur retenue, AVANT `onChange`, qui part
+   * toujours. C'est `event.currentTarget.value` : avec `multiple`, la première
+   * valeur cochée seulement — `MultiSelect` donne la sélection entière.
+   */
+  onValueChange?: (value: string, event: ChangeEvent<HTMLSelectElement>) => void;
+  /**
+   * Le texte de la première option, vide (`value=""`), qui dit qu'aucun choix
+   * n'est encore fait. Sans `value` ni `defaultValue`, c'est elle qui est
+   * sélectionnée au montage.
+   *
+   * Avec `required`, elle est `disabled` et `hidden` : on ne peut plus y
+   * revenir, et le formulaire refuse l'envoi tant qu'un vrai choix n'est pas
+   * fait (`validity.valueMissing`). Sans `required`, elle reste un choix — « aucun ».
+   * Ignoré avec `multiple`.
+   */
+  placeholder?: string;
 }
 
 export function Select({
@@ -978,6 +1138,10 @@ export function Select({
   options,
   liquidGlass = false,
   className,
+  controlClassName,
+  size = 'medium',
+  onValueChange,
+  placeholder,
   id,
   children,
   onChange,
@@ -987,6 +1151,23 @@ export function Select({
 }: SelectProps) {
   const generatedId = useId();
   const selectId = id ?? generatedId;
+  /* LA TAILLE D'OPALE ET L'ATTRIBUT NATIF NE SE CONFONDENT PAS : une chaîne
+     règle la hauteur, un nombre part tel quel sur le `<select>`, comme avant. */
+  const nativeSize = typeof size === 'number' ? size : undefined;
+  const opaleSize = typeof size === 'number' ? 'medium' : size;
+  /* LE PLACEHOLDER N'EST SÉLECTIONNÉ QUE SI PERSONNE D'AUTRE NE L'EST. Une
+     option `disabled` en tête n'est pas choisie d'elle-même : le navigateur
+     retient la première option ACTIVE. `defaultValue=""` la désigne donc
+     explicitement, et seulement quand l'appelant n'a rien dit. */
+  const showPlaceholder = placeholder !== undefined && !props.multiple;
+  const placeholderDefault =
+    showPlaceholder && props.value === undefined && props.defaultValue === undefined
+      ? { defaultValue: '' }
+      : {};
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    onValueChange?.(event.currentTarget.value, event);
+    onChange?.(event);
+  };
 
   /* LE SÉLECTEUR REDEVIENT UN SEUL ÉLÉMENT, ET C'EST UN SOULAGEMENT.
 
@@ -1010,7 +1191,10 @@ export function Select({
   const message = error || helperText;
 
   return (
-    <div className={clsx('opale-field', className)}>
+    <div
+      className={clsx('opale-field', sizeModifier('opale-field', opaleSize), className)}
+      style={fieldSizeStyle(opaleSize)}
+    >
       {label && (
         <label className="opale-field__label" htmlFor={selectId}>
           {label}
@@ -1023,14 +1207,21 @@ export function Select({
       >
         <select
           id={selectId}
-          className="opale-select"
-          onChange={onChange}
+          className={clsx('opale-select', controlClassName)}
+          size={nativeSize}
+          {...placeholderDefault}
           {...props}
+          onChange={handleChange}
           aria-describedby={mergeIds(ariaDescribedBy, message ? helperId : undefined)}
           aria-invalid={error ? true : ariaInvalid}
         >
+          {showPlaceholder && (
+            <option value="" disabled={props.required} hidden={props.required}>
+              {placeholder}
+            </option>
+          )}
           {options?.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} disabled={option.disabled}>
               {option.label}
             </option>
           ))}
@@ -1050,7 +1241,17 @@ export function Select({
   );
 }
 
-export interface MultiSelectProps extends SelectProps {
+/* `MultiSelect` NE REPREND PAS LES AJOUTS 3.10 DE `Select`. Sa valeur est un
+   tableau (`onValueChange` diffère), son contrôle visible n'est pas le natif
+   (`controlClassName` n'aurait rien à habiller) et une liste ouverte n'a ni
+   placeholder ni hauteur de champ. `size` y garde son type de la 3.9 : le
+   nombre natif, posé sur le `<select>` porteur de valeur, caché. */
+export interface MultiSelectProps extends Omit<
+  SelectProps,
+  'onValueChange' | 'placeholder' | 'controlClassName' | 'size'
+> {
+  /** L'attribut natif, posé sur le `<select>` caché : sans effet sur la liste visible. */
+  size?: number;
   /**
    * La sélection. Présente, l'appelant la tient. Un tableau est la forme
    * attendue ; une valeur seule vaut une sélection d'un élément.
@@ -1092,7 +1293,13 @@ function optionsFromChildren(children: ReactNode): SelectOption[] {
     if (child.type !== 'option') return [];
     const props = child.props as OptionElementProps;
     const text = typeof props.children === 'string' ? props.children : '';
-    return [{ value: String(props.value ?? text), label: props.children }];
+    return [
+      {
+        value: String(props.value ?? text),
+        label: props.children,
+        ...(props.disabled ? { disabled: true } : {}),
+      },
+    ];
   });
 }
 
@@ -1308,6 +1515,9 @@ export function MultiSelect({
        clavier, `onValueChange` partait, et le formulaire — qui n'envoie pas un
        champ désactivé — soumettait autre chose que ce qu'on voyait. */
     if (!select || disabled) return;
+    /* UNE OPTION DÉSACTIVÉE SE LIT ET NE SE COCHE PAS, au clic comme au
+       clavier : la bascule est refusée avant d'écrire le natif. */
+    if (options.find((option) => option.value === optionValue)?.disabled) return;
 
     writing.current = true;
     for (const option of Array.from(select.options)) {
@@ -1398,7 +1608,7 @@ export function MultiSelect({
         {...props}
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} disabled={option.disabled}>
             {typeof option.label === 'string' ? option.label : option.value}
           </option>
         ))}
@@ -1459,6 +1669,7 @@ export function MultiSelect({
                 className="opale-multiselect__option"
                 role="option"
                 aria-selected={isSelected}
+                aria-disabled={option.disabled ? true : undefined}
                 data-active={index === activeIndex ? 'true' : undefined}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
@@ -1487,10 +1698,23 @@ export function MultiSelect({
   );
 }
 
+/**
+ * Les props d'`Autocomplete` : celles d'`Input`, plus la liste des suggestions.
+ *
+ * CE N'EST PAS UN COMBOBOX APG. Le champ s'appuie sur les suggestions natives
+ * du navigateur (`<datalist>` relié par `list`) : leur apparence, leur filtrage
+ * et leur clavier appartiennent au navigateur et varient de l'un à l'autre, et
+ * aucune option n'est annoncée par Opale (`aria-activedescendant`,
+ * `aria-expanded`). La saisie reste libre : une valeur hors liste est acceptée.
+ * Pour un choix fermé, prenez `Select` ; pour une liste filtrée et pilotée au
+ * clavier, `CommandPalette`.
+ */
 export interface AutocompleteProps extends InputProps {
+  /** Les suggestions natives (`<datalist>`), dédoublonnées. */
   options?: readonly string[];
 }
 
+/** Un champ de saisie libre, avec les suggestions natives du navigateur (`<datalist>`). */
 export function Autocomplete({ options = [], ...props }: AutocompleteProps) {
   const listId = useId();
   return (
@@ -1598,8 +1822,19 @@ export interface SegmentedControlProps extends Omit<
   ComponentPropsWithRef<'div'>,
   'onChange' | 'defaultValue' | 'children'
 > {
+  /** Les options. Une option `disabled` rend un `<button disabled>`. */
   options: readonly SelectOption[];
-  /** L'option pressée. Présente, l'appelant la tient ; absente et sans `defaultValue`, aucune. */
+  /**
+   * L'option pressée. Présente, l'appelant la tient ; absente et sans
+   * `defaultValue`, aucune.
+   *
+   * SANS L'UNE NI L'AUTRE, L'APPUI N'EST PAS RETENU — contrairement à `Tabs`.
+   * Le clic appelle `onValueChange`, mais aucune option ne reste pressée tant
+   * que le parent ne renvoie pas `value`. C'est le comportement de toute la
+   * 3.x et il ne change pas avant la 4.0.0 ; en développement, un appui ainsi
+   * perdu écrit un avertissement, une fois. Passez `defaultValue` pour un
+   * groupe libre, `value` + `onValueChange` pour un groupe tenu.
+   */
   value?: string;
   /** L'option pressée au montage quand `value` est absente. Seule elle fait retenir l'appui. */
   defaultValue?: string;
@@ -1607,9 +1842,53 @@ export interface SegmentedControlProps extends Omit<
   onValueChange?: (value: string) => void;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (value: string) => void;
+  /** Va au groupe (`role="group"`). */
   className?: string;
+  /** Va à chaque `<button>` d'option, à côté de `.opale-segmented__item`. */
+  controlClassName?: string;
+  /**
+   * La taille du groupe : `small`, `medium` ou `large`. Défaut : `medium`.
+   * Pose `opale-segmented--<taille>` sur le groupe.
+   */
+  size?: OpaleSize;
+  /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
+
+/* =============================================================================
+   L'APPUI PERDU EST SIGNALÉ, PAS CORRIGÉ (DX-13).
+
+   Sans `value` ni `defaultValue`, un clic prévient l'appelant et ne presse
+   rien. Le corriger — retenir l'appui comme `Tabs` — changerait le rendu d'une
+   intégration 3.x : c'est pour la 4.0.0. En attendant, le développeur est
+   prévenu, et SEULEMENT quand l'appui est réellement perdu.
+
+   « Ni `value` ni `defaultValue` au rendu » ne suffit pas à le dire : un
+   parent qui tient la valeur peut partir de `undefined` — rien de pressé tant
+   qu'on n'a pas choisi — et la renvoyer au premier appui. Ce cas est légitime
+   et ne doit pas crier. La vérification attend donc la tâche suivante, après
+   le rendu que l'appui a pu provoquer : si `value` est toujours absente,
+   personne n'a retenu le clic.
+
+   Une fois par chargement de page, en développement seulement — le même
+   contrat que les avertissements de `deprecations.ts`, dont le test d'env est
+   repris ici faute d'y être exporté.
+   ========================================================================== */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
+function isDevelopment(): boolean {
+  try {
+    return process.env.NODE_ENV !== 'production';
+  } catch {
+    return false;
+  }
+}
+
+let lostSegmentedClickWarned = false;
+
+const LOST_SEGMENTED_CLICK =
+  '[Opale] SegmentedControl : sans `value` ni `defaultValue`, l’option cliquée ne reste pas ' +
+  'pressée — passez `defaultValue` pour que le groupe s’en souvienne, ou `value` pour le tenir.';
 
 /**
  * Le fond de la sélection est un élément UNIQUE qui glisse sous l'option
@@ -1640,12 +1919,31 @@ export function SegmentedControl({
   onValueChange,
   onChange,
   className,
+  controlClassName,
+  size = 'medium',
   liquidGlass = false,
   ref,
   ...rest
 }: SegmentedControlProps) {
   warnDeprecatedProps('SegmentedControl', { onChange });
   const [value, setValue] = useOptionalState(valueProp, defaultValue);
+  /* La dernière `value` reçue, relue par la vérification différée de l'appui. */
+  const latestValue = useRef(valueProp);
+  useLayoutEffect(() => {
+    latestValue.current = valueProp;
+  });
+  const lostClickCheck = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(lostClickCheck.current), []);
+  const watchLostClick = () => {
+    if (lostSegmentedClickWarned || !isDevelopment()) return;
+    if (valueProp !== undefined || defaultValue !== undefined) return;
+    clearTimeout(lostClickCheck.current);
+    lostClickCheck.current = setTimeout(() => {
+      if (latestValue.current !== undefined || lostSegmentedClickWarned) return;
+      lostSegmentedClickWarned = true;
+      console.warn(LOST_SEGMENTED_CLICK);
+    }, 0);
+  };
   const groupRef = useRef<HTMLDivElement>(null);
   /* Le groupe mesuré est aussi celui que reçoit l'appelant. */
   const trackRef = useCallback(
@@ -1704,7 +2002,7 @@ export function SegmentedControl({
       observer?.disconnect();
       window.removeEventListener('resize', place);
     };
-  }, [options, value, liquidGlass]);
+  }, [options, value, liquidGlass, size]);
 
   /* LA MESURE SE FAIT SUR LE MÊME NŒUD DANS LES DEUX MATIÈRES. `Glass`
      transmet sa `ref` à sa couche de CONTENU, celle qui porte `className` :
@@ -1719,7 +2017,12 @@ export function SegmentedControl({
       {...rest}
       {...trackProps}
       ref={trackRef}
-      className={clsx('opale-segmented', liquidGlass && 'opale-segmented--glass', className)}
+      className={clsx(
+        'opale-segmented',
+        sizeModifier('opale-segmented', size),
+        liquidGlass && 'opale-segmented--glass',
+        className,
+      )}
       role="group"
     >
       <span ref={indicatorRef} aria-hidden="true" className="opale-segmented__indicator" />
@@ -1727,9 +2030,11 @@ export function SegmentedControl({
         <button
           key={option.value}
           type="button"
-          className="opale-segmented__item"
+          className={clsx('opale-segmented__item', controlClassName)}
           aria-pressed={value === option.value}
+          disabled={option.disabled}
           onClick={() => {
+            watchLostClick();
             setValue(option.value);
             onValueChange?.(option.value);
             onChange?.(option.value);
@@ -1748,8 +2053,16 @@ export function Form({ className, ...props }: FormProps) {
   return <form className={clsx('opale-stack', 'opale-stack--column', className)} {...props} />;
 }
 
+/**
+ * Les props d'`IconActionButton`, un `Button` réduit à son icône. Seul écart
+ * avec `ButtonProps` : `variant` vaut `tonal` par défaut, et non `primary`.
+ */
 export interface IconActionButtonProps extends Omit<ButtonProps, 'children'> {
+  /** Le glyphe du bouton, décoratif. Défaut : `more-horizontal`. */
   icon?: OpaleIconName;
+  /**
+   * Le nom accessible du bouton, posé en `aria-label`. Obligatoire : l'icône seule ne nomme rien.
+   */
   label: string;
 }
 

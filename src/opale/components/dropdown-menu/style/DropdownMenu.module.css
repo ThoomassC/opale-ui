@@ -1,0 +1,156 @@
+/* =============================================================================
+   LE MENU DÉROULANT — FEUILLE D'OPALE.
+
+   La surface est celle du popover — encre et fond du contrat de couleur, filet
+   d'encre à 16 %, ombre du troisième plan — avec un rembourrage plus serré :
+   un menu se lit en colonne, élément par élément.
+
+   L'ÉLÉMENT FOCALISÉ EST L'ÉLÉMENT SURLIGNÉ. Le pointeur donne le focus à ce
+   qu'il survole, donc `:focus` suffit à la surbrillance, pour la souris
+   comme pour le clavier ; `:focus-visible` y ajoute l'anneau d'Opale.
+   ========================================================================== */
+
+.positioner {
+  position: fixed;
+  z-index: var(--opale-z-popover);
+  top: 0;
+  left: 0;
+  max-width: calc(100vw - var(--opale-space-md));
+  animation: opale-dropdown-menu-in var(--opale-motion-fast) var(--opale-ease) both;
+}
+
+.shell {
+  --opale-glass-radius: var(--opale-radius-sm);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-surface) 88%, transparent);
+
+  border-radius: var(--opale-radius-sm);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--opale-text) 16%, transparent),
+    var(--opale-shadow-3);
+}
+
+.content {
+  display: flex;
+  min-width: 12rem;
+  max-height: min(24rem, calc(100vh - var(--opale-space-2xl)));
+  flex-direction: column;
+  padding: var(--opale-space-2xs);
+  overflow: auto;
+  border-radius: inherit;
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font-family: var(--opale-font-body);
+  font-size: var(--opale-text-sm);
+  line-height: var(--opale-leading-snug);
+}
+
+.shell[data-opale-glass] .content {
+  background: transparent;
+}
+
+.content:focus {
+  outline: none;
+}
+
+.item {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: var(--opale-space-xs);
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+  border-radius: var(--opale-radius-xs);
+  cursor: pointer;
+  user-select: none;
+}
+
+.item:focus {
+  outline: none;
+  background: color-mix(in srgb, var(--opale-text) 8%, transparent);
+}
+
+.item:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
+}
+
+.item[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: var(--opale-disabled-opacity);
+}
+
+/* La colonne de l'indicateur est réservée même vide : les libellés d'un même
+   groupe restent alignés, coché ou non. */
+.indicator {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--opale-primary-on-surface);
+}
+
+.indicator svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dot {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  padding: var(--opale-space-xs) var(--opale-space-sm) var(--opale-space-2xs);
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.separator {
+  height: 1px;
+  margin: var(--opale-space-2xs) 0;
+  background: color-mix(in srgb, var(--opale-text) 16%, transparent);
+}
+
+@keyframes opale-dropdown-menu-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .positioner {
+    animation: none;
+  }
+}
+
+/* En contrastes forcés, la surbrillance est un fond ignoré : l'élément
+   focalisé prend les couleurs système de la sélection. Sans
+   `forced-color-adjust: none`, la plaque Canvas du navigateur recouvre le
+   libellé et efface l'encre HighlightText. */
+@media (forced-colors: active) {
+  .content {
+    border: 1px solid CanvasText;
+  }
+
+  .item:focus {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .separator {
+    background: CanvasText;
+  }
+}

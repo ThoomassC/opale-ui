@@ -19,9 +19,16 @@ export type ToastContextValue = {
   };
 };
 
+/**
+ * Ce que rend `useToast` : `showToast`, `dismissToast`, `clearToasts` et les
+ * réglages par défaut de la file. Sert à typer un habillage ou une doublure de
+ * `useToast` dans un test.
+ */
+export type UseToastResult = ToastContextValue;
+
 export const ToastContext = createContext<ToastContextValue | null>(null);
 
-export const useToast = () => {
+export const useToast = (): UseToastResult => {
   const context = useContext(ToastContext);
   /* Le message est en anglais et au mot près celui de l'origine : la page de
      vitrine le cite entre guillemets, et un appelant a pu l'écrire dans un

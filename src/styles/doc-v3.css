@@ -1479,6 +1479,45 @@ body {
 .tc-doc-opale-demo__layout .opale-layout__content {
   padding: var(--opale-space-lg);
 }
+/* LES DÉMONSTRATIONS DE LA 3.10.0. Le compteur de `Field` est un contrôle
+   écrit par la vitrine : il porte donc lui-même son anneau de focus, celui de
+   la vitrine. Les cellules de `Grid` ne sont que des repères. */
+.tc-doc-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--opale-space-sm);
+}
+.tc-doc-stepper__value {
+  min-inline-size: 2.5rem;
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-surface);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.tc-doc-stepper__value:focus-visible {
+  outline: 2px solid var(--tc-doc-focus-ring);
+  outline-offset: 2px;
+}
+.tc-doc-grid-cell {
+  min-inline-size: 0;
+  padding: var(--opale-space-sm);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-surface);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.tc-doc-popover-form {
+  display: grid;
+  gap: var(--opale-space-sm);
+  justify-items: start;
+  min-inline-size: min(16rem, calc(100vw - 4rem));
+}
+.tc-doc-popover-form > .opale-field {
+  justify-self: stretch;
+}
 .tc-doc-opale-demo__page {
   display: grid;
   min-height: 14rem;

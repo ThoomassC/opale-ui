@@ -162,9 +162,12 @@ describe('les espacements', () => {
      GÉOMÉTRIE. La poignée de l'interrupteur est centrée dans sa piste
      ((1,75 − 1,25) / 2 = 0,25 rem) ; le retrait de la tuile d'icône d'un
      fichier la porte à 2,75 rem ; la coche de la liste multiple est remontée
-     vers le centre visuel de sa case. Les lier à la densité les décentrerait. */
+     vers le centre visuel de sa case. Les lier à la densité les décentrerait.
+     L'interrupteur `small` (3.10, DX-11) suit la même règle :
+     (1,375 − 1) / 2 = 0,1875 rem. */
   const GEOMETRY = new Set([
     '.opale-toggle-thumb|margin-inline-start',
+    '.opale-toggle-row--small .opale-toggle-thumb|margin-inline-start',
     '.opale-file-card__icon|padding',
     '.opale-multiselect__mark::after|margin-block-start',
   ]);

@@ -352,7 +352,10 @@ describe('les encres de rôle', () => {
 
   /* PLUS AUCUN APLAT DE MARQUE NE LIT L'ENCRE COMMUNE EN DIRECT. Seuls les
      toasts la gardent : leurs aplats sont des TONS (succès, alerte, erreur,
-     info), pas des rôles de marque, et `--opale-fill-*` est réglé pour elle. */
+     info), pas des rôles de marque, et `--opale-fill-*` est réglé pour elle.
+     Les pastilles de ton d'`OpaleTone` (3.10, DX-10) sont le même cas : un
+     aplat `--opale-fill-*` — ou l'encre secondaire pour `neutral` — sous
+     l'encre commune, mesuré par `opale-badge-tones.contract.test.ts`. */
   it('ne laisse lire `--opale-on-fill` qu’aux jetons de rôle et aux tons des toasts', () => {
     const readers: string[] = [];
     tree(opaleSource).walkDecls((decl) => {
@@ -360,8 +363,14 @@ describe('les encres de rôle', () => {
       if (/^--opale-on-(primary|secondary|danger)$/.test(decl.prop)) return;
       const rule = decl.parent as postcss.Rule;
       for (const selector of rule.selectors) {
-        if (!/^\.opale-toast--(success|warning|error|info)$/.test(selector.trim())) {
-          readers.push(`${selector.trim()} { ${decl.prop} }`);
+        const trimmed = selector.trim();
+        const toneFill =
+          /^\.opale-toast--(success|warning|error|info)$/.test(trimmed) ||
+          /^(:is\(\[data-opale-glass\] \.opale-badge, \.opale-badge--glass\))?\.opale-badge--(success|warning|info|neutral)$/.test(
+            trimmed,
+          );
+        if (!toneFill) {
+          readers.push(`${trimmed} { ${decl.prop} }`);
         }
       }
     });

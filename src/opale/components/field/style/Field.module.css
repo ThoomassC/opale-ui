@@ -1,0 +1,27 @@
+/* =============================================================================
+   LE CHAMP GÉNÉRIQUE — FEUILLE D'OPALE.
+
+   La mise en page vient de `.opale-field` (grille, écart `--opale-space-xs`),
+   le libellé de `.opale-field__label`, l'aide et l'erreur de
+   `.opale-field__helper` : le champ générique se range au pixel près à côté
+   d'un `Input`. Cette feuille n'ajoute que la marque des champs requis.
+   ========================================================================== */
+
+.field {
+  min-inline-size: 0;
+}
+
+/* La marque suit le libellé à un espace fin, à l'encre du danger : c'est la
+   convention qu'un formulaire lit sans légende. */
+.required {
+  margin-inline-start: 0.2em;
+  color: var(--opale-danger);
+}
+
+/* En couleurs forcées, l'encre du danger disparaît : la marque prend celle du
+   texte, et reste lisible par sa forme. */
+@media (forced-colors: active) {
+  .required {
+    color: CanvasText;
+  }
+}

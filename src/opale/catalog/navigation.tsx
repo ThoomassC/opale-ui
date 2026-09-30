@@ -1,8 +1,11 @@
 /* Les composants de navigation du catalogue. */
 
 import {
+  createContext,
+  useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -18,6 +21,7 @@ import toastMotion from '../components/toast/style/Toast.module.css';
 import { warnDeprecatedProps } from '../deprecations';
 import { rememberFocusOrigin, returnFocus } from '../shared/focus-return';
 import { resolveLabels } from '../shared/labels';
+import { navigateOnClick, type NavigateHandler } from '../shared/navigate';
 import { useControllableState, useOptionalState } from '../shared/use-controllable-state';
 import { useScrollPadding } from '../shared/use-scroll-padding';
 import {
@@ -38,32 +42,81 @@ export interface NavItem {
   icon?: ReactNode;
 }
 
+/* L'AVERTISSEMENT DE DÉVELOPPEMENT, une fois par chargement et par message.
+   Même lecture de `process.env.NODE_ENV` que `deprecations.ts`, dont ce canal
+   devrait à terme relever : c'est l'expression que les bundlers remplacent,
+   et une `ReferenceError` (ni bundler ni Node) vaut silence. */
+declare const process: { readonly env: { readonly NODE_ENV?: string } };
+
+function isDevelopment(): boolean {
+  try {
+    return process.env.NODE_ENV !== 'production';
+  } catch {
+    return false;
+  }
+}
+
+const devWarned = new Set<string>();
+
+function warnDevOnce(message: string): void {
+  if (devWarned.has(message) || !isDevelopment()) return;
+  devWarned.add(message);
+  console.warn(message);
+}
+
+const NAVBAR_LOST_CLICK =
+  '[Opale] Navbar : sans `value` ni `defaultValue`, l’entrée cliquée ne devient pas ' +
+  'courante — passez `defaultValue` pour que la barre s’en souvienne, ou `value` pour la tenir.';
+
 export interface NavbarProps extends Omit<
   ComponentPropsWithRef<'nav'>,
   'onSelect' | 'onChange' | 'defaultValue' | 'children'
 > {
+  /** Les entrées de la barre : un lien avec `href`, un bouton sans. Défaut : aucune. */
   items?: readonly NavItem[];
   /** L'entrée courante. Présente, l'appelant la tient ; absente et sans `defaultValue`, aucune. */
   value?: string;
-  /** L'entrée courante au montage quand `value` est absente. Seule elle fait retenir le clic. */
+  /**
+   * L'entrée courante au montage quand `value` est absente. SEULE ELLE FAIT
+   * RETENIR LE CLIC : sans `value` ni `defaultValue`, une entrée cliquée ne
+   * devient pas courante (`aria-current`), même si `onValueChange` part. C'est
+   * le comportement de la 3.x, signalé en développement ; passez
+   * `defaultValue` pour que la barre se souvienne seule, `value` pour la tenir.
+   */
   defaultValue?: string;
-  /** Ne part que des entrées sans `href` (boutons) ; un lien navigue. */
+  /** Ne part que des entrées sans `href` (boutons) ; un lien navigue, ou passe par `onNavigate`. */
   onValueChange?: (id: string) => void;
+  /**
+   * Le crochet du routeur côté client, pour les entrées avec `href`. Sur un
+   * clic gauche simple, la barre annule la navigation native puis l'appelle ;
+   * Ctrl, Cmd, Maj, Alt, le clic du milieu et `target` vers un autre onglet
+   * restent au navigateur. En non contrôlé (`defaultValue`), l'entrée routée
+   * devient courante ; `onValueChange` ne part pas. Voir `shared/navigate.ts`
+   * pour Next.js et React Router.
+   */
+  onNavigate?: NavigateHandler<NavItem>;
   /** @deprecated Depuis 3.6 — utilisez `value`. */
   activeId?: string;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onSelect?: (id: string) => void;
   /** Le nom du repère ; `aria-label` gagne. Défaut : « Navigation ». */
   label?: string;
+  /** Une classe ajoutée à la barre. */
   className?: string;
+  /** Rend la barre dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
+
+/* LA BARRE RENDUE PAR `Menu` NE PRÉVIENT PAS : ses entrées ne se retiennent
+   pas — le menu se referme sur la destination —, l'avertissement y mentirait. */
+const InsideMenuContext = createContext(false);
 
 export function Navbar({
   items = [],
   value,
   defaultValue,
   onValueChange,
+  onNavigate,
   activeId: activeIdProp,
   onSelect,
   label = 'Navigation',
@@ -73,10 +126,33 @@ export function Navbar({
 }: NavbarProps) {
   warnDeprecatedProps('Navbar', { activeId: activeIdProp, onSelect });
   const [activeId, setActiveId] = useOptionalState(value ?? activeIdProp, defaultValue);
+  /* UN CLIC QUI N'EST PAS RETENU SE SIGNALE (DX-13). Rien ne change en 3.x —
+     des appelants comptent sur ce « rien » —, mais la barre prévient une fois,
+     en développement, quand une entrée cliquée ne devient pas courante.
+     LA VÉRIFICATION EST DIFFÉRÉE D'UNE TÂCHE, comme pour `SegmentedControl` :
+     un parent qui tient la valeur et part de `undefined` la pose en réponse au
+     clic, et ne doit pas être accusé. Seule compte la `value` relue après. */
+  const insideMenu = useContext(InsideMenuContext);
+  const latestValue = useRef(value ?? activeIdProp);
+  useLayoutEffect(() => {
+    latestValue.current = value ?? activeIdProp;
+  });
+  const lostClickCheck = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(lostClickCheck.current), []);
+  const watchLostClick = () => {
+    if (insideMenu || devWarned.has(NAVBAR_LOST_CLICK) || !isDevelopment()) return;
+    if (latestValue.current !== undefined || defaultValue !== undefined) return;
+    clearTimeout(lostClickCheck.current);
+    lostClickCheck.current = setTimeout(() => {
+      if (latestValue.current !== undefined) return;
+      warnDevOnce(NAVBAR_LOST_CLICK);
+    }, 0);
+  };
   const select = (id: string) => {
     setActiveId(id);
     onValueChange?.(id);
     onSelect?.(id);
+    watchLostClick();
   };
   const Rail = liquidGlass ? Glass : 'nav';
   const railProps = liquidGlass
@@ -105,6 +181,11 @@ export function Navbar({
             href={item.href}
             className="opale-nav__item"
             aria-current={activeId === item.id ? 'page' : undefined}
+            onClick={(event) => {
+              if (!navigateOnClick(item, event, onNavigate)) return;
+              setActiveId(item.id);
+              watchLostClick();
+            }}
           >
             {item.icon}
             {item.label}
@@ -126,20 +207,44 @@ export function Navbar({
   );
 }
 
+/**
+ * Les props de `Menu`, un DISCLOSURE (`<details>`/`<summary>`) : un sommaire
+ * qui déplie un panneau de liens ou de contenu libre, dans le flux de la page.
+ */
 export interface MenuProps extends ComponentPropsWithRef<'details'> {
+  /** Le texte du sommaire, qui ouvre et referme le panneau. Défaut : « Menu ». */
   label?: ReactNode;
+  /** Les liens du panneau, rendus en `Navbar`. Présents, ils remplacent `children`. */
   items?: readonly NavItem[];
   /** Le nom de la navigation rendue depuis `items`. Défaut : celui de `Navbar`. */
   navigationLabel?: string;
+  /**
+   * Le crochet du routeur pour les liens de `items`, avec le contrat de
+   * `Navbar.onNavigate`. Après un clic routé, le menu se referme et rend le
+   * focus à son sommaire : la page ne se recharge pas pour le faire.
+   */
+  onNavigate?: NavigateHandler<NavItem>;
+  /** Une classe ajoutée au `<details>`. */
   className?: string;
+  /** Un contenu libre pour le panneau, rendu quand `items` est vide. */
   children?: ReactNode;
+  /** Rend le menu dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
+/**
+ * Un « menu simple » : un disclosure natif `<details>`, ouvert au clic sur son
+ * sommaire, refermé par Échap. Il n'est ni positionné ni refermé au clic
+ * extérieur, et ne porte pas le rôle `menu` — c'est un panneau de navigation
+ * ou de contenu, pas un menu d'actions. Pour une liste d'actions ancrée à un
+ * bouton (motif APG « menu button », flèches, fermeture extérieure), utilisez
+ * `DropdownMenu`.
+ */
 export function Menu({
   label = 'Menu',
   items = [],
   navigationLabel,
+  onNavigate,
   className,
   children,
   liquidGlass = false,
@@ -166,11 +271,30 @@ export function Menu({
     'opale-panel',
     className,
   );
+  /* LA PAGE NE SE RECHARGE PLUS, DONC LE MENU SE REFERME LUI-MÊME. Sans
+     routeur, le rechargement le refermait ; routé, il restait ouvert sur la
+     nouvelle page. Même sortie qu'Échap : fermé, focus au sommaire. */
+  const routeAndClose: NavigateHandler<NavItem> | undefined = onNavigate
+    ? (item, event) => {
+        const details = event.currentTarget.closest('details');
+        onNavigate(item, event);
+        if (!details) return;
+        details.open = false;
+        details.querySelector<HTMLElement>(':scope > summary')?.focus();
+      }
+    : undefined;
   const content = (
     <>
       <summary>{label}</summary>
       {items.length > 0 ? (
-        <Navbar items={items} label={navigationLabel} liquidGlass={liquidGlass} />
+        <InsideMenuContext.Provider value>
+          <Navbar
+            items={items}
+            label={navigationLabel}
+            liquidGlass={liquidGlass}
+            onNavigate={routeAndClose}
+          />
+        </InsideMenuContext.Provider>
       ) : (
         children
       )}
@@ -200,6 +324,7 @@ export function Menu({
 }
 
 export interface LinkProps extends ComponentPropsWithRef<'a'> {
+  /** Le texte du lien, qui en est le nom. */
   children: ReactNode;
   /** Pose le lien sur le matériau « verre liquide ». Original par défaut. */
   liquidGlass?: boolean;
@@ -229,8 +354,11 @@ export interface SidePanelLabels extends ModalLabels {
 
 /** Les props de `SidePanel`. `ref` et les attributs vont au panneau. */
 export interface SidePanelProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
+  /** Ouvert ou non, piloté par l'appelant. Défaut : `false`. */
   open?: boolean;
+  /** Le titre du panneau, qui le nomme. Défaut : `labels.title`, « Panneau » ; `null` le retire. */
   title?: ReactNode;
+  /** Le contenu du panneau. */
   children?: ReactNode;
   /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
@@ -238,6 +366,7 @@ export interface SidePanelProps extends Omit<ComponentPropsWithRef<'div'>, 'titl
   onClose?: () => void;
   /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
   labels?: Partial<SidePanelLabels>;
+  /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -312,6 +441,7 @@ export interface CommandPaletteProps extends Omit<
   ComponentPropsWithRef<'div'>,
   'title' | 'onChange' | 'defaultValue'
 > {
+  /** Ouverte ou non, pilotée par l'appelant. Défaut : `false`. */
   open?: boolean;
   /** Le texte de la recherche. Présent, l'appelant le tient. */
   value?: string;
@@ -342,6 +472,7 @@ export interface CommandPaletteProps extends Omit<
    * ou `onClose`) ; son nom et la gestion du focus sont inchangés.
    */
   footerClose?: boolean;
+  /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -498,18 +629,41 @@ export function CommandPalette({
   );
 }
 
+/** Les textes de `Breadcrumb`. */
+export interface BreadcrumbLabels {
+  /** Le nom du repère, quand `aria-label` n'est pas passé. Défaut : « Fil d'Ariane ». */
+  navigation: string;
+}
+
+const DEFAULT_BREADCRUMB_LABELS: BreadcrumbLabels = { navigation: "Fil d'Ariane" };
+
 export interface BreadcrumbProps extends Omit<ComponentPropsWithRef<'nav'>, 'children'> {
+  /**
+   * Les étapes du fil, de la racine à la page courante ; la dernière est marquée
+   * `aria-current="page"`. Défaut : aucune.
+   */
   items?: readonly NavItem[];
+  /**
+   * Le crochet du routeur pour les étapes avec `href`, avec le contrat de
+   * `Navbar.onNavigate` : clic gauche simple seulement, navigation native
+   * annulée par le fil.
+   */
+  onNavigate?: NavigateHandler<NavItem>;
+  /** Remplace les textes français par défaut, clé par clé. `aria-label` gagne sur `labels.navigation`. */
+  labels?: Partial<BreadcrumbLabels>;
   /** Pose le fil sur le matériau « verre liquide ». Original par défaut. */
   liquidGlass?: boolean;
 }
 
 export function Breadcrumb({
   items = [],
+  onNavigate,
+  labels: labelsProp,
   liquidGlass = false,
   className,
   ...rest
 }: BreadcrumbProps) {
+  const labels = resolveLabels(DEFAULT_BREADCRUMB_LABELS, labelsProp);
   const Shell = liquidGlass ? Glass : 'nav';
   const shellProps = liquidGlass
     ? ({ as: 'nav', rootClassName: 'opale-breadcrumb--glass-root' } as const)
@@ -520,7 +674,7 @@ export function Breadcrumb({
        et aucun `aria-current` ne disait où l'on se trouve — sur le composant
        dont c'est l'unique fonction (WCAG 1.3.1). */
     <Shell
-      aria-label="Fil d'Ariane"
+      aria-label={labels.navigation}
       {...rest}
       {...shellProps}
       className={clsx('opale-breadcrumb', liquidGlass && 'opale-breadcrumb--glass', className)}
@@ -536,7 +690,11 @@ export function Breadcrumb({
             <li key={item.id}>
               {index > 0 && <span aria-hidden="true">/</span>}
               {item.href ? (
-                <a href={item.href} aria-current={current}>
+                <a
+                  href={item.href}
+                  aria-current={current}
+                  onClick={(event) => navigateOnClick(item, event, onNavigate)}
+                >
                   {item.label}
                 </a>
               ) : (
@@ -617,13 +775,17 @@ export interface CookieBannerProps extends ComponentPropsWithRef<'section'> {
   open?: boolean;
   /** Appelée avec `false` quand l'utilisateur choisit. Le bandeau ne s'ouvre jamais de lui-même. */
   onOpenChange?: (open: boolean) => void;
+  /** Le message du bandeau. Défaut : `labels.message`. */
   children?: ReactNode;
+  /** Appelée au clic sur Accepter, une fois le choix mémorisé. */
   onAccept?: () => void;
+  /** Appelée au clic sur Refuser, une fois le choix mémorisé. */
   onDecline?: () => void;
   /** Clé de `localStorage` où le choix est mémorisé ; `null` coupe la mémoire. */
   storageKey?: string | null;
   /** Remplace les textes français par défaut, clé par clé. `children` gagne sur `labels.message`. */
   labels?: Partial<CookieBannerLabels>;
+  /** Rend le bandeau dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
@@ -739,19 +901,36 @@ export function CookieBanner({
   );
 }
 
+/** Les textes de `SelectionBar`. */
+export interface SelectionBarLabels {
+  /** Le compte annoncé. Défaut : « 1 sélectionné », « 3 sélectionnés ». */
+  count: (count: number) => string;
+}
+
+const DEFAULT_SELECTION_BAR_LABELS: SelectionBarLabels = {
+  count: (count) => `${count} sélectionné${count > 1 ? 's' : ''}`,
+};
+
 export interface SelectionBarProps extends ComponentPropsWithRef<'div'> {
+  /** Le nombre d'éléments sélectionnés, annoncé à chaque changement. Défaut : `0`. */
   selectedCount?: number;
+  /** Les actions sur la sélection, des `Button` le plus souvent. */
   children?: ReactNode;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<SelectionBarLabels>;
+  /** Rend la barre dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
 }
 
 export function SelectionBar({
   selectedCount = 0,
   children,
+  labels: labelsProp,
   liquidGlass = false,
   className,
   ...rest
 }: SelectionBarProps) {
+  const labels = resolveLabels(DEFAULT_SELECTION_BAR_LABELS, labelsProp);
   return (
     <Surface
       {...rest}
@@ -762,9 +941,7 @@ export function SelectionBar({
           n'était jamais annoncé (WCAG 4.1.3). La région est montée en
           permanence avec la barre, donc elle est surveillée avant que le
           nombre ne bouge — c'est la condition pour qu'une annonce parte. */}
-      <span aria-live="polite">
-        {selectedCount} sélectionné{selectedCount > 1 ? 's' : ''}
-      </span>
+      <span aria-live="polite">{labels.count(selectedCount)}</span>
       {children}
     </Surface>
   );

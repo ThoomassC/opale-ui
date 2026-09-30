@@ -8,9 +8,13 @@ import { resolveLabels } from './shared/labels';
 import { useControllableState } from './shared/use-controllable-state';
 
 export interface SkeletonProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
+  /** La largeur, en pixels ou en longueur CSS. Défaut : `100%`. */
   width?: string | number;
+  /** La hauteur, en pixels ou en longueur CSS. Défaut : `1rem`. */
   height?: string | number;
+  /** Arrondit le bloc en pilule, pour un avatar ou une pastille. Défaut : `false`. */
   rounded?: boolean;
+  /** Une classe ajoutée à côté de `.opale-skeleton`. */
   className?: string;
 }
 
@@ -60,6 +64,7 @@ export interface PaginationProps extends Omit<
   ComponentPropsWithRef<'nav'>,
   'onChange' | 'defaultValue' | 'children'
 > {
+  /** Le nombre total de pages, arrondi à l'entier inférieur. */
   pageCount: number;
   /** La page courante, à partir de 1. Présente, l'appelant tient la page. */
   value?: number;
@@ -71,6 +76,7 @@ export interface PaginationProps extends Omit<
   page?: number;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (page: number) => void;
+  /** Rend tous les boutons inactifs. Défaut : `false`. */
   disabled?: boolean;
   /** Le nom du repère ; gagne sur `labels.navigation`. */
   label?: string;
@@ -188,21 +194,42 @@ export function Pagination({
   );
 }
 
+/** Les textes de `RatingInput`. */
+export interface RatingInputLabels {
+  /** Le nom de chaque étoile. Défaut : « 3 sur 5 ». */
+  option: (value: number, max: number) => string;
+}
+
+const DEFAULT_RATING_INPUT_LABELS: RatingInputLabels = {
+  option: (value, max) => `${value} sur ${max}`,
+};
+
 /** Les props de `RatingInput`. `ref` et les attributs vont au `<fieldset>` ; `name` reste aux radios. */
 export interface RatingInputProps extends Omit<
   ComponentPropsWithRef<'fieldset'>,
   'onChange' | 'defaultValue' | 'children' | 'name'
 > {
+  /** Le nom du groupe, rendu en `<legend>`. Obligatoire. */
   label: string;
+  /** La note contrôlée. À accompagner de `onValueChange`. */
   value?: number;
+  /** La note de départ en mode non contrôlé. Défaut : `0`, aucune étoile. */
   defaultValue?: number;
+  /** Le nombre d'étoiles, de 1 à 10. Défaut : `5`. */
   max?: number;
   /** Appelée à chaque choix d'une note. */
   onValueChange?: (value: number) => void;
   /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
   onChange?: (value: number) => void;
+  /** Rend le groupe inactif, radios comprises. Défaut : `false`. */
   disabled?: boolean;
+  /**
+   * Le `name` partagé des radios, lu par la soumission du formulaire. Défaut : un identifiant
+   * généré.
+   */
   name?: string;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<RatingInputLabels>;
 }
 
 /** Note interactive distincte de Rating, qui reste un affichage seul. */
@@ -215,10 +242,12 @@ export function RatingInput({
   onChange,
   disabled = false,
   name,
+  labels: labelsProp,
   className,
   ...rest
 }: RatingInputProps) {
   warnDeprecatedProps('RatingInput', { onChange });
+  const labels = resolveLabels(DEFAULT_RATING_INPUT_LABELS, labelsProp);
   const [selected, setSelected] = useControllableState<number>(value, defaultValue, onValueChange);
   const generatedName = useId();
   const total = Math.max(1, Math.min(10, Math.floor(max)));
@@ -245,7 +274,7 @@ export function RatingInput({
                 setSelected(number);
                 onChange?.(number);
               }}
-              aria-label={`${number} sur ${total}`}
+              aria-label={labels.option(number, total)}
             />
             <IconPaths paths={GLYPH_STAR} />
           </label>

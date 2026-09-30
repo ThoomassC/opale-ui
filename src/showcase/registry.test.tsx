@@ -208,7 +208,30 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    (`TabsList`, `SidebarItem`, `TopbarBrand`…) sont aussi publiées sous leur
    nom, pour les Server Components. Elles se documentent sur la page de leur
    composant (`COMPOUND_PART_OWNERS`). */
-const PUBLISHED_COMPONENT_COUNT = 73;
+/* 91 DEPUIS LA 3.10.0 : sept composants — `Textarea`, `RadioGroup`, `Field`,
+   `Grid`, `Tooltip`, `Popover` et `DropdownMenu` — et onze parties publiées
+   sous leur nom : `Radio`, `PopoverTrigger`, `PopoverContent` et les huit
+   `DropdownMenu…`. Les parties se documentent sur la page de leur composant
+   (`NAMED_PART_OWNERS`). */
+const PUBLISHED_COMPONENT_COUNT = 91;
+
+/**
+ * Les parties publiées SANS membre statique sur leur composant, vers leur
+ * propriétaire. `Popover` et `DropdownMenu` n'exposent pas `Popover.Trigger` :
+ * leurs parties ne sont publiées que sous leur nom, donc le calcul ci-dessous,
+ * qui lit les membres, ne les voit pas. Le préfixe suffit à les rattacher ;
+ * `Radio` ne porte pas celui de `RadioGroup` et s'écrit en toutes lettres.
+ */
+const NAMED_PART_PREFIXES: readonly string[] = ['DropdownMenu', 'Popover'];
+const NAMED_PART_OWNERS: Readonly<Record<string, string>> = { Radio: 'RadioGroup' };
+
+/** Le propriétaire d'une partie publiée sous son seul nom, s'il en a un. */
+function namedPartOwner(component: string): string | undefined {
+  const prefix = NAMED_PART_PREFIXES.find(
+    (owner) => component !== owner && component.startsWith(owner),
+  );
+  return prefix ?? NAMED_PART_OWNERS[component];
+}
 
 /**
  * Les parties des composants composés, vers leur propriétaire : `TabsList` →
@@ -228,7 +251,7 @@ const COMPOUND_PART_OWNERS: ReadonlyMap<string, string> = new Map(
 
 /** Le libellé de la page attendue pour un composant. */
 function pageLabelFor(component: string): string {
-  const owner = COMPOUND_PART_OWNERS.get(component) ?? component;
+  const owner = COMPOUND_PART_OWNERS.get(component) ?? namedPartOwner(component) ?? component;
   return DOCUMENTED_WITH[owner] ?? catalogComponentLabel(owner);
 }
 

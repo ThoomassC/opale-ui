@@ -1,0 +1,80 @@
+/* =============================================================================
+   LE POPOVER — FEUILLE D'OPALE.
+
+   UNE SURFACE, PAS UN DIALOGUE CENTRÉ. Le panneau reprend le couple
+   encre/fond que le contrat de couleur mesure partout (`--opale-text` sur
+   `--opale-surface`), un filet d'encre à 16 % — `--opale-divider` est
+   invisible en thème sombre, voir `Modal.module.css` — et l'ombre du
+   troisième plan : il flotte au-dessus de la page sans s'en couper par un
+   voile.
+
+   LA POSITION est écrite par `useAnchorPosition` (`top`, `left`,
+   `data-side`) avant la première peinture ; la feuille ne porte que le plan
+   et la silhouette.
+   ========================================================================== */
+
+.positioner {
+  position: fixed;
+  z-index: var(--opale-z-popover);
+  top: 0;
+  left: 0;
+  max-width: calc(100vw - var(--opale-space-md));
+  animation: opale-popover-in var(--opale-motion-fast) var(--opale-ease) both;
+}
+
+.shell {
+  --opale-glass-radius: var(--opale-radius-md);
+  --opale-glass-tint: color-mix(in srgb, var(--opale-surface) 88%, transparent);
+
+  border-radius: var(--opale-radius-md);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--opale-text) 16%, transparent),
+    var(--opale-shadow-3);
+}
+
+.panel {
+  min-width: 12rem;
+  max-height: min(32rem, calc(100vh - var(--opale-space-2xl)));
+  padding: var(--opale-space-md);
+  overflow: auto;
+  border-radius: inherit;
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font-family: var(--opale-font-body);
+  font-size: var(--opale-text-md);
+  line-height: var(--opale-leading-snug);
+}
+
+/* Sous verre, le lavis porte le fond : le panneau ne repeint rien. */
+.shell[data-opale-glass] .panel {
+  background: transparent;
+}
+
+/* Le panneau reçoit le focus quand il n'a rien de focalisable : ce focus
+   programmé ne s'allume pas, le focus clavier si. */
+.panel:focus {
+  outline: none;
+}
+
+.panel:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
+}
+
+@keyframes opale-popover-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .positioner {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .panel {
+    border: 1px solid CanvasText;
+  }
+}

@@ -98,6 +98,7 @@ export type TopbarGap = 'tight' | 'regular' | 'relaxed';
 export type TopbarProps = ComponentPropsWithoutRef<'header'> & {
   /** La hauteur de la barre. `compact`, `comfortable` et `spacious` valent `small`, `medium` et `large`. */
   size?: OpaleSize | TopbarSize;
+  /** Pose l'ombre d'élévation sous la barre. Défaut : `true`. */
   elevated?: boolean;
   /**
    * Rend la barre dans le matériau « verre liquide ».
@@ -191,9 +192,13 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
 TopbarBase.displayName = 'Topbar';
 
 export type TopbarSectionProps = ComponentPropsWithoutRef<'div'> & {
+  /** La section prend l'espace restant. Défaut : `false`. */
   grow?: boolean;
+  /** L'alignement des éléments de la section. Défaut : `left`. */
   align?: 'left' | 'center' | 'right' | 'between';
+  /** L'espacement entre les éléments. Défaut : `regular`. */
   gap?: TopbarGap;
+  /** Autorise le retour à la ligne des éléments. Défaut : `false`. */
   wrap?: boolean;
 };
 
@@ -231,9 +236,13 @@ const TopbarSection = forwardRef<HTMLDivElement, TopbarSectionProps>(
 TopbarSection.displayName = 'Topbar.Section';
 
 export type TopbarBrandProps = ComponentPropsWithoutRef<'div'> & {
+  /** Le visuel de la marque, décoratif. */
   icon?: ReactNode;
+  /** Le nom de la marque. */
   title?: ReactNode;
+  /** La ligne sous le nom. */
   subtitle?: ReactNode;
+  /** Une classe ajoutée au cadre de l'icône. */
   iconClassName?: string;
 };
 
@@ -306,6 +315,7 @@ const TopbarBrand = forwardRef<HTMLDivElement, TopbarBrandProps>(
 TopbarBrand.displayName = 'Topbar.Brand';
 
 export type TopbarActionsProps = ComponentPropsWithoutRef<'div'> & {
+  /** L'espacement entre les actions. Défaut : `tight`. */
   gap?: TopbarGap;
 };
 

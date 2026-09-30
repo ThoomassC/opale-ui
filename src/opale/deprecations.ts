@@ -20,7 +20,7 @@
    ========================================================================== */
 
 /** La version où un nom a été déprécié. */
-export type DeprecatedSince = '3.6' | '3.7';
+export type DeprecatedSince = '3.6' | '3.7' | '3.10';
 
 /** La version qui retirera les noms dépréciés. */
 export const DEPRECATION_REMOVAL = '4.0.0';
@@ -225,6 +225,14 @@ export const DEPRECATED_PROPS = [
     since: '3.6',
     removal: '4.0.0',
     source: 'catalog/display.tsx',
+  },
+  {
+    component: 'FileCard',
+    prop: 'size',
+    replacement: 'fileSize',
+    since: '3.10',
+    removal: '4.0.0',
+    source: 'catalog/modules.tsx',
   },
   {
     component: 'Lightbox',
@@ -509,7 +517,7 @@ function hasAccessibleName(element: HTMLElement): boolean {
   return Array.from(labels ?? []).some((label) => label.textContent?.trim());
 }
 
-/* LE MÊME CONTRÔLE POUR SIX AUTRES COMPOSANTS (ACC-21). Seul l'interrupteur
+/* LE MÊME CONTRÔLE POUR LES AUTRES COMPOSANTS (ACC-21). Seul l'interrupteur
    était vérifié ; une ProgressBar sans `label`, un Modal sans titre, une case,
    une liste ou un curseur sans libellé passaient sans un mot. Chaque entrée
    donne le nom de l'objet, tel qu'on le dit en français, et les props qui le
@@ -525,6 +533,11 @@ const UNNAMED_CONTROLS = {
   MultiSelect: { noun: 'la liste de choix', hint: '`label`, `aria-label` ou `aria-labelledby`' },
   Slider: { noun: 'le curseur', hint: '`label`, `aria-label` ou `aria-labelledby`' },
   Select: { noun: 'la liste déroulante', hint: '`label`, `aria-label` ou `aria-labelledby`' },
+  Textarea: { noun: 'la zone de texte', hint: '`label`, `aria-label` ou `aria-labelledby`' },
+  RadioGroup: {
+    noun: 'le groupe de boutons radio',
+    hint: '`label`, `aria-label` ou `aria-labelledby`',
+  },
 } as const;
 
 /** Les composants dont le nom accessible est vérifié en développement. */
@@ -537,6 +550,33 @@ export function warnIfUnnamed(component: NamedControl, element: HTMLElement): vo
   warnOnce(
     `${component}#name`,
     `[Opale] ${component} : ${noun} n’a pas de nom accessible — donnez-lui ${hint}.`,
+  );
+}
+
+/* ---- Les défauts surprenants (DX-21).
+
+   Pas une dépréciation au sens de la table — aucune prop n'est renommée —,
+   mais le même canal : une fois, en développement. `<Icon />` dessine une
+   étincelle et `<Donut />` affiche 60 % : deux valeurs de démonstration qui
+   passent en production sans que rien ne les signale. */
+const IMPLICIT_DEFAULTS = {
+  Icon: '`name` n’est passé — l’icône `sparkle` est dessinée par défaut. Passez `name`',
+  Donut: '`value` n’est passée — l’anneau affiche 60 % par défaut. Passez `value`',
+} as const;
+
+/** Les composants dont un défaut de démonstration est signalé en développement. */
+export type ImplicitDefaultComponent = keyof typeof IMPLICIT_DEFAULTS;
+
+/**
+ * Avertit, une fois et en développement, qu'un composant s'appuie sur un
+ * défaut de démonstration. S'appelle pendant le rendu, comme
+ * `warnDeprecatedProps` : c'est idempotent.
+ */
+export function warnImplicitDefault(component: ImplicitDefaultComponent): void {
+  const article = component === 'Donut' ? 'aucune' : 'aucun';
+  warnOnce(
+    `${component}#default`,
+    `[Opale] ${component} : ${article} ${IMPLICIT_DEFAULTS[component]} : ce défaut disparaîtra en ${DEPRECATION_REMOVAL}.`,
   );
 }
 

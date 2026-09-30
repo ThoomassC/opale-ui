@@ -1,8 +1,17 @@
 import type { PropRow } from './api';
 
+/** Une partie d'un composant composé (`PopoverContent`…), documentée sous son propre tableau. */
+export interface CatalogPartDoc {
+  /** Le nom de l'export : son type de props est `${name}Props`. */
+  readonly name: string;
+  readonly rows: readonly PropRow[];
+}
+
 export interface CatalogApiDoc {
   readonly states: string;
   readonly rows: readonly PropRow[];
+  /** Les parties publiées sous leur nom, dans l'ordre où on les écrit. */
+  readonly parts?: readonly CatalogPartDoc[];
 }
 
 function prop(
@@ -48,6 +57,17 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('label', 'ReactNode', 'Nom visible du champ.'),
       prop('helperText', 'ReactNode', 'Aide persistante sous le champ.'),
       prop('error', 'ReactNode', 'Erreur annoncée aux technologies d’assistance.'),
+      prop(
+        'size',
+        "'small' | 'medium' | 'large'",
+        'Hauteur alignée sur celle du `Button` de même taille.',
+        'medium',
+      ),
+      prop(
+        'controlClassName',
+        'string',
+        'Classe de plus sur le contrôle natif ; `className` va à l’enveloppe.',
+      ),
     ],
   },
   Checkbox: {
@@ -56,6 +76,17 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('label', 'ReactNode', 'Nom de la case.'),
       prop('description', 'ReactNode', 'Précision associée au nom.'),
       prop('checked', 'boolean', 'État contrôlé par l’application.'),
+      prop(
+        'size',
+        'OpaleSize | number',
+        'Taille de la case et du texte ; un nombre garde son sens natif.',
+        'medium',
+      ),
+      prop(
+        'controlClassName',
+        'string',
+        'Classe de plus sur le contrôle natif ; `className` va à l’enveloppe.',
+      ),
     ],
   },
   Toggle: {
@@ -63,6 +94,17 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('label', 'ReactNode', 'Nom visible de l’interrupteur.'),
       prop('checked', 'boolean', 'État contrôlé par l’application.'),
+      prop(
+        'size',
+        'OpaleSize | number',
+        'Taille de l’interrupteur et du texte ; un nombre garde son sens natif.',
+        'medium',
+      ),
+      prop(
+        'controlClassName',
+        'string',
+        'Classe de plus sur le contrôle natif ; `className` va à l’enveloppe.',
+      ),
     ],
   },
   Slider: {
@@ -91,8 +133,29 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Choix unique sur un contrôle natif.',
     rows: [
       prop('label', 'ReactNode', 'Nom visible du sélecteur.'),
-      prop('options', 'readonly { value: string; label: ReactNode }[]', 'Choix proposés.'),
+      prop(
+        'options',
+        'readonly SelectOption[]',
+        'Choix proposés ; une option `disabled` reste visible sans pouvoir être choisie.',
+      ),
       prop('helperText', 'ReactNode', 'Aide sous le sélecteur.'),
+      prop(
+        'onValueChange',
+        '(value: string, event: ChangeEvent<HTMLSelectElement>) => void',
+        'Valeur retenue à chaque choix, avant `onChange`.',
+      ),
+      prop('placeholder', 'string', 'Première option vide, choisie tant que rien ne l’est.'),
+      prop(
+        'size',
+        'OpaleSize | number',
+        'Hauteur alignée sur le `Button` ; un nombre garde son sens natif (rangées visibles).',
+        'medium',
+      ),
+      prop(
+        'controlClassName',
+        'string',
+        'Classe de plus sur le contrôle natif ; `className` va à l’enveloppe.',
+      ),
     ],
   },
   Autocomplete: {
@@ -119,6 +182,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('value', 'string | null', 'Segment actif, contrôlé.'),
       prop('defaultValue', 'string | null', 'Segment actif de départ, non contrôlé.'),
       prop('onValueChange', '(value: string) => void', 'Signale le segment choisi.'),
+      prop(
+        'size',
+        "'small' | 'medium' | 'large'",
+        'Taille du groupe et de ses segments.',
+        'medium',
+      ),
+      prop('controlClassName', 'string', 'Classe de plus sur chaque bouton d’option.'),
     ],
   },
   IconActionButton: {
@@ -150,15 +220,32 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   DataTable: {
     states: 'Cliquer un en-tête triable alterne les sens du tri.',
     rows: [
-      prop('columns', 'readonly DataTableColumn[]', 'Colonnes, tri et alignement.'),
-      prop('rows', 'readonly DataTableRow[]', 'Données affichées.'),
+      prop(
+        'columns',
+        'readonly DataTableColumn<T>[]',
+        'Colonnes : tri, alignement, `cell(row, index)` pour un rendu propre et `sortValue(row)` pour trier ce qui n’est pas du texte.',
+      ),
+      prop('rows', 'readonly T[]', 'Données affichées, typées par l’appelant.'),
       prop('size', "'small' | 'medium'", 'Espacement des lignes.', 'medium'),
       prop('striped', 'boolean', 'Alternance discrète des lignes.', 'false'),
       prop('showRowCount', 'boolean', 'Nombre de lignes visibles sous la table.', 'false'),
       prop('sort', 'DataTableSort | null', 'Tri contrôlé ; null : sans tri.'),
       prop('defaultSort', 'DataTableSort', 'Tri initial, non contrôlé.'),
       prop('onSortChange', '(sort: DataTableSort) => void', 'Tri demandé par un clic d’en-tête.'),
-      prop('rowKey', '(row, index) => string | number', 'Identité stable des lignes.'),
+      prop('rowKey', '(row, index) => string | number', 'Clé React des lignes.'),
+      prop(
+        'getRowId',
+        '(row, index) => DataTableRowId',
+        'Identité d’une ligne pour la sélection ; à défaut `rowKey`, puis l’index.',
+      ),
+      prop('selectable', 'boolean', 'Ajoute une colonne de cases à cocher.', 'false'),
+      prop('selectedIds', 'readonly DataTableRowId[]', 'Lignes cochées, contrôlées.'),
+      prop('defaultSelectedIds', 'readonly DataTableRowId[]', 'Lignes cochées au départ.'),
+      prop(
+        'onSelectedIdsChange',
+        '(ids: DataTableRowId[]) => void',
+        'Sélection complète après chaque case cochée.',
+      ),
       prop('loading', 'boolean', 'Affiche un état de chargement.', 'false'),
       prop(
         'labels',
@@ -182,7 +269,13 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   Badge: {
     states: 'Le point de notification reste accompagné d’un texte accessible.',
     rows: [
-      prop('tone', "'primary' | 'accent' | 'danger'", 'Ton de la pastille.', 'primary'),
+      prop(
+        'tone',
+        "'primary' | 'accent' | 'danger' | 'success' | 'warning' | 'error' | 'info' | 'neutral'",
+        'Ton de la pastille ; `error` peint comme `danger`.',
+        'primary',
+      ),
+      prop('size', "'small' | 'medium' | 'large'", 'Taille du texte et de la pastille.', 'medium'),
       prop('dot', 'boolean', 'Ajoute un point de notification.', 'false'),
     ],
   },
@@ -191,6 +284,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('value', 'number', 'Note affichée.', '0'),
       prop('max', 'number', 'Nombre d’étoiles du barème.', '5'),
+      prop(
+        'labels',
+        'Partial<RatingLabels>',
+        'Nom accessible de la note ; une clé omise garde son défaut français.',
+        '{ value: (value, max) => `${value} sur ${max}` }',
+      ),
     ],
   },
   RatingInput: {
@@ -200,6 +299,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('value', 'number', 'Note contrôlée.'),
       prop('defaultValue', 'number', 'Note de départ, non contrôlée.', '0'),
       prop('onValueChange', '(value: number) => void', 'Nouvelle note.'),
+      prop(
+        'labels',
+        'Partial<RatingInputLabels>',
+        'Nom de chaque étoile ; une clé omise garde son défaut français.',
+        '{ option: (value, max) => `${value} sur ${max}` }',
+      ),
     ],
   },
   Pagination: {
@@ -241,16 +346,31 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   },
   LegalLinks: {
     states: 'Liens regroupés dans une navigation nommée.',
-    rows: [prop('links', 'readonly NavItem[]', 'Adresses et libellés des pages légales.')],
+    rows: [
+      prop('links', 'readonly NavItem[]', 'Adresses et libellés des pages légales.'),
+      prop(
+        'onNavigate',
+        '(item: NavItem, event: MouseEvent<HTMLAnchorElement>) => void',
+        'Crochet du routeur : un clic gauche simple lui revient, les autres restent au navigateur.',
+      ),
+      prop(
+        'labels',
+        'Partial<LegalLinksLabels>',
+        'Nom de la navigation ; une clé omise garde son défaut français.',
+        "{ navigation: 'Liens légaux' }",
+      ),
+    ],
   },
   Heading: {
     states: 'Le niveau HTML détermine la place dans le plan de la page.',
-    rows: [prop('level', '1 | 2 | 3 | 4', 'Niveau du titre.', '2')],
+    rows: [prop('level', '1 | 2 | 3 | 4 | 5 | 6', 'Niveau du titre.', '2')],
   },
   Text: {
     states: 'Corps, légende ou métrique selon le rôle du texte.',
     rows: [
       prop('variant', "'body' | 'label' | 'caption' | 'metric'", 'Rôle typographique.', 'body'),
+      prop('as', "'p' | 'span' | 'div' | 'label'", 'Balise rendue.', 'p'),
+      prop('htmlFor', 'string', 'Le contrôle nommé, avec `as="label"`.'),
     ],
   },
   Icon: {
@@ -271,7 +391,11 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Notification pilotée par l’application dans le coin choisi de l’écran.',
     rows: [
       prop('message', 'ReactNode', 'Contenu de la notification.'),
-      prop('title', 'ReactNode', 'Titre, comme dans showToast ; avec message, reste l’infobulle HTML.'),
+      prop(
+        'title',
+        'ReactNode',
+        'Titre, comme dans showToast ; avec message, reste l’infobulle HTML.',
+      ),
       prop('description', 'ReactNode', 'Détail sous le titre, comme dans showToast.'),
       prop('open', 'boolean', 'Affiche ou masque le message.', 'true'),
       prop('onOpenChange', '(open: boolean) => void', 'Fermeture demandée par la croix.'),
@@ -287,7 +411,10 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   },
   Spinner: {
     states: 'Progression indéterminée accompagnée d’un nom accessible.',
-    rows: [prop('label', 'string', 'Action en cours annoncée.', 'Chargement')],
+    rows: [
+      prop('label', 'string', 'Action en cours annoncée.', 'Chargement'),
+      prop('size', "'small' | 'medium' | 'large'", 'Taille du témoin : 16, 24 ou 40 px.', 'medium'),
+    ],
   },
   ProgressBar: {
     states: 'Progression déterminée de 0 à 100.',
@@ -300,7 +427,18 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Confirmer ou annuler une action importante.',
     rows: [
       prop('open', 'boolean', 'État de la boîte.', 'false'),
-      prop('onConfirm', '() => void', 'Action confirmée.'),
+      prop(
+        'onConfirm',
+        '() => void | PromiseLike<unknown>',
+        'Action confirmée ; une promesse rendue met Confirmer en attente jusqu’à sa fin, Annuler reste possible.',
+      ),
+      prop('tone', "'default' | 'danger'", 'Rend Confirmer en bouton de danger.', 'default'),
+      prop(
+        'loading',
+        'boolean',
+        'Occupe le dialogue : Confirmer en chargement, fermeture refusée.',
+        'false',
+      ),
       prop(
         'onOpenChange',
         '(open: boolean) => void',
@@ -329,6 +467,11 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('value', 'string | null', 'Identifiant de la page courante, contrôlé.'),
       prop('defaultValue', 'string | null', 'Page courante de départ, non contrôlée.'),
       prop('onValueChange', '(id: string) => void', 'Choix d’une entrée sans href.'),
+      prop(
+        'onNavigate',
+        '(item: NavItem, event: MouseEvent<HTMLAnchorElement>) => void',
+        'Crochet du routeur pour les entrées avec href : un clic gauche simple lui revient.',
+      ),
     ],
   },
   Menu: {
@@ -336,6 +479,11 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     rows: [
       prop('label', 'ReactNode', 'Libellé du contrôle.', 'Menu'),
       prop('items', 'readonly NavItem[]', 'Actions ou liens proposés.'),
+      prop(
+        'onNavigate',
+        '(item: NavItem, event: MouseEvent<HTMLAnchorElement>) => void',
+        'Crochet du routeur ; le menu se referme et rend le focus à son sommaire.',
+      ),
     ],
   },
   Link: {
@@ -384,7 +532,20 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   },
   Breadcrumb: {
     states: 'La dernière étape est annoncée comme page courante.',
-    rows: [prop('items', 'readonly NavItem[]', 'Étapes du chemin.')],
+    rows: [
+      prop('items', 'readonly NavItem[]', 'Étapes du chemin.'),
+      prop(
+        'onNavigate',
+        '(item: NavItem, event: MouseEvent<HTMLAnchorElement>) => void',
+        'Crochet du routeur : un clic gauche simple lui revient, les autres restent au navigateur.',
+      ),
+      prop(
+        'labels',
+        'Partial<BreadcrumbLabels>',
+        'Nom du repère ; `aria-label` gagne. Une clé omise garde son défaut français.',
+        "{ navigation: 'Fil d’Ariane' }",
+      ),
+    ],
   },
   CookieBanner: {
     states: 'En bas au centre, animé comme un toast ; le choix est mémorisé.',
@@ -404,13 +565,40 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   },
   SelectionBar: {
     states: 'Les actions portent sur le nombre d’éléments sélectionnés.',
-    rows: [prop('selectedCount', 'number', 'Nombre d’éléments sélectionnés.', '0')],
+    rows: [
+      prop('selectedCount', 'number', 'Nombre d’éléments sélectionnés.', '0'),
+      prop(
+        'labels',
+        'Partial<SelectionBarLabels>',
+        'Compte annoncé ; une clé omise garde son défaut français.',
+        '{ count: (count) => `${count} sélectionné(s)` }',
+      ),
+    ],
   },
   Stack: {
     states: 'Empilement à espacement constant, éventuellement renvoyé à la ligne.',
     rows: [
       prop('direction', "'row' | 'column'", 'Axe des enfants.', 'column'),
       prop('wrap', 'boolean', 'Retour à la ligne.', 'false'),
+      prop(
+        'gap',
+        "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'",
+        'Espace entre les enfants, sur `--opale-space-*`.',
+        'md',
+      ),
+      prop(
+        'align',
+        "'start' | 'center' | 'end' | 'stretch' | 'baseline'",
+        'Alignement sur l’axe secondaire.',
+        'stretch',
+      ),
+      prop(
+        'justify',
+        "'start' | 'center' | 'end' | 'between'",
+        'Répartition sur l’axe principal.',
+        'start',
+      ),
+      prop('as', "'div' | 'section' | 'ul' | 'ol' | 'nav'", 'Balise rendue.', 'div'),
     ],
   },
   Layout: {
@@ -429,8 +617,18 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
     states: 'Statique sans onClick ; sélectionnable et annoncée avec une action.',
     rows: [
       prop('name', 'string', 'Nom du fichier.', undefined, true),
+      prop(
+        'fileSize',
+        'string',
+        'Poids du fichier, tel qu’il s’affiche : « 2 Mo ». Remplace `size`.',
+      ),
       prop('selected', 'boolean', 'État de sélection.', 'false'),
       prop('onClick', '() => void', 'Bascule la sélection.'),
+      prop(
+        'labels',
+        'Partial<FileCardLabels>',
+        'État sélectionné annoncé ; une clé omise garde son défaut français.',
+      ),
     ],
   },
   Dropzone: {
@@ -472,7 +670,15 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
   },
   Clipboard: {
     states: 'Copie confirmée seulement après réussite ; l’échec est annoncé.',
-    rows: [prop('value', 'string', 'Texte à copier.', undefined, true)],
+    rows: [
+      prop('value', 'string', 'Texte à copier.', undefined, true),
+      prop(
+        'labels',
+        'Partial<ClipboardLabels> & Partial<ButtonLabels>',
+        'Bouton au repos, après copie, annonce et échec ; une clé omise garde son défaut français.',
+        "{ copy: 'Copier', copied: 'Copié', … }",
+      ),
+    ],
   },
   SvgMap: {
     states:
@@ -532,6 +738,244 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
         'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
         "{ zoomIn: 'Zoomer', … }",
       ),
+    ],
+  },
+  Textarea: {
+    states:
+      'La hauteur suit le texte avec `autoResize` ; le compteur décrit la limite et annonce le reste.',
+    rows: [
+      prop('label', 'ReactNode', 'Nom visible du champ, rendu en `<label for>`.'),
+      prop('helperText', 'ReactNode', 'Aide sous le champ ; l’erreur la remplace.'),
+      prop('error', 'ReactNode', 'Erreur annoncée ; rend le champ invalide.'),
+      prop(
+        'autoResize',
+        'boolean',
+        'Fait grandir le champ avec son contenu, de `minRows` à `maxRows` lignes.',
+        'false',
+      ),
+      prop('minRows', 'number', 'Lignes visibles au départ ; `rows` gagne.', '3'),
+      prop(
+        'maxRows',
+        'number',
+        'Avec `autoResize`, hauteur maximale en lignes ; au-delà, il défile.',
+      ),
+      prop(
+        'showCount',
+        'boolean',
+        'Affiche le nombre de caractères ; avec `maxLength`, la limite et le reste.',
+        'false',
+      ),
+      prop('maxLength', 'number', 'Limite native de caractères, lue par le compteur.'),
+      prop(
+        'onValueChange',
+        '(value: string) => void',
+        'Nouvelle valeur à chaque saisie, après `onChange`.',
+      ),
+      prop('size', "'small' | 'medium' | 'large'", 'Corps de texte et marges internes.', 'medium'),
+      prop('controlClassName', 'string', 'Classe de plus sur le `<textarea>` natif.'),
+      prop(
+        'labels',
+        'Partial<TextareaLabels>',
+        'Textes du compteur, clé par clé ; une clé omise garde son défaut français.',
+        '{ limit: (max) => `${max} caractères maximum`, … }',
+      ),
+    ],
+  },
+  RadioGroup: {
+    states: 'Un seul choix coché ; les flèches passent d’un radio à l’autre.',
+    rows: [
+      prop('label', 'ReactNode', 'Légende du groupe : elle le nomme. Sans elle, `aria-label`.'),
+      prop('options', 'readonly RadioOption[]', 'Choix rendus avant les `<Radio>` enfants.'),
+      prop('helperText', 'ReactNode', 'Aide sous la légende ; elle décrit le groupe.'),
+      prop('error', 'ReactNode', 'Erreur annoncée et décrite sur le groupe.'),
+      prop('value', 'string', "Valeur cochée, contrôlée ; `''` ne coche rien."),
+      prop('defaultValue', 'string', 'Valeur cochée au départ, rétablie par `form.reset()`.'),
+      prop('onValueChange', '(value: string) => void', 'Valeur du radio qu’on vient de cocher.'),
+      prop('name', 'string', 'Nom de formulaire de chaque radio. Généré par défaut.'),
+      prop('orientation', "'vertical' | 'horizontal'", 'Disposition des choix.', 'vertical'),
+      prop('size', "'small' | 'medium' | 'large'", 'Taille des ronds et du texte.', 'medium'),
+      prop('required', 'boolean', 'Choix obligatoire : `required` sur chaque radio.', 'false'),
+      prop('disabled', 'boolean', 'Désactive tout le groupe par le `<fieldset>` natif.'),
+    ],
+    parts: [
+      {
+        name: 'Radio',
+        rows: [
+          prop('value', 'string', 'Valeur envoyée quand ce radio est coché.', undefined, true),
+          prop('label', 'ReactNode', 'Libellé : il nomme le radio.'),
+          prop('description', 'ReactNode', 'Texte sous le libellé ; il décrit le radio.'),
+          prop('controlClassName', 'string', 'Classe de plus sur l’`<input>` natif.'),
+        ],
+      },
+    ],
+  },
+  Field: {
+    states: 'Le libellé nomme le contrôle de l’application ; l’aide et l’erreur le décrivent.',
+    rows: [
+      prop(
+        'children',
+        'ReactNode | ((props: FieldControlProps) => ReactNode)',
+        'Le contrôle. Une fonction reçoit `id` et `aria-*` à étaler ; un composant les lit par `useFieldProps()`.',
+        undefined,
+        true,
+      ),
+      prop('label', 'ReactNode', 'Libellé visible, en `<label for>` et `aria-labelledby`.'),
+      prop(
+        'description',
+        'ReactNode',
+        'Aide sous le contrôle ; elle reste affichée avec l’erreur.',
+      ),
+      prop('error', 'ReactNode', 'Erreur annoncée ; pose `aria-invalid` sur le contrôle.'),
+      prop(
+        'required',
+        'boolean',
+        '`aria-required` et marque `*` ; la validation native reste à poser.',
+        'false',
+      ),
+      prop('id', 'string', 'Identifiant du contrôle, pas de l’enveloppe. Généré par défaut.'),
+    ],
+  },
+  Grid: {
+    states: 'Colonnes égales, ou autant de pistes que la largeur en permet.',
+    rows: [
+      prop(
+        'columns',
+        'number | string',
+        "Un nombre de colonnes égales, ou une largeur minimale de piste (`'12rem'`).",
+        '15 rem par piste',
+      ),
+      prop('gap', "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'", 'Espace entre les cellules.', 'md'),
+    ],
+  },
+  Tooltip: {
+    states: 'Au survol après un délai, au focus tout de suite ; Échap la retire.',
+    rows: [
+      prop('content', 'ReactNode', 'Texte de la bulle : une description courte.', undefined, true),
+      prop(
+        'children',
+        'ReactElement<TooltipTriggerProps>',
+        'Le déclencheur : un seul élément focalisable, un `<button>` le plus souvent.',
+        undefined,
+        true,
+      ),
+      prop(
+        'placement',
+        "'top' | 'bottom' | 'left' | 'right'",
+        'Côté préféré ; bascule si la place manque.',
+        'top',
+      ),
+      prop('delay', 'number', 'Délai avant l’apparition au survol, en millisecondes.', '300'),
+      prop('closeDelay', 'number', 'Délai avant la disparition, en millisecondes.', '100'),
+      prop('offset', 'number', 'Écart avec le déclencheur, en pixels.', '8'),
+      prop('open', 'boolean', 'Ouverture contrôlée.'),
+      prop('defaultOpen', 'boolean', 'Ouverture initiale, non contrôlée.', 'false'),
+      prop('onOpenChange', '(open: boolean) => void', 'Intention d’ouvrir ou de fermer.'),
+    ],
+  },
+  Popover: {
+    states: 'Le clic ouvre et ferme ; Échap et l’appui au dehors ferment.',
+    rows: [
+      prop('children', 'ReactNode', '`PopoverTrigger` et `PopoverContent`.'),
+      prop('open', 'boolean', 'Ouverture contrôlée.'),
+      prop('defaultOpen', 'boolean', 'Ouverture initiale, non contrôlée.', 'false'),
+      prop('onOpenChange', '(open: boolean) => void', 'Intention d’ouvrir ou de fermer.'),
+      prop('modal', 'boolean', 'Piège le focus et rend le reste de la page inerte.', 'false'),
+    ],
+    parts: [
+      {
+        name: 'PopoverTrigger',
+        rows: [
+          prop('className', 'string', 'Sans style propre : posez la classe d’un bouton.'),
+          prop('children', 'ReactNode', 'Libellé du bouton ; il nomme aussi le panneau.'),
+        ],
+      },
+      {
+        name: 'PopoverContent',
+        rows: [
+          prop(
+            'placement',
+            "'top' | 'bottom' | 'left' | 'right'",
+            'Côté préféré ; bascule si la place manque.',
+            'bottom',
+          ),
+          prop('align', "'start' | 'center' | 'end'", 'Alignement sur le déclencheur.', 'center'),
+          prop('offset', 'number', 'Écart avec le déclencheur, en pixels.', '8'),
+          prop(
+            'portalContainer',
+            'HTMLElement | null',
+            'Conteneur du portail ; `<body>` ou la couche de la modale.',
+          ),
+        ],
+      },
+    ],
+  },
+  DropdownMenu: {
+    states:
+      'Les flèches parcourent les éléments ; une lettre saute au suivant qui commence par elle.',
+    rows: [
+      prop('children', 'ReactNode', '`DropdownMenuTrigger` et `DropdownMenuContent`.'),
+      prop('open', 'boolean', 'Ouverture contrôlée.'),
+      prop('defaultOpen', 'boolean', 'Ouverture initiale, non contrôlée.', 'false'),
+      prop('onOpenChange', '(open: boolean) => void', 'Intention d’ouvrir ou de fermer.'),
+      prop(
+        'onSelect',
+        '(value: string) => void',
+        '`value` de l’élément activé, quel que soit son genre.',
+      ),
+    ],
+    parts: [
+      {
+        name: 'DropdownMenuContent',
+        rows: [
+          prop(
+            'placement',
+            "'top' | 'bottom' | 'left' | 'right'",
+            'Côté préféré ; bascule si la place manque.',
+            'bottom',
+          ),
+          prop('align', "'start' | 'center' | 'end'", 'Alignement sur le bouton.', 'start'),
+          prop('offset', 'number', 'Écart avec le bouton, en pixels.', '4'),
+        ],
+      },
+      {
+        name: 'DropdownMenuItem',
+        rows: [
+          prop('value', 'string', 'Valeur passée au `onSelect` du menu.'),
+          prop('onSelect', '() => void', 'Appelée à l’activation, avant la fermeture.'),
+          prop('closeOnSelect', 'boolean', 'Referme le menu après l’activation.', 'true'),
+          prop('disabled', 'boolean', 'Atteignable et lu, mais sans effet.', 'false'),
+          prop('textValue', 'string', 'Texte de la recherche par lettre, pour un contenu riche.'),
+        ],
+      },
+      {
+        name: 'DropdownMenuCheckboxItem',
+        rows: [
+          prop('checked', 'boolean', 'Coché, contrôlé.'),
+          prop('defaultChecked', 'boolean', 'Coché au départ, non contrôlé.', 'false'),
+          prop('onCheckedChange', '(checked: boolean) => void', 'Nouvel état à chaque activation.'),
+          prop('closeOnSelect', 'boolean', 'Referme le menu après l’activation.', 'false'),
+        ],
+      },
+      {
+        name: 'DropdownMenuRadioGroup',
+        rows: [
+          prop('label', 'ReactNode', 'Titre du groupe, affiché et lu comme son nom.'),
+          prop('value', 'string', 'Option retenue, contrôlée.'),
+          prop('defaultValue', 'string', 'Option retenue au départ, non contrôlée.'),
+          prop('onValueChange', '(value: string) => void', 'Valeur de l’option activée.'),
+        ],
+      },
+      {
+        name: 'DropdownMenuRadioItem',
+        rows: [
+          prop('value', 'string', 'Valeur de l’option, retenue par le groupe.', undefined, true),
+          prop('closeOnSelect', 'boolean', 'Referme le menu après l’activation.', 'false'),
+        ],
+      },
+      {
+        name: 'DropdownMenuGroup',
+        rows: [prop('label', 'ReactNode', 'Titre du groupe, affiché et lu comme son nom.')],
+      },
     ],
   },
 };

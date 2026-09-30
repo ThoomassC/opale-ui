@@ -155,11 +155,11 @@
   padding-inline-start: calc(var(--opale-space-sm) * 2 + 1.5rem);
 }
 
-.item:hover:not(:disabled) {
+.item:hover:not(:disabled):not([aria-disabled='true']) {
   background: color-mix(in srgb, currentColor 8%, transparent);
 }
 
-.item:active:not(:disabled) {
+.item:active:not(:disabled):not([aria-disabled='true']) {
   background: color-mix(in srgb, currentColor 14%, transparent);
 }
 
@@ -181,7 +181,15 @@
   box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
 }
 
-.item:disabled {
+/* UNE ENTRÉE LIEN SE PEINT COMME UN BOUTON : ni soulignement, ni couleur de
+   lien. Désactivée, elle n'a plus d'adresse, et `:disabled` ne la vise pas —
+   `aria-disabled` porte le même rendu. */
+a.item {
+  text-decoration: none;
+}
+
+.item:disabled,
+.item[aria-disabled='true'] {
   cursor: not-allowed;
   opacity: var(--opale-disabled-opacity);
 }
@@ -204,7 +212,7 @@
    devient active. Sa couleur passe par une variable, que la surface pleine
    règle sur l'encre primaire et que l'anneau de focus reprend. */
 .itemActive,
-.item.itemActive:hover:not(:disabled) {
+.item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
   --opale-sidebar-active-edge: color-mix(in srgb, currentColor 55%, transparent);
   background: color-mix(in srgb, currentColor 18%, transparent);
   box-shadow: inset 0 0 0 1.5px var(--opale-sidebar-active-edge);
@@ -215,7 +223,7 @@
    retombait sur le voile générique de 14 %, plus clair que les 18 % de l'état
    retenu : l'entrée pâlissait sous le doigt, ce qui se lit comme une
    désélection. */
-.item.itemActive:active:not(:disabled) {
+.item.itemActive:active:not(:disabled):not([aria-disabled='true']) {
   background: color-mix(in srgb, currentColor 24%, transparent);
 }
 
@@ -447,13 +455,13 @@
    teinte ; le liseré, même encre, aux mêmes ratios — au-delà des 3:1 qu'un
    repère non textuel doit tenir. */
 .plain .itemActive,
-.plain .item.itemActive:hover:not(:disabled) {
+.plain .item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
   --opale-sidebar-active-edge: var(--opale-primary-on-surface);
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
   color: var(--opale-primary-on-surface);
 }
 
-.plain .item.itemActive:active:not(:disabled) {
+.plain .item.itemActive:active:not(:disabled):not([aria-disabled='true']) {
   background: color-mix(in srgb, var(--opale-primary) 20%, transparent);
 }
 
@@ -477,9 +485,9 @@
    ========================================================================== */
 @media (forced-colors: active) {
   .itemActive,
-  .item.itemActive:hover:not(:disabled),
+  .item.itemActive:hover:not(:disabled):not([aria-disabled='true']),
   .plain .itemActive,
-  .plain .item.itemActive:hover:not(:disabled) {
+  .plain .item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
     background: Highlight;
     color: HighlightText;
   }

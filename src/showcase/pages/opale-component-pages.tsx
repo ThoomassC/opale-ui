@@ -1,4 +1,4 @@
-import { CATALOG } from '../../opale/catalog';
+import { SHOWCASE_CATALOG } from '../showcase-catalog';
 import { catalogComponentLabel, catalogComponentSlug } from '../doc-model';
 import type { DocPage } from '../doc-model';
 import { lazyPage } from './lazy-page';
@@ -17,24 +17,41 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
   ],
   Card: ['liquidGlass', 'elevation'],
   CardGrid: ['Carousel'],
-  DataTable: ['sortable', 'sortValue', 'tri'],
+  DataTable: ['sortable', 'sortValue', 'tri', 'cell', 'getRowId', 'selectable', 'sélection'],
+  DropdownMenu: [
+    'DropdownMenuTrigger',
+    'DropdownMenuContent',
+    'DropdownMenuItem',
+    'DropdownMenuCheckboxItem',
+    'DropdownMenuRadioGroup',
+    'DropdownMenuRadioItem',
+    'DropdownMenuSeparator',
+    'menu déroulant',
+    'menu d’actions',
+  ],
   Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
   Feedback: ['Http', 'Validation', 'tone', 'severity'],
+  Field: ['useFieldProps', 'FieldWrapperProps', 'champ', 'contrôle personnalisé'],
+  Grid: ['grille', 'colonnes', 'columns'],
   IconActionButton: ['icon', 'share', 'bouton icône'],
   Lightbox: ['alt', 'texte alternatif'],
   Menu: ['SettingsMenu'],
+  Popover: ['PopoverTrigger', 'PopoverContent', 'panneau', 'dialog'],
+  RadioGroup: ['Radio', 'bouton radio', 'radiogroup', 'choix unique'],
   SegmentedControl: ['SlidingIndicator'],
   Select: ['LanguageSelector'],
   SvgMap: ['Map'],
+  Textarea: ['zone de texte', 'multiligne', 'autoResize', 'showCount', 'compteur'],
   Toast: ['tone', 'placement', 'notification'],
   Toggle: ['ThemeToggle', 'Sound'],
+  Tooltip: ['infobulle', 'survol'],
 } as const;
 
 /* Les pages du catalogue, sans leur contenu : les métadonnées viennent du
    catalogue, et seule `ComponentPage` part dans un morceau chargé à la première
    page de composant. Chaque `lazyPage` crée son propre type de composant :
    changer de page remonte donc le commutateur de matériau. */
-export const opaleComponentPages: readonly DocPage[] = CATALOG.map((entry) => ({
+export const opaleComponentPages: readonly DocPage[] = SHOWCASE_CATALOG.map((entry) => ({
   slug: catalogComponentSlug(entry.name),
   label: catalogComponentLabel(entry.name),
   group: 'composants',

@@ -135,13 +135,16 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Pressable', 'Pressable'),
       opaleEntry('InlineInput', 'InlineInput'),
       opaleEntry('Input', 'Input'),
+      opaleEntry('Textarea', 'Textarea'),
       opaleEntry('Checkbox', 'Checkbox'),
+      opaleEntry('RadioGroup', 'RadioGroup'),
       opaleEntry('Toggle', 'Toggle'),
       opaleEntry('Slider', 'Slider'),
       opaleEntry('MultiSelect', 'MultiSelect'),
       opaleEntry('Select', 'Select'),
       opaleEntry('Autocomplete', 'Autocomplete'),
       opaleEntry('Form', 'Form'),
+      opaleEntry('Field', 'Field'),
       opaleEntry('SegmentedControl', 'SegmentedControl'),
       opaleEntry('RatingInput', 'RatingInput'),
       /* Une entrée par composant : la matière en verre se documente sur la page du
@@ -203,6 +206,17 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     ],
   },
   {
+    /* LES SURIMPRESSIONS ANCRÉES DE LA 3.10.0 : une infobulle, un panneau et
+       un menu d'actions, posés dans un portail contre leur déclencheur. */
+    id: 'couches-flottantes',
+    label: 'COUCHES FLOTTANTES',
+    entries: [
+      opaleEntry('Tooltip', 'Tooltip'),
+      opaleEntry('Popover', 'Popover'),
+      opaleEntry('DropdownMenu', 'DropdownMenu'),
+    ],
+  },
+  {
     id: 'navigation',
     label: 'NAVIGATION',
     entries: [
@@ -225,6 +239,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     label: 'MISE EN PAGE',
     entries: [
       opaleEntry('Stack', 'Stack'),
+      opaleEntry('Grid', 'Grid'),
       opaleEntry('Layout', 'Layout'),
       opaleEntry('Divider', 'Divider'),
       opaleEntry('BackgroundSurface', 'Background'),

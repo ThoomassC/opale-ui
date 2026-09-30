@@ -21,6 +21,12 @@ import { warnDeprecatedProps } from '../../deprecations';
 import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
 import type { OpaleSize } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
+import { mergeRefs } from '../../shared/merge-refs';
+import {
+  navigateOnClick,
+  shouldHandleNavigation,
+  type NavigateHandler,
+} from '../../shared/navigate';
 import { useControllableState } from '../../shared/use-controllable-state';
 import styles from './style/Sidebar.module.css';
 
@@ -69,12 +75,12 @@ import styles from './style/Sidebar.module.css';
    compilait pas. Le `onToggle` du DOM est retiré, et l'on récupère la signature
    qui était documentée depuis le début.
 
-   CE QUI N'A PAS CHANGÉ ET QUI RESTE UNE LIMITE : les entrées sont des
-   `<button>`, pas des liens. Pas de `href`, donc ni clic du milieu, ni
-   ouverture dans un onglet, ni « copier l'adresse ». C'est le contrat public du
-   composant — `SidebarItemProps` étend `ComponentPropsWithoutRef<'button'>` et
-   `onSelectItem` reçoit un `MouseEvent<HTMLButtonElement>` — et en faire un
-   polymorphe serait une autre API, pas une correction.
+   UNE ENTRÉE PEUT ÊTRE UN LIEN (3.10, DX-02). Sans `href`, l'entrée reste un
+   `<button>`, au contrat inchangé. Avec `href`, elle rend un `<a>` : clic du
+   milieu, ouverture dans un onglet et « copier l'adresse » redeviennent
+   possibles, et `Sidebar.onNavigate` remet le clic simple au routeur de
+   l'application, avec la règle commune de `shared/navigate.ts`. Le rappel
+   déprécié `onSelectItem`, typé sur un `<button>`, ne part pas d'un lien.
    ========================================================================== */
 
 type SidebarSize = OpaleSize;
@@ -103,6 +109,13 @@ export type SidebarContextValue = {
   collapsible: boolean;
   toggleCollapsed: () => void;
   handleItemSelect: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
+  /**
+   * Retient une entrée lien et prévient `onValueChange`, sans `onSelectItem`.
+   * Facultatif : une valeur écrite pour 3.9 compile encore.
+   */
+  selectLink?: (itemId: string) => void;
+  /** Le crochet du routeur, pour les entrées avec `href`. */
+  onNavigate?: NavigateHandler<SidebarNavigationTarget>;
   /** L'entrée retenue, absente quand aucune ne l'est. */
   value?: string;
   /** @deprecated Depuis 3.6 — utilisez `value`. */
@@ -125,10 +138,17 @@ const useSidebarContext = (component: string) => {
   return context;
 };
 
+/** La destination d'une entrée lien, telle que `Sidebar.onNavigate` la reçoit. */
+type SidebarNavigationTarget = { readonly id: string; readonly href: string };
+
 export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 'defaultValue'> & {
+  /** La largeur et la densité du rail. Défaut : `medium`. */
   size?: SidebarSize;
+  /** Le pli contrôlé. À accompagner de `onCollapsedChange`. */
   collapsed?: boolean;
+  /** Le pli de départ en mode non contrôlé. Défaut : `false`. */
   defaultCollapsed?: boolean;
+  /** Autorise le pli par `Sidebar.Toggle`. Défaut : `false` : la bascule n'a alors aucun effet. */
   collapsible?: boolean;
   /** Appelée à chaque bascule du pli, avec le nouvel état. */
   onCollapsedChange?: (collapsed: boolean) => void;
@@ -140,6 +160,15 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
   defaultValue?: string | null;
   /** Appelée à chaque sélection d'une entrée, même celle déjà retenue. */
   onValueChange?: (itemId: string) => void;
+  /**
+   * Le crochet du routeur côté client, pour les entrées avec `href`. Sur un
+   * clic gauche simple, le rail retient l'entrée, annule la navigation native
+   * puis l'appelle avec `{ id, href }` ; Ctrl, Cmd, Maj, Alt, le clic du milieu
+   * et `target` vers un autre onglet restent au navigateur, sans rien retenir.
+   * Next.js : `(item) => router.push(item.href)` ; React Router :
+   * `(item) => navigate(item.href)`.
+   */
+  onNavigate?: NavigateHandler<SidebarNavigationTarget>;
   /** @deprecated Depuis 3.6 — utilisez `value`. */
   activeItemId?: string;
   /** @deprecated Depuis 3.6 — utilisez `defaultValue`. */
@@ -177,6 +206,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       value: valueProp,
       defaultValue,
       onValueChange,
+      onNavigate,
       activeItemId: activeItemIdProp,
       defaultActiveItemId,
       onSelectItem,
@@ -246,6 +276,14 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       [setActive, onValueChange, onSelectItem],
     );
 
+    const selectLink = useCallback(
+      (itemId: string) => {
+        setActive(itemId);
+        onValueChange?.(itemId);
+      },
+      [setActive, onValueChange],
+    );
+
     /* `useId` EST APPELÉ INCONDITIONNELLEMENT, et l'`id` de l'appelant gagne
        ensuite. Un crochet ne se met pas derrière un `??` : l'ordre des crochets
        doit être le même à chaque rendu, y compris celui où l'appelant passe
@@ -267,6 +305,8 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         collapsible,
         toggleCollapsed: handleToggle,
         handleItemSelect,
+        selectLink,
+        onNavigate,
         value: activeItemId,
         activeItemId,
         sidebarId,
@@ -278,6 +318,8 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         collapsible,
         handleToggle,
         handleItemSelect,
+        selectLink,
+        onNavigate,
         activeItemId,
         sidebarId,
         labels,
@@ -413,14 +455,52 @@ const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ..
 
 SidebarItems.displayName = 'Sidebar.Items';
 
-export type SidebarItemProps = ComponentPropsWithoutRef<'button'> & {
+type SidebarItemOwnProps = {
+  /**
+   * L'identifiant de l'entrée, comparé à `value` et transmis à `onValueChange`. Unique dans le
+   * rail.
+   */
   itemId: string;
+  /** L'icône de l'entrée, décorative, seule visible quand le rail est plié. */
   icon?: ReactNode;
+  /** Un compteur ou une pastille affichés en bout d'entrée. */
   badge?: ReactNode;
   /** Ce que le badge dit au lecteur d'écran, en description. Défaut : le badge. */
   badgeLabel?: ReactNode;
+  /**
+   * Ce qui remplace l'icône absente quand le rail est plié. Défaut : l'initiale du libellé, sinon
+   * `•`.
+   */
   collapsedFallback?: ReactNode;
 };
+
+/**
+ * Les props de `Sidebar.Item` sans `href` : l'entrée est un `<button>`, le
+ * contrat historique, inchangé. Ce nom reste un type objet, comme en 3.9, pour
+ * qu'une interface puisse toujours l'étendre ; la variante lien est
+ * `SidebarItemLinkProps`, et `Sidebar.Item` accepte l'une ou l'autre.
+ */
+export type SidebarItemProps = ComponentPropsWithoutRef<'button'> &
+  SidebarItemOwnProps & {
+    /** Absent : l'entrée est un bouton. */
+    href?: undefined;
+  };
+
+/**
+ * Avec `href`, l'entrée est un lien `<a>` : clic du milieu, nouvel onglet et
+ * « copier l'adresse » fonctionnent, et `Sidebar.onNavigate` reçoit les clics
+ * simples. `target`, `rel` et les autres attributs d'un lien sont transmis.
+ */
+export type SidebarItemLinkProps = Omit<ComponentPropsWithoutRef<'a'>, 'href'> &
+  SidebarItemOwnProps & {
+    /** L'adresse du lien. Sa présence rend un `<a>` au lieu d'un `<button>`. */
+    href: string;
+    /** Désactivé, le lien perd son adresse et se dit `aria-disabled` : ni navigation, ni sélection. */
+    disabled?: boolean;
+  };
+
+/** Ce que `Sidebar.Item` accepte : un bouton sans `href`, un lien avec. */
+export type SidebarItemAnyProps = SidebarItemProps | SidebarItemLinkProps;
 
 /**
  * La vignette d'une entrée repliée qui n'a pas d'icône.
@@ -442,7 +522,7 @@ const getCollapsedFallback = (collapsedFallback: ReactNode | undefined, children
   return '•';
 };
 
-const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
+const SidebarItem = forwardRef<HTMLButtonElement | HTMLAnchorElement, SidebarItemAnyProps>(
   (
     {
       itemId,
@@ -450,20 +530,15 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
       badge,
       badgeLabel,
       collapsedFallback,
-      disabled,
       className,
       children,
-      onClick,
-      onKeyDown,
-      onBlur,
-      onMouseEnter,
-      onMouseLeave,
       'aria-describedby': ariaDescribedBy,
-      ...rest
+      ...element
     },
     ref,
   ) => {
-    const { collapsed, handleItemSelect, value } = useSidebarContext('Sidebar.Item');
+    const { collapsed, handleItemSelect, selectLink, onNavigate, value } =
+      useSidebarContext('Sidebar.Item');
     /* L'INFOBULLE DU RAIL REPLIÉ (ACC-25, WCAG 1.4.13). Replié, une entrée ne
        montre qu'une icône ou une initiale : l'utilisateur voyant — souris,
        clavier, commande vocale — devait deviner la cible. L'infobulle n'est
@@ -501,79 +576,39 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
     const describedBy = badge
       ? [ariaDescribedBy, badgeId].filter(Boolean).join(' ')
       : ariaDescribedBy;
+    /* UNE REF, DEUX BALISES. L'appelant reçoit le `<button>` ou le `<a>`
+       rendu ; la ref fusionnée est mémorisée pour ne pas être détachée puis
+       rattachée à chaque rendu. */
+    const elementRef = useMemo(() => mergeRefs<HTMLButtonElement | HTMLAnchorElement>(ref), [ref]);
 
     const isActive = value === itemId;
 
-    const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-      /* LA GARDE EST REDONDANTE AVEC L'ATTRIBUT `disabled`, ET ELLE RESTE.
-         React n'appelle pas le gestionnaire d'un contrôle désactivé, donc en
-         pratique on n'arrive jamais ici ; mais `disabled` peut être retiré par
-         une classe, un `form` extérieur ou un futur passage à `aria-disabled`
-         — et le jour où cela arrive, une sélection silencieuse se produirait
-         sans que rien ne la signale. Une ligne contre ce risque est un bon
-         prix. */
-      if (disabled) {
-        event.preventDefault();
-        return;
-      }
-
-      handleItemSelect(itemId, event);
-      onClick?.(event);
+    /* LE COMPORTEMENT DE L'INFOBULLE NE DÉPEND PAS DE LA BALISE. Chaque
+       branche appelle ces quatre pièces depuis ses propres gestionnaires,
+       typés sur son élément, avant de passer la main à ceux de l'appelant. */
+    const dismissOnEscape = (key: string) => {
+      if (collapsed && key === 'Escape') setTooltipDismissed(true);
     };
-
-    const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-      if (collapsed && event.key === 'Escape') setTooltipDismissed(true);
-      onKeyDown?.(event);
-    };
-
-    const handleBlur = (event: FocusEvent<HTMLButtonElement>) => {
-      setTooltipDismissed(false);
-      onBlur?.(event);
-    };
-
+    const restoreOnBlur = () => setTooltipDismissed(false);
+    const startHover = () => setHovered(true);
     /* Le pointeur qui s'en va rend l'infobulle au prochain survol — sauf si
        l'entrée garde le focus : elle réapparaîtrait sous le clavier qui vient
        de la congédier. */
-    const handleMouseEnter = (event: MouseEvent<HTMLButtonElement>) => {
-      setHovered(true);
-      onMouseEnter?.(event);
-    };
-
-    const handleMouseLeave = (event: MouseEvent<HTMLButtonElement>) => {
+    const endHover = (element: HTMLElement) => {
       setHovered(false);
-      if (event.currentTarget.ownerDocument.activeElement !== event.currentTarget) {
-        setTooltipDismissed(false);
-      }
-      onMouseLeave?.(event);
+      if (element.ownerDocument.activeElement !== element) setTooltipDismissed(false);
     };
 
-    return (
-      <button
-        ref={ref}
-        type="button"
-        className={clsx(
-          'opale-sidebar__item',
-          styles.item,
-          collapsed && styles.itemCollapsed,
-          isActive && styles.itemActive,
-          className,
-        )}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        onBlur={handleBlur}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        disabled={disabled}
-        data-opale-tooltip={tooltip}
-        /* L'ENTRÉE RETENUE EST LA PAGE COURANTE, ET ELLE LE DIT. C'est la seule
-           façon pour un lecteur d'écran d'apprendre « vous êtes ici » ; la
-           classe qui l'assombrit ne s'entend pas. `aria-current` est un
-           attribut global : il est valide sur un `<button>` comme sur un `<a>`,
-           même si ce rail gagnerait par ailleurs à être fait de liens. */
-        aria-current={isActive ? 'page' : undefined}
-        aria-describedby={describedBy}
-        {...rest}
-      >
+    const classes = clsx(
+      'opale-sidebar__item',
+      styles.item,
+      collapsed && styles.itemCollapsed,
+      isActive && styles.itemActive,
+      className,
+    );
+
+    const content = (
+      <>
         {icon ? (
           <span className={clsx('opale-sidebar__item-icon', styles.itemIcon)} aria-hidden="true">
             {icon}
@@ -590,7 +625,7 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
         ) : null}
 
         {/* LE CONTENU EST TOUJOURS RENDU — masqué à l'œil quand le rail est
-            replié, jamais retiré. C'est ce qui donne au bouton le MÊME nom
+            replié, jamais retiré. C'est ce qui donne à l'entrée le MÊME nom
             accessible dans les deux états, quel que soit le type du libellé.
             Voir la feuille pour le détail du défaut que cela corrige. */}
         <span className={clsx(styles.itemContent, collapsed && styles.itemContentHidden)}>
@@ -611,6 +646,120 @@ const SidebarItem = forwardRef<HTMLButtonElement, SidebarItemProps>(
             </>
           ) : null}
         </span>
+      </>
+    );
+
+    if (element.href !== undefined) {
+      const { href, disabled, onClick, onKeyDown, onBlur, onMouseEnter, onMouseLeave, ...rest } =
+        element;
+
+      /* LE CLIC D'UN LIEN SUIT LA RÈGLE COMMUNE (`shared/navigate.ts`). Le
+         `onClick` de l'appelant passe d'abord : s'il annule, rien n'est
+         retenu. Un clic modifié, du milieu ou vers un autre onglet reste au
+         navigateur ET ne retient rien — la page courante n'a pas changé. Un
+         clic simple retient l'entrée, puis la remet au routeur s'il y en a
+         un ; sans routeur, le lien navigue. */
+      const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+        if (disabled) {
+          event.preventDefault();
+          return;
+        }
+        onClick?.(event);
+        if (!shouldHandleNavigation(event)) return;
+        selectLink?.(itemId);
+        navigateOnClick({ id: itemId, href }, event, onNavigate);
+      };
+
+      return (
+        <a
+          ref={elementRef}
+          className={classes}
+          /* DÉSACTIVÉ, LE LIEN N'A PLUS D'ADRESSE : il sort de la tabulation
+             et ne mène nulle part, comme un bouton `disabled`. `role="link"`
+             garde son rôle, qu'un `<a>` sans `href` perd. */
+          href={disabled ? undefined : href}
+          role={disabled ? 'link' : undefined}
+          aria-disabled={disabled ? true : undefined}
+          onClick={handleClick}
+          onKeyDown={(event) => {
+            dismissOnEscape(event.key);
+            onKeyDown?.(event);
+          }}
+          onBlur={(event) => {
+            restoreOnBlur();
+            onBlur?.(event);
+          }}
+          onMouseEnter={(event) => {
+            startHover();
+            onMouseEnter?.(event);
+          }}
+          onMouseLeave={(event) => {
+            endHover(event.currentTarget);
+            onMouseLeave?.(event);
+          }}
+          data-opale-tooltip={tooltip}
+          aria-current={isActive ? 'page' : undefined}
+          aria-describedby={describedBy}
+          {...rest}
+        >
+          {content}
+        </a>
+      );
+    }
+
+    /* `href` est ici `undefined` : il reste dans `rest` et ne rend rien. */
+    const { disabled, onClick, onKeyDown, onBlur, onMouseEnter, onMouseLeave, ...rest } = element;
+
+    const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+      /* LA GARDE EST REDONDANTE AVEC L'ATTRIBUT `disabled`, ET ELLE RESTE.
+         React n'appelle pas le gestionnaire d'un contrôle désactivé, donc en
+         pratique on n'arrive jamais ici ; mais `disabled` peut être retiré par
+         une classe, un `form` extérieur ou un futur passage à `aria-disabled`
+         — et le jour où cela arrive, une sélection silencieuse se produirait
+         sans que rien ne la signale. Une ligne contre ce risque est un bon
+         prix. */
+      if (disabled) {
+        event.preventDefault();
+        return;
+      }
+
+      handleItemSelect(itemId, event);
+      onClick?.(event);
+    };
+
+    return (
+      <button
+        ref={elementRef}
+        type="button"
+        className={classes}
+        onClick={handleClick}
+        onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
+          dismissOnEscape(event.key);
+          onKeyDown?.(event);
+        }}
+        onBlur={(event: FocusEvent<HTMLButtonElement>) => {
+          restoreOnBlur();
+          onBlur?.(event);
+        }}
+        onMouseEnter={(event) => {
+          startHover();
+          onMouseEnter?.(event);
+        }}
+        onMouseLeave={(event) => {
+          endHover(event.currentTarget);
+          onMouseLeave?.(event);
+        }}
+        disabled={disabled}
+        data-opale-tooltip={tooltip}
+        /* L'ENTRÉE RETENUE EST LA PAGE COURANTE, ET ELLE LE DIT. C'est la seule
+           façon pour un lecteur d'écran d'apprendre « vous êtes ici » ; la
+           classe qui l'assombrit ne s'entend pas. `aria-current` est un
+           attribut global : il est valide sur un `<button>` comme sur un `<a>`. */
+        aria-current={isActive ? 'page' : undefined}
+        aria-describedby={describedBy}
+        {...rest}
+      >
+        {content}
       </button>
     );
   },

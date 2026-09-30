@@ -4,7 +4,8 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import opaleComponentsSource from './opale-components.tsx?raw';
 import catalogPreviewSource from './catalog-preview.tsx?raw';
-import { OPALE_CATALOG, Opale } from '../../opale';
+import * as library from '../../opale';
+import { SHOWCASE_CATALOG } from '../showcase-catalog';
 import { catalogComponentLabel } from '../doc-model';
 import { OPALE_CATALOG_SOURCE as opaleLibrarySource } from '../../test/opale-source';
 import { CatalogPreview } from './catalog-preview';
@@ -95,19 +96,26 @@ describe('les extraits copiables du catalogue', () => {
 
 describe('le catalogue interactif V3', () => {
   it('possède exactement une page, un export public et une démo pour chaque composant', () => {
-    expect(opaleComponentPages).toHaveLength(OPALE_CATALOG.length);
-    expect(new Set(OPALE_CATALOG.map((entry) => entry.name))).toHaveProperty(
+    expect(opaleComponentPages).toHaveLength(SHOWCASE_CATALOG.length);
+    expect(new Set(SHOWCASE_CATALOG.map((entry) => entry.name))).toHaveProperty(
       'size',
-      OPALE_CATALOG.length,
+      SHOWCASE_CATALOG.length,
     );
 
-    for (const entry of OPALE_CATALOG) {
-      const publicName = catalogComponentLabel(entry.name) as keyof typeof Opale;
-      expect(Opale[publicName], `${entry.name} doit être exporté par Opale`).toBeDefined();
+    /* L'EXPORT NOMMÉ, ET NON PLUS LE NAMESPACE `Opale`. Les composants de la
+       3.10.0 (`Textarea`, `Tooltip`…) sont publiés par l'entrée racine sans
+       entrer dans `Opale.X` ; l'import nommé est la forme que les extraits
+       montrent, c'est donc lui qui doit exister. */
+    const exported: Readonly<Record<string, unknown>> = library;
+    for (const entry of SHOWCASE_CATALOG) {
+      expect(
+        exported[entry.name],
+        `${entry.name} doit être exporté par l’entrée racine`,
+      ).toBeDefined();
     }
   });
 
-  it.each(OPALE_CATALOG)('$name rend un spécimen réel et non la carte générique', (entry) => {
+  it.each(SHOWCASE_CATALOG)('$name rend un spécimen réel et non la carte générique', (entry) => {
     const { container } = render(<CatalogPreview name={entry.name} liquidGlass={false} />);
     const preview = container.querySelector(`[data-preview-component="${entry.name}"]`);
 
@@ -377,7 +385,7 @@ describe('le commutateur de matière', () => {
       ?.map((quoted) => quoted.replaceAll("'", '')) ?? [],
   );
 
-  it.each(OPALE_CATALOG)('$name ne montre le commutateur que s’il agit', (entry) => {
+  it.each(SHOWCASE_CATALOG)('$name ne montre le commutateur que s’il agit', (entry) => {
     const page = opaleComponentPages.find(
       (candidate) => candidate.label === catalogComponentLabel(entry.name),
     );
@@ -411,7 +419,7 @@ describe('le commutateur de matière', () => {
 describe('API et exemples du catalogue', () => {
   it('documente une API essentielle pour chaque composant publié', () => {
     expect(Object.keys(CATALOG_API).sort()).toEqual(
-      OPALE_CATALOG.map((entry) => entry.name).sort(),
+      SHOWCASE_CATALOG.map((entry) => entry.name).sort(),
     );
   });
 

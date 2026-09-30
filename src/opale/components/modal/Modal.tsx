@@ -128,20 +128,39 @@ type ModalSize = OpaleSize | 'sm' | 'md' | 'lg';
    personne ne s'en apercevait tant qu'aucun appelant n'essayait — le premier
    à passer un titre composé a échoué à la compilation. */
 export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
+  /**
+   * Ouverte ou non. OBLIGATOIRE : une modale est toujours pilotée par
+   * l'application, avec `onOpenChange` pour la refermer ; il n'existe pas de
+   * `defaultOpen`.
+   */
   open: boolean;
   /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
   /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
+  /**
+   * Le titre du dialogue, rendu en `<h2>` et relié par `aria-labelledby`. Sans titre, nommez le
+   * dialogue par `aria-label`.
+   */
   title?: ReactNode;
+  /** Le texte sous le titre, relié par `aria-describedby`. */
   description?: ReactNode;
+  /** Le pied du panneau, pour les actions. Absent, la zone n'est pas rendue. */
   footer?: ReactNode;
+  /** Referme la modale au clic sur le voile. Défaut : `true`. */
   closeOnOverlay?: boolean;
+  /** Referme la modale sur Échap ; seule la plus haute de la pile réagit. Défaut : `true`. */
   closeOnEsc?: boolean;
+  /** Bloque le défilement de la page tant que la modale est ouverte. Défaut : `true`. */
   lockScroll?: boolean;
+  /**
+   * La largeur du panneau. Défaut : `medium` ; `sm`, `md` et `lg` valent `small`, `medium` et
+   * `large`.
+   */
   size?: ModalSize;
   /** L'onde qui parcourt le panneau en verre à son ouverture. Défaut : `true`. */
   enableLiquidAnimation?: boolean;
+  /** L'élément qui reçoit le portail. Défaut : `document.body`. */
   portalContainer?: HTMLElement | null;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<ModalLabels>;
