@@ -1,8 +1,10 @@
 /* Les composants d'affichage de données du catalogue. */
 
 import {
+  useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type ComponentPropsWithRef,
   type CSSProperties,
@@ -551,6 +553,12 @@ export interface DataTableLabels {
   rowCount: (count: number) => string;
   /** L'annonce d'un tri. Défaut : « Trié par Nom, ordre croissant ». */
   sorted: (column: string, direction: DataTableSortDirection) => string;
+  /**
+   * Le nom de la zone de défilement quand la table déborde et n'a pas de
+   * `caption` (sinon, c'est la légende qui la nomme). Défaut : « Tableau défilant ».
+   * Facultatif pour ne pas casser les objets `DataTableLabels` déjà écrits.
+   */
+  scrollRegion?: string;
 }
 
 export interface DataTableProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
@@ -615,7 +623,42 @@ const DEFAULT_DATA_TABLE_LABELS: DataTableLabels = {
   empty: 'Aucune donnée à afficher.',
   rowCount: (count) => `${count} ${count === 1 ? 'ligne' : 'lignes'}`,
   sorted: (column, direction) => `Trié par ${column}, ${SORT_WORDING[direction]}`,
+  scrollRegion: 'Tableau défilant',
 };
+
+/* =============================================================================
+   LA ZONE DE DÉFILEMENT DEVIENT ATTEIGNABLE QUAND ELLE DÉBORDE, ET SEULEMENT
+   ALORS (ACC-13).
+
+   À 360 px, la table défilait dans sa boîte sans qu'aucun élément ne puisse
+   recevoir le focus quand aucune colonne n'est triable : les colonnes de
+   droite étaient hors de portée du clavier (WCAG 2.1.1). Chromium rend ces
+   zones focalisables d'office, Safari non.
+
+   UN ARRÊT DE TABULATION QUI NE FAIT RIEN EST UN BRUIT : sans débordement, la
+   zone reste un simple `<div>`. Le débordement se MESURE — c'est l'écran qui
+   le décide, pas les données —, d'où l'observateur de taille, qui suit aussi
+   bien la fenêtre que l'arrivée de nouvelles lignes. Au rendu serveur, la zone
+   part sans débordement : l'hydratation ne diverge pas, la mesure suit.
+   ========================================================================== */
+function useHorizontalOverflow<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return undefined;
+    const measure = () => setOverflowing(node.scrollWidth > node.clientWidth + 1);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    if (node.firstElementChild) observer.observe(node.firstElementChild);
+    return () => observer.disconnect();
+  }, []);
+
+  return [ref, overflowing] as const;
+}
 
 function sortNameOf(column: DataTableColumn): string {
   return column.sortLabel ?? (typeof column.label === 'string' ? column.label : column.key);
@@ -677,6 +720,18 @@ export function DataTable({
      chaîne, donc une liste littérale recréée à chaque rendu ne compte pas. */
   const localeKey = typeof locale === 'string' ? locale : locale.join(',');
   const collator = useMemo(() => createTableCollator(localeKey.split(',')), [localeKey]);
+  const captionId = useId();
+  const [scrollRef, overflowing] = useHorizontalOverflow<HTMLDivElement>();
+  const scrollRegionProps = overflowing
+    ? ({
+        role: 'region',
+        tabIndex: 0,
+        'aria-labelledby': caption ? captionId : undefined,
+        'aria-label': caption
+          ? undefined
+          : (labels.scrollRegion ?? DEFAULT_DATA_TABLE_LABELS.scrollRegion),
+      } as const)
+    : {};
 
   const sortedColumn = sort ? columns.find((column) => column.key === sort.key) : undefined;
   const announcement =
@@ -715,7 +770,7 @@ export function DataTable({
       liquidGlass={liquidGlass}
       className={clsx('opale-panel', 'opale-table-panel', className)}
     >
-      <div className="opale-table-scroll">
+      <div ref={scrollRef} className="opale-table-scroll" {...scrollRegionProps}>
         <table
           className={clsx(
             'opale-table',
@@ -724,7 +779,11 @@ export function DataTable({
           )}
           aria-busy={loading || undefined}
         >
-          {caption && <caption className="opale-table__caption">{caption}</caption>}
+          {caption && (
+            <caption id={captionId} className="opale-table__caption">
+              {caption}
+            </caption>
+          )}
           <thead>
             <tr>
               {columns.map((column) => {

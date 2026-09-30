@@ -12,11 +12,15 @@
      sur le bleu du clair, sombre sur le bleu moyen du sombre. */
   --site-nav-accent: var(--opale-primary);
   --site-nav-ink: var(--opale-on-fill);
-  /* 86 % ET NON 80 % : mesuré sur le pixel le plus clair du cliché des scènes,
-     voile compris, le blanc à 80 % tombe à 4,24:1 — juste sous le seuil AA. Le
-     premier palier conforme est 85 %. L'écart avec l'encre pleine reste
-     perceptible, donc la hiérarchie tient. */
-  --site-nav-quiet-ink: color-mix(in srgb, var(--site-nav-ink) 86%, transparent);
+  /* 97 % ET NON PLUS 86 % (ACC-18). Le palier de 86 % avait été mesuré en
+     clair et sous verre — 4,51:1 sur l'aplat clair. En thème sombre l'encre
+     est SOMBRE sur un bleu moyen, et le même mélange tombait à 4,11:1 (relevé
+     axe : #161f26 sur #577fbe), sous le seuil AA d'un texte de 14 px.
+     Calculé sur les jetons, voile de la liste compris : 97 % donne 4,62:1 en
+     sombre et 5,24:1 en clair ; le premier palier sombre conforme est 94 %.
+     La hiérarchie avec l'entrée courante tient par la bulle, pas par cet
+     écart d'encre, qui n'était déjà presque plus visible. */
+  --site-nav-quiet-ink: color-mix(in srgb, var(--site-nav-ink) 97%, transparent);
   --site-nav-space-2: var(--opale-space-xs);
   --site-nav-space-3: var(--opale-space-sm);
   --site-nav-space-4: var(--opale-space-md);
@@ -30,6 +34,17 @@
   --site-nav-content-width: 72rem;
   --site-nav-height: 4rem;
 
+  /* TOUTES LES BOÎTES DE LA BARRE SE MESURENT BORDURE COMPRISE (ACC-06).
+     Sans feuille de reset, le navigateur applique `content-box` : chaque
+     `inline-size: 100%` s'ajoutait au rembourrage et à la bordure. Mesuré
+     sous Chromium chez un consommateur qui n'importe que `opale.css`, à
+     320 px : le lien faisait 123 px dans un `<li>` de 101 px, la liste 328 px
+     et l'intérieur 344 px — la page défilait et « CONTACT » était rogné ; à
+     1280 px, l'intérieur débordait déjà de 24 px de chaque côté. La vitrine
+     ne le montrait pas : `tokens.css` pose `border-box` partout. Déclaré ici,
+     le rendu d'un hôte sans reset rejoint celui de référence, et celui d'un
+     hôte avec reset ne bouge pas d'un pixel. */
+  box-sizing: border-box;
   position: sticky;
   inset-block-start: 0;
   z-index: var(--opale-z-sticky);
@@ -42,6 +57,7 @@
 }
 
 .brandZone {
+  box-sizing: border-box;
   grid-area: 1 / 1;
   z-index: 1;
   display: flex;
@@ -54,6 +70,7 @@
 }
 
 .inner {
+  box-sizing: border-box;
   grid-area: 1 / 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -61,6 +78,7 @@
   align-items: center;
   justify-self: center;
   inline-size: 100%;
+  min-inline-size: 0;
   min-block-size: var(--site-nav-height);
   gap: var(--site-nav-space-4);
   padding-inline: var(--site-nav-space-5);
@@ -73,6 +91,7 @@
 
 /* Quatre destinations de même largeur : la disposition de référence. */
 .list {
+  box-sizing: border-box;
   position: relative;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -92,6 +111,7 @@
 }
 
 .link {
+  box-sizing: border-box;
   position: relative;
   z-index: 1;
   display: inline-flex;
@@ -108,6 +128,16 @@
   letter-spacing: 0.08em;
   text-decoration: none;
   text-transform: uppercase;
+  /* LE LIBELLÉ PASSE À LA LIGNE PLUTÔT QUE DE DÉBORDER (ACC-06, WCAG 1.4.10).
+     La cause du débordement était le modèle de boîte (voir `.bar`) ; une fois
+     les boîtes mesurées bordure comprise, un libellé plus long que sa colonne
+     — texte agrandi à 200 %, traduction — passe encore à la ligne plutôt que
+     de sortir de la barre. `anywhere` abaisse la largeur minimale du libellé,
+     donc la colonne `minmax(0, 1fr)` peut rétrécir ; quand le libellé tient,
+     rien ne change, et la bulle suit la hauteur de la ligne (`inset-block`). */
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
   user-select: none;
   -webkit-user-drag: none;
   transition: color var(--site-nav-motion-color) var(--site-nav-motion-ease);
@@ -280,6 +310,31 @@
 @media (max-width: 30rem) {
   .link {
     padding-inline: calc(var(--site-nav-space-2) + 2px);
+    /* L'interlettrage des capitales coûte une lettre par libellé à 320 px. */
+    letter-spacing: 0.02em;
+  }
+}
+
+/* =============================================================================
+   CONTRASTES FORCÉS (ACC-04).
+
+   La page courante n'était dite que par la bulle, peinte en fonds et en
+   ombres que le mode supprime : elle devenait trois cercles superposés, et
+   l'entrée courante ne se distinguait plus des autres. La bulle est retirée ;
+   la page courante prend la paire système de la sélection.
+   ========================================================================== */
+@media (forced-colors: active) {
+  .movingBubble {
+    display: none;
+  }
+
+  .link[aria-current='page'] {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .link:focus-visible {
+    outline-color: CanvasText;
   }
 }
 
@@ -294,7 +349,7 @@
    L'ENCRE NE BOUGE PAS. Elle était déjà claire — c'est celle qui se lit sur
    l'accent — et le voile du matériau est sombre : les deux contextes demandent
    la même encre, ce qui est une chance et non un hasard. `--site-nav-quiet-ink`
-   garde son 86 %, mesuré contre le pixel le plus clair du cliché.
+   garde son mélange (97 %, voir `.bar`), au-dessus des 85 % mesurés sur le cliché.
 
    LA BARRE RESTE COLLANTE, donc le verre se déplace sur la page pendant qu'on
    défile : c'est exactement la situation où le matériau a quelque chose à

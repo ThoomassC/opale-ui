@@ -9,7 +9,31 @@ export interface ToastAnchor {
   readonly status: HTMLDivElement;
   readonly alert: HTMLDivElement;
   readonly root: HTMLDivElement;
+  /** L'instant de création, en millisecondes (`Date.now`). */
+  readonly createdAt: number;
   users: number;
+}
+
+/* =============================================================================
+   UNE RÉGION LIVE DOIT EXISTER AVANT SON TEXTE (ACC-15, WCAG 4.1.3).
+
+   Une ancre créée dans le même commit que le premier message fait naître ses
+   régions avec le texte dedans : la technologie d'assistance ne les surveille
+   pas encore, et rien n'est annoncé. On laisse donc à la région ce délai pour
+   entrer dans l'arbre d'accessibilité avant d'y insérer le texte. 150 ms tient
+   largement une image et le recalcul de l'arbre, sans retard perceptible pour
+   qui écoute.
+   ========================================================================== */
+const TOAST_ANCHOR_SETTLE_MS = 150;
+
+/** Vrai si les régions de l'ancre sont installées depuis assez longtemps pour être surveillées. */
+export function toastAnchorSettled(anchor: ToastAnchor): boolean {
+  return toastAnchorSettleDelay(anchor) === 0;
+}
+
+/** Le temps qu'il reste avant que les régions de l'ancre soient surveillées, en millisecondes. */
+export function toastAnchorSettleDelay(anchor: ToastAnchor): number {
+  return Math.max(0, anchor.createdAt + TOAST_ANCHOR_SETTLE_MS - Date.now());
 }
 
 const TOAST_ANCHORS = new Map<OpalePlacement, ToastAnchor>();
@@ -35,7 +59,7 @@ function acquireToastAnchor(position: OpalePlacement): boolean {
     root.append(status, alert);
     if (position.startsWith('top')) document.body.prepend(root);
     else document.body.append(root);
-    anchor = { root, status, alert, users: 0 };
+    anchor = { root, status, alert, createdAt: Date.now(), users: 0 };
     TOAST_ANCHORS.set(position, anchor);
   }
   anchor.users += 1;

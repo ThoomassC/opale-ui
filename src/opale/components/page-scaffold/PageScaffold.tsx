@@ -95,6 +95,11 @@ export interface PageScaffoldProps extends Omit<ComponentPropsWithRef<'div'>, 't
   searchNavigate?: (href: string) => void;
   searchSuggestionsLabel?: string;
   searchNoResultsLabel?: string;
+  /**
+   * Le compte annoncé quand des suggestions s'affichent. Défaut, selon la
+   * langue : « 2 suggestions », « 2 suggestions », « 2 sugerencias ».
+   */
+  searchSuggestionCountLabel?: (count: number) => string;
   /** La soumission native GET vers `/search` reste disponible sans callback. */
   searchAction?: string;
   searchName?: string;
@@ -145,6 +150,7 @@ const COPY = {
     searchLabel: 'Rechercher sur le site',
     searchSuggestions: 'Suggestions de recherche',
     searchNoResults: 'Aucun résultat',
+    searchSuggestionCount: (count: number) => `${count} suggestion${count > 1 ? 's' : ''}`,
     welcome: 'Bienvenue',
     description: 'Découvrez nos contenus et trouvez rapidement ce qui vous intéresse.',
     footerNavigation: 'Liens de pied de page',
@@ -166,6 +172,7 @@ const COPY = {
     searchLabel: 'Search this site',
     searchSuggestions: 'Search suggestions',
     searchNoResults: 'No results',
+    searchSuggestionCount: (count: number) => `${count} suggestion${count === 1 ? '' : 's'}`,
     welcome: 'Welcome',
     description: 'Explore our content and quickly find what you need.',
     footerNavigation: 'Footer links',
@@ -187,6 +194,7 @@ const COPY = {
     searchLabel: 'Buscar en el sitio',
     searchSuggestions: 'Sugerencias de búsqueda',
     searchNoResults: 'Sin resultados',
+    searchSuggestionCount: (count: number) => `${count} sugerencia${count === 1 ? '' : 's'}`,
     welcome: 'Bienvenido',
     description: 'Descubre nuestros contenidos y encuentra rápidamente lo que necesitas.',
     footerNavigation: 'Enlaces del pie de página',
@@ -231,6 +239,7 @@ export function PageScaffold({
   searchNavigate,
   searchSuggestionsLabel,
   searchNoResultsLabel,
+  searchSuggestionCountLabel,
   searchAction = '/search',
   searchName = 'q',
   onSearch,
@@ -331,6 +340,7 @@ export function PageScaffold({
         label={copy.searchLabel}
         suggestionsLabel={searchSuggestionsLabel ?? copy.searchSuggestions}
         noResultsLabel={searchNoResultsLabel ?? copy.searchNoResults}
+        suggestionCountLabel={searchSuggestionCountLabel ?? copy.searchSuggestionCount}
         suggestions={searchSuggestions}
         onSuggestionSelect={onSearchSuggestionSelect}
         navigate={searchNavigate}

@@ -3,10 +3,13 @@
 import {
   useCallback,
   useContext,
+  useEffect,
   useId,
   useRef,
+  useState,
   useSyncExternalStore,
   type ComponentPropsWithRef,
+  type FocusEvent,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -30,7 +33,7 @@ import { IconGlyph, type OpaleIconName } from '../components/icon';
 import { Modal, type ModalLabels } from '../components/modal';
 import type { ToastLabels } from '../components/toast';
 import type { OpalePlacement, OpaleTone } from '../shared';
-import { warnDeprecatedProps } from '../deprecations';
+import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import {
@@ -43,7 +46,14 @@ import { useScrollPadding } from '../shared/use-scroll-padding';
 import { Button } from './forms';
 import { Card, Icon } from './display';
 import { closeHandler, closeClickHandler } from './close-handlers';
-import { getToastAnchor, subscribeToastAnchor, type ToastAnchor } from './toast-anchors';
+import { rememberFocusOrigin, returnFocusAfterRemoval } from '../shared/focus-return';
+import {
+  getToastAnchor,
+  subscribeToastAnchor,
+  toastAnchorSettleDelay,
+  toastAnchorSettled,
+  type ToastAnchor,
+} from './toast-anchors';
 
 /**
  * L'encart de retour en flux.
@@ -281,6 +291,7 @@ export function Toast({
   labels: labelsProp,
   className,
   ref,
+  onFocus,
   ...rest
 }: ToastProps) {
   /* LES DEUX RÉGIONS SONT MONTÉES EN PERMANENCE, LE MESSAGE SEUL APPARAÎT.
@@ -321,13 +332,36 @@ export function Toast({
      conteneur d'appel reste vide, c'est un contrat. */
   const pageTheme = useContext(PageThemeContext);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  /* LA CROIX NE JETTE PLUS LE FOCUS SUR <body> (ACC-10). La carte retient
+     l'élément d'où le focus est entré ; si elle est retirée pendant qu'elle
+     le tient, il y retourne. Le nettoyage de la `ref` passe avant le retrait
+     du DOM : c'est le dernier moment où l'on sait que le focus était dedans. */
+  const focusOrigin = useRef<HTMLElement | null>(null);
   const cardRefs = useCallback(
     (node: HTMLDivElement | null) => {
-      if (node && liquidGlass) applyThemeToGlassRoot(node, pageTheme);
-      mergeRefs(cardRef, ref)(node);
+      if (!node) return undefined;
+      if (liquidGlass) applyThemeToGlassRoot(node, pageTheme);
+      const detach = mergeRefs(cardRef, ref)(node);
+      return () => {
+        returnFocusAfterRemoval(node, focusOrigin);
+        if (typeof detach === 'function') detach();
+      };
     },
     [liquidGlass, pageTheme, ref],
   );
+  /* LE TEXTE ENTRE APRÈS LA RÉGION (ACC-15). Voir `toastAnchorSettled`. */
+  const anchor = useToastAnchor(position);
+  const [announcedIn, setAnnouncedIn] = useState<ToastAnchor | null>(null);
+  const waitingForRegion =
+    open && anchor !== null && announcedIn !== anchor && !toastAnchorSettled(anchor);
+  useEffect(() => {
+    if (!waitingForRegion || anchor === null) return undefined;
+    const timeout = window.setTimeout(
+      () => setAnnouncedIn(anchor),
+      toastAnchorSettleDelay(anchor),
+    );
+    return () => window.clearTimeout(timeout);
+  }, [anchor, waitingForRegion]);
   const card = open ? (
     <Shell
       {...rest}
@@ -336,6 +370,10 @@ export function Toast({
       className={classes}
       data-opale-toast-tone={tone}
       {...pageThemeAttributes(pageTheme)}
+      onFocus={(event: FocusEvent<HTMLDivElement>) => {
+        rememberFocusOrigin(event, focusOrigin);
+        onFocus?.(event);
+      }}
     >
       {/* LE TON REMPLIT LA CARTE, ET L'ICÔNE PREND SON ENCRE.
 
@@ -355,7 +393,17 @@ export function Toast({
           la surface d'Opale sous l'encre d'Opale, et il n'y a rien à
           doubler. */}
       {TONE_ICON[tone] && <IconGlyph name={TONE_ICON[tone]} className="opale-toast__icon" />}
-      <span className="opale-toast__message">{message}</span>
+      {/* MASQUÉ LE TEMPS QUE LA RÉGION S'INSTALLE, PUIS RÉINSÉRÉ. La clé change
+          quand l'attente prend fin : le texte entre alors dans une région déjà
+          surveillée, et il n'est dit qu'une fois. L'œil, lui, le voit dès le
+          premier rendu. */}
+      <span
+        key={waitingForRegion ? 'pending' : 'live'}
+        className="opale-toast__message"
+        aria-hidden={waitingForRegion ? true : undefined}
+      >
+        {message}
+      </span>
       {closeClick && (
         <button
           className="opale-toast__close"
@@ -379,10 +427,10 @@ export function Toast({
      deviendrait le bloc conteneur, et le message s'afficherait dans la carte.
 
      LE MESSAGE ENTRE DANS LA RÉGION DE SON TON : polie ou assertive. Les deux
-     existent dès que l'ancre existe. Pour qu'elles précèdent le message — ce
-     qui garantit son annonce —, montez le composant fermé et ouvrez-le ensuite,
-     ou gardez une autre instance à la même place. */
-  const anchor = useToastAnchor(position);
+     existent dès que l'ancre existe. Quand l'ancre naît avec le message — le
+     motif `{saved && <Toast … />}` —, le texte est masqué aux technologies
+     d'assistance puis réinséré une fois la région installée (ACC-15) : monter
+     le composant fermé n'est plus une condition de l'annonce. */
   /* Le message fixe ne doit pas couvrir l'élément atteint au clavier. */
   useScrollPadding(cardRef, position.startsWith('top') ? 'top' : 'bottom', open && anchor !== null);
 
@@ -426,9 +474,21 @@ export function ProgressBar({
   label,
   className,
   liquidGlass = false,
+  ref,
   ...rest
 }: ProgressBarProps) {
   const labelId = useId();
+  /* SANS NOM, UNE BARRE DIT « 40 % » DE RIEN (ACC-21). Le nom se lit dans le
+     DOM une fois monté, comme pour l'interrupteur : un `aria-labelledby` posé
+     par l'appelant vers un titre de la page le nomme sans que `label` le dise. */
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const trackRefs = useCallback(
+    (node: HTMLDivElement | null) => mergeRefs(trackRef, ref)(node),
+    [ref],
+  );
+  useEffect(() => {
+    if (trackRef.current) warnIfUnnamed('ProgressBar', trackRef.current);
+  }, []);
   /* LA PISTE EST CE QUI CHANGE DE MATIÈRE, PAS LA VALEUR. Le remplissage
      reste opaque sous verre : une progression translucide sur un paysage ne
      se lirait plus, et c'est la seule chose que la barre a à dire. */
@@ -451,6 +511,7 @@ export function ProgressBar({
         aria-labelledby={label ? labelId : undefined}
         {...rest}
         {...trackProps}
+        ref={trackRefs}
         className={clsx('opale-progress', liquidGlass && 'opale-progress--glass')}
         role="progressbar"
         aria-valuenow={bounded}

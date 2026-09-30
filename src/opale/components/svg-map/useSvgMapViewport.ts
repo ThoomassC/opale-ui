@@ -36,6 +36,17 @@ export interface UseSvgMapViewportResult {
   /** La vue courante, au format de l'attribut `viewBox`. */
   readonly current: string;
   readonly view: ViewRect;
+  /**
+   * La vue VISÉE : celle où la transition en cours arrivera, égale à `view`
+   * hors transition. Une commande qui dépend de l'état d'arrivée — les flèches
+   * de déplacement, qui n'ont de sens qu'une fois zoomé — la lit plutôt que
+   * `view`, pour ne pas apparaître ni disparaître 280 ms après le geste.
+   *
+   * Optionnelle dans le type : une vue construite à la main pour la 3.9.2 n'en
+   * a pas, et les commandes retombent alors sur `view`. `useSvgMapViewport` la
+   * fournit toujours.
+   */
+  readonly target?: ViewRect;
   /** Facteur de zoom courant : 1 en vue d'ensemble. */
   readonly zoom: number;
   readonly maxZoom: number;
@@ -45,7 +56,10 @@ export interface UseSvgMapViewportResult {
   readonly canZoomIn: boolean;
   /** Un facteur supérieur à 1 rapproche, inférieur éloigne. */
   zoomBy(factor: number, origin?: Point, options?: SvgMapMoveOptions): void;
-  /** Déplace la vue, en unités du dessin. */
+  /**
+   * Déplace la vue, en unités du dessin. Pendant une transition, celle-ci est
+   * achevée d'un coup et le déplacement part de son arrivée.
+   */
   panBy(dx: number, dy: number): void;
   /** Cadre sur un ensemble de régions, désignées par leur identifiant. */
   fitTo(ids: readonly string[], options?: SvgMapFitOptions): void;
@@ -97,13 +111,16 @@ export function useSvgMapViewport(
      sous la même carte ne doit pas hériter d'un zoom calculé pour le
      précédent : quand `viewBox` change, la vue repart de la nouvelle vue
      d'ensemble, pendant le rendu même — c'est un état dérivé, pas un effet. */
-  const [state, setState] = useState(() => ({ base, view: base }));
+  const [state, setState] = useState(() => ({ base, view: base, target: base }));
   let view = state.view;
+  let destination = state.target;
   if (state.base !== base) {
-    setState({ base, view: base });
+    setState({ base, view: base, target: base });
     view = base;
+    destination = base;
   }
   const viewRef = useRef(view);
+  const targetRef = useRef(destination);
   const regionsRef = useRef<ReadonlyMap<string, Bounds>>(new Map());
   const frameRef = useRef<number | null>(null);
 
@@ -114,9 +131,12 @@ export function useSvgMapViewport(
     frameRef.current = null;
   }, []);
 
-  const commit = useCallback((next: ViewRect) => {
+  /* `arrival` est la vue visée : la même que `next` pour un mouvement
+     immédiat, l'arrivée de la transition pour une image d'animation. */
+  const commit = useCallback((next: ViewRect, arrival: ViewRect = next) => {
     viewRef.current = next;
-    setState((current) => ({ ...current, view: next }));
+    targetRef.current = arrival;
+    setState((current) => ({ ...current, view: next, target: arrival }));
   }, []);
 
   /* La référence suit la vue rendue — y compris la remise à zéro ci-dessus,
@@ -125,6 +145,9 @@ export function useSvgMapViewport(
   useLayoutEffect(() => {
     viewRef.current = state.view;
   }, [state.view]);
+  useLayoutEffect(() => {
+    targetRef.current = state.target;
+  }, [state.target]);
   /* AVANT LA PEINTURE, pas après : une image d'animation qui tomberait entre
      le rendu et un effet passif poserait une vue de l'ancien dessin sous la
      nouvelle vue d'ensemble. */
@@ -140,6 +163,9 @@ export function useSvgMapViewport(
         return;
       }
 
+      /* La destination est connue dès le départ : elle est publiée tout de
+         suite, la vue ne change pas encore. */
+      commit(from, target);
       const start = performance.now();
       /* L'HORLOGE EST LUE ICI, ET LA PROGRESSION BORNÉE DES DEUX CÔTÉS.
          L'horodatage que passe `requestAnimationFrame` peut précéder le
@@ -147,7 +173,7 @@ export function useSvgMapViewport(
          l'interpolation extrapolait, et la vue partait à l'infini. */
       const step = () => {
         const t = Math.min(1, Math.max(0, (performance.now() - start) / DURATION_MS));
-        commit(t < 1 ? lerpView(from, target, easeOutCubic(t)) : target);
+        commit(t < 1 ? lerpView(from, target, easeOutCubic(t)) : target, target);
         frameRef.current = t < 1 ? requestAnimationFrame(step) : null;
       };
       frameRef.current = requestAnimationFrame(step);
@@ -167,10 +193,15 @@ export function useSvgMapViewport(
     [base, maxZoom, moveTo],
   );
 
+  /* LE DÉPLACEMENT PART DE LA VUE VISÉE. Les flèches s'affichent dès le clic
+     sur « Zoomer », d'après `target` ; partir de la vue peinte figeait le zoom
+     à mi-course, et avant la première image déplaçait la vue d'ensemble — les
+     flèches disparaissaient alors sous le pointeur. La transition est achevée
+     d'un coup, puis déplacée. Hors transition, les deux vues sont la même. */
   const panBy = useCallback(
     (dx: number, dy: number) => {
+      const current = frameRef.current !== null ? targetRef.current : viewRef.current;
       cancelAnimation();
-      const current = viewRef.current;
       commit(clampView({ ...current, x: current.x + dx, y: current.y + dy }, base, maxZoom));
     },
     [base, cancelAnimation, commit, maxZoom],
@@ -233,6 +264,7 @@ export function useSvgMapViewport(
       viewBox,
       current: formatViewBox(view),
       view,
+      target: destination,
       zoom,
       maxZoom,
       zoomed: zoom > 1.001,
@@ -249,6 +281,7 @@ export function useSvgMapViewport(
     [
       viewBox,
       view,
+      destination,
       zoom,
       maxZoom,
       zoomBy,

@@ -15,6 +15,7 @@ import Glass from '../glass/Glass';
 import { IconGlyph } from '../icon';
 import { MODAL_EXEMPT_ATTRIBUTE } from '../modal/Modal';
 import type { OpalePlacement, OpaleTone } from '../../shared';
+import { rememberFocusOrigin, returnFocus } from '../../shared/focus-return';
 import { resolveLabels } from '../../shared/labels';
 import { useDocumentBody } from '../../shared/use-document-body';
 import { useDocumentPageTheme } from '../../shared/use-page-theme';
@@ -309,6 +310,12 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
      survol involontaire ne doit pas rallonger indéfiniment le séjour d'un
      toast, il doit juste ne pas le raccourcir. */
   const remaining = useRef(toast.duration);
+  /* LA SORTIE REND LE FOCUS (ACC-10). La carte retient l'élément d'où le focus
+     est entré ; quand elle commence à partir en le tenant, il y retourne — la
+     carte en sortie ne capte plus le pointeur, et son retrait laisserait sinon
+     le focus sur <body>. */
+  const cardRef = useRef<HTMLDivElement>(null);
+  const focusOrigin = useRef<HTMLElement | null>(null);
   const startedAt = useRef(0);
   const closeAnnounced = useRef(false);
 
@@ -348,6 +355,7 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
 
     if (!closeAnnounced.current) {
       closeAnnounced.current = true;
+      returnFocus(cardRef.current, focusOrigin.current);
       onClose?.();
     }
 
@@ -371,9 +379,13 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
          quatre : la souris et le doigt passent par le pointeur, le clavier par
          le focus. N'en poser que deux laisserait dehors exactement le public
          que le critère protège. */
+      ref={cardRef}
       onPointerEnter={pause}
       onPointerLeave={resume}
-      onFocus={pause}
+      onFocus={(event) => {
+        rememberFocusOrigin(event, focusOrigin);
+        pause();
+      }}
       onBlur={resume}
     >
       <ToastSurface

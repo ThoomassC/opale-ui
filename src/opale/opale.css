@@ -705,6 +705,13 @@
   cursor: not-allowed;
   opacity: var(--opale-disabled-opacity);
 }
+/* EN CHARGEMENT, LE BOUTON N'EST PLUS `disabled` — il garde le focus (voir
+   `Button`, ACC-09) —, mais il en garde l'aspect : rien ne change à l'écran
+   pour qui l'utilisait, sinon un curseur d'attente au lieu d'un interdit. */
+.opale-button[aria-busy='true'] {
+  cursor: progress;
+  opacity: var(--opale-disabled-opacity);
+}
 
 .opale-button--primary {
   --opale-button-background: var(--opale-primary);
@@ -1181,6 +1188,32 @@
   );
 }
 
+/* CE QUE LE NAVIGATEUR PEINT EN RÉALITÉ : LA CARTE DE VERRE RESTE PLEINE.
+   `.opale-toast`, plus bas dans la feuille et de même spécificité que
+   `.opale-toast--glass`, rend le remplissage du ton à la carte ; et le ton
+   n'est posé que sur le contenu, donc le voile de l'enveloppe ci-dessus ne le
+   voit pas. L'encre, elle, restait celle du matériau — posée par le contenu
+   de `Glass` et par `[data-opale-glass] .opale-toast__message`. Mesuré sous
+   Chromium : en verre sombre, #fff sur l'ambre #f0b366 à 1,85:1, les quatre
+   tons entre 1,85 et 2,15:1 ; sous `data-opale-glass-ink="page"` posé sur
+   <html>, l'encre de la page sur le remplissage, entre 1,63 et 3,26:1 dans
+   les deux thèmes. Le clair par défaut ne passait que par chance : du blanc
+   sur un ton assombri.
+
+   L'ENCRE SUIT DONC LE REMPLISSAGE, pas le matériau : `--opale-toast-fill-ink`
+   — claire sur le ton assombri du clair, sombre sur le ton clair du sombre —,
+   8,95 à 10,41:1 en sombre, 5,56 à 9,78:1 en clair. Le ton neutre, sans
+   remplissage, retombe sur la surface et l'encre de la page. Le message et la
+   croix héritent de la carte. Faire du ton un vrai voile translucide est un
+   changement d'apparence, hors d'un correctif. */
+.opale-toast.opale-toast--glass {
+  color: var(--opale-toast-fill-ink, var(--opale-text));
+}
+[data-opale-glass] .opale-toast--glass .opale-toast__message,
+[data-opale-glass] .opale-toast--glass .opale-toast__close {
+  color: inherit;
+}
+
 /* LA PISTE DE PROGRESSION GARDE SA VALEUR OPAQUE. C'est la seule chose que la
    barre a à dire, et une progression translucide posée sur un paysage ne se
    lit plus. Le verre est la rainure ; le remplissage reste peint. */
@@ -1192,6 +1225,7 @@
    option est choisie, donc il reste une surface pleine. */
 [data-opale-glass] .opale-segmented__indicator {
   background: color-mix(in srgb, var(--opale-glass-ink) 26%, transparent);
+  box-shadow: 0 0 0 1px var(--opale-glass-ink);
 }
 [data-opale-glass] .opale-segmented__item[aria-pressed='true'] {
   color: var(--opale-glass-ink);
@@ -1248,7 +1282,179 @@
 }
 .opale-toggle:checked + .opale-toggle-track .opale-toggle-thumb,
 .opale-toggle:checked + * .opale-toggle-track .opale-toggle-thumb {
-  transform: translateX(1.5rem);
+  transform: translateX(calc(1.5rem * var(--opale-inline-direction, 1)));
+}
+
+/* =============================================================================
+   LE VERRE POSÉ SUR LA PAGE (ACC-01, THM-17).
+
+   L'encre blanche du verre reste le défaut : elle est faite pour une
+   photographie voilée, et la changer serait casser les scènes existantes. Mais
+   sur une page claire unie, elle publiait du blanc sur du blanc — mesuré à
+   1,11-1,16:1 sur les quatre Feedback. Redéfinir `--opale-glass-ink` ne
+   suffisait pas : les champs gardaient leur lavis bleu nuit, les onglets leurs
+   voiles sombres, le message d'erreur perdait son rouge, les boutons pleins
+   devenaient des lavis sans hiérarchie et le toast restait une vitre sombre.
+
+   UN SEUL RÉGLAGE, POSÉ PAR L'HÔTE : `data-opale-glass-ink="page"`, sur la
+   racine ou sur n'importe quel ancêtre du verre. L'encre rejoint alors celle
+   de la page, dans son thème — sombre en clair, claire en sombre —, et tout ce
+   qui lisait l'encre blanche suit. Posé sur l'enveloppe d'un verre elle-même,
+   il ne bascule que les deux jetons d'encre : les reprises de composant
+   ci-dessous visent un ANCÊTRE, qui est l'usage prévu.
+
+   LES OVERLAYS EN PORTAIL NE SUIVENT QUE <html> OU <body>. Les toasts (seuls
+   ou en file), les modales, les panneaux et la palette de commandes sont
+   rendus par portail en fin de `<body>`, HORS de l'arbre de l'application :
+   l'attribut posé sur le conteneur de l'app ne les atteint pas, et ils
+   gardent l'encre blanche du verre. Pour qu'ils le suivent, l'hôte le pose
+   sur `<html>` ou sur `<body>` — relevé sous Chromium : posé sur l'enveloppe
+   de l'app, aucun toast n'avait l'ancêtre.
+
+   CE MODE EST OPT-IN, DONC RIEN NE CHANGE pour qui ne pose pas l'attribut.
+   ========================================================================== */
+[data-opale-glass-ink='page'],
+[data-opale-glass-ink='page'] [data-opale-glass],
+[data-opale-glass-ink='page'][data-opale-glass] {
+  --opale-glass-ink: var(--opale-text);
+  --opale-glass-ink-muted: var(--opale-text-secondary);
+}
+
+/* LE CHAMP ÉCLAIRCIT SON LAVIS AU LIEU DE L'ASSOMBRIR. Le bleu nuit à 42 %
+   donnait une base sombre à l'encre blanche ; sous une encre sombre, il la
+   noierait. La surface à 72 % garde la réfraction visible et porte le texte
+   indicatif atténué. Le focus du matériau densifie le lavis en bleu nuit : il
+   est ramené à la surface, le halo à deux tons suffisant sur un fond clair. */
+[data-opale-glass-ink='page'] .opale-input--glass-root {
+  --opale-glass-tint: color-mix(in srgb, var(--opale-surface) 72%, transparent);
+}
+[data-opale-glass-ink='page'] [data-opale-glass]:has(:focus-visible),
+[data-opale-glass-ink='page'] .opale-checkbox:focus-visible + [data-opale-glass],
+[data-opale-glass-ink='page'] .opale-toggle:focus-visible + [data-opale-glass] {
+  --opale-glass-tint: color-mix(in srgb, var(--opale-surface) 86%, transparent);
+}
+/* Sur une page unie, rien derrière le verre ne dessine le champ : le filet
+   spéculaire, blanc, disparaît sur le blanc. Le bord des champs revient, réglé
+   pour 3:1 sur la surface (WCAG 1.4.11). */
+[data-opale-glass-ink='page'] .opale-input-shell--glass {
+  box-shadow: inset 0 0 0 1px var(--opale-field-border);
+}
+/* L'ERREUR RETROUVE SON ROUGE. Sous verre, l'aide du champ prend l'encre
+   atténuée du matériau, message d'erreur compris : sur une photographie, un
+   rouge ne se lirait pas. Sur la page, il se lit, et c'est lui qui dit
+   « erreur » à qui parcourt le formulaire. */
+[data-opale-glass-ink='page'] [data-opale-glass] .opale-field__helper--error {
+  color: var(--opale-danger-on-surface);
+}
+
+/* LES BOUTONS PLEINS REDEVIENNENT PLEINS. Le lavis à 26 % tenait sur une
+   photographie voilée, qui fournit le fond sombre ; sur une page claire, il
+   donne un bleu pâle sous une encre sombre, et l'action principale ne se
+   distingue plus des autres. L'aplat revient, et avec lui l'encre des
+   remplissages. Les variantes sans aplat prennent l'encre primaire des
+   surfaces, comme hors verre. */
+[data-opale-glass-ink='page'] .opale-button--glass.opale-button--primary {
+  --opale-button-background: var(--opale-primary);
+  --opale-button-hover-background: var(--opale-primary-dark);
+  color: var(--opale-on-fill);
+}
+[data-opale-glass-ink='page'] .opale-button--glass.opale-button--secondary {
+  --opale-button-background: var(--opale-secondary-dark);
+  --opale-button-hover-background: color-mix(
+    in srgb,
+    var(--opale-secondary-dark) 86%,
+    var(--opale-shade)
+  );
+  color: var(--opale-on-fill);
+}
+[data-opale-glass-ink='page'] .opale-button--glass.opale-button--danger {
+  --opale-button-background: var(--opale-danger);
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-danger) 86%, var(--opale-shade));
+  color: var(--opale-on-fill);
+}
+[data-opale-glass-ink='page'] .opale-button--glass.opale-button--accent {
+  --opale-button-background: var(--opale-accent);
+  --opale-button-hover-background: color-mix(in srgb, var(--opale-accent) 86%, var(--opale-shade));
+  color: var(--opale-on-accent);
+}
+[data-opale-glass-ink='page'] .opale-button--glass.opale-button--tonal,
+[data-opale-glass-ink='page'] .opale-button--glass.opale-button--ghost,
+[data-opale-glass-ink='page'] .opale-button--glass.opale-button--text {
+  color: var(--opale-primary-on-surface);
+}
+
+/* CE QUI GARDE UN APLAT GARDE L'ENCRE DES REMPLISSAGES. La pastille, la coche
+   et la valeur de progression peignent un fond primaire dense : l'encre de la
+   page y serait sombre sur bleu. La pastille reprend l'aplat plein de son ton
+   — le lavis à 62 % comptait sur un fond sombre derrière lui —, le point de
+   notification garde son jeton, et la valeur de progression, qui était peinte
+   à l'encre du verre, redevient primaire. La coche est couverte sous ses deux
+   formes : la case hors verre lit, elle aussi, l'encre du matériau. */
+[data-opale-glass-ink='page'] [data-opale-glass] .opale-badge,
+[data-opale-glass-ink='page'] .opale-badge--glass {
+  background: var(--opale-primary);
+  color: var(--opale-on-fill);
+}
+/* L'ACCENT PASSE PAR `--opale-accent-ink`, PAS PAR `--opale-accent-dark`. Le
+   brun n'est pas redéfini en sombre, alors que l'encre des remplissages y
+   devient sombre : #0c0f0d sur #7a5200, 2,78:1 relevé par axe. L'encre
+   d'accent vaut ce même brun en clair — rien n'y bouge, 6,63:1 — et l'ambre
+   pâle #ffd98a en sombre, où l'encre sombre tient largement. */
+[data-opale-glass-ink='page'] [data-opale-glass] .opale-badge--accent,
+[data-opale-glass-ink='page'] .opale-badge--glass.opale-badge--accent {
+  background: var(--opale-accent-ink);
+}
+[data-opale-glass-ink='page'] [data-opale-glass] .opale-badge--danger,
+[data-opale-glass-ink='page'] .opale-badge--glass.opale-badge--danger {
+  background: var(--opale-danger);
+}
+[data-opale-glass-ink='page'] [data-opale-glass] .opale-badge.opale-badge--dot,
+[data-opale-glass-ink='page'] .opale-badge--glass.opale-badge--dot {
+  background: var(--opale-badge-dot);
+}
+[data-opale-glass-ink='page'] .opale-checkbox:checked + .opale-checkbox-mark,
+[data-opale-glass-ink='page'] .opale-checkbox:checked + * .opale-checkbox-mark {
+  color: var(--opale-on-fill);
+}
+[data-opale-glass-ink='page'] [data-opale-glass] .opale-progress__value {
+  background: var(--opale-primary);
+}
+
+/* LE TOAST PASSE D'UNE VITRE SOMBRE À UNE VITRE CLAIRE. Son voile mêlait le
+   ton au bleu nuit, pour l'encre blanche ; sous l'encre de la page, le ton se
+   mêle à la surface. */
+[data-opale-glass-ink='page'] .opale-toast--glass-root {
+  --opale-glass-tint: color-mix(
+    in srgb,
+    var(--opale-toast-fill, transparent) 24%,
+    color-mix(in srgb, var(--opale-surface) 84%, transparent)
+  );
+}
+
+/* LA TABLE DE VERRE PORTAIT SES EN-TÊTES SUR UN BANDEAU BLEU NUIT, sous
+   l'encre blanche. Sous l'encre de la page, le bandeau devient la surface
+   atténuée et les filets reprennent le séparateur d'Opale. */
+[data-opale-glass-ink='page'] .opale-table-panel.opale-surface--glass .opale-table th {
+  background: color-mix(in srgb, var(--opale-surface-sunken) 80%, transparent);
+  border-bottom-color: var(--opale-divider);
+}
+[data-opale-glass-ink='page'] .opale-table-panel.opale-surface--glass .opale-table td {
+  border-bottom-color: var(--opale-divider);
+}
+
+/* SANS `backdrop-filter`, LE VERRE N'EST PLUS QU'UN LAVIS, ET IL DOIT PORTER
+   SEUL LE TEXTE. Le flou lissait l'arrière-plan ; sans lui, un lavis à 6 %
+   laisse chaque détail de l'image sous l'encre. Le lavis se densifie donc —
+   bleu nuit sous l'encre blanche, surface sous l'encre de la page. Les verres
+   qui règlent leur propre lavis plus loin dans la feuille le gardent. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  [data-opale-glass] {
+    --opale-glass-tint: color-mix(in srgb, var(--opale-glass-deep) 62%, transparent);
+  }
+  [data-opale-glass-ink='page'] [data-opale-glass],
+  [data-opale-glass-ink='page'][data-opale-glass] {
+    --opale-glass-tint: color-mix(in srgb, var(--opale-surface) 90%, transparent);
+  }
 }
 
 @media (max-width: 37.499rem) {
@@ -1686,7 +1892,9 @@
 .opale-toggle-thumb {
   width: 1.25rem;
   height: 1.25rem;
-  margin-left: 0.25rem;
+  /* Logique et non physique : de droite à gauche, la piste part de la droite
+     et la marge doit la suivre (ACC-20). En gauche à droite, rien ne change. */
+  margin-inline-start: 0.25rem;
   border-radius: 50%;
   /* La surface et non #fff : en sombre, une poignée blanche sur une piste
      claire ne se détacherait plus. */
@@ -1698,7 +1906,31 @@
   background: var(--opale-primary);
 }
 .opale-toggle:checked + .opale-toggle-track .opale-toggle-thumb {
-  transform: translateX(1.5rem);
+  transform: translateX(calc(1.5rem * var(--opale-inline-direction, 1)));
+}
+/* DE DROITE À GAUCHE, LA POIGNÉE GLISSE VERS LA GAUCHE (ACC-20). `translateX`
+   est physique : la translation vers la droite sortait la poignée cochée de sa
+   piste, et l'état on/off ne se lisait plus. `:dir()` suit l'attribut `dir`
+   hérité, où qu'il soit posé. */
+.opale-toggle-thumb:dir(rtl) {
+  --opale-inline-direction: -1;
+}
+
+/* LA CASE « MIXTE » (DX-12) : l'état `indeterminate` du natif, posé par la
+   prop du même nom. Un tiret sur l'aplat de la case cochée — c'est le motif
+   que tout système reconnaît pour « une partie seulement ». Déclarée APRÈS la
+   coche, sous verre comme sans : un natif à la fois coché et indéterminé se
+   montre indéterminé, comme le fait le navigateur. */
+.opale-checkbox:indeterminate + .opale-checkbox-mark,
+.opale-checkbox:indeterminate + * .opale-checkbox-mark {
+  background: var(--opale-primary);
+  color: var(--opale-on-fill);
+}
+.opale-checkbox:indeterminate + .opale-checkbox-mark::before,
+.opale-checkbox:indeterminate + * .opale-checkbox-mark::before {
+  content: '−';
+  font-size: var(--opale-text-xs);
+  font-weight: 700;
 }
 
 /* =============================================================================
@@ -1973,7 +2205,14 @@
   opacity: 0;
   border-radius: var(--opale-radius-pill);
   background: var(--opale-surface);
-  box-shadow: var(--opale-shadow-1);
+  /* LE FILET DE CHAMP EST LE REPÈRE, L'OMBRE N'EST QUE LE RELIEF (ACC-03).
+     La pastille blanche ne tenait que 1,19:1 sur la piste, et le libellé
+     retenu ne changeait que de teinte : en niveaux de gris, rien ne disait
+     quel segment était choisi. Le bord des champs est réglé pour 3:1 sur la
+     surface ; il dessine la silhouette de la pastille sans changer sa taille. */
+  box-shadow:
+    0 0 0 1px var(--opale-field-border),
+    var(--opale-shadow-1);
   pointer-events: none;
   will-change: transform;
 }
@@ -2170,6 +2409,17 @@
   border-radius: 50%;
   animation: opale-spin 0.8s linear infinite;
 }
+/* LE TÉMOIN D'UN BOUTON PREND L'ENCRE DU BOUTON (THM-15). Aux couleurs de la
+   page, il posait un arc primaire sur un aplat primaire : invisible, et seul
+   l'état inactif disait qu'il se passait quelque chose. `currentColor` suit
+   chaque variante, sous verre compris ; `1em` l'accorde à la taille du texte. */
+.opale-button .opale-spinner {
+  width: 1em;
+  height: 1em;
+  border-width: 2px;
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+}
 .opale-progress {
   overflow: hidden;
   height: 0.5rem;
@@ -2266,6 +2516,12 @@
    des couleurs réduite, rien ne dit qu'un maillon est cliquable (WCAG 1.4.1).
    Le soulignement est la marque que la technique G183 attend. */
 .opale-breadcrumb a {
+  /* UNE CIBLE DE 24 PX DE HAUT (ACC-14, WCAG 2.5.8). Le lien mesurait 17 px,
+     à 13 px du séparateur et du maillon voisin. La hauteur minimale agrandit
+     la cible sans toucher au texte ni à l'écart entre maillons. */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
   color: var(--opale-primary-on-surface);
   text-decoration: underline;
   text-underline-offset: 0.2em;
@@ -2570,6 +2826,13 @@
 .opale-table-scroll {
   max-inline-size: 100%;
   overflow-x: auto;
+}
+/* Quand elle déborde, la zone devient un arrêt de tabulation (ACC-13) : elle
+   porte alors l'anneau d'Opale, tiré vers l'intérieur pour ne pas être rogné
+   par un panneau de verre. */
+.opale-table-scroll:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 .opale-table {
   --opale-table-stripe: color-mix(in srgb, var(--opale-primary) 4%, transparent);
@@ -2970,7 +3233,12 @@
   stroke-width: 5;
 }
 .opale-svg-map__selected {
-  fill: none;
+  /* LA SÉLECTION CHANGE L'INTÉRIEUR, LE FOCUS SEULEMENT LE CONTOUR (ACC-11).
+     Un lavis léger de la teinte de sélection se pose sur la région choisie :
+     il reste lisible sous le focus en tirets, qui ne peint aucun intérieur, si
+     bien que les deux états se lisent ensemble sur la même région. À 16 %, la
+     teinte que l'appelant a calculée pour la région reste reconnaissable. */
+  fill: color-mix(in srgb, var(--opale-svg-map-selected) 16%, transparent);
   stroke: var(--opale-svg-map-selected);
   stroke-linejoin: round;
   stroke-width: 2.5;
@@ -2987,6 +3255,12 @@
 .opale-svg-map__focus {
   fill: none;
   stroke: var(--opale-focus);
+  /* LE FOCUS EST EN TIRETS, LA SÉLECTION EN TRAIT PLEIN (ACC-11). Les deux
+     étaient un trait bleu de 2,5 et 3 px : tabuler sur la région déjà choisie
+     ne changeait aucun pixel, et une région focalisée ne se distinguait pas
+     d'une région sélectionnée. Les intervalles laissent voir le halo de la
+     surface, dessous : le tiret se lit sur n'importe quelle teinte. */
+  stroke-dasharray: 6 4;
   stroke-linejoin: round;
   stroke-width: 3;
 }
@@ -3006,6 +3280,45 @@
   position: absolute;
   inset-block-start: var(--opale-space-sm);
   inset-inline-end: var(--opale-space-sm);
+}
+/* LES FLÈCHES DE DÉPLACEMENT FORMENT UNE CROIX, SOUS LES BOUTONS DE ZOOM.
+   Au clavier, les régions se parcourent aux flèches ; les boutons donnent le
+   même déplacement à qui pointe sans glisser (WCAG 2.5.7). La croix place
+   chaque flèche dans le sens où elle déplace la vue, ce qui se lit sans
+   libellé.
+
+   ELLE RESTE EN GAUCHE À DROITE, même dans une page écrite de droite à
+   gauche : la flèche gauche déplace la vue vers la gauche du dessin, qui est
+   physique. Une grille retournée mettrait « gauche » à droite.
+
+   SOUS VERRE, LA CLASSE DE ZONE EST SUR LE CONTENU, pas sur l'enveloppe : le
+   bouton de verre pose `className` sur son contenu. L'élément de grille est
+   alors l'enveloppe, reconnue à l'enfant qui porte la classe. */
+.opale-svg-map-controls__pan {
+  display: grid;
+  grid-template-areas:
+    '. up .'
+    'left . right'
+    '. down .';
+  gap: var(--opale-space-2xs);
+  margin-block-start: var(--opale-space-2xs);
+  direction: ltr;
+}
+.opale-svg-map-controls__pan-up,
+.opale-svg-map-controls__pan > :has(> .opale-svg-map-controls__pan-up) {
+  grid-area: up;
+}
+.opale-svg-map-controls__pan-left,
+.opale-svg-map-controls__pan > :has(> .opale-svg-map-controls__pan-left) {
+  grid-area: left;
+}
+.opale-svg-map-controls__pan-right,
+.opale-svg-map-controls__pan > :has(> .opale-svg-map-controls__pan-right) {
+  grid-area: right;
+}
+.opale-svg-map-controls__pan-down,
+.opale-svg-map-controls__pan > :has(> .opale-svg-map-controls__pan-down) {
+  grid-area: down;
 }
 /* SOUS 30 REM D'ÉCRAN, L'INVITE ET LES COMMANDES PASSENT SOUS LE DESSIN.
    Posées dessus, sur une carte de 200 px de large, elles en couvraient plus
@@ -3034,11 +3347,22 @@
     min-inline-size: 0;
     max-inline-size: none;
   }
+  /* EN RANGÉE, LA CROIX EST PLUS HAUTE QUE LES BOUTONS DE ZOOM : ils
+     s'alignent en haut, et la croix passe à la ligne plutôt que de pousser
+     la carte hors de l'écran (WCAG 1.4.10) — d'où une rangée qui peut se
+     resserrer, là où `flex: none` la laissait déborder. Son écart vient de la
+     rangée. */
   .opale-svg-map__controls {
     position: static;
-    flex: none;
+    flex: 0 1 auto;
+    min-inline-size: 0;
     flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
     margin-inline-start: auto;
+  }
+  .opale-svg-map__controls .opale-svg-map-controls__pan {
+    margin-block-start: 0;
   }
 }
 .opale-svg-map-controls [aria-disabled='true'] {
@@ -3116,6 +3440,10 @@
   font-size: var(--opale-text-sm);
 }
 .opale-legal-links a {
+  /* Même cible de 24 px que le fil d'Ariane (ACC-14). */
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
   color: inherit;
 }
 
@@ -3439,6 +3767,18 @@
   opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
+/* LE FOCUS DE LA PAGINATION EST CELUI D'OPALE, ET IL EST DÉCALÉ (ACC-02).
+
+   Aucune règle ne le posait : le bouton gardait l'anneau du navigateur, un
+   filet bleu de 1 px, invisible sur l'aplat primaire de la page courante. Or
+   c'est précisément là que le composant RAMÈNE le focus quand « Précédente »
+   ou « Suivante » devient inactive : au clavier, on arrivait sur la dernière
+   page sans rien voir. Décalé, l'anneau se lit sur le fond de la page et non
+   sur l'aplat qu'il entoure. */
+.opale-pagination button:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
 
 /* LA NOTE, LE LIEN, LE FIL D'ARIANE ET LA PAGINATION SOUS VERRE. L'enveloppe
    épouse le contenu ; le contenu garde sa balise et son rôle, et prend l'encre
@@ -3478,6 +3818,13 @@
   border-color: color-mix(in srgb, var(--opale-glass-ink) 32%, transparent);
   background: color-mix(in srgb, var(--opale-glass-ink) 10%, transparent);
   color: var(--opale-glass-ink);
+}
+/* Sous verre, l'enveloppe clôt sa boîte (`overflow: hidden`) : un anneau
+   extérieur serait rogné par elle. Il passe à l'intérieur, à l'encre du
+   matériau, qui contraste avec l'aplat primaire comme avec le lavis. */
+.opale-pagination--glass button:focus-visible {
+  outline-color: var(--opale-glass-ink);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 .opale-rating-input {
   margin: 0;
@@ -3541,5 +3888,104 @@
   }
   .opale-pagination button[data-neighbor='true'] {
     display: none;
+  }
+}
+
+/* =============================================================================
+   CONTRASTES FORCÉS (ACC-04).
+
+   Sous Windows en contraste élevé, le navigateur remplace les fonds peints par
+   la couleur du canevas et efface les ombres. Tout ce qu'Opale dessinait par
+   un `background` ou une `box-shadow` disparaissait donc : l'interrupteur
+   entier, état compris, la piste et la valeur de la progression, la pastille
+   du segment retenu, l'aplat de la page courante, et le halo de focus du
+   verre, qui n'est qu'une ombre. Les anneaux en `outline`, eux, survivaient.
+
+   CE BLOC REND CES REPÈRES EN COULEURS SYSTÈME. `forced-color-adjust: none`
+   n'est posé que là où Opale peint elle-même la paire de couleurs système,
+   donc là où le contraste est garanti par le système et non par la feuille.
+   Hors de ce mode, rien ne change.
+   ========================================================================== */
+@media (forced-colors: active) {
+  /* L'interrupteur : une piste cernée, une poignée à l'encre du système ; coché,
+     la piste prend la couleur de sélection et la poignée son encre. */
+  .opale-toggle-track {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  /* La piste de verre reprend la même peau, APRÈS la piste pleine : à
+     spécificité égale, la dernière règle gagne (garde de
+     `opale-liquid-glass.test.tsx`). */
+  .opale-toggle-track--glass {
+    background: Canvas;
+  }
+  .opale-toggle-thumb {
+    forced-color-adjust: none;
+    background: CanvasText;
+    box-shadow: none;
+  }
+  .opale-toggle:checked + .opale-toggle-track,
+  .opale-toggle:checked + * .opale-toggle-track {
+    border-color: Highlight;
+    background: Highlight;
+  }
+  .opale-toggle:checked + .opale-toggle-track .opale-toggle-thumb,
+  .opale-toggle:checked + * .opale-toggle-track .opale-toggle-thumb {
+    background: HighlightText;
+  }
+
+  /* La progression : la rainure cernée, la valeur en couleur de sélection,
+     sous verre comme sans. */
+  .opale-progress {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  .opale-progress__value,
+  [data-opale-glass] .opale-progress__value {
+    background: Highlight;
+  }
+
+  /* Le segment, la page courante : l'aplat de sélection du système sous
+     l'encre qui l'accompagne. */
+  .opale-segmented__indicator,
+  [data-opale-glass] .opale-segmented__indicator {
+    forced-color-adjust: none;
+    background: Highlight;
+    box-shadow: none;
+  }
+  .opale-segmented__item[aria-pressed='true'],
+  [data-opale-glass] .opale-segmented__item[aria-pressed='true'],
+  .opale-segmented--glass .opale-segmented__item[aria-pressed='true'] {
+    forced-color-adjust: none;
+    color: HighlightText;
+  }
+  .opale-pagination button[aria-current='page'] {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+  /* Soustraite à l'ajustement, la page courante garderait l'anneau saphir
+     d'Opale : l'anneau extérieur prend l'encre du canevas, l'anneau intérieur
+     du verre celle de la sélection, sur laquelle il est tracé. */
+  .opale-pagination button[aria-current='page']:focus-visible {
+    outline-color: CanvasText;
+  }
+  .opale-pagination--glass button[aria-current='page']:focus-visible {
+    outline-color: HighlightText;
+  }
+
+  /* LE VERRE FOCALISÉ RETROUVE UN ANNEAU. Son indicateur est un halo en
+     `box-shadow`, que ce mode efface : au clavier, un champ ou un bouton de
+     verre ne montrait plus rien. L'anneau se pose sur l'enveloppe, que son
+     propre `overflow: hidden` ne rogne pas. */
+  [data-opale-glass]:has(:focus-visible),
+  [data-opale-glass][data-opale-glass-focus='true'],
+  .opale-checkbox:focus-visible + [data-opale-glass],
+  .opale-toggle:focus-visible + [data-opale-glass] {
+    outline: var(--opale-focus-ring-width) solid CanvasText;
+    outline-offset: var(--opale-focus-ring-offset);
   }
 }

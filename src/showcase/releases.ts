@@ -49,6 +49,60 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V393_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Lisible partout',
+    changes: [
+      {
+        title: 'Du verre sur une page claire',
+        detail:
+          'data-opale-glass-ink="page" sur un ancêtre donne au verre l’encre de la page : champs, onglets, erreurs et boutons pleins restent lisibles sur un fond clair uni. Sans backdrop-filter, le verre prend un lavis plus dense. Le verre par défaut ne change pas, sauf les toasts de verre, dont l’encre suit enfin leur couleur de ton (illisibles en sombre jusqu’ici).',
+        links: [{ label: 'Le verre liquide', slug: 'verre-liquide' }],
+      },
+      {
+        title: 'Les états ne tiennent plus à la seule couleur',
+        detail:
+          'L’onglet retenu est souligné, la page courante de Pagination a son anneau de focus, et en contrastes forcés Windows l’interrupteur, la progression, le segment, l’onglet, la page et l’entrée de Sidebar retenus restent visibles.',
+        links: [{ label: 'Tabs', slug: 'composants/tabs' }],
+      },
+    ],
+  },
+  {
+    title: 'Au clavier et à l’oreille',
+    changes: [
+      {
+        title: 'Le focus ne se perd plus',
+        detail:
+          'Un bouton en chargement garde le focus et l’annonce (« Chargement en cours », traduisible) sans pouvoir être activé ; fermer un toast ou accepter le bandeau de cookies rend le focus d’où il venait ; Échap ferme Menu.',
+        links: [{ label: 'Button', slug: 'composants/opale-button' }],
+      },
+      {
+        title: 'Ce qui change est annoncé',
+        detail:
+          'Un Toast rendu à la demande est bien lu, la recherche de PageScaffold annonce le nombre de suggestions, et l’option active de CommandPalette reste à l’écran au clavier.',
+        links: [{ label: 'CommandPalette', slug: 'composants/opale-command-palette' }],
+      },
+      {
+        title: 'Moins de gestes précis',
+        detail:
+          'SvgMap zoomée se déplace aussi par des flèches ; le rail replié de Sidebar montre une infobulle au survol et au focus, fermée par Échap ; les liens du fil d’Ariane font 24 px ; SiteNav tient à 320 px, même sans reset box-sizing chez l’hôte, et contraste en sombre ; l’interrupteur coché fonctionne de droite à gauche.',
+        links: [{ label: 'Sidebar', slug: 'composants/sidebar' }],
+      },
+    ],
+  },
+  {
+    title: 'Ajouts',
+    changes: [
+      {
+        title: 'Quelques options de plus, toutes facultatives',
+        detail:
+          'Checkbox indeterminate, Layout mainAs, SvgMap panControls, labels sur Button et SearchBar ; Slider non contrôlé affiche sa valeur, DataTable qui défile se parcourt au clavier, et un nom manquant est signalé en développement sur plus de composants.',
+        links: [{ label: 'Layout', slug: 'composants/opale-layout' }],
+      },
+    ],
+  },
+];
+
 const V392_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Dialogues et toasts',
@@ -951,6 +1005,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.9.3',
+    publishedAt: '2026-09-30',
+    dateLabel: '30 septembre 2026',
+    summary:
+      'Accessible partout : du verre lisible sur une page claire, des états visibles en contrastes forcés, un focus qui ne se perd plus et des changements annoncés. Sans rupture.',
+    sections: V393_RELEASE_SECTIONS,
+    changes: V393_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Verre lisible sur une page claire.', 'Contrastes forcés pris en charge.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.9.2',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
@@ -961,8 +1029,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Hydratation Next.js sans erreur.', 'Deux dialogues ne figent plus la page.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.9.3, sur son tag. */
+    appHref: '/versions/v3.9.2/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.9.2`,
   },
   {
     version: '3.9.1',

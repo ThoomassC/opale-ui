@@ -422,7 +422,11 @@ describe('API et exemples du catalogue', () => {
     await user.selectOptions(screen.getByLabelText('Taille'), 'large');
     await user.click(screen.getByRole('checkbox', { name: 'Chargement' }));
     await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
-    expect(screen.getByRole('button', { name: 'Essai configuré' })).toBeDisabled();
+    /* En chargement, le bouton reste focalisable et garde son nom : il se dit
+       occupé et indisponible au lieu d'être désactivé (ACC-09). */
+    const trial = screen.getByRole('button', { name: 'Essai configuré' });
+    expect(trial).toHaveAttribute('aria-disabled', 'true');
+    expect(trial).toHaveAccessibleDescription('Chargement en cours');
     expect(
       screen.getByRole('group', { name: 'Exemple Button, défilement horizontal' }),
     ).toHaveTextContent('<Button variant="danger" size="large" loading>Essai configuré</Button>');

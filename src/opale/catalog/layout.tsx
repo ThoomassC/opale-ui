@@ -34,13 +34,29 @@ export interface LayoutProps extends ComponentPropsWithRef<'div'> {
   navigation?: ReactNode;
   children?: ReactNode;
   className?: string;
+  /**
+   * La balise de la zone de contenu. Défaut : `main`. Passez `div` quand la
+   * page a déjà son `<main>` — une application hôte, un `PageScaffold` —,
+   * comme la prop du même nom de `PageScaffold`.
+   */
+  mainAs?: 'main' | 'div';
 }
 
-export function Layout({ navigation, children, className, ...rest }: LayoutProps) {
+export function Layout({
+  navigation,
+  children,
+  className,
+  mainAs: Main = 'main',
+  ...rest
+}: LayoutProps) {
+  /* UN SEUL <main> PAR PAGE (ACC-17). Layout imposait le sien : posé dans une
+     application qui en avait déjà un, il en créait un second, imbriqué — deux
+     repères « principal » que rien ne distingue. La classe reste la même dans
+     les deux cas. */
   return (
     <div {...rest} className={clsx('opale-layout', className)}>
       {navigation}
-      <main className="opale-layout__content">{children}</main>
+      <Main className="opale-layout__content">{children}</Main>
     </div>
   );
 }

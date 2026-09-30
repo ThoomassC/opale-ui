@@ -1,6 +1,7 @@
 /* La carte SVG interactive et ses commandes de zoom. */
 
 import {
+  useCallback,
   useId,
   useLayoutEffect,
   useMemo,
@@ -20,7 +21,8 @@ import {
 } from '../components/svg-map';
 import { pathBounds, type Bounds } from '../components/svg-map/path-bounds';
 import { useSvgMapGestures } from '../components/svg-map/useSvgMapGestures';
-import { parseViewBox as parseSvgViewBox } from '../components/svg-map/viewport';
+import { parseViewBox as parseSvgViewBox, zoomOf } from '../components/svg-map/viewport';
+import { holdsFocus } from '../shared/focus-return';
 import { resolveLabels } from '../shared/labels';
 import { Surface } from './shells';
 import { IconActionButton } from './forms';
@@ -84,6 +86,21 @@ export interface SvgMapControlsLabels {
   zoomOut: string;
   /** Défaut : « Vue d’ensemble ». */
   reset: string;
+  /*
+   * LES CLÉS DU DÉPLACEMENT SONT OPTIONNELLES, et c'est ce qui garde l'ajout
+   * compatible : un appelant qui construisait un `SvgMapControlsLabels`
+   * complet compile encore. Omises, elles gardent leur défaut français.
+   */
+  /** Le nom du groupe des flèches. Défaut : « Déplacement ». */
+  pan?: string;
+  /** Défaut : « Déplacer vers le haut ». */
+  panUp?: string;
+  /** Défaut : « Déplacer vers le bas ». */
+  panDown?: string;
+  /** Défaut : « Déplacer vers la gauche ». */
+  panLeft?: string;
+  /** Défaut : « Déplacer vers la droite ». */
+  panRight?: string;
 }
 
 /** Les textes d'une carte ; les clés des commandes vont aux boutons de zoom intégrés. */
@@ -98,11 +115,16 @@ export interface SvgMapLabels extends SvgMapControlsLabels {
   instructionsSelectable: string;
 }
 
-const DEFAULT_SVG_MAP_CONTROLS_LABELS: SvgMapControlsLabels = {
+const DEFAULT_SVG_MAP_CONTROLS_LABELS: Required<SvgMapControlsLabels> = {
   group: 'Zoom',
   zoomIn: 'Zoomer',
   zoomOut: 'Dézoomer',
   reset: 'Vue d’ensemble',
+  pan: 'Déplacement',
+  panUp: 'Déplacer vers le haut',
+  panDown: 'Déplacer vers le bas',
+  panLeft: 'Déplacer vers la gauche',
+  panRight: 'Déplacer vers la droite',
 };
 
 const DEFAULT_SVG_MAP_LABELS: SvgMapLabels = {
@@ -165,6 +187,14 @@ export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelec
   readonly maxHeight?: string;
   /** Boutons de zoom intégrés. */
   readonly controls?: boolean;
+  /**
+   * Flèches de déplacement dans les commandes intégrées, affichées une fois la
+   * carte zoomée (WCAG 2.5.7) : sans elles, atteindre un coin d'une carte
+   * zoomée exigeait un glissement. Défaut : `true`. Sans effet quand
+   * `controls` est faux — un appelant qui pose ses propres `SvgMapControls`
+   * les demande par leur prop `pan`.
+   */
+  readonly panControls?: boolean;
   /** Déplacement, en pixels, au-delà duquel un contact devient un glissement. */
   readonly tapTolerance?: number;
   /** Zoom à la molette : avec Ctrl ou ⌘ par défaut, toujours, ou jamais. */
@@ -184,6 +214,9 @@ export interface SvgMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelec
 }
 
 const SVG_MAP_DEFAULT_STEP = 1.6;
+
+/** Le pas d'un déplacement, clavier ou flèche : un cinquième de la vue. */
+const SVG_MAP_PAN_STEP = 0.2;
 
 /** La direction de chaque flèche, en unités de la vue. */
 const SVG_MAP_ARROWS: Readonly<Record<string, readonly [number, number]>> = {
@@ -208,6 +241,7 @@ export function SvgMap({
   maxWidth,
   maxHeight,
   controls = true,
+  panControls = true,
   tapTolerance = 6,
   wheel = 'modifier',
   overlay,
@@ -361,8 +395,12 @@ export function SvgMap({
     const pan = SVG_MAP_ARROWS[event.key];
     if (pan && (event.shiftKey || event.target === svgRef.current)) {
       event.preventDefault();
-      const view = viewport.getView();
-      viewport.panBy(pan[0] * view.width * 0.2, pan[1] * view.height * 0.2);
+      /* Le pas se mesure sur la vue d'arrivée, d'où part le déplacement. */
+      const view = viewport.target ?? viewport.getView();
+      viewport.panBy(
+        pan[0] * view.width * SVG_MAP_PAN_STEP,
+        pan[1] * view.height * SVG_MAP_PAN_STEP,
+      );
       return;
     }
     if (event.key === '+' || event.key === '=') {
@@ -580,6 +618,7 @@ export function SvgMap({
           viewport={viewport}
           liquidGlass={liquidGlass}
           labels={labels}
+          pan={panControls}
           className="opale-svg-map__controls"
         />
       )}
@@ -618,22 +657,78 @@ export interface SvgMapControlsProps extends Omit<ComponentPropsWithRef<'div'>, 
   readonly step?: number;
   /** Remplace les textes français par défaut, clé par clé. */
   readonly labels?: Partial<SvgMapControlsLabels>;
+  /**
+   * Ajoute les flèches de déplacement, affichées une fois la vue zoomée.
+   * Défaut : `false` ici — une barre posée par l'appelant garde la forme
+   * qu'il lui a donnée ; `SvgMap` les demande pour ses commandes intégrées.
+   */
+  readonly pan?: boolean;
   readonly liquidGlass?: boolean;
   readonly className?: string;
 }
+
+/** Les quatre flèches : direction en unités de la vue, glyphe, clé de libellé. */
+const SVG_MAP_PAN_BUTTONS = [
+  { key: 'panUp', direction: [0, -1], icon: 'arrow-up', area: 'up' },
+  { key: 'panLeft', direction: [-1, 0], icon: 'arrow-left', area: 'left' },
+  { key: 'panRight', direction: [1, 0], icon: 'arrow-right', area: 'right' },
+  { key: 'panDown', direction: [0, 1], icon: 'arrow-down', area: 'down' },
+] as const;
+
+/* Une vue « au bord » l'est à un millième d'unité près : les vues animées et
+   bornées ne tombent pas exactement sur le bord du dessin. */
+const SVG_MAP_EDGE_EPSILON = 1e-3;
 
 export function SvgMapControls({
   viewport,
   step = SVG_MAP_DEFAULT_STEP,
   labels: labelsProp,
+  pan = false,
   liquidGlass = false,
   className,
   ...rest
 }: SvgMapControlsProps) {
-  const labels = resolveLabels(DEFAULT_SVG_MAP_CONTROLS_LABELS, labelsProp);
+  const labels = resolveLabels<Required<SvgMapControlsLabels>>(
+    DEFAULT_SVG_MAP_CONTROLS_LABELS,
+    labelsProp,
+  );
   const act = (enabled: boolean, run: () => void) => () => {
     if (enabled) run();
   };
+
+  /* LES FLÈCHES SUIVENT LA VUE VISÉE, PAS LA VUE PEINTE. Elles apparaissent
+     au clic sur « Zoomer » et disparaissent au retour à la vue d'ensemble,
+     pas 280 ms plus tard à la fin de la transition — et une flèche cliquée
+     pendant un retour animé n'interrompt pas ce retour à mi-course.
+
+     `target` MANQUE À UNE VUE CONSTRUITE À LA MAIN — il est arrivé en 3.9.3 :
+     on retombe alors sur la vue peinte. Et rien n'est lu tant que les
+     flèches ne sont pas demandées. */
+  const base = useMemo(() => parseSvgViewBox(viewport.viewBox), [viewport.viewBox]);
+  const target = pan ? (viewport.target ?? viewport.view) : undefined;
+  const room =
+    target && zoomOf(target, base) > 1.001
+      ? {
+          up: target.y > base.y + SVG_MAP_EDGE_EPSILON,
+          down: target.y + target.height < base.y + base.height - SVG_MAP_EDGE_EPSILON,
+          left: target.x > base.x + SVG_MAP_EDGE_EPSILON,
+          right: target.x + target.width < base.x + base.width - SVG_MAP_EDGE_EPSILON,
+        }
+      : null;
+
+  /* LES FLÈCHES DISPARAISSENT PARFOIS SOUS LE FOCUS — « 0 » tapé sur l'une
+     d'elles, ou une vue d'ensemble demandée de l'extérieur. Le focus serait
+     retombé sur `<body>` (WCAG 2.4.3) ; il va à « Vue d’ensemble », le bouton
+     qui vient d'agir et qui reste en place. Le nettoyage d'une `ref` passe
+     AVANT le retrait du nœud : le focus y est encore, on peut le voir. La
+     `ref` est stable, sans quoi son nettoyage courrait à chaque rendu. */
+  const resetRef = useRef<HTMLButtonElement>(null);
+  const panGroupRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return undefined;
+    return () => {
+      if (holdsFocus(node)) resetRef.current?.focus();
+    };
+  }, []);
 
   return (
     <div
@@ -661,6 +756,7 @@ export function SvgMapControls({
         )}
       />
       <IconActionButton
+        ref={resetRef}
         icon="home"
         label={labels.reset}
         size="small"
@@ -668,6 +764,37 @@ export function SvgMapControls({
         aria-disabled={viewport.zoomed ? undefined : true}
         onClick={act(viewport.zoomed, () => viewport.reset())}
       />
+      {target && room && (
+        <div
+          ref={panGroupRef}
+          role="group"
+          aria-label={labels.pan}
+          className="opale-svg-map-controls__pan"
+        >
+          {SVG_MAP_PAN_BUTTONS.map(({ key, direction: [dx, dy], icon, area }) => (
+            <IconActionButton
+              key={key}
+              icon={icon}
+              label={labels[key]}
+              size="small"
+              liquidGlass={liquidGlass}
+              className={`opale-svg-map-controls__pan-${area}`}
+              /* AU BORD DU DESSIN, LA FLÈCHE RESTE EN PLACE, `aria-disabled`,
+                 comme les boutons de zoom : un bouton qui disparaît sous le
+                 focus jette le clavier en haut de la page. */
+              aria-disabled={room[area] ? undefined : true}
+              onClick={act(room[area], () => {
+                /* Le pas se mesure sur la vue d'arrivée, d'où part le
+                   déplacement : celle que les flèches lisent. */
+                viewport.panBy(
+                  dx * target.width * SVG_MAP_PAN_STEP,
+                  dy * target.height * SVG_MAP_PAN_STEP,
+                );
+              })}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

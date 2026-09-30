@@ -509,13 +509,34 @@ function hasAccessibleName(element: HTMLElement): boolean {
   return Array.from(labels ?? []).some((label) => label.textContent?.trim());
 }
 
+/* LE MÊME CONTRÔLE POUR SIX AUTRES COMPOSANTS (ACC-21). Seul l'interrupteur
+   était vérifié ; une ProgressBar sans `label`, un Modal sans titre, une case,
+   une liste ou un curseur sans libellé passaient sans un mot. Chaque entrée
+   donne le nom de l'objet, tel qu'on le dit en français, et les props qui le
+   nomment. */
+const UNNAMED_CONTROLS = {
+  Toggle: { noun: 'l’interrupteur', hint: '`label`, `aria-label` ou `aria-labelledby`' },
+  ProgressBar: {
+    noun: 'la barre de progression',
+    hint: '`label`, `aria-label` ou `aria-labelledby`',
+  },
+  Modal: { noun: 'le dialogue', hint: '`title`, `aria-label` ou `aria-labelledby`' },
+  Checkbox: { noun: 'la case', hint: '`label`, `aria-label` ou `aria-labelledby`' },
+  MultiSelect: { noun: 'la liste de choix', hint: '`label`, `aria-label` ou `aria-labelledby`' },
+  Slider: { noun: 'le curseur', hint: '`label`, `aria-label` ou `aria-labelledby`' },
+  Select: { noun: 'la liste déroulante', hint: '`label`, `aria-label` ou `aria-labelledby`' },
+} as const;
+
+/** Les composants dont le nom accessible est vérifié en développement. */
+export type NamedControl = keyof typeof UNNAMED_CONTROLS;
+
 /** Avertit, une fois et en développement, qu'un contrôle n'a pas de nom accessible. */
-export function warnIfUnnamed(component: 'Toggle', element: HTMLElement): void {
+export function warnIfUnnamed(component: NamedControl, element: HTMLElement): void {
   if (!isDevelopment() || hasAccessibleName(element)) return;
+  const { noun, hint } = UNNAMED_CONTROLS[component];
   warnOnce(
     `${component}#name`,
-    `[Opale] ${component} : l’interrupteur n’a pas de nom accessible — ` +
-      'donnez-lui `label`, `aria-label` ou `aria-labelledby`.',
+    `[Opale] ${component} : ${noun} n’a pas de nom accessible — donnez-lui ${hint}.`,
   );
 }
 

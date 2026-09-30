@@ -16,6 +16,7 @@ import Glass from '../components/glass/Glass';
 import { Modal, type ModalLabels } from '../components/modal';
 import toastMotion from '../components/toast/style/Toast.module.css';
 import { warnDeprecatedProps } from '../deprecations';
+import { rememberFocusOrigin, returnFocus } from '../shared/focus-return';
 import { resolveLabels } from '../shared/labels';
 import { useControllableState, useOptionalState } from '../shared/use-controllable-state';
 import { useScrollPadding } from '../shared/use-scroll-padding';
@@ -142,8 +143,23 @@ export function Menu({
   className,
   children,
   liquidGlass = false,
+  onKeyDown,
   ...rest
 }: MenuProps) {
+  /* ÉCHAP REFERME (ACC-23). Le nom « Menu » fait attendre Échap, et le
+     `<details>` natif l'ignore. Ouvert, il se referme et rend le focus au
+     `<summary>`, qui l'a ouvert. Échap est alors consommé — `preventDefault`,
+     que `Modal` respecte, et plus de propagation — pour qu'une modale
+     englobante ne se ferme pas avec lui. Fermé, Échap passe son chemin. */
+  const handleKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
+    onKeyDown?.(event);
+    const details = event.currentTarget;
+    if (event.key !== 'Escape' || event.defaultPrevented || !details.open) return;
+    event.preventDefault();
+    event.stopPropagation();
+    details.open = false;
+    details.querySelector<HTMLElement>(':scope > summary')?.focus();
+  };
   const classes = clsx(
     'opale-surface',
     liquidGlass && 'opale-surface--glass',
@@ -163,14 +179,21 @@ export function Menu({
 
   if (liquidGlass) {
     return (
-      <Glass {...rest} as="details" className={classes} rootClassName="opale-surface--glass-root">
+      <Glass
+        {...rest}
+        as="details"
+        className={classes}
+        rootClassName="opale-surface--glass-root"
+        onKeyDown={handleKeyDown}
+      >
         {content}
       </Glass>
     );
   }
 
   return (
-    <details {...rest} className={classes}>
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Échap délégué depuis les contrôles du panneau, voir `handleKeyDown`
+    <details {...rest} className={classes} onKeyDown={handleKeyDown}>
       {content}
     </details>
   );
@@ -381,6 +404,14 @@ export function CommandPalette({
     const step = event.key === 'ArrowDown' ? 1 : -1;
     const next = enabledItems[(index + step + enabledItems.length) % enabledItems.length];
     setActiveId(next.id);
+    /* L'OPTION ACTIVE RESTE À L'ÉCRAN (ACC-05). Le focus reste dans la
+       recherche : l'option n'est désignée que par `aria-activedescendant`, et
+       sa surbrillance est la seule marque visible. Sans défilement, elle
+       sortait du dialogue après une douzaine de flèches. `nearest` ne bouge
+       rien tant qu'elle est déjà visible. L'option existe déjà dans le DOM —
+       seule sa marque change —, donc on peut la viser tout de suite. */
+    const option = document.getElementById(optionId(next));
+    if (typeof option?.scrollIntoView === 'function') option.scrollIntoView({ block: 'nearest' });
   };
   const combobox = items
     ? ({
@@ -637,7 +668,13 @@ export function CookieBanner({
     return () => window.clearTimeout(timeout);
   }, [leaving]);
 
+  /* LE CHOIX REND LE FOCUS (ACC-10). Le bandeau devient inerte dès le clic,
+     puis se retire : le bouton pressé perdait le focus, qui tombait sur
+     <body>. Il retourne à l'élément d'où il était entré dans le bandeau —
+     AVANT l'inertie, qui l'expulserait sinon. */
+  const focusOrigin = useRef<HTMLElement | null>(null);
   const decide = (choice: CookieConsent) => {
+    returnFocus(anchorRef.current, focusOrigin.current);
     if (storageKey) {
       try {
         window.localStorage.setItem(storageKey, choice);
@@ -659,7 +696,11 @@ export function CookieBanner({
     : {};
 
   return (
-    <div ref={anchorRef} className="opale-cookie-banner-anchor">
+    <div
+      ref={anchorRef}
+      className="opale-cookie-banner-anchor"
+      onFocus={(event) => rememberFocusOrigin(event, focusOrigin)}
+    >
       <div
         className={clsx(
           toastMotion.card,
