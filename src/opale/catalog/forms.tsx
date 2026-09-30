@@ -15,6 +15,7 @@ import {
   type ComponentPropsWithRef,
   type FocusEvent,
   type KeyboardEvent,
+  type MouseEvent,
   type OptionHTMLAttributes,
   type ReactNode,
 } from 'react';
@@ -25,6 +26,7 @@ import SearchBar from '../components/search-bar/SearchBar';
 import { IconGlyph, type OpaleIconName } from '../components/icon';
 import type { OpaleSize } from '../shared';
 import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
+import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import { useControllableState, useOptionalState } from '../shared/use-controllable-state';
 import { FieldShell, FieldError } from './shells';
@@ -59,14 +61,57 @@ function hasContent(node: ReactNode): boolean {
   return node !== undefined && node !== null && node !== false && node !== '';
 }
 
+/* Les gestionnaires qu'un bouton `disabled` natif ne recevait jamais : ceux-là
+   seuls se taisent pendant `loading`. Le focus et sa perte restent vécus. */
+const BUSY_SILENCED_HANDLER =
+  /^on(?:Click|DoubleClick|AuxClick|Pointer(?:Down|Up)|Mouse(?:Down|Up)|Key(?:Down|Up|Press))(?:Capture)?$/;
+
+function withoutActivationHandlers<T extends object>(props: T): T {
+  const kept = { ...props };
+  for (const key of Object.keys(kept)) {
+    if (BUSY_SILENCED_HANDLER.test(key)) Reflect.deleteProperty(kept, key);
+  }
+  return kept;
+}
+
+/** Les textes d'un bouton. */
+export interface ButtonLabels {
+  /**
+   * La description du bouton pendant `loading` — son nom, lui, ne change pas.
+   * Défaut : « Chargement en cours ».
+   */
+  loading: string;
+}
+
+const DEFAULT_BUTTON_LABELS: ButtonLabels = {
+  loading: 'Chargement en cours',
+};
+
 export interface ButtonProps extends ComponentPropsWithRef<'button'> {
   variant?: ButtonVariant;
   size?: OpaleSize;
+  /**
+   * Bloque l'action et affiche une progression. Le bouton reste FOCALISABLE :
+   * il porte `aria-disabled="true"` et `aria-busy="true"` au lieu de
+   * `disabled`, ignore les clics et ne soumet pas son formulaire. Son nom ne
+   * change pas : `labels.loading` le DÉCRIT (`aria-describedby`). Comme sous
+   * `disabled`, ni les gestionnaires d'appui de l'appelant (clic, pointeur,
+   * souris, clavier) ni ceux de ses parents ne voient l'activation ; le focus
+   * et sa perte, eux, restent vécus.
+   */
   loading?: boolean;
   startIcon?: ReactNode;
   endIcon?: ReactNode;
   fullWidth?: boolean;
+  /**
+   * Rend le bouton sur le matériau « verre liquide ». L'encre du verre est
+   * BLANCHE par défaut : elle suppose une photographie voilée derrière. Sur
+   * une page claire unie, posez `data-opale-glass-ink="page"` sur la racine
+   * (voir l'en-tête « LE VERRE POSÉ SUR LA PAGE » d'`opale.css`).
+   */
   liquidGlass?: boolean;
+  /** Remplace les textes français par défaut, clé par clé. */
+  labels?: Partial<ButtonLabels>;
 }
 
 /* =============================================================================
@@ -116,14 +161,65 @@ export const Button = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'ref'>>(fu
     endIcon,
     fullWidth = false,
     liquidGlass = false,
+    labels: labelsProp,
     className,
     children,
     disabled,
     type = 'button',
-    ...props
+    onClick,
+    'aria-busy': ariaBusy,
+    'aria-disabled': ariaDisabled,
+    'aria-describedby': ariaDescribedBy,
+    ...callerProps
   },
   ref,
 ) {
+  const labels = resolveLabels(DEFAULT_BUTTON_LABELS, labelsProp);
+  const loadingId = useId();
+  /* LE CHARGEMENT NE DÉSACTIVE PLUS LE BOUTON, ET C'EST LA CORRECTION (ACC-09).
+
+     `disabled` pendant `loading` faisait tomber le focus sur `<body>` dès que
+     le bouton focalisé passait en attente — le cas le plus courant : Entrée
+     sur « Enregistrer ». Le lecteur d'écran ne savait plus où il était, et
+     rien n'annonçait l'attente.
+
+     Le bouton garde donc le focus et devient INACTIF sans être désactivé :
+     `aria-disabled` le dit, `aria-busy` dit pourquoi, et le clic est annulé.
+     Annuler le clic suffit à bloquer le formulaire : la soumission implicite
+     (Entrée dans un champ) passe elle aussi par un clic synthétique sur le
+     bouton par défaut, et `preventDefault` l'arrête au même endroit.
+
+     Un `disabled` explicite garde son sens natif : l'appelant qui désactive
+     vraiment le bouton l'obtient, chargement ou non.
+
+     CE QUE `disabled` TAISAIT SE TAIT ENCORE. Un bouton natif désactivé
+     n'émettait aucun clic : ni `onClick`, ni `<Card onClick>` autour, ni les
+     `onMouseDown`, `onKeyDown`, `onClickCapture` de l'appelant. Pendant
+     l'attente, ces gestionnaires ne sont pas transmis, et le clic — comme
+     Entrée ou Espace, qui l'engendrent — ne remonte plus aux parents. Les
+     autres touches remontent : Échap doit encore fermer la modale. */
+  const busy = loading && !disabled;
+  const props = busy ? withoutActivationHandlers(callerProps) : callerProps;
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    if (busy) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    onClick?.(event);
+  };
+  const handleBusyKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  const stateProps = {
+    'aria-busy': busy ? true : ariaBusy,
+    'aria-disabled': busy ? true : ariaDisabled,
+    'aria-describedby': mergeIds(ariaDescribedBy, loading ? loadingId : null),
+    ...(busy ? { onKeyDown: handleBusyKeyDown, onKeyUp: handleBusyKeyDown } : {}),
+  } as const;
+
   /* LE MÊME CONTENU DANS LES DEUX ÉTATS, et c'est ce qui garantit que le
      commutateur ne change QUE la matière. Une version précédente déléguait à
      un composant tiers qui n'avait ni `loading`, ni `startIcon`, ni
@@ -144,6 +240,16 @@ export const Button = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'ref'>>(fu
         startIcon && <span aria-hidden="true">{startIcon}</span>
       )}
       <span>{children}</span>
+      {/* L'ATTENTE EST DÉCRITE, PAS NOMMÉE, parce que le témoin est décoratif
+          et qu'un nom qui change casse qui le cherche : `getByRole('button',
+          { name: 'Enregistrer' })`, la commande vocale « cliquer Enregistrer ».
+          `hidden` retire le texte du nom calculé à partir du contenu ; une
+          description désignée par `aria-describedby` se lit quand même. */}
+      {loading && (
+        <span id={loadingId} hidden>
+          {labels.loading}
+        </span>
+      )}
       {!loading && endIcon}
     </>
   );
@@ -168,10 +274,12 @@ export const Button = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'ref'>>(fu
         ref={ref}
         className={classes}
         rootClassName={clsx('opale-button--glass-root', fullWidth && 'opale-button--full')}
-        enableLiquidAnimation
-        disabled={disabled || loading}
+        enableLiquidAnimation={!busy}
+        disabled={disabled}
         type={type}
         {...props}
+        {...stateProps}
+        onClick={handleClick}
       >
         {content}
       </Glass>
@@ -179,7 +287,15 @@ export const Button = forwardRef<HTMLButtonElement, Omit<ButtonProps, 'ref'>>(fu
   }
 
   return (
-    <button ref={ref} className={classes} disabled={disabled || loading} type={type} {...props}>
+    <button
+      ref={ref}
+      className={classes}
+      disabled={disabled}
+      type={type}
+      {...props}
+      {...stateProps}
+      onClick={handleClick}
+    >
       {content}
     </button>
   );
@@ -317,8 +433,27 @@ Input.displayName = 'Input';
 export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
   description?: ReactNode;
-  /** L'erreur, annoncée et décrite après la description ; rend la case invalide. */
+  /**
+   * L'erreur, annoncée et décrite après la description ; rend la case invalide.
+   *
+   * Le message est rendu en FRÈRE de la rangée, sans conteneur commun : dans
+   * une grille ou un flex parent, la case et son erreur occupent deux cellules.
+   * C'est le balisage de toute la 3.x et il ne change pas en correctif — un
+   * conteneur déplacerait les sélecteurs et la mise en page des intégrations
+   * existantes. Pour tenir les deux dans une cellule, enveloppez la case.
+   */
   error?: ReactNode;
+  /**
+   * L'état « mixte » d'une case parente (« tout sélectionner » quand une
+   * partie seulement l'est). Posé sur la propriété native `indeterminate`,
+   * que le navigateur expose comme `aria-checked="mixed"`. Il n'existe pas en
+   * attribut HTML : c'est la prop qui le rétablit à chaque rendu, un clic
+   * l'effaçant côté navigateur.
+   *
+   * Absente, la case ne touche pas à la propriété : un état posé par la `ref`
+   * (`ref.current.indeterminate = true`, la seule voie avant la 3.9.3) tient.
+   */
+  indeterminate?: boolean;
   liquidGlass?: boolean;
 }
 
@@ -326,9 +461,11 @@ export function Checkbox({
   label,
   description,
   error,
+  indeterminate,
   liquidGlass = false,
   className,
   onChange,
+  ref,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
   'aria-describedby': ariaDescribedBy,
@@ -353,6 +490,31 @@ export function Checkbox({
   const labelledBy =
     ariaLabelledBy ??
     (ariaLabel === undefined && hasContent(label ?? description) ? labelId : undefined);
+
+  /* `indeterminate` N'EST QU'UNE PROPRIÉTÉ DU DOM : aucun attribut ne la
+     porte, donc elle s'écrit sur le natif, après chaque rendu. L'écrire à
+     chaque fois, et pas seulement quand la prop change, rétablit l'état
+     après un clic — le navigateur l'efface en cochant.
+
+     MAIS SEULEMENT QUAND LA PROP EST LÀ. Avant la 3.9.3, la `ref` était le
+     seul moyen de poser l'état mixte : une valeur par défaut `false`, écrite
+     à chaque rendu, l'effaçait au premier rendu du parent. Sans la prop, la
+     propriété appartient à l'appelant ; on ne l'efface qu'une fois, quand la
+     prop disparaît après avoir été posée. */
+  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRefs = useCallback(
+    (node: HTMLInputElement | null) => mergeRefs(inputRef, ref)(node),
+    [ref],
+  );
+  const indeterminateSet = useRef(false);
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    const wasSet = indeterminateSet.current;
+    indeterminateSet.current = indeterminate !== undefined;
+    if (!input) return;
+    if (indeterminate !== undefined) input.indeterminate = indeterminate;
+    else if (wasSet) input.indeterminate = false;
+  });
 
   /* L'ÉTAT N'A PLUS BESOIN D'ÊTRE RECOPIÉ EN JAVASCRIPT.
 
@@ -383,6 +545,7 @@ export function Checkbox({
         aria-labelledby={labelledBy}
         aria-describedby={describedBy}
         aria-invalid={error ? true : ariaInvalid}
+        ref={inputRefs}
       />
       {/* LA COCHE EST UNE DÉCORATION, sous verre comme sans. La vraie case est
           l'`<input>` natif, invisible et posé sur toute la rangée ; c'est le
@@ -414,7 +577,10 @@ export function Checkbox({
 
 export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label?: ReactNode;
-  /** L'erreur, annoncée et décrite ; rend l'interrupteur invalide. */
+  /**
+   * L'erreur, annoncée et décrite ; rend l'interrupteur invalide. Rendue en
+   * frère de la rangée, comme celle de `Checkbox` : voir sa documentation.
+   */
   error?: ReactNode;
   liquidGlass?: boolean;
   /**
@@ -568,6 +734,11 @@ export function Slider({
   );
   const previous = useRef<number | null>(null);
   const relax = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const valueRef = useRef<HTMLSpanElement>(null);
+  const showValue = (input: HTMLInputElement) => {
+    const display = valueRef.current;
+    if (display && display.textContent !== input.value) display.textContent = input.value;
+  };
 
   /* La position se repose après CHAQUE rendu, sans condition. C'est ce qui
      couvre les cas qu'un gestionnaire d'événement ne voit pas : un curseur
@@ -583,6 +754,7 @@ export function Slider({
     const progress = rangeProgress(input);
     shell.style.setProperty('--opale-range-progress', String(progress));
     previous.current = progress;
+    showValue(input);
     if (getValueText && valueText === undefined && props['aria-valuetext'] === undefined) {
       input.setAttribute('aria-valuetext', getValueText(Number(input.value)));
     }
@@ -617,6 +789,7 @@ export function Slider({
 
       previous.current = progress;
     }
+    showValue(input);
     /* Un curseur libre ne re-rend pas : le texte de valeur suit dans le DOM. */
     if (getValueText && valueText === undefined && props['aria-valuetext'] === undefined) {
       input.setAttribute('aria-valuetext', getValueText(Number(input.value)));
@@ -660,7 +833,17 @@ export function Slider({
               donc elle n'entre plus dans le nom du curseur : la cacher ne
               servirait qu'à la retirer aussi de la lecture ordinaire de la
               page, alors qu'elle est l'information qu'on affiche. */}
-          <span>{valueLabel ?? props.value}</span>
+          {valueLabel !== undefined || props.value !== undefined ? (
+            <span>{valueLabel ?? props.value}</span>
+          ) : (
+            /* LIBRE, LE CURSEUR ÉCRIT SA VALEUR LUI-MÊME (DX-27). `props.value`
+               est absent : l'en-tête restait vide et ne suivait pas le
+               glissement. React ne rend AUCUN enfant ici, et c'est ce qui
+               permet d'y écrire depuis le DOM sans conflit — comme la
+               progression, la valeur suit le natif, qu'elle vienne d'un
+               glissement, de `defaultValue` ou d'une ref de formulaire. */
+            <span ref={valueRef} className="opale-range-value" />
+          )}
         </span>
       )}
       {liquidGlass ? (
@@ -1232,7 +1415,10 @@ export function Autocomplete({ options = [], ...props }: AutocompleteProps) {
     <>
       <Input list={listId} {...props} />
       <datalist id={listId}>
-        {options.map((option) => (
+        {/* UNE SUGGESTION NE S'AFFICHE QU'UNE FOIS (ROB-10). Des options venues
+            d'une API sans dédoublonnage donnaient deux clés React identiques ;
+            deux fois « Paris » dans la liste n'apporte rien à personne. */}
+        {[...new Set(options)].map((option) => (
           <option key={option} value={option} />
         ))}
       </datalist>
