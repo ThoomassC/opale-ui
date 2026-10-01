@@ -50,6 +50,10 @@
 }
 
 .slide {
+  /* Le repère des enfants positionnés : un texte masqué ou un indicateur en
+     `position: absolute` se calerait sinon hors de la piste, et élargirait
+     la page. */
+  position: relative;
   min-inline-size: 0;
   scroll-snap-align: start;
 }

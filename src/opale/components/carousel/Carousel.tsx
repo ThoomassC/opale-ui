@@ -81,6 +81,10 @@ export interface CarouselLabels {
   pause: string;
   /** Le bouton qui la reprend. Défaut : « Lire ». */
   play: string;
+  /** Le rôle annoncé du carrousel. Défaut : « carrousel ». */
+  carousel: string;
+  /** Le rôle annoncé d'une diapositive. Défaut : « diapositive ». */
+  slideKind: string;
 }
 
 const DEFAULT_CAROUSEL_LABELS: CarouselLabels = {
@@ -91,6 +95,8 @@ const DEFAULT_CAROUSEL_LABELS: CarouselLabels = {
   dots: 'Choisir une diapositive',
   pause: 'Mettre en pause',
   play: 'Lire',
+  carousel: 'carrousel',
+  slideKind: 'diapositive',
 };
 
 export interface CarouselProps extends Omit<
@@ -133,6 +139,7 @@ export interface CarouselSlideProps extends ComponentPropsWithRef<'div'> {
 
 interface SlideState {
   readonly label: string;
+  readonly kind: string;
   readonly inert: boolean;
 }
 
@@ -226,7 +233,7 @@ export function CarouselSlide({ className, ref, ...rest }: CarouselSlideProps) {
   return (
     <div
       role="group"
-      aria-roledescription="diapositive"
+      aria-roledescription={slide?.kind ?? DEFAULT_CAROUSEL_LABELS.slideKind}
       aria-label={slide?.label}
       inert={slide?.inert || undefined}
       {...rest}
@@ -551,7 +558,7 @@ export function Carousel({
       {...rest}
       ref={ref}
       role="region"
-      aria-roledescription="carrousel"
+      aria-roledescription={labels.carousel}
       aria-label={label}
       data-dir={measured?.rtl ? 'rtl' : undefined}
       className={clsx('opale-carousel', styles.root, className)}
@@ -617,6 +624,7 @@ export function Carousel({
             key={item.key}
             value={{
               label: labels.slide(index + 1, total),
+              kind: labels.slideKind,
               inert: !!measured && !measured.visible.includes(index),
             }}
           >

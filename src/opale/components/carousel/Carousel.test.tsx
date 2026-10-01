@@ -245,6 +245,28 @@ describe('Carousel — sémantique', () => {
       expect(slide).toHaveAttribute('aria-roledescription', 'diapositive');
   });
 
+  /* Les rôles annoncés se traduisent comme les autres textes : en anglais,
+     « carrousel » et « diapositive » restaient français. */
+  it('traduit les rôles annoncés par `labels`', () => {
+    render(
+      <Carousel label="Projects" labels={{ carousel: 'carousel', slideKind: 'slide' }}>
+        <CarouselSlide>One</CarouselSlide>
+        <CarouselSlide>Two</CarouselSlide>
+      </Carousel>,
+    );
+    expect(screen.getByRole('region', { name: 'Projects' })).toHaveAttribute(
+      'aria-roledescription',
+      'carousel',
+    );
+    for (const slide of slides()) expect(slide).toHaveAttribute('aria-roledescription', 'slide');
+  });
+
+  /* Un enfant en position absolue (texte masqué, indicateur d'onglet) se
+     calait sur un ancêtre hors de la piste et élargissait la page. */
+  it('fait de chaque diapositive le repère de ses enfants positionnés', () => {
+    expect(declaration(sheet, '.slide', 'position')).toBe('relative');
+  });
+
   /* Un fragment est l'enveloppe la plus courante : ses diapositives comptent
      une à une, comme si elles étaient passées directement. */
   it('déplie les fragments et numérote chaque diapositive qu’ils contiennent', () => {
