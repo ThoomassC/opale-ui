@@ -35,8 +35,11 @@
     animation-fill-mode: both;
     animation-timing-function: var(--opale-ease-reveal);
     animation-timeline: view();
-    animation-range: entry 0% entry 80%;
-    animation-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger));
+    /* La cascade décale la plage, de 10 % de l'entrée par rang : un délai en
+       temps n'a pas de sens sur une timeline de défilement, et Chromium
+       l'ignore. */
+    animation-range: entry calc(var(--opale-reveal-index, 0) * 10%)
+      entry calc(80% + var(--opale-reveal-index, 0) * 10%);
   }
 }
 

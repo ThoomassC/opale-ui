@@ -254,7 +254,9 @@ describe('Reveal — feuille', () => {
     expect(native.get('animation-fill-mode')).toBe('both');
     expect(native.get('animation-timing-function')).toBe('var(--opale-ease-reveal)');
     expect(native.get('animation-timeline')).toBe('view()');
-    expect(native.get('animation-range')).toBe('entry 0% entry 80%');
+    expect(native.get('animation-range')).toBe(
+      'entry calc(var(--opale-reveal-index, 0) * 10%) entry calc(80% + var(--opale-reveal-index, 0) * 10%)',
+    );
     expect(declaration(sheet, '.root', 'animation-name')).toBeUndefined();
   });
 
@@ -284,10 +286,15 @@ describe('Reveal — feuille', () => {
     ]);
   });
 
-  it('décale par `delay` la montée native comme le repli', () => {
-    expect(declaration(sheet, '.root', 'animation-delay', { within: nativeContext })).toContain(
-      'var(--opale-reveal-index',
-    );
+  /* Chromium ignore un délai en temps sur une timeline `view()` : la cascade
+     native décale la plage, de 10 % de l'entrée par rang. */
+  it('décale par `delay` la plage de la montée native, pas son délai', () => {
+    expect(
+      declaration(sheet, '.root', 'animation-delay', { within: nativeContext }),
+    ).toBeUndefined();
+    expect(
+      declaration(sheet, '.root', 'animation-range', { within: nativeContext }),
+    ).toContain('var(--opale-reveal-index, 0) * 10%');
   });
 
   it.each(['@media (prefers-reduced-motion: reduce)', '@media print'])(
