@@ -27,11 +27,12 @@ import styles from './style/Marquee.module.css';
    UNE SEULE COPIE EXISTE POUR LES TECHNIQUES D'ASSISTANCE. La seconde est
    `aria-hidden` et `inert` : ni lue, ni atteinte à la tabulation.
 
-   IMMOBILE AU REPOS. Au serveur, sans script, sous `prefers-reduced-motion:
-   reduce` et à l'impression, le contenu est rendu une fois et passe à la
-   ligne ; la copie n'est pas rendue (ou pas affichée), le bouton est caché :
-   rien ne bouge, il n'y a rien à suspendre. Le mouvement n'est posé
-   (`data-animated`) qu'après l'hydratation, d'où aucun écart.
+   IMMOBILE AU REPOS. Sans script, sous `prefers-reduced-motion: reduce` et à
+   l'impression, le contenu est rendu une fois et passe à la ligne ; ni copie
+   ni bouton : rien ne bouge, il n'y a rien à suspendre. Ailleurs, la bande
+   est posée par la feuille dès la première peinture ; le mouvement et la
+   copie (`data-animated`) n'arrivent qu'après l'hydratation, sans écart ni
+   saut de mise en page.
 
    WCAG 2.2.2. Le mouvement dure plus de 5 s : un bouton le suspend, placé
    avant le contenu dans l'ordre de tabulation. Il change de nom (« Mettre en
@@ -136,15 +137,18 @@ export function Marquee({
         } as CSSProperties
       }
     >
-      <button
-        type="button"
-        hidden={!animated}
-        className={part('toggle')}
-        onClick={() => setPaused(!paused)}
-      >
+      <button type="button" className={part('toggle')} onClick={() => setPaused(!paused)}>
         {paused ? labels.play : labels.pause}
       </button>
-      <div className={part('viewport')}>
+      <div
+        className={part('viewport')}
+        /* Le navigateur fait défiler la vue pour montrer une entrée focalisée ;
+           le décalage, resté après, ouvrirait un trou à chaque fin de boucle. */
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget))
+            event.currentTarget.scrollLeft = 0;
+        }}
+      >
         <div className={part('track')}>
           <div className={part('copy')}>{children}</div>
           {animated && (

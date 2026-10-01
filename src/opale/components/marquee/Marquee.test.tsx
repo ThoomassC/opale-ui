@@ -5,7 +5,13 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Marquee, type MarqueeProps } from './Marquee';
-import { atRules, declaration, declarations, selectorsDeclaring } from '../../../test/css-rules';
+import {
+  atRules,
+  declaration,
+  declarations,
+  parseRules,
+  selectorsDeclaring,
+} from '../../../test/css-rules';
 import sheet from './style/Marquee.module.css?raw';
 import opaleSource from '../../opale.css?raw';
 
@@ -40,6 +46,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/* Le bloc de la bande : écran, script, mouvement permis. */
+const BAND = '@media screen and (scripting: enabled) and (prefers-reduced-motion: no-preference)';
+
 const ITEMS = ['WCAG 2.2 AA', 'React 19', 'Aucune dépendance'];
 
 const renderMarquee = (props: Partial<MarqueeProps> = {}) =>
@@ -51,6 +60,14 @@ const renderMarquee = (props: Partial<MarqueeProps> = {}) =>
     </Marquee>,
   );
 
+/* Le bouton par son texte : jsdom n'évalue pas `@media`, et le laisse sous
+   la règle de repos (`display: none`), hors de l'arbre d'accessibilité. Sa
+   présence dans la bande se lit dans la feuille ; son nom, dans Chromium. */
+const toggle = (text: string) => {
+  const button = document.querySelector<HTMLButtonElement>('.opale-marquee__toggle');
+  expect(button).toHaveTextContent(text);
+  return button!;
+};
 const region = () => screen.getByRole('region', { name: 'Ce qu’Opale garantit' });
 const clones = (root: ParentNode = document) => root.querySelectorAll('[aria-hidden="true"]');
 /* Ce qu'une technique d'assistance lit : les nœuds hors de tout `aria-hidden`. */
@@ -106,9 +123,9 @@ describe('Marquee — sémantique', () => {
 describe('Marquee — pause (WCAG 2.2.2)', () => {
   it('rend toujours un bouton pause, avant le contenu qui défile', () => {
     renderMarquee();
-    const button = screen.getByRole('button', { name: 'Mettre en pause' });
+    const button = toggle('Mettre en pause');
     expect(button).toHaveAttribute('type', 'button');
-    expect(button).toBeVisible();
+    expect(button).not.toHaveAttribute('hidden');
     expect(button).toHaveClass('opale-marquee__toggle');
     const [first] = readable('WCAG 2.2 AA');
     expect(button.compareDocumentPosition(first!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -116,23 +133,23 @@ describe('Marquee — pause (WCAG 2.2.2)', () => {
 
   it('change de nom, sans `aria-pressed`, et suspend le défilement', () => {
     renderMarquee();
-    const button = screen.getByRole('button', { name: 'Mettre en pause' });
+    const button = toggle('Mettre en pause');
     expect(button).not.toHaveAttribute('aria-pressed');
     expect(region()).not.toHaveAttribute('data-paused');
     fireEvent.click(button);
-    expect(button).toHaveAccessibleName('Lire');
+    expect(button).toHaveTextContent('Lire');
     expect(button).not.toHaveAttribute('aria-pressed');
     expect(region()).toHaveAttribute('data-paused');
     fireEvent.click(button);
-    expect(button).toHaveAccessibleName('Mettre en pause');
+    expect(button).toHaveTextContent('Mettre en pause');
     expect(region()).not.toHaveAttribute('data-paused');
   });
 
   it('prend ses textes dans `labels`, clé par clé', () => {
     renderMarquee({ labels: { pause: 'Pause', play: undefined } });
-    const button = screen.getByRole('button', { name: 'Pause' });
+    const button = toggle('Pause');
     fireEvent.click(button);
-    expect(button).toHaveAccessibleName('Lire');
+    expect(button).toHaveTextContent('Lire');
   });
 
   it('suspend la piste au bouton, sous le pointeur et tant que le focus est dans le contenu', () => {
@@ -155,33 +172,91 @@ describe('Marquee — pause (WCAG 2.2.2)', () => {
   });
 });
 
+describe('Marquee — focus', () => {
+  /* Revue : Chromium fait défiler la vue `overflow: hidden` pour montrer une
+     entrée focalisée ; le décalage restait après la sortie du focus et
+     ouvrait un trou à chaque fin de boucle. */
+  it('remet la vue à son origine quand le focus la quitte', () => {
+    render(
+      <>
+        <Marquee label="Focus">
+          <a href="#un">Un</a>
+          <a href="#deux">Deux</a>
+        </Marquee>
+        <button type="button">Après</button>
+      </>,
+    );
+    const viewport = document.querySelector<HTMLElement>('.opale-marquee__viewport')!;
+    const [one, two] = screen.getAllByRole('link');
+    one!.focus();
+    viewport.scrollLeft = 400;
+    fireEvent.focusOut(one!, { relatedTarget: two });
+    expect(viewport.scrollLeft).toBe(400);
+    fireEvent.focusOut(two!, { relatedTarget: screen.getByRole('button', { name: 'Après' }) });
+    expect(viewport.scrollLeft).toBe(0);
+  });
+});
+
 describe('Marquee — mouvement réduit', () => {
-  it('ne rend ni la copie ni le bouton, et laisse le contenu immobile', () => {
+  it('ne rend pas la copie et laisse le contenu immobile', () => {
     reducedMotion = true;
     renderMarquee();
     expect(clones()).toHaveLength(0);
     expect(region()).not.toHaveAttribute('data-animated');
-    expect(screen.getByRole('button', { hidden: true })).not.toBeVisible();
     for (const text of ITEMS) expect(readable(text)).toHaveLength(1);
   });
 
-  it('n’anime qu’en écran et sans préférence de mouvement réduit', () => {
-    const animated = '@media screen and (prefers-reduced-motion: no-preference)';
+  /* Revue : la bande ne doit pas sauter à l'hydratation (CLS 0). Sa mise en
+     page dépend du média — écran, script, mouvement permis —, pas de
+     `data-animated` ; seuls l'animation et la copie attendent le script. */
+  it('pose la bande par le média, et non à l’hydratation', () => {
+    const band = (selector: string) => declarations(sheet, selector, { within: BAND });
+    expect(band('.viewport').get('overflow')).toBe('hidden');
+    expect(band('.viewport').get('container-type')).toBe('inline-size');
+    expect(band('.track').get('inline-size')).toBe('max-content');
+    expect(band('.copy').get('flex-wrap')).toBe('nowrap');
+    expect(band('.toggle').get('display')).toBe('inline-grid');
+    /* Avant l'hydratation, le bouton garde sa boîte, mais n'est ni montré, ni
+       focalisable, ni exposé. */
+    expect(band('.root:not([data-animated]) .toggle').get('visibility')).toBe('hidden');
+    expect(band('.root[data-animated] .track').get('animation')).toBe(
+      'slide var(--opale-marquee-duration) linear infinite',
+    );
+    expect(band('.root[data-animated] .clone').get('display')).toBe('flex');
+    const keyed = parseRules(sheet)
+      .flatMap((rule) => rule.selectors)
+      .filter((selector) => selector.includes('data-animated'));
+    expect(keyed).toEqual([
+      '.root:not([data-animated]) .toggle',
+      '.root[data-animated] .track',
+      '.root[data-animated] .clone',
+      '.root[data-animated]:not([data-paused]) .track',
+    ]);
     expect(selectorsDeclaring(sheet, 'animation')).toEqual(['.root[data-animated] .track']);
-    expect(
-      declaration(sheet, '.root[data-animated] .track', 'animation', { within: animated }),
-    ).toBe('slide var(--opale-marquee-duration) linear infinite');
-    /* Au repos — serveur, sans script, mouvement réduit, impression — la
-       copie est absente et le contenu passe à la ligne, jamais rogné. */
+  });
+
+  /* Sans script (`scripting: none`), sous mouvement réduit et à l'impression,
+     aucune règle de la bande ne s'applique : le contenu passe à la ligne, le
+     bouton n'existe pas. */
+  it('reste immobile et à la ligne hors de la bande, sans bouton', () => {
+    expect(atRules(sheet, 'media')).toContain(
+      'screen and (scripting: enabled) and (prefers-reduced-motion: no-preference)',
+    );
     expect(declaration(sheet, '.clone', 'display')).toBe('none');
     expect(declaration(sheet, '.copy', 'flex-wrap')).toBe('wrap');
     expect(declaration(sheet, '.viewport', 'overflow')).toBeUndefined();
-    expect(declaration(sheet, '.toggle[hidden]', 'display')).toBe('none');
-    expect(
-      declaration(sheet, '.toggle', 'display', {
-        within: '@media (prefers-reduced-motion: reduce), print',
-      }),
-    ).toBe('none');
+    expect(declaration(sheet, '.viewport', 'container-type')).toBeUndefined();
+    expect(declaration(sheet, '.toggle', 'display')).toBe('none');
+    expect(selectorsDeclaring(sheet, 'overflow')).toEqual(['.viewport']);
+    expect(selectorsDeclaring(sheet, 'container-type')).toEqual(['.viewport']);
+  });
+
+  /* Revue : `container-type` effondre la bande à 0 dans un contexte qui se
+     dimensionne au contenu (flex, `fit-content`, cellule) ; la racine prend
+     toute la ligne. */
+  it('prend toute la ligne, même dans un contexte dimensionné au contenu', () => {
+    expect(declaration(sheet, '.root', 'inline-size')).toBe('100%');
+    expect(declaration(sheet, '.root', 'min-inline-size')).toBe('0');
   });
 });
 
@@ -273,15 +348,10 @@ describe('Marquee — réglages', () => {
 });
 
 describe('Marquee — feuille', () => {
-  const animated = '@media screen and (prefers-reduced-motion: no-preference)';
-  const at = (selector: string) => declarations(sheet, selector, { within: animated });
+  const at = (selector: string) => declarations(sheet, selector, { within: BAND });
 
   it('boucle sans couture : deux copies identiques, chacune au moins aussi large que la vue', () => {
-    expect(at('.root[data-animated] .viewport').get('overflow')).toBe('hidden');
-    expect(declaration(sheet, '.viewport', 'container-type')).toBe('inline-size');
-    expect(at('.root[data-animated] .track').get('inline-size')).toBe('max-content');
-    const copy = at('.root[data-animated] .copy');
-    expect(copy.get('flex-wrap')).toBe('nowrap');
+    const copy = at('.copy');
     expect(copy.get('min-inline-size')).toBe('100cqi');
     /* L'espace qui suit la dernière entrée est celui qui sépare deux entrées :
        la jointure ne se voit pas, et -50 % vaut exactement une copie. */
@@ -289,7 +359,6 @@ describe('Marquee — feuille', () => {
     expect(declaration(sheet, '.copy', 'gap')).toBe(
       'var(--opale-marquee-gap, var(--opale-space-xl))',
     );
-    expect(at('.root[data-animated] .clone').get('display')).toBe('flex');
   });
 
   it('n’anime que `transform`, et ne prévient le compositeur qu’en marche', () => {
@@ -302,13 +371,17 @@ describe('Marquee — feuille', () => {
     expect(atRules(sheet, 'keyframes')).toEqual(['slide']);
   });
 
-  it('estompe les bords par un masque, seulement en mouvement', () => {
-    expect(at('.root[data-animated][data-fade] .viewport').get('mask')).toMatch(
-      /^linear-gradient\(/,
+  it('estompe les bords par un masque horizontal, seulement dans la bande', () => {
+    expect(at('.root[data-fade] .viewport').get('mask')).toMatch(/^linear-gradient\(to right,/);
+    expect(selectorsDeclaring(sheet, 'mask')).toEqual(['.root[data-fade] .viewport']);
+  });
+
+  /* Revue : la vue a exactement la hauteur de la piste, et `overflow` rognait
+     en haut et en bas l'anneau de focus d'une entrée focalisable. */
+  it('laisse la place de l’anneau de focus au-dessus et au-dessous de la piste', () => {
+    expect(at('.viewport').get('padding-block')).toBe(
+      'calc(var(--opale-focus-ring-width) + var(--opale-focus-ring-offset))',
     );
-    expect(selectorsDeclaring(sheet, 'mask')).toEqual([
-      '.root[data-animated][data-fade] .viewport',
-    ]);
   });
 
   it('garde le bouton visible en couleurs forcées', () => {
@@ -344,7 +417,10 @@ describe('Marquee — rendu serveur', () => {
     expect(html.match(/React 19/g)).toHaveLength(1);
     expect(html).not.toContain('aria-hidden');
     expect(html).not.toContain('data-animated');
-    expect(html).toMatch(/<button[^>]*hidden/);
+    /* Le bouton garde sa boîte : c'est la feuille qui le cache avant
+       l'hydratation, sans décaler la page ensuite. */
+    expect(html).toMatch(/<button type="button" class="opale-marquee__toggle/);
+    expect(html).not.toMatch(/<button[^>]*hidden/);
     expect(html).toMatch(/^<div role="region" aria-label="Garanties"/);
   });
 
@@ -372,9 +448,9 @@ describe('Marquee — rendu serveur', () => {
     expect(clones(host)).toHaveLength(1);
     expect(readable('React 19', host)).toHaveLength(1);
     const button = host.querySelector('button');
-    expect(button).toBeVisible();
+    expect(button).not.toHaveAttribute('hidden');
     act(() => button?.click());
-    expect(button).toHaveAccessibleName('Lire');
+    expect(button).toHaveTextContent('Lire');
     expect(marquee).toHaveAttribute('data-paused');
     await act(async () => root?.unmount());
     host.remove();

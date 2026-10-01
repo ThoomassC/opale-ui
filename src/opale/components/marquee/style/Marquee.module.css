@@ -3,13 +3,14 @@
 
    AU REPOS, RIEN NE BOUGE ET RIEN N'EST ROGNÉ. Les règles de premier niveau
    rendent le contenu une fois, à la ligne si besoin ; la copie de la boucle
-   est masquée. C'est l'état du serveur, d'une page sans script, du mouvement
-   réduit et de l'impression.
+   et le bouton sont absents. C'est l'état d'une page sans script
+   (`scripting: none`), du mouvement réduit et de l'impression.
 
-   LE MOUVEMENT VIT DANS UN SEUL BLOC, `screen` et sans préférence de
-   mouvement réduit, et seulement une fois le script monté
-   (`[data-animated]`). La piste prend la largeur de ses deux copies et
-   glisse de `--opale-marquee-shift` (-50 %, +50 % de droite à gauche) :
+   LA BANDE VIT DANS UN SEUL BLOC : écran, script, mouvement permis. Sa mise
+   en page y est posée dès la première peinture, avant l'hydratation, pour
+   que la page ne saute pas ; seules l'animation et la copie attendent le
+   script (`[data-animated]`). La piste prend la largeur de ses deux copies
+   et glisse de `--opale-marquee-shift` (-50 %, +50 % de droite à gauche) :
    exactement une copie, puisque chacune finit par le même espace que celui
    qui sépare deux entrées.
 
@@ -29,15 +30,14 @@
   --opale-marquee-shift: -50%;
   display: grid;
   gap: var(--opale-space-sm);
+  /* Toute la ligne, même dans un contexte dimensionné au contenu (élément
+     flex, `fit-content`, cellule) : `container-type` y effondrerait la
+     bande à 0. */
+  inline-size: 100%;
   min-inline-size: 0;
 }
 .root[data-dir='rtl'] {
   --opale-marquee-shift: 50%;
-}
-
-/* La vue est le conteneur de requête des copies : `100cqi` est sa largeur. */
-.viewport {
-  container-type: inline-size;
 }
 
 .copy {
@@ -47,29 +47,49 @@
   gap: var(--opale-marquee-gap, var(--opale-space-xl));
 }
 
-.clone {
+.clone,
+.toggle {
   display: none;
 }
 
-@media screen and (prefers-reduced-motion: no-preference) {
-  .root[data-animated] .viewport {
+/* LA BANDE : sa mise en page dépend du média, jamais de l'hydratation — la
+   page ne saute pas quand le script arrive (CLS 0). Seules l'animation et
+   la copie attendent `data-animated`. */
+@media screen and (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  /* La vue est le conteneur de requête des copies : `100cqi` est sa largeur.
+     Le rembourrage loge l'anneau de focus d'une entrée, que `overflow`
+     rognerait en haut et en bas. */
+  .viewport {
+    container-type: inline-size;
     overflow: hidden;
+    padding-block: calc(var(--opale-focus-ring-width) + var(--opale-focus-ring-offset));
   }
-  .root[data-animated][data-fade] .viewport {
+  /* Le masque n'estompe que l'axe de la ligne. */
+  .root[data-fade] .viewport {
     mask: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
   }
-  .root[data-animated] .track {
+  .track {
     display: flex;
     inline-size: max-content;
-    animation: slide var(--opale-marquee-duration) linear infinite;
   }
-  .root[data-animated] .copy {
+  .copy {
     flex-wrap: nowrap;
     flex-shrink: 0;
     justify-content: space-around;
     min-inline-size: 100cqi;
     padding-inline-end: var(--opale-marquee-gap, var(--opale-space-xl));
     white-space: nowrap;
+  }
+  .toggle {
+    display: inline-grid;
+  }
+  /* Avant l'hydratation, le bouton tient sa place sans être montré, ni
+     focalisable, ni exposé : il ne ferait rien. */
+  .root:not([data-animated]) .toggle {
+    visibility: hidden;
+  }
+  .root[data-animated] .track {
+    animation: slide var(--opale-marquee-duration) linear infinite;
   }
   .root[data-animated] .clone {
     display: flex;
@@ -97,7 +117,6 @@
 }
 
 .toggle {
-  display: inline-grid;
   justify-self: start;
   block-size: 2.5rem;
   padding-inline: var(--opale-space-md);
@@ -115,23 +134,11 @@
 .toggle:active {
   transform: scale(0.94);
 }
-/* `display` ci-dessus l'emporterait sur `hidden` : il est rétabli. */
-.toggle[hidden] {
-  display: none;
-}
 
 /* L'anneau de focus, celui de toute la famille. */
 .toggle:focus-visible {
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
   outline-offset: var(--opale-focus-ring-offset);
-}
-
-/* Rien ne bouge : rien à suspendre, même si la préférence change après le
-   montage. */
-@media (prefers-reduced-motion: reduce), print {
-  .toggle {
-    display: none;
-  }
 }
 
 @media (forced-colors: active) {
