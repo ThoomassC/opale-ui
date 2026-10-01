@@ -245,6 +245,48 @@ describe('Carousel — sémantique', () => {
       expect(slide).toHaveAttribute('aria-roledescription', 'diapositive');
   });
 
+  /* Un fragment est l'enveloppe la plus courante : ses diapositives comptent
+     une à une, comme si elles étaient passées directement. */
+  it('déplie les fragments et numérote chaque diapositive qu’ils contiennent', () => {
+    render(
+      <Carousel label="Projets">
+        <>
+          <CarouselSlide>Un</CarouselSlide>
+          <CarouselSlide>Deux</CarouselSlide>
+        </>
+        <CarouselSlide>Trois</CarouselSlide>
+      </Carousel>,
+    );
+    expect(slides().map((slide) => slide.getAttribute('aria-label'))).toEqual([
+      '1 sur 3',
+      '2 sur 3',
+      '3 sur 3',
+    ]);
+    expect(dots()).toHaveLength(3);
+  });
+
+  /* Un composant qui rend les diapositives cache leur nombre au carrousel :
+     il le dit en développement, plutôt que de tout réduire à une position. */
+  it('avertit en développement quand il mesure plus de diapositives que d’enfants', () => {
+    mockLayout();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    function Wrapped() {
+      return (
+        <>
+          <CarouselSlide>Un</CarouselSlide>
+          <CarouselSlide>Deux</CarouselSlide>
+        </>
+      );
+    }
+    render(
+      <Carousel label="Projets">
+        <Wrapped />
+      </Carousel>,
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('CarouselSlide'));
+    warn.mockRestore();
+  });
+
   it('rend des flèches natives, désactivées aux extrémités', () => {
     renderCarousel();
     const previous = screen.getByRole('button', { name: 'Diapositive précédente' });

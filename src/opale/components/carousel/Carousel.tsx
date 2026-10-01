@@ -15,11 +15,14 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
+  type ReactElement,
   type ReactNode,
+  Fragment,
 } from 'react';
 import clsx from 'clsx';
 
 import type { StackGap } from '../../catalog/layout';
+import { warnOnce } from '../../shared/dev-warning';
 import { resolveLabels } from '../../shared/labels';
 import { useControllableState } from '../../shared/use-controllable-state';
 import {
@@ -191,7 +194,20 @@ function readTrack(track: HTMLElement) {
 type TrackReading = NonNullable<ReturnType<typeof readTrack>>;
 
 /* Ce que les gestionnaires et les minuteries lisent du dernier rendu. */
+/* LES DIAPOSITIVES, FRAGMENTS DÉPLIÉS. Chacune garde une clé préfixée par
+   celle de son fragment : deux fragments voisins ne se disputent pas `.0`. */
+function slidesOf(nodes: ReactNode, prefix = ''): { key: string; element: ReactElement }[] {
+  return Children.toArray(nodes).flatMap((node) => {
+    if (!isValidElement(node)) return [];
+    const key = `${prefix}${String(node.key)}`;
+    if (node.type === Fragment)
+      return slidesOf((node.props as { children?: ReactNode }).children, `${key}/`);
+    return [{ key, element: node }];
+  });
+}
+
 interface Latest {
+  readonly total: number;
   readonly onValueChange: ((index: number) => void) | undefined;
   readonly value: number;
   readonly stops: readonly SlideStop[];
@@ -243,7 +259,7 @@ export function Carousel({
   ...rest
 }: CarouselProps) {
   const labels = resolveLabels(DEFAULT_CAROUSEL_LABELS, labelsProp);
-  const items = Children.toArray(children).filter(isValidElement);
+  const items = slidesOf(children);
   const total = items.length;
   const last = Math.max(0, total - 1);
   const reduced = useSyncExternalStore(subscribeNever, getReducedMotion, getServerReducedMotion);
@@ -262,6 +278,7 @@ export function Carousel({
      change à chaque rendu du parent ; s'il entrait dans les dépendances, la
      mesure et la lecture automatique repartiraient de zéro à chaque fois. */
   const latest = useRef<Latest>({
+    total,
     onValueChange,
     value: 0,
     stops: [],
@@ -287,7 +304,7 @@ export function Carousel({
   const atEnd = current >= stops.length - 1 || !!measured?.atEnd;
 
   useLayoutEffect(() => {
-    latest.current = { onValueChange, value, stops, current, isControlled, reduced };
+    latest.current = { total, onValueChange, value, stops, current, isControlled, reduced };
   });
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -347,6 +364,13 @@ export function Carousel({
       setLayout(null);
       return;
     }
+    /* Un composant qui rend les diapositives cache leur nombre au carrousel :
+       la navigation se réduirait à une position, sans rien dire. */
+    if (reading.count !== latest.current.total)
+      warnOnce(
+        'Carousel#slides',
+        '[Opale] Carousel : passez chaque CarouselSlide en enfant direct (un fragment convient).',
+      );
     setLayout((previous) => (previous?.key === reading.key ? previous : reading));
     /* La piste prend sa largeur (onglet ouvert, parent affiché) : elle
        rejoint la valeur, que le défilement d'une piste nulle n'a pas pu
@@ -596,7 +620,7 @@ export function Carousel({
               inert: !!measured && !measured.visible.includes(index),
             }}
           >
-            {item}
+            {item.element}
           </SlideContext>
         ))}
       </div>

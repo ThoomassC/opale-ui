@@ -34,8 +34,12 @@ const BUDGETS = {
      Textarea et RadioGroup pèsent 11,3 à 11,5 ko par le même calcul.
      Relevé une seconde fois, à 10 500 o, après la revue : la mesure continue
      (ResizeObserver), les positions atteignables et le glisser durci
-     corrigent deux bloquants et cinq défauts majeurs, pour 10 069 o. */
-  Carousel: 10_500,
+     corrigent deux bloquants et cinq défauts majeurs, pour 10 069 o.
+     Puis à 11 000 o : les fragments dépliés et l'avertissement d'un enfant
+     qui cache ses diapositives (un troisième bloquant, vu en navigateur)
+     portent la mesure à 10 723 o — toujours sous Tooltip, Textarea et
+     RadioGroup. Un nouvel ajout passe par un allègement, pas par ce budget. */
+  Carousel: 11_000,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];

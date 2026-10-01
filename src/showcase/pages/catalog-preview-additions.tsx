@@ -234,8 +234,10 @@ const CAROUSEL_SLIDES = [
   ['SplitHeading', 'Nouveau en 3.0 · un titre qui arrive mot à mot'],
 ] as const;
 
-/* Les mêmes diapositives, avec ou sans lecture automatique. */
-function CarouselSlides() {
+/* Les mêmes diapositives, avec ou sans lecture automatique. Une fonction
+   appelée, pas un composant : le carrousel compte ses enfants directs, et un
+   composant qui les rendrait les lui cacherait. */
+function carouselSlides() {
   return CAROUSEL_SLIDES.map(([name, text], index) => (
     <CarouselSlide key={name} className="tc-doc-carousel-slide">
       <span className="tc-doc-carousel-glyph" aria-hidden="true" data-glyph={index} />
@@ -253,7 +255,7 @@ export function CarouselDemo() {
   return (
     <div className="tc-doc-carousel-demo">
       <Carousel label="Composants d’Opale" className="tc-doc-carousel">
-        <CarouselSlides />
+        {carouselSlides()}
       </Carousel>
       <p className="tc-doc-carousel-caption">Lecture automatique, une diapositive toutes les 4 s</p>
       <Carousel
@@ -261,7 +263,7 @@ export function CarouselDemo() {
         autoPlay={4000}
         className="tc-doc-carousel"
       >
-        <CarouselSlides />
+        {carouselSlides()}
       </Carousel>
     </div>
   );
