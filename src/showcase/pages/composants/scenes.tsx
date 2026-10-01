@@ -34,6 +34,7 @@ export function SidebarCollapsibleScene() {
           `setState` tel quel : le pli arrive en `boolean`, l'entrée en
           identifiant. */}
           <Sidebar
+            aria-label="Voyage, menu pliable"
             liquidGlass={liquidGlass}
             collapsible
             collapsed={collapsed}

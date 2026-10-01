@@ -219,7 +219,12 @@ export default function SidebarContent() {
           >
             <MaterialSwitch name="Sidebar non pliable" tall>
               {(liquidGlass) => (
-                <Sidebar liquidGlass={liquidGlass} defaultValue="carte" size="small">
+                <Sidebar
+                  aria-label="Voyage, menu fixe"
+                  liquidGlass={liquidGlass}
+                  defaultValue="carte"
+                  size="small"
+                >
                   <Sidebar.Header>
                     <strong>Voyage</strong>
                     <Sidebar.Toggle />

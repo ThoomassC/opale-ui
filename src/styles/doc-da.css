@@ -76,6 +76,14 @@ html {
   inset-inline-end: -1rem;
   width: 1.5rem;
 }
+/* La poignée vit désormais DANS l'`<aside>` du sommaire, son repère ; elle
+   dépasse de son bord, que l'`overflow: hidden` de Sidebar rognait. Le
+   défilement reste celui de `.tc-doc-nav__scroll`. */
+/* `!important` : `doc-v3.css` pose `overflow: hidden !important`. Le panneau
+   n'a ni rayon ni ombre à rogner (`border-radius: 0`). */
+.tc-doc .tc-doc-nav__panel {
+  overflow: visible !important;
+}
 
 /* =============================================================================
    LES PAGES : TITRE, CHAPEAU, SECTIONS, TEXTE.

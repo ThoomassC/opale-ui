@@ -284,7 +284,7 @@ describe('DocShell — les onglets du header', () => {
     render(<DocShell pages={PAGES} />);
 
     const links = within(
-      screen.getByRole('navigation', { name: 'Navigation principale' }),
+      screen.getByRole('navigation', { name: 'Navigation de la documentation' }),
     ).getAllByRole('link');
 
     expect(links.map((link) => link.textContent)).toEqual([
@@ -1258,5 +1258,21 @@ describe('DocShell — la hauteur de la barre du haut', () => {
     expect(document.documentElement.style.getPropertyValue('--tc-doc-topbar-height')).toBe('137px');
     unmount();
     expect(document.documentElement.style.getPropertyValue('--tc-doc-topbar-height')).toBe('');
+  });
+});
+
+/* LES REPÈRES DE LA VITRINE ONT LEUR PROPRE NOM. Les démos rendent de vrais
+   PageScaffold, SearchBar et Sidebar, avec les noms par défaut d'Opale : la
+   vitrine qui les reprenait mot pour mot posait deux « Navigation
+   principale », deux « Recherche » et plusieurs `aside` sans nom. */
+describe('DocShell — des repères qu’on distingue des démos', () => {
+  it('devrait nommer la recherche, le sommaire et la navigation de la documentation', () => {
+    renderDocPage();
+
+    expect(screen.getByRole('search', { name: 'Rechercher une page' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Documentation' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: 'Navigation de la documentation' }),
+    ).toBeInTheDocument();
   });
 });
