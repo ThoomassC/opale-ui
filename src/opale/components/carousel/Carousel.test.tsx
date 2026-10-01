@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen, within } from '@testing-library/react';
 import { StrictMode, useEffect, useState } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
@@ -386,6 +386,16 @@ describe('Carousel — clavier', () => {
     expect(dots()[0]).toHaveAttribute('aria-current', 'true');
   });
 
+  it('laisse passer les flèches modifiées (Alt+← revient en arrière)', () => {
+    renderCarousel();
+    for (const modifier of ['altKey', 'ctrlKey', 'metaKey']) {
+      const event = createEvent.keyDown(track(), { key: 'ArrowRight', [modifier]: true });
+      fireEvent(track(), event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+    expect(dots()[0]).toHaveAttribute('aria-current', 'true');
+  });
+
   it('laisse les flèches aux champs des diapositives', () => {
     render(
       <Carousel label="Champ">
@@ -718,6 +728,36 @@ describe('Carousel — lecture automatique', () => {
     act(() => vi.advanceTimersByTime(1000));
     expect(dots()[1]).toHaveAttribute('aria-current', 'true');
   });
+
+  /* Revue : une diapositive devenue inerte perd le focus sans `focusout` ;
+     la pause restait tenue pour toujours. */
+  it('reprend quand le focus a quitté le carrousel sans événement', () => {
+    mockLayout({ width: 1200 });
+    renderSix({ autoPlay: 1000 });
+    act(() => track().focus());
+    act(() => vi.advanceTimersByTime(2000));
+    expect(dots()[0]).toHaveAttribute('aria-current', 'true');
+    vi.spyOn(document, 'activeElement', 'get').mockReturnValue(document.body);
+    fireEvent.scroll(track());
+    act(() => vi.advanceTimersByTime(1000));
+    expect(dots()[1]).toHaveAttribute('aria-current', 'true');
+  });
+
+  it('s’arrête tant que la page est cachée', () => {
+    renderCarousel({ autoPlay: 1000 });
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    act(() => vi.advanceTimersByTime(3000));
+    expect(dots()[0]).toHaveAttribute('aria-current', 'true');
+    visibility.mockReturnValue('visible');
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    act(() => vi.advanceTimersByTime(1000));
+    expect(dots()[1]).toHaveAttribute('aria-current', 'true');
+  });
 });
 
 describe('Carousel — glisser à la souris', () => {
@@ -743,7 +783,7 @@ describe('Carousel — glisser à la souris', () => {
     });
     const button = screen.getByRole('button', { name: 'Ouvrir' });
     fireEvent.pointerDown(button, { pointerType: 'mouse', button: 0, clientX: 200 });
-    fireEvent.pointerMove(button, { pointerType: 'mouse', clientX: 140 });
+    fireEvent.pointerMove(button, { pointerType: 'mouse', buttons: 1, clientX: 140 });
     expect(scrollLeft).toBe(160);
     fireEvent.pointerUp(button, { pointerType: 'mouse', clientX: 140 });
     fireEvent.click(button);
@@ -751,6 +791,65 @@ describe('Carousel — glisser à la souris', () => {
 
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  /* Revue : un bouton relâché hors de la piste, avant le seuil, laissait le
+     geste actif ; le simple survol faisait ensuite défiler. */
+  it('abandonne le geste quand plus aucun bouton n’est enfoncé', () => {
+    const layout = mockLayout();
+    renderSix();
+    fireEvent.pointerDown(track(), { pointerType: 'mouse', button: 0, buttons: 1, clientX: 200 });
+    fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 1, clientX: 198 });
+    fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 0, clientX: 100 });
+    fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 0, clientX: 40 });
+    expect(layout.scrollLeft).toBe(0);
+    expect(track()).not.toHaveAttribute('data-dragging');
+  });
+
+  it('termine le geste quand la capture du pointeur est perdue', () => {
+    const layout = mockLayout({ moves: false });
+    renderSix();
+    fireEvent.pointerDown(track(), { pointerType: 'mouse', button: 0, buttons: 1, clientX: 300 });
+    fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 1, clientX: 250 });
+    expect(layout.scrollLeft).toBe(50);
+    fireEvent.lostPointerCapture(track(), { pointerType: 'mouse' });
+    fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 1, clientX: 100 });
+    expect(layout.scrollLeft).toBe(50);
+  });
+
+  it('survit à une capture refusée et efface la sélection au seuil', () => {
+    const layout = mockLayout();
+    const removeAllRanges = vi.fn();
+    vi.spyOn(window, 'getSelection').mockReturnValue({ removeAllRanges } as unknown as Selection);
+    Object.defineProperty(HTMLElement.prototype, 'setPointerCapture', {
+      configurable: true,
+      value: () => {
+        throw new DOMException('Pointeur inconnu', 'NotFoundError');
+      },
+    });
+    try {
+      renderSix();
+      fireEvent.pointerDown(track(), { pointerType: 'mouse', button: 0, buttons: 1, clientX: 300 });
+      fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 1, clientX: 200 });
+      expect(layout.scrollLeft).toBe(100);
+      expect(removeAllRanges).toHaveBeenCalled();
+    } finally {
+      Reflect.deleteProperty(HTMLElement.prototype, 'setPointerCapture');
+    }
+  });
+
+  /* Revue : l'aimant rétabli au lâcher se disputait le défilement avec le
+     calage programmé ; il ne revient qu'une fois le calage fini. */
+  it('garde l’aimant coupé jusqu’à la fin du calage', () => {
+    vi.useFakeTimers();
+    mockLayout({ moves: false });
+    renderSix();
+    fireEvent.pointerDown(track(), { pointerType: 'mouse', button: 0, buttons: 1, clientX: 300 });
+    fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 1, clientX: 100 });
+    fireEvent.pointerUp(track(), { pointerType: 'mouse', clientX: 100 });
+    expect(track()).toHaveAttribute('data-dragging');
+    act(() => vi.advanceTimersByTime(1000));
+    expect(track()).not.toHaveAttribute('data-dragging');
   });
 
   it('laisse le toucher au défilement natif', () => {

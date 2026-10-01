@@ -144,10 +144,22 @@ const getReducedMotion = () =>
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 const getServerReducedMotion = () => false;
 
+/* LA PAGE CACHÉE (onglet en arrière-plan) suspend la lecture automatique. */
+const subscribeVisibility = (onChange: () => void) => {
+  document.addEventListener('visibilitychange', onChange);
+  return () => document.removeEventListener('visibilitychange', onChange);
+};
+const getHidden = () => document.visibilityState === 'hidden';
+
 const isRtl = (element: Element) => getComputedStyle(element).direction === 'rtl';
 
 /* La classe stable d'une partie, et celle de la feuille. */
 const part = (name: string) => clsx(`opale-carousel__${name}`, styles[name]);
+
+/* Le défilement demandé est fini : l'aimant coupé par un glisser revient. */
+const settle = (track: HTMLElement) => {
+  delete track.dataset.dragging;
+};
 
 const rectsOf = (track: HTMLElement) =>
   Array.from(track.children, (child) => child.getBoundingClientRect());
@@ -235,6 +247,7 @@ export function Carousel({
   const total = items.length;
   const last = Math.max(0, total - 1);
   const reduced = useSyncExternalStore(subscribeNever, getReducedMotion, getServerReducedMotion);
+  const hidden = useSyncExternalStore(subscribeVisibility, getHidden, getServerReducedMotion);
   /* La mesure de la piste ; `null` tant que rien n'est mesuré. */
   const [layout, setLayout] = useState<TrackReading | null>(null);
   /* L'index visé par le dernier changement voulu : annoncé une fois atteint,
@@ -305,6 +318,7 @@ export function Carousel({
     const to = Math.min(Math.max(offset, 0), max);
     if (box.width > 0 && Math.abs(to - scroll) < 1) {
       target.current = null;
+      settle(track);
       return;
     }
     target.current = index;
@@ -313,6 +327,7 @@ export function Carousel({
        événement de défilement. */
     settleTimer.current = setTimeout(() => {
       target.current = null;
+      settle(track);
       track.dispatchEvent(new Event('scroll'));
     }, SETTLE_MS);
     track.scrollTo?.({ left: rtl ? -to : to, behavior: animate ? 'smooth' : 'auto' });
@@ -321,6 +336,9 @@ export function Carousel({
   const measure = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
+    /* Une diapositive devenue inerte perd le focus sans `focusout` : la
+       pause qu'il tenait est levée à la mesure suivante. */
+    if (!track.parentElement?.contains(document.activeElement)) setFocused(false);
     const reading = readTrack(track);
     /* Sans mise en page ni diapositive, rien n'est mesuré : rien n'est
        inerte, et rien ne dit quelle diapositive est montrée. */
@@ -342,7 +360,10 @@ export function Carousel({
     if (!reached) return;
     const within = (index: number) => index >= reached.first && index <= reached.last;
     if (target.current !== null) {
-      if (within(target.current)) target.current = null;
+      if (within(target.current)) {
+        target.current = null;
+        settle(track);
+      }
       return;
     }
     /* Le glisser ne rappelle qu'au lâcher ; une position qui montre déjà la
@@ -406,7 +427,7 @@ export function Carousel({
   );
 
   const playing = !!autoPlay && (playChoice ?? !reduced);
-  const running = playing && !hovered && !focused && total > 1;
+  const running = playing && !hovered && !focused && !hidden && total > 1;
 
   /* La minuterie ne dépend que de ce qui la règle : `go` est stable, et la
      position courante est lue à l'échéance. */
@@ -420,8 +441,11 @@ export function Carousel({
   }, [autoPlay, go, running, value]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    /* Les flèches d'un champ, dans une diapositive, restent au champ. */
-    if (event.target !== event.currentTarget) return;
+    /* Les flèches d'un champ, dans une diapositive, restent au champ ; une
+       flèche modifiée (Alt+← : page précédente) reste au navigateur. */
+    if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
     const step = isRtl(event.currentTarget) ? -1 : 1;
     const destination = {
       ArrowRight: current + step,
@@ -448,18 +472,10 @@ export function Carousel({
     target.current = null;
   };
 
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const gesture = drag.current;
-    const track = event.currentTarget;
-    const dx = event.clientX - gesture.x;
-    if (gesture.active && !gesture.moved && Math.abs(dx) > 4) {
-      gesture.moved = true;
-      track.dataset.dragging = '';
-      track.setPointerCapture?.(event.pointerId);
-    }
-    if (gesture.active && gesture.moved) track.scrollLeft = gesture.left - dx;
-  };
-
+  /* Le lâcher, la capture perdue ou un bouton relâché hors de la piste
+     terminent le geste. L'aimant reste coupé (`data-dragging`) jusqu'à la fin
+     du calage programmé : rétabli tout de suite, il se disputerait le
+     défilement avec lui. */
   const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
     const gesture = drag.current;
     const track = event.currentTarget;
@@ -468,12 +484,35 @@ export function Carousel({
       return;
     }
     gesture.active = false;
-    delete track.dataset.dragging;
     const reading = readTrack(track);
     go(reading ? nearestStop(reading.stops, reading.scroll) : current, true);
     /* Le clic qui termine le geste est avalé ; s'il ne vient pas, le
        suivant passe. */
     setTimeout(() => (gesture.moved = false));
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const gesture = drag.current;
+    if (!gesture.active) return;
+    /* Le bouton a été relâché hors de la piste, avant toute capture : le
+       survol qui suit n'est pas un glisser. */
+    if (!(event.buttons & 1)) {
+      handlePointerEnd(event);
+      return;
+    }
+    const track = event.currentTarget;
+    const dx = event.clientX - gesture.x;
+    if (!gesture.moved && Math.abs(dx) > 4) {
+      gesture.moved = true;
+      track.dataset.dragging = '';
+      getSelection()?.removeAllRanges();
+      try {
+        track.setPointerCapture(event.pointerId);
+      } catch {
+        /* Un pointeur déjà relâché ne se capture pas : le geste continue. */
+      }
+    }
+    if (gesture.moved) track.scrollLeft = gesture.left - dx;
   };
 
   const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
@@ -530,6 +569,7 @@ export function Carousel({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerEnd}
         onPointerCancel={handlePointerEnd}
+        onLostPointerCapture={handlePointerEnd}
         onClickCapture={handleClickCapture}
         onDragStart={(event) => event.preventDefault()}
       >
