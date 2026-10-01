@@ -1,11 +1,15 @@
 import { act, render, screen } from '@testing-library/react';
-import { createRef, StrictMode, type ReactNode } from 'react';
+import { createRef, StrictMode } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SplitHeading, type SplitHeadingProps } from './SplitHeading';
-import { splitWords } from './split-words';
+import {
+  SplitHeading,
+  splitWords,
+  type SplitHeadingProps,
+  type SplitHeadingTrigger,
+} from './SplitHeading';
 import { resetWarnings } from '../../shared/dev-warning';
 import { declaration, declarations, selectorsDeclaring } from '../../../test/css-rules';
 import sheet from './style/SplitHeading.module.css?raw';
@@ -62,33 +66,52 @@ class FakeIntersectionObserver {
   }
 }
 
-let reducedMotion = false;
+/* Les animations des mots, telles que `getAnimations` les rend : une seule,
+   dont on règle la fin à la main (`settle`). `undefined` : pas d'API. */
+let animations: { finished: Promise<unknown> }[] | undefined;
+let settle: (outcome: 'fulfilled' | 'rejected') => void;
+const getAnimations = vi.fn(() => animations);
 /* La position du titre à son montage, en pixels depuis le haut de la vue. */
 let mountTop = 2000;
+/* Sa position en largeur : un titre hors de la vue sur le côté (une diapositive
+   de carrousel) n'est pas « à l'écran ». */
+let mountLeft = 0;
 
 beforeEach(() => {
-  reducedMotion = false;
+  const finished = new Promise((resolve, reject) => {
+    settle = (outcome) =>
+      outcome === 'fulfilled' ? resolve(undefined) : reject(new Error('annulée'));
+  });
+  /* Une annulation n'est pas une erreur non traitée : le composant l'attend. */
+  finished.catch(() => {});
+  animations = [{ finished }];
+  getAnimations.mockClear();
+  Object.defineProperty(Element.prototype, 'getAnimations', {
+    configurable: true,
+    get: () => (animations ? getAnimations : undefined),
+  });
   mountTop = 2000;
+  mountLeft = 0;
   FakeIntersectionObserver.all.length = 0;
   resetWarnings();
   vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
   vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+  vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1280);
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-    () => ({ top: mountTop, bottom: mountTop + 60, height: 60 }) as DOMRect,
+    () =>
+      ({
+        top: mountTop,
+        bottom: mountTop + 60,
+        height: 60,
+        left: mountLeft,
+        right: mountLeft + 100,
+        width: 100,
+      }) as DOMRect,
   );
-  vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
-    matches: query.includes('prefers-reduced-motion') && reducedMotion,
-    media: query,
-    onchange: null,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    addListener: () => {},
-    removeListener: () => {},
-    dispatchEvent: () => false,
-  }));
 });
 
 afterEach(() => {
+  delete (Element.prototype as { getAnimations?: unknown }).getAnimations;
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -251,10 +274,13 @@ describe('SplitHeading — déclencheur `mount`', () => {
     expect(FakeIntersectionObserver.all).toHaveLength(0);
   });
 
-  it('ne joue rien sous `prefers-reduced-motion: reduce`', () => {
-    reducedMotion = true;
+  /* Le mouvement réduit n'est pas lu par le script : la feuille y retire
+     l'animation (voir « feuille »), il n'y a donc rien à attendre. */
+  it('finit aussitôt la lecture quand la feuille ne laisse aucune animation', async () => {
+    animations = [];
     renderSplit({ trigger: 'mount' });
-    expect(heading()).not.toHaveAttribute('data-split');
+    await act(async () => {});
+    expect(heading()).toHaveAttribute('data-split', 'done');
   });
 });
 
@@ -279,9 +305,12 @@ describe('SplitHeading — déclencheur `view` (par défaut)', () => {
     expect(observer().disconnected).toBe(false);
   });
 
+  /* La marge sans fin en haut : un saut (touche Fin, ancre) qui fait passer
+     le titre au-dessus de la vue le laisse « dans la vue » de l'observateur,
+     qui le signale comme une entrée. */
   it('compte comme vu un titre qu’un saut a fait passer au-dessus de la vue', () => {
     renderSplit();
-    observer().fire(heading(), false, -600);
+    observer().fire(heading(), true, -600);
     expect(heading()).toHaveAttribute('data-split', 'play');
     expect(observer().disconnected).toBe(true);
   });
@@ -295,16 +324,22 @@ describe('SplitHeading — déclencheur `view` (par défaut)', () => {
     expect(FakeIntersectionObserver.all).toHaveLength(0);
   });
 
+  it.each([1400, -300])(
+    'passe par l’observateur un titre hors de la vue sur le côté (gauche : %i px)',
+    (left) => {
+      mountTop = 200;
+      mountLeft = left;
+      renderSplit();
+      expect(heading()).not.toHaveAttribute('data-split');
+      expect(FakeIntersectionObserver.all).toHaveLength(1);
+      observer().fire(heading(), true);
+      expect(heading()).toHaveAttribute('data-split', 'play');
+    },
+  );
+
   it('reste simplement immobile sans `IntersectionObserver`', () => {
     vi.stubGlobal('IntersectionObserver', undefined);
     renderSplit();
-    expect(heading()).not.toHaveAttribute('data-split');
-  });
-
-  it('n’observe rien sous `prefers-reduced-motion: reduce`', () => {
-    reducedMotion = true;
-    renderSplit();
-    expect(FakeIntersectionObserver.all).toHaveLength(0);
     expect(heading()).not.toHaveAttribute('data-split');
   });
 
@@ -316,21 +351,122 @@ describe('SplitHeading — déclencheur `view` (par défaut)', () => {
   });
 });
 
-describe('SplitHeading — rendu serveur', () => {
-  const fixture = (children: ReactNode = SENTENCE) => (
-    <SplitHeading level={1} trigger="mount">
-      {children as string}
+describe('SplitHeading — une seule lecture', () => {
+  const mount = (children = SENTENCE, props: Partial<SplitHeadingProps> = {}) => (
+    <SplitHeading trigger="mount" {...props}>
+      {children}
+    </SplitHeading>
+  );
+  const finish = () => act(async () => settle('fulfilled'));
+
+  /* `done` retire la règle d'animation : rien ne peut plus la relancer. */
+  it('passe à `done` quand toutes les animations des mots sont finies', async () => {
+    render(mount());
+    await act(async () => {});
+    expect(heading()).toHaveAttribute('data-split', 'play');
+    expect(getAnimations).toHaveBeenCalledWith({ subtree: true });
+    await finish();
+    expect(heading()).toHaveAttribute('data-split', 'done');
+  });
+
+  /* Un `display: none` en pleine lecture annule les animations : sans `done`,
+     elles repartiraient de zéro au retour. L'annulation y mène aussi. */
+  it('passe à `done` quand les animations sont annulées', async () => {
+    render(mount());
+    await act(async () => settle('rejected'));
+    expect(heading()).toHaveAttribute('data-split', 'done');
+  });
+
+  it('finit aussitôt sans `getAnimations` : le titre reste immobile', async () => {
+    animations = undefined;
+    render(mount());
+    await act(async () => {});
+    expect(heading()).toHaveAttribute('data-split', 'done');
+  });
+
+  it('ne rejoue pas après `display: none`, ni quand `level` change', async () => {
+    const { rerender } = render(mount());
+    await finish();
+    rerender(mount(SENTENCE, { style: { display: 'none' } }));
+    rerender(mount());
+    expect(heading()).toHaveAttribute('data-split', 'done');
+    rerender(mount(SENTENCE, { level: 3 }));
+    expect(heading().tagName).toBe('H3');
+    expect(heading()).toHaveAttribute('data-split', 'done');
+  });
+
+  it('montre immobile un nouveau texte après la lecture', async () => {
+    const { rerender } = render(mount());
+    await finish();
+    rerender(mount('Un autre titre.'));
+    expect(screen.getByRole('heading', { name: 'Un autre titre.' })).toHaveAttribute(
+      'data-split',
+      'done',
+    );
+    expect(words().map((word) => word.textContent)).toEqual(['Un', 'autre', 'titre.']);
+  });
+
+  /* Le choix le plus simple qui reste cohérent : pas de cascade à moitié
+     rejouée sur des mots neufs, la phrase entière, immobile — dès ce rendu. */
+  it('montre immobile un texte changé pendant la lecture', () => {
+    const { rerender } = render(mount());
+    expect(heading()).toHaveAttribute('data-split', 'play');
+    rerender(mount('Un autre titre.'));
+    expect(heading()).toHaveAttribute('data-split', 'done');
+  });
+
+  it('rend des mots neufs, et non ceux d’avant réutilisés, quand le texte change', () => {
+    const { rerender } = render(mount());
+    const before = words()[0];
+    rerender(mount('Un autre titre.'));
+    expect(words()[0]).toHaveTextContent('Un');
+    expect(words()[0]).not.toBe(before);
+  });
+});
+
+describe('SplitHeading — rendu serveur et hydratation', () => {
+  const fixture = (trigger: SplitHeadingTrigger = 'mount') => (
+    <SplitHeading level={1} trigger={trigger}>
+      {SENTENCE}
     </SplitHeading>
   );
 
-  const renderOnServer = () => {
+  const renderOnServer = (trigger?: SplitHeadingTrigger) => {
     vi.stubGlobal('window', undefined);
     vi.stubGlobal('document', undefined);
     try {
-      return renderToString(fixture());
+      return renderToString(fixture(trigger));
     } finally {
       vi.unstubAllGlobals();
+      /* `unstubAllGlobals` retire aussi la fausse : on la remet pour le client. */
+      vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
     }
+  };
+
+  /* Hydrate sous StrictMode et rend l'hôte, les erreurs, et de quoi démonter. */
+  const hydrate = async (trigger?: SplitHeadingTrigger) => {
+    const host = document.createElement('div');
+    host.innerHTML = renderOnServer(trigger);
+    document.body.append(host);
+    const errors: string[] = [];
+    const consoleError = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      errors.push(args.map(String).join(' '));
+    });
+    let root: Root | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(host, <StrictMode>{fixture(trigger)}</StrictMode>, {
+          onRecoverableError: (error) => errors.push(String(error)),
+        });
+      });
+    } finally {
+      consoleError.mockRestore();
+    }
+    const cleanup = async () => {
+      await act(async () => root?.unmount());
+      host.remove();
+    };
+    return { host, errors, cleanup };
   };
 
   it('rend chaque mot à son état final : ni lecture, ni opacité, ni transformation', () => {
@@ -341,34 +477,41 @@ describe('SplitHeading — rendu serveur', () => {
     expect(html.match(/opale-split-heading__word/g)).toHaveLength(6);
   });
 
-  it('s’hydrate sans écart sous StrictMode, puis joue', async () => {
-    mountTop = 200;
-    const host = document.createElement('div');
-    host.innerHTML = renderOnServer();
-    document.body.append(host);
-    const errors: string[] = [];
-    const consoleError = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
-      errors.push(args.map(String).join(' '));
-    });
-    let root: Root | undefined;
-    try {
-      await act(async () => {
-        root = hydrateRoot(host, <StrictMode>{fixture()}</StrictMode>, {
-          onRecoverableError: (error) => errors.push(String(error)),
-        });
-      });
-    } finally {
-      consoleError.mockRestore();
-    }
+  /* Les mots du serveur sont déjà peints : les rejouer à l'hydratation les
+     ferait tomber à l'opacité nulle, puis remonter — l'éclair interdit. */
+  it.each(['mount', 'view'] as const)(
+    's’hydrate sans écart et ne rejoue pas un titre déjà à l’écran (`%s`)',
+    async (trigger) => {
+      mountTop = 200;
+      const { host, errors, cleanup } = await hydrate(trigger);
+      expect(errors).toEqual([]);
+      expect(host.querySelector('h1')).not.toHaveAttribute('data-split');
+      expect(FakeIntersectionObserver.all).toHaveLength(0);
+      await cleanup();
+    },
+  );
+
+  it('joue à son entrée un titre hydraté sous la ligne de flottaison (`view`)', async () => {
+    const { host, errors, cleanup } = await hydrate('view');
     expect(errors).toEqual([]);
-    expect(host.querySelector('h1')).toHaveAttribute('data-split', 'play');
-    await act(async () => root?.unmount());
-    host.remove();
+    const h1 = host.querySelector('h1')!;
+    expect(h1).not.toHaveAttribute('data-split');
+    const watching = FakeIntersectionObserver.all.at(-1)!;
+    watching.fire(h1, true);
+    expect(h1).toHaveAttribute('data-split', 'play');
+    await cleanup();
+  });
+
+  it('ne joue jamais un titre `mount` hydraté, même sous la vue', async () => {
+    const { host, cleanup } = await hydrate('mount');
+    expect(host.querySelector('h1')).not.toHaveAttribute('data-split');
+    await cleanup();
   });
 });
 
 describe('SplitHeading — feuille', () => {
-  const play = ".root[data-split='play'] .word";
+  const play = ".root[data-split='play'] > [aria-hidden] > span";
+  const word = '.root > [aria-hidden] > span';
 
   it('prend ses réglages dans les jetons de `:root`', () => {
     const root = declarations(opaleSource, ':root');
@@ -379,11 +522,11 @@ describe('SplitHeading — feuille', () => {
   });
 
   it('pose chaque mot en `inline-block` dès le rendu serveur', () => {
-    expect(declaration(sheet, '.word', 'display')).toBe('inline-block');
+    expect(declaration(sheet, word, 'display')).toBe('inline-block');
   });
 
   it('est visible au repos : aucune règle hors lecture ne cache un mot', () => {
-    for (const selector of ['.root', '.word']) {
+    for (const selector of ['.root', word]) {
       const rest = declarations(sheet, selector);
       expect(rest.get('opacity')).toBeUndefined();
       expect(rest.get('transform')).toBeUndefined();
@@ -424,6 +567,6 @@ describe('SplitHeading — feuille', () => {
   /* Copier le titre rend la phrase une fois : la copie lisible, cachée de
      l'écran, ne se sélectionne pas. */
   it('exclut la copie lisible de la sélection', () => {
-    expect(declaration(sheet, '.text', 'user-select')).toBe('none');
+    expect(declaration(sheet, '.root > [aria-hidden] + span', 'user-select')).toBe('none');
   });
 });

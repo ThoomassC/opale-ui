@@ -22,13 +22,17 @@
   }
 }
 
-/* Un bloc en ligne dès le rendu serveur : la ligne coupe aux mêmes endroits
+/* LES PARTIES SE DÉSIGNENT PAR LEUR PLACE, sans classe de module : les mots
+   sont les enfants du conteneur `aria-hidden`, la copie lisible le suit.
+   Deux classes de module de plus coûtaient leur table au budget de poids.
+
+   Un bloc en ligne dès le rendu serveur : la ligne coupe aux mêmes endroits
    avant et après l'hydratation, et `transform` s'y applique. */
-.word {
+.root > [aria-hidden] > span {
   display: inline-block;
 }
 
-.root[data-split='play'] .word {
+.root[data-split='play'] > [aria-hidden] > span {
   animation-name: word;
   animation-duration: var(--opale-split-duration);
   animation-timing-function: var(--opale-ease-reveal);
@@ -38,21 +42,21 @@
 
 /* La copie lisible, hors de la sélection : copier le titre rend la phrase
    une fois, celle des mots visibles. */
-.text {
+.root > [aria-hidden] + span {
   user-select: none;
 }
 
-/* MOUVEMENT RÉDUIT ET IMPRESSION : les mots, simplement là. Le script ne
-   lance déjà rien sous mouvement réduit ; cette règle couvre la préférence
-   changée en cours de lecture. */
+/* MOUVEMENT RÉDUIT ET IMPRESSION : les mots, simplement là. C'est la feuille
+   seule qui en décide, préférence changée en cours de route comprise : sans
+   animation, le script n'a rien à attendre et passe aussitôt à `done`. */
 @media (prefers-reduced-motion: reduce) {
-  .root[data-split='play'] .word {
+  .root[data-split='play'] > [aria-hidden] > span {
     animation: none;
   }
 }
 
 @media print {
-  .root[data-split='play'] .word {
+  .root[data-split='play'] > [aria-hidden] > span {
     animation: none;
   }
 }

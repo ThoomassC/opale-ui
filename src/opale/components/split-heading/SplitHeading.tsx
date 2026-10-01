@@ -1,8 +1,9 @@
 import {
-  Fragment,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ComponentPropsWithRef,
   type CSSProperties,
 } from 'react';
@@ -10,7 +11,6 @@ import clsx from 'clsx';
 
 import type { HeadingLevel } from '../../catalog/display';
 import { warnOnce } from '../../shared/dev-warning';
-import { splitWords } from './split-words';
 import styles from './style/SplitHeading.module.css';
 
 /* =============================================================================
@@ -31,11 +31,55 @@ import styles from './style/SplitHeading.module.css';
    en page — avant la peinture —, et la feuille ne cache un mot que pendant
    son animation (`animation-fill-mode: backwards`).
 
+   UNE SEULE LECTURE. Une fois les animations finies (ou annulées), le titre
+   passe à `done`, qui retire la règle : ni un `display: none`, ni un autre
+   niveau, ni un texte neuf ne la relancent. Un titre HYDRATÉ déjà à l'écran
+   ne joue jamais : ses mots, peints par le serveur, tomberaient à l'opacité
+   nulle avant de remonter. Seul un titre `view` hydraté sous la vue joue, à
+   son entrée.
+
    AUCUN DÉCALAGE DE MISE EN PAGE. Les mots sont des `inline-block` dès le
    rendu serveur, séparés par de vraies espaces : les lignes coupent au même
    endroit avant et après l'hydratation. Seuls `transform` et `opacity`
    s'animent.
    ========================================================================== */
+
+/* =============================================================================
+   LE DÉCOUPAGE EN MOTS, EN CALCUL PUR — ICI ET NON DANS SON MODULE : un module de
+   plus coûte son en-tête au budget de poids.
+
+   Les mots sont coupés sur les espaces sécables seulement : une espace
+   insécable (U+00A0, U+202F) lie déjà deux signes, elle reste dans le mot.
+   Un texte sans espace — le chinois, le japonais — reste un seul mot.
+
+   LA PONCTUATION ISOLÉE RESTE AVEC SON MOT. Le texte brut ne coupe jamais la
+   ligne avant « ! » ni après « ( » (UAX 14) ; deux `inline-block` voisins, si.
+   Un signe sans lettre ni chiffre rejoint donc le mot qui le précède, et un
+   signe ouvrant (« ( », « « ») le mot qui le suit.
+   ========================================================================== */
+
+const SPACE = /[ \t\n\r\f]+/;
+const LETTER = /[\p{L}\p{N}]/u;
+const OPENING = /^[\p{Ps}\p{Pi}]+$/u;
+
+/** Les mots d'un texte, dans l'ordre, la ponctuation isolée collée à son mot. */
+/* Exportée pour ses tests, et non par l'index du paquet. Son propre module
+   coûterait son en-tête au budget ; le rechargement à chaud de la vitrine
+   recharge donc la page entière quand ce fichier change. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function splitWords(text: string): string[] {
+  const words: string[] = [];
+  let glue = false;
+  for (const token of text.split(SPACE)) {
+    if (!token) continue;
+    const last = words.length - 1;
+    if (last >= 0 && (glue || (!LETTER.test(token) && !OPENING.test(token))))
+      words[last] += ` ${token}`;
+    else words.push(token);
+    glue = OPENING.test(token);
+  }
+  return words;
+}
 
 /**
  * L'unité du découpage. Seuls les mots existent ; le type reste ouvert pour
@@ -65,8 +109,11 @@ export interface SplitHeadingProps extends Omit<ComponentPropsWithRef<'h2'>, 'ch
   trigger?: SplitHeadingTrigger;
 }
 
-const prefersReducedMotion = () =>
-  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+/* L'HYDRATATION, LUE SANS ÉCART : `false` au rendu qui hydrate (la valeur du
+   serveur), `true` à un montage purement client. Aucun abonnement. */
+const subscribeNever = () => () => {};
+const onClient = () => true;
+const onServer = () => false;
 
 /** Un titre dont les mots montent en cascade, lu d'un seul tenant. */
 export function SplitHeading({
@@ -85,8 +132,17 @@ export function SplitHeading({
   /* L'observateur suit les mots, pas le titre : `ref` va droit au titre,
      sans fusion de références. */
   const local = useRef<HTMLSpanElement>(null);
-  /* Absent au serveur et à l'hydratation : chaque mot est à son état final. */
-  const [play, setPlay] = useState(false);
+  /* Le premier rendu a-t-il hydraté des mots déjà peints par le serveur ?
+     Gardé du premier rendu : le suivant lit déjà la valeur client. */
+  const [hydrated] = useState(!useSyncExternalStore(subscribeNever, onClient, onServer));
+  /* La lecture : rien (repos), le texte en cours de lecture, puis `true`
+     quand elle est finie. */
+  const [played, setPlayed] = useState<string | true>();
+  /* `play` pour le texte joué ; `done` ensuite, qui retire la règle
+     d'animation — rien ne la relance. Un texte changé en pleine lecture est
+     `done` dès ce rendu : la phrase neuve est immobile, sans cascade rejouée
+     à moitié. */
+  const state = played === undefined ? undefined : played === children ? 'play' : 'done';
 
   useLayoutEffect(() => {
     if (!text) {
@@ -94,67 +150,88 @@ export function SplitHeading({
       return;
     }
     const node = local.current;
-    if (!node || prefersReducedMotion()) return;
-    /* Déjà à l'écran : l'observateur ne préviendrait qu'après une peinture, et
-       les mots, montrés, seraient cachés puis animés. On joue tout de suite. */
-    /* Sous la vue, la règle de `Reveal` (`isBelowFold`), écrite ici en une
-       ligne : un module de plus coûte plus que la ligne au budget. */
-    const height = window.innerHeight;
-    if (trigger === 'mount' || !(height > 0 && node.getBoundingClientRect().top >= height)) {
-      setPlay(true);
+    if (!node) return;
+    /* Une seule lecture : jamais depuis `done`. Le mouvement réduit n'est pas
+       lu ici : la feuille y retire l'animation, et la lecture finit aussitôt. */
+    const play = () => setPlayed((current) => current ?? children);
+    const box = node.getBoundingClientRect();
+    /* À l'écran, sur les deux axes : l'observateur ne préviendrait qu'après
+       une peinture, et les mots, montrés, seraient cachés puis animés. Un
+       titre client joue donc tout de suite ; un titre hydraté, déjà peint par
+       le serveur, ne joue jamais. */
+    if (
+      trigger === 'mount' ||
+      (box.top < innerHeight && box.bottom > 0 && box.left < innerWidth && box.right > 0)
+    ) {
+      if (!hydrated) play();
       return;
     }
     /* Sans observateur, le titre reste simplement immobile. */
     if (typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        /* Dans la vue, ou déjà au-dessus : un saut a pu la franchir d'un coup. */
-        if (
-          entry &&
-          (entry.isIntersecting ||
-            entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0) + 1)
-        ) {
-          setPlay(true);
+        if (entry?.isIntersecting) {
+          play();
           observer.disconnect();
         }
       },
       /* Aucune marge en bas : pas de bande morte. Une marge sans fin en haut :
-         le titre dépassé d'un saut compte comme vu (voir `Reveal`). */
+         un titre qu'un saut (touche Fin, ancre) a fait passer au-dessus de la
+         vue y est encore « dans la vue », et compte comme vu. */
       { rootMargin: '100000px 0px 0px 0px' },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [text, trigger, level]);
+  }, [children, text, trigger, level, hydrated]);
+
+  /* LA FIN DE LA LECTURE : toutes les animations des mots finies — ou
+     annulées, par un `display: none` en cours de route. Aucune animation
+     (mouvement réduit, impression) : la lecture finit aussitôt. */
+  useEffect(() => {
+    if (state === 'play')
+      void Promise.allSettled(
+        (local.current?.getAnimations?.({ subtree: true }) ?? []).map(
+          (animation) => animation.finished,
+        ),
+      ).then(() => setPlayed(true));
+  }, [state]);
 
   return (
     <Tag
       {...rest}
       ref={ref}
-      data-split={play ? 'play' : undefined}
-      className={clsx('opale-heading', 'opale-split-heading', styles.root, className)}
+      data-split={state}
+      className={clsx('opale-heading opale-split-heading', styles.root, className)}
     >
-      {text ? (
-        <>
-          <span className={clsx('opale-visually-hidden', styles.text)}>{children}</span>
-          <span ref={local} aria-hidden="true">
-            {/* L'espace vit ENTRE les mots, pas dedans : en tête d'un
-                `inline-block`, elle serait retirée et les mots se colleraient. */}
-            {splitWords(children).map((word, index) => (
-              <Fragment key={index}>
-                {index > 0 && ' '}
+      {text
+        ? [
+            <span
+              /* Une clé tirée du texte : des mots neufs pour une phrase neuve,
+                 jamais ceux d'avant réutilisés au même rang. */
+              key={children}
+              ref={local}
+              aria-hidden="true"
+            >
+              {/* L'espace vit ENTRE les mots, pas dedans : en tête d'un
+                  `inline-block`, elle serait retirée et les mots se colleraient. */}
+              {splitWords(children).flatMap((word, index) => [
+                index ? ' ' : '',
                 <span
-                  className={clsx('opale-split-heading__word', styles.word)}
+                  key={index}
+                  className="opale-split-heading__word"
                   style={{ '--opale-split-index': index } as CSSProperties}
                 >
                   {word}
-                </span>
-              </Fragment>
-            ))}
-          </span>
-        </>
-      ) : (
-        children
-      )}
+                </span>,
+              ])}
+            </span>,
+            /* La copie lisible, APRÈS les mots : la feuille la désigne ainsi,
+               sans classe de module de plus. */
+            <span key="text" className="opale-visually-hidden">
+              {children}
+            </span>,
+          ]
+        : children}
     </Tag>
   );
 }
