@@ -27,8 +27,8 @@
 }
 
 /* LE NATIF : la montée suit l'entrée de l'élément dans la vue, sans script.
-   Un élément déjà à l'écran au chargement est au-delà de la plage : il est à
-   son état final dès la première image. */
+   Un élément déjà à l'écran au montage peut être en pleine entrée : le script
+   le marque `shown`, et il est figé à son état final. */
 @supports (animation-timeline: view()) {
   .root {
     animation-name: rise;
@@ -37,9 +37,17 @@
     animation-timeline: view();
     /* La cascade décale la plage, de 10 % de l'entrée par rang : un délai en
        temps n'a pas de sens sur une timeline de défilement, et Chromium
-       l'ignore. */
-    animation-range: entry calc(var(--opale-reveal-index, 0) * 10%)
-      entry calc(80% + var(--opale-reveal-index, 0) * 10%);
+       l'ignore. Bornée : la fin ne passe jamais l'entrée complète, qu'un
+       élément au bas du document atteint toujours. */
+    animation-range: entry min(50%, var(--opale-reveal-index, 0) * 10%) entry
+      min(100%, 80% + var(--opale-reveal-index, 0) * 10%);
+  }
+
+  /* Le focus, ou un élément déjà à l'écran au montage : l'état final, tout
+     de suite (WCAG 2.4.7) — jamais figé à mi-montée tant qu'on ne défile pas. */
+  .root:focus-within,
+  .root[data-reveal='shown'] {
+    animation: none;
   }
 }
 
@@ -55,6 +63,12 @@
   transition-duration: var(--opale-reveal-duration);
   transition-timing-function: var(--opale-ease-reveal);
   transition-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger));
+}
+
+/* Montré par le focus : aucune transition. L'élément est déjà centré par la
+   tabulation ; un fondu de 720 ms laisserait le focus sur l'invisible. */
+.root[data-reveal='shown']:focus-within {
+  transition: none;
 }
 
 /* MOUVEMENT RÉDUIT ET IMPRESSION : le contenu, simplement là. Les règles

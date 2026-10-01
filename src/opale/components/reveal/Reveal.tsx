@@ -68,7 +68,15 @@ const supportsViewTimeline = () =>
 const prefersReducedMotion = () =>
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
-/** Un bloc qui monte en fondu quand il entre dans la vue, visible au repos. */
+/**
+ * Un bloc qui monte en fondu quand il entre dans la vue, visible au repos.
+ *
+ * Deux limites connues : dans un conteneur dont l'`overflow` n'est pas
+ * visible, la montée native suit ce conteneur plutôt que la page ; et au
+ * rechargement au milieu d'une page, le repli mesure avant que le navigateur
+ * ne restaure le défilement, si bien que des blocs déjà à l'écran peuvent
+ * apparaître en fondu.
+ */
 export function Reveal({
   as = 'div',
   delay,
@@ -86,43 +94,61 @@ export function Reveal({
   /* Absent au serveur et à l'hydratation : le contenu est à son état final. */
   const [state, setState] = useState<RevealState>();
 
+  /* `as` dans les dépendances : une autre balise est un autre nœud, que
+     l'observateur doit suivre. */
   useLayoutEffect(() => {
     const node = local.current;
-    if (
-      !node ||
-      supportsViewTimeline() ||
-      typeof IntersectionObserver === 'undefined' ||
-      prefersReducedMotion() ||
-      !isBelowFold(node.getBoundingClientRect(), window.innerHeight)
-    ) {
+    if (!node || typeof IntersectionObserver === 'undefined' || prefersReducedMotion()) return;
+    const below = isBelowFold(node.getBoundingClientRect(), window.innerHeight);
+    /* LE NATIF : un élément déjà à l'écran peut être en pleine entrée ; il est
+       figé à son état final plutôt que laissé translucide au bas de la vue. */
+    if (supportsViewTimeline()) {
+      if (!below) setState('shown');
+      return;
+    }
+    /* Rien à observer : rien ne reste en attente sans qui le montre. */
+    if (!below) {
+      setState((current) => (current === 'pending' ? 'shown' : current));
       return;
     }
     setState('pending');
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
+          /* Dans la vue, ou déjà au-dessus : un saut (touche Fin, ancre) a pu la
+           franchir d'un coup, sans croisement — l'élément dépassé est montré. */
+          const passed = entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0) + 1;
+          if (entry.isIntersecting || passed) {
             setState('shown');
             if (once) observer.disconnect();
-          } else if (!once && isBelowFold(entry.boundingClientRect, window.innerHeight)) {
+          } else if (
+            !once &&
+            /* Le bas réel de la vue, au sous-pixel près : l'observateur prévient
+             au franchissement, pas une fois l'élément loin dessous. */
+            entry.boundingClientRect.top >= (entry.rootBounds?.bottom ?? window.innerHeight) - 1
+          ) {
             setState('pending');
           }
         }
+        /* Aucune marge en bas : pas de bande morte au bas de la vue. Une marge
+         sans fin en haut : l'élément dépassé d'un saut compte comme entré —
+         l'observateur ne prévient qu'au changement d'état, et « sous la vue »
+         puis « au-dessus » n'en est pas un. */
       },
-      { rootMargin: '0px 0px -10% 0px' },
+      { rootMargin: '100000px 0px 0px 0px' },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [once]);
+  }, [as, once]);
 
   return (
     <Tag
       {...rest}
       ref={setRef}
       data-reveal={state}
-      /* LE FOCUS MONTRE TOUJOURS. La tabulation fait défiler juste assez pour
-         amener l'élément au bas de la vue, dans la marge où l'observateur ne
-         le voit pas encore : sans ceci, le focus se poserait sur l'invisible. */
+      /* LE FOCUS MONTRE TOUJOURS, et tout de suite : un élément en attente qui
+         reçoit le focus passe à son état final sans transition (la feuille
+         l'annule sous `:focus-within`), même si l'observateur ne l'a pas vu. */
       onFocus={(event) => {
         onFocus?.(event);
         setState((current) => (current === 'pending' ? 'shown' : current));

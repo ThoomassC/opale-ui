@@ -47,10 +47,18 @@ class FakeIntersectionObserver {
   takeRecords() {
     return [];
   }
-  /* Une entrée pour la cible, qui entre (ou sort) par le bas ou par le haut. */
+  /* Une entrée pour la cible, qui entre (ou sort) par le bas ou par le haut.
+     `rootBounds` est la vue réelle : un vrai observateur prévient quand le
+     bord de l'élément la franchit, pas quand il est déjà loin dessous. */
   fire(target: Element, isIntersecting: boolean, top = isIntersecting ? 400 : 2000) {
     const rect = { top, bottom: top + 100, left: 0, right: 100, width: 100, height: 100 };
-    const entry = { target, isIntersecting, boundingClientRect: rect } as IntersectionObserverEntry;
+    const rootBounds = { top: 0, bottom: 800, left: 0, right: 1280, width: 1280, height: 800 };
+    const entry = {
+      target,
+      isIntersecting,
+      boundingClientRect: rect,
+      rootBounds,
+    } as IntersectionObserverEntry;
     act(() => this.callback([entry], this as unknown as IntersectionObserver));
   }
 }
@@ -159,6 +167,16 @@ describe('Reveal — natif (animation-timeline: view())', () => {
     expect(FakeIntersectionObserver.all).toHaveLength(0);
     expect(node()).not.toHaveAttribute('data-reveal');
   });
+
+  /* Un élément déjà à l'écran au montage peut être en pleine entrée : sans
+     ceci, il resterait translucide et décalé au bas de la première vue. */
+  it('fige à son état final un élément déjà à l’écran au montage', () => {
+    supportsViewTimeline = true;
+    mountTop = 700;
+    renderReveal();
+    expect(node()).toHaveAttribute('data-reveal', 'shown');
+    expect(FakeIntersectionObserver.all).toHaveLength(0);
+  });
 });
 
 describe('Reveal — repli IntersectionObserver', () => {
@@ -172,7 +190,12 @@ describe('Reveal — repli IntersectionObserver', () => {
   it('met en attente un élément sous la ligne de flottaison, puis le montre à son entrée', () => {
     renderReveal();
     expect(node()).toHaveAttribute('data-reveal', 'pending');
-    expect(observer().options?.rootMargin).toBe('0px 0px -10% 0px');
+    /* Aucune marge en bas : une bande morte y garderait caché pour toujours
+       un pied de page collé au bas du document. Une marge sans fin en haut :
+       un élément dépassé d'un saut compte comme entré — le vrai observateur
+       ne prévient qu'au changement d'état, et « sous la vue » puis « au-dessus »
+       n'en est pas un. */
+    expect(observer().options?.rootMargin).toBe('100000px 0px 0px 0px');
     expect(observer().targets.has(node())).toBe(true);
     observer().fire(node(), true);
     expect(node()).toHaveAttribute('data-reveal', 'shown');
@@ -191,9 +214,52 @@ describe('Reveal — repli IntersectionObserver', () => {
     observer().fire(node(), true);
     observer().fire(node(), false, -600);
     expect(node()).toHaveAttribute('data-reveal', 'shown');
-    observer().fire(node(), false, 2000);
+    /* Le vrai observateur prévient au franchissement du bas de la vue, au
+       sous-pixel près : pas quand l'élément est déjà 1 200 px plus bas. */
+    observer().fire(node(), false, 799.6);
     expect(node()).toHaveAttribute('data-reveal', 'pending');
     expect(observer().disconnected).toBe(false);
+  });
+
+  it('observe le nouveau nœud quand `as` change, et n’en laisse aucun en attente', () => {
+    const { rerender } = render(
+      <Reveal data-testid="reveal" as="div">
+        Un
+      </Reveal>,
+    );
+    expect(node()).toHaveAttribute('data-reveal', 'pending');
+    rerender(
+      <Reveal data-testid="reveal" as="section">
+        Un
+      </Reveal>,
+    );
+    expect(node().tagName).toBe('SECTION');
+    const watching = FakeIntersectionObserver.all.at(-1)!;
+    expect(watching.targets.has(node())).toBe(true);
+    watching.fire(node(), true);
+    expect(node()).toHaveAttribute('data-reveal', 'shown');
+  });
+
+  it('montre un élément resté en attente quand l’effet repart sans l’observer', () => {
+    const { rerender } = renderReveal();
+    expect(node()).toHaveAttribute('data-reveal', 'pending');
+    /* Un saut l'a fait passer au-dessus de la vue sans croisement observé. */
+    mountTop = -400;
+    rerender(
+      <Reveal data-testid="reveal" once={false}>
+        <p>Accessible</p>
+      </Reveal>,
+    );
+    expect(node()).toHaveAttribute('data-reveal', 'shown');
+  });
+
+  /* Un saut (touche Fin, ancre) passe par-dessus l'élément sans qu'il
+     croise la vue : dépassé, il est montré — pas laissé en trou au-dessus. */
+  it('montre un élément en attente qu’un saut a fait passer au-dessus de la vue', () => {
+    renderReveal();
+    observer().fire(node(), false, -600);
+    expect(node()).toHaveAttribute('data-reveal', 'shown');
+    expect(observer().disconnected).toBe(true);
   });
 
   it('montre l’élément en attente dès que le focus y entre, même hors de la marge', () => {
@@ -254,10 +320,26 @@ describe('Reveal — feuille', () => {
     expect(native.get('animation-fill-mode')).toBe('both');
     expect(native.get('animation-timing-function')).toBe('var(--opale-ease-reveal)');
     expect(native.get('animation-timeline')).toBe('view()');
+    /* Bornée : un grand `delay` ne pousse jamais la fin au-delà de l'entrée
+       complète, qu'un élément au bas du document atteint toujours. */
     expect(native.get('animation-range')).toBe(
-      'entry calc(var(--opale-reveal-index, 0) * 10%) entry calc(80% + var(--opale-reveal-index, 0) * 10%)',
+      'entry min(50%, var(--opale-reveal-index, 0) * 10%) entry min(100%, 80% + var(--opale-reveal-index, 0) * 10%)',
     );
     expect(declaration(sheet, '.root', 'animation-name')).toBeUndefined();
+  });
+
+  /* WCAG 2.4.7 : un élément qui a le focus est entièrement visible, tout de
+     suite — ni figé à mi-montée (natif), ni en fondu de 720 ms (repli). */
+  it('passe à l’état final, sans animation ni transition, quand le focus y entre', () => {
+    expect(declaration(sheet, '.root:focus-within', 'animation', { within: nativeContext })).toBe(
+      'none',
+    );
+    expect(
+      declaration(sheet, ".root[data-reveal='shown']", 'animation', { within: nativeContext }),
+    ).toBe('none');
+    expect(declaration(sheet, ".root[data-reveal='shown']:focus-within", 'transition')).toBe(
+      'none',
+    );
   });
 
   it('est visible au repos : aucune règle de premier niveau ne cache `.root`', () => {
@@ -292,9 +374,9 @@ describe('Reveal — feuille', () => {
     expect(
       declaration(sheet, '.root', 'animation-delay', { within: nativeContext }),
     ).toBeUndefined();
-    expect(
-      declaration(sheet, '.root', 'animation-range', { within: nativeContext }),
-    ).toContain('var(--opale-reveal-index, 0) * 10%');
+    expect(declaration(sheet, '.root', 'animation-range', { within: nativeContext })).toContain(
+      'var(--opale-reveal-index, 0) * 10%',
+    );
   });
 
   it.each(['@media (prefers-reduced-motion: reduce)', '@media print'])(
