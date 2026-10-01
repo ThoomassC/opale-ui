@@ -134,6 +134,14 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   pub('--opale-scrim-blur', 'surface', 'Flou du voile des dialogues.'),
   pub('--opale-disabled-opacity', 'surface', 'Opacité d’un contrôle désactivé.'),
   int('--opale-field-border', 'surface', 'Bord des champs, dérivé du texte et de la surface.'),
+  pub('--opale-ground-paper', 'surface', 'Fond `paper` d’une `ScrollSection`, suit le thème.'),
+  pub('--opale-ground-paper-ink', 'surface', 'Encre posée sur le fond `paper`.'),
+  pub('--opale-ground-amber', 'surface', 'Fond `amber` d’une `ScrollSection`.'),
+  pub('--opale-ground-amber-ink', 'surface', 'Encre posée sur le fond `amber`.'),
+  pub('--opale-ground-night', 'surface', 'Fond `night` d’une `ScrollSection`.'),
+  pub('--opale-ground-night-ink', 'surface', 'Encre posée sur le fond `night`.'),
+  pub('--opale-ground-blue', 'surface', 'Fond `blue` d’une `ScrollSection`.'),
+  pub('--opale-ground-blue-ink', 'surface', 'Encre posée sur le fond `blue`.'),
 
   /* Les états. */
   pub('--opale-success', 'etat', 'Couleur de signal du succès.'),
@@ -273,6 +281,7 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   pub('--opale-split-distance', 'mouvement', 'Montée d’un mot de `SplitHeading` avant son entrée.'),
   pub('--opale-split-duration', 'mouvement', 'Durée de la montée d’un mot de `SplitHeading`.'),
   pub('--opale-split-stagger', 'mouvement', 'Pas de la cascade des mots d’un `SplitHeading`.'),
+  pub('--opale-stage-duration', 'mouvement', 'Durée du fondu de fond d’un `ScrollStage`.'),
 
   /* Le verre. */
   pub('--opale-glass-ink', 'verre', 'Encre du texte posé sur le verre.'),

@@ -120,6 +120,23 @@
      d'origine tient déjà 9,36:1 ; le jeton y garde donc sa valeur. */
   --opale-accent-graphic: #8e6000;
 
+  /* LES FONDS DE `ScrollSection`, CHACUN AVEC SON ENCRE. Une section peint
+     toujours son propre couple : c'est ce qui garde son texte lisible pendant
+     que la scène change de fond derrière elle. `paper` vaut la surface et
+     l'encre du thème, et a donc sa valeur sombre ; l'ambre, la nuit et le
+     bleu sont des teintes fixes, les mêmes dans les deux thèmes. Écrits en
+     clair et non en `var()` : un dérivé devrait être redit sur chaque thème
+     local et chaque portée. `opale-scroll-grounds.contract.test.ts` garde
+     `paper` égal à la surface et exige 4,5:1 de chaque couple. */
+  --opale-ground-paper: #fbfaf9;
+  --opale-ground-paper-ink: #14100b;
+  --opale-ground-amber: #f4ad15;
+  --opale-ground-amber-ink: #14100b;
+  --opale-ground-night: #121713;
+  --opale-ground-night-ink: #f3f1ec;
+  --opale-ground-blue: #315c9e;
+  --opale-ground-blue-ink: #ffffff;
+
   /* L'ENCRE DU PRIMAIRE QUAND ELLE SE LIT *SUR* UNE SURFACE.
 
      `--opale-primary` a deux rôles que rien ne distinguait : il est le FOND
@@ -359,6 +376,9 @@
   --opale-split-distance: 0.35em;
   --opale-split-duration: 640ms;
   --opale-split-stagger: 70ms;
+  /* La scène qui suit la section active (`ScrollStage`) : le fondu de son
+     propre fond d'un couple à l'autre ; la courbe est `--opale-ease`. */
+  --opale-stage-duration: 640ms;
   --opale-drop-shadow-1: drop-shadow(0 0.0625rem 0.0625rem rgba(20, 30, 24, 0.06))
     drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.08));
   --opale-drop-shadow-2: drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.07))
@@ -533,6 +553,10 @@
      y tient 5,03:1, contre 1,01:1 pour celle du thème clair. */
   --opale-accent-ink: #ffd98a;
   --opale-accent-graphic: #f4ad15;
+  /* Le fond `paper` de `ScrollSection` suit la surface et l'encre sombres ;
+     les trois autres fonds sont fixes et ne se redisent pas ici. */
+  --opale-ground-paper: #1d221e;
+  --opale-ground-paper-ink: #f3f1ec;
 
   --opale-glass-surface: rgba(38, 44, 39, 0.7);
   --opale-glass-border: rgba(169, 199, 244, 0.28);

@@ -54,6 +54,14 @@ const BUDGETS = {
      2 500 o avant son écriture ; un dépassement s'allège, il ne relève pas
      ce budget. */
   SplitHeading: 2_500,
+  /* La scène qui suit le fond de la section active : un seul observateur
+     pour toutes ses sections, et l'attribut `data-ground` qu'une feuille lit.
+     Posé à 2 000 o avant son écriture ; un dépassement s'allège, il ne relève
+     pas ce budget. */
+  ScrollStage: 2_000,
+  /* La section qui peint son propre fond et son encre, et s'inscrit auprès
+     de sa scène. Posé à 1 200 o avant son écriture ; même règle. */
+  ScrollSection: 1_200,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];

@@ -1,0 +1,81 @@
+/* =============================================================================
+   LA SCÈNE ET SES SECTIONS — FEUILLE D'OPALE.
+
+   LA SECTION PEINT SON COUPLE, SANS JAMAIS S'ANIMER. Fond et encre viennent
+   des jetons `--opale-ground-<nom>` et `--opale-ground-<nom>-ink`, déclarés
+   sur `:root` dans `opale.css`. `flow-root` contient les marges de ses
+   enfants : la marge haute d'un titre ne laisse pas voir la scène au-dessus.
+
+   LA SCÈNE EXPOSE LE COUPLE ACTIF, en `--opale-stage-ground` et
+   `--opale-stage-ink` : une propriété personnalisée ne s'interpole pas, ce
+   qui la lit change donc d'un coup, jamais par un couple intermédiaire. Seul
+   le fond propre de la scène fond — `background-color` et `color`, en
+   `--opale-stage-duration` sur `--opale-ease` —, et rien ne bouge en mise en
+   page.
+   ========================================================================== */
+
+.section {
+  display: flow-root;
+}
+
+.section[data-ground='paper'] {
+  background-color: var(--opale-ground-paper);
+  color: var(--opale-ground-paper-ink);
+}
+
+.section[data-ground='amber'] {
+  background-color: var(--opale-ground-amber);
+  color: var(--opale-ground-amber-ink);
+}
+
+.section[data-ground='night'] {
+  background-color: var(--opale-ground-night);
+  color: var(--opale-ground-night-ink);
+}
+
+.section[data-ground='blue'] {
+  background-color: var(--opale-ground-blue);
+  color: var(--opale-ground-blue-ink);
+}
+
+.stage {
+  background-color: var(--opale-stage-ground);
+  color: var(--opale-stage-ink);
+  transition-property: background-color, color;
+  transition-duration: var(--opale-stage-duration);
+  transition-timing-function: var(--opale-ease);
+}
+
+.stage[data-ground='paper'] {
+  --opale-stage-ground: var(--opale-ground-paper);
+  --opale-stage-ink: var(--opale-ground-paper-ink);
+}
+
+.stage[data-ground='amber'] {
+  --opale-stage-ground: var(--opale-ground-amber);
+  --opale-stage-ink: var(--opale-ground-amber-ink);
+}
+
+.stage[data-ground='night'] {
+  --opale-stage-ground: var(--opale-ground-night);
+  --opale-stage-ink: var(--opale-ground-night-ink);
+}
+
+.stage[data-ground='blue'] {
+  --opale-stage-ground: var(--opale-ground-blue);
+  --opale-stage-ink: var(--opale-ground-blue-ink);
+}
+
+/* MOUVEMENT RÉDUIT ET IMPRESSION : la scène suit toujours la section active
+   — c'est une information —, mais change de fond d'un coup. */
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    transition: none;
+  }
+}
+
+@media print {
+  .stage {
+    transition: none;
+  }
+}
