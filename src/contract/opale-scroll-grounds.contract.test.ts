@@ -4,6 +4,8 @@ import { contrastRatio } from './color';
 import { parseThemes, resolveToken } from './stylesheet';
 import type { Theme } from './stylesheet';
 import opaleSource from '../opale/opale.css?raw';
+import sectionSheet from '../opale/components/scroll-section/style/ScrollSection.module.css?raw';
+import { declaration } from '../test/css-rules';
 
 /* ============================================================================
    CHAQUE FOND DE SECTION PORTE SON ENCRE, ET ELLE SE LIT.
@@ -128,5 +130,51 @@ describe('les boutons dans une ScrollSection', () => {
     expect(contrastRatio(hover, ground)).toBeGreaterThanOrEqual(AA_GRAPHIC);
     expect(contrastRatio(ink, fill)).toBeGreaterThanOrEqual(AA_TEXT);
     expect(contrastRatio(ink, hover)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+});
+
+/* LES BOUTONS FANTÔME, TEXTE ET TONAL LISENT `--opale-primary-on-surface`,
+   l'encre prévue pour les surfaces d'Opale. Sur un fond de couleur, elle
+   tombait sous l'AA : le bleu clair du thème sombre sur `blue` (3,8:1), le
+   bleu primaire sur `amber` (3,4:1). Chaque fond pose donc une encre lisible,
+   et `blue` une surface bleu nuit, pour que l'aplat tonal s'y accorde. */
+describe('l’encre des boutons légers sur chaque fond', () => {
+  const light = themes.get('light') as Theme;
+  const dark = themes.get('dark-explicit') as Theme;
+  const onSurface = (ground: string) =>
+    declaration(sectionSheet, `.section[data-ground='${ground}']`, '--opale-primary-on-surface');
+
+  it('pose l’encre du fond sur `amber` et `blue`', () => {
+    expect(onSurface('amber')).toBe('var(--opale-ground-amber-ink)');
+    expect(onSurface('blue')).toBe('var(--opale-ground-blue-ink)');
+  });
+
+  it.each([
+    ['amber', light],
+    ['blue', light],
+  ] as const)('tient %s:1 entre cette encre et le fond', (ground, theme) => {
+    const ink = resolveToken(theme, `--opale-ground-${ground}-ink`);
+    expect(
+      contrastRatio(ink, resolveToken(theme, `--opale-ground-${ground}`)),
+    ).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it('garde l’encre du thème sombre sur `night`, qui y suffit', () => {
+    expect(onSurface('night')).toBeUndefined();
+    const ink = resolveToken(dark, '--opale-primary-light');
+    expect(contrastRatio(ink, resolveToken(light, '--opale-ground-night'))).toBeGreaterThanOrEqual(
+      AA_TEXT,
+    );
+  });
+
+  it('donne à `blue` une surface bleu nuit, sous laquelle le bouton tonal se lit', () => {
+    expect(declaration(sectionSheet, ".section[data-ground='blue']", '--opale-surface')).toBe(
+      'var(--opale-ground-blue-surface)',
+    );
+    const surface = resolveToken(light, '--opale-ground-blue-surface');
+    const tonal = mixSrgb(resolveToken(dark, '--opale-primary-light'), surface, 0.14);
+    const ink = resolveToken(light, '--opale-ground-blue-ink');
+    expect(contrastRatio(ink, tonal)).toBeGreaterThanOrEqual(AA_TEXT);
+    expect(contrastRatio(ink, surface)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 });

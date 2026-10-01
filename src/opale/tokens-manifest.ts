@@ -145,6 +145,7 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   int('--opale-ground-blue-hover', 'surface', 'Survol du bouton principal inversé sur `blue`.'),
   int('--opale-ground-blue-secondary', 'surface', 'Aplat du bouton secondaire sur `blue`.'),
   int('--opale-ground-amber-secondary', 'surface', 'Aplat du bouton secondaire sur `amber`.'),
+  int('--opale-ground-blue-surface', 'surface', 'Surface des composants posés sur `blue`.'),
 
   /* Les états. */
   pub('--opale-success', 'etat', 'Couleur de signal du succès.'),

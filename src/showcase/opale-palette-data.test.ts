@@ -108,6 +108,7 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
   '--opale-ground-blue-secondary':
     'aplat du bouton secondaire sur `blue` — n’a de sens que sur ce fond, mesuré par le même contrat',
   '--opale-ground-amber-secondary': 'aplat du bouton secondaire sur `amber` — même raison',
+  '--opale-ground-blue-surface': 'surface des composants posés sur `blue` — même raison',
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {

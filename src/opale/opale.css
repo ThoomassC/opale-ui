@@ -145,6 +145,7 @@
      (4,17:1 au survol), 6,58:1 pour l'encre claire. */
   --opale-ground-blue-hover: #dce6f5;
   --opale-ground-blue-secondary: #b4cff5;
+  --opale-ground-blue-surface: #1d3a63;
   --opale-ground-amber-secondary: #335f7b;
 
   /* L'ENCRE DU PRIMAIRE QUAND ELLE SE LIT *SUR* UNE SURFACE.

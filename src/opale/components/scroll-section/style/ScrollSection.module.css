@@ -28,6 +28,9 @@
   color: var(--opale-ground-amber-ink);
   /* Le secondaire (#3a6b8a) ne tenait que 2,97:1 contre l'ambre : il fonce. */
   --opale-secondary-dark: var(--opale-ground-amber-secondary);
+  /* Les boutons légers (fantôme, texte, tonal) lisent cette encre : le bleu
+     primaire n'y tenait que 3,4:1. Ils prennent l'encre du fond. */
+  --opale-primary-on-surface: var(--opale-ground-amber-ink);
 }
 
 .section[data-ground='night'] {
@@ -47,6 +50,11 @@
   --opale-primary-dark: var(--opale-ground-blue-hover);
   --opale-on-primary: var(--opale-ground-blue);
   --opale-secondary-dark: var(--opale-ground-blue-secondary);
+  /* Les boutons légers prennent l'encre blanche (le bleu clair n'y tenait
+     que 3,8:1), et la surface devient bleu nuit : l'aplat tonal, mêlé à elle,
+     s'accorde au fond au lieu de virer au gris vert du thème sombre. */
+  --opale-primary-on-surface: var(--opale-ground-blue-ink);
+  --opale-surface: var(--opale-ground-blue-surface);
 }
 
 .stage {
