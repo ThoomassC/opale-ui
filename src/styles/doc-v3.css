@@ -3864,3 +3864,195 @@ html:has(.tc-doc--full-bleed) {
   align-self: center;
   padding-inline: var(--opale-space-sm);
 }
+
+/* =============================================================================
+   L'ACCUEIL EN MOUVEMENT — LENT, FLOU QUI SE DISSIPE, LIÉ AU DÉFILEMENT.
+
+   AU REPOS, TOUT EST LÀ. Chaque animation part d'un état `from` tenu
+   seulement pendant son délai (`backwards`) ou sa plage de défilement ; sans
+   animation, la page est complète. Seuls `transform`, `opacity` et `filter`
+   bougent : aucune boîte ne change de place (CLS nul).
+
+   RIEN NE TOURNE EN BOUCLE DE LUI-MÊME. L'accroche se compose une fois, au
+   chargement ; l'aura et l'aperçu ne bougent qu'avec le défilement, donc
+   sous la main de qui lit (WCAG 2.2.2).
+
+   MOUVEMENT RÉDUIT : aucune de ces règles ne s'applique, elles vivent toutes
+   sous `prefers-reduced-motion: no-preference`. L'aura reste, immobile.
+   ========================================================================== */
+.tc-doc-landing {
+  --tc-landing-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Les apparitions au défilement montent de plus loin que la valeur d'Opale. */
+  --opale-reveal-distance: 3rem;
+  --opale-reveal-duration: 1100ms;
+  --opale-reveal-stagger: 120ms;
+}
+
+/* L'AURA : trois halos flous derrière l'accroche, côté fin de ligne — la
+   moitié que le titre laisse vide sur grand écran. Teintes claires sous
+   l'encre sombre du papier clair, teintes sombres sous l'encre claire du
+   papier sombre : le texte garde son contraste partout où elle passe. */
+.tc-doc-landing__band--hero {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  --tc-landing-aura-1: color-mix(in srgb, var(--opale-ground-amber) 62%, transparent);
+  --tc-landing-aura-2: color-mix(in srgb, var(--opale-ground-blue-secondary) 80%, transparent);
+  --tc-landing-aura-3: color-mix(in srgb, var(--opale-ground-amber) 30%, #fff);
+}
+:root[data-theme='dark'] .tc-doc-landing__band--hero {
+  --tc-landing-aura-1: color-mix(in srgb, var(--opale-ground-blue) 70%, transparent);
+  --tc-landing-aura-2: color-mix(in srgb, var(--opale-ground-blue-surface) 90%, transparent);
+  --tc-landing-aura-3: color-mix(in srgb, var(--opale-ground-amber) 22%, transparent);
+}
+.tc-doc-landing__aura {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -10%;
+  inset-inline-end: -12%;
+  inline-size: min(70vw, 56rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  filter: blur(clamp(40px, 6vw, 90px));
+}
+.tc-doc-landing__aura > span {
+  position: absolute;
+  border-radius: 50%;
+}
+.tc-doc-landing__aura > span:nth-child(1) {
+  inset: 8% 18% 30% 12%;
+  background: var(--tc-landing-aura-1);
+}
+.tc-doc-landing__aura > span:nth-child(2) {
+  inset: 34% 4% 6% 34%;
+  background: var(--tc-landing-aura-2);
+  --tc-landing-drift-x: -14%;
+  --tc-landing-drift-y: 10%;
+}
+.tc-doc-landing__aura > span:nth-child(3) {
+  inset: 22% 36% 22% 26%;
+  background: var(--tc-landing-aura-3);
+  --tc-landing-drift-x: 18%;
+  --tc-landing-drift-y: -8%;
+}
+
+@keyframes tc-landing-word {
+  from {
+    opacity: 0;
+    filter: blur(0.12em);
+    transform: translateY(0.5em) rotate(4deg);
+  }
+  60% {
+    filter: blur(0);
+  }
+}
+@keyframes tc-landing-rise {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(1.5rem);
+  }
+}
+@keyframes tc-landing-reveal {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(var(--opale-reveal-distance)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+@keyframes tc-landing-aura-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6) rotate(-20deg);
+  }
+}
+@keyframes tc-landing-drift {
+  to {
+    transform: translate(var(--tc-landing-drift-x, 10%), var(--tc-landing-drift-y, 16%)) scale(1.15);
+  }
+}
+@keyframes tc-landing-tilt {
+  from {
+    opacity: 0.35;
+    transform: perspective(1800px) rotateX(26deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* LES MOTS DE CHAQUE TITRE : plus lents, de plus bas, penchés, et nets
+     seulement aux trois cinquièmes de leur course. La machine d'états de
+     `SplitHeading` attend la fin des animations, quelle qu'en soit la
+     forme : seuls le nom et la cadence changent. */
+  .tc-doc-landing .opale-split-heading[data-split='play'] > [aria-hidden] > span {
+    transform-origin: 0 100%;
+    animation-name: tc-landing-word;
+    animation-duration: 1200ms;
+    animation-timing-function: var(--tc-landing-ease);
+    animation-delay: calc(var(--opale-split-index) * 110ms + var(--tc-landing-split-start, 0ms));
+  }
+
+  /* L'ACCROCHE SE COMPOSE : sur-titre, mots, chapeau, actions. */
+  .tc-doc-landing__display {
+    --tc-landing-split-start: 200ms;
+  }
+  .tc-doc-landing__hero > .tc-doc-landing__eyebrow,
+  .tc-doc-landing__hero > .tc-doc-landing__lede,
+  .tc-doc-landing__hero > .tc-doc-landing__actions {
+    animation: tc-landing-rise 1100ms var(--tc-landing-ease) backwards;
+  }
+  .tc-doc-landing__hero > .tc-doc-landing__lede {
+    animation-delay: 950ms;
+  }
+  .tc-doc-landing__hero > .tc-doc-landing__actions {
+    animation-delay: 1200ms;
+  }
+  .tc-doc-landing__aura {
+    animation: tc-landing-aura-in 2400ms var(--tc-landing-ease) 150ms backwards;
+  }
+
+  /* LES CARTES DE PREUVE répondent au survol, sans changer de place. */
+  .tc-doc-landing__proof {
+    transition:
+      transform 500ms var(--tc-landing-ease),
+      border-color 500ms var(--tc-landing-ease),
+      background-color 500ms var(--tc-landing-ease);
+  }
+  .tc-doc-landing__proof:hover {
+    border-color: color-mix(in srgb, currentColor 36%, transparent);
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    transform: translateY(-0.375rem);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    /* L'aura dérive et grossit à mesure que l'accroche quitte la vue. */
+    .tc-doc-landing__aura > span {
+      animation: tc-landing-drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    /* `Reveal` monte avec un flou qui se dissipe. Ses propres exclusions —
+       déjà à l'écran au montage, focus à l'intérieur — restent les siennes. */
+    .tc-doc-landing .opale-reveal:not([data-reveal='shown'], :focus-within) {
+      animation-name: tc-landing-reveal;
+    }
+    /* L'aperçu de page se redresse en entrant dans la vue. */
+    .tc-doc-landing__frame {
+      transform-origin: 50% 100%;
+      animation: tc-landing-tilt linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
+  }
+}

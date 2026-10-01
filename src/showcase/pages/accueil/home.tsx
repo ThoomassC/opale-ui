@@ -30,6 +30,12 @@ import { homeSlides } from './home-slides';
    TOUT EST VISIBLE SANS MOUVEMENT. Les titres découpés, le carrousel et le
    bandeau partent d'un état de repos lisible ; le mouvement réduit les laisse
    immobiles.
+
+   LE MOUVEMENT EST LENT ET LIÉ AU DÉFILEMENT. L'accroche se compose au
+   chargement — sur-titre, mots du titre, chapeau, actions —, puis chaque bande
+   monte quand on l'atteint (`Reveal`). L'aura de l'accroche, décorative, ne
+   bouge qu'avec le défilement : rien ne s'anime en boucle de lui-même
+   (WCAG 2.2.2). Les réglages vivent dans `doc-v3.css`.
    ========================================================================== */
 
 const COMPONENT_COUNT = SHOWCASE_CATALOG.length;
@@ -91,11 +97,18 @@ export function Home({ language, titleProps }: HomeProps) {
         aria-labelledby="tc-doc-landing-hero"
         className="tc-doc-landing__band tc-doc-landing__band--hero"
       >
+        {/* L'aura : trois halos flous, derrière le texte et sans contenu. */}
+        <div className="tc-doc-landing__aura" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
         <div className="tc-doc-landing__wrap tc-doc-landing__hero">
           <p className="tc-doc-landing__eyebrow">{copy.hero.eyebrow(UI_VERSION)}</p>
           <SplitHeading
             {...titleProps}
             level={1}
+            trigger="mount"
             id="tc-doc-landing-hero"
             className="tc-doc-landing__display"
           >
@@ -131,16 +144,20 @@ export function Home({ language, titleProps }: HomeProps) {
             <SplitHeading id="tc-doc-landing-components" className="tc-doc-landing__title">
               {copy.components.title}
             </SplitHeading>
-            <p className="tc-doc-landing__lede">{copy.components.lede(COMPONENT_COUNT)}</p>
+            <Reveal>
+              <p className="tc-doc-landing__lede">{copy.components.lede(COMPONENT_COUNT)}</p>
+            </Reveal>
           </div>
-          <Carousel
-            label={copy.components.carousel}
-            labels={copy.components.carouselLabels}
-            slideSize="min(86%, 24rem)"
-            className="tc-doc-landing__carousel"
-          >
-            {homeSlides(copy.components)}
-          </Carousel>
+          <Reveal>
+            <Carousel
+              label={copy.components.carousel}
+              labels={copy.components.carouselLabels}
+              slideSize="min(86%, 24rem)"
+              className="tc-doc-landing__carousel"
+            >
+              {homeSlides(copy.components)}
+            </Carousel>
+          </Reveal>
         </div>
       </ScrollSection>
 
@@ -154,19 +171,23 @@ export function Home({ language, titleProps }: HomeProps) {
             <SplitHeading id="tc-doc-landing-qualities" className="tc-doc-landing__title">
               {copy.qualities.title}
             </SplitHeading>
-            <p className="tc-doc-landing__lede">{copy.qualities.lede}</p>
+            <Reveal>
+              <p className="tc-doc-landing__lede">{copy.qualities.lede}</p>
+            </Reveal>
           </div>
           {/* Du texte seul : la copie de la boucle est inerte, un lien y
               serait cliquable une fois sur deux. */}
-          <Marquee
-            label={copy.qualities.marquee}
-            labels={copy.qualities.marqueeLabels}
-            className="tc-doc-landing__marquee"
-          >
-            {copy.qualities.marqueeItems(COMPONENT_COUNT).map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-          </Marquee>
+          <Reveal>
+            <Marquee
+              label={copy.qualities.marquee}
+              labels={copy.qualities.marqueeLabels}
+              className="tc-doc-landing__marquee"
+            >
+              {copy.qualities.marqueeItems(COMPONENT_COUNT).map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </Marquee>
+          </Reveal>
           <ul className="tc-doc-landing__proofs">
             {copy.qualities.proofs(RUNTIME_DEPENDENCIES).map((proof, index) => (
               <Reveal key={proof.title} as="li" delay={index} className="tc-doc-landing__proof">
@@ -188,7 +209,9 @@ export function Home({ language, titleProps }: HomeProps) {
             <SplitHeading id="tc-doc-landing-pages" className="tc-doc-landing__title">
               {copy.pages.title}
             </SplitHeading>
-            <p className="tc-doc-landing__lede">{copy.pages.lede}</p>
+            <Reveal>
+              <p className="tc-doc-landing__lede">{copy.pages.lede}</p>
+            </Reveal>
           </div>
           <figure className="tc-doc-landing__preview" aria-labelledby="tc-doc-landing-preview">
             <div className="tc-doc-landing__frame" inert aria-hidden="true">
@@ -212,16 +235,18 @@ export function Home({ language, titleProps }: HomeProps) {
             <SplitHeading id="tc-doc-landing-install" className="tc-doc-landing__title">
               {copy.install.title}
             </SplitHeading>
-            <p className="tc-doc-landing__lede">{copy.install.lede}</p>
+            <Reveal>
+              <p className="tc-doc-landing__lede">{copy.install.lede}</p>
+            </Reveal>
           </div>
-          <div className="tc-doc-landing__command">
+          <Reveal className="tc-doc-landing__command">
             <pre aria-label={copy.install.commandLabel}>
               <code>{INSTALL_COMMAND}</code>
             </pre>
             <Clipboard value={INSTALL_COMMAND} labels={copy.install.clipboardLabels}>
               {copy.install.copy}
             </Clipboard>
-          </div>
+          </Reveal>
           <div className="tc-doc-landing__actions">
             <a
               className="opale-button opale-button--primary opale-button--large"
