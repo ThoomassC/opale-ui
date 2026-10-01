@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DocNavEntry, DocPage } from './doc-model';
-import { GROUPS, HOME_SLUG, hrefFor, navEntriesForPages } from './doc-model';
+import { GROUPS, HOME_SLUG, hrefFor, navEntriesForPages, navSectionsForPages } from './doc-model';
 import { DocShell } from './doc-shell';
 import {
   DOC_NAV_WIDTH_DEFAULT,
@@ -1132,5 +1132,114 @@ describe('DocShell — le démontage', () => {
       titleAfterUnmount,
     );
     expect(errors, `React a averti après le démontage :\n${errors.join('\n')}`).toEqual([]);
+  });
+});
+
+/* ============================================================================
+   LA PAGE PLEINE LARGEUR — l'accueil de la 3.0.
+
+   Une page `fullBleed` occupe toute la largeur : la coquille ne rend ni le
+   sommaire ni son propre `<h1>`. La page rend le sien, avec les props que la
+   coquille lui passe (`titleProps`), pour que le focus de navigation s'y pose
+   comme sur le titre de la coquille. Le menu de la barre du haut, seule
+   navigation qui reste, mène alors à chaque rubrique du sommaire.
+   ========================================================================== */
+const STAGE_TITLE = 'Une scène pleine page';
+
+const STAGE_FIXTURE: DocPage = {
+  slug: 'scene',
+  label: 'Scène',
+  group: 'introduction',
+  title: STAGE_TITLE,
+  fullBleed: true,
+  render: (context) => (
+    <>
+      <h1 {...context?.titleProps}>{STAGE_TITLE}</h1>
+      <p>langue de la scène : {context?.language}</p>
+    </>
+  ),
+};
+
+const STAGE_PAGES: readonly DocPage[] = [...FIXTURE_PAGES, STAGE_FIXTURE];
+
+describe('DocShell — la page pleine largeur', () => {
+  afterEach(() => localStorage.removeItem('tc-language'));
+
+  it('ne rend ni le sommaire ni le titre de la coquille', () => {
+    render(<DocShell pages={STAGE_PAGES} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(screen.queryByRole('navigation', { name: 'Sommaire' })).toBeNull();
+    expect(document.querySelector('.tc-doc-page__title')).toBeNull();
+    const level1 = screen.getAllByRole('heading', { level: 1 });
+    expect(level1.map((heading) => heading.textContent)).toEqual([STAGE_TITLE]);
+    expect(level1[0]).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('pose la classe pleine largeur sur la coquille et la retire ailleurs', () => {
+    render(<DocShell pages={STAGE_PAGES} />);
+    const shell = document.querySelector('.tc-doc');
+
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+    expect(shell).toHaveClass('tc-doc--full-bleed');
+    expect(screen.getByRole('main')).toHaveClass('tc-doc-main--full-bleed');
+
+    navigate(hrefFor(PALETTE_FIXTURE.slug));
+    expect(shell).not.toHaveClass('tc-doc--full-bleed');
+    expect(screen.getByRole('navigation', { name: 'Sommaire' })).toBeInTheDocument();
+  });
+
+  it('donne le focus au titre de la page après une navigation', () => {
+    render(
+      <StrictMode>
+        <DocShell pages={STAGE_PAGES} />
+      </StrictMode>,
+    );
+
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(describeActiveElement()).toBe(`<h1> « ${STAGE_TITLE} »`);
+  });
+
+  it('garde le titre du document', () => {
+    render(<DocShell pages={STAGE_PAGES} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(document.title).toBe(`${STAGE_TITLE}${TITLE_SUFFIX}`);
+  });
+
+  it('passe la langue choisie à la page, sans l’avis de contenu en français', () => {
+    localStorage.setItem('tc-language', 'EN');
+    render(<DocShell pages={STAGE_PAGES} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(screen.getByText('langue de la scène : EN')).toBeInTheDocument();
+    expect(document.querySelector('.tc-doc-language-notice')).toBeNull();
+  });
+
+  it('ouvre le menu sur chaque rubrique du sommaire, en plus des onglets', () => {
+    const pages = [...PAGES, STAGE_FIXTURE];
+    render(<DocShell pages={pages} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    const menuLinks = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>('.tc-doc-topbar__menu-nav a'),
+    );
+    const sections = navSectionsForPages(pages);
+
+    expect(hrefsOf(menuLinks)).toEqual([
+      hrefFor(''),
+      hrefFor('installation'),
+      hrefFor('notes-de-versions'),
+      ...sections.map((section) => hrefFor(section.entries[0]?.page.slug ?? '')),
+    ]);
+    expect(menuLinks[3]).toHaveTextContent('Prise en main');
+  });
+
+  it('garde le menu aux seuls onglets sur une page de documentation', () => {
+    render(<DocShell pages={PAGES} />);
+    navigate(hrefFor('installation'));
+
+    expect(document.querySelectorAll('.tc-doc-topbar__menu-nav a')).toHaveLength(3);
   });
 });

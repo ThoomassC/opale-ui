@@ -3552,3 +3552,39 @@ html:has(.tc-doc-stage-demo) {
   margin: 0;
   max-inline-size: 40ch;
 }
+
+/* =============================================================================
+   LA PAGE PLEINE LARGEUR (`fullBleed`, l'accueil de la 3.0).
+
+   NI SOMMAIRE NI COLONNE : les bandes vont d'un bord à l'autre. La coquille
+   ne rend pas `DocNav` ; la grille à deux pistes, posée en `!important` à
+   chaque largeur, cède ici à un bloc. Le lavis de tête de colonne s'efface :
+   chaque bande peint son propre fond.
+
+   LE MENU RESTE À TOUTES LES LARGEURS. Sans sommaire, il est le chemin vers
+   les rubriques de la documentation ; au-delà de 78 rem, il s'ajoute aux
+   onglets au lieu de les remplacer. La piste des onglets cesse de défiler,
+   sans quoi elle couperait le panneau du menu. Le panneau défile lui-même
+   s'il dépasse la fenêtre.
+   ========================================================================== */
+.tc-doc--full-bleed .tc-doc-body {
+  display: block !important;
+  inline-size: 100%;
+}
+.tc-doc--full-bleed .tc-doc-column::before {
+  content: none;
+}
+.tc-doc--full-bleed .tc-doc-main {
+  max-inline-size: none;
+  padding: 0 !important;
+}
+.tc-doc--full-bleed .tc-doc-topbar__tabs {
+  overflow: visible;
+}
+.tc-doc--full-bleed .tc-doc-topbar__menu {
+  display: block;
+}
+.tc-doc--full-bleed .tc-doc-topbar__menu-nav {
+  max-block-size: calc(100dvh - var(--tc-doc-topbar-height, var(--doc-topbar-size)) - 1rem);
+  overflow-y: auto;
+}
