@@ -41,8 +41,10 @@
 }
 
 /* La copie lisible, hors de la sélection : copier le titre rend la phrase
-   une fois, celle des mots visibles. */
+   une fois, celle des mots visibles. Safari ne lit encore que la forme
+   préfixée. */
 .root > [aria-hidden] + span {
+  -webkit-user-select: none;
   user-select: none;
 }
 

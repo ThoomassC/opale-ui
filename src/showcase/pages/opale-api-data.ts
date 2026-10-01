@@ -947,7 +947,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop(
         'children',
         'string',
-        'Le texte du titre, découpé en mots ; un autre enfant est rendu sans découpe.',
+        'Le texte du titre, découpé en mots ; un autre enfant, ou un texte de droite à gauche, est rendu sans découpe.',
         undefined,
         true,
       ),

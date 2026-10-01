@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   SplitHeading,
+  RIGHT_TO_LEFT,
   splitWords,
   type SplitHeadingProps,
   type SplitHeadingTrigger,
@@ -126,8 +127,11 @@ const words = () => [...heading().querySelectorAll('.opale-split-heading__word')
 const observer = () => FakeIntersectionObserver.all[0];
 
 describe('splitWords', () => {
+  /* Chaque mot, ses parties recollées : la forme qu'on lit. */
+  const words = (text: string) => splitWords(text).map((parts) => parts.join(''));
+
   it('découpe sur les espaces, sans mot vide en tête ni en queue', () => {
-    expect(splitWords('  Un titre\nqui\tprend  son temps.  ')).toEqual([
+    expect(words('  Un titre\nqui\tprend  son temps.  ')).toEqual([
       'Un',
       'titre',
       'qui',
@@ -141,31 +145,88 @@ describe('splitWords', () => {
      mots en `inline-block` le pourraient : la ponctuation isolée reste donc
      collée à son mot. */
   it('garde la ponctuation isolée avec son mot', () => {
-    expect(splitWords('Vraiment ? Oui !')).toEqual(['Vraiment ?', 'Oui !']);
-    expect(splitWords('Il dit « bonjour » — puis part.')).toEqual([
+    expect(words('Vraiment ? Oui !')).toEqual(['Vraiment ?', 'Oui !']);
+    expect(words('Il dit « bonjour » — puis part.')).toEqual([
       'Il',
       'dit',
       '« bonjour » —',
       'puis',
       'part.',
     ]);
-    expect(splitWords('( entre parenthèses )')).toEqual(['( entre', 'parenthèses )']);
+    expect(words('( entre parenthèses )')).toEqual(['( entre', 'parenthèses )']);
   });
 
   it('ne coupe pas sur une espace insécable', () => {
-    expect(splitWords('Le temps\u00a0? 20\u202f%')).toEqual(['Le', 'temps\u00a0?', '20\u202f%']);
+    expect(words('Le temps\u00a0? 20\u202f%')).toEqual(['Le', 'temps\u00a0?', '20\u202f%']);
   });
 
   it('laisse en un seul mot un texte sans espace (CJK)', () => {
-    expect(splitWords('一个不需要空格的标题')).toEqual(['一个不需要空格的标题']);
+    expect(words('一个不需要空格的标题')).toEqual(['一个不需要空格的标题']);
   });
 
   it('découpe un texte de droite à gauche comme un autre', () => {
-    expect(splitWords('عنوان يأخذ وقته.')).toEqual(['عنوان', 'يأخذ', 'وقته.']);
+    expect(words('عنوان يأخذ وقته.')).toEqual(['عنوان', 'يأخذ', 'وقته.']);
   });
 
   it('ne rend aucun mot d’un texte vide', () => {
-    expect(splitWords('   ')).toEqual([]);
+    expect(words('   ')).toEqual([]);
+  });
+
+  /* Les espaces sécables d'Unicode séparent ; les insécables (U+00A0, U+2007,
+     U+202F) et le gluon U+2060 restent dans le mot. */
+  it('sépare sur les espaces sécables d’Unicode, jamais sur les insécables', () => {
+    expect(words('a\u2003b\u2009c\u205fd\u3000e\u2000f\u200ag')).toEqual([
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+      'f',
+      'g',
+    ]);
+    expect(words('a\u00a0b c\u2007d e\u202ff g\u2060h')).toEqual([
+      'a\u00a0b',
+      'c\u2007d',
+      'e\u202ff',
+      'g\u2060h',
+    ]);
+  });
+
+  /* Le texte brut coupe la ligne après un trait d'union ou une barre entre
+     deux lettres : le mot y est coupé en parties, le signe à gauche, sans
+     espace ajoutée. */
+  it('coupe en parties après `-` et `/` entre deux lettres', () => {
+    expect(splitWords('Anticonstitutionnellement-parlant, une')).toEqual([
+      ['Anticonstitutionnellement-', 'parlant,'],
+      ['une'],
+    ]);
+    expect(splitWords('Est-ce peut-être et/ou')).toEqual([
+      ['Est-', 'ce'],
+      ['peut-', 'être'],
+      ['et/', 'ou'],
+    ]);
+  });
+
+  it('ne coupe pas un signe qui n’est pas entre deux lettres', () => {
+    expect(splitWords('20-30 -5 a- /b http://x')).toEqual([
+      ['20-30'],
+      ['-5'],
+      ['a-'],
+      ['/b'],
+      ['http://x'],
+    ]);
+  });
+});
+
+describe('RIGHT_TO_LEFT', () => {
+  it('reconnaît l’hébreu, l’arabe et leurs formes de présentation', () => {
+    for (const text of ['שלום', 'عنوان', 'ܐ', '\ufb1d', '\ufdf0', '\ufe70', '\ufefc'])
+      expect(RIGHT_TO_LEFT.test(text), text).toBe(true);
+  });
+
+  it('laisse passer le latin, le cyrillique, le grec et le CJK', () => {
+    for (const text of ['Bonjour', 'Привет', 'Γειά', '一个标题', 'Café, «\u00a0oui\u00a0»'])
+      expect(RIGHT_TO_LEFT.test(text), text).toBe(false);
   });
 });
 
@@ -267,6 +328,53 @@ describe('SplitHeading — enfant qui n’est pas du texte', () => {
   });
 });
 
+describe('SplitHeading — découpe et bords', () => {
+  it('coupe après un trait d’union sans ajouter d’espace, et numérote chaque partie', () => {
+    const sentence = 'Est-ce peut-être et/ou le bon moment ?';
+    renderSplit({ children: sentence });
+    expect(heading().querySelector('[aria-hidden="true"]')?.textContent).toBe(sentence);
+    expect(words().map((word) => word.textContent)).toEqual([
+      'Est-',
+      'ce',
+      'peut-',
+      'être',
+      'et/',
+      'ou',
+      'le',
+      'bon',
+      'moment ?',
+    ]);
+    expect(
+      words().map((word) => (word as HTMLElement).style.getPropertyValue('--opale-split-index')),
+    ).toEqual(['0', '1', '2', '3', '4', '5', '6', '7', '8']);
+  });
+
+  /* Un `inline-block` est neutre pour l'algorithme bidi : des mots hébreux ou
+     arabes découpés s'afficheraient en ordre inverse sur une page LTR. */
+  it.each(['שלום עולם', 'عنوان يأخذ وقته.', 'Le mot שלום au milieu'])(
+    'rend sans découpe ni animation un texte de droite à gauche : %s',
+    (sentence) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      renderSplit({ children: sentence, trigger: 'mount' });
+      expect(screen.getByRole('heading', { name: sentence })).toBe(heading());
+      expect(heading()).toHaveTextContent(sentence);
+      expect(heading().childNodes).toHaveLength(1);
+      expect(heading().querySelector('[aria-hidden]')).toBeNull();
+      expect(words()).toHaveLength(0);
+      expect(heading()).not.toHaveAttribute('data-split');
+      expect(warn).not.toHaveBeenCalled();
+    },
+  );
+
+  /* Un titre vide n'a pas de nom accessible. */
+  it.each(['', '   '])('avertit en développement d’un titre vide (%j)', (empty) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    renderSplit({ children: empty });
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]?.[0])).toMatch(/\[Opale\] SplitHeading/);
+  });
+});
+
 describe('SplitHeading — déclencheur `mount`', () => {
   it('joue au montage, avant la première peinture, sans observateur', () => {
     renderSplit({ trigger: 'mount' });
@@ -290,7 +398,7 @@ describe('SplitHeading — déclencheur `view` (par défaut)', () => {
     expect(heading()).not.toHaveAttribute('data-split');
     /* Aucune marge en bas : pas de bande morte au bas de la vue. Une marge
        sans fin en haut : un titre dépassé d'un saut compte comme vu. */
-    expect(observer().options?.rootMargin).toBe('100000px 0px 0px 0px');
+    expect(observer().options?.rootMargin).toBe('100000px 0px 0px');
     /* Il suit les mots, que `ref` n'a pas à partager. */
     expect(observer().targets.has(heading().querySelector('[aria-hidden="true"]')!)).toBe(true);
     observer().fire(heading(), true);
@@ -568,5 +676,7 @@ describe('SplitHeading — feuille', () => {
      l'écran, ne se sélectionne pas. */
   it('exclut la copie lisible de la sélection', () => {
     expect(declaration(sheet, '.root > [aria-hidden] + span', 'user-select')).toBe('none');
+    /* Safari ne lit encore que la forme préfixée. */
+    expect(declaration(sheet, '.root > [aria-hidden] + span', '-webkit-user-select')).toBe('none');
   });
 });

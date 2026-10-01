@@ -58,28 +58,40 @@ import styles from './style/SplitHeading.module.css';
    signe ouvrant (« ( », « « ») le mot qui le suit.
    ========================================================================== */
 
-const SPACE = /[ \t\n\r\f]+/;
-const LETTER = /[\p{L}\p{N}]/u;
-const OPENING = /^[\p{Ps}\p{Pi}]+$/u;
+/* LA COUPE ENTRE DEUX MOTS : une suite d'espaces sécables (d'Unicode compris ;
+   jamais U+00A0, U+2007, U+202F), devant un mot qui porte une lettre ou un
+   chiffre, ou qui s'ouvre sur un signe ouvrant, et qui ne suit pas un signe
+   ouvrant. Une ponctuation isolée
+   (« ? », « » », « — ») reste donc avec le mot d'avant, un signe ouvrant
+   (« ( », « « ») avec le mot d'après. Une seule expression, et non une
+   boucle : le budget de poids. */
+const SPACE =
+  /(?<![\p{Ps}\p{Pi}][ \t\n\r\f\u2000-\u2006\u2008-\u200a\u205f\u3000]*)[ \t\n\r\f\u2000-\u2006\u2008-\u200a\u205f\u3000]+(?=\S*[\p{L}\p{N}]|[\p{Ps}\p{Pi}])/u;
+/* Après un trait d'union ou une barre entre deux lettres : là où le texte
+   brut coupe la ligne, le mot est coupé en parties, sans espace ajoutée. */
+const PART = /(?<=\p{L}[-/])(?=\p{L})/u;
 
-/** Les mots d'un texte, dans l'ordre, la ponctuation isolée collée à son mot. */
+/**
+ * Les mots d'un texte, dans l'ordre, la ponctuation isolée collée à son mot ;
+ * chaque mot en parties, coupé après un `-` ou un `/` entre deux lettres.
+ */
 /* Exportée pour ses tests, et non par l'index du paquet. Son propre module
    coûterait son en-tête au budget ; le rechargement à chaud de la vitrine
    recharge donc la page entière quand ce fichier change. */
 // eslint-disable-next-line react-refresh/only-export-components
-export function splitWords(text: string): string[] {
-  const words: string[] = [];
-  let glue = false;
-  for (const token of text.split(SPACE)) {
-    if (!token) continue;
-    const last = words.length - 1;
-    if (last >= 0 && (glue || (!LETTER.test(token) && !OPENING.test(token))))
-      words[last] += ` ${token}`;
-    else words.push(token);
-    glue = OPENING.test(token);
-  }
-  return words;
+export function splitWords(text: string): string[][] {
+  return text
+    .trim()
+    .split(SPACE)
+    .filter(Boolean)
+    .map((word) => word.split(PART));
 }
+
+/**
+ * Un texte de droite à gauche (hébreu, arabe, syriaque… et leurs formes de
+ * présentation). Exporté pour ses tests, et non par l'index du paquet.
+ */
+export const RIGHT_TO_LEFT = /[\u0590-\u08ff\ufb1d-\ufdff\ufe70-\ufeff]/;
 
 /**
  * L'unité du découpage. Seuls les mots existent ; le type reste ouvert pour
@@ -96,7 +108,10 @@ export interface SplitHeadingProps extends Omit<ComponentPropsWithRef<'h2'>, 'ch
   /**
    * Le texte du titre, et seulement du texte : il est découpé en mots. Un
    * autre enfant est rendu tel quel, sans découpe ni animation, et un
-   * avertissement de développement le signale.
+   * avertissement de développement le signale, comme pour un texte vide.
+   * Un texte qui contient de l'hébreu, de l'arabe ou une autre écriture de
+   * droite à gauche est lui aussi rendu tel quel, immobile : découpé, il
+   * s'afficherait en ordre inverse sur une page de gauche à droite.
    */
   children: string;
   /** L'unité du découpage. Défaut et seule valeur pour l'instant : `word`. */
@@ -128,7 +143,12 @@ export function SplitHeading({
   ...rest
 }: SplitHeadingProps) {
   const Tag = `h${level}` as 'h2';
-  const text = typeof children === 'string';
+  /* UN TEXTE DE DROITE À GAUCHE N'EST PAS DÉCOUPÉ : un `inline-block` est
+     neutre pour l'algorithme bidi, et des mots hébreux ou arabes découpés
+     s'afficheraient en ordre inverse sur une page LTR. Rendu tel quel. */
+  const split = typeof children === 'string' && !RIGHT_TO_LEFT.test(children);
+  /* Le rang de chaque partie dans la cascade, compté au rendu. */
+  let index = 0;
   /* L'observateur suit les mots, pas le titre : `ref` va droit au titre,
      sans fusion de références. */
   const local = useRef<HTMLSpanElement>(null);
@@ -142,13 +162,12 @@ export function SplitHeading({
      d'animation — rien ne la relance. Un texte changé en pleine lecture est
      `done` dès ce rendu : la phrase neuve est immobile, sans cascade rejouée
      à moitié. */
-  const state = played === undefined ? undefined : played === children ? 'play' : 'done';
+  const state = played && (played === children ? 'play' : 'done');
 
   useLayoutEffect(() => {
-    if (!text) {
-      warnOnce('split-heading', '[Opale] SplitHeading : seul un texte est découpé en mots.');
-      return;
-    }
+    /* Un autre enfant n'est pas découpé ; un titre vide n'a pas de nom. */
+    if (!children?.trim?.())
+      warnOnce('split-heading', '[Opale] SplitHeading : un texte non vide, seulement.');
     const node = local.current;
     if (!node) return;
     /* Une seule lecture : jamais depuis `done`. Le mouvement réduit n'est pas
@@ -177,12 +196,13 @@ export function SplitHeading({
       },
       /* Aucune marge en bas : pas de bande morte. Une marge sans fin en haut :
          un titre qu'un saut (touche Fin, ancre) a fait passer au-dessus de la
-         vue y est encore « dans la vue », et compte comme vu. */
-      { rootMargin: '100000px 0px 0px 0px' },
+         vue y est encore « dans la vue », et compte comme vu. Trois valeurs,
+         comme `margin` : haut, côtés, bas. */
+      { rootMargin: '100000px 0px 0px' },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [children, text, trigger, level, hydrated]);
+  }, [children, trigger, level, hydrated]);
 
   /* LA FIN DE LA LECTURE : toutes les animations des mots finies — ou
      annulées, par un `display: none` en cours de route. Aucune animation
@@ -203,7 +223,7 @@ export function SplitHeading({
       data-split={state}
       className={clsx('opale-heading opale-split-heading', styles.root, className)}
     >
-      {text
+      {split
         ? [
             <span
               /* Une clé tirée du texte : des mots neufs pour une phrase neuve,
@@ -214,15 +234,17 @@ export function SplitHeading({
             >
               {/* L'espace vit ENTRE les mots, pas dedans : en tête d'un
                   `inline-block`, elle serait retirée et les mots se colleraient. */}
-              {splitWords(children).flatMap((word, index) => [
-                index ? ' ' : '',
-                <span
-                  key={index}
-                  className="opale-split-heading__word"
-                  style={{ '--opale-split-index': index } as CSSProperties}
-                >
-                  {word}
-                </span>,
+              {splitWords(children).flatMap((parts, word) => [
+                word ? ' ' : '',
+                ...parts.map((part) => (
+                  <span
+                    key={index}
+                    className="opale-split-heading__word"
+                    style={{ '--opale-split-index': index++ } as CSSProperties}
+                  >
+                    {part}
+                  </span>
+                )),
               ])}
             </span>,
             /* La copie lisible, APRÈS les mots : la feuille la désigne ainsi,

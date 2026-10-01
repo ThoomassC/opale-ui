@@ -807,7 +807,9 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
     ],
     limits: [
       'Du texte seulement : un enfant riche (lien, `em`) est rendu tel quel, sans découpe ni animation, et un avertissement de développement le signale.',
-      'La recherche dans la page (Ctrl+F) trouve la phrase dans les mots visibles ; la copie cachée peut compter une seconde occurrence.',
+      'Un texte de droite à gauche (hébreu, arabe…) est rendu sans découpe ni animation : un mot en `inline-block` est neutre pour l’algorithme bidi, et des mots découpés s’afficheraient en ordre inverse sur une page de gauche à droite.',
+      'Un titre vide n’a pas de nom accessible : un avertissement de développement le signale.',
+      'La phrase est dans le DOM deux fois — les mots visibles et la copie lisible : `innerText` et `textContent` du titre la rendent deux fois, et la recherche dans la page (Ctrl+F) peut compter une occurrence invisible. La copie à la souris, elle, ne la rend qu’une fois.',
       'Dans un conteneur qui défile lui-même, `trigger="view"` attend que le titre soit visible dans ce conteneur et dans la vue.',
     ],
   },
