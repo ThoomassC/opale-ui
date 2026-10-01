@@ -257,6 +257,11 @@ describe('Accueil — en anglais', () => {
       screen.getByRole('button', { name: EN.components.carouselLabels.next }),
     ).toBeInTheDocument();
     expect(screen.getByRole('region', { name: EN.qualities.marquee })).toBeInTheDocument();
+    /* Les rôles annoncés du carrousel suivent la langue, eux aussi. */
+    expect(screen.getByRole('region', { name: EN.components.carousel })).toHaveAttribute(
+      'aria-roledescription',
+      'carousel',
+    );
     expect(document.title).toBe(`${EN.hero.title} — OpaleUI`);
     expect(document.querySelector('.tc-doc-language-notice')).toBeNull();
   });

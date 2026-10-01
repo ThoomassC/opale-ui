@@ -274,6 +274,8 @@ const EN: HomeCopy = {
       dots: 'Choose a slide',
       pause: 'Pause',
       play: 'Play',
+      carousel: 'carousel',
+      slideKind: 'slide',
     },
     families: {
       saisie: {
@@ -418,6 +420,8 @@ const ES: HomeCopy = {
       dots: 'Elegir una diapositiva',
       pause: 'Pausar',
       play: 'Reproducir',
+      carousel: 'carrusel',
+      slideKind: 'diapositiva',
     },
     families: {
       saisie: {

@@ -3687,13 +3687,9 @@ html:has(.tc-doc--full-bleed) {
 .tc-doc-landing__carousel {
   inline-size: 100%;
 }
-/* `position: relative` FAIT DE LA CARTE LE BLOC CONTENANT de ce qu'elle
-   pose en absolu — les copies masquées (`.opale-visually-hidden`) des
-   champs et du titre découpé, l'indicateur des onglets. Sans lui, ils
-   prenaient pour repère un ancêtre hors de la piste, échappaient à son
-   défilement et élargissaient la page de 790 px. */
+/* La carte est une `CarouselSlide` : Opale en fait déjà le repère de ce
+   qu'elle pose en absolu (copies masquées, indicateur des onglets). */
 .tc-doc-landing-slide {
-  position: relative;
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: var(--opale-space-lg);
