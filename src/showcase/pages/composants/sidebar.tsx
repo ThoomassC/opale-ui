@@ -17,8 +17,10 @@ const USAGE = `import { Badge, Sidebar } from '@thomascaron/opale-ui';
   </Sidebar.Header>
 
   <Sidebar.Items>
-    <Sidebar.Item itemId="etapes" icon={<Pin />}>Étapes</Sidebar.Item>
-    <Sidebar.Item itemId="carte" badge={<Badge>3</Badge>}>Carte</Sidebar.Item>
+    <Sidebar.Group title="Le voyage">
+      <Sidebar.Item itemId="etapes" icon={<Pin />}>Étapes</Sidebar.Item>
+      <Sidebar.Item itemId="carte" badge={<Badge>3</Badge>}>Carte</Sidebar.Item>
+    </Sidebar.Group>
   </Sidebar.Items>
 
   <Sidebar.Footer>v${UI_VERSION}</Sidebar.Footer>
@@ -133,6 +135,19 @@ const PROPS: readonly PropRow[] = [
         libellé. Sans icône, une barre repliée affiche <code>collapsedFallback</code>, à défaut la
         première lettre du libellé, à défaut un point médian ; les trois sont des vignettes, jamais
         un nom.
+      </>
+    ),
+  },
+  {
+    name: 'Sidebar.Group',
+    type: '{ title, collapsible?, defaultOpen?, open?, onOpenChange? }',
+    defaultValue: 'collapsible et defaultOpen : true',
+    description: (
+      <>
+        Une partie du rail, comme celles du sommaire de cette documentation : un titre en mono
+        capitales, puis ses entrées. Le titre nomme le groupe (<code>role=&quot;group&quot;</code>)
+        ; repliable, c’est un bouton qui dit son état (<code>aria-expanded</code>). Rail plié, le
+        titre est masqué à l’œil et toutes les entrées restent visibles.
       </>
     ),
   },

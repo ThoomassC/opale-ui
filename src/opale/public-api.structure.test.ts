@@ -225,6 +225,8 @@ const EXPORT_NAMES = [
   'SidebarContextValue',
   'SidebarFooter',
   'SidebarFooterProps',
+  'SidebarGroup',
+  'SidebarGroupProps',
   'SidebarHeader',
   'SidebarHeaderProps',
   'SidebarItem',

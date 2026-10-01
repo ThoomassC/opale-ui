@@ -455,6 +455,114 @@ const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ..
 
 SidebarItems.displayName = 'Sidebar.Items';
 
+export type SidebarGroupProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
+  /** Le titre de la partie, qui nomme le groupe pour les lecteurs d'écran. */
+  title: ReactNode;
+  /** Le titre replie et déplie la partie. Défaut : `true`. */
+  collapsible?: boolean;
+  /** Ouverte au départ, quand `open` n'est pas piloté. Défaut : `true`. */
+  defaultOpen?: boolean;
+  /** L'ouverture pilotée par l'appelant. */
+  open?: boolean;
+  /** Appelée avec le nouvel état quand le titre est activé. */
+  onOpenChange?: (open: boolean) => void;
+};
+
+/*
+ * UNE PARTIE DU RAIL : UN TITRE, PUIS SES ENTRÉES — LE SOMMAIRE DE LA
+ * DOCUMENTATION D'OPALE, DEVENU UNE PIÈCE DE LA LIBRAIRIE.
+ *
+ * Le titre nomme le groupe (`role="group"` + `aria-labelledby`) : un lecteur
+ * d'écran annonce « Prise en main, groupe » en y entrant. Repliable, il est un
+ * bouton qui dit son état (`aria-expanded`) et désigne ce qu'il cache
+ * (`aria-controls`) ; le contenu fermé est `hidden`, donc hors de la
+ * tabulation comme de l'arbre d'accessibilité.
+ *
+ * RAIL PLIÉ : le titre n'a plus la place d'être lu. Il reste dans le DOM,
+ * masqué à l'œil seulement, pour nommer le groupe, et toutes les entrées
+ * restent visibles — un groupe fermé ne cacherait plus que des icônes, sans
+ * titre à activer pour les rendre.
+ */
+const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
+  (
+    {
+      title,
+      collapsible = true,
+      defaultOpen = true,
+      open: openProp,
+      onOpenChange,
+      className,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
+    const context = useContext(SidebarContext);
+    const railCollapsed = context?.collapsed ?? false;
+    const id = useId();
+    const titleId = `${id}-title`;
+    const contentId = `${id}-content`;
+    const [openState, setOpenState] = useState(defaultOpen);
+    const open = openProp ?? openState;
+    const canToggle = collapsible && !railCollapsed;
+    const shown = open || !canToggle;
+
+    const toggle = () => {
+      const next = !open;
+      if (openProp === undefined) setOpenState(next);
+      onOpenChange?.(next);
+    };
+
+    return (
+      <div
+        ref={ref}
+        role="group"
+        aria-labelledby={titleId}
+        className={clsx(
+          'opale-sidebar__group',
+          styles.group,
+          railCollapsed && styles.groupCollapsed,
+          className,
+        )}
+        {...rest}
+      >
+        {canToggle ? (
+          <button
+            type="button"
+            id={titleId}
+            className={clsx('opale-sidebar__group-title', styles.groupTitle)}
+            aria-expanded={open}
+            aria-controls={contentId}
+            onClick={toggle}
+          >
+            {title}
+          </button>
+        ) : (
+          <span
+            id={titleId}
+            className={clsx(
+              'opale-sidebar__group-title',
+              styles.groupTitle,
+              railCollapsed && styles.itemContentHidden,
+            )}
+          >
+            {title}
+          </span>
+        )}
+        <div
+          id={contentId}
+          className={clsx('opale-sidebar__group-items', styles.groupItems)}
+          hidden={!shown}
+        >
+          {children}
+        </div>
+      </div>
+    );
+  },
+);
+
+SidebarGroup.displayName = 'Sidebar.Group';
+
 type SidebarItemOwnProps = {
   /**
    * L'identifiant de l'entrée, comparé à `value` et transmis à `onValueChange`. Unique dans le
@@ -849,6 +957,7 @@ type SidebarCompoundComponent = ForwardRefExoticComponent<
   Header: typeof SidebarHeader;
   Footer: typeof SidebarFooter;
   Items: typeof SidebarItems;
+  Group: typeof SidebarGroup;
   Item: typeof SidebarItem;
   Toggle: typeof SidebarToggle;
   useSidebar: () => SidebarContextValue;
@@ -859,6 +968,7 @@ const Sidebar = SidebarBase as SidebarCompoundComponent;
 Sidebar.Header = SidebarHeader;
 Sidebar.Footer = SidebarFooter;
 Sidebar.Items = SidebarItems;
+Sidebar.Group = SidebarGroup;
 Sidebar.Item = SidebarItem;
 Sidebar.Toggle = SidebarToggle;
 Sidebar.useSidebar = () => useSidebarContext('Sidebar.useSidebar');
@@ -868,4 +978,4 @@ export default Sidebar;
 /* LES PARTIES SOUS LEUR PROPRE NOM, pour les Server Components : une référence
    client ne se lit pas par un point, `Sidebar.Header` y lève une erreur.
    `SidebarHeader` est le même objet que `Sidebar.Header`. */
-export { SidebarHeader, SidebarFooter, SidebarItems, SidebarItem, SidebarToggle };
+export { SidebarHeader, SidebarFooter, SidebarItems, SidebarGroup, SidebarItem, SidebarToggle };

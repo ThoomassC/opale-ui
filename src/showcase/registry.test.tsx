@@ -220,7 +220,9 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
 /* 96 : `SplitHeading`, le titre découpé en mots, après lui. */
 /* 98 : `ScrollSection` et `ScrollStage`, les fonds au défilement, documentés
    sur une seule page — celle de la section. */
-const PUBLISHED_COMPONENT_COUNT = 98;
+/* 99 : `SidebarGroup`, les parties du rail, publiée sous son nom et documentée
+   sur la page de `Sidebar`. */
+const PUBLISHED_COMPONENT_COUNT = 99;
 
 /**
  * Les parties publiées SANS membre statique sur leur composant, vers leur

@@ -151,7 +151,7 @@
    voisine en porte une : son libellé commençait sinon sous l'icône des autres.
    Le retrait est exactement celui d'une entrée à icône — coussin, icône de
    1,5 rem, écart. Une liste sans aucune icône n'est pas touchée. */
-.items:has(> .item > .itemIcon) > .item:not(.itemCollapsed):not(:has(> .itemIcon)) {
+.items:has(.itemIcon) .item:not(.itemCollapsed):not(:has(> .itemIcon)) {
   padding-inline-start: calc(var(--opale-space-sm) * 2 + 1.5rem);
 }
 
@@ -430,6 +430,95 @@ a.item {
 }
 
 /* =============================================================================
+   LES PARTIES DU RAIL (`Sidebar.Group`) — LE SOMMAIRE DE LA DOCUMENTATION.
+
+   Le titre parle comme le sur-titre de la DA : mono, capitales, 13 px, gras.
+   Son encre dérive de `currentColor` sur le verre, comme les voiles des
+   entrées ; la surface pleine la règle plus bas sur l'encre secondaire.
+
+   LE CHEVRON EST UN ANGLE DE BORDURE TOURNÉ, pas un glyphe : il suit l'encre
+   du titre, contrastes forcés compris, et pivote d'un quart de tour quand la
+   partie se ferme (`aria-expanded`).
+   ========================================================================== */
+.group + .group {
+  margin-block-start: var(--opale-space-md);
+}
+.groupTitle {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+  align-items: center;
+  border: 0;
+  border-radius: var(--opale-radius-sm);
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  background: transparent;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font: 700 var(--opale-text-xs) / var(--opale-leading-snug) var(--opale-font-mono);
+  letter-spacing: 0.08em;
+  text-align: start;
+  text-transform: uppercase;
+}
+button.groupTitle {
+  padding-inline-end: calc(var(--opale-space-sm) * 2 + 0.5rem);
+  cursor: pointer;
+}
+button.groupTitle::after {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--opale-space-sm);
+  width: 0.5625rem;
+  height: 0.5625rem;
+  box-sizing: border-box;
+  border-block-end: 1.5px solid currentColor;
+  border-inline-end: 1.5px solid currentColor;
+  content: '';
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform var(--opale-motion) var(--opale-ease);
+}
+button.groupTitle[aria-expanded='false']::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+button.groupTitle:hover {
+  color: currentColor;
+}
+button.groupTitle:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
+}
+/* Rail plié : le titre est masqué à l'œil seulement, il nomme encore le
+   groupe. Redit ici parce que `.groupTitle`, plus bas dans la feuille que
+   `.itemContentHidden`, lui rendait sa place et sa hauteur. */
+.groupCollapsed > .groupTitle {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  margin: -1px;
+  padding: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.group.groupCollapsed + .group.groupCollapsed {
+  margin-block-start: var(--opale-space-xs);
+}
+.groupItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.groupItems[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  button.groupTitle::after {
+    transition: none;
+  }
+}
+
+/* =============================================================================
    LA VERSION ORIGINALE.
 
    Le rail ne savait rendre que du verre : sans matériau il n'avait ni fond, ni
@@ -442,7 +531,28 @@ a.item {
    ========================================================================== */
 .plain {
   border-inline-end: 1px solid var(--opale-divider);
-  background: var(--opale-surface);
+  /* LE FOND DE LA PAGE, comme le sommaire de la documentation : le rail est
+     une colonne de la page, pas une carte posée dessus. Le filet suffit à
+     l'en séparer. */
+  background: var(--opale-background);
+  color: var(--opale-text);
+}
+/* LES ENTRÉES DU SOMMAIRE : 15 px, encre secondaire au repos, encre primaire
+   au survol. 2,25 rem de haut, au-dessus des 24 px de WCAG 2.5.8. */
+.plain .item:not(.itemCollapsed) {
+  min-height: 2.25rem;
+  padding-block: 0.45rem;
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
+.plain .item:hover:not(:disabled):not([aria-disabled='true']) {
+  background: transparent;
+  color: var(--opale-primary-on-surface);
+}
+.plain .groupTitle {
+  color: var(--opale-text-secondary);
+}
+.plain button.groupTitle:hover {
   color: var(--opale-text);
 }
 
@@ -454,11 +564,19 @@ a.item {
    Mesuré sur les jetons : le libellé à 5,6:1 (clair) et 7,1:1 (sombre) sur la
    teinte ; le liseré, même encre, aux mêmes ratios — au-delà des 3:1 qu'un
    repère non textuel doit tenir. */
-.plain .itemActive,
+/* Comme l'entrée courante du sommaire : la pastille primaire à 12 %, l'encre
+   primaire et la graisse 600, sans liseré. L'état ne tient pas qu'à la
+   couleur : la graisse change aussi (WCAG 1.4.1), et `aria-current` le dit. */
+.plain .item.itemActive,
+.plain .item.itemActive:not(.itemCollapsed),
 .plain .item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
-  --opale-sidebar-active-edge: var(--opale-primary-on-surface);
+  --opale-sidebar-active-edge: transparent;
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
+  box-shadow: none;
   color: var(--opale-primary-on-surface);
+}
+.plain .item.itemActive:focus-visible {
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
 }
 
 .plain .item.itemActive:active:not(:disabled):not([aria-disabled='true']) {
@@ -470,6 +588,8 @@ a.item {
 .plain .footer {
   border-top-color: var(--opale-divider);
   color: var(--opale-text-secondary);
+  font-family: var(--opale-font-mono);
+  letter-spacing: 0.04em;
 }
 
 /* =============================================================================

@@ -48,10 +48,11 @@ export function SidebarCollapsibleScene() {
             </Sidebar.Header>
 
             <Sidebar.Items aria-label="Sections du voyage">
-              <Sidebar.Item itemId="etapes" icon={<SceneGlyph name="map-pin" />}>
-                Étapes
-              </Sidebar.Item>
-              {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
+              <Sidebar.Group title="Le voyage">
+                <Sidebar.Item itemId="etapes" icon={<SceneGlyph name="map-pin" />}>
+                  Étapes
+                </Sidebar.Item>
+                {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
               `<button>` : un `Opale.Badge` sans verre y tiendrait (c'est un
               `<span>`), mais le même sous `liquidGlass` passe par `Glass`, et
               `Glass` — le nôtre — enveloppe TOUJOURS son contenu dans un
@@ -60,15 +61,22 @@ export function SidebarCollapsibleScene() {
               un bouton, c'est du HTML invalide, que ni TypeScript ni React ne
               signalent. Le `<span>` écrit ici ne dépend d'aucune prop. Écrit
               dans la prose de la page. */}
-              <Sidebar.Item itemId="carte" icon={<SceneGlyph name="map" />} badge={<span>3</span>}>
-                Carte
-              </Sidebar.Item>
-              <Sidebar.Item itemId="photos" icon={<SceneGlyph name="image" />}>
-                Photos
-              </Sidebar.Item>
-              <Sidebar.Item itemId="brouillon" icon={<SceneGlyph name="file-text" />} disabled>
-                Brouillon
-              </Sidebar.Item>
+                <Sidebar.Item
+                  itemId="carte"
+                  icon={<SceneGlyph name="map" />}
+                  badge={<span>3</span>}
+                >
+                  Carte
+                </Sidebar.Item>
+              </Sidebar.Group>
+              <Sidebar.Group title="Les médias">
+                <Sidebar.Item itemId="photos" icon={<SceneGlyph name="image" />}>
+                  Photos
+                </Sidebar.Item>
+                <Sidebar.Item itemId="brouillon" icon={<SceneGlyph name="file-text" />} disabled>
+                  Brouillon
+                </Sidebar.Item>
+              </Sidebar.Group>
             </Sidebar.Items>
 
             {/* LE PIED N'EXISTE QUE DÉPLIÉ. Replié, il peignait un point médian
