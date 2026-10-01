@@ -742,6 +742,26 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Un nombre de colonnes fixe ne passe pas à une colonne sur un écran étroit : préférez une largeur minimale de piste.',
     ],
   },
+  Carousel: {
+    states: [],
+    keyboard: [
+      'La piste est focalisable : Flèche droite et Flèche gauche passent à la diapositive suivante et précédente — inversées de droite à gauche —, Début et Fin vont aux extrémités.',
+      'Les flèches d’un champ placé dans une diapositive restent au champ.',
+      'Flèches, points et bouton pause sont des `<button type="button">` natifs ; les flèches sont désactivées aux extrémités.',
+      'Les diapositives entièrement hors de la piste sont `inert` : la tabulation ne se pose jamais hors de l’écran.',
+    ],
+    semantics: [
+      'La racine est une `role="region"` nommée par `label`, avec `aria-roledescription="carrousel"`.',
+      'Chaque diapositive est un `role="group"` nommé « 2 sur 6 », avec `aria-roledescription="diapositive"`.',
+      'Les points forment un groupe nommé ; le point actif porte `aria-current="true"`.',
+      'Une région polie annonce « 2 sur 6 » après un changement voulu, jamais pendant la lecture automatique.',
+      'La lecture automatique rend toujours un bouton pause (WCAG 2.2.2) et s’arrête sous le pointeur et tant que le focus est dedans ; sous `prefers-reduced-motion`, elle ne démarre pas et les défilements sont instantanés.',
+    ],
+    limits: [
+      'Sans JavaScript, la piste défile au doigt et à la molette, mais flèches, points et clavier ne font rien.',
+      'Un changement de `prefers-reduced-motion` en cours de visite vaut au prochain montage.',
+    ],
+  },
   Tooltip: {
     states: [],
     keyboard: [

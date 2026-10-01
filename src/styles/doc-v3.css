@@ -1509,6 +1509,69 @@ body {
   overflow-wrap: anywhere;
   text-align: center;
 }
+/* Le carrousel de démonstration : les cartes de la planche de direction
+   artistique, peintes à l'encre courante pour suivre les deux thèmes. */
+.tc-doc-carousel {
+  inline-size: 100%;
+}
+.tc-doc-carousel-slide {
+  display: grid;
+  min-block-size: 15rem;
+  align-content: space-between;
+  gap: var(--opale-space-md);
+  padding: var(--opale-space-lg);
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: var(--opale-radius-md);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.tc-doc-carousel-slide h3 {
+  margin: 0;
+  font-family: var(--opale-font-display);
+  font-size: var(--opale-text-2xl);
+  letter-spacing: -0.03em;
+}
+.tc-doc-carousel-slide p {
+  margin: var(--opale-space-xs) 0 0;
+  color: var(--opale-text-secondary);
+}
+.tc-doc-carousel-glyph {
+  display: block;
+  inline-size: 8rem;
+  block-size: 2rem;
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-primary) 70%, transparent);
+}
+.tc-doc-carousel-glyph[data-glyph='1'] {
+  inline-size: 100%;
+  block-size: 0.6rem;
+}
+.tc-doc-carousel-glyph[data-glyph='2'] {
+  inline-size: 4.5rem;
+  block-size: 1.6rem;
+  border-radius: var(--opale-radius-sm);
+}
+.tc-doc-carousel-glyph[data-glyph='3'] {
+  inline-size: 100%;
+  block-size: 3.6rem;
+  border-radius: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--opale-primary) 60%, transparent) 0 0.5rem,
+    transparent 0.5rem 1.1rem
+  );
+}
+.tc-doc-carousel-glyph[data-glyph='4'] {
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: var(--opale-radius-md);
+  box-shadow:
+    3.5rem 0 0 color-mix(in srgb, var(--opale-primary) 40%, transparent),
+    7rem 0 0 color-mix(in srgb, var(--opale-primary) 20%, transparent);
+}
+.tc-doc-carousel-glyph[data-glyph='5'] {
+  inline-size: 70%;
+  block-size: 1.2rem;
+}
 .tc-doc-popover-form {
   display: grid;
   gap: var(--opale-space-sm);

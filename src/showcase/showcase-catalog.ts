@@ -14,7 +14,8 @@ import { CATALOG, type ShowcaseCatalogEntry } from '../opale/catalog';
    la liste ci-dessous ne sert que les noms qui y manquent encore.
 
    Les familles reprennent celles des sections du sommaire (`doc-model.ts`),
-   sauf « Couches flottantes », qui range les trois surimpressions ancrées.
+   sauf « Couches flottantes », qui range les trois surimpressions ancrées, et
+   « Mouvement », qui ouvre la famille des composants animés de la 3.0.
    ========================================================================== */
 
 const SHOWCASE_ONLY_ENTRIES: readonly ShowcaseCatalogEntry[] = [
@@ -32,6 +33,11 @@ const SHOWCASE_ONLY_ENTRIES: readonly ShowcaseCatalogEntry[] = [
     'DropdownMenu',
     'Couches flottantes',
     'Menu d’actions au clavier : éléments, cases à cocher et choix exclusifs.',
+  ],
+  [
+    'Carousel',
+    'Mouvement',
+    'Carrousel au défilement natif : glisser, flèches, points, clavier et lecture automatique.',
   ],
 ].map(([name, category, description]) => ({ name, category, description }));
 

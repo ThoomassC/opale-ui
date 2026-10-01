@@ -217,6 +217,13 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     ],
   },
   {
+    /* LES COMPOSANTS EN MOUVEMENT DE LA 3.0 : le carrousel ouvre la section,
+       les autres la rejoindront. */
+    id: 'mouvement',
+    label: 'MOUVEMENT',
+    entries: [opaleEntry('Carousel', 'Carousel')],
+  },
+  {
     id: 'navigation',
     label: 'NAVIGATION',
     entries: [

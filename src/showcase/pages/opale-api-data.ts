@@ -847,6 +847,51 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('gap', "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'", 'Espace entre les cellules.', 'md'),
     ],
   },
+  Carousel: {
+    states:
+      'Glisser, flèches, points et clavier ; autoPlay se met en pause sous le pointeur et au focus.',
+    rows: [
+      prop(
+        'label',
+        'string',
+        'Nom de la région : ce que le carrousel fait défiler.',
+        undefined,
+        true,
+      ),
+      prop('children', 'ReactNode', 'Les diapositives, des `CarouselSlide`.'),
+      prop('value', 'number', 'Index de la première diapositive visible, contrôlé.'),
+      prop('defaultValue', 'number', 'Index de départ, non contrôlé.', '0'),
+      prop(
+        'onValueChange',
+        '(index: number) => void',
+        'Changement de diapositive, voulu ou par défilement.',
+      ),
+      prop('slideSize', 'string', 'Largeur d’une diapositive, en longueur CSS.', 'min(78%, 22rem)'),
+      prop(
+        'gap',
+        "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'",
+        'Espace entre les diapositives.',
+        'md',
+      ),
+      prop('showArrows', 'boolean', 'Affiche les flèches précédente et suivante.', 'true'),
+      prop('showDots', 'boolean', 'Affiche un point par diapositive.', 'true'),
+      prop(
+        'autoPlay',
+        'number',
+        'Millisecondes entre deux diapositives ; boucle et rend un bouton pause. Jamais sous mouvement réduit.',
+      ),
+      prop('labels', 'Partial<CarouselLabels>', 'Textes français remplacés clé par clé.'),
+    ],
+    parts: [
+      {
+        name: 'CarouselSlide',
+        rows: [
+          prop('children', 'ReactNode', 'Le contenu de la diapositive.'),
+          prop('aria-label', 'string', 'Remplace le nom « 2 sur 6 » posé par le carrousel.'),
+        ],
+      },
+    ],
+  },
   Tooltip: {
     states: 'Au survol après un délai, au focus tout de suite ; Échap la retire.',
     rows: [

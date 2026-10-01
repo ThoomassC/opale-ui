@@ -29,6 +29,7 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
     'menu déroulant',
     'menu d’actions',
   ],
+  Carousel: ['CarouselSlide', 'carrousel', 'diaporama', 'slider', 'autoPlay', 'scroll-snap'],
   Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
   Feedback: ['Http', 'Validation', 'tone', 'severity'],
   Field: ['useFieldProps', 'FieldWrapperProps', 'champ', 'contrôle personnalisé'],

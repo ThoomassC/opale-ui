@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Opale } from '../../opale';
 import { SHOWCASE_CATALOG } from '../showcase-catalog';
 import {
+  CarouselDemo,
   DropdownMenuDemo,
   FieldDemo,
   GridDemo,
@@ -805,6 +806,9 @@ export function CatalogPreview({
       break;
     case 'Grid':
       preview = <GridDemo />;
+      break;
+    case 'Carousel':
+      preview = <CarouselDemo />;
       break;
     case 'Tooltip':
       preview = <TooltipDemo liquidGlass={liquidGlass} />;

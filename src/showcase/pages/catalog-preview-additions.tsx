@@ -2,6 +2,8 @@ import { useState, type FormEvent, type KeyboardEvent } from 'react';
 
 import {
   Button,
+  Carousel,
+  CarouselSlide,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -218,6 +220,33 @@ export function GridDemo() {
         ))}
       </Grid>
     </div>
+  );
+}
+
+/* Les six diapositives de la planche de direction artistique : une famille
+   d'Opale chacune, et son glyphe. */
+const CAROUSEL_SLIDES = [
+  ['Button', 'Saisie · tons, tailles, verre liquide en option'],
+  ['Textarea', 'Formulaires · grandit avec le texte, compteur annoncé'],
+  ['Popover', 'Couches flottantes · focus gardé, Échap rendu'],
+  ['DataTable', 'Affichage · générique, sélection de lignes'],
+  ['Carousel', 'Nouveau en 3.0 · ce que vous faites défiler en ce moment'],
+  ['SplitHeading', 'Nouveau en 3.0 · un titre qui arrive mot à mot'],
+] as const;
+
+export function CarouselDemo() {
+  return (
+    <Carousel label="Composants d’Opale" className="tc-doc-carousel">
+      {CAROUSEL_SLIDES.map(([name, text], index) => (
+        <CarouselSlide key={name} className="tc-doc-carousel-slide">
+          <span className="tc-doc-carousel-glyph" aria-hidden="true" data-glyph={index} />
+          <div>
+            <h3>{name}</h3>
+            <p>{text}</p>
+          </div>
+        </CarouselSlide>
+      ))}
+    </Carousel>
   );
 }
 

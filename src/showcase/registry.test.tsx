@@ -213,7 +213,9 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    sous leur nom : `Radio`, `PopoverTrigger`, `PopoverContent` et les huit
    `DropdownMenu…`. Les parties se documentent sur la page de leur composant
    (`NAMED_PART_OWNERS`). */
-const PUBLISHED_COMPONENT_COUNT = 91;
+/* 93 DEPUIS LA 3.0 : `Carousel`, premier composant en mouvement, et sa
+   partie `CarouselSlide`, publiée sous son nom. */
+const PUBLISHED_COMPONENT_COUNT = 93;
 
 /**
  * Les parties publiées SANS membre statique sur leur composant, vers leur
@@ -222,7 +224,7 @@ const PUBLISHED_COMPONENT_COUNT = 91;
  * qui lit les membres, ne les voit pas. Le préfixe suffit à les rattacher ;
  * `Radio` ne porte pas celui de `RadioGroup` et s'écrit en toutes lettres.
  */
-const NAMED_PART_PREFIXES: readonly string[] = ['DropdownMenu', 'Popover'];
+const NAMED_PART_PREFIXES: readonly string[] = ['Carousel', 'DropdownMenu', 'Popover'];
 const NAMED_PART_OWNERS: Readonly<Record<string, string>> = { Radio: 'RadioGroup' };
 
 /** Le propriétaire d'une partie publiée sous son seul nom, s'il en a un. */

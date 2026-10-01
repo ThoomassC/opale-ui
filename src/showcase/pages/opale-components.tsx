@@ -74,6 +74,7 @@ const LIQUID_GLASS_TARGET: Readonly<Record<string, string>> = {
 /* Les pièces à importer avec le composant, quand il se compose de plusieurs
    exports. La première est celle de la page. */
 const PAGE_IMPORTS: Readonly<Record<string, readonly string[]>> = {
+  Carousel: ['Carousel', 'CarouselSlide'],
   DropdownMenu: [
     'DropdownMenu',
     'DropdownMenuTrigger',
@@ -347,6 +348,22 @@ function SeatStepper({ value }) {
 <Opale.Grid columns="9rem">
   <div>Design</div><div>Code</div><div>Tests</div>
 </Opale.Grid>`,
+  Carousel: `// Le défilement est natif : doigt, trackpad, molette ; glisser à la souris.
+<Opale.Carousel label="Composants d'Opale">
+  <Opale.CarouselSlide>
+    <h3>Button</h3>
+    <p>Saisie · tons, tailles, verre liquide en option</p>
+  </Opale.CarouselSlide>
+  <Opale.CarouselSlide>
+    <h3>Textarea</h3>
+    <p>Formulaires · grandit avec le texte, compteur annoncé</p>
+  </Opale.CarouselSlide>
+</Opale.Carousel>
+
+// autoPlay : rend un bouton pause, s'arrête sous le pointeur et au focus.
+<Opale.Carousel label="À la une" autoPlay={5000} slideSize="100%">
+  …
+</Opale.Carousel>`,
   Tooltip: `// Une description courte, au survol et au focus : jamais une information essentielle.
 <Opale.Tooltip content="Enregistre le brouillon sans le publier.">
   <Opale.Button variant="secondary">Enregistrer</Opale.Button>
