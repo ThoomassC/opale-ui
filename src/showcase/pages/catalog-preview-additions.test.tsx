@@ -112,6 +112,10 @@ describe('la démo des fonds au défilement', () => {
     for (const region of regions) {
       expect(within(region).getAllByRole('button')).toHaveLength(2);
     }
+    /* Le bleu inverse le primaire : une case cochée et un interrupteur actif
+       y sont posés pour que le navigateur mesure leur contraste. */
+    expect(within(regions[3]).getByRole('checkbox')).toBeChecked();
+    expect(within(regions[3]).getByRole('switch')).toBeChecked();
     const label = screen.getByText('Fond actif : Papier');
     expect(label.closest('.opale-scroll-section')).toBeNull();
     expect(label.parentElement).toBe(stage);

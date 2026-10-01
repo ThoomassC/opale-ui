@@ -2153,6 +2153,17 @@ body {
   --opale-focus: var(--tc-doc-focus-ring);
 }
 
+/* SUR UN FOND DE COULEUR, L'ANNEAU EST CELUI D'OPALE. L'encre à 50 % ne
+   tient pas 3:1 sur un bleu moyen (2,71:1 sur le fond `blue` d'une
+   ScrollSection) : dans une section `amber`, `night` ou `blue`, la vitrine ne
+   surcharge plus l'anneau. `--opale-focus` y reprend l'encre du primaire sur
+   une surface — la valeur des jetons d'Opale, et sa formule pour une marque
+   dérivée —, et l'anneau propre de la vitrine la suit. */
+.tc-doc .opale-scroll-section:not([data-ground='paper']) {
+  --opale-focus: var(--opale-primary-on-surface);
+  --tc-doc-focus-ring: var(--opale-focus);
+}
+
 /* =============================================================================
    L'ANNEAU REVIENT, DISCRET — DÉCISION DU PROPRIÉTAIRE, SUR PROPOSITION.
 

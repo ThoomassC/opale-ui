@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { compositeOver, contrastRatio, withAlpha } from './color';
+import { parseThemes, resolveToken, type Theme } from './stylesheet';
 import opaleSource from '../opale/opale.css?raw';
 import docSource from '../styles/doc-v3.css?raw';
 import { parseRules, ruleBody, stripComments } from '../test/css-rules';
@@ -76,12 +77,44 @@ describe('l’anneau de focus de la vitrine', () => {
 describe('l’anneau de la vitrine dans un thème local', () => {
   it('est redéclaré sur `[data-opale-page-theme]` et `[data-opale-scope]`', () => {
     const declaring = parseRules(docSource).filter(
-      (rule) => rule.context.length === 0 && /--tc-doc-focus-ring\s*:/.test(rule.body),
+      (rule) => rule.context.length === 0 && /--tc-doc-focus-ring\s*:\s*color-mix/.test(rule.body),
     );
     expect(declaring).toHaveLength(1);
     expect(declaring[0].selectors).toEqual(
       expect.arrayContaining([':root', '.tc-doc', '[data-opale-page-theme]', '[data-opale-scope]']),
     );
     expect(declaring[0].body).toMatch(/--opale-focus:\s*var\(--tc-doc-focus-ring\)/);
+  });
+});
+
+/* =============================================================================
+   SUR UN FOND DE COULEUR, L'ANNEAU EST CELUI D'OPALE.
+
+   L'encre à 50 % ne peut pas tenir 3:1 sur un bleu moyen : 2,71:1 mesuré sur
+   le fond `blue` d'une ScrollSection, même recalculée dans le thème local.
+   Dans une section `amber`, `night` ou `blue`, la vitrine rend donc la main à
+   l'anneau d'Opale : `--opale-focus` y vaut l'encre du primaire sur une
+   surface — la formule même d'Opale pour une marque dérivée, et la valeur de
+   ses jetons par défaut —, et l'anneau propre de la vitrine la suit.
+   ========================================================================== */
+describe('l’anneau de la vitrine sur un fond de ScrollSection', () => {
+  const SELECTOR = ".tc-doc .opale-scroll-section:not([data-ground='paper'])";
+  const themes = new Map<string, Theme>(parseThemes(opaleSource).map((t) => [t.name, t]));
+
+  it('rend la main à l’anneau d’Opale dans les sections de couleur', () => {
+    const body = ruleBody(docSource, SELECTOR) ?? '';
+    expect(body).toMatch(/--opale-focus:\s*var\(--opale-primary-on-surface\)/);
+    expect(body).toMatch(/--tc-doc-focus-ring:\s*var\(--opale-focus\)/);
+  });
+
+  it.each([
+    ['amber', 'light'],
+    ['night', 'dark-explicit'],
+    ['blue', 'dark-explicit'],
+  ] as const)('tient 3:1 sur le fond %s, dans son thème local', (ground, theme) => {
+    const local = themes.get(theme) as Theme;
+    const ring = resolveToken(local, '--opale-primary-on-surface');
+    const fill = resolveToken(local, `--opale-ground-${ground}`);
+    expect(contrastRatio(ring, fill)).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 });

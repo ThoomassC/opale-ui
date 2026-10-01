@@ -3,6 +3,7 @@ import { useId, useState, type FormEvent, type KeyboardEvent } from 'react';
 import {
   Button,
   Carousel,
+  Checkbox,
   CarouselSlide,
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -27,6 +28,7 @@ import {
   SegmentedControl,
   SplitHeading,
   Textarea,
+  Toggle,
   Tooltip,
   type FieldControlProps,
   type ScrollGround,
@@ -373,6 +375,14 @@ export function ScrollSectionDemo() {
             <Button>Action principale</Button>
             <Button variant="secondary">Action secondaire</Button>
           </div>
+          {/* Le bleu inverse le primaire : une case cochée et un interrupteur
+              actif montrent que l'inversion leur va aussi. */}
+          {value === 'blue' && (
+            <div className="tc-doc-opale-preview__row">
+              <Checkbox label="Option cochée" defaultChecked />
+              <Toggle label="Réglage actif" role="switch" defaultChecked />
+            </div>
+          )}
         </ScrollSection>
       ))}
     </ScrollStage>
