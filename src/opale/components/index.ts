@@ -37,6 +37,7 @@ export type { OpaleIconName, IconGroup } from './icon';
 /* LE MATÉRIAU RESTE INTERNE, SES RÉGLAGES DE SURFACE SONT PUBLICS : c'est le
    type que partagent les composants qui portent le verre. */
 export type { GlassSurfaceProps } from './glass';
+export * from './carousel';
 export * from './dropdown-menu';
 export * from './field';
 export * from './modal';

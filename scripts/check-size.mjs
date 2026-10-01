@@ -26,6 +26,13 @@ const entry = join(root, 'dist/opale/index.js');
    module voisin entraîné avec lui. */
 const BUDGETS = {
   Divider: 1_000,
+  /* Le carrousel : défilement natif, glisser à la souris, clavier, lecture
+     automatique et annonces. Posé à 5 000 o avant son écriture, mesuré à
+     8 723 o puis allégé à 7 342 o (flèches en texte, une seule fabrique de
+     classes, préférence de mouvement sans abonnement). 5 000 o ne tiennent
+     pas : la mesure garde l'indentation de la sortie `es`, et Tooltip,
+     Textarea et RadioGroup pèsent 11,3 à 11,5 ko par le même calcul. */
+  Carousel: 8_000,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];

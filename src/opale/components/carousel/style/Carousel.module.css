@@ -1,0 +1,177 @@
+/* =============================================================================
+   LE CARROUSEL — FEUILLE D'OPALE.
+
+   LE DÉFILEMENT EST CELUI DU NAVIGATEUR. La piste est une grille d'une rangée
+   qui déborde (`overflow-x: auto`) et s'aimante (`scroll-snap-type`) : le
+   doigt, le trackpad et la molette défilent sans une ligne de script. Le
+   glisser à la souris coupe l'aimant le temps du geste (`data-dragging`).
+
+   LES TAILLES VIENNENT DE DEUX PROPRIÉTÉS PERSONNALISÉES, posées par
+   `slideSize` et `gap` sur la racine. La largeur par défaut, `min(78 %,
+   22 rem)`, laisse toujours dépasser la diapositive suivante : on voit qu'il
+   y a une suite, et rien ne déborde de la page à 360 px.
+
+   SEULS `transform` ET `opacity` S'ANIMENT : les points et les flèches ne
+   déclenchent aucune mise en page.
+   ========================================================================== */
+
+.root {
+  display: grid;
+  gap: var(--opale-space-sm);
+  min-inline-size: 0;
+}
+
+.track {
+  display: grid;
+  grid-auto-columns: var(--opale-carousel-slide-size, min(78%, 22rem));
+  grid-auto-flow: column;
+  gap: var(--opale-carousel-gap, var(--opale-space-md));
+  padding-block-end: var(--opale-space-sm);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  border-radius: var(--opale-radius-md);
+  cursor: grab;
+}
+.track[data-dragging] {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* L'anneau de focus, celui de toute la famille. */
+.track:focus-visible,
+.arrow:focus-visible,
+.dot:focus-visible,
+.play:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+
+.slide {
+  min-inline-size: 0;
+  scroll-snap-align: start;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--opale-space-xs);
+}
+.controls:empty {
+  display: none;
+}
+
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  margin-inline-end: auto;
+}
+
+/* Le bouton fait 24 px de côté (WCAG 2.5.8) ; le point visible, 8 px. */
+.dot {
+  display: grid;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--opale-text);
+  cursor: pointer;
+}
+.dot::before {
+  content: '';
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: var(--opale-radius-pill);
+  background: currentColor;
+  opacity: 0.32;
+  transition:
+    transform var(--opale-motion-fast) var(--opale-ease),
+    opacity var(--opale-motion-fast) var(--opale-ease);
+}
+.dot:hover::before {
+  opacity: 0.6;
+}
+.dot[aria-current='true'] {
+  color: var(--opale-primary);
+}
+.dot[aria-current='true']::before {
+  opacity: 1;
+  transform: scale(1.35);
+}
+
+.arrow,
+.play {
+  display: inline-grid;
+  block-size: 2.5rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--opale-text) 22%, transparent);
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font: inherit;
+  font-size: var(--opale-text-sm);
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--opale-motion-fast) var(--opale-ease);
+}
+.arrow {
+  inline-size: 2.5rem;
+  padding: 0;
+}
+.play {
+  padding-inline: var(--opale-space-md);
+}
+.arrow:active:not(:disabled),
+.play:active {
+  transform: scale(0.94);
+}
+.arrow:disabled {
+  opacity: var(--opale-disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* De droite à gauche, « précédente » est à droite : les flèches ← et → se
+   retournent avec la lecture. Le bouton est rond, seule la flèche change. */
+.arrow:dir(rtl) {
+  scale: -1 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot::before,
+  .arrow,
+  .play {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .dot::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+    opacity: 1;
+  }
+  .dot[aria-current='true']::before {
+    background: Highlight;
+  }
+  .arrow,
+  .play {
+    border-color: ButtonText;
+    color: ButtonText;
+  }
+  .arrow:disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+  .track:focus-visible,
+  .arrow:focus-visible,
+  .dot:focus-visible,
+  .play:focus-visible {
+    outline-color: CanvasText;
+  }
+}
