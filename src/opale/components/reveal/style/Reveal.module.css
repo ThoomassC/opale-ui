@@ -4,10 +4,12 @@
    AU REPOS, TOUT EST VISIBLE. Aucune règle de premier niveau ne cache
    `.root` : sans script et sans animation liée à la vue, le contenu est là.
 
-   LES RÉGLAGES SONT DES PROPRIÉTÉS PERSONNALISÉES, avec leurs défauts ici :
-   `--opale-reveal-distance` (la montée, 1,5 rem), `--opale-reveal-duration`
-   (720 ms, pour le repli), `--opale-reveal-stagger` (le pas d'une cascade,
-   60 ms) ; `--opale-reveal-index` vient de `delay`.
+   LES RÉGLAGES SONT DES JETONS, déclarés sur `:root` dans `opale.css` avec
+   l'échelle de mouvement (une durée ou une courbe écrite ici en clair
+   romprait le contrat de mouvement) : `--opale-reveal-distance` (la montée,
+   1,5 rem), `--opale-reveal-duration` (720 ms, pour le repli),
+   `--opale-reveal-stagger` (le pas d'une cascade, 60 ms) et
+   `--opale-ease-reveal`. `--opale-reveal-index` vient de `delay`.
 
    SEULS `transform` ET `opacity` S'ANIMENT : la boîte garde sa place dès la
    première image (aucun décalage de mise en page).
@@ -16,7 +18,7 @@
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(var(--opale-reveal-distance, 1.5rem));
+    transform: translateY(var(--opale-reveal-distance));
   }
   to {
     opacity: 1;
@@ -29,10 +31,12 @@
    son état final dès la première image. */
 @supports (animation-timeline: view()) {
   .root {
-    animation: rise linear both;
+    animation-name: rise;
+    animation-fill-mode: both;
+    animation-timing-function: var(--opale-ease-reveal);
     animation-timeline: view();
     animation-range: entry 0% entry 80%;
-    animation-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger, 60ms));
+    animation-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger));
   }
 }
 
@@ -40,14 +44,14 @@
    vue ; la montée part quand l'observateur la montre. */
 .root[data-reveal='pending'] {
   opacity: 0;
-  transform: translateY(var(--opale-reveal-distance, 1.5rem));
+  transform: translateY(var(--opale-reveal-distance));
 }
 
 .root[data-reveal='shown'] {
   transition-property: opacity, transform;
-  transition-duration: var(--opale-reveal-duration, 720ms);
-  transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
-  transition-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger, 60ms));
+  transition-duration: var(--opale-reveal-duration);
+  transition-timing-function: var(--opale-ease-reveal);
+  transition-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger));
 }
 
 /* MOUVEMENT RÉDUIT ET IMPRESSION : le contenu, simplement là. Les règles

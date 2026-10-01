@@ -345,6 +345,12 @@
   --opale-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --opale-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --opale-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* L'apparition au défilement (`Reveal`) : sa montée, sa durée de repli, le
+     pas de sa cascade et sa courbe, qui part vite et se pose en douceur. */
+  --opale-reveal-distance: 1.5rem;
+  --opale-reveal-duration: 720ms;
+  --opale-reveal-stagger: 60ms;
+  --opale-ease-reveal: cubic-bezier(0.2, 0.7, 0.2, 1);
   --opale-drop-shadow-1: drop-shadow(0 0.0625rem 0.0625rem rgba(20, 30, 24, 0.06))
     drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.08));
   --opale-drop-shadow-2: drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.07))

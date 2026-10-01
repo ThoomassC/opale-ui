@@ -183,15 +183,39 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   pub('--opale-badge-gap', 'espacement', 'Écart entre l’icône et le texte d’une pastille.'),
   pub('--opale-badge-padding-inline', 'espacement', 'Retrait latéral d’une pastille.'),
   pub('--opale-stat-card-gap', 'espacement', 'Écart entre les lignes d’une carte de statistique.'),
-  pub('--opale-item-padding-inline', 'espacement', 'Retrait latéral d’un élément compact : segment, entrée, cellule.'),
-  pub('--opale-nav-item-padding-block', 'espacement', 'Retrait vertical d’une entrée de navigation.'),
+  pub(
+    '--opale-item-padding-inline',
+    'espacement',
+    'Retrait latéral d’un élément compact : segment, entrée, cellule.',
+  ),
+  pub(
+    '--opale-nav-item-padding-block',
+    'espacement',
+    'Retrait vertical d’une entrée de navigation.',
+  ),
   pub('--opale-stack-gap', 'espacement', 'Écart des lignes serrées d’une pile : options, étoiles.'),
   pub('--opale-cluster-gap', 'espacement', 'Écart d’une grappe de petites commandes.'),
-  pub('--opale-table-count-padding-inline', 'espacement', 'Retrait latéral du compteur d’un tableau.'),
-  pub('--opale-table-state-padding-block', 'espacement', 'Retrait vertical de l’état vide ou de chargement d’un tableau.'),
-  pub('--opale-description-row-gap', 'espacement', 'Écart entre deux lignes d’une liste de descriptions.'),
+  pub(
+    '--opale-table-count-padding-inline',
+    'espacement',
+    'Retrait latéral du compteur d’un tableau.',
+  ),
+  pub(
+    '--opale-table-state-padding-block',
+    'espacement',
+    'Retrait vertical de l’état vide ou de chargement d’un tableau.',
+  ),
+  pub(
+    '--opale-description-row-gap',
+    'espacement',
+    'Écart entre deux lignes d’une liste de descriptions.',
+  ),
   pub('--opale-list-indent', 'espacement', 'Retrait d’une liste à puces.'),
-  pub('--opale-command-option-gap', 'espacement', 'Écart entre deux options de la palette de commandes.'),
+  pub(
+    '--opale-command-option-gap',
+    'espacement',
+    'Écart entre deux options de la palette de commandes.',
+  ),
   pub('--opale-toast-padding-block', 'espacement', 'Retrait vertical d’une notification.'),
 
   /* Les hauteurs de contrôle. */
@@ -233,6 +257,18 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   pub('--opale-ease', 'mouvement', 'Courbe d’accélération standard.'),
   pub('--opale-ease-out', 'mouvement', 'Courbe de décélération des entrées.'),
   pub('--opale-ease-spring', 'mouvement', 'Courbe à léger rebond.'),
+  pub('--opale-reveal-distance', 'mouvement', 'Montée d’un `Reveal` avant son entrée.'),
+  pub(
+    '--opale-reveal-duration',
+    'mouvement',
+    'Durée de la montée d’un `Reveal`, hors défilement natif.',
+  ),
+  pub(
+    '--opale-reveal-stagger',
+    'mouvement',
+    'Pas d’une cascade de `Reveal`, multiplié par `delay`.',
+  ),
+  pub('--opale-ease-reveal', 'mouvement', 'Courbe de la montée d’un `Reveal`.'),
 
   /* Le verre. */
   pub('--opale-glass-ink', 'verre', 'Encre du texte posé sur le verre.'),

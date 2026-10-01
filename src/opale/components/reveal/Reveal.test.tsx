@@ -8,6 +8,7 @@ import { Reveal, type RevealProps } from './Reveal';
 import { declaration, declarations, selectorsDeclaring } from '../../../test/css-rules';
 import { isBelowFold } from './reveal-fold';
 import sheet from './style/Reveal.module.css?raw';
+import opaleSource from '../../opale.css?raw';
 
 /* =============================================================================
    L'APPARITION AU DÉFILEMENT, MESURÉE CONTRE SES CRITÈRES.
@@ -240,12 +241,21 @@ describe('Reveal — mouvement réduit', () => {
 describe('Reveal — feuille', () => {
   const nativeContext = '@supports (animation-timeline: view())';
 
+  it('prend ses réglages dans les jetons de `:root`', () => {
+    const root = declarations(opaleSource, ':root');
+    expect(root.get('--opale-reveal-distance')).toBe('1.5rem');
+    expect(root.get('--opale-reveal-duration')).toBe('720ms');
+    expect(root.get('--opale-reveal-stagger')).toBe('60ms');
+    expect(root.get('--opale-ease-reveal')).toBe('cubic-bezier(0.2, 0.7, 0.2, 1)');
+  });
+
   it('lie la montée native à la vue, et seulement sous `@supports`', () => {
     const native = declarations(sheet, '.root', { within: nativeContext });
-    expect(native.get('animation')).toMatch(/\bboth\b/);
+    expect(native.get('animation-fill-mode')).toBe('both');
+    expect(native.get('animation-timing-function')).toBe('var(--opale-ease-reveal)');
     expect(native.get('animation-timeline')).toBe('view()');
     expect(native.get('animation-range')).toBe('entry 0% entry 80%');
-    expect(declaration(sheet, '.root', 'animation')).toBeUndefined();
+    expect(declaration(sheet, '.root', 'animation-name')).toBeUndefined();
   });
 
   it('est visible au repos : aucune règle de premier niveau ne cache `.root`', () => {
