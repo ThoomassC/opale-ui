@@ -20,8 +20,8 @@ const api = loadPublicApi();
 const components = Object.keys(CATALOG_API).sort();
 
 /* LE TYPE DES PROPS SE DÉDUIT DU NOM, SAUF QUAND LE NOM EST PRIS. `FieldProps`
-   reste l'alias déprécié d'`InputProps` jusqu'en 4.0.0 : les props du `Field`
-   de la 3.10.0 s'appellent donc `FieldWrapperProps`. */
+   reste l'alias déprécié d'`InputProps` jusqu'en 3.0.0 : les props du `Field`
+   de la 2.10.0 s'appellent donc `FieldWrapperProps`. */
 const PROPS_TYPE_OF: Readonly<Record<string, string>> = { Field: 'FieldWrapperProps' };
 
 function propsTypeOf(component: string): string {

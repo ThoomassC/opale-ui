@@ -25,7 +25,7 @@ import {
 } from '../../opale';
 
 /* =============================================================================
-   LES DÉMONSTRATIONS DES COMPOSANTS DE LA 3.10.0.
+   LES DÉMONSTRATIONS DES COMPOSANTS DE LA 2.10.0.
 
    Elles vivent à part de `catalog-preview.tsx` pour une raison de lecture, pas
    de chargement : chacune tient son propre état, là où l'aperçu commun partage

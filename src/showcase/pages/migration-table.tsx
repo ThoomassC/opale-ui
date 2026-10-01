@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import { DocHeading } from '../section';
 
-/* Le tableau de la page « Migrer vers la 4.0 », à part pour que la page n'exporte
+/* Le tableau de la page « Migrer vers la 3.0 », à part pour que la page n'exporte
    que des données (`react-refresh/only-export-components`). */
 
 /** Un texte de la table, ses `accents graves` rendus en `<code>`. */

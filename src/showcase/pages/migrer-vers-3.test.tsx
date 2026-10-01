@@ -5,13 +5,13 @@ import { DEPRECATED_EXPORTS, DEPRECATED_PROPS } from '../../opale/deprecations';
 import { findPage, navSectionsForPages } from '../doc-model';
 import { searchPages } from '../search-model';
 import { PAGES } from '.';
-import { migrationPage } from './migrer-vers-4';
+import { migrationPage } from './migrer-vers-3';
 
 afterEach(cleanup);
 
 const renderPage = () => render(<>{migrationPage.render()}</>);
 
-describe('la page « Migrer vers la 4.0 »', () => {
+describe('la page « Migrer vers la 3.0 »', () => {
   it('liste chaque prop dépréciée de la table, une ligne par couple', () => {
     renderPage();
     const table = screen.getByRole('table', { name: 'Les props dépréciées' });
@@ -21,7 +21,7 @@ describe('la page « Migrer vers la 4.0 »', () => {
 
     const modal = within(table).getAllByRole('row', { name: /^Modal onClose/ })[0];
     expect(modal).toHaveTextContent('onOpenChange');
-    expect(modal).toHaveTextContent('3.6');
+    expect(modal).toHaveTextContent('2.6');
 
     const density = within(table).getByRole('row', { name: /^DataTable density/ });
     expect(density).toHaveTextContent('size — compact → small');
@@ -38,27 +38,31 @@ describe('la page « Migrer vers la 4.0 »', () => {
     expect(within(table).getByRole('row', { name: /^ToastTone/ })).toHaveTextContent('OpaleTone');
   });
 
-  it('annonce ce que la 4.0.0 changera aussi, et comment voir les avertissements', () => {
+  it('annonce ce que la 3.0.0 changera aussi, et comment voir les avertissements', () => {
     const { container } = renderPage();
 
-    expect(screen.getByRole('heading', { name: 'Ce que la 4.0.0 changera aussi' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Ce que la 3.0.0 changera aussi' })).toBeVisible();
     expect(container).toHaveTextContent('role="switch"');
     expect(container).toHaveTextContent('data-testid');
     expect(container).toHaveTextContent('SiteNav exigera items');
     expect(container).toHaveTextContent(
-      '[Opale] Modal : `onClose` est déprécié depuis 3.6 et sera retiré en 4.0.0',
+      '[Opale] Modal : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0',
     );
   });
 
-  it('est rangée dans « Prise en main » et trouvée par la recherche', () => {
+  it('répond encore à son ancienne adresse, d’avant la renumérotation', () => {
     expect(findPage(PAGES, 'migrer-vers-4')).toBe(migrationPage);
+  });
+
+  it('est rangée dans « Prise en main » et trouvée par la recherche', () => {
+    expect(findPage(PAGES, 'migrer-vers-3')).toBe(migrationPage);
     const gettingStarted = navSectionsForPages(PAGES).find(({ id }) => id === 'prise-en-main');
-    expect(gettingStarted?.entries.map(({ page }) => page.slug)).toContain('migrer-vers-4');
+    expect(gettingStarted?.entries.map(({ page }) => page.slug)).toContain('migrer-vers-3');
     const first = (query: string) => searchPages(PAGES, query).suggestions[0]?.page.slug;
-    expect(first('migrer')).toBe('migrer-vers-4');
-    expect(first('déprécié')).toBe('migrer-vers-4');
-    expect(searchPages(PAGES, '4.0').suggestions.map(({ page }) => page.slug)).toContain(
-      'migrer-vers-4',
+    expect(first('migrer')).toBe('migrer-vers-3');
+    expect(first('déprécié')).toBe('migrer-vers-3');
+    expect(searchPages(PAGES, '3.0').suggestions.map(({ page }) => page.slug)).toContain(
+      'migrer-vers-3',
     );
   });
 });

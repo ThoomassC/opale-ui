@@ -4,7 +4,7 @@ import { CATALOG, type ShowcaseCatalogEntry } from '../opale/catalog';
    LES FICHES DE LA VITRINE : LE CATALOGUE DU PAQUET, PLUS CE QUI LUI MANQUE.
 
    `CATALOG` (`src/opale/catalog.ts`) donne à chaque composant son nom, sa
-   famille et sa phrase de présentation. La 3.10.0 publie sept composants que
+   famille et sa phrase de présentation. La 2.10.0 publie sept composants que
    ce fichier du paquet ne recense pas encore. Plutôt que de les laisser sans
    page — ce que `registry.test.tsx` refuse —, la vitrine leur écrit ici leur
    fiche, dans la même forme.

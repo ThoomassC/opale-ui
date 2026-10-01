@@ -159,7 +159,7 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
 
    IL RESTE HUIT EXPORTS NON PRÉFIXÉS `Opale` : `Modal`, `SearchBar`,
    `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider`, `Topbar` et `PageScaffold`.
-   Le dernier est revenu en 3.3.0 avec une vraie structure et un menu accessible.
+   Le dernier est revenu en 2.3.0 avec une vraie structure et un menu accessible.
    Chacun a sa page dans `src/showcase/pages/composants/`. `Glass` a
    quitté la liste : le matériau n'est pas un composant, et `liquidGlass`
    est proposé par les surfaces concernées. Si ce
@@ -202,13 +202,13 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
      l'échéance absolue que sa fiche promettait.
 
    Rupture d'API assumée, à consigner dans les notes de version. */
-/* 61 DEPUIS LA 3.5.0 : `SvgMapControls` rejoint le catalogue avec la refonte
+/* 61 DEPUIS LA 2.5.0 : `SvgMapControls` rejoint le catalogue avec la refonte
    de la carte SVG. */
-/* 73 DEPUIS LA 3.9.2 : les douze parties de `Tabs`, `Sidebar` et `Topbar`
+/* 73 DEPUIS LA 2.9.2 : les douze parties de `Tabs`, `Sidebar` et `Topbar`
    (`TabsList`, `SidebarItem`, `TopbarBrand`…) sont aussi publiées sous leur
    nom, pour les Server Components. Elles se documentent sur la page de leur
    composant (`COMPOUND_PART_OWNERS`). */
-/* 91 DEPUIS LA 3.10.0 : sept composants — `Textarea`, `RadioGroup`, `Field`,
+/* 91 DEPUIS LA 2.10.0 : sept composants — `Textarea`, `RadioGroup`, `Field`,
    `Grid`, `Tooltip`, `Popover` et `DropdownMenu` — et onze parties publiées
    sous leur nom : `Radio`, `PopoverTrigger`, `PopoverContent` et les huit
    `DropdownMenu…`. Les parties se documentent sur la page de leur composant
@@ -549,7 +549,7 @@ describe('Le registre des pages', () => {
        `composants/pill`, `composants/field`, `composants/backdrop`,
        `composants/message`, `composants/date-range`, `composants/timeline`,
        `composants/glass-lens`, plus les quatre pages de l'ancien groupe du verre
-       liées entre elles. La 2.0 supprime les dix-sept pages d'Opale et déplace les
+       liées entre elles. La 1.0 supprime les dix-sept pages d'Opale et déplace les
        quatorze autres : chacun de ces liens serait tombé sur un fragment
        inconnu, donc — la vitrine étant servie en statique — sur l'ACCUEIL,
        silencieusement, sans 404 et sans rien de rouge.

@@ -556,7 +556,7 @@ describe('DocShell — la page courante', () => {
    l'autre. Le mode de défaillance visé était le copier-coller, deux boutons
    câblés sur le même hook s'annonçant encore correctement chacun de leur côté.
 
-   L'axe du matériau est supprimé en 2.0 : la seule feuille qui lisait
+   L'axe du matériau est supprimé en 1.0 : la seule feuille qui lisait
    `data-material` était `glass.css`, qui n'est plus publiée, si bien que la
    bascule n'allumait plus rien. Il n'y a donc plus deux axes à croiser, et le
    garde d'indépendance n'a plus d'objet — il est retiré, pas affaibli. Ce qui

@@ -362,7 +362,7 @@ export function CatalogPreview({
       preview = (
         <Opale.DescriptionList
           items={[
-            { term: 'Version', description: '3.2.0' },
+            { term: 'Version', description: '2.2.0' },
             { term: 'Licence', description: 'MIT' },
             { term: 'React', description: '≥ 19' },
           ]}

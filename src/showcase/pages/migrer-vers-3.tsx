@@ -52,7 +52,7 @@ const EXPORT_ROWS = DEPRECATED_EXPORTS.map((entry): MigrationRow => ({
   ],
 }));
 
-/** Ce que la 4.0.0 changera en plus du retrait des anciens noms. */
+/** Ce que la 3.0.0 changera en plus du retrait des anciens noms. */
 const BREAKING_CHANGES: readonly ReactNode[] = [
   <>
     <code>Toggle</code> exposera <code>role="switch"</code> par défaut : il s’annoncera « activé /
@@ -83,13 +83,13 @@ const SWITCH = `<Toggle role="switch" label="Wi-Fi" />`;
 const EXAMPLE_WARNING = deprecationMessage(DEPRECATED_PROPS[0]);
 
 export const migrationPage: DocPage = {
-  slug: 'migrer-vers-4',
-  label: 'Migrer vers la 4.0',
+  slug: 'migrer-vers-3',
+  label: 'Migrer vers la 3.0',
   group: 'introduction',
-  title: 'Migrer vers la 4.0',
+  title: 'Migrer vers la 3.0',
   searchTerms: [
-    '4.0',
-    '4.0.0',
+    '3.0',
+    '3.0.0',
     'migration',
     'déprécié',
     'dépréciation',
@@ -100,15 +100,15 @@ export const migrationPage: DocPage = {
   ],
   lede: (
     <>
-      La 3.9 est la dernière 3.x : rien n’y casse, mais chaque ancien nom s’y signale. Remplacez-les
-      ici, et la 4.0.0 s’installera sans surprise.
+      La 2.9 est la dernière 2.x : rien n’y casse, mais chaque ancien nom s’y signale. Remplacez-les
+      ici, et la 3.0.0 s’installera sans surprise.
     </>
   ),
   render: () => (
     <PageBody>
       <Specimen title="À retenir">
         <p className="tc-doc-prose">
-          Les noms dépréciés depuis 3.6 et 3.7 compilent encore et gardent leur effet. La{' '}
+          Les noms dépréciés depuis 2.6 et 2.7 compilent encore et gardent leur effet. La{' '}
           {DEPRECATION_REMOVAL} les retirera : les {DEPRECATED_PROPS.length} props et{' '}
           {DEPRECATED_EXPORTS.length} exports ci-dessous sont la liste complète.
         </p>
@@ -135,13 +135,13 @@ export const migrationPage: DocPage = {
         rows={EXPORT_ROWS}
       />
 
-      <Specimen title="Ce que la 4.0.0 changera aussi">
+      <Specimen title="Ce que la 3.0.0 changera aussi">
         <ul className="tc-doc-checklist">
           {BREAKING_CHANGES.map((change, index) => (
             <li key={index}>{change}</li>
           ))}
         </ul>
-        <UsageBlock label="Adopter l’interrupteur dès la 3.9" code={SWITCH} actions={false} />
+        <UsageBlock label="Adopter l’interrupteur dès la 2.9" code={SWITCH} actions={false} />
       </Specimen>
 
       <Specimen title="Voir les avertissements">

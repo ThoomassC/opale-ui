@@ -42,7 +42,7 @@ const PROPS: readonly PropRow[] = [
       <>
         Appelée avec <code>false</code> sur Échap, le voile ou la croix.{' '}
         <strong>Sa présence conditionne le bouton de fermeture</strong> — sans elle, la croix n’est
-        pas rendue. <code>onClose()</code>, déprécié depuis 3.6, est encore appelé après elle.
+        pas rendue. <code>onClose()</code>, déprécié depuis 2.6, est encore appelé après elle.
       </>
     ),
   },

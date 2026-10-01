@@ -915,7 +915,7 @@ body {
 }
 /* L'ÉCHELLE TYPOGRAPHIQUE SE MONTRE DANS LA POLICE DU SITE, PAS DANS UNE SERIF
    QUE PLUS RIEN NE SERT. `doc.css` peint ses spécimens en `var(--font-display)`
-   — l'Iowan Old Style de la 2.x. Résultat : la page qui documente la
+   — l'Iowan Old Style de la 1.x. Résultat : la page qui documente la
    typographie était la seule à l'afficher, et elle affichait la mauvaise. Ces
    huit lignes parlent de TAILLES : elles doivent donc être rendues dans la
    police du texte courant, la seule dont ces tailles décident vraiment. Les
@@ -1114,7 +1114,7 @@ body {
 :root[data-theme='dark'] .tc-doc-release__action.opale-button--primary {
   color: #0c0f0d !important;
 }
-/* Le détail de la 3.2.0 reste dans sa fiche, mais se parcourt par impact. */
+/* Le détail de la 2.2.0 reste dans sa fiche, mais se parcourt par impact. */
 .tc-doc-release__sections {
   display: grid;
   gap: var(--opale-space-lg);
@@ -1479,7 +1479,7 @@ body {
 .tc-doc-opale-demo__layout .opale-layout__content {
   padding: var(--opale-space-lg);
 }
-/* LES DÉMONSTRATIONS DE LA 3.10.0. Le compteur de `Field` est un contrôle
+/* LES DÉMONSTRATIONS DE LA 2.10.0. Le compteur de `Field` est un contrôle
    écrit par la vitrine : il porte donc lui-même son anneau de focus, celui de
    la vitrine. Les cellules de `Grid` ne sont que des repères. */
 .tc-doc-stepper {
@@ -3320,9 +3320,9 @@ body {
   display: block;
 }
 
-/* LE MOUVEMENT RÉDUIT DE LA VITRINE, À SON NOM. Jusqu'à la 3.9.3, la règle
+/* LE MOUVEMENT RÉDUIT DE LA VITRINE, À SON NOM. Jusqu'à la 2.9.3, la règle
    globale d'`opale.css` (`*`) couvrait aussi les éléments `tc-doc-*` ; depuis
-   la 3.9.4 elle ne vise plus que les éléments d'Opale, pour ne pas imposer son
+   la 2.9.4 elle ne vise plus que les éléments d'Opale, pour ne pas imposer son
    `!important` aux pages hôtes. La vitrine reprend donc ce filet pour elle-même.
    `tokens.css` ne borne que les propriétés animées, pas les durées. */
 @media (prefers-reduced-motion: reduce) {

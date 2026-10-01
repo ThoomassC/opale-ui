@@ -170,7 +170,7 @@ const REPRESENTATIVE_EXAMPLES: Readonly<Record<string, string>> = {
   onClick={() => void navigator.clipboard?.writeText(location.href)}
 />`,
   DescriptionList: `<Opale.DescriptionList items={[
-  { term: 'Version', description: '3.2.0' },
+  { term: 'Version', description: '2.2.0' },
   { term: 'Licence', description: 'MIT' },
 ]} />`,
   BulletList: `<Opale.BulletList items={['Clavier', 'Thème sombre', 'TypeScript']} />`,

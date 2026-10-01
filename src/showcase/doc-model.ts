@@ -112,7 +112,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       { label: 'Personnaliser', slug: 'personnaliser' },
       { label: 'Typographie', slug: 'typographie' },
       { label: 'Icônes', slug: 'icones' },
-      { label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' },
+      { label: 'Migrer vers la 3.0', slug: 'migrer-vers-3' },
     ],
   },
   {
@@ -206,7 +206,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     ],
   },
   {
-    /* LES SURIMPRESSIONS ANCRÉES DE LA 3.10.0 : une infobulle, un panneau et
+    /* LES SURIMPRESSIONS ANCRÉES DE LA 2.10.0 : une infobulle, un panneau et
        un menu d'actions, posés dans un portail contre leur déclencheur. */
     id: 'couches-flottantes',
     label: 'COUCHES FLOTTANTES',
@@ -348,7 +348,14 @@ export function hrefFor(slug: string): string {
   return `#/${slug}`;
 }
 
+/* Les adresses d'avant la renumérotation du 30/09 : un lien gardé vers
+   l'ancienne page de migration mène toujours à la bonne. */
+const SLUG_ALIASES: Readonly<Record<string, string>> = {
+  'migrer-vers-4': 'migrer-vers-3',
+};
+
 /** La page d'un fragment, ou `undefined` — la coquille décide du repli. */
 export function findPage(pages: readonly DocPage[], slug: string): DocPage | undefined {
-  return pages.find((page) => page.slug === slug);
+  const target = SLUG_ALIASES[slug] ?? slug;
+  return pages.find((page) => page.slug === target);
 }
