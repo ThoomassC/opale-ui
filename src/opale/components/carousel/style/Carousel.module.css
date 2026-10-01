@@ -127,11 +127,11 @@
 .play {
   padding-inline: var(--opale-space-md);
 }
-.arrow:active:not(:disabled),
+.arrow:active:not([aria-disabled='true']),
 .play:active {
   transform: scale(0.94);
 }
-.arrow:disabled {
+.arrow[aria-disabled='true'] {
   opacity: var(--opale-disabled-opacity);
   cursor: not-allowed;
 }
@@ -164,7 +164,7 @@
     border-color: ButtonText;
     color: ButtonText;
   }
-  .arrow:disabled {
+  .arrow[aria-disabled='true'] {
     border-color: GrayText;
     color: GrayText;
   }

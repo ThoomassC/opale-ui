@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -200,12 +201,21 @@ export function Carousel({
   const items = Children.toArray(children).filter(isValidElement);
   const total = items.length;
   const last = Math.max(0, total - 1);
-  const [rawValue, setValue] = useControllableState(valueProp, defaultValue, onValueChange);
+  /* LE RAPPEL DE L'APPELANT EST LU AU DERNIER RENDU. Écrit en ligne, il
+     change à chaque rendu du parent ; s'il entrait dans les dépendances, la
+     mesure et la lecture automatique repartiraient de zéro à chaque fois. */
+  const latest = useRef({ onValueChange, value: 0 });
+  const emit = useCallback((index: number) => latest.current.onValueChange?.(index), []);
+  const [rawValue, setValue] = useControllableState(valueProp, defaultValue, emit);
   const value = Math.min(Math.max(rawValue, 0), last);
+  useLayoutEffect(() => {
+    latest.current = { onValueChange, value };
+  });
   const reduced = useSyncExternalStore(subscribeNever, getReducedMotion, getServerReducedMotion);
 
-  /* Les index visibles, joints par des virgules — une chaîne, pour que React
-     ignore la mesure qui ne change rien ; `null` tant que rien n'est mesuré. */
+  /* Les index visibles, joints par des virgules et précédés du nombre de
+     diapositives mesurées — une chaîne, pour que React ignore la mesure qui
+     ne change rien ; `null` tant que rien n'est mesuré. */
   const [visible, setVisible] = useState<string | null>(null);
   /* L'index annoncé après un changement voulu ; `null` : rien à dire. */
   const [announced, setAnnounced] = useState<number | null>(null);
@@ -223,16 +233,52 @@ export function Carousel({
   const settleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const frame = useRef(0);
   const mounted = useRef(false);
+  /* Vrai quand la dernière mesure a trouvé une piste avec une largeur. */
+  const laidOut = useRef(false);
   const drag = useRef({ x: 0, left: 0, active: false, moved: false });
+
+  const scrollToSlide = useCallback((index: number, animate: boolean) => {
+    shown.current = index;
+    const track = trackRef.current;
+    const slide = track?.children[index];
+    if (!track || !slide) return;
+    target.current = index;
+    clearTimeout(settleTimer.current);
+    /* La cible tenue pour atteinte, la piste se remesure par son propre
+         événement de défilement. */
+    settleTimer.current = setTimeout(() => {
+      target.current = null;
+      track.dispatchEvent(new Event('scroll'));
+    }, SETTLE_MS);
+    const box = track.getBoundingClientRect();
+    const rect = slide.getBoundingClientRect();
+    track.scrollTo?.({
+      left: track.scrollLeft + (isRtl(track) ? rect.right - box.right : rect.left - box.left),
+      behavior: animate ? 'smooth' : 'auto',
+    });
+  }, []);
 
   const measure = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
     const box = track.getBoundingClientRect();
     const rects = rectsOf(track);
-    setVisible(visibleSlides(box, rects).join());
-    /* Sans mise en page, rien ne dit quelle diapositive est montrée. */
-    if (box.width <= 0 || rects.length === 0) return;
+    /* Sans mise en page ni diapositive, rien n'est mesuré : rien n'est
+       inerte, et rien ne dit quelle diapositive est montrée. */
+    if (box.width <= 0 || rects.length === 0) {
+      laidOut.current = false;
+      setVisible(null);
+      return;
+    }
+    setVisible(`${rects.length}:${visibleSlides(box, rects).join()}`);
+    /* La piste prend sa largeur (onglet ouvert, parent affiché) : elle
+       rejoint la valeur, que le défilement d'une piste nulle n'a pas pu
+       montrer. */
+    if (!laidOut.current) {
+      laidOut.current = true;
+      scrollToSlide(latest.current.value, false);
+      return;
+    }
     const current = shownSlide(track, box, rects);
     if (target.current !== null) {
       if (current === target.current) target.current = null;
@@ -240,29 +286,7 @@ export function Carousel({
       shown.current = current;
       setValue(current);
     }
-  }, [setValue]);
-
-  const scrollToSlide = useCallback(
-    (index: number, animate: boolean) => {
-      shown.current = index;
-      const track = trackRef.current;
-      const slide = track?.children[index];
-      if (!track || !slide) return;
-      target.current = index;
-      clearTimeout(settleTimer.current);
-      settleTimer.current = setTimeout(() => {
-        target.current = null;
-        measure();
-      }, SETTLE_MS);
-      const box = track.getBoundingClientRect();
-      const rect = slide.getBoundingClientRect();
-      track.scrollTo?.({
-        left: track.scrollLeft + (isRtl(track) ? rect.right - box.right : rect.left - box.left),
-        behavior: animate ? 'smooth' : 'auto',
-      });
-    },
-    [measure],
-  );
+  }, [scrollToSlide, setValue]);
 
   const go = useCallback(
     (index: number, announce: boolean) => {
@@ -281,15 +305,29 @@ export function Carousel({
     mounted.current = true;
   }, [reduced, scrollToSlide, value]);
 
+  /* LA PISTE ET SES DIAPOSITIVES SONT OBSERVÉES, pas la fenêtre : une piste
+     masquée qui s'affiche, une diapositive qui change de taille remesurent.
+     L'observation repart quand le nombre de diapositives change. */
   useEffect(() => {
+    const track = trackRef.current;
     measure();
-    addEventListener('resize', measure);
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null;
+    if (track) for (const node of [track, ...track.children]) observer?.observe(node);
     return () => {
-      removeEventListener('resize', measure);
+      observer?.disconnect();
       cancelAnimationFrame(frame.current);
-      clearTimeout(settleTimer.current);
     };
-  }, [measure]);
+  }, [measure, total]);
+
+  /* La minuterie qui libère une cible ne s'efface qu'au démontage — avec la
+     cible, pour qu'un double montage (StrictMode) ne la laisse pas tenue. */
+  useEffect(
+    () => () => {
+      clearTimeout(settleTimer.current);
+      target.current = null;
+    },
+    [],
+  );
 
   const playing = !!autoPlay && (playChoice ?? !reduced);
   const running = playing && !hovered && !focused && total > 1;
@@ -363,6 +401,11 @@ export function Carousel({
     drag.current.moved = false;
   };
 
+  /* Une mesure faite pour un autre nombre de diapositives ne vaut rien : la
+     suivante arrive avec l'observation relancée. */
+  const [measuredCount, visibleList] = visible?.split(':') ?? [];
+  const onScreen = Number(measuredCount) === total ? visibleList?.split(',') : undefined;
+
   return (
     <div
       {...rest}
@@ -418,7 +461,7 @@ export function Carousel({
             key={item.key}
             value={{
               label: labels.slide(index + 1, total),
-              inert: visible !== null && !visible.split(',').includes(`${index}`),
+              inert: !!onScreen && !onScreen.includes(`${index}`),
             }}
           >
             {item}
@@ -454,20 +497,25 @@ export function Carousel({
           </div>
         )}
         {showArrows &&
-          [-1, 1].map((step) => (
-            /* Les flèches ← et → sont retournées par la feuille de droite à
-               gauche ; leur nom vient de `aria-label`. */
-            <button
-              key={step}
-              type="button"
-              aria-label={step < 0 ? labels.previous : labels.next}
-              disabled={step < 0 ? value <= 0 : value >= last}
-              className={part('arrow')}
-              onClick={() => go(value + step, true)}
-            >
-              {step < 0 ? '←' : '→'}
-            </button>
-          ))}
+          [-1, 1].map((step) => {
+            const off = step < 0 ? value <= 0 : value >= last;
+            return (
+              /* Les flèches ← et → sont retournées par la feuille de droite à
+                 gauche ; leur nom vient de `aria-label`. `aria-disabled` et non
+                 `disabled` : un bouton désactivé perdrait le focus vers
+                 `<body>` (WCAG 2.4.3). */
+              <button
+                key={step}
+                type="button"
+                aria-label={step < 0 ? labels.previous : labels.next}
+                aria-disabled={off || undefined}
+                className={part('arrow')}
+                onClick={() => off || go(value + step, true)}
+              >
+                {step < 0 ? '←' : '→'}
+              </button>
+            );
+          })}
       </div>
       <div className="opale-carousel__status opale-visually-hidden" aria-live="polite">
         {announced === null ? '' : labels.slide(announced + 1, total)}

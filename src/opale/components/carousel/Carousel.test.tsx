@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { StrictMode, useState } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -62,8 +62,105 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   vi.useRealTimers();
+  vi.unstubAllGlobals();
   Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo');
+  for (const key of ['scrollLeft', 'scrollWidth', 'clientWidth']) {
+    Reflect.deleteProperty(HTMLElement.prototype, key);
+  }
+  FakeResizeObserver.all.clear();
 });
+
+/* Un `ResizeObserver` qu'on déclenche à la main. */
+class FakeResizeObserver {
+  static readonly all = new Set<FakeResizeObserver>();
+  private readonly callback: () => void;
+  constructor(callback: () => void) {
+    this.callback = callback;
+    FakeResizeObserver.all.add(this);
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {
+    FakeResizeObserver.all.delete(this);
+  }
+  static fire() {
+    for (const observer of FakeResizeObserver.all) observer.callback();
+  }
+}
+
+const rectOf = (left: number, right: number) => ({
+  left,
+  right,
+  top: 0,
+  bottom: 100,
+  width: right - left,
+  height: 100,
+  x: left,
+  y: 0,
+  toJSON: () => ({}),
+});
+
+/* UNE MISE EN PAGE SIMULÉE : des diapositives de `slide` px espacées de
+   `gap`, dans une piste de `width` px. `scrollTo` déplace la piste et émet
+   `scroll`, sauf avec `moves: false` (un défilement fluide pas encore arrivé).
+   Les images d'animation sont jouées sur-le-champ. */
+function mockLayout({ width = 814, slide = 352, gap = 16, moves = true } = {}) {
+  const state = { scrollLeft: 0, width };
+  const isTrack = (node: Element) => node.classList.contains('opale-carousel__track');
+  const content = (track: Element) => track.children.length * (slide + gap) - gap;
+  vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+  vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((callback) => {
+    callback(0);
+    return 0;
+  });
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+    this: HTMLElement,
+  ) {
+    if (isTrack(this)) return rectOf(0, state.width);
+    const parent = this.parentElement;
+    if (!parent || !isTrack(parent)) return rectOf(0, 0);
+    const left = [...parent.children].indexOf(this) * (slide + gap) - state.scrollLeft;
+    return rectOf(left, left + slide);
+  });
+  Object.defineProperty(HTMLElement.prototype, 'scrollLeft', {
+    configurable: true,
+    get(this: HTMLElement) {
+      return isTrack(this) ? state.scrollLeft : 0;
+    },
+    set(this: HTMLElement, next: number) {
+      if (isTrack(this)) state.scrollLeft = next;
+    },
+  });
+  Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {
+    configurable: true,
+    get(this: HTMLElement) {
+      return isTrack(this) ? Math.max(content(this), state.width) : 0;
+    },
+  });
+  Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
+    configurable: true,
+    get(this: HTMLElement) {
+      return isTrack(this) ? state.width : 0;
+    },
+  });
+  scrollTo.mockImplementation(function (this: HTMLElement, options: ScrollToOptions) {
+    if (!moves || !isTrack(this)) return;
+    const max = Math.max(0, content(this) - state.width);
+    state.scrollLeft = Math.min(Math.max(options.left ?? 0, 0), max);
+    fireEvent.scroll(this);
+  });
+  return state;
+}
+
+const SIX = ['Button', 'Textarea', 'Popover', 'DataTable', 'Carousel', 'SplitHeading'];
+const renderSix = (props: Partial<CarouselProps> = {}) =>
+  render(
+    <Carousel label="Six" {...props}>
+      {SIX.map((name) => (
+        <CarouselSlide key={name}>{name}</CarouselSlide>
+      ))}
+    </Carousel>,
+  );
 
 describe('la géométrie du carrousel', () => {
   const trackRect = { left: 0, right: 300 };
@@ -127,14 +224,36 @@ describe('Carousel — sémantique', () => {
     const previous = screen.getByRole('button', { name: 'Diapositive précédente' });
     const next = screen.getByRole('button', { name: 'Diapositive suivante' });
     expect(previous).toHaveAttribute('type', 'button');
-    expect(previous).toBeDisabled();
-    expect(next).toBeEnabled();
+    expect(previous).toHaveAttribute('aria-disabled', 'true');
+    expect(next).not.toHaveAttribute('aria-disabled');
+  });
+
+  /* WCAG 2.4.3 : un bouton `disabled` qui a le focus le perd vers `<body>`. */
+  it('garde le focus sur la flèche qui atteint l’extrémité, sans rien faire de plus', () => {
+    const onValueChange = vi.fn();
+    renderCarousel({ onValueChange });
+    const next = screen.getByRole('button', { name: 'Diapositive suivante' });
+    next.focus();
+    fireEvent.click(next);
+    fireEvent.click(next);
+    expect(next).not.toBeDisabled();
+    expect(next).toHaveAttribute('aria-disabled', 'true');
+    expect(next).toHaveFocus();
+    onValueChange.mockClear();
+    fireEvent.click(next);
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(dots()[2]).toHaveAttribute('aria-current', 'true');
   });
 
   it('désactive « suivante » sur la dernière diapositive', () => {
     renderCarousel({ defaultValue: 2 });
-    expect(screen.getByRole('button', { name: 'Diapositive suivante' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Diapositive précédente' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Diapositive suivante' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'Diapositive précédente' })).not.toHaveAttribute(
+      'aria-disabled',
+    );
   });
 
   it('marque le point actif et annonce poliment un changement voulu', () => {
@@ -279,6 +398,104 @@ describe('Carousel — hors de l’écran, inerte', () => {
     });
     renderCarousel();
     expect(slides().map((slide) => slide.hasAttribute('inert'))).toEqual([false, false, true]);
+  });
+
+  /* Revue : la mesure faite à deux diapositives rendait inerte toute
+     diapositive ajoutée ensuite, et rien ne remesurait. */
+  it('remesure quand des diapositives arrivent après le montage', () => {
+    mockLayout({ width: 1200 });
+    const { rerender } = render(
+      <Carousel label="Ajout">
+        <CarouselSlide key="a">A</CarouselSlide>
+        <CarouselSlide key="b">B</CarouselSlide>
+      </Carousel>,
+    );
+    rerender(
+      <Carousel label="Ajout">
+        <CarouselSlide key="a">A</CarouselSlide>
+        <CarouselSlide key="b">B</CarouselSlide>
+        <CarouselSlide key="c">C</CarouselSlide>
+        <CarouselSlide key="d">D</CarouselSlide>
+      </Carousel>,
+    );
+    expect(slides().map((slide) => slide.hasAttribute('inert'))).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it('ne rend rien inerte tant qu’une piste vide n’a rien mesuré', () => {
+    mockLayout({ width: 1200 });
+    const { rerender } = render(<Carousel label="Vide">{[]}</Carousel>);
+    rerender(
+      <Carousel label="Vide">
+        <CarouselSlide key="a">A</CarouselSlide>
+      </Carousel>,
+    );
+    expect(slides()[0]).not.toHaveAttribute('inert');
+  });
+
+  /* Revue : seule la fenêtre était écoutée. Une piste masquée au montage
+     (onglet, `display: none`) qui prend sa largeur doit rejoindre sa valeur. */
+  it('rejoint la valeur de départ quand la piste prend sa largeur', () => {
+    const layout = mockLayout({ width: 0 });
+    renderSix({ defaultValue: 2 });
+    scrollTo.mockClear();
+    layout.width = 814;
+    act(() => FakeResizeObserver.fire());
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: 736, behavior: 'auto' }));
+  });
+});
+
+describe('Carousel — rappels de l’appelant', () => {
+  /* Revue : un `onValueChange` écrit en ligne changeait l'identité des
+     rappels ; le nettoyage de l'effet de mesure effaçait la minuterie qui
+     libère la cible, et le défilement natif était ignoré pour toujours. */
+  it('suit encore le défilement natif quand le parent rend à chaque changement', () => {
+    vi.useFakeTimers();
+    const layout = mockLayout({ moves: false });
+    function Parent() {
+      const [, setCount] = useState(0);
+      return (
+        <Carousel label="Parent" onValueChange={() => setCount((count) => count + 1)}>
+          {SIX.map((name) => (
+            <CarouselSlide key={name}>{name}</CarouselSlide>
+          ))}
+        </Carousel>
+      );
+    }
+    render(<Parent />);
+    fireEvent.click(screen.getByRole('button', { name: 'Diapositive suivante' }));
+    act(() => vi.advanceTimersByTime(1000));
+    layout.scrollLeft = 736;
+    fireEvent.scroll(track());
+    expect(dots()[2]).toHaveAttribute('aria-current', 'true');
+  });
+
+  /* Revue : la minuterie de lecture dépendait de `go`, recréé à chaque rendu
+     du parent : un parent qui rend souvent l'affamait. */
+  it('avance malgré un parent qui rend plus souvent que l’intervalle', () => {
+    vi.useFakeTimers();
+    function Ticking() {
+      const [tick, setTick] = useState(0);
+      useEffect(() => {
+        const id = setInterval(() => setTick((value) => value + 1), 300);
+        return () => clearInterval(id);
+      }, []);
+      return (
+        <Carousel label={`Tic ${tick % 1}`} autoPlay={1000} onValueChange={() => {}}>
+          <CarouselSlide>A</CarouselSlide>
+          <CarouselSlide>B</CarouselSlide>
+          <CarouselSlide>C</CarouselSlide>
+        </Carousel>
+      );
+    }
+    render(<Ticking />);
+    /* Pas à pas : chaque rendu du parent doit avoir lieu avant l'échéance. */
+    for (let step = 0; step < 11; step += 1) act(() => vi.advanceTimersByTime(100));
+    expect(dots()[1]).toHaveAttribute('aria-current', 'true');
   });
 });
 
