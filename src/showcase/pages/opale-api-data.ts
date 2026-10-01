@@ -940,6 +940,22 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('labels', 'Partial<MarqueeLabels>', 'Textes français remplacés clé par clé.'),
     ],
   },
+  SplitHeading: {
+    states:
+      'Visible au repos ; les mots montent en cascade à l’entrée dans la vue ou au montage, une fois. Immobile sans script, sous mouvement réduit et à l’impression.',
+    rows: [
+      prop(
+        'children',
+        'string',
+        'Le texte du titre, découpé en mots ; un autre enfant est rendu sans découpe.',
+        undefined,
+        true,
+      ),
+      prop('level', '1 | 2 | 3 | 4 | 5 | 6', 'Le niveau HTML, sur l’échelle de `Heading`.', '2'),
+      prop('trigger', "'view' | 'mount'", 'Joue à l’entrée dans la vue, ou au montage.', 'view'),
+      prop('by', "'word'", 'L’unité du découpage : les mots, seule valeur pour l’instant.', 'word'),
+    ],
+  },
   Tooltip: {
     states: 'Au survol après un délai, au focus tout de suite ; Échap la retire.',
     rows: [

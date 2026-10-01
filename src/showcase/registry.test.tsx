@@ -217,7 +217,8 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    partie `CarouselSlide`, publiée sous son nom. */
 /* 94 : `Reveal`, l'apparition au défilement, rejoint la section MOUVEMENT. */
 /* 95 : `Marquee`, le bandeau défilant, la rejoint à son tour. */
-const PUBLISHED_COMPONENT_COUNT = 95;
+/* 96 : `SplitHeading`, le titre découpé en mots, après lui. */
+const PUBLISHED_COMPONENT_COUNT = 96;
 
 /**
  * Les parties publiées SANS membre statique sur leur composant, vers leur

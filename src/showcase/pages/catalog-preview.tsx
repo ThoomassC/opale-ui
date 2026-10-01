@@ -10,6 +10,7 @@ import {
   PopoverDemo,
   RadioGroupDemo,
   MarqueeDemo,
+  SplitHeadingDemo,
   RevealDemo,
   TextareaDemo,
   TooltipDemo,
@@ -817,6 +818,9 @@ export function CatalogPreview({
       break;
     case 'Marquee':
       preview = <MarqueeDemo />;
+      break;
+    case 'SplitHeading':
+      preview = <SplitHeadingDemo />;
       break;
     case 'Tooltip':
       preview = <TooltipDemo liquidGlass={liquidGlass} />;

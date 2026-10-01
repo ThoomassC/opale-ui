@@ -3459,3 +3459,20 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* LA DÉMO DU TITRE DÉCOUPÉ : le bouton « Rejouer », un titre au montage, et
+   un second posé sous la ligne de flottaison par une marge, qui part à son
+   entrée dans la vue. La taille est celle d'un titre d'affiche de la planche. */
+.tc-doc-split-demo {
+  display: grid;
+  justify-items: start;
+  gap: var(--opale-space-md);
+  inline-size: 100%;
+}
+.tc-doc-split-demo .opale-split-heading {
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+  line-height: 1.1;
+}
+.tc-doc-split-demo__below {
+  margin-block-start: 90svh;
+}

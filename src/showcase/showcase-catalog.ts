@@ -49,6 +49,11 @@ const SHOWCASE_ONLY_ENTRIES: readonly ShowcaseCatalogEntry[] = [
     'Mouvement',
     'Bandeau qui défile en boucle sans couture, avec un bouton pause, immobile au repos.',
   ],
+  [
+    'SplitHeading',
+    'Mouvement',
+    'Titre dont les mots montent en cascade, lu d’un seul tenant et visible au repos.',
+  ],
 ].map(([name, category, description]) => ({ name, category, description }));
 
 const PUBLISHED_NAMES = new Set(CATALOG.map((entry) => entry.name));

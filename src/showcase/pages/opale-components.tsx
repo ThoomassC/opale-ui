@@ -387,6 +387,14 @@ function SeatStepper({ value }) {
 <Opale.Marquee label="Partenaires" duration={40} reverse fade={false} gap="lg">
   …
 </Opale.Marquee>`,
+  SplitHeading: `// Du texte seulement : les mots montent en cascade quand le titre entre dans
+// la vue, une fois. Le pas (70 ms) et la durée sont des jetons, pas des props.
+<Opale.SplitHeading level={2}>Un titre qui prend son temps.</Opale.SplitHeading>
+
+// Au montage plutôt qu'à l'entrée dans la vue.
+<Opale.SplitHeading level={1} trigger="mount">
+  Bienvenue sur la vitrine.
+</Opale.SplitHeading>`,
   Tooltip: `// Une description courte, au survol et au focus : jamais une information essentielle.
 <Opale.Tooltip content="Enregistre le brouillon sans le publier.">
   <Opale.Button variant="secondary">Enregistrer</Opale.Button>

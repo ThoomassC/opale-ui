@@ -23,6 +23,7 @@ import {
   RadioGroup,
   Reveal,
   SegmentedControl,
+  SplitHeading,
   Textarea,
   Tooltip,
   type FieldControlProps,
@@ -312,6 +313,27 @@ export function MarqueeDemo() {
       <span>Verre liquide</span>
       <span>Aucune dépendance</span>
     </Marquee>
+  );
+}
+
+/* Deux titres : le premier joue au montage, et « Rejouer » le remonte (une
+   nouvelle clé) ; le second, posé sous la ligne de flottaison par la marge de
+   la démo, part quand il entre dans la vue — une seule fois. */
+export function SplitHeadingDemo() {
+  const [run, setRun] = useState(0);
+  return (
+    <div className="tc-doc-split-demo">
+      <Button variant="secondary" onClick={() => setRun(run + 1)}>
+        Rejouer
+      </Button>
+      <SplitHeading key={run} level={3} trigger="mount">
+        Un titre qui prend son temps.
+      </SplitHeading>
+      <p>Plus bas, un second titre attend d’entrer dans la vue.</p>
+      <SplitHeading level={3} className="tc-doc-split-demo__below">
+        Celui-ci part quand on le voit.
+      </SplitHeading>
+    </div>
   );
 }
 

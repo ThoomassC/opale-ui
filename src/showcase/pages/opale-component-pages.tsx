@@ -31,6 +31,7 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
   ],
   Carousel: ['CarouselSlide', 'carrousel', 'diaporama', 'slider', 'autoPlay', 'scroll-snap'],
   Marquee: ['bandeau', 'défilant', 'ticker', 'boucle', 'marquee', 'pause'],
+  SplitHeading: ['titre', 'mots', 'cascade', 'split text', 'heading', 'stagger'],
   Reveal: ['apparition', 'défilement', 'scroll', 'animation-timeline', 'cascade', 'stagger'],
   Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
   Feedback: ['Http', 'Validation', 'tone', 'severity'],

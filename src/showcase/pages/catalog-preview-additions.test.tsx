@@ -1,7 +1,12 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { CarouselDemo, MarqueeDemo, RevealDemo } from './catalog-preview-additions';
+import {
+  CarouselDemo,
+  MarqueeDemo,
+  RevealDemo,
+  SplitHeadingDemo,
+} from './catalog-preview-additions';
 
 /* La démo du carrousel passe ses diapositives en enfants directs : enveloppées
    dans un composant, elles se comptaient comme une seule, et la piste n'offrait
@@ -63,5 +68,24 @@ describe('la démo du bandeau', () => {
     }
     /* jsdom n'évalue pas `@media` : le bouton reste sous la règle de repos. */
     expect(band.querySelector('button')).toHaveTextContent('Mettre en pause');
+  });
+});
+
+/* La démo du titre découpé : deux titres lus d'un seul tenant, et « Rejouer »
+   qui remonte le premier — un nouveau nœud, donc une nouvelle montée. */
+describe('la démo du titre découpé', () => {
+  it('rend deux titres nommés par leur phrase, et remonte le premier à « Rejouer »', () => {
+    render(<SplitHeadingDemo />);
+    const first = screen.getByRole('heading', { level: 3, name: 'Un titre qui prend son temps.' });
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Celui-ci part quand on le voit.' }),
+    ).toHaveClass('opale-split-heading', 'tc-doc-split-demo__below');
+    expect(first.querySelectorAll('.opale-split-heading__word')).toHaveLength(6);
+    act(() => screen.getByRole('button', { name: 'Rejouer' }).click());
+    const replayed = screen.getByRole('heading', {
+      level: 3,
+      name: 'Un titre qui prend son temps.',
+    });
+    expect(replayed).not.toBe(first);
   });
 });

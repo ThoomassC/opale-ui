@@ -796,6 +796,21 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Un changement de `prefers-reduced-motion` en cours de visite arrête le mouvement tout de suite ; la copie masquée n’est retirée qu’au prochain montage.',
     ],
   },
+  SplitHeading: {
+    states: [],
+    keyboard: ['Aucune touche propre : un titre ne reçoit pas le focus.'],
+    semantics: [
+      'Un vrai titre `h1` à `h6`, sans `aria-label` (certaines techniques d’assistance l’ignorent sur un titre) : son nom est la phrase entière, rendue une fois, cachée de l’écran. Les mots visibles sont `aria-hidden`.',
+      'Copier le titre rend la phrase une fois : la copie lisible est exclue de la sélection.',
+      'Visible au repos : le serveur, une page sans script, l’impression et `prefers-reduced-motion: reduce` montrent chaque mot à son état final. Sous mouvement réduit, rien ne bouge — pas même un fondu.',
+      'Aucun décalage de mise en page : les mots sont en ligne dès le rendu serveur, seuls `transform` et `opacity` s’animent.',
+    ],
+    limits: [
+      'Du texte seulement : un enfant riche (lien, `em`) est rendu tel quel, sans découpe ni animation, et un avertissement de développement le signale.',
+      'La recherche dans la page (Ctrl+F) trouve la phrase dans les mots visibles ; la copie cachée peut compter une seconde occurrence.',
+      'Dans un conteneur qui défile lui-même, `trigger="view"` attend que le titre soit visible dans ce conteneur et dans la vue.',
+    ],
+  },
   Tooltip: {
     states: [],
     keyboard: [
