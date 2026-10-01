@@ -535,6 +535,7 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
             aria-valuemin={resize.min}
             aria-valuemax={resize.max}
             aria-valuenow={resize.width}
+            aria-valuetext={`${resize.width} px`}
             tabIndex={0}
             onKeyDown={handleResizeKeyDown}
             onPointerDown={handleResizePointerDown}

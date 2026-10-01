@@ -354,6 +354,14 @@ describe('DocShell — les onglets du header', () => {
 });
 
 describe('DocShell — la largeur du sommaire', () => {
+  it('devrait annoncer la largeur avec son unité', () => {
+    renderDocPage();
+
+    const resizeHandle = screen.getByRole('slider', { name: 'Largeur du sommaire' });
+
+    expect(resizeHandle).toHaveAttribute('aria-valuetext', `${DOC_NAV_WIDTH_DEFAULT} px`);
+  });
+
   it('devrait prévisualiser la largeur directement pendant un glissement', () => {
     renderDocPage();
 
