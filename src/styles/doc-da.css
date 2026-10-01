@@ -61,6 +61,11 @@ html:has(.tc-doc--full-bleed) {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+/* Les titres de partie du sommaire en gras : ils structurent la colonne,
+   les entrées en dessous se lisent en graisse 500. */
+.tc-doc .tc-doc-nav__grouptitle {
+  font-weight: 700;
+}
 .tc-doc-nav__title {
   font-family: var(--opale-font-title);
   font-weight: 500;
