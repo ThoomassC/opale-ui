@@ -31,8 +31,11 @@ const BUDGETS = {
      8 723 o puis allégé à 7 342 o (flèches en texte, une seule fabrique de
      classes, préférence de mouvement sans abonnement). 5 000 o ne tiennent
      pas : la mesure garde l'indentation de la sortie `es`, et Tooltip,
-     Textarea et RadioGroup pèsent 11,3 à 11,5 ko par le même calcul. */
-  Carousel: 8_000,
+     Textarea et RadioGroup pèsent 11,3 à 11,5 ko par le même calcul.
+     Relevé une seconde fois, à 10 500 o, après la revue : la mesure continue
+     (ResizeObserver), les positions atteignables et le glisser durci
+     corrigent deux bloquants et cinq défauts majeurs, pour 10 069 o. */
+  Carousel: 10_500,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];
