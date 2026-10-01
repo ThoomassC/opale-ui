@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { compositeOver, contrastRatio, withAlpha } from './color';
 import opaleSource from '../opale/opale.css?raw';
 import docSource from '../styles/doc-v3.css?raw';
-import { ruleBody, stripComments } from '../test/css-rules';
+import { parseRules, ruleBody, stripComments } from '../test/css-rules';
 
 /* =============================================================================
    L'ANNEAU DISCRET DE LA VITRINE TIENT 3:1 SUR CHAQUE SOL.
@@ -60,5 +60,28 @@ describe('l’anneau de focus de la vitrine', () => {
         AA_NON_TEXT,
       );
     }
+  });
+});
+
+/* =============================================================================
+   L'ANNEAU SE RECALCULE DANS UN THÈME LOCAL.
+
+   Un `color-mix()` se résout là où il est DÉCLARÉ, puis hérite de sa valeur.
+   Déclaré sur `:root, .tc-doc` seulement, l'anneau gardait l'encre claire
+   dans une section sombre : mesuré à 1,02:1 sur le fond `night` d'une
+   ScrollSection, et le même défaut touchait un PageScaffold sombre. Il est
+   donc redit sur chaque thème local, et sur chaque portée d'Opale, qui peut
+   redéfinir l'encre.
+   ========================================================================== */
+describe('l’anneau de la vitrine dans un thème local', () => {
+  it('est redéclaré sur `[data-opale-page-theme]` et `[data-opale-scope]`', () => {
+    const declaring = parseRules(docSource).filter(
+      (rule) => rule.context.length === 0 && /--tc-doc-focus-ring\s*:/.test(rule.body),
+    );
+    expect(declaring).toHaveLength(1);
+    expect(declaring[0].selectors).toEqual(
+      expect.arrayContaining([':root', '.tc-doc', '[data-opale-page-theme]', '[data-opale-scope]']),
+    );
+    expect(declaring[0].body).toMatch(/--opale-focus:\s*var\(--tc-doc-focus-ring\)/);
   });
 });

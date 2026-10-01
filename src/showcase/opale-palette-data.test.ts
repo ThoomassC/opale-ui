@@ -103,6 +103,11 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
   '--opale-ground-night-ink': 'encre du fond `night` — même raison',
   '--opale-ground-blue': 'fond `blue` de ScrollSection — le saphir, déjà plaqué',
   '--opale-ground-blue-ink': 'encre du fond `blue` — un couple montré par la page ScrollSection',
+  '--opale-ground-blue-hover':
+    'survol du bouton principal inversé sur `blue` — un état, mesuré par le contrat des fonds',
+  '--opale-ground-blue-secondary':
+    'aplat du bouton secondaire sur `blue` — n’a de sens que sur ce fond, mesuré par le même contrat',
+  '--opale-ground-amber-secondary': 'aplat du bouton secondaire sur `amber` — même raison',
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {

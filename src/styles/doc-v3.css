@@ -2140,8 +2140,13 @@ body {
    ignore `transparent`. Le dernier filet de sécurité reste donc en place pour
    qui en a le plus besoin.
    ========================================================================== */
+/* Redit sur chaque thème local et chaque portée : un `color-mix()` se résout
+   là où il est déclaré, et l'anneau gardait sinon l'encre claire dans une
+   section sombre (1,02:1 sur le fond `night` d'une ScrollSection). */
 :root,
-.tc-doc {
+.tc-doc,
+[data-opale-page-theme],
+[data-opale-scope] {
   --focus-outer: transparent;
   --focus-inner: transparent;
   --tc-doc-focus-ring: color-mix(in srgb, var(--opale-text) 50%, transparent);

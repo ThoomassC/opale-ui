@@ -136,6 +136,16 @@
   --opale-ground-night-ink: #f3f1ec;
   --opale-ground-blue: #315c9e;
   --opale-ground-blue-ink: #ffffff;
+  /* Les boutons posés sur un fond de couleur, que la feuille de ScrollSection
+     substitue dans la section. Sur `blue`, le principal s'inverse — aplat
+     blanc, encre bleue — et ce teint pâle est son survol : encre à 5,29:1,
+     5,29:1 contre le fond. Le secondaire y devient ce bleu pâle sous l'encre
+     sombre du thème local : 4,18:1 contre le fond (3,15:1 au survol), 12,1:1
+     pour l'encre. Sur `amber`, le secondaire fonce : 3,54:1 contre l'ambre
+     (4,17:1 au survol), 6,58:1 pour l'encre claire. */
+  --opale-ground-blue-hover: #dce6f5;
+  --opale-ground-blue-secondary: #b4cff5;
+  --opale-ground-amber-secondary: #335f7b;
 
   /* L'ENCRE DU PRIMAIRE QUAND ELLE SE LIT *SUR* UNE SURFACE.
 

@@ -26,6 +26,8 @@
 .section[data-ground='amber'] {
   background-color: var(--opale-ground-amber);
   color: var(--opale-ground-amber-ink);
+  /* Le secondaire (#3a6b8a) ne tenait que 2,97:1 contre l'ambre : il fonce. */
+  --opale-secondary-dark: var(--opale-ground-amber-secondary);
 }
 
 .section[data-ground='night'] {
@@ -36,6 +38,15 @@
 .section[data-ground='blue'] {
   background-color: var(--opale-ground-blue);
   color: var(--opale-ground-blue-ink);
+  /* LE BOUTON PRINCIPAL S'INVERSE : le bleu moyen du thème sombre se fondait
+     dans le fond (1,84:1). Aplat blanc, encre bleue, survol teinté. Le
+     secondaire (2,26:1) prend un bleu pâle, distinct du blanc du principal,
+     plutôt qu'un liseré : la silhouette du bouton est découpée par
+     `clip-path`, un `border` ne la suivrait pas. */
+  --opale-primary: var(--opale-ground-blue-ink);
+  --opale-primary-dark: var(--opale-ground-blue-hover);
+  --opale-on-primary: var(--opale-ground-blue);
+  --opale-secondary-dark: var(--opale-ground-blue-secondary);
 }
 
 .stage {

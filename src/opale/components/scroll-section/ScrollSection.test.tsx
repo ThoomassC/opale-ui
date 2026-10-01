@@ -402,6 +402,29 @@ describe('ScrollSection — feuille', () => {
     expect(selectorsDeclaring(sheet, 'animation')).toEqual([]);
   });
 
+  /* Mesuré au navigateur : 1,84:1 et 2,26:1 pour les boutons sur `blue`,
+     2,97:1 pour le secondaire sur `amber`. Le contrat des fonds en calcule
+     les couples ; ici, la feuille pose les surcharges dans la section. */
+  it('inverse le bouton principal et pâlit le secondaire sur `blue`', () => {
+    const rule = declarations(sheet, ".section[data-ground='blue']");
+    expect(rule.get('--opale-primary')).toBe('var(--opale-ground-blue-ink)');
+    expect(rule.get('--opale-primary-dark')).toBe('var(--opale-ground-blue-hover)');
+    expect(rule.get('--opale-on-primary')).toBe('var(--opale-ground-blue)');
+    expect(rule.get('--opale-secondary-dark')).toBe('var(--opale-ground-blue-secondary)');
+  });
+
+  it('fonce le bouton secondaire sur `amber`', () => {
+    const rule = declarations(sheet, ".section[data-ground='amber']");
+    expect(rule.get('--opale-secondary-dark')).toBe('var(--opale-ground-amber-secondary)');
+  });
+
+  it('déclare les teintes des boutons sur `:root`', () => {
+    const root = declarations(opaleSource, ':root');
+    expect(root.get('--opale-ground-blue-hover')).toBe('#dce6f5');
+    expect(root.get('--opale-ground-blue-secondary')).toBe('#b4cff5');
+    expect(root.get('--opale-ground-amber-secondary')).toBe('#335f7b');
+  });
+
   it('contient les marges de ses enfants : le fond de la section les couvre', () => {
     expect(declaration(sheet, '.section', 'display')).toBe('flow-root');
   });
