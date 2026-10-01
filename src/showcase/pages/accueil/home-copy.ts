@@ -217,7 +217,7 @@ const FR: HomeCopy = {
       },
       {
         title: 'Rendu serveur',
-        text: 'Les composants s’importent dans un Server Component de Next.js. Ceux qui ont besoin du navigateur portent déjà « use client ».',
+        text: 'Les composants s’importent dans un Server Component de Next.js. Ceux qui ont besoin du navigateur portent déjà « use client ».',
       },
       {
         title: 'Verre liquide',
