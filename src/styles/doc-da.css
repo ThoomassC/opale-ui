@@ -98,6 +98,21 @@ html:has(.tc-doc--full-bleed) {
 .tc-doc .tc-doc-nav__link {
   font-size: 0.9375rem;
 }
+/* LE MÊME TÉMOIN QUE LA SIDEBAR D'OPALE (WCAG 1.4.11) : la pastille à 12 % ne
+   se détachait qu'à 1,19:1 du sommaire. Un trait de 3 px en encre primaire,
+   au début de la pastille. `!important` : `doc-v3.css` éteint ce pseudo-
+   élément avec la même force. */
+.tc-doc .tc-doc-nav__link[aria-current='page']::after {
+  display: block !important;
+  position: absolute;
+  inset-block: 0.55rem;
+  inset-inline-start: 0.2rem;
+  width: 3px;
+  height: auto;
+  border-radius: 999px;
+  background: var(--opale-primary-on-surface);
+  content: '' !important;
+}
 /* La poignée vit désormais DANS l'`<aside>` du sommaire, son repère ; elle
    dépasse de son bord, que l'`overflow: hidden` de Sidebar rognait. Le
    défilement reste celui de `.tc-doc-nav__scroll`. */
