@@ -15,6 +15,7 @@ import {
   DOC_NAV_WIDTH_STEP,
   DocNav,
 } from './doc-nav';
+import { DocFooter } from './doc-footer';
 import { DocSearch } from './doc-search';
 import { LanguageSelector } from './language-selector';
 import {
@@ -220,6 +221,9 @@ export function DocShell({ pages }: DocShellProps) {
 
       if (height > 0) {
         docElement.style.setProperty('--tc-doc-topbar-height', `${height}px`);
+        /* Aussi sur la racine : `scroll-padding` se lit sur `<html>`, et le
+           coussin doit valoir la barre peinte, pas le jeton (WCAG 2.4.11). */
+        document.documentElement.style.setProperty('--tc-doc-topbar-height', `${height}px`);
       }
     };
 
@@ -233,6 +237,7 @@ export function DocShell({ pages }: DocShellProps) {
       window.removeEventListener('resize', updateTopbarHeight);
       resizeObserver?.disconnect();
       docElement.style.removeProperty('--tc-doc-topbar-height');
+      document.documentElement.style.removeProperty('--tc-doc-topbar-height');
     };
   }, []);
 
@@ -396,6 +401,7 @@ export function DocShell({ pages }: DocShellProps) {
               <PageContent page={page} context={pageContext} />
             </PageBoundary>
           </main>
+          <DocFooter copy={copy} />
         </div>
       </div>
     </div>

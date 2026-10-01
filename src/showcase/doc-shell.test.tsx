@@ -1242,3 +1242,21 @@ describe('DocShell — la page pleine largeur', () => {
     expect(menuLinks[3]).toHaveTextContent('Prise en main');
   });
 });
+
+/* LE COUSSIN DE DÉFILEMENT SE RÈGLE SUR LA BARRE PEINTE. `scroll-padding` se
+   lit sur `<html>`, qui ne voit pas une propriété posée plus bas : la hauteur
+   mesurée de la barre doit donc aussi vivre sur la racine. Mesuré à 390 px :
+   barre de 137 px, coussin de 124 px — un champ focalisé passait sous elle. */
+describe('DocShell — la hauteur de la barre du haut', () => {
+  it('devrait poser la hauteur mesurée sur la racine, et l’en retirer au démontage', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      height: 137,
+    } as DOMRect);
+    const { unmount } = render(<DocShell pages={PAGES} />);
+    navigate(hrefFor('installation'));
+
+    expect(document.documentElement.style.getPropertyValue('--tc-doc-topbar-height')).toBe('137px');
+    unmount();
+    expect(document.documentElement.style.getPropertyValue('--tc-doc-topbar-height')).toBe('');
+  });
+});

@@ -1,0 +1,239 @@
+/* =============================================================================
+   LA DA DE LA 3.0 SUR LA DOCUMENTATION — PHASE 4 DU CAHIER DE REFONTE.
+
+   LA SOBRIÉTÉ DANS LA DOC. La planche de DA (`docs/v3/planche-da.html`) le
+   dit en une ligne : même typographie, même palette que l'accueil, aucun
+   effet au défilement ; on y vient pour lire et copier. Cette feuille ne pose
+   donc que l'échelle et les matières de la planche :
+
+   — Bricolage Grotesque 500, resserrée, pour les titres ; Chivo pour lire,
+     à 17 px et 1,6 d'interligne ;
+   — les légendes et repères en mono capitales, comme le sur-titre de l'accueil ;
+   — les rayons de la planche, 12 · 22 · 36 px ;
+   — le code sur le fond nuit, une des quatre teintes de l'accueil, identique
+     dans les deux thèmes, avec les couleurs de syntaxe du thème sombre.
+
+   LE MOUVEMENT SE LIMITE AUX TRANSITIONS D'ÉTAT (survol, ouverture), sur les
+   durées d'Opale ; le filet de mouvement réduit de `doc-v3.css` les couvre.
+
+   ELLE VIENT APRÈS `doc.css` ET `doc-v3.css` (`main.tsx`) : à spécificité
+   égale, elle l'emporte, sans `!important` sauf là où une règle antérieure
+   en porte déjà un. L'accueil (`.tc-doc-landing`) n'est pas visé : il a son
+   échelle d'affiche.
+   ========================================================================== */
+
+.tc-doc {
+  --tc-da-title-tracking: -0.035em;
+  --tc-da-radius-sm: 0.75rem;
+  --tc-da-radius-md: 1.375rem;
+  --tc-da-radius-lg: 2.25rem;
+  --tc-da-eyebrow: 600 0.75rem / 1.2 var(--opale-font-mono);
+}
+
+/* LE COUSSIN DE DÉFILEMENT VAUT LA BARRE PEINTE. `--tc-doc-topbar-height` est
+   mesurée par la coquille et posée sur la racine ; le jeton ne servait que de
+   repli, et valait 72 px pour une barre de 73 (137 px pour 124 à 390 px).
+   Les règles `html:has(…)` de `doc-v3.css`, plus précises, gardent la main. */
+html {
+  scroll-padding-block-start: calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem);
+}
+
+/* =============================================================================
+   LA BARRE DU HAUT ET LE SOMMAIRE.
+   ========================================================================== */
+.tc-doc .tc-doc-topbar__brand-name {
+  font-family: var(--opale-font-title);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+/* Les titres de groupe du sommaire parlent comme le sur-titre de l'accueil. */
+.tc-doc-nav__grouptitle,
+.tc-doc-nav__eyebrow {
+  font: var(--tc-da-eyebrow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tc-doc-nav__title {
+  font-family: var(--opale-font-title);
+  font-weight: 500;
+  letter-spacing: var(--tc-da-title-tracking);
+}
+
+/* DEUX CIBLES À 24 PX (WCAG 2.5.8). Le curseur du défilement (13 px de large)
+   et la poignée de largeur (18 px) étaient côte à côte et trop fines. La zone
+   sensible s'élargit, le dessin ne change pas : le curseur prend 24 px vers
+   le sommaire, dont les liens s'arrêtent 12 px avant ; la poignée prend 24 px
+   à partir de la fin du curseur, sur la marge du contenu (48 px). */
+.tc-doc-nav__scrollbar-thumb::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: 1.5rem;
+  content: '';
+}
+.tc-doc-nav__resize {
+  inset-inline-end: -1rem;
+  width: 1.5rem;
+}
+
+/* =============================================================================
+   LES PAGES : TITRE, CHAPEAU, SECTIONS, TEXTE.
+   ========================================================================== */
+/* `!important` parce que `doc-v3.css` en porte un sur la même déclaration
+   (`font` du titre de page, taille du texte courant, titres de spécimen). */
+.tc-doc .tc-doc-page__title {
+  font: 500 clamp(2.5rem, 1.6rem + 2.8vw, 4rem) / 1 var(--opale-font-title) !important;
+  letter-spacing: var(--tc-da-title-tracking) !important;
+  text-wrap: balance;
+}
+/* Un titre d'un seul mot long (`IconActionButton`) tient encore à 320 px. */
+@media (max-width: 30rem) {
+  .tc-doc .tc-doc-page__title {
+    font-size: clamp(1.375rem, 7vw, 2.25rem) !important;
+  }
+}
+.tc-doc-lede,
+.tc-doc-release-lede {
+  max-inline-size: 40rem;
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  line-height: 1.45;
+}
+
+/* Les titres de section : le sous-titre de la planche, 22 → 30 px. Les
+   titres de spécimen et de version, un cran dessous. `.tc-doc` en tête :
+   `.tc-doc h2 { font-weight: 400 }` l'emporterait sinon. */
+.tc-doc .tc-doc-component-section__title {
+  font-family: var(--opale-font-title);
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tc-doc .tc-doc-specimen__title,
+.tc-doc .tc-doc-release__title {
+  font-family: var(--opale-font-title) !important;
+  font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.625rem) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em;
+  line-height: 1.15 !important;
+}
+.tc-doc-component-section {
+  gap: var(--opale-space-lg);
+  padding-block-start: var(--opale-space-xl);
+}
+
+/* Le texte courant : Chivo à 17 px, 1,6. */
+.tc-doc .tc-doc-prose,
+.tc-doc .tc-doc-component-section__list,
+.tc-doc .tc-doc-component-alternative__text,
+.tc-doc .tc-doc-release__change-list,
+.tc-doc .tc-doc-checklist {
+  font-size: 1.0625rem !important;
+  line-height: 1.6 !important;
+}
+
+/* =============================================================================
+   LES BLOCS : SPÉCIMENS, DÉMOS, CODE, TABLEAUX.
+   ========================================================================== */
+.tc-doc-specimen,
+.tc-doc-release {
+  border-radius: var(--tc-da-radius-md) !important;
+}
+.tc-doc-tablewrap {
+  border-radius: var(--tc-da-radius-sm);
+}
+
+/* LE CODE SUR LE FOND NUIT, dans les deux thèmes : une matière de l'accueil,
+   qui sépare d'un coup d'œil ce qu'on lit de ce qu'on copie. Les couleurs de
+   syntaxe sont celles du thème sombre, mesurées sur une surface plus claire
+   que cette nuit : elles y gagnent du contraste. */
+.tc-doc-code,
+.tc-doc-install,
+.tc-doc-codeexample__reveal .tc-doc-code {
+  border-color: transparent !important;
+  border-radius: var(--tc-da-radius-sm) !important;
+  background: var(--opale-ground-night) !important;
+  color: var(--opale-ground-night-ink) !important;
+  --tc-doc-code-keyword: #c5a5ff;
+  --tc-doc-code-string: #f3bd76;
+  --tc-doc-code-tag: #9bbcf0;
+  --tc-doc-code-attribute: #f0a4c7;
+  --tc-doc-code-number: #ff9a91;
+  --tc-doc-code-comment: #9ba6b3;
+  --tc-doc-code-punctuation: #b6c0cc;
+  color-scheme: dark;
+}
+
+/* Les numéros de version des notes, en mono comme le code. */
+.tc-doc-release__version {
+  font-family: var(--opale-font-mono);
+}
+
+/* =============================================================================
+   LE PIED DE PAGE.
+   ========================================================================== */
+.tc-doc-footer {
+  margin-block-start: clamp(3rem, 2rem + 4vw, 6rem);
+  border-block-start: 1px solid var(--opale-divider);
+  color: var(--opale-text);
+}
+.tc-doc-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--opale-space-lg) var(--opale-space-xl);
+  max-inline-size: 82rem;
+  margin-inline: auto;
+  padding: clamp(2rem, 1.5rem + 2vw, 3rem) clamp(1rem, 0.5rem + 2.5vw, 3rem);
+}
+.tc-doc-footer__brand {
+  display: grid;
+  gap: var(--opale-space-xs);
+  max-inline-size: 26rem;
+}
+.tc-doc-footer__name {
+  margin: 0;
+  font-family: var(--opale-font-title);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.tc-doc-footer__name > span {
+  color: var(--opale-primary-on-surface);
+}
+.tc-doc-footer__tagline,
+.tc-doc-footer__meta {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}
+.tc-doc-footer__nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-xs) var(--opale-space-lg);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* 24 px de haut au moins : une cible de pointeur (WCAG 2.5.8). */
+.tc-doc-footer__link {
+  display: inline-flex;
+  min-block-size: 1.5rem;
+  align-items: center;
+  color: var(--opale-text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color var(--opale-motion-fast) var(--opale-ease);
+}
+.tc-doc-footer__link:hover {
+  text-decoration-color: currentColor;
+}
+.tc-doc-footer__meta {
+  flex-basis: 100%;
+  font: var(--tc-da-eyebrow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

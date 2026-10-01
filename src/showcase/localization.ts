@@ -30,6 +30,12 @@ export interface InterfaceCopy {
   readonly contentsStart: string;
   readonly contentsWidth: string;
   readonly contentLanguageNotice: string;
+  /** Le nom du repère de navigation du pied de page. */
+  readonly footerNavigation: string;
+  /** La phrase qui présente Opale, sous la marque. */
+  readonly footerTagline: string;
+  /** La licence, après la version. */
+  readonly footerLicense: string;
 }
 
 const COPY: Record<Language, InterfaceCopy> = {
@@ -53,6 +59,9 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsStart: 'Début du sommaire',
     contentsWidth: 'Largeur du sommaire',
     contentLanguageNotice: '',
+    footerNavigation: 'Pied de page',
+    footerTagline: 'Composants React accessibles et typés, rendus au serveur.',
+    footerLicense: 'Licence MIT',
   },
   EN: {
     home: 'Home',
@@ -75,6 +84,9 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsWidth: 'Contents width',
     contentLanguageNotice:
       'The navigation is translated; documentation content is currently in French.',
+    footerNavigation: 'Footer',
+    footerTagline: 'Accessible, typed React components, rendered on the server.',
+    footerLicense: 'MIT licence',
   },
   ES: {
     home: 'Inicio',
@@ -97,6 +109,9 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsWidth: 'Ancho del índice',
     contentLanguageNotice:
       'La navegación está traducida; el contenido de la documentación está actualmente en francés.',
+    footerNavigation: 'Pie de página',
+    footerTagline: 'Componentes React accesibles y tipados, renderizados en el servidor.',
+    footerLicense: 'Licencia MIT',
   },
 };
 
