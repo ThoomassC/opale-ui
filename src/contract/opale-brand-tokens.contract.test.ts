@@ -6,7 +6,7 @@ import { declaration, declarations, stripComments } from '../test/css-rules';
 import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
-   À LA MARQUE DE CHAQUE PROJET (3.9.4) — TROIS OUTILS, TOUS FACULTATIFS.
+   À LA MARQUE DE CHAQUE PROJET (2.9.4) — TROIS OUTILS, TOUS FACULTATIFS.
 
    1. UNE ENCRE PAR RÔLE. `--opale-on-primary`, `--opale-on-secondary` et
       `--opale-on-danger` valent `--opale-on-fill` : sans surcharge, rien ne
@@ -353,7 +353,7 @@ describe('les encres de rôle', () => {
   /* PLUS AUCUN APLAT DE MARQUE NE LIT L'ENCRE COMMUNE EN DIRECT. Seuls les
      toasts la gardent : leurs aplats sont des TONS (succès, alerte, erreur,
      info), pas des rôles de marque, et `--opale-fill-*` est réglé pour elle.
-     Les pastilles de ton d'`OpaleTone` (3.10, DX-10) sont le même cas : un
+     Les pastilles de ton d'`OpaleTone` (2.10, DX-10) sont le même cas : un
      aplat `--opale-fill-*` — ou l'encre secondaire pour `neutral` — sous
      l'encre commune, mesuré par `opale-badge-tones.contract.test.ts`. */
   it('ne laisse lire `--opale-on-fill` qu’aux jetons de rôle et aux tons des toasts', () => {

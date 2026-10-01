@@ -58,8 +58,8 @@ export type {
   SkeletonProps,
 } from './opale-extras';
 
-/** @deprecated Depuis 3.6 — métadonnée de la vitrine, sans remplaçant public. */
+/** @deprecated Depuis 2.6 — métadonnée de la vitrine, sans remplaçant public. */
 export type CatalogEntry = ShowcaseCatalogEntry;
 
-/** @deprecated Depuis 3.6 — métadonnée de la vitrine, sans remplaçant public. */
+/** @deprecated Depuis 2.6 — métadonnée de la vitrine, sans remplaçant public. */
 export const OPALE_CATALOG: readonly CatalogEntry[] = CATALOG;

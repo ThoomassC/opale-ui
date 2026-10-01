@@ -4,7 +4,7 @@
    Chaque jeton `--opale-*` déclaré sur `:root` dans `opale.css` a ici une
    ligne, et une seule : son groupe, son rôle en une phrase, et son statut.
 
-   - `public` : une entrée stable en 3.x, faite pour être surchargée sur
+   - `public` : une entrée stable en 2.x, faite pour être surchargée sur
      `:root` (et sur `:root[data-theme='dark']` pour le sombre) — marque,
      neutres, rayons, polices, espacement, hauteurs de contrôle, focus, plans.
    - `internal` : un dérivé ou une mécanique. Il peut changer de valeur ou de
@@ -254,7 +254,7 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
       'verre',
       'Ancien flou du verre ; lire --opale-glass-backdrop-blur.',
     ),
-    deprecatedSince: '3.7',
+    deprecatedSince: '2.7',
   },
 
   /* Les plans. */

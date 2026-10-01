@@ -7,7 +7,7 @@ import { loadPublicApi } from '../test/public-api';
 
    Cette liste est le journal des noms que le paquet publie. Un nom qui
    apparaît ou disparaît fait rougir ce test : l'ajout se décide, il ne
-   s'échappe pas d'un `export *`. Un nom retiré est une rupture ; en 3.x, il
+   s'échappe pas d'un `export *`. Un nom retiré est une rupture ; en 2.x, il
    ne se retire pas, il se déprécie.
    ========================================================================== */
 
@@ -312,7 +312,7 @@ describe('la surface publique de `src/opale/index.ts`', () => {
   }, 60_000);
 });
 
-describe('les alias dépréciés de 3.6', () => {
+describe('les alias dépréciés de 2.6', () => {
   it.each(['OpaleUI', 'OPALE_CATALOG', 'CatalogEntry', 'DEFAULT_SITE_NAV_ITEMS'])(
     'devrait marquer %s `@deprecated` sans le retirer',
     (name) => {

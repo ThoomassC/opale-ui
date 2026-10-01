@@ -61,7 +61,7 @@ describe('Toast — `title` et `description`', () => {
   });
 
   /* LE `title` NATIF RESTE CE QU'IL ÉTAIT AUPRÈS DE `message` : l'attribut
-     HTML de la carte. C'est ce qui garde la 3.9.4 sans rupture. */
+     HTML de la carte. C'est ce qui garde la 2.9.4 sans rupture. */
   it('devrait laisser `message` l’emporter et garder `title` en attribut natif', async () => {
     const { baseElement } = render(<Toast message="Publié" title="Infobulle" />);
     await settle();

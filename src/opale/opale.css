@@ -10,11 +10,11 @@
    Le bloc local ne s'applique plus que là où il CHANGE quelque chose : un
    gabarit clair sous un contexte sombre (racine `data-theme='dark'` ou
    gabarit sombre englobant). Ailleurs, le gabarit hérite, marque comprise.
-   `:where()` garde au sélecteur local sa spécificité de 3.9.1 (0,1,0) : une
+   `:where()` garde au sélecteur local sa spécificité de 2.9.1 (0,1,0) : une
    surcharge écrite sur `[data-opale-page-theme='light']` gagne toujours.
 
    `:host` REJOINT LA RACINE : chargée dans une racine fantôme, la feuille n'y
-   trouve pas de `:root`. En 3.9.1, le gabarit portait tout le bloc par son
+   trouve pas de `:root`. En 2.9.1, le gabarit portait tout le bloc par son
    attribut ; un PageScaffold isolé dans un Shadow DOM garde ainsi ses jetons.
 
    LES JETONS DÉRIVÉS SONT REDITS SUR LE THÈME LOCAL, plus bas : voir
@@ -277,7 +277,7 @@
      ni segments. Les ramener sur la grille aurait déplacé des pixels dans un
      correctif ; ils deviennent donc des jetons DE MÊME VALEUR, qu'un hôte
      règle avec le reste de sa densité. Le recalage sur la grille de 4 px
-     attend la 4.0. Quand une valeur tombait déjà sur l'échelle, c'est le pas
+     attend la 3.0. Quand une valeur tombait déjà sur l'échelle, c'est le pas
      de l'échelle qui la remplace. Ils ne portent pas le préfixe
      `--opale-space-`, réservé aux sept pas de l'échelle : ce sont des réglages
      de composant. Restent écrits trois littéraux de GÉOMÉTRIE — la poignée
@@ -362,7 +362,7 @@
      ce qui passe dessous pour rester lisible sur une photographie. */
   --opale-glass-frost-blur: 12px;
   --opale-glass-frost-saturate: 1.45;
-  /* Déprécié depuis 3.7 : aucun composant ne le lit. Le flou du matériau est
+  /* Déprécié depuis 2.7 : aucun composant ne le lit. Le flou du matériau est
      `--opale-glass-backdrop-blur`. Conservé pour les feuilles qui le lisent. */
   --opale-glass-blur: 18px;
   /* L'ENCRE DU VERRE EST UN JETON, PARCE QU'ELLE DÉPEND DE CE QU'IL Y A DERRIÈRE.
@@ -688,7 +688,7 @@
    Un jeton écrit `var(--opale-primary)` ou `color-mix(… var(--opale-text) …)`
    se résout là où il est DÉCLARÉ, puis hérite de sa valeur déjà résolue.
    Déclarés sur la seule racine, les dérivés ignoraient donc une surcharge
-   posée sur `[data-opale-page-theme='light']` — qui marchait en 3.9.1, où le
+   posée sur `[data-opale-page-theme='light']` — qui marchait en 2.9.1, où le
    bloc entier y était redéclaré. Seuls ces dérivés sont redits ici, à
    l'identique : les jetons de base continuent d'hériter de l'hôte, et
    `opale-page-theme.contract.test.ts` refuse que ces listes divergent de
@@ -883,7 +883,7 @@
   font-family: var(--opale-font-body);
 }
 
-/* `.opale-dialog` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+/* `.opale-dialog` : Déprécié depuis 2.7 — aucun composant ne la pose, utilisez
    `Modal`. Elle reste pour les pages qui la posent à la main. */
 .opale-surface,
 .opale-card,
@@ -1786,7 +1786,7 @@
   padding: var(--opale-space-lg);
 }
 /* LES QUATRE CRANS DE `elevation`. La prop posait `opale-card--e{n}` depuis
-   la 2.0 et aucune règle ne la servait : `elevation={3}` rendait la même ombre
+   la 1.0 et aucune règle ne la servait : `elevation={3}` rendait la même ombre
    que `elevation={0}`. Les crans prennent l'échelle d'ombres d'Opale, et le
    cran 1 — la valeur par défaut — reste l'ombre que toutes les cartes
    portaient déjà : rien ne bouge pour qui ne passait pas la prop. */
@@ -1827,7 +1827,7 @@
   box-shadow: var(--opale-shadow-3);
 }
 
-/* `.opale-dialog__header`, `.opale-dialog__footer` : Déprécié depuis 3.7 —
+/* `.opale-dialog__header`, `.opale-dialog__footer` : Déprécié depuis 2.7 —
    aucun composant ne les pose, utilisez `Modal`. */
 .opale-card__header,
 .opale-card__footer,
@@ -2658,7 +2658,7 @@ h6.opale-heading {
   cursor: not-allowed;
   opacity: var(--opale-disabled-opacity);
 }
-/* `.opale-chip` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+/* `.opale-chip` : Déprécié depuis 2.7 — aucun composant ne la pose, utilisez
    `Badge` (`.opale-badge`), qui partage cette règle. */
 .opale-chip,
 .opale-badge {
@@ -3013,7 +3013,7 @@ h6.opale-heading {
 .opale-panel {
   padding: var(--opale-space-lg);
 }
-/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-dialog-backdrop` :
+/* Déprécié depuis 2.7 — aucun composant ne pose `.opale-dialog-backdrop` :
    `Modal` porte son propre voile. La règle reste pour les pages qui la posent. */
 .opale-dialog-backdrop {
   position: fixed;
@@ -3035,7 +3035,7 @@ h6.opale-heading {
    l'œil doit pouvoir s'arrêter. La gouttière `lg` (1,5 rem) sépare les bandes ;
    le corps garde sa gouttière `sm` entre ses propres lignes, pour que le
    message reste UN bloc et non trois phrases éparses. */
-/* Déprécié depuis 3.7 — `.opale-dialog` et ses parties ne sont posées par
+/* Déprécié depuis 2.7 — `.opale-dialog` et ses parties ne sont posées par
    aucun composant ; utilisez `Modal`. */
 .opale-dialog {
   display: grid;
@@ -3043,13 +3043,13 @@ h6.opale-heading {
   padding: var(--opale-space-lg);
   gap: var(--opale-space-lg);
 }
-/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
+/* Déprécié depuis 2.7 — voir `.opale-dialog`. */
 .opale-dialog__body {
   display: grid;
   gap: var(--opale-space-sm);
   color: var(--opale-text-secondary);
 }
-/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
+/* Déprécié depuis 2.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   border: 0;
   background: transparent;
@@ -3139,7 +3139,7 @@ h6.opale-heading {
    le titre étant collé à côté. Les mêmes boutons de `Modal` (40 px) et de
    `Toast` (32 px) étaient corrects : seul ce chemin-ci était resté en arrière.
    Aucun composant ne pose plus cette classe. */
-/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
+/* Déprécié depuis 2.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   display: inline-flex;
   inline-size: 2.5rem;
@@ -3293,7 +3293,7 @@ ol.opale-stack {
   transform: rotate(18deg);
 }
 
-/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-stat-grid` ; les
+/* Déprécié depuis 2.7 — aucun composant ne pose `.opale-stat-grid` ; les
    `StatCard` se rangent dans la grille de l'appelant. */
 .opale-stat-grid {
   display: grid;
@@ -3661,7 +3661,7 @@ ol.opale-stack {
    changement d'ordre au bundler pour que le dialogue devienne un plan noir
    portant de l'encre presque noire. Le second `.opale-lightbox img` écrasait
    d'ailleurs déjà la hauteur voulue par la règle qui reste plus haut. */
-/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-upload-list`. La
+/* Déprécié depuis 2.7 — aucun composant ne pose `.opale-upload-list`. La
    règle reste pour les pages qui la posent à la main. */
 .opale-upload-list {
   display: grid;

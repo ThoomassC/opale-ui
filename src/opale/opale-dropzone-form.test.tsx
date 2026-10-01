@@ -89,7 +89,7 @@ describe('Dropzone dans un formulaire', () => {
     expect(writes.values).toEqual([]);
   });
 
-  it('vide encore le champ sans name, comme en 3.9.1', () => {
+  it('vide encore le champ sans name, comme en 2.9.1', () => {
     const { container } = render(<Dropzone />);
     const input = fileInput(container);
     const writes = spyWrites(input);

@@ -354,9 +354,9 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
    * état.
    */
   readonly liquidGlass?: boolean;
-  /** @deprecated Depuis 3.7 — utilisez `className` ; la balise du contenu est interne au verre. */
+  /** @deprecated Depuis 2.7 — utilisez `className` ; la balise du contenu est interne au verre. */
   readonly as?: GlassProps['as'];
-  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
+  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
   readonly pressFeedback?: boolean;
 } & Omit<GlassProps, 'as' | 'pressFeedback' | 'enableLiquidAnimation' | 'triggerAnimation'> &
   LegacySurfaceAnimationProps;

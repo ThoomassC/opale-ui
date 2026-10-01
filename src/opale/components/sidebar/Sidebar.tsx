@@ -75,7 +75,7 @@ import styles from './style/Sidebar.module.css';
    compilait pas. Le `onToggle` du DOM est retiré, et l'on récupère la signature
    qui était documentée depuis le début.
 
-   UNE ENTRÉE PEUT ÊTRE UN LIEN (3.10, DX-02). Sans `href`, l'entrée reste un
+   UNE ENTRÉE PEUT ÊTRE UN LIEN (2.10, DX-02). Sans `href`, l'entrée reste un
    `<button>`, au contrat inchangé. Avec `href`, elle rend un `<a>` : clic du
    milieu, ouverture dans un onglet et « copier l'adresse » redeviennent
    possibles, et `Sidebar.onNavigate` remet le clic simple au routeur de
@@ -118,7 +118,7 @@ export type SidebarContextValue = {
   onNavigate?: NavigateHandler<SidebarNavigationTarget>;
   /** L'entrée retenue, absente quand aucune ne l'est. */
   value?: string;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   activeItemId?: string;
   /** L'identifiant de l'`<aside>`, pour l'`aria-controls` de la bascule. */
   sidebarId: string;
@@ -152,7 +152,7 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
   collapsible?: boolean;
   /** Appelée à chaque bascule du pli, avec le nouvel état. */
   onCollapsedChange?: (collapsed: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onCollapsedChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onCollapsedChange`. */
   onToggle?: (collapsed: boolean) => void;
   /** L'entrée retenue. Présente, l'appelant la tient ; `null` : aucune. */
   value?: string | null;
@@ -169,11 +169,11 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * `(item) => navigate(item.href)`.
    */
   onNavigate?: NavigateHandler<SidebarNavigationTarget>;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   activeItemId?: string;
-  /** @deprecated Depuis 3.6 — utilisez `defaultValue`. */
+  /** @deprecated Depuis 2.6 — utilisez `defaultValue`. */
   defaultActiveItemId?: string;
-  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
   onSelectItem?: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<SidebarLabels>;
@@ -476,7 +476,7 @@ type SidebarItemOwnProps = {
 
 /**
  * Les props de `Sidebar.Item` sans `href` : l'entrée est un `<button>`, le
- * contrat historique, inchangé. Ce nom reste un type objet, comme en 3.9, pour
+ * contrat historique, inchangé. Ce nom reste un type objet, comme en 2.9, pour
  * qu'une interface puisse toujours l'étendre ; la variante lien est
  * `SidebarItemLinkProps`, et `Sidebar.Item` accepte l'une ou l'autre.
  */

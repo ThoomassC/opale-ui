@@ -85,7 +85,7 @@ describe('warnDeprecated', () => {
     warnDeprecated('Modal', 'onClose');
 
     expect(messages()).toEqual([
-      '[Opale] Modal : `onClose` est déprécié depuis 3.6 et sera retiré en 4.0.0 — utilisez `onOpenChange`.',
+      '[Opale] Modal : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `onOpenChange`.',
     ]);
   });
 
@@ -93,7 +93,7 @@ describe('warnDeprecated', () => {
     warnDeprecated('DataTable', 'density');
 
     expect(messages()).toEqual([
-      '[Opale] DataTable : `density` est déprécié depuis 3.6 et sera retiré en 4.0.0 — utilisez `size` (`compact` → `small`).',
+      '[Opale] DataTable : `density` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `size` (`compact` → `small`).',
     ]);
   });
 
@@ -134,7 +134,7 @@ describe('warnDeprecated', () => {
     );
 
     expect(messages()).toEqual([
-      '[Opale] Pagination : `page` est déprécié depuis 3.6 et sera retiré en 4.0.0 — utilisez `value`.',
+      '[Opale] Pagination : `page` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `value`.',
     ]);
   });
 });

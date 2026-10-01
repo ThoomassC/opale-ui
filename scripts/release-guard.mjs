@@ -1,9 +1,9 @@
 /* =============================================================================
    LA GARDE DE PUBLICATION : UNE VERSION DOIT DÉPASSER TOUT CE QUI EST PUBLIÉ.
 
-   Le 24/09, un tag v4.0.0 a été posé, puis la ligne est redescendue en 3.x.
+   Le 24/09, un tag v4.0.0 a été posé, puis la ligne est redescendue en 2.x.
    Pour semver, v4.0.0 restait la plus récente : « le dernier tag » ou ^4
-   installaient un code antérieur à la 3.2.0. Vérifier que le tag exact
+   installaient un code antérieur à la 2.2.0. Vérifier que le tag exact
    n'existe pas ne suffisait donc pas : il faut dépasser le plus haut.
 
    Fonctions pures, séparées du script, pour être testées sans toucher Git.
@@ -52,7 +52,7 @@ export function releaseBlocker(version, tags) {
 
 /* LIV-07 — UNE RUPTURE CHANGE LA MAJEURE.
 
-   3.1.1, 3.2.0 et 3.5.0 étaient marquées `breaking: true` : une borne ^3.1.0
+   2.1.1, 2.2.0 et 2.5.0 étaient marquées `breaking: true` : une borne ^2.1.0
    installait des composants retirés et des props devenues obligatoires.
    Avant 1.0, semver fait porter la rupture par la mineure. */
 

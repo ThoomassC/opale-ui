@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetDeprecationWarnings } from './deprecations';
 import { RadioGroup, Textarea } from './index';
 
-/* LES NOUVEAUX CHAMPS DE LA 3.10 SE SIGNALENT SANS NOM, comme Toggle : une
+/* LES NOUVEAUX CHAMPS DE LA 2.10 SE SIGNALENT SANS NOM, comme Toggle : une
    zone de texte ou un groupe de boutons radio sans libellé reste muet pour un
    lecteur d'écran. L'avertissement ne part qu'en développement, une fois. */
 describe('avertissement de nom manquant (3.10)', () => {

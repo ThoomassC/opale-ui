@@ -8,7 +8,7 @@ import menuSource from '../opale/components/dropdown-menu/style/DropdownMenu.mod
 
    Sans `forced-color-adjust: none`, Chromium pose sa plaque Canvas derrière le
    libellé : l'encre HighlightText y disparaît et l'utilisateur au clavier ne
-   lit plus l'élément courant (vérification 3.10.0).
+   lit plus l'élément courant (vérification 2.10.0).
    ========================================================================== */
 
 const FORCED = '@media (forced-colors: active)';

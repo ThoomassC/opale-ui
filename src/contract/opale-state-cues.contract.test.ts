@@ -8,7 +8,7 @@ import tabsSource from '../opale/components/tabs/style/Tabs.module.css?raw';
    LES ÉTATS SE VOIENT SANS LA COULEUR, AU CLAVIER, EN CONTRASTES FORCÉS ET
    DE DROITE À GAUCHE.
 
-   Ce garde fixe les corrections de l'audit 3.9.3 qui ne peuvent vivre que dans
+   Ce garde fixe les corrections de l'audit 2.9.3 qui ne peuvent vivre que dans
    la feuille : un focus sur la pagination (ACC-02), un repère non chromatique
    pour l'onglet et le segment retenus (ACC-03), des couleurs système en
    contrastes forcés (ACC-04), un focus de carte distinct de la sélection
