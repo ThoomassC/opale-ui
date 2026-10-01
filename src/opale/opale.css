@@ -1982,6 +1982,11 @@ h6.opale-heading {
 .opale-link:hover {
   color: var(--opale-primary-dark);
 }
+/* L'anneau d'un lien cernait les mots d'un rectangle vif : ses angles
+   s'adoucissent, comme ceux des autres contrôles. */
+.opale-link:focus-visible {
+  border-radius: var(--opale-radius-sm);
+}
 
 .opale-field {
   display: grid;

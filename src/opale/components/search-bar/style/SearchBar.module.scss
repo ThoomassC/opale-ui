@@ -37,7 +37,11 @@
   outline-offset: var(--opale-focus-ring-offset);
 }
 
+/* La pilule est peinte par `::before` ; la boîte, elle, restait à angles vifs
+   et l'anneau traçait un rectangle autour. Au focus, elle prend le rayon qui
+   contient le squircle (voir `.opale-button:focus-visible`). */
 .plain:has(.input:focus-visible) {
+  border-radius: calc(var(--opale-squircle-radius, 1.375rem) * 0.68);
   outline-color: var(--opale-focus);
 }
 

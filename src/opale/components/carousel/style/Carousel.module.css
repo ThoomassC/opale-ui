@@ -48,6 +48,10 @@
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
   outline-offset: var(--opale-focus-ring-offset);
 }
+/* Le point est rond : son anneau aussi, et non un carré autour de la cible. */
+.dot:focus-visible {
+  border-radius: 50%;
+}
 
 .slide {
   /* Le repère des enfants positionnés : un texte masqué ou un indicateur en
