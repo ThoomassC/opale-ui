@@ -385,6 +385,16 @@ export function ScrollSectionDemo() {
           )}
         </ScrollSection>
       ))}
+      {/* Une bande plus courte que la demi-vue : elle ne croise jamais le
+          milieu, et devient active en bas de page, ou quand elle le touche. */}
+      <ScrollSection
+        ground="amber"
+        aria-labelledby={`${id}-end`}
+        className="tc-doc-stage-demo__section tc-doc-stage-demo__section--short"
+      >
+        <h3 id={`${id}-end`}>Fin de la scène</h3>
+        <p>Une bande courte, active quand elle contient le milieu de la vue.</p>
+      </ScrollSection>
     </ScrollStage>
   );
 }

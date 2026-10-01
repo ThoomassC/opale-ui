@@ -77,6 +77,12 @@
   --opale-stage-ink: var(--opale-ground-blue-ink);
 }
 
+/* LE FOND DE DÉPART ET LA PREMIÈRE MESURE : d'un coup. Le script ne retire
+   `data-instant` qu'au premier vrai défilement. */
+.stage[data-instant] {
+  transition: none;
+}
+
 /* MOUVEMENT RÉDUIT ET IMPRESSION : la scène suit toujours la section active
    — c'est une information —, mais change de fond d'un coup. */
 @media (prefers-reduced-motion: reduce) {

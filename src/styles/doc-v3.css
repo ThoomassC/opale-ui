@@ -3524,6 +3524,9 @@ body {
   padding: var(--opale-space-xl) var(--opale-space-lg);
   border-radius: var(--opale-radius-md);
 }
+.tc-doc-stage-demo__section--short {
+  min-block-size: 30svh;
+}
 .tc-doc-stage-demo__section h3 {
   margin: 0;
   font-family: var(--opale-font-display);

@@ -1,8 +1,6 @@
-import { useCallback, useContext, type ComponentPropsWithRef } from 'react';
+import type { ComponentPropsWithRef } from 'react';
 import clsx from 'clsx';
 
-import { mergeRefs } from '../../shared/merge-refs';
-import { ScrollContext, type ScrollGround } from './scroll-context';
 import styles from './style/ScrollSection.module.css';
 
 /* =============================================================================
@@ -18,8 +16,15 @@ import styles from './style/ScrollSection.module.css';
    local sombre (`data-opale-page-theme="dark"`), `amber` le clair ; `paper`
    ne pose rien et suit la page.
 
-   HORS D'UNE SCÈNE, une section reste une bande statique, sans observateur.
+   AUCUNE INSCRIPTION. La scène retrouve ses sections dans son propre DOM, à
+   chaque mesure, et y lit `data-ground` : ni contexte, ni ref interne. La
+   `ref` de l'appelant va droit à l'élément — une ref en ligne ne réinscrit
+   rien —, et un fond neuf est suivi sans remontage. Hors d'une scène, une
+   section reste une bande statique.
    ========================================================================== */
+
+/** Les fonds qu'une `ScrollSection` peut peindre, chacun avec son encre. */
+export type ScrollGround = 'paper' | 'amber' | 'night' | 'blue';
 
 /** Les balises qu'une section peut rendre. */
 export type ScrollSectionElement = 'section' | 'div' | 'header' | 'footer' | 'article';
@@ -46,29 +51,12 @@ const THEME: Partial<Record<ScrollGround, 'light' | 'dark'>> = {
   blue: 'dark',
 };
 
-/** Une bande qui peint son fond et son encre, et s'inscrit auprès de sa scène. */
-export function ScrollSection({
-  ground,
-  as = 'section',
-  className,
-  ref,
-  ...rest
-}: ScrollSectionProps) {
+/** Une bande qui peint son fond et son encre ; sa scène la retrouve seule. */
+export function ScrollSection({ ground, as = 'section', className, ...rest }: ScrollSectionProps) {
   const Tag = as as 'section';
-  const register = useContext(ScrollContext);
-  /* Une ref à nettoyage (React 19) : la section s'inscrit à l'attache et se
-     retire au détachement. Un fond neuf la réinscrit. */
-  const setRef = useCallback(
-    (node: HTMLElement | null) =>
-      mergeRefs(ref, (element: HTMLElement | null) =>
-        element && register ? register(element, ground) : undefined,
-      )(node),
-    [ref, register, ground],
-  );
   return (
     <Tag
       {...rest}
-      ref={setRef}
       data-ground={ground}
       data-opale-page-theme={THEME[ground]}
       className={clsx('opale-scroll-section', styles.section, className)}

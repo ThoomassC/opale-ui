@@ -816,7 +816,7 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
   ScrollSection: {
     states: [],
     keyboard: [
-      'Aucune touche propre : le défilement est celui de la page. Un saut (Fin, Début, ancre) finit sur la section d’arrivée.',
+      'Aucune touche propre : le défilement est celui de la page. Un saut (Fin, Début, ancre) finit sur la section d’arrivée ; en haut et en bas de page, la première et la dernière section visibles sont actives, même plus courtes que la demi-vue.',
     ],
     semantics: [
       'Chaque section peint toujours son propre couple fond / encre, à 4,5:1 au moins : son texte ne passe jamais sur le fond d’une voisine, même pendant le fondu de la scène.',
@@ -826,7 +826,8 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
     ],
     limits: [
       'Un texte posé directement sur la scène, hors section, passe pendant le fondu par des couples intermédiaires illisibles : il lit `--opale-stage-ground` et `--opale-stage-ink` sur son propre fond, qui change d’un coup.',
-      'La section active est celle qui croise le milieu de la vue : une dernière section trop courte pour l’atteindre ne devient jamais active.',
+      'La scène mesure contre la fenêtre : dans un conteneur qui défile lui-même, ou dans une `iframe` d’une autre origine, elle n’est pas prise en charge.',
+      'Une section enveloppée dans un autre composant est suivie, mais ne donne pas le fond de départ : passez alors `initialGround`.',
       'Les propriétés `--opale-stage-*` ne valent que dans la scène : un en-tête placé hors d’elle suit `onGroundChange`.',
     ],
   },

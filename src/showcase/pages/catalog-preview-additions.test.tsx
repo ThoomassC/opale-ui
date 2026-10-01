@@ -92,9 +92,9 @@ describe('la démo du titre découpé', () => {
 });
 
 /* La démo des fonds au défilement : une scène, quatre régions nommées par
-   leur titre, chacune avec son fond, et l'étiquette collante hors section,
-   qui suit le fond actif. jsdom n'a pas d'`IntersectionObserver` : la scène
-   reste sur le fond de sa première section. */
+   leur titre, chacune avec son fond, une bande courte qui la ferme, et
+   l'étiquette collante hors section, qui suit le fond actif. jsdom n'a pas
+   de mise en page : la scène reste sur le fond de sa première section. */
 describe('la démo des fonds au défilement', () => {
   it('rend quatre régions nommées dans une scène au fond de la première', () => {
     const { container } = render(<ScrollSectionDemo />);
@@ -109,6 +109,11 @@ describe('la démo des fonds au défilement', () => {
       'night',
       'blue',
     ]);
+    /* La bande courte qui ferme la scène. */
+    expect(screen.getByRole('region', { name: 'Fin de la scène' })).toHaveAttribute(
+      'data-ground',
+      'amber',
+    );
     for (const region of regions) {
       expect(within(region).getAllByRole('button')).toHaveLength(2);
     }

@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
-import { createRef, StrictMode, type ReactNode } from 'react';
+import { createRef, Fragment, StrictMode, type ReactNode } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,54 +12,63 @@ import opaleSource from '../../opale.css?raw';
 /* =============================================================================
    LA SCÈNE ET SES SECTIONS, MESURÉES CONTRE LEURS CRITÈRES.
 
-   jsdom n'a ni mise en page ni défilement : `IntersectionObserver` est une
-   fausse qu'on déclenche à la main, une entrée à la fois ou plusieurs d'un
-   coup (un saut). La feuille se lit par son arbre : c'est elle qui peint les
-   fonds et qui fond la scène.
+   jsdom n'a ni mise en page ni défilement : chaque section reçoit une
+   position dans le document (`layout`), `getBoundingClientRect` la rend
+   relative au défilement simulé (`scrollY`), la hauteur de la vue et celle du
+   document sont choisies, et `requestAnimationFrame` est une file qu'on vide
+   à la main. Un défilement est un événement `scroll` suivi d'une image.
+   La feuille se lit par son arbre : c'est elle qui peint les fonds et qui
+   fond la scène.
    ========================================================================== */
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-/* Un `IntersectionObserver` qu'on déclenche à la main. */
-class FakeIntersectionObserver {
-  static readonly all: FakeIntersectionObserver[] = [];
-  readonly targets = new Set<Element>();
-  readonly options: IntersectionObserverInit | undefined;
-  disconnected = false;
-  private readonly callback: IntersectionObserverCallback;
-  constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
-    this.callback = callback;
-    this.options = options;
-    FakeIntersectionObserver.all.push(this);
-  }
-  observe(target: Element) {
-    this.targets.add(target);
-  }
-  unobserve(target: Element) {
-    this.targets.delete(target);
-  }
-  disconnect() {
-    this.targets.clear();
-    this.disconnected = true;
-  }
-  takeRecords() {
-    return [];
-  }
-  /* Un lot d'entrées : chaque paire dit si la cible croise le milieu de la vue. */
-  fire(...pairs: ReadonlyArray<readonly [Element, boolean]>) {
-    const entries = pairs.map(
-      ([target, isIntersecting]) => ({ target, isIntersecting }) as IntersectionObserverEntry,
-    );
-    act(() => this.callback(entries, this as unknown as IntersectionObserver));
-  }
-}
+/* La position de chaque section dans le document, par `data-testid`. */
+const layout = new Map<string, { top: number; height: number }>();
+let scrollY = 0;
+let pageHeight = 4000;
+const VIEW = 800;
 
-/* Les observateurs encore branchés : un seul par scène, jamais de fuite. */
-const live = () => FakeIntersectionObserver.all.filter((one) => !one.disconnected);
+/* Les images en attente, rendues à la main par `nextFrame`. */
+let frames: FrameRequestCallback[] = [];
+const nextFrame = () =>
+  act(() => {
+    const pending = frames;
+    frames = [];
+    for (const callback of pending) callback(0);
+  });
+
+/* Un défilement : la position change, l'événement part, l'image suit. */
+const scrollTo = (y: number) => {
+  scrollY = y;
+  act(() => {
+    window.dispatchEvent(new Event('scroll'));
+  });
+  nextFrame();
+};
 
 beforeEach(() => {
-  FakeIntersectionObserver.all.length = 0;
-  vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
+  layout.clear();
+  scrollY = 0;
+  pageHeight = 4000;
+  frames = [];
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    frames.push(callback);
+    return frames.length;
+  });
+  vi.stubGlobal('cancelAnimationFrame', () => {
+    frames = [];
+  });
+  vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(VIEW);
+  vi.spyOn(window, 'scrollY', 'get').mockImplementation(() => scrollY);
+  vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockImplementation(() => pageHeight);
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+    this: HTMLElement,
+  ) {
+    const place = layout.get(this.dataset.testid ?? '') ?? { top: -1e6, height: 0 };
+    const top = place.top - scrollY;
+    return { top, bottom: top + place.height, height: place.height } as DOMRect;
+  });
 });
 
 afterEach(() => {
@@ -68,20 +77,26 @@ afterEach(() => {
 });
 
 const stage = () => screen.getByTestId('stage');
-const section = (ground: ScrollGround) => screen.getByTestId(ground);
+const section = (id: string) => screen.getByTestId(id);
 
 const FOUR: readonly ScrollGround[] = ['paper', 'amber', 'night', 'blue'];
 
+/* Quatre bandes de 1 000 px, de haut en bas d'une page de 4 000 px. */
+const stack = (grounds: readonly ScrollGround[] = FOUR, height = 1000) =>
+  grounds.forEach((ground, index) => layout.set(ground, { top: index * height, height }));
+
+const scene = (props: Partial<ScrollStageProps> = {}, grounds = FOUR) => (
+  <ScrollStage data-testid="stage" {...props}>
+    {grounds.map((ground) => (
+      <ScrollSection key={ground} ground={ground} data-testid={ground}>
+        <p>{ground}</p>
+      </ScrollSection>
+    ))}
+  </ScrollStage>
+);
+
 const renderStage = (props: Partial<ScrollStageProps> = {}, grounds = FOUR) =>
-  render(
-    <ScrollStage data-testid="stage" {...props}>
-      {grounds.map((ground) => (
-        <ScrollSection key={ground} ground={ground} data-testid={ground}>
-          <p>{ground}</p>
-        </ScrollSection>
-      ))}
-    </ScrollStage>,
-  );
+  render(scene(props, grounds));
 
 describe('ScrollSection — rendu', () => {
   it('rend une `section` par défaut, avec sa classe stable, ses props et sa ref', () => {
@@ -125,14 +140,38 @@ describe('ScrollSection — rendu', () => {
     else expect(section(ground)).toHaveAttribute('data-opale-page-theme', theme);
   });
 
-  it('peint son fond hors de toute scène, sans observateur ni avertissement', () => {
+  it('peint son fond hors de toute scène, sans écouteur ni avertissement', () => {
+    const listen = vi.spyOn(window, 'addEventListener');
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(<ScrollSection ground="night" data-testid="night" />);
     expect(section('night')).toHaveAttribute('data-ground', 'night');
-    expect(FakeIntersectionObserver.all).toHaveLength(0);
+    expect(listen.mock.calls.filter(([type]) => type === 'scroll')).toHaveLength(0);
     expect(warn).not.toHaveBeenCalled();
     expect(error).not.toHaveBeenCalled();
+  });
+
+  /* Constat 6 : une ref en ligne est une nouvelle fonction à chaque rendu.
+     La section n'a plus d'inscription : rien ne se refait, et la scène lit
+     son fond à la mesure — un fond neuf est suivi sans remontage. */
+  it('passe la ref de l’appelant, et suit un fond neuf sans remontage', () => {
+    stack();
+    const refs: (HTMLElement | null)[] = [];
+    const Scene = ({ ground }: { ground: ScrollGround }) => (
+      <ScrollStage data-testid="stage">
+        <ScrollSection ground="paper" data-testid="paper" />
+        <ScrollSection ground={ground} data-testid="amber" ref={(node) => void refs.push(node)} />
+      </ScrollStage>
+    );
+    const { rerender } = render(<Scene ground="amber" />);
+    const node = section('amber');
+    scrollTo(800);
+    expect(stage()).toHaveAttribute('data-ground', 'amber');
+    rerender(<Scene ground="night" />);
+    expect(section('amber')).toBe(node);
+    expect(refs.filter(Boolean).every((one) => one === node)).toBe(true);
+    scrollTo(820);
+    expect(stage()).toHaveAttribute('data-ground', 'night');
   });
 });
 
@@ -151,197 +190,303 @@ describe('ScrollStage — rendu', () => {
     renderStage({ as });
     expect(stage().tagName).toBe(as.toUpperCase());
   });
+});
 
-  it('prend au rendu le fond de la première section', () => {
-    renderStage({}, ['night', 'paper']);
-    expect(stage()).toHaveAttribute('data-ground', 'night');
+/* Constat 5 : le fond de départ, lu au rendu. */
+describe('ScrollStage — le fond de départ', () => {
+  const html = (children: ReactNode, props: Partial<ScrollStageProps> = {}) => {
+    vi.stubGlobal('window', undefined);
+    vi.stubGlobal('document', undefined);
+    try {
+      return renderToString(<ScrollStage {...props}>{children}</ScrollStage>);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  };
+
+  it('prend celui de la première ScrollSection, en sautant ce qui n’en est pas une', () => {
+    expect(
+      html(
+        <>
+          <p>Intro</p>
+          <ScrollSection ground="night" />
+          <ScrollSection ground="paper" />
+        </>,
+      ),
+    ).toMatch(/^<div[^>]*data-ground="night"/);
   });
 
-  it('saute un premier enfant sans fond, et retombe sur `paper` sans section', () => {
-    render(
-      <ScrollStage data-testid="stage">
-        <p>Intro</p>
-        <ScrollSection ground="blue">Bleu</ScrollSection>
-      </ScrollStage>,
+  it('descend dans les fragments, imbriqués ou en tableau', () => {
+    expect(
+      html(
+        <Fragment>
+          {[]}
+          <Fragment key="a">
+            <ScrollSection ground="blue" />
+          </Fragment>
+        </Fragment>,
+      ),
+    ).toMatch(/^<div[^>]*data-ground="blue"/);
+  });
+
+  it('ignore la prop `ground` d’un autre composant, et retombe sur `paper`', () => {
+    const Wrapper = ({ ground }: { ground: ScrollGround }) => <ScrollSection ground={ground} />;
+    expect(html(<Wrapper ground="amber" />)).toMatch(/^<div[^>]*data-ground="paper"/);
+    expect(html('Rien')).toMatch(/^<div[^>]*data-ground="paper"/);
+  });
+
+  it('préfère `initialGround`, qui passe avant les enfants', () => {
+    const Wrapper = () => <ScrollSection ground="amber" />;
+    expect(html(<Wrapper />, { initialGround: 'amber' })).toMatch(/^<div[^>]*data-ground="amber"/);
+    expect(html(<ScrollSection ground="night" />, { initialGround: 'blue' })).toMatch(
+      /data-ground="blue"/,
     );
-    expect(stage()).toHaveAttribute('data-ground', 'blue');
-    act(() => undefined);
-    render(<ScrollStage data-testid="vide">Rien</ScrollStage>);
-    expect(screen.getByTestId('vide')).toHaveAttribute('data-ground', 'paper');
+  });
+
+  it('écrit le fond sans transition au serveur, et chaque section son couple', () => {
+    const out = html(
+      <>
+        <ScrollSection ground="amber" />
+        <ScrollSection ground="night" />
+      </>,
+    );
+    expect(out).toMatch(/^<div[^>]*data-instant=""/);
+    expect(out).toMatch(/<section[^>]*data-ground="amber"[^>]*data-opale-page-theme="light"/);
+    expect(out).toMatch(/<section[^>]*data-ground="night"[^>]*data-opale-page-theme="dark"/);
+    expect(out).not.toMatch(/style=/);
   });
 });
 
 describe('ScrollStage — la section active', () => {
-  it('observe toutes ses sections avec un seul observateur, sur la ligne du milieu', () => {
+  it('suit la section qui contient le milieu de la vue', () => {
+    stack();
     renderStage();
-    expect(FakeIntersectionObserver.all).toHaveLength(1);
-    const [watcher] = FakeIntersectionObserver.all;
-    expect(watcher.options?.rootMargin).toBe('-50% 0px -50% 0px');
-    for (const ground of FOUR) expect(watcher.targets.has(section(ground))).toBe(true);
-  });
-
-  it('suit la section qui croise le milieu de la vue', () => {
-    renderStage();
-    const [watcher] = FakeIntersectionObserver.all;
-    watcher.fire([section('amber'), true]);
+    scrollTo(1200);
     expect(stage()).toHaveAttribute('data-ground', 'amber');
-    watcher.fire([section('amber'), false], [section('night'), true]);
+    scrollTo(2000);
     expect(stage()).toHaveAttribute('data-ground', 'night');
   });
 
-  it('garde le dernier fond quand plus aucune section ne croise le milieu', () => {
+  /* Constat 4 : une limite exactement sur la ligne. Les intervalles sont
+     demi-ouverts : la section qui COMMENCE sur la ligne la contient, quel que
+     soit l'ordre d'inscription. */
+  it('donne une limite posée sur la ligne à la section qui y commence', () => {
+    stack(['night', 'amber', 'paper', 'blue']);
+    renderStage({}, ['night', 'amber', 'paper', 'blue']);
+    scrollTo(600);
+    expect(stage()).toHaveAttribute('data-ground', 'amber');
+  });
+
+  it('garde le dernier fond quand plus aucune section ne contient la ligne', () => {
+    pageHeight = 8000;
+    stack();
     renderStage();
-    const [watcher] = FakeIntersectionObserver.all;
-    watcher.fire([section('blue'), true]);
-    watcher.fire([section('blue'), false]);
+    scrollTo(3000);
+    expect(stage()).toHaveAttribute('data-ground', 'blue');
+    scrollTo(5000);
     expect(stage()).toHaveAttribute('data-ground', 'blue');
   });
 
-  /* La touche Fin saute toutes les sections du milieu : seule la dernière
-     croise la ligne, et c'est sur elle que la scène finit. */
-  it('finit un saut sur la section d’arrivée', () => {
-    renderStage();
-    const [watcher] = FakeIntersectionObserver.all;
-    watcher.fire([section('paper'), true]);
-    watcher.fire([section('paper'), false], [section('blue'), true]);
+  /* Constat 1 : une bande courte au bas de la page ne croise jamais le
+     milieu de la vue. Au bas du document, la dernière section visible gagne. */
+  it('active une courte dernière section au bas de la page', () => {
+    layout.set('paper', { top: 0, height: 1500 });
+    layout.set('amber', { top: 1500, height: 2200 });
+    layout.set('blue', { top: 3700, height: 300 });
+    renderStage({}, ['paper', 'amber', 'blue']);
+    scrollTo(3100);
+    expect(stage()).toHaveAttribute('data-ground', 'amber');
+    scrollTo(3200);
     expect(stage()).toHaveAttribute('data-ground', 'blue');
   });
 
-  it('prévient `onGroundChange` au changement seulement', () => {
-    const onGroundChange = vi.fn();
-    renderStage({ onGroundChange });
-    const [watcher] = FakeIntersectionObserver.all;
-    /* La première section au milieu : la scène l'affichait déjà. */
-    watcher.fire([section('paper'), true]);
-    expect(onGroundChange).not.toHaveBeenCalled();
-    watcher.fire([section('paper'), false], [section('amber'), true]);
-    watcher.fire([section('amber'), true]);
-    expect(onGroundChange).toHaveBeenCalledTimes(1);
-    expect(onGroundChange).toHaveBeenLastCalledWith('amber');
-    watcher.fire([section('amber'), false], [section('night'), true]);
-    expect(onGroundChange).toHaveBeenCalledTimes(2);
-    expect(onGroundChange).toHaveBeenLastCalledWith('night');
+  /* Constat 1, en haut : un bandeau plus court que la demi-vue. En haut du
+     document, la première section visible gagne. */
+  it('active un court bandeau d’ouverture en haut de la page', () => {
+    layout.set('night', { top: 0, height: 300 });
+    layout.set('amber', { top: 300, height: 2000 });
+    layout.set('paper', { top: 2300, height: 1700 });
+    renderStage({}, ['night', 'amber', 'paper']);
+    scrollTo(100);
+    expect(stage()).toHaveAttribute('data-ground', 'amber');
+    scrollTo(0);
+    expect(stage()).toHaveAttribute('data-ground', 'night');
   });
 
-  it('rappelle le `onGroundChange` le plus récent, sans recréer l’observateur', () => {
-    const first = vi.fn();
-    const second = vi.fn();
-    const { rerender } = renderStage({ onGroundChange: first });
-    rerender(
-      <ScrollStage data-testid="stage" onGroundChange={second}>
-        {FOUR.map((ground) => (
-          <ScrollSection key={ground} ground={ground} data-testid={ground} />
-        ))}
+  /* Constat 2 : une section imbriquée gagne tant que la ligne est en elle,
+     l'englobante reprend ensuite. */
+  it('donne la ligne à la section imbriquée, puis rend la main à l’englobante', () => {
+    pageHeight = 6000;
+    layout.set('amber', { top: 0, height: 3000 });
+    layout.set('night', { top: 1000, height: 500 });
+    layout.set('blue', { top: 3000, height: 3000 });
+    render(
+      <ScrollStage data-testid="stage">
+        <ScrollSection ground="amber" data-testid="amber">
+          <ScrollSection ground="night" data-testid="night" />
+        </ScrollSection>
+        <ScrollSection ground="blue" data-testid="blue" />
       </ScrollStage>,
     );
-    expect(FakeIntersectionObserver.all).toHaveLength(1);
-    FakeIntersectionObserver.all[0].fire([section('night'), true]);
-    expect(first).not.toHaveBeenCalled();
-    expect(second).toHaveBeenCalledWith('night');
-  });
-
-  it('suit le nouveau fond d’une section active', () => {
-    const Scene = ({ ground }: { ground: ScrollGround }) => (
-      <ScrollStage data-testid="stage">
-        <ScrollSection ground="paper" />
-        <ScrollSection ground={ground} data-testid="active" />
-      </ScrollStage>
-    );
-    const { rerender } = render(<Scene ground="amber" />);
-    const [watcher] = FakeIntersectionObserver.all;
-    watcher.fire([screen.getByTestId('active'), true]);
-    expect(stage()).toHaveAttribute('data-ground', 'amber');
-    rerender(<Scene ground="night" />);
-    /* Réobservée, la section est signalée de nouveau, avec son fond neuf. */
-    expect(watcher.targets.has(screen.getByTestId('active'))).toBe(true);
-    watcher.fire([screen.getByTestId('active'), true]);
+    scrollTo(800);
     expect(stage()).toHaveAttribute('data-ground', 'night');
+    scrollTo(1400);
+    expect(stage()).toHaveAttribute('data-ground', 'amber');
+    scrollTo(2700);
+    expect(stage()).toHaveAttribute('data-ground', 'blue');
   });
 
-  it('cesse d’observer une section retirée, et déconnecte tout au démontage', () => {
-    const Scene = ({ children }: { children?: ReactNode }) => (
+  it('suit aussi un redimensionnement', () => {
+    stack();
+    renderStage();
+    scrollY = 1200;
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    nextFrame();
+    expect(stage()).toHaveAttribute('data-ground', 'amber');
+  });
+
+  it('ne mesure qu’une fois par image, quel que soit le nombre d’événements', () => {
+    stack();
+    renderStage();
+    nextFrame();
+    const measure = vi.mocked(HTMLElement.prototype.getBoundingClientRect);
+    measure.mockClear();
+    act(() => {
+      for (let index = 0; index < 5; index += 1) window.dispatchEvent(new Event('scroll'));
+    });
+    expect(frames).toHaveLength(1);
+    nextFrame();
+    expect(measure).toHaveBeenCalledTimes(4);
+  });
+
+  it('prévient `onGroundChange` au changement seulement, avec le plus récent', () => {
+    stack();
+    const first = vi.fn();
+    const onGroundChange = vi.fn();
+    const { rerender } = renderStage({ onGroundChange: first });
+    nextFrame();
+    rerender(scene({ onGroundChange }));
+    scrollTo(100);
+    expect(onGroundChange).not.toHaveBeenCalled();
+    scrollTo(800);
+    scrollTo(900);
+    expect(onGroundChange).toHaveBeenCalledTimes(1);
+    expect(onGroundChange).toHaveBeenLastCalledWith('amber');
+    scrollTo(1700);
+    expect(onGroundChange).toHaveBeenLastCalledWith('night');
+    expect(onGroundChange).toHaveBeenCalledTimes(2);
+    expect(first).not.toHaveBeenCalled();
+  });
+
+  /* Constat 3 : monté au milieu de la page (défilement restauré, ancre), la
+     scène prend la bonne section sans fondu et sans prévenir. */
+  it('se monte sur la section du milieu sans fondu ni `onGroundChange`', () => {
+    stack();
+    scrollY = 1700;
+    const onGroundChange = vi.fn();
+    renderStage({ onGroundChange });
+    expect(stage()).toHaveAttribute('data-ground', 'night');
+    expect(stage()).toHaveAttribute('data-instant');
+    /* La première image suit encore le montage : un défilement restauré
+       juste après lui est rattrapé sans fondu. */
+    scrollY = 2700;
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    nextFrame();
+    expect(stage()).toHaveAttribute('data-ground', 'blue');
+    expect(stage()).toHaveAttribute('data-instant');
+    expect(onGroundChange).not.toHaveBeenCalled();
+    /* Ensuite, un vrai défilement : le fondu revient, et l'appel. */
+    scrollTo(1700);
+    expect(stage()).toHaveAttribute('data-ground', 'night');
+    expect(stage()).not.toHaveAttribute('data-instant');
+    expect(onGroundChange).toHaveBeenCalledExactlyOnceWith('night');
+  });
+
+  it('compte les sections d’une scène imbriquée comme des sections imbriquées', () => {
+    stack(['paper', 'amber']);
+    layout.set('inner', { top: 1000, height: 1000 });
+    render(
       <ScrollStage data-testid="stage">
         <ScrollSection ground="paper" data-testid="paper" />
-        {children}
-      </ScrollStage>
-    );
-    const { rerender, unmount } = render(
-      <Scene>
-        <ScrollSection ground="blue" data-testid="blue" />
-      </Scene>,
-    );
-    const [watcher] = FakeIntersectionObserver.all;
-    const blue = section('blue');
-    rerender(<Scene />);
-    expect(watcher.targets.has(blue)).toBe(false);
-    expect(watcher.targets.size).toBe(1);
-    unmount();
-    expect(watcher.disconnected).toBe(true);
-    expect(live()).toHaveLength(0);
-  });
-
-  it('tient sous StrictMode : un seul observateur branché, qui suit tout', () => {
-    const onGroundChange = vi.fn();
-    const { unmount } = render(
-      <StrictMode>
-        <ScrollStage data-testid="stage" onGroundChange={onGroundChange}>
-          {FOUR.map((ground) => (
-            <ScrollSection key={ground} ground={ground} data-testid={ground} />
-          ))}
+        <ScrollStage data-testid="inner-stage">
+          <ScrollSection ground="blue" data-testid="inner" />
         </ScrollStage>
-      </StrictMode>,
+      </ScrollStage>,
     );
-    expect(live()).toHaveLength(1);
-    const [watcher] = live();
-    for (const ground of FOUR) expect(watcher.targets.has(section(ground))).toBe(true);
-    watcher.fire([section('night'), true]);
-    expect(stage()).toHaveAttribute('data-ground', 'night');
-    expect(onGroundChange).toHaveBeenCalledTimes(1);
-    unmount();
-    expect(live()).toHaveLength(0);
+    scrollTo(1000);
+    expect(stage()).toHaveAttribute('data-ground', 'blue');
+    expect(screen.getByTestId('inner-stage')).toHaveAttribute('data-ground', 'blue');
   });
 
-  it('reste sur le premier fond sans `IntersectionObserver`', () => {
-    vi.stubGlobal('IntersectionObserver', undefined);
-    renderStage({}, ['amber', 'night']);
-    expect(stage()).toHaveAttribute('data-ground', 'amber');
+  it('retire ses écouteurs et son image en attente au démontage', () => {
+    stack();
+    const add = vi.spyOn(window, 'addEventListener');
+    const remove = vi.spyOn(window, 'removeEventListener');
+    const cancel = vi.fn();
+    vi.stubGlobal('cancelAnimationFrame', cancel);
+    const { unmount } = renderStage();
+    const added = add.mock.calls.filter(([type]) => type === 'scroll' || type === 'resize');
+    expect(added.map(([type]) => type).sort()).toEqual(['resize', 'scroll']);
+    unmount();
+    for (const [type, listener] of added) {
+      expect(remove).toHaveBeenCalledWith(type, listener);
+    }
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it('tient sous StrictMode : écouteurs équilibrés, un seul appel par changement', () => {
+    stack();
+    const add = vi.spyOn(window, 'addEventListener');
+    const remove = vi.spyOn(window, 'removeEventListener');
+    const onGroundChange = vi.fn();
+    const { unmount } = render(<StrictMode>{scene({ onGroundChange })}</StrictMode>);
+    nextFrame();
+    scrollTo(1700);
+    expect(stage()).toHaveAttribute('data-ground', 'night');
+    expect(onGroundChange).toHaveBeenCalledExactlyOnceWith('night');
+    unmount();
+    const count = (spy: typeof add, type: string) =>
+      spy.mock.calls.filter(([one]) => one === type).length;
+    expect(count(remove, 'scroll')).toBe(count(add, 'scroll'));
+    expect(count(remove, 'resize')).toBe(count(add, 'resize'));
   });
 });
 
-describe('ScrollStage — rendu serveur', () => {
+describe('ScrollStage — hydratation', () => {
   const fixture = () => (
     <ScrollStage as="main">
-      <ScrollSection ground="amber">
+      <ScrollSection ground="amber" data-testid="amber">
         <h2>Ambre</h2>
       </ScrollSection>
-      <ScrollSection ground="night">
+      <ScrollSection ground="night" data-testid="night">
         <h2>Nuit</h2>
       </ScrollSection>
     </ScrollStage>
   );
 
-  const renderOnServer = () => {
+  it('s’hydrate sans écart sous StrictMode, puis prend la section du milieu sans fondu', async () => {
+    layout.set('amber', { top: 0, height: 1000 });
+    layout.set('night', { top: 1000, height: 3000 });
     vi.stubGlobal('window', undefined);
     vi.stubGlobal('document', undefined);
+    let markup = '';
     try {
-      return renderToString(fixture());
+      markup = renderToString(fixture());
     } finally {
       vi.unstubAllGlobals();
-      vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
     }
-  };
-
-  it('écrit déjà le fond de la première section, et chaque section son couple', () => {
-    const html = renderOnServer();
-    expect(html).toMatch(/^<main[^>]*data-ground="amber"/);
-    expect(html).toMatch(/<section[^>]*data-ground="amber"[^>]*data-opale-page-theme="light"/);
-    expect(html).toMatch(/<section[^>]*data-ground="night"[^>]*data-opale-page-theme="dark"/);
-    expect(html).not.toMatch(/style=/);
-  });
-
-  it('s’hydrate sans écart sous StrictMode', async () => {
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    scrollY = 1200;
     const host = document.createElement('div');
-    host.innerHTML = renderOnServer();
+    host.innerHTML = markup;
     document.body.append(host);
     const errors: string[] = [];
     const consoleError = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
@@ -358,10 +503,9 @@ describe('ScrollStage — rendu serveur', () => {
       consoleError.mockRestore();
     }
     expect(errors).toEqual([]);
-    expect(host.querySelector('main')).toHaveAttribute('data-ground', 'amber');
-    expect(live()).toHaveLength(1);
+    expect(host.querySelector('main')).toHaveAttribute('data-ground', 'night');
+    expect(host.querySelector('main')).toHaveAttribute('data-instant');
     await act(async () => root?.unmount());
-    expect(live()).toHaveLength(0);
     host.remove();
   });
 });
@@ -398,7 +542,9 @@ describe('ScrollSection — feuille', () => {
     expect(rule.get('transition-timing-function')).toBe('var(--opale-ease)');
     /* La section ne s'anime jamais : son couple est juste à toute image. */
     expect(selectorsDeclaring(sheet, 'transition-property')).toEqual(['.stage']);
-    expect(new Set(selectorsDeclaring(sheet, 'transition'))).toEqual(new Set(['.stage']));
+    expect(new Set(selectorsDeclaring(sheet, 'transition'))).toEqual(
+      new Set(['.stage', '.stage[data-instant]']),
+    );
     expect(selectorsDeclaring(sheet, 'animation')).toEqual([]);
   });
 
@@ -423,6 +569,12 @@ describe('ScrollSection — feuille', () => {
     expect(root.get('--opale-ground-blue-hover')).toBe('#dce6f5');
     expect(root.get('--opale-ground-blue-secondary')).toBe('#b4cff5');
     expect(root.get('--opale-ground-amber-secondary')).toBe('#335f7b');
+  });
+
+  /* Le serveur, l'hydratation et la première mesure posent `data-instant` :
+     la scène prend son fond d'un coup, le fondu ne sert qu'au défilement. */
+  it('ne fond rien tant que la scène porte `data-instant`', () => {
+    expect(declaration(sheet, '.stage[data-instant]', 'transition')).toBe('none');
   });
 
   it('contient les marges de ses enfants : le fond de la section les couvre', () => {

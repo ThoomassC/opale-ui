@@ -981,13 +981,18 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
           prop(
             'onGroundChange',
             '(ground: ScrollGround) => void',
-            'Appelée quand une autre section croise le milieu de la vue ; jamais au montage.',
+            'Appelée quand le défilement change la section active ; jamais au montage.',
+          ),
+          prop(
+            'initialGround',
+            "'paper' | 'amber' | 'night' | 'blue'",
+            'Le fond avant la première mesure ; défaut : celui de la première `ScrollSection` des enfants, fragments compris, sinon `paper`.',
           ),
           prop('as', "'div' | 'main' | 'article'", 'La balise rendue.', 'div'),
           prop(
             'children',
             'ReactNode',
-            'Les `ScrollSection` ; la première qui porte `ground` donne le fond de départ.',
+            'Les `ScrollSection`, à toute profondeur ; une section enveloppée dans un autre composant est suivie, mais ne donne pas le fond de départ.',
           ),
         ],
       },
