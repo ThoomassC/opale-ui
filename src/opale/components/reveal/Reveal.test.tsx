@@ -195,6 +195,19 @@ describe('Reveal — repli IntersectionObserver', () => {
     expect(observer().disconnected).toBe(false);
   });
 
+  it('montre l’élément en attente dès que le focus y entre, même hors de la marge', () => {
+    const onFocus = vi.fn();
+    render(
+      <Reveal data-testid="reveal" onFocus={onFocus}>
+        <a href="#suite">Suite</a>
+      </Reveal>,
+    );
+    expect(node()).toHaveAttribute('data-reveal', 'pending');
+    act(() => screen.getByRole('link', { name: 'Suite' }).focus());
+    expect(node()).toHaveAttribute('data-reveal', 'shown');
+    expect(onFocus).toHaveBeenCalledTimes(1);
+  });
+
   it('déconnecte l’observateur au démontage', () => {
     const { unmount } = renderReveal();
     const watching = observer();

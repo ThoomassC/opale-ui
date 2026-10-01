@@ -37,14 +37,7 @@ import styles from './style/Reveal.module.css';
 
 /** Les balises qu'une apparition peut rendre. */
 export type RevealElement =
-  | 'div'
-  | 'section'
-  | 'article'
-  | 'aside'
-  | 'header'
-  | 'footer'
-  | 'li'
-  | 'figure';
+  'div' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'li' | 'figure';
 
 export interface RevealProps extends ComponentPropsWithRef<'div'> {
   /**
@@ -82,16 +75,14 @@ export function Reveal({
   once = true,
   className,
   style,
+  onFocus,
   ref,
   ...rest
 }: RevealProps) {
   /* UNE SEULE SIGNATURE DE TYPE POUR TOUTES LES BALISES, comme `Stack`. */
   const Tag = as as 'div';
   const local = useRef<HTMLDivElement>(null);
-  const setRef = useCallback(
-    (node: HTMLDivElement | null) => mergeRefs(local, ref)(node),
-    [ref],
-  );
+  const setRef = useCallback((node: HTMLDivElement | null) => mergeRefs(local, ref)(node), [ref]);
   /* Absent au serveur et à l'hydratation : le contenu est à son état final. */
   const [state, setState] = useState<RevealState>();
 
@@ -129,6 +120,13 @@ export function Reveal({
       {...rest}
       ref={setRef}
       data-reveal={state}
+      /* LE FOCUS MONTRE TOUJOURS. La tabulation fait défiler juste assez pour
+         amener l'élément au bas de la vue, dans la marge où l'observateur ne
+         le voit pas encore : sans ceci, le focus se poserait sur l'invisible. */
+      onFocus={(event) => {
+        onFocus?.(event);
+        setState((current) => (current === 'pending' ? 'shown' : current));
+      }}
       className={clsx('opale-reveal', styles.root, className)}
       style={
         delay !== undefined && delay > 0
