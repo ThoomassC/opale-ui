@@ -270,6 +270,9 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   ),
   pub('--opale-ease-reveal', 'mouvement', 'Courbe de la montée d’un `Reveal`.'),
   pub('--opale-marquee-duration', 'mouvement', 'Période d’une boucle complète d’un `Marquee`.'),
+  pub('--opale-split-distance', 'mouvement', 'Montée d’un mot de `SplitHeading` avant son entrée.'),
+  pub('--opale-split-duration', 'mouvement', 'Durée de la montée d’un mot de `SplitHeading`.'),
+  pub('--opale-split-stagger', 'mouvement', 'Pas de la cascade des mots d’un `SplitHeading`.'),
 
   /* Le verre. */
   pub('--opale-glass-ink', 'verre', 'Encre du texte posé sur le verre.'),

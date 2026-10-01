@@ -354,6 +354,11 @@
   /* Le bandeau défilant (`Marquee`) : la période d'une boucle complète, lente
      assez pour qu'on lise une entrée avant qu'elle ne sorte. */
   --opale-marquee-duration: 28s;
+  /* Le titre découpé en mots (`SplitHeading`) : la montée d'un mot, sa durée
+     et le pas de la cascade ; la courbe est celle de `Reveal`. */
+  --opale-split-distance: 0.35em;
+  --opale-split-duration: 640ms;
+  --opale-split-stagger: 70ms;
   --opale-drop-shadow-1: drop-shadow(0 0.0625rem 0.0625rem rgba(20, 30, 24, 0.06))
     drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.08));
   --opale-drop-shadow-2: drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.07))

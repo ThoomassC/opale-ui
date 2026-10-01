@@ -49,6 +49,11 @@ const BUDGETS = {
      et la direction lue une fois. Posé à 3 000 o avant son écriture ; un
      dépassement s'allège, il ne relève pas ce budget. */
   Marquee: 3_000,
+  /* Le titre découpé en mots : des mots en `inline-block`, une copie lisible
+     cachée de l'écran et un observateur pour le déclencheur `view`. Posé à
+     2 500 o avant son écriture ; un dépassement s'allège, il ne relève pas
+     ce budget. */
+  SplitHeading: 2_500,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];
