@@ -1,0 +1,145 @@
+/* =============================================================================
+   LE BANDEAU DÉFILANT — FEUILLE D'OPALE.
+
+   AU REPOS, RIEN NE BOUGE ET RIEN N'EST ROGNÉ. Les règles de premier niveau
+   rendent le contenu une fois, à la ligne si besoin ; la copie de la boucle
+   est masquée. C'est l'état du serveur, d'une page sans script, du mouvement
+   réduit et de l'impression.
+
+   LE MOUVEMENT VIT DANS UN SEUL BLOC, `screen` et sans préférence de
+   mouvement réduit, et seulement une fois le script monté
+   (`[data-animated]`). La piste prend la largeur de ses deux copies et
+   glisse de `--opale-marquee-shift` (-50 %, +50 % de droite à gauche) :
+   exactement une copie, puisque chacune finit par le même espace que celui
+   qui sépare deux entrées.
+
+   LES RÉGLAGES SONT DES PROPRIÉTÉS PERSONNALISÉES : `--opale-marquee-duration`
+   (jeton de `:root`, 28 s, remplacé par `duration`) et `--opale-marquee-gap`
+   (posé par `gap`). Une boucle a une période, pas une durée de l'échelle :
+   le raccourci `infinite` le dit au contrat de mouvement.
+   ========================================================================== */
+
+@keyframes slide {
+  to {
+    transform: translateX(var(--opale-marquee-shift));
+  }
+}
+
+.root {
+  --opale-marquee-shift: -50%;
+  display: grid;
+  gap: var(--opale-space-sm);
+  min-inline-size: 0;
+}
+.root[data-dir='rtl'] {
+  --opale-marquee-shift: 50%;
+}
+
+/* La vue est le conteneur de requête des copies : `100cqi` est sa largeur. */
+.viewport {
+  container-type: inline-size;
+}
+
+.copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-marquee-gap, var(--opale-space-xl));
+}
+
+.clone {
+  display: none;
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .root[data-animated] .viewport {
+    overflow: hidden;
+  }
+  .root[data-animated][data-fade] .viewport {
+    mask: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+  .root[data-animated] .track {
+    display: flex;
+    inline-size: max-content;
+    animation: slide var(--opale-marquee-duration) linear infinite;
+  }
+  .root[data-animated] .copy {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    justify-content: space-around;
+    min-inline-size: 100cqi;
+    padding-inline-end: var(--opale-marquee-gap, var(--opale-space-xl));
+    white-space: nowrap;
+  }
+  .root[data-animated] .clone {
+    display: flex;
+  }
+  .root[data-animated]:not([data-paused]) .track {
+    will-change: transform;
+  }
+}
+
+.root[data-reverse] .track {
+  animation-direction: reverse;
+}
+
+/* Le bouton, le survol et le focus du contenu suspendent ; le survol est
+   réservé aux pointeurs qui survolent — un doigt qui touche ne doit pas
+   figer le bandeau jusqu'au toucher suivant. */
+.root[data-paused] .track,
+.viewport:focus-within .track {
+  animation-play-state: paused;
+}
+@media (hover: hover) {
+  .viewport:hover .track {
+    animation-play-state: paused;
+  }
+}
+
+.toggle {
+  display: inline-grid;
+  justify-self: start;
+  block-size: 2.5rem;
+  padding-inline: var(--opale-space-md);
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--opale-text) 22%, transparent);
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font: inherit;
+  font-size: var(--opale-text-sm);
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--opale-motion-fast) var(--opale-ease);
+}
+.toggle:active {
+  transform: scale(0.94);
+}
+/* `display` ci-dessus l'emporterait sur `hidden` : il est rétabli. */
+.toggle[hidden] {
+  display: none;
+}
+
+/* L'anneau de focus, celui de toute la famille. */
+.toggle:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+
+/* Rien ne bouge : rien à suspendre, même si la préférence change après le
+   montage. */
+@media (prefers-reduced-motion: reduce), print {
+  .toggle {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .toggle {
+    border-color: ButtonText;
+    color: ButtonText;
+  }
+  .toggle:focus-visible {
+    outline-color: CanvasText;
+  }
+}

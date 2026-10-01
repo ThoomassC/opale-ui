@@ -351,6 +351,9 @@
   --opale-reveal-duration: 720ms;
   --opale-reveal-stagger: 60ms;
   --opale-ease-reveal: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* Le bandeau défilant (`Marquee`) : la période d'une boucle complète, lente
+     assez pour qu'on lise une entrée avant qu'elle ne sorte. */
+  --opale-marquee-duration: 28s;
   --opale-drop-shadow-1: drop-shadow(0 0.0625rem 0.0625rem rgba(20, 30, 24, 0.06))
     drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.08));
   --opale-drop-shadow-2: drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.07))

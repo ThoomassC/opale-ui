@@ -45,6 +45,10 @@ const BUDGETS = {
      flottaison. Posé à 2 500 o avant son écriture ; un dépassement s'allège,
      il ne relève pas ce budget. */
   Reveal: 2_500,
+  /* Le bandeau défilant : une animation CSS sur deux copies, un bouton pause
+     et la direction lue une fois. Posé à 3 000 o avant son écriture ; un
+     dépassement s'allège, il ne relève pas ce budget. */
+  Marquee: 3_000,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];

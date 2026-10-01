@@ -40,6 +40,7 @@ export type { GlassSurfaceProps } from './glass';
 export * from './carousel';
 export * from './dropdown-menu';
 export * from './field';
+export * from './marquee';
 export * from './modal';
 export * from './popover';
 export * from './radio-group';

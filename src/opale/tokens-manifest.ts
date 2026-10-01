@@ -269,6 +269,7 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
     'Pas d’une cascade de `Reveal`, multiplié par `delay`.',
   ),
   pub('--opale-ease-reveal', 'mouvement', 'Courbe de la montée d’un `Reveal`.'),
+  pub('--opale-marquee-duration', 'mouvement', 'Période d’une boucle complète d’un `Marquee`.'),
 
   /* Le verre. */
   pub('--opale-glass-ink', 'verre', 'Encre du texte posé sur le verre.'),
