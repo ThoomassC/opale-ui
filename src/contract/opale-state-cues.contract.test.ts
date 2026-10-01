@@ -61,9 +61,9 @@ describe('ACC-04 — contrastes forcés', () => {
     expect(track.get('forced-color-adjust')).toBe('none');
     expect(track.get('border')).toBe('1px solid CanvasText');
     expect(track.get('background')).toBe('Canvas');
-    expect(
-      declaration(opaleSource, '.opale-toggle-thumb', 'background', { within: FORCED }),
-    ).toBe('CanvasText');
+    expect(declaration(opaleSource, '.opale-toggle-thumb', 'background', { within: FORCED })).toBe(
+      'CanvasText',
+    );
     expect(
       declaration(opaleSource, '.opale-toggle:checked + * .opale-toggle-track', 'background', {
         within: FORCED,
@@ -77,6 +77,22 @@ describe('ACC-04 — contrastes forcés', () => {
         { within: FORCED },
       ),
     ).toBe('HighlightText');
+  });
+
+  /* `forced-color-adjust: none` sur la piste garde l'anneau de l'auteur : sur
+     Canvas, un bleu clair tombait à 1,73:1. L'anneau prend la couleur de
+     sélection du système. */
+  it('trace l’anneau de focus de l’interrupteur en couleur système', () => {
+    expect(
+      declaration(
+        opaleSource,
+        '.opale-toggle:focus-visible + .opale-toggle-track',
+        'outline-color',
+        {
+          within: FORCED,
+        },
+      ),
+    ).toBe('Highlight');
   });
 
   it('dessine la piste et la valeur de la progression', () => {
@@ -167,9 +183,9 @@ describe('ACC-20 — l’interrupteur de droite à gauche', () => {
   });
 
   it('inverse le sens sous :dir(rtl)', () => {
-    expect(declaration(opaleSource, '.opale-toggle-thumb:dir(rtl)', '--opale-inline-direction')).toBe(
-      '-1',
-    );
+    expect(
+      declaration(opaleSource, '.opale-toggle-thumb:dir(rtl)', '--opale-inline-direction'),
+    ).toBe('-1');
   });
 });
 

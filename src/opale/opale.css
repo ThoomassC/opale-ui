@@ -4556,6 +4556,11 @@ ol.opale-stack {
     border: 1px solid CanvasText;
     background: Canvas;
   }
+  /* La piste garde ses couleurs d'auteur : l'anneau aussi, et un bleu clair
+     sur Canvas tombait à 1,73:1. Il prend la couleur de sélection. */
+  .opale-toggle:focus-visible + .opale-toggle-track {
+    outline-color: Highlight;
+  }
   /* La piste de verre reprend la même peau, APRÈS la piste pleine : à
      spécificité égale, la dernière règle gagne (garde de
      `opale-liquid-glass.test.tsx`). */
