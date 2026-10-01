@@ -19,6 +19,8 @@
    remplace — comme pour React. Voir `isDevelopment`.
    ========================================================================== */
 
+import { isDevelopment, resetWarnings, warnOnce } from './shared/dev-warning';
+
 /** La version où un nom a été déprécié. */
 export type DeprecatedSince = '2.6' | '2.7' | '2.10';
 
@@ -430,33 +432,6 @@ export type DeprecatedPropOf<C extends DeprecatedComponent> = Extract<
   { readonly component: C }
 >['prop'];
 
-/* `typeof process` ne suffit pas : dans le navigateur, `process` n'existe pas,
-   mais le bundler de l'application a déjà réécrit `process.env.NODE_ENV` en
-   chaîne littérale. Un garde `typeof process !== 'undefined'` éteindrait donc
-   l'avertissement dans tout serveur de développement Vite. On lit l'expression
-   telle quelle — c'est elle que les bundlers remplacent — et une
-   `ReferenceError` (aucun bundler, aucun Node) vaut « on ne sait pas », donc
-   silence. */
-declare const process: { readonly env: { readonly NODE_ENV?: string } };
-
-function isDevelopment(): boolean {
-  try {
-    return process.env.NODE_ENV !== 'production';
-  } catch {
-    return false;
-  }
-}
-
-/* UNE FOIS PAR CHARGEMENT DE PAGE, et par couple composant + prop. Une liste
-   rendue cent fois ne doit pas écrire cent lignes. */
-const warned = new Set<string>();
-
-function warnOnce(key: string, message: string): void {
-  if (!isDevelopment() || warned.has(key)) return;
-  warned.add(key);
-  console.warn(message);
-}
-
 function findProp(component: string, prop: string): DeprecatedPropEntry | undefined {
   return (DEPRECATED_PROPS as readonly DeprecatedPropEntry[]).find(
     (entry) => entry.component === component && entry.prop === prop,
@@ -582,5 +557,5 @@ export function warnImplicitDefault(component: ImplicitDefaultComponent): void {
 
 /** Oublie les avertissements déjà émis. Réservé aux tests. */
 export function resetDeprecationWarnings(): void {
-  warned.clear();
+  resetWarnings();
 }
