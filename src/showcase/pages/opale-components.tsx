@@ -375,7 +375,8 @@ function SeatStepper({ value }) {
   <Opale.Reveal as="li" delay={1}>Sans dépendance</Opale.Reveal>
   <Opale.Reveal as="li" delay={2}>Rendu serveur</Opale.Reveal>
 </ul>`,
-  Marquee: `// Les entrées en enfants directs ; le bouton pause est toujours rendu.
+  Marquee: `// Des entrées non interactives, en enfants directs. Le bouton pause suit le
+// mouvement : absent sans script, sous mouvement réduit et à l'impression.
 <Opale.Marquee label="Ce qu’Opale garantit">
   <span>WCAG 2.2 AA</span>
   <span>React 19</span>

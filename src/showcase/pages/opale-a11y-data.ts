@@ -791,6 +791,7 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Immobile au serveur, sans script, sous `prefers-reduced-motion: reduce` et à l’impression : le contenu passe à la ligne, jamais rogné, et le bouton est caché faute de mouvement à suspendre. En contrastes forcés, le bouton prend les couleurs système.',
     ],
     limits: [
+      'Les entrées ne sont pas interactives : ni lien, ni bouton, ni champ, ni média, ni `iframe`, ni composant à effets. La copie de la boucle est inerte — un clic sur deux n’y ferait rien — et dupliquerait champs, lecteurs et effets. Un avertissement de développement le signale.',
       'Les entrées sont rendues deux fois à l’écran : un `id` dans une entrée serait dupliqué.',
       'Un changement de `prefers-reduced-motion` en cours de visite arrête le mouvement tout de suite ; la copie masquée n’est retirée qu’au prochain montage.',
     ],

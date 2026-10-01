@@ -1,10 +1,11 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { createRef, StrictMode } from 'react';
+import { createRef, StrictMode, type CSSProperties } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Marquee, type MarqueeProps } from './Marquee';
+import { resetWarnings } from '../../shared/dev-warning';
 import {
   atRules,
   declaration,
@@ -452,6 +453,142 @@ describe('Marquee — rendu serveur', () => {
     act(() => button?.click());
     expect(button).toHaveTextContent('Lire');
     expect(marquee).toHaveAttribute('data-paused');
+    await act(async () => root?.unmount());
+    host.remove();
+  });
+});
+
+describe('Marquee — revue', () => {
+  beforeEach(() => resetWarnings());
+
+  /* Revue : la direction n'était lue qu'au montage ; un `dir` changé ensuite
+     laissait la bande glisser du mauvais côté, vide la plupart de la boucle. */
+  it('relit la direction à chaque rendu', () => {
+    const tree = (direction: 'ltr' | 'rtl') => (
+      <div style={{ direction }}>
+        <Marquee label="Langue">
+          <span>Un</span>
+        </Marquee>
+      </div>
+    );
+    const { rerender } = render(tree('ltr'));
+    const band = screen.getByRole('region', { name: 'Langue' });
+    expect(band).not.toHaveAttribute('data-dir');
+    rerender(tree('rtl'));
+    expect(band).toHaveAttribute('data-dir', 'rtl');
+    rerender(tree('ltr'));
+    expect(band).not.toHaveAttribute('data-dir');
+  });
+
+  it('relit la direction à chaque tour de boucle, sans rendu du parent', () => {
+    render(
+      <div data-testid="parent">
+        <Marquee label="Langue">
+          <span>Un</span>
+        </Marquee>
+      </div>,
+    );
+    const band = screen.getByRole('region', { name: 'Langue' });
+    /* Un effet du parent, après celui de l'enfant, pose `dir`. */
+    screen.getByTestId('parent').style.direction = 'rtl';
+    /* jsdom n'a pas d'`AnimationEvent` : React y écoute le nom préfixé. */
+    fireEvent(
+      band.querySelector('.opale-marquee__track')!,
+      new Event('webkitAnimationIteration', { bubbles: true }),
+    );
+    expect(band).toHaveAttribute('data-dir', 'rtl');
+  });
+
+  it('rejette une durée négative ou non finie', () => {
+    for (const duration of [-3, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const { unmount } = renderMarquee({ duration });
+      expect(region().style.getPropertyValue('--opale-marquee-duration')).toBe('');
+      unmount();
+    }
+  });
+
+  /* Revue : `undefined` écrit après `...style` effaçait les propriétés que
+     l'appelant passait lui-même. */
+  it('garde les propriétés personnalisées de `style` quand la prop est absente', () => {
+    const style = {
+      '--opale-marquee-duration': '10s',
+      '--opale-marquee-gap': '4px',
+    } as CSSProperties;
+    const { unmount } = renderMarquee({ style });
+    expect(region().style.getPropertyValue('--opale-marquee-duration')).toBe('10s');
+    expect(region().style.getPropertyValue('--opale-marquee-gap')).toBe('4px');
+    unmount();
+    renderMarquee({ style, duration: 0 });
+    expect(region().style.getPropertyValue('--opale-marquee-duration')).toBe('10s');
+  });
+
+  /* DÉCIDÉ : les entrées ne sont pas interactives (la copie inerte rendrait
+     un clic sur deux sans effet). Un avertissement de développement le dit. */
+  it('avertit une fois, en développement, d’une entrée interactive', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    renderMarquee();
+    expect(warn).not.toHaveBeenCalled();
+    for (const entry of [
+      <a href="#a">Lien</a>,
+      <input aria-label="Champ" />,
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- précisément le mauvais usage que l'avertissement doit signaler.
+      <span tabIndex={0}>Focalisable</span>,
+    ]) {
+      resetWarnings();
+      warn.mockClear();
+      const { unmount } = render(<Marquee label="Interactif">{entry}</Marquee>);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(String(warn.mock.calls[0]?.[0])).toMatch(/\[Opale\] Marquee/);
+      unmount();
+    }
+    warn.mockClear();
+    resetWarnings();
+    render(
+      <Marquee label="Inerte">
+        <span tabIndex={-1}>Hors tabulation</span>
+      </Marquee>,
+    );
+    expect(warn).not.toHaveBeenCalled();
+  });
+});
+
+describe('Marquee — hydratation de droite à gauche', () => {
+  it('s’hydrate sans écart dans un contexte `dir="rtl"`, puis pose `data-dir`', async () => {
+    const fixture = (
+      <Marquee label="RTL">
+        <span>واحد</span>
+      </Marquee>
+    );
+    vi.stubGlobal('window', undefined);
+    vi.stubGlobal('document', undefined);
+    let html = '';
+    try {
+      html = renderToString(fixture);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(html).not.toContain('data-dir');
+    const host = document.createElement('div');
+    host.dir = 'rtl';
+    host.style.direction = 'rtl';
+    host.innerHTML = html;
+    document.body.append(host);
+    const errors: string[] = [];
+    const consoleError = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      errors.push(args.map(String).join(' '));
+    });
+    let root: Root | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(host, <StrictMode>{fixture}</StrictMode>, {
+          onRecoverableError: (error) => errors.push(String(error)),
+        });
+      });
+    } finally {
+      consoleError.mockRestore();
+    }
+    expect(errors).toEqual([]);
+    expect(host.querySelector('[role="region"]')).toHaveAttribute('data-dir', 'rtl');
     await act(async () => root?.unmount());
     host.remove();
   });

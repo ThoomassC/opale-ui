@@ -926,7 +926,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop(
         'children',
         'ReactNode',
-        'Les entrées, en enfants directs ; sans `id`, elles sont rendues deux fois.',
+        'Les entrées, en enfants directs, non interactives ; sans `id`, elles sont rendues deux fois.',
       ),
       prop(
         'duration',
