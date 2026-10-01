@@ -5,7 +5,9 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ComponentPropsWithoutRef,
   type FocusEvent,
@@ -506,6 +508,21 @@ const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
     const open = openProp ?? openState;
     const canToggle = collapsible && !railCollapsed;
     const shown = open || !canToggle;
+    const titleRef = useRef<HTMLButtonElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    /* Où est le focus dans le groupe : le DOM ne le dit plus une fois
+       l'élément caché ou démonté, il faut donc le retenir avant. */
+    const focusIn = useRef<'title' | 'content' | null>(null);
+
+    /* LE FOCUS NE TOMBE PAS SUR <body>. Un groupe fermé sous le focus le rend
+       à son titre ; un rail plié sous le titre, à la première entrée. */
+    useLayoutEffect(() => {
+      if (!shown && focusIn.current === 'content') titleRef.current?.focus();
+    }, [shown]);
+    useLayoutEffect(() => {
+      if (!canToggle && focusIn.current === 'title')
+        contentRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus();
+    }, [canToggle]);
 
     const toggle = () => {
       const next = !open;
@@ -518,6 +535,12 @@ const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
         ref={ref}
         role="group"
         aria-labelledby={titleId}
+        onFocus={(event) => {
+          focusIn.current = contentRef.current?.contains(event.target) ? 'content' : 'title';
+        }}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) focusIn.current = null;
+        }}
         className={clsx(
           'opale-sidebar__group',
           styles.group,
@@ -528,6 +551,7 @@ const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
       >
         {canToggle ? (
           <button
+            ref={titleRef}
             type="button"
             id={titleId}
             className={clsx('opale-sidebar__group-title', styles.groupTitle)}
@@ -550,6 +574,7 @@ const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
           </span>
         )}
         <div
+          ref={contentRef}
           id={contentId}
           className={clsx('opale-sidebar__group-items', styles.groupItems)}
           hidden={!shown}

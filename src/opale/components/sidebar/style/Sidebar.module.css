@@ -229,6 +229,9 @@ a.item {
 
 /* Le focus d'une entrée retenue garde son liseré : la règle générique de
    l'anneau remplacerait l'ombre intérieure par le seul halo. */
+/* Survolée, l'entrée retenue gardait son liseré mais perdait le halo : la
+   règle du survol, plus précise, réécrivait toute l'ombre. */
+.item.itemActive:hover:focus-visible:not(:disabled):not([aria-disabled='true']),
 .item.itemActive:focus-visible {
   box-shadow:
     inset 0 0 0 1.5px var(--opale-sidebar-active-edge),
@@ -549,6 +552,11 @@ button.groupTitle:focus-visible {
   background: transparent;
   color: var(--opale-primary-on-surface);
 }
+/* L'appui garde son voile : un appui à la souris est aussi un survol, et la
+   règle ci-dessus l'effaçait. */
+.plain .item:hover:active:not(:disabled):not([aria-disabled='true']) {
+  background: color-mix(in srgb, var(--opale-primary) 10%, transparent);
+}
 .plain .groupTitle {
   color: var(--opale-text-secondary);
 }
@@ -570,13 +578,11 @@ button.groupTitle:focus-visible {
 .plain .item.itemActive,
 .plain .item.itemActive:not(.itemCollapsed),
 .plain .item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
+  /* Le liseré passe à `transparent` : les ombres de l'entrée retenue restent
+     posées par les règles générales, dont le halo de focus, survol compris. */
   --opale-sidebar-active-edge: transparent;
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
-  box-shadow: none;
   color: var(--opale-primary-on-surface);
-}
-.plain .item.itemActive:focus-visible {
-  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
 }
 
 .plain .item.itemActive:active:not(:disabled):not([aria-disabled='true']) {
@@ -607,6 +613,11 @@ button.groupTitle:focus-visible {
   .itemActive,
   .item.itemActive:hover:not(:disabled):not([aria-disabled='true']),
   .plain .itemActive,
+  /* Les mêmes sélecteurs que la surface pleine, plus bas dans la feuille : une
+     requête média n'ajoute aucune spécificité, et `.plain .item.itemActive`
+     reprenait sinon le dessus sur `Highlight`. */
+  .plain .item.itemActive,
+  .plain .item.itemActive:not(.itemCollapsed),
   .plain .item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
     background: Highlight;
     color: HighlightText;

@@ -118,3 +118,44 @@ describe('Sidebar.Group', () => {
     expect(Sidebar.Group).toBe(SidebarGroup);
   });
 });
+
+/* LE FOCUS NE TOMBE JAMAIS SUR `<body>`. Un groupe qui se ferme sous le focus,
+   ou un rail qui se plie pendant que son titre est focalisé, démontait ou
+   cachait l'élément focalisé : le clavier repartait du début de la page. */
+describe('Sidebar.Group — le focus', () => {
+  it('devrait ramener le focus sur le titre quand le groupe se ferme sous lui', () => {
+    const view = (open: boolean) => (
+      <Sidebar>
+        <Sidebar.Items>
+          <Sidebar.Group title="Fondations" open={open}>
+            <Sidebar.Item itemId="palette">La palette</Sidebar.Item>
+          </Sidebar.Group>
+        </Sidebar.Items>
+      </Sidebar>
+    );
+    const { rerender } = render(view(true));
+    screen.getByRole('button', { name: 'La palette' }).focus();
+
+    rerender(view(false));
+
+    expect(screen.getByRole('button', { name: 'Fondations' })).toHaveFocus();
+  });
+
+  it('devrait passer le focus à la première entrée quand le rail se plie sous le titre', () => {
+    const view = (collapsed: boolean) => (
+      <Sidebar collapsible collapsed={collapsed}>
+        <Sidebar.Items>
+          <Sidebar.Group title="Fondations">
+            <Sidebar.Item itemId="palette">La palette</Sidebar.Item>
+          </Sidebar.Group>
+        </Sidebar.Items>
+      </Sidebar>
+    );
+    const { rerender } = render(view(false));
+    screen.getByRole('button', { name: 'Fondations' }).focus();
+
+    rerender(view(true));
+
+    expect(screen.getByRole('button', { name: 'La palette' })).toHaveFocus();
+  });
+});
