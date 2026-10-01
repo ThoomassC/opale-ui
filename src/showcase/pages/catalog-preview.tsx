@@ -12,6 +12,7 @@ import {
   MarqueeDemo,
   SplitHeadingDemo,
   RevealDemo,
+  ScrollSectionDemo,
   TextareaDemo,
   TooltipDemo,
 } from './catalog-preview-additions';
@@ -821,6 +822,9 @@ export function CatalogPreview({
       break;
     case 'SplitHeading':
       preview = <SplitHeadingDemo />;
+      break;
+    case 'ScrollSection':
+      preview = <ScrollSectionDemo />;
       break;
     case 'Tooltip':
       preview = <TooltipDemo liquidGlass={liquidGlass} />;

@@ -54,6 +54,11 @@ const SHOWCASE_ONLY_ENTRIES: readonly ShowcaseCatalogEntry[] = [
     'Mouvement',
     'Titre dont les mots montent en cascade, lu d’un seul tenant et visible au repos.',
   ],
+  [
+    'ScrollSection',
+    'Mouvement',
+    'Bandes qui peignent chacune leur fond, et une scène qui expose celui de la section active.',
+  ],
 ].map(([name, category, description]) => ({ name, category, description }));
 
 const PUBLISHED_NAMES = new Set(CATALOG.map((entry) => entry.name));

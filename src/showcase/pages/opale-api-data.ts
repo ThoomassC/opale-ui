@@ -956,6 +956,43 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('by', "'word'", 'L’unité du découpage : les mots, seule valeur pour l’instant.', 'word'),
     ],
   },
+  ScrollSection: {
+    states:
+      'Peint toujours son fond et son encre, sans transition ; dans une `ScrollStage`, s’inscrit auprès de la scène.',
+    rows: [
+      prop(
+        'ground',
+        "'paper' | 'amber' | 'night' | 'blue'",
+        'Le fond peint, avec son encre (`--opale-ground-<nom>`) ; `night` et `blue` passent les composants imbriqués en thème sombre, `amber` en clair.',
+        undefined,
+        true,
+      ),
+      prop(
+        'as',
+        "'section' | 'div' | 'header' | 'footer' | 'article'",
+        'La balise rendue ; une `section` nommée par `aria-labelledby` devient une région.',
+        'section',
+      ),
+    ],
+    parts: [
+      {
+        name: 'ScrollStage',
+        rows: [
+          prop(
+            'onGroundChange',
+            '(ground: ScrollGround) => void',
+            'Appelée quand une autre section croise le milieu de la vue ; jamais au montage.',
+          ),
+          prop('as', "'div' | 'main' | 'article'", 'La balise rendue.', 'div'),
+          prop(
+            'children',
+            'ReactNode',
+            'Les `ScrollSection` ; la première qui porte `ground` donne le fond de départ.',
+          ),
+        ],
+      },
+    ],
+  },
   Tooltip: {
     states: 'Au survol après un délai, au focus tout de suite ; Échap la retire.',
     rows: [

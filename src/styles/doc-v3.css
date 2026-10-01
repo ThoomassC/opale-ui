@@ -3476,3 +3476,45 @@ body {
 .tc-doc-split-demo__below {
   margin-block-start: 90svh;
 }
+
+/* La scène aux quatre fonds : des gouttières où se voit le fondu de la
+   scène, des sections assez hautes pour défiler, et une étiquette collante
+   peinte du couple actif — qui change d'un coup, jamais par un mélange. */
+.tc-doc-stage-demo {
+  display: grid;
+  gap: var(--opale-space-sm);
+  inline-size: 100%;
+  padding: var(--opale-space-sm);
+  border-radius: var(--opale-radius-lg);
+}
+.tc-doc-stage-demo__label {
+  position: sticky;
+  z-index: 1;
+  inset-block-start: calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem);
+  justify-self: start;
+  margin: 0;
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+  border: 1px solid currentColor;
+  border-radius: var(--opale-radius-pill);
+  background-color: var(--opale-stage-ground);
+  color: var(--opale-stage-ink);
+  font-weight: 600;
+}
+.tc-doc-stage-demo__section {
+  display: grid;
+  align-content: center;
+  gap: var(--opale-space-md);
+  min-block-size: 70svh;
+  padding: var(--opale-space-xl) var(--opale-space-lg);
+  border-radius: var(--opale-radius-md);
+}
+.tc-doc-stage-demo__section h3 {
+  margin: 0;
+  font-family: var(--opale-font-display);
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+  line-height: 1.1;
+}
+.tc-doc-stage-demo__section p {
+  margin: 0;
+  max-inline-size: 40ch;
+}

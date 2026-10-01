@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useId, useState, type FormEvent, type KeyboardEvent } from 'react';
 
 import {
   Button,
@@ -22,11 +22,14 @@ import {
   PopoverTrigger,
   RadioGroup,
   Reveal,
+  ScrollSection,
+  ScrollStage,
   SegmentedControl,
   SplitHeading,
   Textarea,
   Tooltip,
   type FieldControlProps,
+  type ScrollGround,
 } from '../../opale';
 
 /* =============================================================================
@@ -334,6 +337,45 @@ export function SplitHeadingDemo() {
         Celui-ci part quand on le voit.
       </SplitHeading>
     </div>
+  );
+}
+
+/* Les quatre fonds de la planche, chacun avec son nom lisible et sa phrase. */
+const SCROLL_GROUNDS: readonly (readonly [ScrollGround, string, string])[] = [
+  ['paper', 'Papier', 'Le fond de la page : la surface et l’encre du thème.'],
+  ['amber', 'Ambre', 'L’accent d’Opale, sous une encre presque noire.'],
+  ['night', 'Nuit', 'Un vert presque noir ; les composants y passent en thème sombre.'],
+  ['blue', 'Bleu', 'Le primaire d’Opale, sous une encre blanche.'],
+];
+
+/* Une scène aux quatre fonds, assez haute pour défiler. L'étiquette collante
+   n'est dans aucune section : elle lit le couple actif de la scène
+   (`--opale-stage-ground` / `--opale-stage-ink`), qui change d'un coup, et
+   `onGroundChange` lui donne son texte. Les gouttières montrent le fondu du
+   fond propre de la scène. */
+export function ScrollSectionDemo() {
+  const id = useId();
+  const [ground, setGround] = useState<ScrollGround>('paper');
+  const name = SCROLL_GROUNDS.find(([value]) => value === ground)?.[1];
+  return (
+    <ScrollStage className="tc-doc-stage-demo" onGroundChange={setGround}>
+      <p className="tc-doc-stage-demo__label">Fond actif : {name}</p>
+      {SCROLL_GROUNDS.map(([value, title, text]) => (
+        <ScrollSection
+          key={value}
+          ground={value}
+          aria-labelledby={`${id}-${value}`}
+          className="tc-doc-stage-demo__section"
+        >
+          <h3 id={`${id}-${value}`}>{title}</h3>
+          <p>{text}</p>
+          <div className="tc-doc-opale-preview__row">
+            <Button>Action principale</Button>
+            <Button variant="secondary">Action secondaire</Button>
+          </div>
+        </ScrollSection>
+      ))}
+    </ScrollStage>
   );
 }
 

@@ -5,6 +5,7 @@ import {
   CarouselDemo,
   MarqueeDemo,
   RevealDemo,
+  ScrollSectionDemo,
   SplitHeadingDemo,
 } from './catalog-preview-additions';
 
@@ -87,5 +88,32 @@ describe('la démo du titre découpé', () => {
       name: 'Un titre qui prend son temps.',
     });
     expect(replayed).not.toBe(first);
+  });
+});
+
+/* La démo des fonds au défilement : une scène, quatre régions nommées par
+   leur titre, chacune avec son fond, et l'étiquette collante hors section,
+   qui suit le fond actif. jsdom n'a pas d'`IntersectionObserver` : la scène
+   reste sur le fond de sa première section. */
+describe('la démo des fonds au défilement', () => {
+  it('rend quatre régions nommées dans une scène au fond de la première', () => {
+    const { container } = render(<ScrollSectionDemo />);
+    const stage = container.querySelector('.opale-scroll-stage');
+    expect(stage).toHaveAttribute('data-ground', 'paper');
+    const regions = ['Papier', 'Ambre', 'Nuit', 'Bleu'].map((name) =>
+      screen.getByRole('region', { name }),
+    );
+    expect(regions.map((region) => region.getAttribute('data-ground'))).toEqual([
+      'paper',
+      'amber',
+      'night',
+      'blue',
+    ]);
+    for (const region of regions) {
+      expect(within(region).getAllByRole('button')).toHaveLength(2);
+    }
+    const label = screen.getByText('Fond actif : Papier');
+    expect(label.closest('.opale-scroll-section')).toBeNull();
+    expect(label.parentElement).toBe(stage);
   });
 });

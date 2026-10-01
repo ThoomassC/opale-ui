@@ -88,6 +88,7 @@ const PAGE_IMPORTS: Readonly<Record<string, readonly string[]>> = {
   Field: ['Field', 'useFieldProps'],
   Popover: ['Popover', 'PopoverTrigger', 'PopoverContent'],
   RadioGroup: ['RadioGroup', 'Radio'],
+  ScrollSection: ['ScrollSection', 'ScrollStage'],
 };
 
 /** Ajoute la prop à la balise ouvrante ciblée, y compris avec des callbacks `=>` dans les attributs. */
@@ -395,6 +396,20 @@ function SeatStepper({ value }) {
 <Opale.SplitHeading level={1} trigger="mount">
   Bienvenue sur la vitrine.
 </Opale.SplitHeading>`,
+  ScrollSection: `// Chaque section peint son fond et son encre ; la scène expose celui de la
+// section qui croise le milieu de la vue, en data-ground et en
+// --opale-stage-ground / --opale-stage-ink, sans jamais repeindre les sections.
+<Opale.ScrollStage onGroundChange={(ground) => console.log(ground)}>
+  <Opale.ScrollSection ground="paper" aria-labelledby="intro">
+    <h2 id="intro">Le papier</h2>
+  </Opale.ScrollSection>
+  <Opale.ScrollSection ground="amber" aria-labelledby="accent">
+    <h2 id="accent">L’ambre</h2>
+  </Opale.ScrollSection>
+  <Opale.ScrollSection ground="night" aria-labelledby="nuit">
+    <h2 id="nuit">La nuit</h2>
+  </Opale.ScrollSection>
+</Opale.ScrollStage>`,
   Tooltip: `// Une description courte, au survol et au focus : jamais une information essentielle.
 <Opale.Tooltip content="Enregistre le brouillon sans le publier.">
   <Opale.Button variant="secondary">Enregistrer</Opale.Button>

@@ -813,6 +813,23 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Dans un conteneur qui défile lui-même, `trigger="view"` attend que le titre soit visible dans ce conteneur et dans la vue.',
     ],
   },
+  ScrollSection: {
+    states: [],
+    keyboard: [
+      'Aucune touche propre : le défilement est celui de la page. Un saut (Fin, Début, ancre) finit sur la section d’arrivée.',
+    ],
+    semantics: [
+      'Chaque section peint toujours son propre couple fond / encre, à 4,5:1 au moins : son texte ne passe jamais sur le fond d’une voisine, même pendant le fondu de la scène.',
+      'Une `section` nommée par `aria-labelledby` est une région ; sans nom, elle n’en est pas une. `as` rend `div`, `header`, `footer` ou `article`.',
+      '`night` et `blue` posent le thème local sombre, `amber` le clair : les composants imbriqués prennent les encres de leur fond.',
+      'Sans script, à l’impression et avant l’hydratation, la scène porte le fond de la première section. Sous `prefers-reduced-motion: reduce`, elle suit toujours la section active, sans fondu.',
+    ],
+    limits: [
+      'Un texte posé directement sur la scène, hors section, passe pendant le fondu par des couples intermédiaires illisibles : il lit `--opale-stage-ground` et `--opale-stage-ink` sur son propre fond, qui change d’un coup.',
+      'La section active est celle qui croise le milieu de la vue : une dernière section trop courte pour l’atteindre ne devient jamais active.',
+      'Les propriétés `--opale-stage-*` ne valent que dans la scène : un en-tête placé hors d’elle suit `onGroundChange`.',
+    ],
+  },
   Tooltip: {
     states: [],
     keyboard: [

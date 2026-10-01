@@ -218,8 +218,8 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
   },
   {
     /* LES COMPOSANTS EN MOUVEMENT DE LA 3.0 : le carrousel ouvre la section,
-       l'apparition au défilement, le bandeau défilant et le titre découpé
-       le suivent, les autres la rejoindront. */
+       l'apparition au défilement, le bandeau défilant, le titre découpé et
+       les fonds au défilement le suivent, les autres la rejoindront. */
     id: 'mouvement',
     label: 'MOUVEMENT',
     entries: [
@@ -227,6 +227,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Reveal', 'Reveal'),
       opaleEntry('Marquee', 'Marquee'),
       opaleEntry('SplitHeading', 'SplitHeading'),
+      opaleEntry('ScrollSection', 'ScrollSection'),
     ],
   },
   {

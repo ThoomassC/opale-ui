@@ -218,17 +218,23 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
 /* 94 : `Reveal`, l'apparition au défilement, rejoint la section MOUVEMENT. */
 /* 95 : `Marquee`, le bandeau défilant, la rejoint à son tour. */
 /* 96 : `SplitHeading`, le titre découpé en mots, après lui. */
-const PUBLISHED_COMPONENT_COUNT = 96;
+/* 98 : `ScrollSection` et `ScrollStage`, les fonds au défilement, documentés
+   sur une seule page — celle de la section. */
+const PUBLISHED_COMPONENT_COUNT = 98;
 
 /**
  * Les parties publiées SANS membre statique sur leur composant, vers leur
  * propriétaire. `Popover` et `DropdownMenu` n'exposent pas `Popover.Trigger` :
  * leurs parties ne sont publiées que sous leur nom, donc le calcul ci-dessous,
  * qui lit les membres, ne les voit pas. Le préfixe suffit à les rattacher ;
- * `Radio` ne porte pas celui de `RadioGroup` et s'écrit en toutes lettres.
+ * `Radio` ne porte pas celui de `RadioGroup`, ni `ScrollStage` celui de
+ * `ScrollSection` : ils s'écrivent en toutes lettres.
  */
 const NAMED_PART_PREFIXES: readonly string[] = ['Carousel', 'DropdownMenu', 'Popover'];
-const NAMED_PART_OWNERS: Readonly<Record<string, string>> = { Radio: 'RadioGroup' };
+const NAMED_PART_OWNERS: Readonly<Record<string, string>> = {
+  Radio: 'RadioGroup',
+  ScrollStage: 'ScrollSection',
+};
 
 /** Le propriétaire d'une partie publiée sous son seul nom, s'il en a un. */
 function namedPartOwner(component: string): string | undefined {
