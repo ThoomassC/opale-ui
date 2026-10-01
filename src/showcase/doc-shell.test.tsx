@@ -12,7 +12,7 @@ import {
   DOC_NAV_WIDTH_STEP,
 } from './doc-nav';
 import { PAGES } from './pages';
-import { SHOWCASE_CATALOG } from './showcase-catalog';
+import { HOME_COPY } from './pages/accueil/home-copy';
 import { preloadPages } from './pages/lazy-page';
 import { UI_VERSION } from './version';
 
@@ -225,6 +225,16 @@ function navigate(hash: string): void {
   });
 }
 
+/**
+ * Le vrai registre, servi sur une page de documentation : l'accueil est une
+ * page pleine largeur, sans sommaire, et les tests du sommaire le visent
+ * donc ailleurs.
+ */
+function renderDocPage(): void {
+  render(<DocShell pages={PAGES} />);
+  navigate(hrefFor('installation'));
+}
+
 /** Remet l'adresse à la racine SANS émettre `hashchange`. */
 function resetRoute(): void {
   window.history.replaceState(null, '', '/');
@@ -246,7 +256,7 @@ describe('DocShell — la note de version', () => {
      gauche, une note de version ». Premier ENFANT, donc : la trouver quelque
      part dans la nav ne suffit pas. */
   it('devrait rendre la note de version en premier enfant du sommaire', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const first = sommaire().firstElementChild;
 
@@ -291,7 +301,7 @@ describe('DocShell — les onglets du header', () => {
   });
 
   it('devrait préparer un menu compact pour les largeurs où les onglets ne tiennent plus', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const menu = document.querySelector('.tc-doc-topbar__menu');
 
@@ -345,7 +355,7 @@ describe('DocShell — les onglets du header', () => {
 
 describe('DocShell — la largeur du sommaire', () => {
   it('devrait prévisualiser la largeur directement pendant un glissement', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const resizeHandle = screen.getByRole('slider', { name: 'Largeur du sommaire' });
     const body = document.querySelector('.tc-doc-body');
@@ -367,7 +377,7 @@ describe('DocShell — la largeur du sommaire', () => {
   it('devrait pouvoir être ajustée au clavier dans des bornes accessibles', async () => {
     const user = userEvent.setup();
 
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const resizeHandle = screen.getByRole('slider', { name: 'Largeur du sommaire' });
     const body = document.querySelector('.tc-doc-body');
@@ -402,7 +412,7 @@ describe('DocShell — les entrées du sommaire', () => {
      qu'il couvre chaque composant publié. Les deux tests se tiennent : l'un
      dit que le registre est complet, l'autre que la barre le rend en entier. */
   it('devrait rendre une entrée par page du registre réel', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const expected = navOrderOf(PAGES);
 
@@ -415,7 +425,7 @@ describe('DocShell — les entrées du sommaire', () => {
   });
 
   it('devrait donner à chaque entrée l’adresse canonique de sa page', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     expect(
       hrefsOf(navLinks()),
@@ -677,22 +687,18 @@ describe('DocShell — le rendu de la page', () => {
     ).toBe('Le soclecorps de l’accueil');
   });
 
-  it('devrait rendre l’accueil Opale sans la carte Beta de la référence', () => {
+  /* L'ACCUEIL DE LA 3.0 EST PLEINE LARGEUR : son `<h1>` est le titre découpé
+     de l'accroche, rendu par la page et non par la coquille. Le détail des
+     bandes est tenu par `pages/accueil/home.test.tsx`. */
+  it('devrait rendre l’accueil pleine largeur, titré par la page elle-même', () => {
     render(<DocShell pages={PAGES} />);
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'Le design system de l’écosystème Opale.',
-    );
-    /* LA VERSION EST DÉRIVÉE, PAS RECOPIÉE. Écrite en dur, elle imposait de
-       retoucher ce test à chaque publication — et surtout elle n'aurait pas
-       rougi si le bandeau avait cessé d'afficher la version courante pour en
-       figer une ancienne, ce qui est le seul défaut qui compte ici. Le reste
-       du fichier dérive déjà de `UI_VERSION` ; cette ligne était la seule
-       copie restante. */
-    expect(screen.getByRole('heading', { name: `Opale UI ${UI_VERSION}` })).toBeInTheDocument();
-    expect(screen.getByText(`${SHOWCASE_CATALOG.length} composants Opale`)).toBeInTheDocument();
+    const title = screen.getByRole('heading', { level: 1 });
+    expect(title).toHaveAccessibleName(HOME_COPY.FR.hero.title);
+    expect(title).not.toHaveClass('tc-doc-page__title');
+    expect(document.querySelector('.tc-doc')).toHaveClass('tc-doc--full-bleed');
     expect(screen.queryByText(/Rejoindre la bêta/i)).toBeNull();
-    expect(screen.getByRole('link', { name: 'Explorer les composants' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: HOME_COPY.FR.hero.components })).toHaveAttribute(
       'href',
       '#/composants/opale-button',
     );
@@ -1234,12 +1240,5 @@ describe('DocShell — la page pleine largeur', () => {
       ...sections.map((section) => hrefFor(section.entries[0]?.page.slug ?? '')),
     ]);
     expect(menuLinks[3]).toHaveTextContent('Prise en main');
-  });
-
-  it('garde le menu aux seuls onglets sur une page de documentation', () => {
-    render(<DocShell pages={PAGES} />);
-    navigate(hrefFor('installation'));
-
-    expect(document.querySelectorAll('.tc-doc-topbar__menu-nav a')).toHaveLength(3);
   });
 });

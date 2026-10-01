@@ -3588,3 +3588,167 @@ html:has(.tc-doc-stage-demo) {
   max-block-size: calc(100dvh - var(--tc-doc-topbar-height, var(--doc-topbar-size)) - 1rem);
   overflow-y: auto;
 }
+
+/* =============================================================================
+   L'ACCUEIL DE LA 3.0 — `.tc-doc-landing`.
+
+   L'ÉCHELLE EST CELLE DE LA PLANCHE DE DA (`docs/v3/planche-da.html`) : un
+   titre d'affiche de 48 à 132 px, des titres de bande de 36 à 72 px, en
+   Bricolage Grotesque 500 resserré de 3,5 % ; Chivo pour lire. Les bandes
+   respirent de 64 à 144 px, le contenu tient dans 82 rem sur une gouttière
+   de 16 à 48 px.
+
+   CHAQUE BANDE PEINT SON COUPLE (`ScrollSection`) : les textes héritent de
+   son encre au lieu de reprendre `--opale-text`, que seul le papier partage.
+   ========================================================================== */
+.tc-doc-landing {
+  --tc-doc-landing-gutter: clamp(1rem, 0.5rem + 2.5vw, 3rem);
+  --tc-doc-landing-max: 82rem;
+  overflow-x: clip;
+}
+.tc-doc-landing__band {
+  padding-block: clamp(4rem, 2rem + 8vw, 9rem);
+}
+.tc-doc-landing__wrap {
+  display: grid;
+  gap: clamp(2rem, 1rem + 3vw, 4rem);
+  max-inline-size: var(--tc-doc-landing-max);
+  margin-inline: auto;
+  padding-inline: var(--tc-doc-landing-gutter);
+}
+.tc-doc-landing__head {
+  display: grid;
+  gap: var(--opale-space-md);
+}
+.tc-doc-landing .opale-split-heading {
+  color: inherit;
+  font-family: var(--opale-font-title);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.tc-doc-landing__display {
+  max-inline-size: 14ch;
+  margin: 0;
+  font-size: clamp(3rem, 1.2rem + 7.6vw, 8.25rem);
+  line-height: 0.98;
+}
+.tc-doc-landing__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4.5rem);
+  line-height: 1;
+}
+.tc-doc-landing__eyebrow {
+  margin: 0;
+  font-family: var(--opale-font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tc-doc-landing__lede {
+  max-inline-size: 40rem;
+  margin: 0;
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  line-height: 1.45;
+}
+.tc-doc-landing__band--hero {
+  padding-block: clamp(3.5rem, 2rem + 6vw, 7.5rem) clamp(3rem, 2rem + 5vw, 6rem);
+}
+.tc-doc-landing__hero {
+  gap: clamp(1.25rem, 0.75rem + 2vw, 2.25rem);
+}
+.tc-doc-landing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-sm);
+}
+.tc-doc-landing__actions .opale-button {
+  text-decoration: none;
+}
+
+/* LE CARROUSEL : DES CARTES DE SURFACE SUR L'AMBRE. La bande est en thème
+   clair à toutes les préférences (`ScrollSection`), donc la surface et
+   l'encre des cartes sont celles du thème clair : les composants des démos y
+   gardent leurs contrastes mesurés. */
+.tc-doc-landing__carousel {
+  inline-size: 100%;
+}
+/* `position: relative` FAIT DE LA CARTE LE BLOC CONTENANT de ce qu'elle
+   pose en absolu — les copies masquées (`.opale-visually-hidden`) des
+   champs et du titre découpé, l'indicateur des onglets. Sans lui, ils
+   prenaient pour repère un ancêtre hors de la piste, échappaient à son
+   défilement et élargissaient la page de 790 px. */
+.tc-doc-landing-slide {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--opale-space-lg);
+  min-block-size: 24rem;
+  padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  border-radius: var(--opale-radius-lg);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+}
+.tc-doc-landing-slide__text {
+  display: grid;
+  gap: var(--opale-space-xs);
+}
+.tc-doc-landing-slide h3 {
+  margin: 0;
+  font-family: var(--opale-font-title);
+  font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.tc-doc-landing-slide__text p {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}
+.tc-doc-landing-slide__demo {
+  display: grid;
+  align-content: start;
+  gap: var(--opale-space-sm);
+  min-inline-size: 0;
+}
+.tc-doc-landing-slide__demo > button {
+  justify-self: start;
+}
+.tc-doc-landing-slide__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-space-xs);
+}
+.tc-doc-landing-slide__glass {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-space-xs);
+  padding: var(--opale-space-md);
+  border-radius: var(--opale-radius-md);
+}
+.tc-doc-landing-slide__tabs p {
+  margin: var(--opale-space-sm) 0 0;
+}
+.tc-doc-landing-slide__motion {
+  display: grid;
+  justify-items: start;
+  gap: var(--opale-space-md);
+}
+.tc-doc-landing-slide .tc-doc-landing-slide__split {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  line-height: 1.05;
+}
+.tc-doc-landing-slide__link {
+  justify-self: start;
+}
+.tc-doc-landing-slide__popover {
+  display: grid;
+  gap: var(--opale-space-xs);
+  max-inline-size: 18rem;
+}
+.tc-doc-landing-slide__popover p {
+  margin: 0;
+}

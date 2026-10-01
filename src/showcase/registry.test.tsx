@@ -538,19 +538,34 @@ describe('Le registre des pages', () => {
 
     /* La coquille rend le `<h1>` — le `title` de la page. Une page qui en rend
        un second donne deux titres de premier niveau au document, donc deux
-       réponses à « où suis-je ». */
-    it.each(PAGE_CASES)('la page « %s » ne devrait rendre aucun <h1>', (_slug, page) => {
-      const { container } = render(<>{page.render()}</>);
-      const own = headingsOf(container)
-        .filter((heading) => levelOf(heading) === 1)
-        .map(describeHeading);
+       réponses à « où suis-je ». Une page pleine largeur, elle, rend le sien
+       — la coquille n'en rend pas — et un seul. */
+    it.each(PAGE_CASES.filter(([, page]) => page.fullBleed))(
+      'la page pleine largeur « %s » devrait rendre un seul <h1>, son titre',
+      (_slug, page) => {
+        const { container } = render(<>{page.render()}</>);
+        const own = headingsOf(container).filter((heading) => levelOf(heading) === 1);
 
-      expect(
-        own,
-        `la page « ${page.slug} » rend ${own.length} <h1> (${own.join(', ')}) alors ` +
-          `que la coquille rend déjà celui du titre « ${page.title} »`,
-      ).toEqual([]);
-    });
+        expect(own).toHaveLength(1);
+        expect(own[0]).toHaveAccessibleName(page.title);
+      },
+    );
+
+    it.each(PAGE_CASES.filter(([, page]) => !page.fullBleed))(
+      'la page « %s » ne devrait rendre aucun <h1>',
+      (_slug, page) => {
+        const { container } = render(<>{page.render()}</>);
+        const own = headingsOf(container)
+          .filter((heading) => levelOf(heading) === 1)
+          .map(describeHeading);
+
+        expect(
+          own,
+          `la page « ${page.slug} » rend ${own.length} <h1> (${own.join(', ')}) alors ` +
+            `que la coquille rend déjà celui du titre « ${page.title} »`,
+        ).toEqual([]);
+      },
+    );
 
     /* ========================================================================
        LE GARDE AJOUTÉ PAR LA MIGRATION 2.0, ET IL A TROUVÉ ONZE DÉFAUTS.
