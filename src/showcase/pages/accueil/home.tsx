@@ -1,9 +1,22 @@
-import { Carousel, ScrollSection, ScrollStage, SplitHeading } from '../../../opale';
+import {
+  Card,
+  Carousel,
+  Clipboard,
+  Link,
+  Marquee,
+  PageScaffold,
+  Reveal,
+  ScrollSection,
+  ScrollStage,
+  SplitHeading,
+} from '../../../opale';
 import { catalogComponentSlug, hrefFor, type DocPageTitleProps } from '../../doc-model';
+import { INSTALL_REF, INSTALL_REF_KIND } from '../../install-ref';
 import type { Language } from '../../localization';
 import { SHOWCASE_CATALOG } from '../../showcase-catalog';
 import { UI_VERSION } from '../../version';
-import { HOME_COPY } from './home-copy';
+import { installCommands } from '../installation';
+import { HOME_COPY, RUNTIME_DEPENDENCIES, type HomeCopy } from './home-copy';
 import { homeSlides } from './home-slides';
 
 /* =============================================================================
@@ -20,6 +33,47 @@ import { homeSlides } from './home-slides';
    ========================================================================== */
 
 const COMPONENT_COUNT = SHOWCASE_CATALOG.length;
+
+/* La commande de la release courante : l'archive construite quand elle
+   existe, le tag Git sinon — la même que la page Installation. */
+const INSTALL = installCommands(INSTALL_REF, INSTALL_REF_KIND);
+const INSTALL_COMMAND = INSTALL.archive ?? INSTALL.git;
+
+/* L'APERÇU D'UNE PAGE ENTIÈRE : un vrai `PageScaffold`, rendu dans un cadre
+   `inert` (et `aria-hidden`, pour les outils qui ignorent encore `inert`).
+   Ce n'est qu'une image de page — ni le clavier ni un lecteur d'écran n'y
+   entrent ; la légende de la figure la décrit, et le lien qui
+   suit mène à l'exemple qui, lui, se manipule. Son titre est un `<h3>`, sous
+   le `<h2>` de la bande, et `mainAs="div"` laisse à la vitrine son seul
+   `<main>`. */
+function ScaffoldPreview({ copy }: { readonly copy: HomeCopy['pages']['scaffold'] }) {
+  /* Les liens visent tous l'exemple : inertes, ils ne mènent nulle part, mais
+     une page qui se lierait à elle-même serait un défaut du registre. */
+  const example = hrefFor('composants/page-scaffold');
+  const navigation = [
+    { id: 'home', href: example, label: copy.home },
+    { id: 'work', href: example, label: copy.work },
+    { id: 'about', href: example, label: copy.about },
+  ];
+  return (
+    <PageScaffold
+      className="tc-doc-landing__scaffold"
+      mainAs="div"
+      titleAs="h3"
+      siteName={copy.site}
+      homeHref={example}
+      navigation={navigation}
+      activeId="home"
+      showLanguageSelector={false}
+      pageTitle={copy.title}
+      pageDescription={copy.description}
+      footerLinks={[{ id: 'legal', href: example, label: copy.legal }]}
+      copyrightYear={2026}
+    >
+      <Card title={copy.card}>{copy.body}</Card>
+    </PageScaffold>
+  );
+}
 
 export interface HomeProps {
   readonly language: Language;
@@ -87,6 +141,98 @@ export function Home({ language, titleProps }: HomeProps) {
           >
             {homeSlides(copy.components)}
           </Carousel>
+        </div>
+      </ScrollSection>
+
+      <ScrollSection
+        ground="night"
+        aria-labelledby="tc-doc-landing-qualities"
+        className="tc-doc-landing__band"
+      >
+        <div className="tc-doc-landing__wrap">
+          <div className="tc-doc-landing__head">
+            <SplitHeading id="tc-doc-landing-qualities" className="tc-doc-landing__title">
+              {copy.qualities.title}
+            </SplitHeading>
+            <p className="tc-doc-landing__lede">{copy.qualities.lede}</p>
+          </div>
+          {/* Du texte seul : la copie de la boucle est inerte, un lien y
+              serait cliquable une fois sur deux. */}
+          <Marquee
+            label={copy.qualities.marquee}
+            labels={copy.qualities.marqueeLabels}
+            className="tc-doc-landing__marquee"
+          >
+            {copy.qualities.marqueeItems(COMPONENT_COUNT).map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </Marquee>
+          <ul className="tc-doc-landing__proofs">
+            {copy.qualities.proofs(RUNTIME_DEPENDENCIES).map((proof, index) => (
+              <Reveal key={proof.title} as="li" delay={index} className="tc-doc-landing__proof">
+                <h3>{proof.title}</h3>
+                <p>{proof.text}</p>
+              </Reveal>
+            ))}
+          </ul>
+        </div>
+      </ScrollSection>
+
+      <ScrollSection
+        ground="paper"
+        aria-labelledby="tc-doc-landing-pages"
+        className="tc-doc-landing__band"
+      >
+        <div className="tc-doc-landing__wrap">
+          <div className="tc-doc-landing__head">
+            <SplitHeading id="tc-doc-landing-pages" className="tc-doc-landing__title">
+              {copy.pages.title}
+            </SplitHeading>
+            <p className="tc-doc-landing__lede">{copy.pages.lede}</p>
+          </div>
+          <figure className="tc-doc-landing__preview" aria-labelledby="tc-doc-landing-preview">
+            <div className="tc-doc-landing__frame" inert aria-hidden="true">
+              <ScaffoldPreview copy={copy.pages.scaffold} />
+            </div>
+            <figcaption id="tc-doc-landing-preview">{copy.pages.caption}</figcaption>
+          </figure>
+          <Link className="tc-doc-landing__link" href={hrefFor('composants/page-scaffold')}>
+            {copy.pages.link}
+          </Link>
+        </div>
+      </ScrollSection>
+
+      <ScrollSection
+        ground="blue"
+        aria-labelledby="tc-doc-landing-install"
+        className="tc-doc-landing__band"
+      >
+        <div className="tc-doc-landing__wrap">
+          <div className="tc-doc-landing__head">
+            <SplitHeading id="tc-doc-landing-install" className="tc-doc-landing__title">
+              {copy.install.title}
+            </SplitHeading>
+            <p className="tc-doc-landing__lede">{copy.install.lede}</p>
+          </div>
+          <div className="tc-doc-landing__command">
+            <pre aria-label={copy.install.commandLabel}>
+              <code>{INSTALL_COMMAND}</code>
+            </pre>
+            <Clipboard value={INSTALL_COMMAND} labels={copy.install.clipboardLabels}>
+              {copy.install.copy}
+            </Clipboard>
+          </div>
+          <div className="tc-doc-landing__actions">
+            <a
+              className="opale-button opale-button--primary opale-button--large"
+              href={hrefFor('installation')}
+            >
+              {copy.install.guide}
+            </a>
+            <Link className="tc-doc-landing__link" href={hrefFor('migrer-vers-3')}>
+              {copy.install.migrate}
+            </Link>
+          </div>
         </div>
       </ScrollSection>
     </ScrollStage>

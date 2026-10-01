@@ -137,12 +137,14 @@ const PAGE_LABELS: Record<Exclude<Language, 'FR'>, Readonly<Record<string, strin
   },
 };
 
+/* Le titre de l'accueil est son accroche : `pages/accueil/home-copy.ts` la
+   traduit, et `home.test.tsx` garde l'égalité des deux. */
 const PAGE_TITLES: Record<Exclude<Language, 'FR'>, Readonly<Record<string, string>>> = {
   EN: {
-    '': 'The design system for the Opale ecosystem.',
+    '': 'Interfaces that move, hiding nothing.',
   },
   ES: {
-    '': 'El sistema de diseño del ecosistema Opale.',
+    '': 'Interfaces que se mueven, sin ocultar nada.',
   },
 };
 

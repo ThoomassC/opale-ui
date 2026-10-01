@@ -3752,3 +3752,105 @@ html:has(.tc-doc-stage-demo) {
 .tc-doc-landing-slide__popover p {
   margin: 0;
 }
+
+/* LES LIENS DES BANDES PRENNENT L'ENCRE DE LEUR FOND. Le bleu des liens
+   d'Opale ne tient pas 4,5:1 sur l'ambre ni sur le bleu ; souligné et en
+   gras, le lien reste distinct du texte sans changer de teinte. */
+.tc-doc-landing .tc-doc-landing__link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  justify-self: start;
+}
+
+/* LES QUALITÉS : un bandeau en grand entre deux filets, puis quatre preuves. */
+.tc-doc-landing__marquee .opale-marquee__viewport {
+  padding-block: var(--opale-space-lg);
+  border-block: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.tc-doc-landing__marquee .opale-marquee__copy > span {
+  font-family: var(--opale-font-title);
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.tc-doc-landing__proofs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--opale-space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tc-doc-landing__proof {
+  display: grid;
+  align-content: start;
+  gap: var(--opale-space-sm);
+  padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: var(--opale-radius-lg);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.tc-doc-landing__proof h3 {
+  margin: 0;
+  font-family: var(--opale-font-title);
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tc-doc-landing__proof p {
+  margin: 0;
+}
+
+/* DES PAGES ENTIÈRES : le gabarit dans un cadre de navigateur. Le cadre est
+   `inert` : il ne prend ni le focus ni le pointeur, et le curseur le dit. */
+.tc-doc-landing__preview {
+  display: grid;
+  gap: var(--opale-space-sm);
+  margin: 0;
+}
+.tc-doc-landing__frame {
+  overflow: clip;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-lg);
+  box-shadow: var(--opale-shadow-3);
+  cursor: default;
+  user-select: none;
+}
+.tc-doc-landing__scaffold {
+  min-block-size: 0;
+}
+.tc-doc-landing__preview figcaption {
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
+
+/* INSTALLER : la commande se replie au lieu de défiler, et reste lisible en
+   entier sans barre de défilement à atteindre au clavier. */
+.tc-doc-landing__command {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-space-sm) var(--opale-space-md);
+  padding: var(--opale-space-md) var(--opale-space-lg);
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: var(--opale-radius-md);
+  background: color-mix(in srgb, #000 18%, transparent);
+}
+.tc-doc-landing__command pre {
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--opale-font-mono);
+  font-size: var(--opale-text-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tc-doc-landing__actions .tc-doc-landing__link {
+  align-self: center;
+  padding-inline: var(--opale-space-sm);
+}
