@@ -9,6 +9,7 @@ import {
   GridDemo,
   PopoverDemo,
   RadioGroupDemo,
+  MarqueeDemo,
   RevealDemo,
   TextareaDemo,
   TooltipDemo,
@@ -813,6 +814,9 @@ export function CatalogPreview({
       break;
     case 'Reveal':
       preview = <RevealDemo />;
+      break;
+    case 'Marquee':
+      preview = <MarqueeDemo />;
       break;
     case 'Tooltip':
       preview = <TooltipDemo liquidGlass={liquidGlass} />;

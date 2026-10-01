@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { CarouselDemo, RevealDemo } from './catalog-preview-additions';
+import { CarouselDemo, MarqueeDemo, RevealDemo } from './catalog-preview-additions';
 
 /* La démo du carrousel passe ses diapositives en enfants directs : enveloppées
    dans un composant, elles se comptaient comme une seule, et la piste n'offrait
@@ -35,5 +35,32 @@ describe('la démo de l’apparition', () => {
       expect(item).not.toHaveAttribute('data-reveal', 'pending');
     }
     expect(document.querySelector('[data-reveal="pending"]')).toBeNull();
+  });
+});
+
+/* La démo du bandeau passe ses garanties en enfants directs : chacune est lue
+   une seule fois, la copie de la boucle étant masquée et inerte. */
+describe('la démo du bandeau', () => {
+  it('rend ses cinq garanties une fois pour les techniques d’assistance', () => {
+    render(<MarqueeDemo />);
+    const band = screen.getByRole('region', { name: 'Ce qu’Opale garantit' });
+    const copies = band.querySelectorAll('.opale-marquee__copy');
+    expect(copies).toHaveLength(2);
+    const [shown, clone] = Array.from(copies);
+    expect(clone).toHaveAttribute('aria-hidden', 'true');
+    expect(clone).toHaveAttribute('inert');
+    const items = Array.from(shown!.children);
+    expect(items.map((item) => item.textContent)).toEqual([
+      'WCAG 2.2 AA',
+      'React 19',
+      'Rendu serveur',
+      'Verre liquide',
+      'Aucune dépendance',
+    ]);
+    for (const item of items) {
+      expect(within(band).getAllByText(item.textContent ?? '')).toHaveLength(2);
+      expect(item.closest('[aria-hidden]')).toBeNull();
+    }
+    expect(within(band).getByRole('button', { name: 'Mettre en pause' })).toBeVisible();
   });
 });

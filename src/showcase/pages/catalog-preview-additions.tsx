@@ -16,6 +16,7 @@ import {
   Grid,
   IconActionButton,
   Input,
+  Marquee,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -296,6 +297,21 @@ export function RevealDemo() {
         </Reveal>
       ))}
     </ul>
+  );
+}
+
+/* Les garanties de la bande « qualités » de la planche, en enfants directs :
+   le bandeau les rend une fois pour les lecteurs d'écran, et une seconde
+   fois, masquée, pour la boucle. */
+export function MarqueeDemo() {
+  return (
+    <Marquee label="Ce qu’Opale garantit" className="tc-doc-marquee-demo">
+      <span>WCAG 2.2 AA</span>
+      <span>React 19</span>
+      <span>Rendu serveur</span>
+      <span>Verre liquide</span>
+      <span>Aucune dépendance</span>
+    </Marquee>
   );
 }
 

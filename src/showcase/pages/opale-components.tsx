@@ -375,6 +375,17 @@ function SeatStepper({ value }) {
   <Opale.Reveal as="li" delay={1}>Sans dépendance</Opale.Reveal>
   <Opale.Reveal as="li" delay={2}>Rendu serveur</Opale.Reveal>
 </ul>`,
+  Marquee: `// Les entrées en enfants directs ; le bouton pause est toujours rendu.
+<Opale.Marquee label="Ce qu’Opale garantit">
+  <span>WCAG 2.2 AA</span>
+  <span>React 19</span>
+  <span>Aucune dépendance</span>
+</Opale.Marquee>
+
+// Plus lent, dans l'autre sens, sans estompe des bords.
+<Opale.Marquee label="Partenaires" duration={40} reverse fade={false} gap="lg">
+  …
+</Opale.Marquee>`,
   Tooltip: `// Une description courte, au survol et au focus : jamais une information essentielle.
 <Opale.Tooltip content="Enregistre le brouillon sans le publier.">
   <Opale.Button variant="secondary">Enregistrer</Opale.Button>

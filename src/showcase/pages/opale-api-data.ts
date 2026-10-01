@@ -912,6 +912,34 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       ),
     ],
   },
+  Marquee: {
+    states:
+      'Défile en boucle ; se met en pause au bouton, sous le pointeur et au focus. Immobile au serveur, sans script, sous mouvement réduit et à l’impression.',
+    rows: [
+      prop(
+        'label',
+        'string',
+        'Nom de la région : ce que le bandeau fait défiler.',
+        undefined,
+        true,
+      ),
+      prop(
+        'children',
+        'ReactNode',
+        'Les entrées, en enfants directs ; sans `id`, elles sont rendues deux fois.',
+      ),
+      prop(
+        'duration',
+        'number',
+        'Secondes pour une boucle complète (`--opale-marquee-duration`).',
+        '28',
+      ),
+      prop('reverse', 'boolean', 'Défile dans l’autre sens.', 'false'),
+      prop('gap', "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'", 'Espace entre deux entrées.', 'xl'),
+      prop('fade', 'boolean', 'Estompe les deux bords du bandeau.', 'true'),
+      prop('labels', 'Partial<MarqueeLabels>', 'Textes français remplacés clé par clé.'),
+    ],
+  },
   Tooltip: {
     states: 'Au survol après un délai, au focus tout de suite ; Échap la retire.',
     rows: [

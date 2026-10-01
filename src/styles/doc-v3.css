@@ -1613,6 +1613,22 @@ body {
   margin: 0;
   color: var(--opale-text-secondary);
 }
+/* Le bandeau de démonstration : les garanties de la planche, en grand, entre
+   deux filets. */
+.tc-doc-marquee-demo {
+  inline-size: 100%;
+}
+.tc-doc-marquee-demo .opale-marquee__viewport {
+  padding-block: var(--opale-space-md);
+  border-block: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.tc-doc-marquee-demo .opale-marquee__copy > span {
+  font-family: var(--opale-font-display);
+  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
 .tc-doc-popover-form {
   display: grid;
   gap: var(--opale-space-sm);

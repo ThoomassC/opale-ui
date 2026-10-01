@@ -216,7 +216,8 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
 /* 93 DEPUIS LA 3.0 : `Carousel`, premier composant en mouvement, et sa
    partie `CarouselSlide`, publiée sous son nom. */
 /* 94 : `Reveal`, l'apparition au défilement, rejoint la section MOUVEMENT. */
-const PUBLISHED_COMPONENT_COUNT = 94;
+/* 95 : `Marquee`, le bandeau défilant, la rejoint à son tour. */
+const PUBLISHED_COMPONENT_COUNT = 95;
 
 /**
  * Les parties publiées SANS membre statique sur leur composant, vers leur

@@ -779,6 +779,22 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Le repli observe la vue de la page : dans un conteneur qui défile lui-même, un bloc sous son bord reste visible et ne monte pas.',
     ],
   },
+  Marquee: {
+    states: [],
+    keyboard: [
+      'Le bouton « Mettre en pause » / « Lire » vient avant le contenu dans l’ordre de tabulation (WCAG 2.2.2). Le focus posé dans le contenu suspend aussi le défilement.',
+    ],
+    semantics: [
+      'Une région nommée par `label`, sans `aria-roledescription` : le rôle natif est annoncé dans la langue du lecteur.',
+      'Le contenu est lu une seule fois : la copie qui assure la boucle est `aria-hidden` et `inert`, rien n’y est focalisable.',
+      'Le bouton change de nom plutôt que de porter `aria-pressed`, comme celui du carrousel.',
+      'Immobile au serveur, sans script, sous `prefers-reduced-motion: reduce` et à l’impression : le contenu passe à la ligne, jamais rogné, et le bouton est caché faute de mouvement à suspendre. En contrastes forcés, le bouton prend les couleurs système.',
+    ],
+    limits: [
+      'Les entrées sont rendues deux fois à l’écran : un `id` dans une entrée serait dupliqué.',
+      'Un changement de `prefers-reduced-motion` en cours de visite arrête le mouvement tout de suite ; la copie masquée n’est retirée qu’au prochain montage.',
+    ],
+  },
   Tooltip: {
     states: [],
     keyboard: [
