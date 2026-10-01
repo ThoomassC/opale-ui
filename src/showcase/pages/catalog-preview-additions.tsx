@@ -352,16 +352,28 @@ const SCROLL_GROUNDS: readonly (readonly [ScrollGround, string, string])[] = [
 
 /* Une scène aux quatre fonds, assez haute pour défiler. L'étiquette collante
    n'est dans aucune section : elle lit le couple actif de la scène
-   (`--opale-stage-ground` / `--opale-stage-ink`), qui change d'un coup, et
-   `onGroundChange` lui donne son texte. Les gouttières montrent le fondu du
-   fond propre de la scène. */
+   (`--opale-stage-ground` / `--opale-stage-ink`), qui change d'un coup. Son
+   nom du fond suit `data-ground` par la feuille — juste dès le montage, même
+   au milieu de la page ; `onGroundChange`, qui ne part qu'au défilement,
+   compte les changements. Les gouttières montrent le fondu du fond propre de
+   la scène. */
 export function ScrollSectionDemo() {
   const id = useId();
-  const [ground, setGround] = useState<ScrollGround>('paper');
-  const name = SCROLL_GROUNDS.find(([value]) => value === ground)?.[1];
+  const [changes, setChanges] = useState(0);
   return (
-    <ScrollStage className="tc-doc-stage-demo" onGroundChange={setGround}>
-      <p className="tc-doc-stage-demo__label">Fond actif : {name}</p>
+    <ScrollStage
+      className="tc-doc-stage-demo"
+      onGroundChange={() => setChanges((count) => count + 1)}
+    >
+      <p className="tc-doc-stage-demo__label">
+        Fond actif :{' '}
+        {SCROLL_GROUNDS.map(([value, title]) => (
+          <span key={value} data-name={value}>
+            {title}
+          </span>
+        ))}
+        {` · ${changes} changement${changes > 1 ? 's' : ''}`}
+      </p>
       {SCROLL_GROUNDS.map(([value, title, text]) => (
         <ScrollSection
           key={value}

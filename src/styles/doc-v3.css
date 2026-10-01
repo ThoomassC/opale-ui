@@ -3516,6 +3516,15 @@ body {
   color: var(--opale-stage-ink);
   font-weight: 600;
 }
+.tc-doc-stage-demo__label [data-name] {
+  display: none;
+}
+.tc-doc-stage-demo[data-ground='paper'] .tc-doc-stage-demo__label [data-name='paper'],
+.tc-doc-stage-demo[data-ground='amber'] .tc-doc-stage-demo__label [data-name='amber'],
+.tc-doc-stage-demo[data-ground='night'] .tc-doc-stage-demo__label [data-name='night'],
+.tc-doc-stage-demo[data-ground='blue'] .tc-doc-stage-demo__label [data-name='blue'] {
+  display: inline;
+}
 .tc-doc-stage-demo__section {
   display: grid;
   align-content: center;

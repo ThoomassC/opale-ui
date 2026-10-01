@@ -121,7 +121,11 @@ describe('la démo des fonds au défilement', () => {
        y sont posés pour que le navigateur mesure leur contraste. */
     expect(within(regions[3]).getByRole('checkbox')).toBeChecked();
     expect(within(regions[3]).getByRole('switch')).toBeChecked();
-    const label = screen.getByText('Fond actif : Papier');
+    /* Le nom affiché suit `data-ground` par la feuille ; le compte vient de
+       `onGroundChange`, qui ne part pas au montage. */
+    const label = screen.getByText(/^Fond actif :/);
+    expect(label.querySelector('[data-name="paper"]')).toHaveTextContent('Papier');
+    expect(label).toHaveTextContent('0 changement');
     expect(label.closest('.opale-scroll-section')).toBeNull();
     expect(label.parentElement).toBe(stage);
   });
