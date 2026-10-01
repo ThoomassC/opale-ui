@@ -153,7 +153,7 @@ describe('la direction de dépendance entre couches', () => {
    */
   /*
    * `styles/glass.css` ET `styles/lens.css` FIGURAIENT DANS CETTE LISTE ET
-   * N'EXISTENT PLUS. La 2.0 ne publie plus que les composants verre liquide de
+   * N'EXISTENT PLUS. La 1.0 ne publie plus que les composants verre liquide de
    * `src/opale/**` ; les deux feuilles de matière de l'ancienne charte sont
    * supprimées avec les composants qu'elles coiffaient.
    *

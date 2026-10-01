@@ -12,18 +12,18 @@ les notes de versions. Licence MIT.
 Le paquet s'installe depuis GitHub, il n'est pas publié sur npm. Installez **une version
 figée** : le code ne bouge plus sous vos pieds.
 
-**Recommandé, à partir de la 3.9.0 — l'archive construite de la release.** Chaque release GitHub
+**Recommandé, à partir de la 2.9.0 — l'archive construite de la release.** Chaque release GitHub
 porte l'archive du paquet déjà compilé : elle s'installe avec npm, pnpm ou yarn, sans script ni
 chaîne de build à l'installation.
 
 ```bash
-npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.10.0/thomascaron-opale-ui-3.10.0.tgz
+npm i https://github.com/ThoomassC/opale-ui/releases/download/v2.10.0/thomascaron-opale-ui-2.10.0.tgz
 ```
 
-**Alternative avec npm — le tag Git** (seule voie pour les versions antérieures à la 3.9.0) :
+**Alternative avec npm — le tag Git** (seule voie pour les versions antérieures à la 2.9.0) :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.10.0"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v2.10.0"
 ```
 
 Prérequis : React 19 et Node 20.19 ou 22.12 et plus. Par le tag Git, le paquet se compile à
@@ -148,7 +148,7 @@ surfaces dans la palette de la charte.
 
 ## Les conventions de l'API
 
-Depuis la 3.6, tous les composants suivent les mêmes noms :
+Depuis la 2.6, tous les composants suivent les mêmes noms :
 
 | Besoin                 | Props                                                   |
 | ---------------------- | ------------------------------------------------------- |
@@ -164,7 +164,7 @@ Chaque composant accepte aussi `ref`, `className`, `style` et les attributs nati
 utilisables avec react-hook-form.
 
 Les anciens noms (`onChange` à valeur, `page`, `values`, `activeItemId`, `onClose`,
-`onCancel`, `severity`, `density`, `OpaleUI`…) restent acceptés et fonctionnent comme en 3.5 ;
+`onCancel`, `severity`, `density`, `OpaleUI`…) restent acceptés et fonctionnent comme en 2.5 ;
 l'éditeur les barre et indique le nouveau nom.
 
 ## PageScaffold — une page prête à adapter
@@ -272,7 +272,7 @@ export function ThemeSwitch() {
 ## Personnaliser à sa marque
 
 Opale se personnalise par ses jetons `--opale-*`, surchargés dans la feuille de l'application,
-chargée après `opale.css`. Seuls les jetons **publics** sont des noms stables en 3.x ; la liste
+chargée après `opale.css`. Seuls les jetons **publics** sont des noms stables en 2.x ; la liste
 complète, avec les valeurs claires et sombres, est sur la page « Personnaliser » de la vitrine
 (`#/personnaliser`). Les autres sont des dérivés internes.
 
