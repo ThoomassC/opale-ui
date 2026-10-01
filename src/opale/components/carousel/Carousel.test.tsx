@@ -5,7 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Carousel, CarouselSlide, type CarouselProps } from './Carousel';
-import { nearestSlide, visibleSlides } from './carousel-geometry';
+import { nearestStop, slideOffsets, slideStops, visibleSlides } from './carousel-geometry';
 
 /* =============================================================================
    LE CARROUSEL, MESURÉ CONTRE LE MOTIF « CAROUSEL » DE L'APG.
@@ -38,7 +38,7 @@ const slides = () =>
   screen.getAllByRole('group').filter((node) => node.matches('.opale-carousel__slide'));
 const dots = () =>
   within(screen.getByRole('group', { name: 'Choisir une diapositive' })).getAllByRole('button');
-const liveRegion = () => region().querySelector<HTMLElement>('[aria-live]')!;
+const liveRegion = () => document.querySelector<HTMLElement>('.opale-carousel__status')!;
 
 const scrollTo = vi.fn();
 let reducedMotion = false;
@@ -144,10 +144,13 @@ function mockLayout({ width = 814, slide = 352, gap = 16, moves = true } = {}) {
     },
   });
   scrollTo.mockImplementation(function (this: HTMLElement, options: ScrollToOptions) {
-    if (!moves || !isTrack(this)) return;
+    /* Une piste sans largeur (masquée) ne défile pas. */
+    if (!moves || !isTrack(this) || state.width === 0) return;
     const max = Math.max(0, content(this) - state.width);
     state.scrollLeft = Math.min(Math.max(options.left ?? 0, 0), max);
-    fireEvent.scroll(this);
+    /* Un vrai événement et non `fireEvent` : `scrollTo` part aussi depuis un
+       effet, où un `act` imbriqué perdrait la mise à jour. */
+    this.dispatchEvent(new Event('scroll'));
   });
   return state;
 }
@@ -188,19 +191,40 @@ describe('la géométrie du carrousel', () => {
     ).toEqual([0, 1]);
   });
 
-  it('trouve la diapositive la plus proche du bord de départ, dans les deux sens', () => {
-    expect(nearestSlide({ left: 240, right: 540 }, rects, false)).toBe(1);
-    /* De droite à gauche, le départ est le bord droit. */
+  it('place chaque diapositive à sa position de défilement, dans les deux sens', () => {
+    expect(slideOffsets({ left: 0, right: 300 }, rects, 40, false)).toEqual([40, 290, 540]);
+    /* De droite à gauche, le départ est le bord droit et le défilement se
+       compte en valeur absolue. */
     expect(
-      nearestSlide(
+      slideOffsets(
         { left: 0, right: 300 },
         [
           { left: 66, right: 300 },
           { left: -184, right: 50 },
         ],
+        0,
         true,
       ),
-    ).toBe(0);
+    ).toEqual([0, 250]);
+  });
+
+  /* Revue : six diapositives dont 3,4 tiennent à l'écran. Les deux dernières
+     ne peuvent pas venir au bord de départ : le défilement s'arrête au bout. */
+  it('réunit les positions inatteignables en une seule, au bout de la piste', () => {
+    const stops = slideStops([0, 368, 736, 1104, 1472, 1840], 1378);
+    expect(stops.map((stop) => stop.index)).toEqual([0, 1, 2, 3, 5]);
+    expect(stops[4]).toEqual({ position: 1378, first: 4, last: 5, index: 5 });
+  });
+
+  it('n’a qu’une position quand tout tient, et c’est la première', () => {
+    expect(slideStops([0, 250, 500], 0)).toEqual([{ position: 0, first: 0, last: 2, index: 0 }]);
+  });
+
+  it('trouve la position la plus proche du défilement', () => {
+    const stops = slideStops([0, 368, 736, 1104, 1472, 1840], 1378);
+    expect(nearestStop(stops, 500)).toBe(1);
+    expect(nearestStop(stops, 1378)).toBe(4);
+    expect(nearestStop([], 10)).toBe(0);
   });
 });
 
@@ -446,6 +470,127 @@ describe('Carousel — hors de l’écran, inerte', () => {
     layout.width = 814;
     act(() => FakeResizeObserver.fire());
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: 736, behavior: 'auto' }));
+  });
+});
+
+describe('Carousel — positions atteignables', () => {
+  /* 814 px de piste, diapositives de 352 px tous les 368 px : le bout est à
+     1 378 px, et les diapositives 5 et 6 y arrivent ensemble. */
+  const next = () => screen.getByRole('button', { name: 'Diapositive suivante' });
+
+  it('n’offre qu’un point par position atteignable', () => {
+    mockLayout();
+    renderSix();
+    expect(dots()).toHaveLength(5);
+    expect(dots()[4]).toHaveAccessibleName('Aller à la diapositive 6');
+  });
+
+  it('va au bout, annonce ce qui est atteint, puis revient d’une position', () => {
+    const layout = mockLayout();
+    const onValueChange = vi.fn();
+    renderSix({ onValueChange });
+    fireEvent.keyDown(track(), { key: 'End' });
+    expect(layout.scrollLeft).toBe(1378);
+    expect(onValueChange.mock.calls).toEqual([[5]]);
+    expect(liveRegion()).toHaveTextContent('6 sur 6');
+    expect(next()).toHaveAttribute('aria-disabled', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Diapositive précédente' }));
+    expect(layout.scrollLeft).toBe(1104);
+    expect(onValueChange).toHaveBeenLastCalledWith(3);
+    expect(liveRegion()).toHaveTextContent('4 sur 6');
+  });
+
+  /* Revue : `go(4)` depuis 5 ne défilait pas, la minuterie remesurait et la
+     valeur retombait à 5 après avoir annoncé « 5 sur 6 ». */
+  it('ne vise jamais une position que le défilement corrigerait', () => {
+    vi.useFakeTimers();
+    const layout = mockLayout();
+    const onValueChange = vi.fn();
+    renderSix({ onValueChange });
+    fireEvent.keyDown(track(), { key: 'End' });
+    onValueChange.mockClear();
+    fireEvent.click(dots()[4]);
+    act(() => vi.advanceTimersByTime(1500));
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(layout.scrollLeft).toBe(1378);
+    expect(liveRegion()).toHaveTextContent('6 sur 6');
+  });
+
+  it('montre une valeur de départ inatteignable sans la changer', () => {
+    const layout = mockLayout();
+    const onValueChange = vi.fn();
+    renderSix({ defaultValue: 4, onValueChange });
+    expect(layout.scrollLeft).toBe(1378);
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(dots()[4]).toHaveAttribute('aria-current', 'true');
+    expect(next()).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('boucle en lecture automatique sur les positions atteignables', () => {
+    vi.useFakeTimers();
+    mockLayout();
+    const onValueChange = vi.fn();
+    renderSix({ autoPlay: 1000, onValueChange });
+    for (let step = 0; step < 6; step += 1) act(() => vi.advanceTimersByTime(1000));
+    expect(onValueChange.mock.calls.flat()).toEqual([1, 2, 3, 5, 0, 1]);
+  });
+
+  it('ne rappelle rien quand la diapositive ne change pas', () => {
+    mockLayout();
+    const onValueChange = vi.fn();
+    renderSix({ onValueChange });
+    fireEvent.keyDown(track(), { key: 'Home' });
+    fireEvent.click(dots()[0]);
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(liveRegion()).toHaveTextContent('');
+  });
+
+  /* Revue : chaque diapositive traversée pendant le geste rappelait
+     l'appelant ; le geste n'en rappelle qu'une, au lâcher. */
+  it('ne rappelle qu’une fois par glisser, au lâcher', () => {
+    const layout = mockLayout();
+    const onValueChange = vi.fn();
+    renderSix({ onValueChange });
+    fireEvent.pointerDown(track(), { pointerType: 'mouse', button: 0, buttons: 1, clientX: 700 });
+    for (const clientX of [500, 300, 100]) {
+      fireEvent.pointerMove(track(), { pointerType: 'mouse', buttons: 1, clientX });
+      fireEvent.scroll(track());
+    }
+    expect(layout.scrollLeft).toBe(600);
+    fireEvent.pointerUp(track(), { pointerType: 'mouse', clientX: 100 });
+    expect(onValueChange.mock.calls).toEqual([[2]]);
+  });
+
+  it('arrondit une valeur non entière et ignore une valeur absurde', () => {
+    const { rerender } = render(
+      <Carousel label="Valeur" value={1.6}>
+        <CarouselSlide>A</CarouselSlide>
+        <CarouselSlide>B</CarouselSlide>
+        <CarouselSlide>C</CarouselSlide>
+      </Carousel>,
+    );
+    expect(dots()[2]).toHaveAttribute('aria-current', 'true');
+    rerender(
+      <Carousel label="Valeur" value={Number.NaN}>
+        <CarouselSlide>A</CarouselSlide>
+        <CarouselSlide>B</CarouselSlide>
+        <CarouselSlide>C</CarouselSlide>
+      </Carousel>,
+    );
+    expect(dots()[0]).toHaveAttribute('aria-current', 'true');
+    expect(slides()[0]).toHaveAttribute('aria-label', '1 sur 3');
+  });
+
+  it('reste où le parent le tient quand il refuse le changement', () => {
+    const layout = mockLayout();
+    const onValueChange = vi.fn();
+    renderSix({ value: 0, onValueChange });
+    fireEvent.click(next());
+    expect(onValueChange).toHaveBeenCalledWith(1);
+    expect(layout.scrollLeft).toBe(0);
+    expect(dots()[0]).toHaveAttribute('aria-current', 'true');
+    expect(liveRegion()).toHaveTextContent('');
   });
 });
 

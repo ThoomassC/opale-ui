@@ -22,7 +22,13 @@ import clsx from 'clsx';
 import type { StackGap } from '../../catalog/layout';
 import { resolveLabels } from '../../shared/labels';
 import { useControllableState } from '../../shared/use-controllable-state';
-import { nearestSlide, visibleSlides } from './carousel-geometry';
+import {
+  nearestStop,
+  slideOffsets,
+  slideStops,
+  visibleSlides,
+  type SlideStop,
+} from './carousel-geometry';
 import styles from './style/Carousel.module.css';
 
 /* =============================================================================
@@ -143,17 +149,44 @@ const isRtl = (element: Element) => getComputedStyle(element).direction === 'rtl
 /* La classe stable d'une partie, et celle de la feuille. */
 const part = (name: string) => clsx(`opale-carousel__${name}`, styles[name]);
 
-/* L'index montré par la piste : la diapositive la plus proche du bord de
-   départ, ou la dernière quand la piste est au bout. */
-function shownSlide(track: HTMLElement, box: DOMRect, rects: readonly DOMRect[]): number {
-  const max = track.scrollWidth - track.clientWidth;
-  return max > 2 && Math.abs(track.scrollLeft) >= max - 2
-    ? rects.length - 1
-    : nearestSlide(box, rects, isRtl(track));
-}
-
 const rectsOf = (track: HTMLElement) =>
   Array.from(track.children, (child) => child.getBoundingClientRect());
+
+/* CE QUE MONTRE LA PISTE, LU D'UNE FOIS : les diapositives visibles, les
+   positions atteignables, le bout. `null` sans mise en page ni diapositive.
+   `key` résume ce que le rendu en lit, pour qu'une mesure identique n'en
+   déclenche pas. */
+function readTrack(track: HTMLElement) {
+  const box = track.getBoundingClientRect();
+  const rects = rectsOf(track);
+  if (box.width <= 0 || rects.length === 0) return null;
+  const rtl = isRtl(track);
+  const scroll = Math.abs(track.scrollLeft);
+  const max = Math.max(0, track.scrollWidth - track.clientWidth);
+  const stops = slideStops(slideOffsets(box, rects, scroll, rtl), max);
+  const visible = visibleSlides(box, rects);
+  const atEnd = max > 2 && scroll >= max - 2;
+  const key = [
+    rects.length,
+    visible,
+    stops.map((stop) => `${stop.first}-${stop.last}`),
+    atEnd,
+    rtl,
+  ];
+  return { key: key.join('|'), count: rects.length, visible, stops, atEnd, rtl, scroll };
+}
+
+type TrackReading = NonNullable<ReturnType<typeof readTrack>>;
+
+/* Ce que les gestionnaires et les minuteries lisent du dernier rendu. */
+interface Latest {
+  readonly onValueChange: ((index: number) => void) | undefined;
+  readonly value: number;
+  readonly stops: readonly SlideStop[];
+  readonly current: number;
+  readonly isControlled: boolean;
+  readonly reduced: boolean;
+}
 
 /* Le délai au-delà duquel un défilement demandé est tenu pour fini, même si
    la cible n'a pas été atteinte : l'utilisateur a pu l'interrompre. */
@@ -201,28 +234,48 @@ export function Carousel({
   const items = Children.toArray(children).filter(isValidElement);
   const total = items.length;
   const last = Math.max(0, total - 1);
-  /* LE RAPPEL DE L'APPELANT EST LU AU DERNIER RENDU. Écrit en ligne, il
-     change à chaque rendu du parent ; s'il entrait dans les dépendances, la
-     mesure et la lecture automatique repartiraient de zéro à chaque fois. */
-  const latest = useRef({ onValueChange, value: 0 });
-  const emit = useCallback((index: number) => latest.current.onValueChange?.(index), []);
-  const [rawValue, setValue] = useControllableState(valueProp, defaultValue, emit);
-  const value = Math.min(Math.max(rawValue, 0), last);
-  useLayoutEffect(() => {
-    latest.current = { onValueChange, value };
-  });
   const reduced = useSyncExternalStore(subscribeNever, getReducedMotion, getServerReducedMotion);
-
-  /* Les index visibles, joints par des virgules et précédés du nombre de
-     diapositives mesurées — une chaîne, pour que React ignore la mesure qui
-     ne change rien ; `null` tant que rien n'est mesuré. */
-  const [visible, setVisible] = useState<string | null>(null);
-  /* L'index annoncé après un changement voulu ; `null` : rien à dire. */
+  /* La mesure de la piste ; `null` tant que rien n'est mesuré. */
+  const [layout, setLayout] = useState<TrackReading | null>(null);
+  /* L'index visé par le dernier changement voulu : annoncé une fois atteint,
+     jamais s'il ne l'est pas (un parent qui refuse, une lecture automatique). */
   const [announced, setAnnounced] = useState<number | null>(null);
   /* Le choix de l'utilisateur au bouton ; `null` : celui du composant. */
   const [playChoice, setPlayChoice] = useState<boolean | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+
+  /* LE RAPPEL DE L'APPELANT EST LU AU DERNIER RENDU. Écrit en ligne, il
+     change à chaque rendu du parent ; s'il entrait dans les dépendances, la
+     mesure et la lecture automatique repartiraient de zéro à chaque fois. */
+  const latest = useRef<Latest>({
+    onValueChange,
+    value: 0,
+    stops: [],
+    current: 0,
+    isControlled: false,
+    reduced: false,
+  });
+  const emit = useCallback((index: number) => latest.current.onValueChange?.(index), []);
+  const [rawValue, setValue, isControlled] = useControllableState(valueProp, defaultValue, emit);
+  const value = Math.min(Math.max(Number.isFinite(rawValue) ? Math.round(rawValue) : 0, 0), last);
+
+  /* LES POSITIONS ATTEIGNABLES. Une mesure faite pour un autre nombre de
+     diapositives ne vaut rien : la suivante arrive avec l'observation
+     relancée. Sans mesure, chaque diapositive est sa propre position. */
+  const measured = layout?.count === total ? layout : null;
+  const stops: readonly SlideStop[] =
+    measured?.stops ?? items.map((_, index) => ({ position: 0, first: index, last: index, index }));
+  const current = Math.max(
+    0,
+    stops.findIndex((stop) => value <= stop.last),
+  );
+  const shownIndex = stops[current]?.index ?? 0;
+  const atEnd = current >= stops.length - 1 || !!measured?.atEnd;
+
+  useLayoutEffect(() => {
+    latest.current = { onValueChange, value, stops, current, isControlled, reduced };
+  });
 
   const trackRef = useRef<HTMLDivElement>(null);
   /* L'index que la piste montre ou va montrer : la valeur qui en diffère
@@ -237,40 +290,46 @@ export function Carousel({
   const laidOut = useRef(false);
   const drag = useRef({ x: 0, left: 0, active: false, moved: false });
 
+  /* Amène la diapositive `index` au bord de départ — au bout de la piste
+     quand elle ne peut pas y venir. Rien à faire, rien n'est visé. */
   const scrollToSlide = useCallback((index: number, animate: boolean) => {
     shown.current = index;
     const track = trackRef.current;
     const slide = track?.children[index];
     if (!track || !slide) return;
+    const box = track.getBoundingClientRect();
+    const rtl = isRtl(track);
+    const scroll = Math.abs(track.scrollLeft);
+    const max = Math.max(0, track.scrollWidth - track.clientWidth);
+    const [offset = 0] = slideOffsets(box, [slide.getBoundingClientRect()], scroll, rtl);
+    const to = Math.min(Math.max(offset, 0), max);
+    if (box.width > 0 && Math.abs(to - scroll) < 1) {
+      target.current = null;
+      return;
+    }
     target.current = index;
     clearTimeout(settleTimer.current);
     /* La cible tenue pour atteinte, la piste se remesure par son propre
-         événement de défilement. */
+       événement de défilement. */
     settleTimer.current = setTimeout(() => {
       target.current = null;
       track.dispatchEvent(new Event('scroll'));
     }, SETTLE_MS);
-    const box = track.getBoundingClientRect();
-    const rect = slide.getBoundingClientRect();
-    track.scrollTo?.({
-      left: track.scrollLeft + (isRtl(track) ? rect.right - box.right : rect.left - box.left),
-      behavior: animate ? 'smooth' : 'auto',
-    });
+    track.scrollTo?.({ left: rtl ? -to : to, behavior: animate ? 'smooth' : 'auto' });
   }, []);
 
   const measure = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
-    const box = track.getBoundingClientRect();
-    const rects = rectsOf(track);
+    const reading = readTrack(track);
     /* Sans mise en page ni diapositive, rien n'est mesuré : rien n'est
        inerte, et rien ne dit quelle diapositive est montrée. */
-    if (box.width <= 0 || rects.length === 0) {
+    if (!reading) {
       laidOut.current = false;
-      setVisible(null);
+      setLayout(null);
       return;
     }
-    setVisible(`${rects.length}:${visibleSlides(box, rects).join()}`);
+    setLayout((previous) => (previous?.key === reading.key ? previous : reading));
     /* La piste prend sa largeur (onglet ouvert, parent affiché) : elle
        rejoint la valeur, que le défilement d'une piste nulle n'a pas pu
        montrer. */
@@ -279,31 +338,48 @@ export function Carousel({
       scrollToSlide(latest.current.value, false);
       return;
     }
-    const current = shownSlide(track, box, rects);
+    const reached = reading.stops[nearestStop(reading.stops, reading.scroll)];
+    if (!reached) return;
+    const within = (index: number) => index >= reached.first && index <= reached.last;
     if (target.current !== null) {
-      if (current === target.current) target.current = null;
-    } else if (current !== shown.current) {
-      shown.current = current;
-      setValue(current);
+      if (within(target.current)) target.current = null;
+      return;
     }
+    /* Le glisser ne rappelle qu'au lâcher ; une position qui montre déjà la
+       valeur ne rappelle rien. */
+    if (drag.current.active || within(latest.current.value)) return;
+    shown.current = reached.index;
+    setValue(reached.index);
   }, [scrollToSlide, setValue]);
 
+  /* Va à la position atteignable `stop`. Contrôlé, le carrousel ne bouge
+     qu'une fois la valeur acceptée par l'appelant ; la même position ne
+     rappelle ni n'annonce rien, mais y ramène la piste. */
   const go = useCallback(
-    (index: number, announce: boolean) => {
-      const next = Math.min(Math.max(index, 0), last);
-      scrollToSlide(next, !reduced);
-      setValue(next);
-      setAnnounced(announce ? next : null);
+    (stop: number, announce: boolean) => {
+      const { stops: all, current: at, isControlled: controlled, reduced: still } = latest.current;
+      const next = all[Math.min(Math.max(stop, 0), all.length - 1)];
+      if (!next) return;
+      const changed = next !== all[at];
+      if (!controlled || !changed) scrollToSlide(next.index, !still);
+      if (!changed) return;
+      setAnnounced(announce ? next.index : null);
+      setValue(next.index);
     },
-    [last, reduced, scrollToSlide, setValue],
+    [scrollToSlide, setValue],
   );
 
   /* La valeur de l'appelant — ou l'index de départ — que la piste ne montre
-     pas encore : on l'y amène, sans animation au montage. */
+     pas encore : on l'y amène, sans animation au montage. Joué à chaque
+     rendu, pour qu'un parent qui refuse un défilement natif y ramène la
+     piste. */
   useEffect(() => {
-    if (value !== shown.current) scrollToSlide(value, mounted.current && !reduced);
+    const at = stops.findIndex((stop) => shown.current <= stop.last);
+    if (at !== current && !drag.current.active) {
+      scrollToSlide(value, mounted.current && !reduced);
+    }
     mounted.current = true;
-  }, [reduced, scrollToSlide, value]);
+  });
 
   /* LA PISTE ET SES DIAPOSITIVES SONT OBSERVÉES, pas la fenêtre : une piste
      masquée qui s'affiche, une diapositive qui change de taille remesurent.
@@ -332,21 +408,26 @@ export function Carousel({
   const playing = !!autoPlay && (playChoice ?? !reduced);
   const running = playing && !hovered && !focused && total > 1;
 
+  /* La minuterie ne dépend que de ce qui la règle : `go` est stable, et la
+     position courante est lue à l'échéance. */
   useEffect(() => {
     if (!running) return undefined;
-    const timer = setTimeout(() => go(value >= last ? 0 : value + 1, false), autoPlay);
+    const timer = setTimeout(() => {
+      const { current: at, stops: all } = latest.current;
+      go(at >= all.length - 1 ? 0 : at + 1, false);
+    }, autoPlay);
     return () => clearTimeout(timer);
-  }, [autoPlay, go, last, running, value]);
+  }, [autoPlay, go, running, value]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     /* Les flèches d'un champ, dans une diapositive, restent au champ. */
     if (event.target !== event.currentTarget) return;
     const step = isRtl(event.currentTarget) ? -1 : 1;
     const destination = {
-      ArrowRight: value + step,
-      ArrowLeft: value - step,
+      ArrowRight: current + step,
+      ArrowLeft: current - step,
       Home: 0,
-      End: last,
+      End: stops.length - 1,
     }[event.key];
     if (destination === undefined) return;
     event.preventDefault();
@@ -388,7 +469,8 @@ export function Carousel({
     }
     gesture.active = false;
     delete track.dataset.dragging;
-    go(shownSlide(track, track.getBoundingClientRect(), rectsOf(track)), true);
+    const reading = readTrack(track);
+    go(reading ? nearestStop(reading.stops, reading.scroll) : current, true);
     /* Le clic qui termine le geste est avalé ; s'il ne vient pas, le
        suivant passe. */
     setTimeout(() => (gesture.moved = false));
@@ -400,11 +482,6 @@ export function Carousel({
     event.stopPropagation();
     drag.current.moved = false;
   };
-
-  /* Une mesure faite pour un autre nombre de diapositives ne vaut rien : la
-     suivante arrive avec l'observation relancée. */
-  const [measuredCount, visibleList] = visible?.split(':') ?? [];
-  const onScreen = Number(measuredCount) === total ? visibleList?.split(',') : undefined;
 
   return (
     <div
@@ -461,7 +538,7 @@ export function Carousel({
             key={item.key}
             value={{
               label: labels.slide(index + 1, total),
-              inert: !!onScreen && !onScreen.includes(`${index}`),
+              inert: !!measured && !measured.visible.includes(index),
             }}
           >
             {item}
@@ -484,21 +561,21 @@ export function Carousel({
         )}
         {showDots && (
           <div role="group" aria-label={labels.dots} className={part('dots')}>
-            {items.map((item, index) => (
+            {stops.map((stop, at) => (
               <button
-                key={item.key}
+                key={stop.index}
                 type="button"
-                aria-label={labels.goTo(index + 1)}
-                aria-current={index === value || undefined}
+                aria-label={labels.goTo(stop.index + 1)}
+                aria-current={at === current || undefined}
                 className={part('dot')}
-                onClick={() => go(index, true)}
+                onClick={() => go(at, true)}
               />
             ))}
           </div>
         )}
         {showArrows &&
           [-1, 1].map((step) => {
-            const off = step < 0 ? value <= 0 : value >= last;
+            const off = step < 0 ? current <= 0 : atEnd;
             return (
               /* Les flèches ← et → sont retournées par la feuille de droite à
                  gauche ; leur nom vient de `aria-label`. `aria-disabled` et non
@@ -510,7 +587,9 @@ export function Carousel({
                 aria-label={step < 0 ? labels.previous : labels.next}
                 aria-disabled={off || undefined}
                 className={part('arrow')}
-                onClick={() => off || go(value + step, true)}
+                onClick={() => {
+                  if (!off) go(current + step, true);
+                }}
               >
                 {step < 0 ? '←' : '→'}
               </button>
@@ -518,7 +597,7 @@ export function Carousel({
           })}
       </div>
       <div className="opale-carousel__status opale-visually-hidden" aria-live="polite">
-        {announced === null ? '' : labels.slide(announced + 1, total)}
+        {announced === shownIndex ? labels.slide(shownIndex + 1, total) : ''}
       </div>
     </div>
   );
