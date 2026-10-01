@@ -94,7 +94,9 @@ const firstGround = (children: ReactNode): ScrollGround | undefined => {
  * contient. Elle ne repeint jamais les sections. Un texte posé directement
  * sur la scène, hors section, passe pendant le fondu par des couples
  * intermédiaires : il lit plutôt `--opale-stage-*` sur son propre fond, qui
- * change d'un coup.
+ * change d'un coup. Un élément collé (`position: sticky`) qui lit ces
+ * propriétés doit être compté dans le `scroll-padding` de la page, sans quoi
+ * il peut cacher un contrôle focalisé (WCAG 2.4.11).
  */
 export function ScrollStage({
   as: Tag = 'div',

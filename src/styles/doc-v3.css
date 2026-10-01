@@ -3503,6 +3503,12 @@ body {
   padding: var(--opale-space-sm);
   border-radius: var(--opale-radius-lg);
 }
+/* L'étiquette collante s'ajoute à la barre du haut : le coussin de défilement
+   la compte, sinon un contrôle déjà juste sous elle recevrait le focus caché
+   (WCAG 2.4.11) — le navigateur ne défile pas pour lui. */
+html:has(.tc-doc-stage-demo) {
+  scroll-padding-block-start: calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem + 3.25rem);
+}
 .tc-doc-stage-demo__label {
   position: sticky;
   z-index: 1;

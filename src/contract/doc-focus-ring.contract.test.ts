@@ -4,7 +4,7 @@ import { compositeOver, contrastRatio, withAlpha } from './color';
 import { parseThemes, resolveToken, type Theme } from './stylesheet';
 import opaleSource from '../opale/opale.css?raw';
 import docSource from '../styles/doc-v3.css?raw';
-import { parseRules, ruleBody, stripComments } from '../test/css-rules';
+import { declaration, parseRules, ruleBody, stripComments } from '../test/css-rules';
 
 /* =============================================================================
    L'ANNEAU DISCRET DE LA VITRINE TIENT 3:1 SUR CHAQUE SOL.
@@ -116,5 +116,16 @@ describe('l’anneau de la vitrine sur un fond de ScrollSection', () => {
     const ring = resolveToken(local, '--opale-primary-on-surface');
     const fill = resolveToken(local, `--opale-ground-${ground}`);
     expect(contrastRatio(ring, fill)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+});
+
+/* WCAG 2.4.11 : l'étiquette collante de la démo du fond défilant s'ajoute à la
+   barre du haut. Sans coussin à sa mesure, un contrôle déjà juste sous elle
+   recevait le focus entièrement caché — le navigateur ne défile pas. */
+describe('la démo du fond défilant ne cache pas le focus', () => {
+  it('compte l’étiquette collante dans le coussin de défilement', () => {
+    expect(
+      declaration(docSource, 'html:has(.tc-doc-stage-demo)', 'scroll-padding-block-start'),
+    ).toBe('calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem + 3.25rem)');
   });
 });
