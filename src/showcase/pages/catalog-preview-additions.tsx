@@ -20,6 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   RadioGroup,
+  Reveal,
   SegmentedControl,
   Textarea,
   Tooltip,
@@ -266,6 +267,35 @@ export function CarouselDemo() {
         {carouselSlides()}
       </Carousel>
     </div>
+  );
+}
+
+/* Les preuves de la bande « qualités » de la planche : assez de cartes pour
+   que les dernières soient sous la vue et montent quand on défile. */
+const REVEAL_ITEMS = [
+  ['Accessible', 'Sémantique native, clavier complet, contrastes forcés'],
+  ['Sans dépendance', 'React et clsx, rien d’autre au poids de l’import'],
+  ['Rendu serveur', 'Visible au repos, sans attendre un script'],
+  ['Verre liquide', 'Une matière en option, jamais une condition'],
+  ['Mouvement sobre', 'Seuls transform et opacity s’animent'],
+  ['Thèmes', 'Clair, sombre et contrastes forcés, aux mêmes jetons'],
+  ['Impression', 'Tout est là, à l’état final, sur papier'],
+  ['Mouvement réduit', 'Aucune montée, le contenu simplement présent'],
+  ['Typé', 'TypeScript strict, chaque prop documentée'],
+] as const;
+
+/* Une colonne de cartes : chaque `Reveal` est un `<li>` enfant direct de la
+   liste, et son rang dans la rangée de trois règle la cascade. */
+export function RevealDemo() {
+  return (
+    <ul className="tc-doc-reveal-demo" aria-label="Les qualités d’Opale">
+      {REVEAL_ITEMS.map(([name, text], index) => (
+        <Reveal key={name} as="li" delay={index % 3} className="tc-doc-reveal-card">
+          <h3>{name}</h3>
+          <p>{text}</p>
+        </Reveal>
+      ))}
+    </ul>
   );
 }
 

@@ -364,6 +364,17 @@ function SeatStepper({ value }) {
 <Opale.Carousel label="À la une" autoPlay={5000} slideSize="100%">
   …
 </Opale.Carousel>`,
+  Reveal: `// Visible au repos, sans script ; la montée suit l'entrée dans la vue.
+<Opale.Reveal>
+  <h2>Les qualités</h2>
+</Opale.Reveal>
+
+// Une cascade : chaque rang part 60 ms (--opale-reveal-stagger) après le précédent.
+<ul>
+  <Opale.Reveal as="li" delay={0}>Accessible</Opale.Reveal>
+  <Opale.Reveal as="li" delay={1}>Sans dépendance</Opale.Reveal>
+  <Opale.Reveal as="li" delay={2}>Rendu serveur</Opale.Reveal>
+</ul>`,
   Tooltip: `// Une description courte, au survol et au focus : jamais une information essentielle.
 <Opale.Tooltip content="Enregistre le brouillon sans le publier.">
   <Opale.Button variant="secondary">Enregistrer</Opale.Button>

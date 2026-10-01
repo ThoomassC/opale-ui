@@ -39,6 +39,11 @@ const SHOWCASE_ONLY_ENTRIES: readonly ShowcaseCatalogEntry[] = [
     'Mouvement',
     'Carrousel au défilement natif : glisser, flèches, points, clavier et lecture automatique.',
   ],
+  [
+    'Reveal',
+    'Mouvement',
+    'Bloc qui monte en fondu à son entrée dans la vue, visible au repos et sans script.',
+  ],
 ].map(([name, category, description]) => ({ name, category, description }));
 
 const PUBLISHED_NAMES = new Set(CATALOG.map((entry) => entry.name));

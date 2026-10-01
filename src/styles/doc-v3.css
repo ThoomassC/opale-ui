@@ -1582,6 +1582,37 @@ body {
   inline-size: 70%;
   block-size: 1.2rem;
 }
+/* L'apparition de démonstration : une colonne de cartes assez haute pour
+   que les dernières soient sous la vue au chargement. */
+.tc-doc-reveal-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: var(--opale-space-md);
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tc-doc-reveal-card {
+  display: grid;
+  min-block-size: 11rem;
+  align-content: end;
+  gap: var(--opale-space-xs);
+  padding: var(--opale-space-lg);
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: var(--opale-radius-md);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.tc-doc-reveal-card h3 {
+  margin: 0;
+  font-family: var(--opale-font-display);
+  font-size: var(--opale-text-xl);
+  letter-spacing: -0.02em;
+}
+.tc-doc-reveal-card p {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}
 .tc-doc-popover-form {
   display: grid;
   gap: var(--opale-space-sm);

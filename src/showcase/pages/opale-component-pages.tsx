@@ -30,6 +30,7 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
     'menu d’actions',
   ],
   Carousel: ['CarouselSlide', 'carrousel', 'diaporama', 'slider', 'autoPlay', 'scroll-snap'],
+  Reveal: ['apparition', 'défilement', 'scroll', 'animation-timeline', 'cascade', 'stagger'],
   Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
   Feedback: ['Http', 'Validation', 'tone', 'severity'],
   Field: ['useFieldProps', 'FieldWrapperProps', 'champ', 'contrôle personnalisé'],

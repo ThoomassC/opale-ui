@@ -892,6 +892,26 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       },
     ],
   },
+  Reveal: {
+    states:
+      'Visible au repos ; monte à son entrée dans la vue (animation liée à la vue, sinon IntersectionObserver). Aucun mouvement sous mouvement réduit ni à l’impression.',
+    rows: [
+      prop('children', 'ReactNode', 'Le contenu qui monte.'),
+      prop(
+        'as',
+        "'div' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'li' | 'figure'",
+        'La balise rendue.',
+        'div',
+      ),
+      prop('delay', 'number', 'Rang dans une cascade : × `--opale-reveal-stagger` (60 ms).'),
+      prop(
+        'once',
+        'boolean',
+        'Montre une fois sans recacher ; à `false`, le repli recache sous la vue.',
+        'true',
+      ),
+    ],
+  },
   Tooltip: {
     states: 'Au survol après un délai, au focus tout de suite ; Échap la retire.',
     rows: [

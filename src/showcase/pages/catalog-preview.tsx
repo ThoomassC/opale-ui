@@ -9,6 +9,7 @@ import {
   GridDemo,
   PopoverDemo,
   RadioGroupDemo,
+  RevealDemo,
   TextareaDemo,
   TooltipDemo,
 } from './catalog-preview-additions';
@@ -809,6 +810,9 @@ export function CatalogPreview({
       break;
     case 'Carousel':
       preview = <CarouselDemo />;
+      break;
+    case 'Reveal':
+      preview = <RevealDemo />;
       break;
     case 'Tooltip':
       preview = <TooltipDemo liquidGlass={liquidGlass} />;

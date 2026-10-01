@@ -764,6 +764,21 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Un changement de `prefers-reduced-motion` en cours de visite vaut au prochain montage.',
     ],
   },
+  Reveal: {
+    states: [],
+    keyboard: [
+      'Aucune touche propre. Le focus qui entre dans un bloc encore en attente le montre aussitôt : la tabulation ne se pose jamais sur un contenu invisible.',
+    ],
+    semantics: [
+      'L’élément rendu par `as`, sans rôle ajouté : le contenu est lu dans l’ordre du code, qu’il soit monté ou non.',
+      'Visible au repos : le serveur, une page sans script et l’impression rendent le contenu à son état final. Seuls les blocs sous la vue au montage passent en attente, jamais ceux déjà à l’écran.',
+      'Sous `prefers-reduced-motion: reduce`, aucune transformation ni animation : le contenu est simplement là. Rien ne dépend de la couleur ; les contrastes forcés n’ont rien à corriger.',
+    ],
+    limits: [
+      'La montée native, liée au défilement, se rejoue à chaque entrée par le bas, même avec `once`.',
+      'Le repli observe la vue de la page : dans un conteneur qui défile lui-même, un bloc sous son bord reste visible et ne monte pas.',
+    ],
+  },
   Tooltip: {
     states: [],
     keyboard: [
