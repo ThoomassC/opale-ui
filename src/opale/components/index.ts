@@ -43,6 +43,7 @@ export * from './field';
 export * from './modal';
 export * from './popover';
 export * from './radio-group';
+export * from './reveal';
 export * from './textarea';
 export * from './tooltip';
 export * from './page-scaffold';

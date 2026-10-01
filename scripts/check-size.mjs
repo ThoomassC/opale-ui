@@ -40,6 +40,11 @@ const BUDGETS = {
      portent la mesure à 10 723 o — toujours sous Tooltip, Textarea et
      RadioGroup. Un nouvel ajout passe par un allègement, pas par ce budget. */
   Carousel: 11_000,
+  /* L'apparition au défilement : une animation CSS liée à la vue, et un
+     repli `IntersectionObserver` pour les seuls éléments sous la ligne de
+     flottaison. Posé à 2 500 o avant son écriture ; un dépassement s'allège,
+     il ne relève pas ce budget. */
+  Reveal: 2_500,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];

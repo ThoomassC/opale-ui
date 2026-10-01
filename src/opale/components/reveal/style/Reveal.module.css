@@ -1,0 +1,78 @@
+/* =============================================================================
+   L'APPARITION AU DÉFILEMENT — FEUILLE D'OPALE.
+
+   AU REPOS, TOUT EST VISIBLE. Aucune règle de premier niveau ne cache
+   `.root` : sans script et sans animation liée à la vue, le contenu est là.
+
+   LES RÉGLAGES SONT DES PROPRIÉTÉS PERSONNALISÉES, avec leurs défauts ici :
+   `--opale-reveal-distance` (la montée, 1,5 rem), `--opale-reveal-duration`
+   (720 ms, pour le repli), `--opale-reveal-stagger` (le pas d'une cascade,
+   60 ms) ; `--opale-reveal-index` vient de `delay`.
+
+   SEULS `transform` ET `opacity` S'ANIMENT : la boîte garde sa place dès la
+   première image (aucun décalage de mise en page).
+   ========================================================================== */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--opale-reveal-distance, 1.5rem));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* LE NATIF : la montée suit l'entrée de l'élément dans la vue, sans script.
+   Un élément déjà à l'écran au chargement est au-delà de la plage : il est à
+   son état final dès la première image. */
+@supports (animation-timeline: view()) {
+  .root {
+    animation: rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 80%;
+    animation-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger, 60ms));
+  }
+}
+
+/* LE REPLI : l'attente n'est posée que par le script, et seulement sous la
+   vue ; la montée part quand l'observateur la montre. */
+.root[data-reveal='pending'] {
+  opacity: 0;
+  transform: translateY(var(--opale-reveal-distance, 1.5rem));
+}
+
+.root[data-reveal='shown'] {
+  transition-property: opacity, transform;
+  transition-duration: var(--opale-reveal-duration, 720ms);
+  transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger, 60ms));
+}
+
+/* MOUVEMENT RÉDUIT ET IMPRESSION : le contenu, simplement là. Les règles
+   suivent celles qu'elles annulent, à spécificité égale : `.root` défait
+   l'animation native, `[data-reveal='shown']` la transition du repli. */
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root[data-reveal='shown'] {
+    animation: none;
+    transition: none;
+  }
+  .root[data-reveal='pending'] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .root,
+  .root[data-reveal='shown'] {
+    animation: none;
+    transition: none;
+  }
+  .root[data-reveal='pending'] {
+    opacity: 1;
+    transform: none;
+  }
+}
