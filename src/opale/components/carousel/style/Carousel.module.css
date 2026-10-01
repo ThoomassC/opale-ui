@@ -89,13 +89,15 @@
   block-size: 0.5rem;
   border-radius: var(--opale-radius-pill);
   background: currentColor;
-  opacity: 0.32;
+  /* 55 % de l'encre : 4,16:1 sur la surface claire, 4,91:1 sur la sombre
+     (WCAG 1.4.11 demande 3:1). */
+  opacity: 0.55;
   transition:
     transform var(--opale-motion-fast) var(--opale-ease),
     opacity var(--opale-motion-fast) var(--opale-ease);
 }
 .dot:hover::before {
-  opacity: 0.6;
+  opacity: 0.75;
 }
 .dot[aria-current='true'] {
   color: var(--opale-primary);
@@ -125,6 +127,7 @@
   padding: 0;
 }
 .play {
+  justify-self: start;
   padding-inline: var(--opale-space-md);
 }
 .arrow:active:not([aria-disabled='true']),
@@ -137,8 +140,11 @@
 }
 
 /* De droite à gauche, « précédente » est à droite : les flèches ← et → se
-   retournent avec la lecture. Le bouton est rond, seule la flèche change. */
-.arrow:dir(rtl) {
+   retournent avec la lecture. Le bouton est rond, seule la flèche change.
+   `data-dir` est posé par le script depuis la direction calculée : la
+   réécriture de `:dir(rtl)` par certains outils de build le rattache à la
+   langue, et une page `dir="rtl"` en `lang="fr"` y échapperait. */
+.root[data-dir='rtl'] .arrow {
   scale: -1 1;
 }
 
@@ -151,12 +157,17 @@
 }
 
 @media (forced-colors: active) {
+  /* La forme distingue l'actif, pas seulement la taille : un anneau pour
+     les autres, un disque plein pour lui. */
   .dot::before {
+    box-sizing: border-box;
     forced-color-adjust: none;
-    background: CanvasText;
+    border: 1px solid CanvasText;
+    background: Canvas;
     opacity: 1;
   }
   .dot[aria-current='true']::before {
+    border-color: Highlight;
     background: Highlight;
   }
   .arrow,

@@ -529,6 +529,7 @@ export function Carousel({
       role="region"
       aria-roledescription="carrousel"
       aria-label={label}
+      data-dir={measured?.rtl ? 'rtl' : undefined}
       className={clsx('opale-carousel', styles.root, className)}
       style={
         {
@@ -554,6 +555,20 @@ export function Carousel({
         if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       }}
     >
+      {/* Le bouton pause vient avant la piste dans l'ordre de tabulation (APG). */}
+      {!!autoPlay && (
+        <button
+          type="button"
+          className={part('play')}
+          onClick={() => {
+            setPlayChoice(!playing);
+            /* Reprendre au bouton vaut aussi pour le focus qui est dessus. */
+            setFocused(false);
+          }}
+        >
+          {playing ? labels.pause : labels.play}
+        </button>
+      )}
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- la piste est la zone défilante, focalisable (WCAG 2.1.1) : ses flèches et le glisser la font défiler. */}
       <div
         ref={trackRef}
@@ -586,19 +601,6 @@ export function Carousel({
         ))}
       </div>
       <div className={part('controls')}>
-        {!!autoPlay && (
-          <button
-            type="button"
-            className={part('play')}
-            onClick={() => {
-              setPlayChoice(!playing);
-              /* Reprendre au bouton vaut aussi pour le focus qui est dessus. */
-              setFocused(false);
-            }}
-          >
-            {playing ? labels.pause : labels.play}
-          </button>
-        )}
         {showDots && (
           <div role="group" aria-label={labels.dots} className={part('dots')}>
             {stops.map((stop, at) => (

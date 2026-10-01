@@ -234,19 +234,36 @@ const CAROUSEL_SLIDES = [
   ['SplitHeading', 'Nouveau en 3.0 · un titre qui arrive mot à mot'],
 ] as const;
 
+/* Les mêmes diapositives, avec ou sans lecture automatique. */
+function CarouselSlides() {
+  return CAROUSEL_SLIDES.map(([name, text], index) => (
+    <CarouselSlide key={name} className="tc-doc-carousel-slide">
+      <span className="tc-doc-carousel-glyph" aria-hidden="true" data-glyph={index} />
+      <div>
+        <h3>{name}</h3>
+        <p>{text}</p>
+      </div>
+    </CarouselSlide>
+  ));
+}
+
+/* Deux carrousels : le premier à la main, le second en lecture automatique
+   — bouton pause en tête, pause au survol et au focus. */
 export function CarouselDemo() {
   return (
-    <Carousel label="Composants d’Opale" className="tc-doc-carousel">
-      {CAROUSEL_SLIDES.map(([name, text], index) => (
-        <CarouselSlide key={name} className="tc-doc-carousel-slide">
-          <span className="tc-doc-carousel-glyph" aria-hidden="true" data-glyph={index} />
-          <div>
-            <h3>{name}</h3>
-            <p>{text}</p>
-          </div>
-        </CarouselSlide>
-      ))}
-    </Carousel>
+    <div className="tc-doc-carousel-demo">
+      <Carousel label="Composants d’Opale" className="tc-doc-carousel">
+        <CarouselSlides />
+      </Carousel>
+      <p className="tc-doc-carousel-caption">Lecture automatique, une diapositive toutes les 4 s</p>
+      <Carousel
+        label="Composants d’Opale, en lecture automatique"
+        autoPlay={4000}
+        className="tc-doc-carousel"
+      >
+        <CarouselSlides />
+      </Carousel>
+    </div>
   );
 }
 

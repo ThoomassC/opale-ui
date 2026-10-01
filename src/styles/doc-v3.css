@@ -1514,6 +1514,16 @@ body {
 .tc-doc-carousel {
   inline-size: 100%;
 }
+.tc-doc-carousel-demo {
+  display: grid;
+  inline-size: 100%;
+  gap: var(--opale-space-md);
+}
+.tc-doc-carousel-caption {
+  margin: var(--opale-space-md) 0 0;
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
 .tc-doc-carousel-slide {
   display: grid;
   min-block-size: 15rem;

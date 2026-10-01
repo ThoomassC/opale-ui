@@ -5,7 +5,9 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Carousel, CarouselSlide, type CarouselProps } from './Carousel';
+import { declaration, declarations } from '../../../test/css-rules';
 import { nearestStop, slideOffsets, slideStops, visibleSlides } from './carousel-geometry';
+import sheet from './style/Carousel.module.css?raw';
 
 /* =============================================================================
    LE CARROUSEL, MESURÉ CONTRE LE MOTIF « CAROUSEL » DE L'APG.
@@ -865,6 +867,51 @@ describe('Carousel — glisser à la souris', () => {
     fireEvent.pointerDown(track(), { pointerType: 'touch', button: 0, clientX: 200 });
     fireEvent.pointerMove(track(), { pointerType: 'touch', clientX: 100 });
     expect(scrollLeft).toBe(0);
+  });
+});
+
+describe('Carousel — feuille et ordre', () => {
+  /* WCAG 1.4.11 : à 32 %, le point inactif tombait à 2,1:1 en clair et
+     2,64:1 en sombre. 55 % de l'encre sur la surface donne 4,16:1 (#14100b
+     sur #ffffff) et 4,91:1 (#f3f1ec sur #262c27). */
+  it('donne aux points inactifs au moins 3:1 dans les deux thèmes', () => {
+    expect(Number(declaration(sheet, '.dot::before', 'opacity'))).toBeGreaterThanOrEqual(0.55);
+    expect(Number(declaration(sheet, '.dot:hover::before', 'opacity'))).toBeGreaterThanOrEqual(
+      0.75,
+    );
+  });
+
+  it('distingue le point actif par sa forme en contrastes forcés', () => {
+    const within = '@media (forced-colors: active)';
+    const inactive = declarations(sheet, '.dot::before', { within });
+    expect(inactive.get('background')).toBe('Canvas');
+    expect(inactive.get('border')).toContain('CanvasText');
+    expect(declaration(sheet, ".dot[aria-current='true']::before", 'background', { within })).toBe(
+      'Highlight',
+    );
+  });
+
+  /* Revue : le build de la vitrine réécrit `:dir(rtl)` en `:lang(ar…)` ; une
+     page `dir="rtl"` en `lang="fr"` gardait ← sur « précédente ». */
+  it('retourne les flèches de droite à gauche par un attribut posé au script', () => {
+    mockLayout();
+    render(
+      <div dir="rtl" style={{ direction: 'rtl' }}>
+        <Carousel label="RTL">
+          <CarouselSlide>A</CarouselSlide>
+          <CarouselSlide>B</CarouselSlide>
+          <CarouselSlide>C</CarouselSlide>
+        </Carousel>
+      </div>,
+    );
+    expect(screen.getByRole('region', { name: 'RTL' })).toHaveAttribute('data-dir', 'rtl');
+    expect(declaration(sheet, ".root[data-dir='rtl'] .arrow", 'scale')).toBe('-1 1');
+  });
+
+  it('place le bouton pause avant la piste dans l’ordre de tabulation (APG)', () => {
+    renderCarousel({ autoPlay: 4000 });
+    const pause = screen.getByRole('button', { name: 'Mettre en pause' });
+    expect(pause.compareDocumentPosition(track()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
 

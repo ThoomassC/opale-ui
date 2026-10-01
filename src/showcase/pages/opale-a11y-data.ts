@@ -747,15 +747,17 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
     keyboard: [
       'La piste est focalisable : Flèche droite et Flèche gauche passent à la diapositive suivante et précédente — inversées de droite à gauche —, Début et Fin vont aux extrémités.',
       'Les flèches d’un champ placé dans une diapositive restent au champ.',
-      'Flèches, points et bouton pause sont des `<button type="button">` natifs ; les flèches sont désactivées aux extrémités.',
+      'Flèches, points et bouton pause sont des `<button type="button">` natifs. Aux extrémités, les flèches portent `aria-disabled="true"` et restent focalisables : le focus ne tombe jamais sur `<body>`.',
+      'Le bouton pause vient en premier dans l’ordre de tabulation, avant la piste (APG).',
+      'Alt, Ctrl ou Cmd avec une flèche restent au navigateur.',
       'Les diapositives entièrement hors de la piste sont `inert` : la tabulation ne se pose jamais hors de l’écran.',
     ],
     semantics: [
       'La racine est une `role="region"` nommée par `label`, avec `aria-roledescription="carrousel"`.',
       'Chaque diapositive est un `role="group"` nommé « 2 sur 6 », avec `aria-roledescription="diapositive"`.',
-      'Les points forment un groupe nommé ; le point actif porte `aria-current="true"`.',
-      'Une région polie annonce « 2 sur 6 » après un changement voulu, jamais pendant la lecture automatique.',
-      'La lecture automatique rend toujours un bouton pause (WCAG 2.2.2) et s’arrête sous le pointeur et tant que le focus est dedans ; sous `prefers-reduced-motion`, elle ne démarre pas et les défilements sont instantanés.',
+      'Les points forment un groupe nommé, un par position atteignable : les diapositives qui ne peuvent venir au bord de départ partagent celle du bout. Le point actif porte `aria-current="true"`.',
+      'Une région polie annonce « 2 sur 6 » une fois la diapositive atteinte après un changement voulu, jamais pendant la lecture automatique ni quand un parent contrôlant refuse le changement.',
+      'La lecture automatique rend toujours un bouton pause (WCAG 2.2.2) et s’arrête sous le pointeur, tant que le focus est dedans et tant que la page est cachée ; sous `prefers-reduced-motion`, elle ne démarre pas et les défilements sont instantanés.',
     ],
     limits: [
       'Sans JavaScript, la piste défile au doigt et à la molette, mais flèches, points et clavier ne font rien.',
