@@ -84,7 +84,6 @@ describe('l’anneau de focus', () => {
 describe('l’anneau suit la forme du contrôle', () => {
   const SQUIRCLE = /^calc\(var\(--opale-squircle-radius(, [^)]+)?\) \* 0\.68\)$/;
   const cases: ReadonlyArray<[string, string, RegExp]> = [
-    ['search-bar/style/SearchBar.module.scss', '.plain:has(.input:focus-visible)', SQUIRCLE],
     ['header-controls/HeaderControls.module.css', '.theme:focus-visible', SQUIRCLE],
     ['header-controls/HeaderControls.module.css', '.languageTrigger:focus-visible', SQUIRCLE],
     ['header-controls/HeaderControls.module.css', '.tab:focus-visible', SQUIRCLE],
@@ -102,6 +101,46 @@ describe('l’anneau suit la forme du contrôle', () => {
   it('arrondit le lien texte, dont l’anneau cernait les mots d’un rectangle', () => {
     expect(declaration(opaleSource, '.opale-link:focus-visible', 'border-radius')).toBe(
       'var(--opale-radius-sm)',
+    );
+  });
+});
+
+/* LES CHAMPS DE SAISIE N'ONT PAS D'ANNEAU AU FOCUS — DEMANDE DU PROPRIÉTAIRE.
+   Un anneau gris autour d'un champ qui change déjà de bordure faisait double
+   emploi. Le focus d'un champ se lit à sa bordure, qui passe au primaire
+   (6,6:1 sur la surface claire) : le repère reste visible (WCAG 2.4.7). */
+describe('le focus des champs de saisie', () => {
+  it('ne trace plus d’anneau autour d’Input, Select et Textarea', () => {
+    expect(
+      declaration(
+        opaleSource,
+        '.opale-input-shell:has(> .opale-input:focus-visible, > .opale-select:focus-visible)',
+        'outline',
+      ),
+    ).toBeUndefined();
+    expect(declaration(opaleSource, '.opale-input-shell:focus-within', 'border-color')).toBe(
+      'var(--opale-primary)',
+    );
+  });
+
+  it('ne trace plus d’anneau autour de MultiSelect', () => {
+    expect(
+      declaration(
+        opaleSource,
+        '.opale-multiselect:has(> .opale-multiselect__list:focus-visible)',
+        'outline',
+      ),
+    ).toBeUndefined();
+    expect(declaration(opaleSource, '.opale-multiselect:focus-within', 'border-color')).toBe(
+      'var(--opale-primary)',
+    );
+  });
+
+  it('ne trace plus d’anneau autour de SearchBar sur la surface pleine', () => {
+    const css = modules['../opale/components/search-bar/style/SearchBar.module.scss'];
+    expect(declaration(css, '.plain:has(.input:focus-visible)', 'outline')).toBe('none');
+    expect(declaration(css, '.plain:focus-within', '--opale-search-border')).toBe(
+      'var(--opale-primary)',
     );
   });
 });
