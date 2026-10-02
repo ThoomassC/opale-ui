@@ -185,3 +185,54 @@ describe('ACC-06 — la barre du site ne déborde pas de son conteneur', () => {
     );
   });
 });
+
+/* RETOURS DE GRAND ORAL STUDIO (audit a11y du SidePanel, 02/10/2026).
+
+   1. Le natif d'une case ou d'un interrupteur est en `position: absolute` :
+      sans rangée positionnée, il se plaçait par rapport au premier ancêtre
+      positionné — la coquille du dialogue —, hors du corps qui défile. Le
+      navigateur faisait alors défiler vers lui, et le focus restait hors de la
+      vue (WCAG 2.4.11).
+   2. La piste du Toggle rétrécissait dans sa rangée flex : à 320 px, avec un
+      long libellé et le texte agrandi, elle passait de 65 à 40 px, et la
+      pastille en sortait une fois activée. */
+describe('les rangées de case et d’interrupteur', () => {
+  it('positionnent leur natif dans la rangée', () => {
+    expect(declaration(opaleSource, '.opale-toggle-row', 'position')).toBe('relative');
+    expect(declaration(opaleSource, '.opale-checkbox-row', 'position')).toBe('relative');
+  });
+
+  it('ne laissent ni la piste ni la case rétrécir', () => {
+    expect(declaration(opaleSource, '.opale-toggle-track', 'flex-shrink')).toBe('0');
+    expect(declaration(opaleSource, '.opale-checkbox-mark', 'flex-shrink')).toBe('0');
+  });
+});
+
+/* 4. Le SegmentedControl passe à la ligne à 320 px : un rayon « pilule »
+      (999 rem) devient une ellipse sur deux lignes, et la pastille en
+      déborde. `--opale-radius-md` vaut la moitié d'une ligne : pilule sur une
+      ligne, rectangle arrondi sur deux. */
+describe('le SegmentedControl qui passe à la ligne', () => {
+  it('garde une piste arrondie, pas une ellipse', () => {
+    expect(declaration(opaleSource, '.opale-segmented', 'border-radius')).toBe(
+      'var(--opale-radius-md)',
+    );
+  });
+});
+
+/* LE BOUTON GARDE UN BORD EN CONTRASTES FORCÉS. Son aplat est peint par un
+   pseudo-élément découpé en squircle ; le mode le ramène à `Canvas`, la
+   couleur de la page, et le bouton n'était plus qu'un mot (WCAG 1.4.11).
+   Un filet système, arrondi comme la forme, le redessine — dans ce mode
+   seulement. */
+describe('le bouton en contrastes forcés', () => {
+  it('trace un filet ButtonText arrondi comme sa forme', () => {
+    const forced = { within: '@media (forced-colors: active)' };
+    expect(declaration(opaleSource, '.opale-button', 'border', forced)).toBe(
+      '1px solid ButtonText',
+    );
+    expect(declaration(opaleSource, '.opale-button', 'border-radius', forced)).toBe(
+      'calc(var(--opale-squircle-radius) * 0.68)',
+    );
+  });
+});
