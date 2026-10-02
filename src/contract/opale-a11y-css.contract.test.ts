@@ -219,3 +219,20 @@ describe('le SegmentedControl qui passe à la ligne', () => {
     );
   });
 });
+
+/* LE BOUTON GARDE UN BORD EN CONTRASTES FORCÉS. Son aplat est peint par un
+   pseudo-élément découpé en squircle ; le mode le ramène à `Canvas`, la
+   couleur de la page, et le bouton n'était plus qu'un mot (WCAG 1.4.11).
+   Un filet système, arrondi comme la forme, le redessine — dans ce mode
+   seulement. */
+describe('le bouton en contrastes forcés', () => {
+  it('trace un filet ButtonText arrondi comme sa forme', () => {
+    const forced = { within: '@media (forced-colors: active)' };
+    expect(declaration(opaleSource, '.opale-button', 'border', forced)).toBe(
+      '1px solid ButtonText',
+    );
+    expect(declaration(opaleSource, '.opale-button', 'border-radius', forced)).toBe(
+      'calc(var(--opale-squircle-radius) * 0.68)',
+    );
+  });
+});

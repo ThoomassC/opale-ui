@@ -4635,3 +4635,14 @@ ol.opale-stack {
     outline-offset: var(--opale-focus-ring-offset);
   }
 }
+
+/* EN CONTRASTES FORCÉS, LE BOUTON GARDE UN BORD. Son aplat, peint par un
+   pseudo-élément, y devient la couleur de la page : il ne restait qu'un mot.
+   Un filet système, arrondi comme la forme, le redessine (WCAG 1.4.11).
+   En fin de feuille : la règle de base remettait `border: 0`. */
+@media (forced-colors: active) {
+  .opale-button {
+    border: 1px solid ButtonText;
+    border-radius: calc(var(--opale-squircle-radius) * 0.68);
+  }
+}
