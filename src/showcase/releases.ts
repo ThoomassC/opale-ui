@@ -49,6 +49,51 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V301_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Le mouvement',
+    changes: [
+      {
+        title: 'Cinq composants de mouvement',
+        detail:
+          'Carousel (glisser, clavier, annonces), Reveal (apparition au défilement), Marquee (bandeau en boucle avec pause), SplitHeading (titre qui arrive mot à mot) et ScrollStage avec ScrollSection (fonds pleins par section). Tous restent immobiles en mouvement réduit et lisibles sans JavaScript.',
+        links: [{ label: 'Carousel', slug: 'composants/opale-carousel' }],
+      },
+    ],
+  },
+  {
+    title: 'Le site',
+    changes: [
+      {
+        title: 'Un nouvel accueil et la DA de la 3.0',
+        detail:
+          'L’accueil devient un récit en cinq bandes, construit avec les composants d’Opale. Toute la documentation reprend la direction artistique : titres en Bricolage, texte à 17 px, code sur fond nuit, pied de page, cibles de 24 px.',
+      },
+    ],
+  },
+  {
+    title: 'La barre latérale',
+    changes: [
+      {
+        title: 'Sidebar comme le sommaire de la documentation',
+        detail:
+          'Sidebar.Group pour les parties titrées, et trois options : customScrollbar (la barre du sommaire), resizable (la largeur au glisser et au clavier) et mobile (le format téléphone du sommaire). Le rail plein se pose sur le fond de la page.',
+        links: [{ label: 'Sidebar', slug: 'composants/sidebar' }],
+      },
+    ],
+  },
+  {
+    title: 'Le focus',
+    changes: [
+      {
+        title: 'Plus d’anneau gris autour des champs',
+        detail:
+          'Input, Select, Textarea, MultiSelect et SearchBar ne tracent plus d’anneau au focus : leur bordure passe au primaire, et c’est le repère. Les autres contrôles gardent leur anneau, qui suit désormais leur forme arrondie au lieu d’un rectangle.',
+      },
+    ],
+  },
+];
+
 const V3100_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Formulaires complets',
@@ -1113,6 +1158,23 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.0.1',
+    publishedAt: '2026-10-02',
+    dateLabel: '2 octobre 2026',
+    summary:
+      'La refonte : des composants de mouvement, un nouvel accueil, la direction artistique sur toute la documentation, une Sidebar comme le sommaire, et des champs sans anneau gris au focus. Uniquement des ajouts et des corrections visuelles : aucune API retirée.',
+    sections: V301_RELEASE_SECTIONS,
+    changes: V301_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'Cinq composants de mouvement.',
+      'Sidebar.Group, customScrollbar, resizable et mobile.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '2.10.0',
     publishedAt: '2026-09-30',
     dateLabel: '30 septembre 2026',
@@ -1123,8 +1185,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Textarea, RadioGroup et Field.', 'Tooltip, Popover et DropdownMenu.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.0.1, depuis le site renuméroté (24510fe). */
+    appHref: '/versions/v2.10.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.10.0`,
   },
   {
     version: '2.9.4',
