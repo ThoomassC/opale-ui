@@ -2223,8 +2223,12 @@ h6.opale-heading {
   opacity: var(--opale-disabled-opacity);
 }
 
+/* La rangée est positionnée : le natif, en `position: absolute`, s'y place.
+   Sans elle, dans un corps de dialogue qui défile, il se plaçait par rapport
+   à la coquille, hors de la zone qui défile, et le focus quittait la vue. */
 .opale-checkbox-row,
 .opale-toggle-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--opale-space-sm);
@@ -2239,6 +2243,7 @@ h6.opale-heading {
 }
 .opale-checkbox-mark {
   display: grid;
+  flex-shrink: 0;
   width: 1.25rem;
   height: 1.25rem;
   place-items: center;
@@ -2257,6 +2262,8 @@ h6.opale-heading {
 .opale-toggle-track {
   position: relative;
   display: inline-flex;
+  /* Elle ne rétrécit pas sous un long libellé : la pastille en sortait. */
+  flex-shrink: 0;
   width: 3.25rem;
   height: 1.75rem;
   align-items: center;
@@ -2632,7 +2639,10 @@ h6.opale-heading {
   flex-wrap: wrap;
   gap: var(--opale-space-2xs);
   padding: var(--opale-space-2xs);
-  border-radius: var(--opale-radius-pill);
+  /* La moitié d'une ligne, et non une pilule : passée à la ligne (320 px), la
+     piste pilule devenait une ellipse dont la pastille débordait. Sur une
+     ligne, le rendu est le même. */
+  border-radius: var(--opale-radius-md);
   background: var(--opale-surface-sunken);
 }
 /* La piste du verre reste transparente même après la règle de base. */
