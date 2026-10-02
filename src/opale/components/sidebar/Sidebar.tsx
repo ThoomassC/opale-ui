@@ -101,6 +101,10 @@ export interface SidebarLabels {
   scrollStart: string;
   /** Le nom de la poignée de largeur (`resizable`). Défaut : « Largeur du rail ». */
   resize: string;
+  /** Le bouton qui déplie le rail en format mobile (`mobile`). Défaut : « Sommaire ». */
+  menu: string;
+  /** Le nom de la rangée de raccourcis vers les parties. Défaut : « Parties du rail ». */
+  shortcuts: string;
 }
 
 /* EN FRANÇAIS, COMME LE RESTE DE LA BIBLIOTHÈQUE : lu avec la voix française
@@ -112,7 +116,12 @@ const DEFAULT_SIDEBAR_LABELS: SidebarLabels = {
   scroll: 'Défilement du rail',
   scrollStart: 'Début du rail',
   resize: 'Largeur du rail',
+  menu: 'Sommaire',
+  shortcuts: 'Parties du rail',
 };
+
+/** Une partie du rail, telle qu'elle s'inscrit pour les raccourcis du format mobile. */
+type SidebarGroupEntry = { id: string; label: string; reveal: () => void };
 
 /* Les largeurs des trois tailles, en pixels, celles de la feuille
    (12,5 · 16,25 · 20 rem) : le point de départ d'un rail `resizable`. */
@@ -140,6 +149,10 @@ export type SidebarContextValue = {
   sidebarId: string;
   /** Les textes effectifs du rail ; absents, les défauts français s'appliquent. */
   labels?: SidebarLabels;
+  /** Inscrit ou met à jour une partie, pour les raccourcis du format mobile. */
+  upsertGroup?: (entry: SidebarGroupEntry) => void;
+  /** Retire une partie démontée. */
+  removeGroup?: (id: string) => void;
 };
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
@@ -225,6 +238,14 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
   maxWidth?: number;
   /** Appelée à chaque changement de largeur, au glisser comme au clavier. */
   onWidthChange?: (width: number) => void;
+  /**
+   * Le format mobile du sommaire de la documentation : un bouton « Sommaire »
+   * qui déplie le rail, une rangée de raccourcis vers chaque `Sidebar.Group`,
+   * puis le rail en pleine largeur, sans poignée. Échap le replie et rend le
+   * focus au bouton. `auto` l'adopte sous 30 rem de fenêtre ; `menu` toujours
+   * (un cadre étroit, un exemple) ; `off` jamais. Défaut : `off`.
+   */
+  mobile?: 'off' | 'auto' | 'menu';
 } & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
   LegacySurfaceAnimationProps;
 
@@ -490,6 +511,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       minWidth = 224,
       maxWidth = 480,
       onWidthChange,
+      mobile = 'off',
       className,
       rootClassName,
       rootStyle,
@@ -568,16 +590,56 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
        enfin son propre identifiant. */
     const generatedId = useId();
     const sidebarId = id ?? generatedId;
-    const { items, expand, collapse, scroll, scrollStart, resize } = resolveLabels(
+    const { items, expand, collapse, scroll, scrollStart, resize, menu, shortcuts } = resolveLabels(
       DEFAULT_SIDEBAR_LABELS,
       labelsProp,
     );
     /* Mémorisé sur les chaînes : un `labels` littéral recréé à chaque rendu ne
        doit pas renouveler le contexte. */
     const labels = useMemo<SidebarLabels>(
-      () => ({ items, expand, collapse, scroll, scrollStart, resize }),
-      [items, expand, collapse, scroll, scrollStart, resize],
+      () => ({ items, expand, collapse, scroll, scrollStart, resize, menu, shortcuts }),
+      [items, expand, collapse, scroll, scrollStart, resize, menu, shortcuts],
     );
+
+    /* LES PARTIES INSCRITES, pour les raccourcis du format mobile. Une mise à
+       jour qui ne change rien rend le même tableau : React n'en refait pas le
+       rendu. */
+    const [groups, setGroups] = useState<readonly SidebarGroupEntry[]>([]);
+    const upsertGroup = useCallback((entry: SidebarGroupEntry) => {
+      setGroups((current) => {
+        const index = current.findIndex((group) => group.id === entry.id);
+        if (index >= 0 && current[index]?.label === entry.label) return current;
+        if (index < 0) return [...current, entry];
+        const next = [...current];
+        next[index] = entry;
+        return next;
+      });
+    }, []);
+    const removeGroup = useCallback((groupId: string) => {
+      setGroups((current) => current.filter((group) => group.id !== groupId));
+    }, []);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuToggleRef = useRef<HTMLButtonElement>(null);
+    const frameRef = useRef<HTMLDivElement>(null);
+
+    /* ÉCHAP REPLIE LE RAIL DÉPLIÉ quand le focus est dedans, et rend le focus
+       au bouton. Pressée ailleurs, la touche appartient à la page ; en format
+       ordinaire (`auto` sur grand écran), le bouton est caché : rien à faire. */
+    useEffect(() => {
+      if (!menuOpen) return;
+      const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+        if (event.key !== 'Escape') return;
+        if (!(event.target instanceof Node) || !frameRef.current?.contains(event.target)) return;
+        const narrow =
+          mobile === 'menu' ||
+          (mobile === 'auto' && !!window.matchMedia?.('(max-width: 30rem)').matches);
+        if (!narrow) return;
+        setMenuOpen(false);
+        menuToggleRef.current?.focus();
+      };
+      document.addEventListener('keydown', closeOnEscape);
+      return () => document.removeEventListener('keydown', closeOnEscape);
+    }, [menuOpen, mobile]);
 
     /* LA LARGEUR RÉGLABLE, contrôlable comme le reste, et toujours bornée. */
     const clampWidth = (next: number) => Math.max(minWidth, Math.min(maxWidth, Math.round(next)));
@@ -590,7 +652,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       setWidthState(bounded);
       onWidthChange?.(bounded);
     };
-    const showResize = resizable && !collapsed;
+    const showResize = resizable && !collapsed && mobile !== 'menu';
     const widthStyle = showResize ? { width: `${clampWidth(width)}px` } : undefined;
 
     const contextValue = useMemo<SidebarContextValue>(
@@ -606,8 +668,12 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         activeItemId,
         sidebarId,
         labels,
+        upsertGroup,
+        removeGroup,
       }),
       [
+        upsertGroup,
+        removeGroup,
         size,
         collapsed,
         collapsible,
@@ -654,17 +720,79 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       />
     ) : null;
 
+    /* Chaque raccourci ouvre sa partie, puis la fait défiler en tête du rail. */
+    const revealGroup = (group: SidebarGroupEntry) => {
+      group.reveal();
+      requestAnimationFrame(() => {
+        const target = document.getElementById(group.id);
+        const area =
+          document.getElementById(`${sidebarId}-scroll`) ?? document.getElementById(sidebarId);
+        if (!target || !area) return;
+        area.scrollTop += target.getBoundingClientRect().top - area.getBoundingClientRect().top;
+      });
+    };
+
+    const ordered = [...groups].sort((a, b) => {
+      const first = typeof document === 'undefined' ? null : document.getElementById(a.id);
+      const second = typeof document === 'undefined' ? null : document.getElementById(b.id);
+      if (!first || !second) return 0;
+      return first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    });
+
     /* La poignée déborde du bord du rail : le verre rogne ce qui dépasse
-       (`overflow: hidden`), elle vit donc sur un cadre autour de lui. */
-    const frame = (rail: ReactNode) =>
-      showResize ? (
-        <div className={clsx('opale-sidebar__frame', styles.frame)}>
-          {rail}
-          {handle}
+       (`overflow: hidden`), elle vit donc sur un cadre autour de lui — qui
+       porte aussi le bouton et les raccourcis du format mobile. */
+    const frame = (rail: ReactNode) => {
+      if (mobile === 'off') {
+        return showResize ? (
+          <div className={clsx('opale-sidebar__frame', styles.frame)}>
+            {rail}
+            {handle}
+          </div>
+        ) : (
+          rail
+        );
+      }
+      return (
+        <div
+          className={clsx('opale-sidebar__frame', styles.frame, styles.frameMobile)}
+          data-mobile={mobile}
+          data-menu={menuOpen ? 'open' : 'closed'}
+          ref={frameRef}
+        >
+          <button
+            ref={menuToggleRef}
+            type="button"
+            className={clsx('opale-sidebar__menu-toggle', styles.menuToggle)}
+            aria-expanded={menuOpen}
+            aria-controls={sidebarId}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {labels.menu}
+          </button>
+          {menuOpen && ordered.length > 0 && (
+            <div
+              role="group"
+              aria-label={labels.shortcuts}
+              className={clsx('opale-sidebar__shortcuts', styles.shortcuts)}
+            >
+              {ordered.map((group) => (
+                <button key={group.id} type="button" onClick={() => revealGroup(group)}>
+                  {group.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div
+            className={clsx('opale-sidebar__rail-slot', styles.railSlot)}
+            hidden={mobile === 'menu' && !menuOpen}
+          >
+            {rail}
+            {handle}
+          </div>
         </div>
-      ) : (
-        rail
       );
+    };
 
     if (!liquidGlass) {
       return (
@@ -856,6 +984,25 @@ const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
       if (!canToggle && focusIn.current === 'title')
         contentRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus();
     }, [canToggle]);
+
+    /* L'INSCRIPTION AUPRÈS DU RAIL, pour les raccourcis du format mobile : le
+       libellé est le texte du titre, relu après chaque rendu ; une valeur
+       inchangée ne coûte rien. Le raccourci rouvre la partie. */
+    const reveal = useRef(() => {});
+    useLayoutEffect(() => {
+      reveal.current = () => {
+        if (openProp === undefined) setOpenState(true);
+        if (!open) onOpenChange?.(true);
+      };
+    });
+    const upsert = context?.upsertGroup;
+    const remove = context?.removeGroup;
+    const entryReveal = useRef(() => reveal.current());
+    useEffect(() => {
+      const label = document.getElementById(titleId)?.textContent ?? '';
+      upsert?.({ id: titleId, label, reveal: entryReveal.current });
+    });
+    useEffect(() => () => remove?.(titleId), [remove, titleId]);
 
     const toggle = () => {
       const next = !open;

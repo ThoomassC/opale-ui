@@ -668,6 +668,125 @@ button.groupTitle:focus-visible {
 }
 
 /* =============================================================================
+   LE FORMAT MOBILE (`mobile`) — CELUI DU SOMMAIRE DE LA DOCUMENTATION.
+
+   Un bouton « Sommaire » pleine largeur, dont le chevron dit le sens ; une
+   rangée de raccourcis vers chaque partie, qui défile de côté ; puis le rail
+   en pleine largeur, sans poignée. Replié, le rail est `display: none` : hors
+   de l'écran ET de l'arbre accessible, l'état juste d'un contenu replié.
+
+   `menu` adopte ce format partout ; `auto` sous 30 rem de fenêtre seulement,
+   et rend au-delà le rail ordinaire, bouton et raccourcis masqués.
+   ========================================================================== */
+.frameMobile {
+  flex-direction: column;
+  gap: var(--opale-space-sm);
+}
+.menuToggle,
+.shortcuts {
+  display: none;
+}
+.railSlot {
+  position: relative;
+  display: flex;
+  max-height: 100%;
+}
+.railSlot[hidden] {
+  display: none;
+}
+.frameMobile[data-mobile='menu'],
+.frameMobile[data-mobile='menu'] .railSlot,
+.frameMobile[data-mobile='menu'] .sidebarRoot {
+  width: 100%;
+}
+.frameMobile[data-mobile='menu'] .menuToggle {
+  display: flex;
+}
+.frameMobile[data-mobile='menu'] .shortcuts {
+  display: flex;
+}
+@media (max-width: 30rem) {
+  .frameMobile[data-mobile='auto'],
+  .frameMobile[data-mobile='auto'] .railSlot {
+    width: 100%;
+  }
+  .frameMobile[data-mobile='auto'] .sidebarRoot {
+    width: 100% !important;
+  }
+  .frameMobile[data-mobile='auto'] .menuToggle,
+  .frameMobile[data-mobile='auto'] .shortcuts {
+    display: flex;
+  }
+  .frameMobile[data-mobile='auto'][data-menu='closed'] .railSlot {
+    display: none;
+  }
+  .frameMobile[data-mobile='auto'] .resize {
+    display: none;
+  }
+}
+.menuToggle {
+  width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--opale-space-sm);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  padding: var(--opale-space-xs) var(--opale-space-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+.menuToggle::after {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-block-end: 2px solid currentColor;
+  border-inline-end: 2px solid currentColor;
+  content: '';
+  transform: translateY(-0.125rem) rotate(45deg);
+  transition: transform var(--opale-motion) var(--opale-ease);
+}
+.menuToggle[aria-expanded='true']::after {
+  transform: translateY(0.125rem) rotate(-135deg);
+}
+.menuToggle:focus-visible,
+.shortcuts > button:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+.shortcuts {
+  gap: var(--opale-space-xs);
+  overflow-x: auto;
+  padding-block: var(--opale-space-2xs);
+  scrollbar-width: thin;
+}
+.shortcuts > button {
+  flex: none;
+  min-height: 2.5rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-pill);
+  padding-inline: var(--opale-space-sm);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--opale-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.shortcuts > button:hover {
+  border-color: var(--opale-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .menuToggle::after {
+    transition: none;
+  }
+}
+
+/* =============================================================================
    LA VERSION ORIGINALE.
 
    Le rail ne savait rendre que du verre : sans matériau il n'avait ni fond, ni
