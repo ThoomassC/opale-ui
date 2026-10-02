@@ -49,6 +49,31 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V303_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Les états courants',
+    changes: [
+      {
+        title: 'Le fond suffit',
+        detail:
+          'L’entrée courante de Sidebar et de Navbar perd son trait vertical, l’onglet retenu de Tabs son soulignement : la pastille de couleur et la graisse marquent l’état. En contrastes forcés, l’aplat Highlight reste.',
+        links: [{ label: 'Sidebar', slug: 'composants/sidebar' }],
+      },
+    ],
+  },
+  {
+    title: 'Les formulaires',
+    changes: [
+      {
+        title: 'RadioGroup lisible sous verre',
+        detail:
+          'Sous verre liquide, le libellé de chaque option gardait l’encre de la page, illisible sur une photographie : il prend désormais l’encre du verre, comme la légende et les descriptions.',
+        links: [{ label: 'RadioGroup', slug: 'composants/opale-radio-group' }],
+      },
+    ],
+  },
+];
+
 const V302_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'La barre latérale',
@@ -1177,6 +1202,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.0.3',
+    publishedAt: '2026-10-02',
+    dateLabel: '2 octobre 2026',
+    summary:
+      'Des états courants plus sobres — Sidebar et Navbar sans trait, onglets sans soulignement — et un RadioGroup lisible sous verre liquide. Sans rupture.',
+    sections: V303_RELEASE_SECTIONS,
+    changes: V303_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['États courants au fond seul.', 'RadioGroup lisible sous verre.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.0.2',
     publishedAt: '2026-10-02',
     dateLabel: '2 octobre 2026',
@@ -1190,8 +1229,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Barre de défilement cachée quand rien ne dépasse.',
       'Rail réglable à pleine hauteur.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.0.3, sur son tag. */
+    appHref: '/versions/v3.0.2/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.0.2`,
   },
   {
     version: '3.0.1',
