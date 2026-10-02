@@ -144,3 +144,29 @@ describe('le focus des champs de saisie', () => {
     );
   });
 });
+
+/* DEMANDE DU PROPRIÉTAIRE (02/10) : l'entrée courante d'une Navbar ou d'une
+   Sidebar, et l'onglet retenu, se lisent à leur fond seul — ni trait au bord,
+   ni soulignement. */
+describe('les états courants se lisent au fond seul', () => {
+  it('ne dessine plus de trait à gauche de l’entrée courante de la Navbar', () => {
+    expect(
+      declaration(opaleSource, ".opale-nav__item[aria-current='page']::before", 'content'),
+    ).toBeUndefined();
+    expect(declaration(opaleSource, ".opale-nav__item[aria-current='page']", 'font-weight')).toBe(
+      '700',
+    );
+  });
+
+  it('ne dessine plus de trait dans la pastille courante de la Sidebar', () => {
+    const css = modules['../opale/components/sidebar/style/Sidebar.module.css'];
+    expect(declaration(css, '.plain .item.itemActive::before', 'content')).toBeUndefined();
+  });
+
+  it('ne souligne plus l’onglet retenu', () => {
+    const css = modules['../opale/components/tabs/style/Tabs.module.css'];
+    expect(
+      declaration(css, ".tabsTrigger[aria-selected='true']", 'text-decoration-line'),
+    ).toBeUndefined();
+  });
+});

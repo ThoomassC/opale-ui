@@ -532,10 +532,9 @@ describe('les constats sérieux de l’audit', () => {
       'Fond et couleur sont partagés avec `:hover` : il faut une marque qui ' +
         'survive aux niveaux de gris.',
     ).toBeDefined();
-    expect(
-      ruleBody(opaleSheet, ".opale-nav__item[aria-current='page']::before"),
-      'La marque de la page courante a disparu.',
-    ).not.toBeNull();
+    /* Le témoin vertical est retiré à la demande du propriétaire (02/10/2026) :
+       la graisse reste, et le fond. */
+    expect(ruleBody(opaleSheet, ".opale-nav__item[aria-current='page']::before")).toBeNull();
   });
 
   /* RAMENER LA SEULE DURÉE À 0,01 ms N'ARRÊTE PAS UNE ANIMATION `infinite` :

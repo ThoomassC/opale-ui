@@ -1,7 +1,7 @@
 import { compareVersions, releaseAssetUrl } from '../../scripts/release-guard.mjs';
 
-/** La 3.0.2 est publiée : la page Installation propose son tag, qui ne bouge plus. */
-export const INSTALL_REF = 'v3.0.2';
+/** La 3.0.3 est publiée : la page Installation propose son tag, qui ne bouge plus. */
+export const INSTALL_REF = 'v3.0.3';
 export const INSTALL_REF_KIND: 'branch' | 'tag' = 'tag';
 
 /* LIV-05 — Les releases portent une archive construite (`npm pack`) à partir
