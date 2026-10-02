@@ -2031,15 +2031,12 @@ h6.opale-heading {
   color: var(--opale-text);
   font: 400 var(--opale-text-md) / var(--opale-leading-snug) var(--opale-font-body);
 }
-/* Le champ intérieur est rectangulaire ; le focus suit la coquille arrondie. */
+/* Pas d'anneau au focus d'un champ : sa coquille passe au primaire
+   (`.opale-input-shell:focus-within`), et c'est le repère. */
 .opale-input:focus-visible,
 .opale-select:focus-visible {
   outline: none;
   box-shadow: none;
-}
-.opale-input-shell:has(> .opale-input:focus-visible, > .opale-select:focus-visible) {
-  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
-  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-input::placeholder {
   color: var(--opale-text-secondary);
@@ -2119,10 +2116,6 @@ h6.opale-heading {
 .opale-multiselect__list:focus-visible {
   outline: none;
   box-shadow: none;
-}
-.opale-multiselect:has(> .opale-multiselect__list:focus-visible) {
-  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
-  outline-offset: var(--opale-focus-ring-offset);
 }
 .opale-multiselect:focus-within,
 .opale-multiselect:focus {
