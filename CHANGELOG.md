@@ -3,6 +3,18 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
+## 3.0.3 — 2 octobre 2026
+
+Des états courants plus sobres — Sidebar et Navbar sans trait, onglets sans soulignement — et un RadioGroup lisible sous verre liquide. Sans rupture.
+
+### Les états courants
+
+- **Le fond suffit** — L’entrée courante de Sidebar et de Navbar perd son trait vertical, l’onglet retenu de Tabs son soulignement : la pastille de couleur et la graisse marquent l’état. En contrastes forcés, l’aplat Highlight reste.
+
+### Les formulaires
+
+- **RadioGroup lisible sous verre** — Sous verre liquide, le libellé de chaque option gardait l’encre de la page, illisible sur une photographie : il prend désormais l’encre du verre, comme la légende et les descriptions.
+
 ## 3.0.2 — 2 octobre 2026
 
 Deux corrections de la Sidebar remontées par un projet qui l’utilise : la barre de défilement se cache quand rien ne dépasse, et un rail réglable garde la hauteur de sa colonne. Sans rupture.

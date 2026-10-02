@@ -824,20 +824,6 @@ button.groupTitle:focus-visible {
   background: transparent;
   color: var(--opale-primary-on-surface);
 }
-/* UN TÉMOIN DE FORME, PAS SEULEMENT UNE TEINTE (WCAG 1.4.11, 1.4.1). La
-   pastille à 12 % ne se détache qu'à 1,19:1 du rail et l'encre primaire à
-   1,08:1 des autres entrées ; la graisse, seul autre repère, disparaît avec le
-   libellé quand le rail est plié. Un trait de 3 px en encre primaire, au
-   début de la pastille, tient au moins 5:1 sur le rail, déplié comme plié. */
-.plain .item.itemActive::before {
-  position: absolute;
-  inset-block: 0.5rem;
-  inset-inline-start: 0.25rem;
-  width: 3px;
-  border-radius: var(--opale-radius-pill);
-  background: var(--opale-primary-on-surface);
-  content: '';
-}
 /* L'appui garde son voile : un appui à la souris est aussi un survol, et la
    règle ci-dessus l'effaçait. */
 .plain .item:hover:active:not(:disabled):not([aria-disabled='true']) {

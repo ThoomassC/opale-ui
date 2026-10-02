@@ -171,18 +171,10 @@
   outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }
 
-/* L'ONGLET RETENU EST SOULIGNÉ, SOUS VERRE COMME SANS (ACC-03). Sa pastille
-   ne tenait que 1,19:1 sur la liste et son libellé ne changeait que de
-   teinte : en niveaux de gris, en vision des couleurs réduite ou en
-   contrastes forcés, rien ne disait quel onglet était ouvert (WCAG 1.4.1,
-   1.4.11). Le soulignement prend l'encre du libellé — celle du verre ou le
-   primaire de la version pleine —, donc il contraste là où le texte
-   contraste ; il ne change ni la boîte ni la ligne de base. */
-.tabsTrigger[aria-selected='true'] {
-  text-decoration-line: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.3em;
-}
+/* L'ONGLET RETENU SE LIT À SA PASTILLE, SANS SOULIGNEMENT — décision du
+   propriétaire (02/10/2026), qui revient sur ACC-03 en connaissance de cause :
+   la pastille ne tient que 1,19:1 sur la liste (WCAG 1.4.11). Les contrastes
+   forcés gardent leur aplat `Highlight`, plus bas. */
 
 .tabsTrigger:disabled {
   opacity: var(--opale-disabled-opacity);
