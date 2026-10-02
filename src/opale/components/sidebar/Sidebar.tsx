@@ -95,6 +95,12 @@ export interface SidebarLabels {
   expand: string;
   /** Le nom de la bascule quand le rail est déplié. Défaut : « Replier le rail ». */
   collapse: string;
+  /** Le nom de la barre de défilement (`customScrollbar`). Défaut : « Défilement du rail ». */
+  scroll: string;
+  /** Ce que la barre annonce tout en haut. Défaut : « Début du rail ». */
+  scrollStart: string;
+  /** Le nom de la poignée de largeur (`resizable`). Défaut : « Largeur du rail ». */
+  resize: string;
 }
 
 /* EN FRANÇAIS, COMME LE RESTE DE LA BIBLIOTHÈQUE : lu avec la voix française
@@ -103,7 +109,15 @@ const DEFAULT_SIDEBAR_LABELS: SidebarLabels = {
   items: 'Navigation latérale',
   expand: 'Déplier le rail',
   collapse: 'Replier le rail',
+  scroll: 'Défilement du rail',
+  scrollStart: 'Début du rail',
+  resize: 'Largeur du rail',
 };
+
+/* Les largeurs des trois tailles, en pixels, celles de la feuille
+   (12,5 · 16,25 · 20 rem) : le point de départ d'un rail `resizable`. */
+const SIZE_WIDTH: Record<SidebarSize, number> = { small: 200, medium: 260, large: 320 };
+const RESIZE_STEP = 16;
 
 export type SidebarContextValue = {
   size: SidebarSize;
@@ -187,6 +201,30 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * état.
    */
   liquidGlass?: boolean;
+  /**
+   * Une barre de défilement dessinée par Opale, celle du sommaire de la
+   * documentation : un curseur qu'on glisse, une piste, et le clavier (flèches,
+   * pages, début, fin) quand elle a le focus. Le contenu du rail défile dans
+   * sa propre zone ; le rail doit donc recevoir une hauteur de son hôte.
+   * Défaut : `false`, la barre du navigateur.
+   */
+  customScrollbar?: boolean;
+  /**
+   * Une poignée sur le bord du rail règle sa largeur, au glisser et au
+   * clavier (flèches, Début, Fin). Le rail est alors enveloppé d'un cadre qui
+   * porte la poignée. Sans effet rail plié. Défaut : `false`.
+   */
+  resizable?: boolean;
+  /** La largeur pilotée, en pixels, avec `resizable`. */
+  width?: number;
+  /** La largeur de départ, en pixels. Défaut : celle de `size` (200, 260 ou 320). */
+  defaultWidth?: number;
+  /** La largeur minimale, en pixels. Défaut : 224. */
+  minWidth?: number;
+  /** La largeur maximale, en pixels. Défaut : 480. */
+  maxWidth?: number;
+  /** Appelée à chaque changement de largeur, au glisser comme au clavier. */
+  onWidthChange?: (width: number) => void;
 } & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
   LegacySurfaceAnimationProps;
 
@@ -195,6 +233,237 @@ const widthClassMap: Record<SidebarSize, string> = {
   medium: styles.medium,
   large: styles.large,
 };
+
+/*
+ * LA ZONE QUI DÉFILE ET SA BARRE — LE SOMMAIRE DE LA DOCUMENTATION, EN PIÈCE.
+ *
+ * Le curseur est un indicateur : sa taille, sa position et l'état ARIA de la
+ * barre sont écrits dans le DOM à chaque défilement, sans rendu React — un
+ * état par événement de molette rerendait toutes les entrées.
+ *
+ * La barre est focalisable (`role="scrollbar"`) : les flèches avancent de 80 %
+ * d'une vue, Page précédente et suivante d'une vue entière, Début et Fin
+ * mènent aux bouts. Rail plié, elle disparaît : il ne reste que des icônes.
+ */
+function SidebarScrollArea({
+  id,
+  collapsed,
+  labels,
+  children,
+}: {
+  id: string;
+  collapsed: boolean;
+  labels: SidebarLabels;
+  children: ReactNode;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLSpanElement>(null);
+  const maxRef = useRef(0);
+  const dragRef = useRef<{ pointerId: number; startY: number; start: number; travel: number }>(
+    null,
+  );
+
+  useEffect(() => {
+    const area = scrollRef.current;
+    if (!area) return;
+    const update = () => {
+      const view = area.clientHeight;
+      const max = Math.max(0, area.scrollHeight - view);
+      maxRef.current = max;
+      const size = max === 0 || !view ? 1 : Math.max(0.14, Math.min(1, view / area.scrollHeight));
+      const offset = max === 0 ? 0 : (area.scrollTop / max) * (1 - size);
+      const bar = barRef.current;
+      if (!bar) return;
+      bar.style.setProperty('--opale-sidebar-thumb-size', `${size * 100}%`);
+      bar.style.setProperty('--opale-sidebar-thumb-offset', `${offset * 100}%`);
+      bar.dataset.idle = max === 0 ? 'true' : 'false';
+      bar.setAttribute('aria-valuemax', String(Math.round(max)));
+      bar.setAttribute('aria-valuenow', String(Math.round(area.scrollTop)));
+      bar.setAttribute(
+        'aria-valuetext',
+        max === 0 ? labels.scrollStart : `${Math.round((area.scrollTop / max) * 100)} %`,
+      );
+    };
+    update();
+    area.addEventListener('scroll', update, { passive: true });
+    const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(update);
+    observer?.observe(area);
+    if (area.firstElementChild) observer?.observe(area.firstElementChild);
+    return () => {
+      area.removeEventListener('scroll', update);
+      observer?.disconnect();
+    };
+  }, [collapsed, labels.scrollStart]);
+
+  const scrollTo = (top: number) => {
+    const area = scrollRef.current;
+    if (area) area.scrollTop = Math.max(0, Math.min(maxRef.current, top));
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
+    const area = scrollRef.current;
+    if (!area || maxRef.current === 0) return;
+    const view = area.clientHeight;
+    const targets: Record<string, number> = {
+      ArrowUp: area.scrollTop - Math.max(24, view * 0.8),
+      ArrowDown: area.scrollTop + Math.max(24, view * 0.8),
+      PageUp: area.scrollTop - view,
+      PageDown: area.scrollTop + view,
+      Home: 0,
+      End: maxRef.current,
+    };
+    if (!(event.key in targets)) return;
+    event.preventDefault();
+    scrollTo(targets[event.key] as number);
+  };
+
+  return (
+    <>
+      <div ref={scrollRef} id={id} className={clsx('opale-sidebar__scroll', styles.scroll)}>
+        {children}
+      </div>
+      {!collapsed && (
+        <span
+          ref={barRef}
+          role="scrollbar"
+          aria-label={labels.scroll}
+          aria-controls={id}
+          aria-orientation="vertical"
+          aria-valuemin={0}
+          aria-valuemax={0}
+          aria-valuenow={0}
+          aria-valuetext={labels.scrollStart}
+          tabIndex={0}
+          className={clsx('opale-sidebar__scrollbar', styles.scrollbar)}
+          onKeyDown={onKeyDown}
+        >
+          <span
+            className={clsx('opale-sidebar__scrollbar-thumb', styles.scrollbarThumb)}
+            onPointerDown={(event) => {
+              const bar = barRef.current;
+              const area = scrollRef.current;
+              if (!bar || !area || maxRef.current === 0) return;
+              dragRef.current = {
+                pointerId: event.pointerId,
+                startY: event.clientY,
+                start: area.scrollTop,
+                travel: Math.max(
+                  1,
+                  bar.getBoundingClientRect().height -
+                    event.currentTarget.getBoundingClientRect().height,
+                ),
+              };
+              event.currentTarget.setPointerCapture?.(event.pointerId);
+              event.preventDefault();
+            }}
+            onPointerMove={(event) => {
+              const drag = dragRef.current;
+              if (!drag || drag.pointerId !== event.pointerId) return;
+              scrollTo(drag.start + ((event.clientY - drag.startY) / drag.travel) * maxRef.current);
+            }}
+            onPointerUp={(event) => {
+              if (dragRef.current?.pointerId !== event.pointerId) return;
+              event.currentTarget.releasePointerCapture?.(event.pointerId);
+              dragRef.current = null;
+            }}
+            onPointerCancel={() => {
+              dragRef.current = null;
+            }}
+          />
+        </span>
+      )}
+    </>
+  );
+}
+
+/*
+ * LA POIGNÉE DE LARGEUR — `role="separator"` focalisable, le motif ARIA du
+ * séparateur de fenêtre : sa valeur est la largeur du rail qu'elle contrôle.
+ * Au glisser, le rail suit le pointeur ; au clavier, les flèches avancent de
+ * 16 px (32 avec Maj), Début et Fin mènent aux bornes. En écriture de droite
+ * à gauche, le bord est à gauche : le sens du glisser et des flèches
+ * horizontales s'inverse.
+ */
+function SidebarResizeHandle({
+  width,
+  min,
+  max,
+  label,
+  controls,
+  onChange,
+}: {
+  width: number;
+  min: number;
+  max: number;
+  label: string;
+  controls: string;
+  onChange: (width: number) => void;
+}) {
+  const dragRef = useRef<{ pointerId: number; startX: number; start: number; dir: number }>(null);
+  const rtl = (element: Element) => getComputedStyle(element).direction === 'rtl';
+
+  /* Un séparateur FOCALISABLE est interactif (ARIA 1.2, motif « Window
+     Splitter ») ; jsx-a11y ne connaît que le séparateur statique. */
+  /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
+  return (
+    <div
+      role="separator"
+      aria-label={label}
+      aria-controls={controls}
+      aria-orientation="vertical"
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={width}
+      aria-valuetext={`${width} px`}
+      tabIndex={0}
+      className={clsx('opale-sidebar__resize', styles.resize)}
+      onKeyDown={(event) => {
+        const step = event.shiftKey ? RESIZE_STEP * 2 : RESIZE_STEP;
+        const dir = rtl(event.currentTarget) ? -1 : 1;
+        const targets: Record<string, number> = {
+          ArrowLeft: width - step * dir,
+          ArrowRight: width + step * dir,
+          ArrowDown: width - step,
+          ArrowUp: width + step,
+          Home: min,
+          End: max,
+        };
+        if (!(event.key in targets)) return;
+        event.preventDefault();
+        onChange(targets[event.key] as number);
+      }}
+      onPointerDown={(event) => {
+        dragRef.current = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          start: width,
+          dir: rtl(event.currentTarget) ? -1 : 1,
+        };
+        event.currentTarget.parentElement?.setAttribute('data-resizing', 'true');
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      }}
+      onPointerMove={(event) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        onChange(drag.start + (event.clientX - drag.startX) * drag.dir);
+      }}
+      onPointerUp={(event) => {
+        if (dragRef.current?.pointerId !== event.pointerId) return;
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+        event.currentTarget.parentElement?.removeAttribute('data-resizing');
+        dragRef.current = null;
+      }}
+      onPointerCancel={(event) => {
+        event.currentTarget.parentElement?.removeAttribute('data-resizing');
+        dragRef.current = null;
+      }}
+    >
+      <span aria-hidden="true" />
+    </div>
+  );
+  /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
+}
 
 const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
   (
@@ -214,6 +483,13 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       onSelectItem,
       labels: labelsProp,
       liquidGlass = false,
+      customScrollbar = false,
+      resizable = false,
+      width: widthProp,
+      defaultWidth,
+      minWidth = 224,
+      maxWidth = 480,
+      onWidthChange,
       className,
       rootClassName,
       rootStyle,
@@ -292,13 +568,30 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
        enfin son propre identifiant. */
     const generatedId = useId();
     const sidebarId = id ?? generatedId;
-    const { items, expand, collapse } = resolveLabels(DEFAULT_SIDEBAR_LABELS, labelsProp);
+    const { items, expand, collapse, scroll, scrollStart, resize } = resolveLabels(
+      DEFAULT_SIDEBAR_LABELS,
+      labelsProp,
+    );
     /* Mémorisé sur les chaînes : un `labels` littéral recréé à chaque rendu ne
        doit pas renouveler le contexte. */
     const labels = useMemo<SidebarLabels>(
-      () => ({ items, expand, collapse }),
-      [items, expand, collapse],
+      () => ({ items, expand, collapse, scroll, scrollStart, resize }),
+      [items, expand, collapse, scroll, scrollStart, resize],
     );
+
+    /* LA LARGEUR RÉGLABLE, contrôlable comme le reste, et toujours bornée. */
+    const clampWidth = (next: number) => Math.max(minWidth, Math.min(maxWidth, Math.round(next)));
+    const [width, setWidthState] = useControllableState(
+      widthProp,
+      () => defaultWidth ?? SIZE_WIDTH[size],
+    );
+    const changeWidth = (next: number) => {
+      const bounded = clampWidth(next);
+      setWidthState(bounded);
+      onWidthChange?.(bounded);
+    };
+    const showResize = resizable && !collapsed;
+    const widthStyle = showResize ? { width: `${clampWidth(width)}px` } : undefined;
 
     const contextValue = useMemo<SidebarContextValue>(
       () => ({
@@ -342,42 +635,82 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       className,
     );
 
+    const body = customScrollbar ? (
+      <SidebarScrollArea collapsed={collapsed} labels={labels} id={`${sidebarId}-scroll`}>
+        {children}
+      </SidebarScrollArea>
+    ) : (
+      children
+    );
+
+    const handle = showResize ? (
+      <SidebarResizeHandle
+        width={clampWidth(width)}
+        min={minWidth}
+        max={maxWidth}
+        label={labels.resize}
+        controls={sidebarId}
+        onChange={changeWidth}
+      />
+    ) : null;
+
+    /* La poignée déborde du bord du rail : le verre rogne ce qui dépasse
+       (`overflow: hidden`), elle vit donc sur un cadre autour de lui. */
+    const frame = (rail: ReactNode) =>
+      showResize ? (
+        <div className={clsx('opale-sidebar__frame', styles.frame)}>
+          {rail}
+          {handle}
+        </div>
+      ) : (
+        rail
+      );
+
     if (!liquidGlass) {
       return (
         <SidebarContext.Provider value={contextValue}>
-          <aside
-            ref={ref}
-            id={sidebarId}
-            className={clsx(shellClasses, contentClasses, styles.plain)}
-            style={rootStyle ? { ...rootStyle, ...style } : style}
-            {...rest}
-          >
-            {children}
-          </aside>
+          {frame(
+            <aside
+              ref={ref}
+              id={sidebarId}
+              className={clsx(
+                shellClasses,
+                contentClasses,
+                styles.plain,
+                customScrollbar && styles.scrollHost,
+              )}
+              style={{ ...rootStyle, ...style, ...widthStyle }}
+              {...rest}
+            >
+              {body}
+            </aside>,
+          )}
         </SidebarContext.Provider>
       );
     }
 
     return (
       <SidebarContext.Provider value={contextValue}>
-        <Glass
-          as="aside"
-          ref={ref}
-          id={sidebarId}
-          /* LE VERRE NE RÉAGIT PAS AU CLIC ICI, et c'est réfléchi : une onde
+        {frame(
+          <Glass
+            as="aside"
+            ref={ref}
+            id={sidebarId}
+            /* LE VERRE NE RÉAGIT PAS AU CLIC ICI, et c'est réfléchi : une onde
              qui part sous le doigt à chaque sélection d'entrée ferait clignoter
              la surface entière d'un rail qu'on parcourt. Le retour visuel
              appartient à l'entrée, qui l'a. */
-          enableLiquidAnimation={enableLiquidAnimation}
-          triggerAnimation={triggerAnimation}
-          rootClassName={shellClasses}
-          rootStyle={rootStyle}
-          className={contentClasses}
-          style={style}
-          {...rest}
-        >
-          {children}
-        </Glass>
+            enableLiquidAnimation={enableLiquidAnimation}
+            triggerAnimation={triggerAnimation}
+            rootClassName={shellClasses}
+            rootStyle={widthStyle ? { ...rootStyle, ...widthStyle } : rootStyle}
+            className={clsx(contentClasses, customScrollbar && styles.scrollHost)}
+            style={style}
+            {...rest}
+          >
+            {body}
+          </Glass>,
+        )}
       </SidebarContext.Provider>
     );
   },
