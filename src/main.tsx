@@ -92,6 +92,8 @@ import './styles/hack-font.css';
 // paquet, donc aucun consommateur ne le télécharge. Il vient en dernier.
 import './styles/doc.css';
 import './styles/doc-v3.css';
+// La DA de la 3.0 sur la documentation (phase 4) : après les deux autres.
+import './styles/doc-da.css';
 
 import { CharterPage } from './showcase/charter-page';
 

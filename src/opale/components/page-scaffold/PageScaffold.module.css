@@ -58,8 +58,15 @@
 .brand:focus-visible,
 .footerLinks a:focus-visible,
 .menuButton:focus-visible {
+  /* Des angles adoucis, comme le reste de l'en-tête, plutôt qu'un cadre vif. */
+  border-radius: var(--opale-radius-sm);
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
   outline-offset: var(--opale-focus-ring-offset);
+}
+/* Le bouton de menu est un squircle peint par `::before` : son anneau prend
+   le rayon qui le contient (voir `.opale-button:focus-visible`). */
+.menuButton:focus-visible {
+  border-radius: calc(var(--opale-squircle-radius) * 0.68);
 }
 
 .brandMark {

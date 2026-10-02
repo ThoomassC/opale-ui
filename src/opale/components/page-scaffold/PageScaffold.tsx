@@ -404,7 +404,7 @@ export function PageScaffold({
      l'hydratation, un écart. La racine est donc rendue SANS thème local tant
      que l'hydratation n'est pas passée : elle hérite de `<html>`, que
      `opaleThemeScript` a posé avant la peinture. Le défaut `light`, lui, se
-     sait au serveur et reste écrit comme en 3.9.3. */
+     sait au serveur et reste écrit comme en 2.9.3. */
   const { resolvedTheme: localTheme, setTheme: setLocalTheme } = useThemePreference(
     themeStorageKey,
     defaultTheme,

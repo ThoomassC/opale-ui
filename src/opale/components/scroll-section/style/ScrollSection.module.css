@@ -1,0 +1,106 @@
+/* =============================================================================
+   LA SCÈNE ET SES SECTIONS — FEUILLE D'OPALE.
+
+   LA SECTION PEINT SON COUPLE, SANS JAMAIS S'ANIMER. Fond et encre viennent
+   des jetons `--opale-ground-<nom>` et `--opale-ground-<nom>-ink`, déclarés
+   sur `:root` dans `opale.css`. `flow-root` contient les marges de ses
+   enfants : la marge haute d'un titre ne laisse pas voir la scène au-dessus.
+
+   LA SCÈNE EXPOSE LE COUPLE ACTIF, en `--opale-stage-ground` et
+   `--opale-stage-ink` : une propriété personnalisée ne s'interpole pas, ce
+   qui la lit change donc d'un coup, jamais par un couple intermédiaire. Seul
+   le fond propre de la scène fond — `background-color` et `color`, en
+   `--opale-stage-duration` sur `--opale-ease` —, et rien ne bouge en mise en
+   page.
+   ========================================================================== */
+
+.section {
+  display: flow-root;
+}
+
+.section[data-ground='paper'] {
+  background-color: var(--opale-ground-paper);
+  color: var(--opale-ground-paper-ink);
+}
+
+.section[data-ground='amber'] {
+  background-color: var(--opale-ground-amber);
+  color: var(--opale-ground-amber-ink);
+  /* Le secondaire (#3a6b8a) ne tenait que 2,97:1 contre l'ambre : il fonce. */
+  --opale-secondary-dark: var(--opale-ground-amber-secondary);
+  /* Les boutons légers (fantôme, texte, tonal) lisent cette encre : le bleu
+     primaire n'y tenait que 3,4:1. Ils prennent l'encre du fond. */
+  --opale-primary-on-surface: var(--opale-ground-amber-ink);
+}
+
+.section[data-ground='night'] {
+  background-color: var(--opale-ground-night);
+  color: var(--opale-ground-night-ink);
+}
+
+.section[data-ground='blue'] {
+  background-color: var(--opale-ground-blue);
+  color: var(--opale-ground-blue-ink);
+  /* LE BOUTON PRINCIPAL S'INVERSE : le bleu moyen du thème sombre se fondait
+     dans le fond (1,84:1). Aplat blanc, encre bleue, survol teinté. Le
+     secondaire (2,26:1) prend un bleu pâle, distinct du blanc du principal,
+     plutôt qu'un liseré : la silhouette du bouton est découpée par
+     `clip-path`, un `border` ne la suivrait pas. */
+  --opale-primary: var(--opale-ground-blue-ink);
+  --opale-primary-dark: var(--opale-ground-blue-hover);
+  --opale-on-primary: var(--opale-ground-blue);
+  --opale-secondary-dark: var(--opale-ground-blue-secondary);
+  /* Les boutons légers prennent l'encre blanche (le bleu clair n'y tenait
+     que 3,8:1), et la surface devient bleu nuit : l'aplat tonal, mêlé à elle,
+     s'accorde au fond au lieu de virer au gris vert du thème sombre. */
+  --opale-primary-on-surface: var(--opale-ground-blue-ink);
+  --opale-surface: var(--opale-ground-blue-surface);
+}
+
+.stage {
+  background-color: var(--opale-stage-ground);
+  color: var(--opale-stage-ink);
+  transition-property: background-color, color;
+  transition-duration: var(--opale-stage-duration);
+  transition-timing-function: var(--opale-ease);
+}
+
+.stage[data-ground='paper'] {
+  --opale-stage-ground: var(--opale-ground-paper);
+  --opale-stage-ink: var(--opale-ground-paper-ink);
+}
+
+.stage[data-ground='amber'] {
+  --opale-stage-ground: var(--opale-ground-amber);
+  --opale-stage-ink: var(--opale-ground-amber-ink);
+}
+
+.stage[data-ground='night'] {
+  --opale-stage-ground: var(--opale-ground-night);
+  --opale-stage-ink: var(--opale-ground-night-ink);
+}
+
+.stage[data-ground='blue'] {
+  --opale-stage-ground: var(--opale-ground-blue);
+  --opale-stage-ink: var(--opale-ground-blue-ink);
+}
+
+/* LE FOND DE DÉPART ET LA PREMIÈRE MESURE : d'un coup. Le script ne retire
+   `data-instant` qu'au premier vrai défilement. */
+.stage[data-instant] {
+  transition: none;
+}
+
+/* MOUVEMENT RÉDUIT ET IMPRESSION : la scène suit toujours la section active
+   — c'est une information —, mais change de fond d'un coup. */
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    transition: none;
+  }
+}
+
+@media print {
+  .stage {
+    transition: none;
+  }
+}

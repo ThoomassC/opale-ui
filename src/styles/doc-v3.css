@@ -915,7 +915,7 @@ body {
 }
 /* L'ÉCHELLE TYPOGRAPHIQUE SE MONTRE DANS LA POLICE DU SITE, PAS DANS UNE SERIF
    QUE PLUS RIEN NE SERT. `doc.css` peint ses spécimens en `var(--font-display)`
-   — l'Iowan Old Style de la 2.x. Résultat : la page qui documente la
+   — l'Iowan Old Style de la 1.x. Résultat : la page qui documente la
    typographie était la seule à l'afficher, et elle affichait la mauvaise. Ces
    huit lignes parlent de TAILLES : elles doivent donc être rendues dans la
    police du texte courant, la seule dont ces tailles décident vraiment. Les
@@ -1114,7 +1114,7 @@ body {
 :root[data-theme='dark'] .tc-doc-release__action.opale-button--primary {
   color: #0c0f0d !important;
 }
-/* Le détail de la 3.2.0 reste dans sa fiche, mais se parcourt par impact. */
+/* Le détail de la 2.2.0 reste dans sa fiche, mais se parcourt par impact. */
 .tc-doc-release__sections {
   display: grid;
   gap: var(--opale-space-lg);
@@ -1479,7 +1479,7 @@ body {
 .tc-doc-opale-demo__layout .opale-layout__content {
   padding: var(--opale-space-lg);
 }
-/* LES DÉMONSTRATIONS DE LA 3.10.0. Le compteur de `Field` est un contrôle
+/* LES DÉMONSTRATIONS DE LA 2.10.0. Le compteur de `Field` est un contrôle
    écrit par la vitrine : il porte donc lui-même son anneau de focus, celui de
    la vitrine. Les cellules de `Grid` ne sont que des repères. */
 .tc-doc-stepper {
@@ -1508,6 +1508,126 @@ body {
   background: var(--opale-surface);
   overflow-wrap: anywhere;
   text-align: center;
+}
+/* Le carrousel de démonstration : les cartes de la planche de direction
+   artistique, peintes à l'encre courante pour suivre les deux thèmes. */
+.tc-doc-carousel {
+  inline-size: 100%;
+}
+.tc-doc-carousel-demo {
+  display: grid;
+  inline-size: 100%;
+  gap: var(--opale-space-md);
+}
+.tc-doc-carousel-caption {
+  margin: var(--opale-space-md) 0 0;
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
+.tc-doc-carousel-slide {
+  display: grid;
+  min-block-size: 15rem;
+  align-content: space-between;
+  gap: var(--opale-space-md);
+  padding: var(--opale-space-lg);
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: var(--opale-radius-md);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.tc-doc-carousel-slide h3 {
+  margin: 0;
+  font-family: var(--opale-font-display);
+  font-size: var(--opale-text-2xl);
+  letter-spacing: -0.03em;
+}
+.tc-doc-carousel-slide p {
+  margin: var(--opale-space-xs) 0 0;
+  color: var(--opale-text-secondary);
+}
+.tc-doc-carousel-glyph {
+  display: block;
+  inline-size: 8rem;
+  block-size: 2rem;
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-primary) 70%, transparent);
+}
+.tc-doc-carousel-glyph[data-glyph='1'] {
+  inline-size: 100%;
+  block-size: 0.6rem;
+}
+.tc-doc-carousel-glyph[data-glyph='2'] {
+  inline-size: 4.5rem;
+  block-size: 1.6rem;
+  border-radius: var(--opale-radius-sm);
+}
+.tc-doc-carousel-glyph[data-glyph='3'] {
+  inline-size: 100%;
+  block-size: 3.6rem;
+  border-radius: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--opale-primary) 60%, transparent) 0 0.5rem,
+    transparent 0.5rem 1.1rem
+  );
+}
+.tc-doc-carousel-glyph[data-glyph='4'] {
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: var(--opale-radius-md);
+  box-shadow:
+    3.5rem 0 0 color-mix(in srgb, var(--opale-primary) 40%, transparent),
+    7rem 0 0 color-mix(in srgb, var(--opale-primary) 20%, transparent);
+}
+.tc-doc-carousel-glyph[data-glyph='5'] {
+  inline-size: 70%;
+  block-size: 1.2rem;
+}
+/* L'apparition de démonstration : une colonne de cartes assez haute pour
+   que les dernières soient sous la vue au chargement. */
+.tc-doc-reveal-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: var(--opale-space-md);
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tc-doc-reveal-card {
+  display: grid;
+  min-block-size: 11rem;
+  align-content: end;
+  gap: var(--opale-space-xs);
+  padding: var(--opale-space-lg);
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: var(--opale-radius-md);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.tc-doc-reveal-card h3 {
+  margin: 0;
+  font-family: var(--opale-font-display);
+  font-size: var(--opale-text-xl);
+  letter-spacing: -0.02em;
+}
+.tc-doc-reveal-card p {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}
+/* Le bandeau de démonstration : les garanties de la planche, en grand, entre
+   deux filets. */
+.tc-doc-marquee-demo {
+  inline-size: 100%;
+}
+.tc-doc-marquee-demo .opale-marquee__viewport {
+  padding-block: var(--opale-space-md);
+  border-block: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.tc-doc-marquee-demo .opale-marquee__copy > span {
+  font-family: var(--opale-font-display);
+  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 .tc-doc-popover-form {
   display: grid;
@@ -2020,12 +2140,28 @@ body {
    ignore `transparent`. Le dernier filet de sécurité reste donc en place pour
    qui en a le plus besoin.
    ========================================================================== */
+/* Redit sur chaque thème local et chaque portée : un `color-mix()` se résout
+   là où il est déclaré, et l'anneau gardait sinon l'encre claire dans une
+   section sombre (1,02:1 sur le fond `night` d'une ScrollSection). */
 :root,
-.tc-doc {
+.tc-doc,
+[data-opale-page-theme],
+[data-opale-scope] {
   --focus-outer: transparent;
   --focus-inner: transparent;
   --tc-doc-focus-ring: color-mix(in srgb, var(--opale-text) 50%, transparent);
   --opale-focus: var(--tc-doc-focus-ring);
+}
+
+/* SUR UN FOND DE COULEUR, L'ANNEAU EST CELUI D'OPALE. L'encre à 50 % ne
+   tient pas 3:1 sur un bleu moyen (2,71:1 sur le fond `blue` d'une
+   ScrollSection) : dans une section `amber`, `night` ou `blue`, la vitrine ne
+   surcharge plus l'anneau. `--opale-focus` y reprend l'encre du primaire sur
+   une surface — la valeur des jetons d'Opale, et sa formule pour une marque
+   dérivée —, et l'anneau propre de la vitrine la suit. */
+.tc-doc .opale-scroll-section:not([data-ground='paper']) {
+  --opale-focus: var(--opale-primary-on-surface);
+  --tc-doc-focus-ring: var(--opale-focus);
 }
 
 /* =============================================================================
@@ -3320,9 +3456,9 @@ body {
   display: block;
 }
 
-/* LE MOUVEMENT RÉDUIT DE LA VITRINE, À SON NOM. Jusqu'à la 3.9.3, la règle
+/* LE MOUVEMENT RÉDUIT DE LA VITRINE, À SON NOM. Jusqu'à la 2.9.3, la règle
    globale d'`opale.css` (`*`) couvrait aussi les éléments `tc-doc-*` ; depuis
-   la 3.9.4 elle ne vise plus que les éléments d'Opale, pour ne pas imposer son
+   la 2.9.4 elle ne vise plus que les éléments d'Opale, pour ne pas imposer son
    `!important` aux pages hôtes. La vitrine reprend donc ce filet pour elle-même.
    `tokens.css` ne borne que les propriétés animées, pas les durées. */
 @media (prefers-reduced-motion: reduce) {
@@ -3337,5 +3473,586 @@ body {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* LA DÉMO DU TITRE DÉCOUPÉ : le bouton « Rejouer », un titre au montage, et
+   un second posé sous la ligne de flottaison par une marge, qui part à son
+   entrée dans la vue. La taille est celle d'un titre d'affiche de la planche. */
+.tc-doc-split-demo {
+  display: grid;
+  justify-items: start;
+  gap: var(--opale-space-md);
+  inline-size: 100%;
+}
+.tc-doc-split-demo .opale-split-heading {
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+  line-height: 1.1;
+}
+.tc-doc-split-demo__below {
+  margin-block-start: 90svh;
+}
+
+/* La scène aux quatre fonds : des gouttières où se voit le fondu de la
+   scène, des sections assez hautes pour défiler, et une étiquette collante
+   peinte du couple actif — qui change d'un coup, jamais par un mélange. */
+.tc-doc-stage-demo {
+  display: grid;
+  gap: var(--opale-space-sm);
+  inline-size: 100%;
+  padding: var(--opale-space-sm);
+  border-radius: var(--opale-radius-lg);
+}
+/* L'étiquette collante s'ajoute à la barre du haut : le coussin de défilement
+   la compte, sinon un contrôle déjà juste sous elle recevrait le focus caché
+   (WCAG 2.4.11) — le navigateur ne défile pas pour lui. */
+html:has(.tc-doc-stage-demo) {
+  scroll-padding-block-start: calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem + 3.25rem);
+}
+.tc-doc-stage-demo__label {
+  position: sticky;
+  z-index: 1;
+  inset-block-start: calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem);
+  justify-self: start;
+  margin: 0;
+  padding: var(--opale-space-xs) var(--opale-space-sm);
+  border: 1px solid currentColor;
+  border-radius: var(--opale-radius-pill);
+  background-color: var(--opale-stage-ground);
+  color: var(--opale-stage-ink);
+  font-weight: 600;
+}
+.tc-doc-stage-demo__label [data-name] {
+  display: none;
+}
+.tc-doc-stage-demo[data-ground='paper'] .tc-doc-stage-demo__label [data-name='paper'],
+.tc-doc-stage-demo[data-ground='amber'] .tc-doc-stage-demo__label [data-name='amber'],
+.tc-doc-stage-demo[data-ground='night'] .tc-doc-stage-demo__label [data-name='night'],
+.tc-doc-stage-demo[data-ground='blue'] .tc-doc-stage-demo__label [data-name='blue'] {
+  display: inline;
+}
+.tc-doc-stage-demo__section {
+  display: grid;
+  align-content: center;
+  gap: var(--opale-space-md);
+  min-block-size: 70svh;
+  padding: var(--opale-space-xl) var(--opale-space-lg);
+  border-radius: var(--opale-radius-md);
+}
+.tc-doc-stage-demo__section--short {
+  min-block-size: 30svh;
+}
+.tc-doc-stage-demo__section h3 {
+  margin: 0;
+  font-family: var(--opale-font-display);
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+  line-height: 1.1;
+}
+.tc-doc-stage-demo__section p {
+  margin: 0;
+  max-inline-size: 40ch;
+}
+
+/* =============================================================================
+   LA PAGE PLEINE LARGEUR (`fullBleed`, l'accueil de la 3.0).
+
+   NI SOMMAIRE NI COLONNE : les bandes vont d'un bord à l'autre. La coquille
+   ne rend pas `DocNav` ; la grille à deux pistes, posée en `!important` à
+   chaque largeur, cède ici à un bloc. Le lavis de tête de colonne s'efface :
+   chaque bande peint son propre fond.
+
+   LE MENU RESTE À TOUTES LES LARGEURS. Sans sommaire, il est le chemin vers
+   les rubriques de la documentation ; au-delà de 78 rem, il s'ajoute aux
+   onglets au lieu de les remplacer. La piste des onglets cesse de défiler,
+   sans quoi elle couperait le panneau du menu. Le panneau défile lui-même
+   s'il dépasse la fenêtre.
+   ========================================================================== */
+/* Le coussin de défilement suit la barre collante, plus un souffle : un
+   élément focalisé en remontant (Maj+Tab) s'arrête sous elle, anneau
+   compris (WCAG 2.4.11). */
+html:has(.tc-doc--full-bleed) {
+  scroll-padding-block-start: calc(var(--doc-topbar-size) + 1rem);
+}
+.tc-doc--full-bleed .tc-doc-body {
+  display: block !important;
+  inline-size: 100%;
+}
+.tc-doc--full-bleed .tc-doc-column::before {
+  content: none;
+}
+.tc-doc--full-bleed .tc-doc-main {
+  max-inline-size: none;
+  padding: 0 !important;
+}
+.tc-doc--full-bleed .tc-doc-topbar__tabs {
+  overflow: visible;
+}
+.tc-doc--full-bleed .tc-doc-topbar__menu {
+  display: block;
+}
+.tc-doc--full-bleed .tc-doc-topbar__menu-nav {
+  max-block-size: calc(100dvh - var(--tc-doc-topbar-height, var(--doc-topbar-size)) - 1rem);
+  overflow-y: auto;
+}
+
+/* =============================================================================
+   L'ACCUEIL DE LA 3.0 — `.tc-doc-landing`.
+
+   L'ÉCHELLE EST CELLE DE LA PLANCHE DE DA (`docs/v3/planche-da.html`) : un
+   titre d'affiche de 48 à 132 px, des titres de bande de 36 à 72 px, en
+   Bricolage Grotesque 500 resserré de 3,5 % ; Chivo pour lire. Les bandes
+   respirent de 64 à 144 px, le contenu tient dans 82 rem sur une gouttière
+   de 16 à 48 px.
+
+   CHAQUE BANDE PEINT SON COUPLE (`ScrollSection`) : les textes héritent de
+   son encre au lieu de reprendre `--opale-text`, que seul le papier partage.
+   ========================================================================== */
+.tc-doc-landing {
+  --tc-doc-landing-gutter: clamp(1rem, 0.5rem + 2.5vw, 3rem);
+  --tc-doc-landing-max: 82rem;
+  overflow-x: clip;
+}
+.tc-doc-landing__band {
+  padding-block: clamp(4rem, 2rem + 8vw, 9rem);
+}
+.tc-doc-landing__wrap {
+  display: grid;
+  gap: clamp(2rem, 1rem + 3vw, 4rem);
+  max-inline-size: var(--tc-doc-landing-max);
+  margin-inline: auto;
+  padding-inline: var(--tc-doc-landing-gutter);
+}
+.tc-doc-landing__head {
+  display: grid;
+  gap: var(--opale-space-md);
+}
+.tc-doc-landing .opale-split-heading {
+  color: inherit;
+  font-family: var(--opale-font-title);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+/* LA MESURE EN `em` ET NON EN `ch` : `ch` est la chasse du « 0 » de la police
+   RENDUE, donc la boîte changeait de largeur quand Bricolage remplaçait sa
+   police de repli — les lignes du titre se recomposaient (CLS). L'`em` ne
+   dépend que de la taille : 8,4 em valent les 14 ch de la planche. */
+.tc-doc-landing__display {
+  max-inline-size: 8.4em;
+  margin: 0;
+  font-size: clamp(3rem, 1.2rem + 7.6vw, 8.25rem);
+  line-height: 0.98;
+}
+.tc-doc-landing__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4.5rem);
+  line-height: 1;
+}
+.tc-doc-landing__eyebrow {
+  margin: 0;
+  font-family: var(--opale-font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tc-doc-landing__lede {
+  max-inline-size: 40rem;
+  margin: 0;
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  line-height: 1.45;
+}
+.tc-doc-landing__band--hero {
+  padding-block: clamp(3.5rem, 2rem + 6vw, 7.5rem) clamp(3rem, 2rem + 5vw, 6rem);
+}
+.tc-doc-landing__hero {
+  gap: clamp(1.25rem, 0.75rem + 2vw, 2.25rem);
+}
+.tc-doc-landing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-sm);
+}
+.tc-doc-landing__actions .opale-button {
+  /* Une largeur plancher plus grande que le libellé : le premier bouton ne
+     change pas de largeur quand Chivo remplace sa police de repli, et ne
+     pousse donc pas son voisin. */
+  min-inline-size: 10rem;
+  text-decoration: none;
+}
+
+/* LE CARROUSEL : DES CARTES DE SURFACE SUR L'AMBRE. La bande est en thème
+   clair à toutes les préférences (`ScrollSection`), donc la surface et
+   l'encre des cartes sont celles du thème clair : les composants des démos y
+   gardent leurs contrastes mesurés. */
+.tc-doc-landing__carousel {
+  inline-size: 100%;
+}
+/* La carte est une `CarouselSlide` : Opale en fait déjà le repère de ce
+   qu'elle pose en absolu (copies masquées, indicateur des onglets). */
+.tc-doc-landing-slide {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--opale-space-lg);
+  min-block-size: 24rem;
+  padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  border-radius: var(--opale-radius-lg);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+}
+.tc-doc-landing-slide__text {
+  display: grid;
+  gap: var(--opale-space-xs);
+}
+.tc-doc-landing-slide h3 {
+  margin: 0;
+  font-family: var(--opale-font-title);
+  font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.tc-doc-landing-slide__text p {
+  margin: 0;
+  color: var(--opale-text-secondary);
+}
+.tc-doc-landing-slide__demo {
+  display: grid;
+  align-content: start;
+  gap: var(--opale-space-sm);
+  min-inline-size: 0;
+}
+.tc-doc-landing-slide__demo > button {
+  justify-self: start;
+}
+.tc-doc-landing-slide__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-space-xs);
+}
+.tc-doc-landing-slide__glass {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-space-xs);
+  padding: var(--opale-space-md);
+  border-radius: var(--opale-radius-md);
+}
+.tc-doc-landing-slide__tabs p {
+  margin: var(--opale-space-sm) 0 0;
+}
+.tc-doc-landing-slide__motion {
+  display: grid;
+  justify-items: start;
+  gap: var(--opale-space-md);
+}
+.tc-doc-landing-slide .tc-doc-landing-slide__split {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  line-height: 1.05;
+}
+.tc-doc-landing-slide__link {
+  justify-self: start;
+}
+.tc-doc-landing-slide__popover {
+  display: grid;
+  gap: var(--opale-space-xs);
+  max-inline-size: 18rem;
+}
+.tc-doc-landing-slide__popover p {
+  margin: 0;
+}
+
+/* LES LIENS DES BANDES PRENNENT L'ENCRE DE LEUR FOND. Le bleu des liens
+   d'Opale ne tient pas 4,5:1 sur l'ambre ni sur le bleu ; souligné et en
+   gras, le lien reste distinct du texte sans changer de teinte. */
+.tc-doc-landing .tc-doc-landing__link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  justify-self: start;
+}
+
+/* LES QUALITÉS : un bandeau en grand entre deux filets, puis quatre preuves. */
+.tc-doc-landing__marquee .opale-marquee__viewport {
+  padding-block: var(--opale-space-lg);
+  border-block: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+.tc-doc-landing__marquee .opale-marquee__copy > span {
+  font-family: var(--opale-font-title);
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.tc-doc-landing__proofs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--opale-space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tc-doc-landing__proof {
+  display: grid;
+  align-content: start;
+  gap: var(--opale-space-sm);
+  padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: var(--opale-radius-lg);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.tc-doc-landing__proof h3 {
+  margin: 0;
+  font-family: var(--opale-font-title);
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tc-doc-landing__proof p {
+  margin: 0;
+}
+
+/* DES PAGES ENTIÈRES : le gabarit dans un cadre de navigateur. Le cadre est
+   `inert` : il ne prend ni le focus ni le pointeur, et le curseur le dit. */
+.tc-doc-landing__preview {
+  display: grid;
+  gap: var(--opale-space-sm);
+  margin: 0;
+}
+.tc-doc-landing__frame {
+  overflow: clip;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-lg);
+  box-shadow: var(--opale-shadow-3);
+  cursor: default;
+  user-select: none;
+}
+.tc-doc-landing__scaffold {
+  min-block-size: 0;
+}
+.tc-doc-landing__preview figcaption {
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
+
+/* INSTALLER : la commande se replie au lieu de défiler, et reste lisible en
+   entier sans barre de défilement à atteindre au clavier. */
+.tc-doc-landing__command {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-space-sm) var(--opale-space-md);
+  padding: var(--opale-space-md) var(--opale-space-lg);
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: var(--opale-radius-md);
+  background: color-mix(in srgb, #000 18%, transparent);
+}
+.tc-doc-landing__command pre {
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--opale-font-mono);
+  font-size: var(--opale-text-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tc-doc-landing__actions .tc-doc-landing__link {
+  align-self: center;
+  padding-inline: var(--opale-space-sm);
+}
+
+/* =============================================================================
+   L'ACCUEIL EN MOUVEMENT — LENT, FLOU QUI SE DISSIPE, LIÉ AU DÉFILEMENT.
+
+   AU REPOS, TOUT EST LÀ. Chaque animation part d'un état `from` tenu
+   seulement pendant son délai (`backwards`) ou sa plage de défilement ; sans
+   animation, la page est complète. Seuls `transform`, `opacity` et `filter`
+   bougent : aucune boîte ne change de place (CLS nul).
+
+   RIEN NE TOURNE EN BOUCLE DE LUI-MÊME. L'accroche se compose une fois, au
+   chargement ; l'aura et l'aperçu ne bougent qu'avec le défilement, donc
+   sous la main de qui lit (WCAG 2.2.2).
+
+   MOUVEMENT RÉDUIT : aucune de ces règles ne s'applique, elles vivent toutes
+   sous `prefers-reduced-motion: no-preference`. L'aura reste, immobile.
+   ========================================================================== */
+.tc-doc-landing {
+  --tc-landing-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Les apparitions au défilement montent de plus loin que la valeur d'Opale. */
+  --opale-reveal-distance: 3rem;
+  --opale-reveal-duration: 1100ms;
+  --opale-reveal-stagger: 120ms;
+}
+
+/* L'AURA : trois halos flous derrière l'accroche, côté fin de ligne — la
+   moitié que le titre laisse vide sur grand écran. Teintes claires sous
+   l'encre sombre du papier clair, teintes sombres sous l'encre claire du
+   papier sombre : le texte garde son contraste partout où elle passe. */
+.tc-doc-landing__band--hero {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  --tc-landing-aura-1: color-mix(in srgb, var(--opale-ground-amber) 62%, transparent);
+  --tc-landing-aura-2: color-mix(in srgb, var(--opale-ground-blue-secondary) 80%, transparent);
+  --tc-landing-aura-3: color-mix(in srgb, var(--opale-ground-amber) 30%, #fff);
+}
+:root[data-theme='dark'] .tc-doc-landing__band--hero {
+  --tc-landing-aura-1: color-mix(in srgb, var(--opale-ground-blue) 70%, transparent);
+  --tc-landing-aura-2: color-mix(in srgb, var(--opale-ground-blue-surface) 90%, transparent);
+  --tc-landing-aura-3: color-mix(in srgb, var(--opale-ground-amber) 22%, transparent);
+}
+.tc-doc-landing__aura {
+  position: absolute;
+  z-index: -1;
+  inset-block-start: -10%;
+  inset-inline-end: -12%;
+  inline-size: min(70vw, 56rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  filter: blur(clamp(40px, 6vw, 90px));
+}
+.tc-doc-landing__aura > span {
+  position: absolute;
+  border-radius: 50%;
+}
+.tc-doc-landing__aura > span:nth-child(1) {
+  inset: 8% 18% 30% 12%;
+  background: var(--tc-landing-aura-1);
+}
+.tc-doc-landing__aura > span:nth-child(2) {
+  inset: 34% 4% 6% 34%;
+  background: var(--tc-landing-aura-2);
+  --tc-landing-drift-x: -14%;
+  --tc-landing-drift-y: 10%;
+}
+.tc-doc-landing__aura > span:nth-child(3) {
+  inset: 22% 36% 22% 26%;
+  background: var(--tc-landing-aura-3);
+  --tc-landing-drift-x: 18%;
+  --tc-landing-drift-y: -8%;
+}
+
+@keyframes tc-landing-word {
+  from {
+    opacity: 0;
+    filter: blur(0.12em);
+    transform: translateY(0.5em) rotate(4deg);
+  }
+  60% {
+    filter: blur(0);
+  }
+}
+@keyframes tc-landing-rise {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(1.5rem);
+  }
+}
+@keyframes tc-landing-reveal {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(var(--opale-reveal-distance)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+@keyframes tc-landing-aura-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6) rotate(-20deg);
+  }
+}
+@keyframes tc-landing-drift {
+  to {
+    transform: translate(var(--tc-landing-drift-x, 10%), var(--tc-landing-drift-y, 16%)) scale(1.15);
+  }
+}
+@keyframes tc-landing-tilt {
+  from {
+    opacity: 0.35;
+    transform: perspective(1800px) rotateX(26deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* LES MOTS DE CHAQUE TITRE : plus lents, de plus bas, penchés, et nets
+     seulement aux trois cinquièmes de leur course. La machine d'états de
+     `SplitHeading` attend la fin des animations, quelle qu'en soit la
+     forme : seuls le nom et la cadence changent. */
+  .tc-doc-landing .opale-split-heading[data-split='play'] > [aria-hidden] > span {
+    transform-origin: 0 100%;
+    animation-name: tc-landing-word;
+    animation-duration: 1200ms;
+    animation-timing-function: var(--tc-landing-ease);
+    animation-delay: calc(var(--opale-split-index) * 110ms + var(--tc-landing-split-start, 0ms));
+  }
+
+  /* L'ACCROCHE SE COMPOSE : sur-titre, mots, chapeau, actions. */
+  .tc-doc-landing__display {
+    --tc-landing-split-start: 200ms;
+  }
+  .tc-doc-landing__hero > .tc-doc-landing__eyebrow,
+  .tc-doc-landing__hero > .tc-doc-landing__lede,
+  .tc-doc-landing__hero > .tc-doc-landing__actions {
+    animation: tc-landing-rise 1100ms var(--tc-landing-ease) backwards;
+  }
+  .tc-doc-landing__hero > .tc-doc-landing__lede {
+    animation-delay: 950ms;
+  }
+  .tc-doc-landing__hero > .tc-doc-landing__actions {
+    animation-delay: 1200ms;
+  }
+  .tc-doc-landing__aura {
+    animation: tc-landing-aura-in 2400ms var(--tc-landing-ease) 150ms backwards;
+  }
+
+  /* LES CARTES DE PREUVE répondent au survol, sans changer de place. */
+  .tc-doc-landing__proof {
+    transition:
+      transform 500ms var(--tc-landing-ease),
+      border-color 500ms var(--tc-landing-ease),
+      background-color 500ms var(--tc-landing-ease);
+  }
+  .tc-doc-landing__proof:hover {
+    border-color: color-mix(in srgb, currentColor 36%, transparent);
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    transform: translateY(-0.375rem);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    /* L'aura dérive et grossit à mesure que l'accroche quitte la vue. */
+    .tc-doc-landing__aura > span {
+      animation: tc-landing-drift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    /* `Reveal` monte avec un flou qui se dissipe. Ses propres exclusions —
+       déjà à l'écran au montage, focus à l'intérieur — restent les siennes. */
+    .tc-doc-landing .opale-reveal:not([data-reveal='shown'], :focus-within) {
+      animation-name: tc-landing-reveal;
+    }
+    /* L'aperçu de page se redresse en entrant dans la vue. */
+    .tc-doc-landing__frame {
+      transform-origin: 50% 100%;
+      animation: tc-landing-tilt linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
   }
 }

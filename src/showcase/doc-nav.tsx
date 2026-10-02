@@ -421,6 +421,8 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
         </div>
       )}
       <Sidebar
+        /* Un nom à elle : les démos rendent aussi des Sidebar, sans nom. */
+        aria-label={copy.documentation}
         className="tc-doc-nav__panel"
         /* L'ENVELOPPE A BESOIN DE SON PROPRE CROCHET, et pas seulement le
            contenu : c'est elle qui porte le rayon, le fond et l'arête de la
@@ -522,27 +524,29 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
             <span className="tc-doc-nav__scrollbar-grip" />
           </span>
         </span>
+        {/* DANS LE REPÈRE DU SOMMAIRE : hors de tout repère, la poignée était
+            un contenu orphelin pour qui navigue par régions. */}
+        {resize ? (
+          <div
+            className="tc-doc-nav__resize"
+            role="slider"
+            aria-label={copy.contentsWidth}
+            aria-orientation="horizontal"
+            aria-valuemin={resize.min}
+            aria-valuemax={resize.max}
+            aria-valuenow={resize.width}
+            aria-valuetext={`${resize.width} px`}
+            tabIndex={0}
+            onKeyDown={handleResizeKeyDown}
+            onPointerDown={handleResizePointerDown}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={stopResizeDrag}
+            onPointerCancel={stopResizeDrag}
+          >
+            <span aria-hidden="true" />
+          </div>
+        ) : null}
       </Sidebar>
-
-      {resize ? (
-        <div
-          className="tc-doc-nav__resize"
-          role="slider"
-          aria-label={copy.contentsWidth}
-          aria-orientation="horizontal"
-          aria-valuemin={resize.min}
-          aria-valuemax={resize.max}
-          aria-valuenow={resize.width}
-          tabIndex={0}
-          onKeyDown={handleResizeKeyDown}
-          onPointerDown={handleResizePointerDown}
-          onPointerMove={handleResizePointerMove}
-          onPointerUp={stopResizeDrag}
-          onPointerCancel={stopResizeDrag}
-        >
-          <span aria-hidden="true" />
-        </div>
-      ) : null}
     </div>
   );
 }

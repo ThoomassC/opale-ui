@@ -112,36 +112,36 @@ describe('la page Installation', () => {
      npm compile le paquet chez le consommateur : chaîne de build requise,
      `--ignore-scripts` livre un paquet vide, pnpm 10 bloque le script. */
   it('propose l’archive de release à partir de la version qui en porte une', () => {
-    expect(FIRST_ARCHIVE_VERSION).toBe('3.9.0');
-    expect(installCommands('v3.9.0', 'tag')).toEqual({
+    expect(FIRST_ARCHIVE_VERSION).toBe('2.9.0');
+    expect(installCommands('v2.9.0', 'tag')).toEqual({
       archive:
-        'npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.9.0/thomascaron-opale-ui-3.9.0.tgz',
-      git: 'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.9.0"',
+        'npm i https://github.com/ThoomassC/opale-ui/releases/download/v2.9.0/thomascaron-opale-ui-2.9.0.tgz',
+      git: 'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v2.9.0"',
     });
-    expect(installCommands('v3.10.0', 'tag').archive).toContain(
-      '/v3.10.0/thomascaron-opale-ui-3.10.0.tgz',
+    expect(installCommands('v2.10.0', 'tag').archive).toContain(
+      '/v2.10.0/thomascaron-opale-ui-2.10.0.tgz',
     );
   });
 
   it('ne montre pas d’archive pour un tag qui n’en porte pas, ni pour une branche', () => {
-    expect(installCommands('v3.8.0', 'tag').archive).toBeNull();
+    expect(installCommands('v2.8.0', 'tag').archive).toBeNull();
     expect(installCommands('recette', 'branch').archive).toBeNull();
-    expect(installCommands('v3.8.0', 'tag').git).toBe(
-      'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.8.0"',
+    expect(installCommands('v2.8.0', 'tag').git).toBe(
+      'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v2.8.0"',
     );
   });
 
   it('affiche seulement la commande Git tant que la release n’a pas d’archive', async () => {
     vi.doMock('../install-ref', async (original) => ({
       ...(await original<typeof import('../install-ref')>()),
-      INSTALL_REF: 'v3.8.0',
+      INSTALL_REF: 'v2.8.0',
       INSTALL_REF_KIND: 'tag',
     }));
     const { installationPage: page } = await import('./installation');
     const { container } = render(<>{page.render()}</>);
     const text = container.textContent ?? '';
 
-    expect(text).toContain('npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.8.0"');
+    expect(text).toContain('npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v2.8.0"');
     expect(text).not.toContain('releases/download');
     expect(container.querySelectorAll('[data-language="shell"]')).toHaveLength(1);
   });
@@ -149,15 +149,15 @@ describe('la page Installation', () => {
   it('affiche l’archive en premier et le tag Git en alternative dès qu’elle existe', async () => {
     vi.doMock('../install-ref', async (original) => ({
       ...(await original<typeof import('../install-ref')>()),
-      INSTALL_REF: 'v3.9.0',
+      INSTALL_REF: 'v2.9.0',
       INSTALL_REF_KIND: 'tag',
     }));
     const { installationPage: page } = await import('./installation');
     const { container } = render(<>{page.render()}</>);
     const text = container.textContent ?? '';
     const archive =
-      'npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.9.0/thomascaron-opale-ui-3.9.0.tgz';
-    const git = 'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.9.0"';
+      'npm i https://github.com/ThoomassC/opale-ui/releases/download/v2.9.0/thomascaron-opale-ui-2.9.0.tgz';
+    const git = 'npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v2.9.0"';
 
     expect(container.querySelectorAll('[data-language="shell"]')).toHaveLength(2);
     expect(text).toContain(archive);

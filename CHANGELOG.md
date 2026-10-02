@@ -3,7 +3,7 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
-## 3.10.0 — 30 septembre 2026
+## 2.10.0 — 30 septembre 2026
 
 Les composants qui manquaient pour un vrai projet : Textarea, RadioGroup, Field, Tooltip, Popover, DropdownMenu et Grid, le routeur partout, DataTable générique. Uniquement des ajouts.
 
@@ -20,15 +20,15 @@ Les composants qui manquaient pour un vrai projet : Textarea, RadioGroup, Field,
 
 - **Votre routeur partout** — onNavigate sur Navbar, Menu, Breadcrumb, LegalLinks, le pied de PageScaffold et Sidebar, dont les entrées acceptent href. Un clic simple passe par votre routeur ; Ctrl, Cmd et le clic du milieu restent au navigateur.
 - **Des tableaux et des mises en page plus souples** — DataTable devient générique (cell, sortValue, getRowId) et sait sélectionner des lignes ; Badge gagne les tons succès, avertissement, info et neutre ; Stack a gap, align, justify et as, Grid arrive ; Heading va jusqu’au niveau 6 ; ConfirmDialog a un ton danger et attend une promesse sans double envoi.
-- **Traduisible et documenté** — Clipboard, Rating, RatingInput, FileCard, Breadcrumb, SelectionBar et LegalLinks prennent labels. Chaque prop publique a sa JSDoc, verrouillée par un test. FileCard.size devient fileSize ; l’ancien nom reste jusqu’à la 4.0.0.
+- **Traduisible et documenté** — Clipboard, Rating, RatingInput, FileCard, Breadcrumb, SelectionBar et LegalLinks prennent labels. Chaque prop publique a sa JSDoc, verrouillée par un test. FileCard.size devient fileSize ; l’ancien nom reste jusqu’à la 3.0.0.
 
-## 3.9.4 — 30 septembre 2026
+## 2.9.4 — 30 septembre 2026
 
 À la marque de chaque projet : des jetons publics documentés, une couleur qui dérive ses états, un thème système sans flash, des feuilles pour Tailwind et sans polices, un paquet plus léger. Sans rupture.
 
 ### À votre marque
 
-- **Une page pour personnaliser** — La page « Personnaliser » liste les jetons publics, stables en 3.x, avec leurs valeurs claires et sombres, et donne la recette d’une marque. checkBrand, dans le contrat, mesure les contrastes d’une couleur de marque et propose l’encre qui tient.
+- **Une page pour personnaliser** — La page « Personnaliser » liste les jetons publics, stables en 2.x, avec leurs valeurs claires et sombres, et donne la recette d’une marque. checkBrand, dans le contrat, mesure les contrastes d’une couleur de marque et propose l’encre qui tient.
 - **Une couleur, tous ses états** — data-opale-brand="derive" calcule survol, éclairci et anneau de focus depuis --opale-primary ; data-opale-scope applique une marque ou un rayon à un seul sous-arbre ; chaque aplat a son encre (--opale-on-primary, --opale-on-secondary, --opale-on-danger). Sans ces attributs, rien ne change.
 - **Le thème du système, sans flash** — PageScaffold accepte defaultTheme="system" et themeStorageKey ; useOpaleTheme pilote le thème du document et opaleThemeScript le pose avant l’affichage, pour Next.js comme pour Vite.
 
@@ -41,7 +41,7 @@ Les composants qui manquaient pour un vrai projet : Textarea, RadioGroup, Field,
 
 - **Des contours et du verre qui tiennent** — Le contour du bouton ghost est continu, l’anneau de focus suit la forme du bouton, les rayons et espacements des composants suivent l’échelle, le verre fonctionne dans un Shadow DOM, et un champ de verre ne déborde plus d’une Card de verre. Toast accepte title et description, comme showToast.
 
-## 3.9.3 — 30 septembre 2026
+## 2.9.3 — 30 septembre 2026
 
 Accessible partout : du verre lisible sur une page claire, des états visibles en contrastes forcés, un focus qui ne se perd plus et des changements annoncés. Sans rupture.
 
@@ -60,7 +60,7 @@ Accessible partout : du verre lisible sur une page claire, des états visibles e
 
 - **Quelques options de plus, toutes facultatives** — Checkbox indeterminate, Layout mainAs, SvgMap panControls, labels sur Button et SearchBar ; Slider non contrôlé affiche sa valeur, DataTable qui défile se parcourt au clavier, et un nom manquant est signalé en développement sur plus de composants.
 
-## 3.9.2 — 29 septembre 2026
+## 2.9.2 — 29 septembre 2026
 
 Sûre en production : des dialogues qui ne figent plus la page, une hydratation Next.js intacte, des parties composées utilisables côté serveur, une marque qui traverse PageScaffold et des champs fiables dans un formulaire. Sans rupture.
 
@@ -80,7 +80,7 @@ Sûre en production : des dialogues qui ne figent plus la page, une hydratation 
 - **Votre marque traverse PageScaffold** — Une couleur posée sur :root n’est plus remise au bleu d’Opale dans le gabarit. La classe facultative .opale-root peint la page hôte (fond, encre, police, color-scheme) selon le thème. Le contrat de couleur lit enfin la feuille publiée minifiée et color-mix().
 - **Des champs qui tiennent dans un formulaire** — Dropzone envoie ses fichiers avec name ; MultiSelect désactivé ne se coche plus et reste d’accord avec reset() et les bibliothèques de formulaire ; Checkbox garde son aria-label ; un aria-describedby ajouté ne masque plus le message d’erreur.
 
-## 3.9.1 — 29 septembre 2026
+## 2.9.1 — 29 septembre 2026
 
 Correctifs responsive : Topbar et SvgMap à l’aise sur téléphone, et une vitrine qui ne défile plus en largeur, de 320 px au zoom du texte. Sans changement d’API.
 
@@ -94,21 +94,21 @@ Correctifs responsive : Topbar et SvgMap à l’aise sur téléphone, et une vit
 - **Plus de défilement horizontal** — Les fiches composant tiennent dans l’écran de 320 à 1024 px ; les tables de props défilent dans leur cadre. Le menu, le sommaire (fermé par Échap), le rail tablette, la marque et les blocs de code de migration, désormais atteignables au clavier, sont revus pour le mobile et le zoom du texte.
 - **Des démos qui laissent lire** — Le bandeau de cookies ne s’affiche plus d’office sur sa fiche, la carte propose une liste pour choisir une région sans viser au doigt, et la prose ne dépasse plus une largeur de lecture confortable.
 
-## 3.9.0 — 29 septembre 2026
+## 2.9.0 — 29 septembre 2026
 
-La dernière 3.x : une archive construite à chaque version, et la sortie des anciens noms préparée — avertissements en développement, guide de migration, Toggle en interrupteur en option. Sans rupture.
+La dernière 2.x : une archive construite à chaque version, et la sortie des anciens noms préparée — avertissements en développement, guide de migration, Toggle en interrupteur en option. Sans rupture.
 
 ### Distribution
 
 - **Une archive construite à chaque version** — Chaque version publie sur GitHub une archive déjà compilée : npm, pnpm et yarn l’installent sans chaîne de build, même avec --ignore-scripts ou pnpm 10. L’installation par tag Git reste possible et inchangée.
 
-### Préparer la 4.0
+### Préparer la 3.0
 
 - **Les anciens noms se signalent** — En développement, chaque prop dépréciée écrit une fois dans la console son remplaçant et la version qui la retirera. Rien en production, et les anciens noms marchent toujours.
-- **Un guide de migration** — La page « Migrer vers la 4.0 » liste chaque ancien nom, ce qui le remplace et depuis quand, ainsi que les changements que la 4.0.0 apportera.
-- **Toggle en interrupteur, en option** — role="switch" sur Toggle l’annonce comme un interrupteur ; ce sera le rôle par défaut en 4.0.0. En développement, un Toggle sans nom accessible est signalé.
+- **Un guide de migration** — La page « Migrer vers la 3.0 » liste chaque ancien nom, ce qui le remplace et depuis quand, ainsi que les changements que la 3.0.0 apportera.
+- **Toggle en interrupteur, en option** — role="switch" sur Toggle l’annonce comme un interrupteur ; ce sera le rôle par défaut en 3.0.0. En développement, un Toggle sans nom accessible est signalé.
 
-## 3.8.0 — 29 septembre 2026
+## 2.8.0 — 29 septembre 2026
 
 Une recherche de PageScaffold branchée sur votre routeur, un seul bouton Fermer en option, et un SegmentedControl plus léger à animer. Sans rupture.
 
@@ -121,7 +121,7 @@ Une recherche de PageScaffold branchée sur votre routeur, un seul bouton Fermer
 
 - **SegmentedControl glisse sans recalculer la page** — La pastille se déplace par transformation seulement ; elle prend la largeur de sa nouvelle option au départ du geste. Sans animation quand le système demande moins de mouvement.
 
-## 3.7.1 — 29 septembre 2026
+## 2.7.1 — 29 septembre 2026
 
 Correctifs : un test de CookieBanner qui vérifie enfin ce qu’il annonce, et une carte du monde plus légère. Aucun changement d’API.
 
@@ -131,7 +131,7 @@ Correctifs : un test de CookieBanner qui vérifie enfin ce qu’il annonce, et u
 - **Une carte du monde plus légère** — Les cadres des continents sont calculés à la construction : la page SvgMap ne charge plus de bibliothèque de projection. Le détail 50m ne change pas.
 - **Une vitrine qui décrit le présent** — Les commentaires de la vitrine disent ce que le code garantit aujourd’hui, sans raconter son histoire.
 
-## 3.7.0 — 29 septembre 2026
+## 2.7.0 — 29 septembre 2026
 
 Modales empilées, focus gardé, erreurs sur tous les champs, jetons partout, classes stables et un paquet bien plus léger — sans rupture.
 
@@ -155,7 +155,7 @@ Modales empilées, focus gardé, erreurs sur tous les champs, jetons partout, cl
 - **Un paquet vérifié comme on le reçoit** — La CI emballe le paquet, l’installe dans une application témoin et la compile en nodenext et en bundler, avec un budget de poids. Les versions ne se publient que depuis recette.
 - **Corrections** — Un glissement annulé de SiteNav ne marque plus l’onglet survolé comme page courante ; Glass ne retire plus un filtre posé par la page ; le fil d’Ariane s’aligne sur une ligne, sans numéros.
 
-## 3.6.1 — 29 septembre 2026
+## 2.6.1 — 29 septembre 2026
 
 Une documentation au même plan pour chaque composant, le contrat plutôt que l’histoire, et un README à jour. Aucun changement de la librairie.
 
@@ -164,16 +164,16 @@ Une documentation au même plan pour chaque composant, le contrat plutôt que l�
 - **Un seul plan pour chaque composant** — Chaque page suit le même ordre : Import, Démo, Exemples, Props, États, Accessibilité et Limites connues. PageScaffold a sa démonstration.
 - **Le contrat plutôt que l’histoire** — Les pages disent comment employer le composant et ce qu’il ne fait pas ; l’historique reste dans ces notes. La source des tracés de SvgMap est de nouveau affichée.
 - **Quand préférer le composant voisin** — Toast et ToastProvider, Modal et ConfirmDialog renvoient l’un vers l’autre et disent lequel choisir.
-- **Un README à jour** — Installation, convention d’import, conventions de l’API, thème, contrat de couleur et limites connues, avec des chiffres recalculés depuis le code. Les notes 3.5.0 et 3.3.0 sont complétées.
+- **Un README à jour** — Installation, convention d’import, conventions de l’API, thème, contrat de couleur et limites connues, avec des chiffres recalculés depuis le code. Les notes 2.5.0 et 2.3.0 sont complétées.
 - **Un vocabulaire français** — La prose dit « verre liquide » et le code liquidGlass ; le sommaire et les familles du catalogue sont en français à l’affichage.
 
 ### Qualité
 
 - **Des tests qui rendent** — La restitution du focus de Modal est prouvée par le rendu sur ses trois sorties, et les feuilles de style sont lues par un vrai analyseur CSS dans les tests.
 
-## 3.6.0 — 28 septembre 2026
+## 2.6.0 — 28 septembre 2026
 
-Une seule convention d’API pour les valeurs, l’ouverture, les tailles, les tons, les libellés et les refs, sans casser aucune application en 3.5.
+Une seule convention d’API pour les valeurs, l’ouverture, les tailles, les tons, les libellés et les refs, sans casser aucune application en 2.5.
 
 ### Une API unique, sans rupture
 
@@ -186,11 +186,11 @@ Une seule convention d’API pour les valeurs, l’ouverture, les tailles, les t
 
 ### Compatibilité
 
-- **Anciens noms conservés** — onChange, page, values, activeItemId, onClose, onCancel, severity, density, OpaleUI et les autres restent acceptés et fonctionnent comme en 3.5 ; l’éditeur les barre et indique le nouveau nom.
+- **Anciens noms conservés** — onChange, page, values, activeItemId, onClose, onCancel, severity, density, OpaleUI et les autres restent acceptés et fonctionnent comme en 2.5 ; l’éditeur les barre et indique le nouveau nom.
 - **Corrections visibles** — CommandPalette accepte la saisie sans value, et MultiSelect affiche la value qu’on lui passe.
 - **Opale ne doit rien à personne** — Les composants vivent désormais dans leur propre dossier et leurs classes générées portent le préfixe opale-mod-. Les points d’entrée du paquet ne changent pas.
 
-### Migrer depuis la 3.5.2
+### Migrer depuis la 2.5.2
 
 #### Passer aux nouveaux noms (facultatif)
 
@@ -220,7 +220,7 @@ Après :
 <Modal open={open} onOpenChange={setOpen} />
 ```
 
-## 3.5.2 — 28 septembre 2026
+## 2.5.2 — 28 septembre 2026
 
 Un seul langage visuel : jetons, hauteurs, texte et focus communs à tous les composants, contrastes au seuil.
 
@@ -237,7 +237,7 @@ Un seul langage visuel : jetons, hauteurs, texte et focus communs à tous les co
 - **Contrastes au seuil** — Bordure des champs, interrupteur éteint et texte d’avertissement atteignent les ratios WCAG sur les deux thèmes.
 - **Toasts sous une modale** — Un toast lancé depuis une modale ouverte est annoncé et refermable. L’attribut data-opale-modal-exempt garde toute autre région vivante.
 
-## 3.5.1 — 28 septembre 2026
+## 2.5.1 — 28 septembre 2026
 
 Opale s’installe en production : tag de version, Next.js App Router, types nodenext, polices en fichiers, licence MIT.
 
@@ -246,7 +246,7 @@ Opale s’installe en production : tag de version, Next.js App Router, types nod
 - **Next.js App Router** — Le bundle porte la directive « use client » : les composants s’importent tels quels depuis un Server Component, sans enveloppe.
 - **Types lisibles en nodenext** — Les déclarations publiées nomment leurs fichiers en entier : un projet en moduleResolution node16 ou nodenext les lit sans erreur.
 - **Polices en fichiers** — Chivo et Bricolage Grotesque ne sont plus incorporées en base64 : opale.css passe de 379 à 232 kB et relie fonts.css, que votre bundler émet en woff2. Aucun import à ajouter.
-- **Version installable et licence** — Les tags v3.3.0, v3.4.0 et v3.5.0 sont publiés et le tag v4.0.0, posé par erreur sur un code antérieur, est retiré. Opale est sous licence MIT.
+- **Version installable et licence** — Les tags v2.3.0, v2.4.0 et v2.5.0 sont publiés et le tag v4.0.0, posé par erreur sur un code antérieur, est retiré. Opale est sous licence MIT.
 
 ### Corrections
 
@@ -254,7 +254,7 @@ Opale s’installe en production : tag de version, Next.js App Router, types nod
 - **Feedback en français** — Sans titre, l’encart affiche Succès, Information, Attention ou Erreur au lieu du nom anglais de sa sévérité.
 - **Guide d’installation** — La page Installation couvre les prérequis, la compilation à l’installation, les styles, le thème et Next.js.
 
-## 3.5.0 — 27 septembre 2026
+## 2.5.0 — 27 septembre 2026
 
 **Rupture.**
 
@@ -275,7 +275,7 @@ SvgMap devient une vraie carte : zoom, déplacement, cadrage et sélection, au g
 - **Le nom OpaleUI** — Le nom de la librairie prend un O majuscule et s’écrit plus grand dans l’en-tête, en Chivo 700 ; le titre des onglets suit.
 - **L’en-tête resserré** — Le bouton de menu prend le même espacement que la bascule de thème et le sélecteur de langue.
 
-### Migrer depuis la 3.4.0
+### Migrer depuis la 2.4.0
 
 #### Donner le dessin à la carte
 
@@ -296,7 +296,7 @@ Après :
 />
 ```
 
-## 3.4.0 — 27 septembre 2026
+## 2.4.0 — 27 septembre 2026
 
 Des composants qui se voient dans les deux matières : Sidebar retravaillée, SiteNav en vrai verre, et quatre corrections de rendu.
 
@@ -311,7 +311,7 @@ Des composants qui se voient dans les deux matières : Sidebar retravaillée, Si
 - **Dropzone sous verre** — Le verre ne perd plus contre la zone pleine : fond transparent, tirets et texte clairs. L’action de sélection passe en italique et se rapproche du titre.
 - **FileCard et Lightbox** — Sous verre, la vignette de la carte de fichier redevient une surface. La visionneuse range sa croix en haut à droite, comme tout dialogue sans titre, et ferme par un Button tonal.
 
-## 3.3.0 — 26 septembre 2026
+## 2.3.0 — 26 septembre 2026
 
 PageScaffold compose une page complète dans la direction visuelle d’Opale.
 
@@ -336,7 +336,7 @@ PageScaffold compose une page complète dans la direction visuelle d’Opale.
 
 - **La goutte d’Opale** — Le logo devient une goutte en verre liquide, et le tag de version une pastille aux marges de la référence.
 
-## 3.2.0 — 24 septembre 2026
+## 2.2.0 — 24 septembre 2026
 
 **Rupture.**
 
@@ -344,7 +344,7 @@ Un catalogue resserré qui tient ce qu’il annonce : chaque composant garde sa 
 
 ### Compatibilité et migration
 
-- **28 exports retirés depuis la 3.1.1** — Les alias, composants sans comportement propre et promesses non tenues quittent le catalogue. Le tableau de migration ci-dessous indique les remplacements possibles.
+- **28 exports retirés depuis la 2.1.1** — Les alias, composants sans comportement propre et promesses non tenues quittent le catalogue. Le tableau de migration ci-dessous indique les remplacements possibles.
 - **Trois API à adapter** — Glass devient la propriété liquidGlass ; IconActionButton exige un label et reçoit icon ; Lightbox exige alt. Les exemples avant/après sont juste sous cette rubrique.
 
 ### Composants et interactions
@@ -366,7 +366,7 @@ Un catalogue resserré qui tient ce qu’il annonce : chaque composant garde sa 
 - **États et fichiers mieux gérés** — DataTable traite les lignes stables, le vide et le chargement ; Dropzone contrôle type, nombre et taille des fichiers ; FileCard devient statique sans action.
 - **Parcours et polices autonomes** — L’accueil, les guides et le sommaire mobile facilitent l’accès au catalogue ; les polices sont servies localement.
 
-### Migrer depuis la 3.1.1
+### Migrer depuis la 2.1.1
 
 #### Activer le verre sur le composant
 
@@ -430,7 +430,7 @@ Après :
 - `I18n`, `LocalStore`, `RouteGuard` : Ces responsabilités relèvent de la traduction, du stockage et du routeur de l’application.
 - `Game`, `Countdown` : Aucun équivalent Opale ; implémentez le comportement nécessaire dans l’application.
 
-## 3.1.1 — 21 septembre 2026
+## 2.1.1 — 21 septembre 2026
 
 **Rupture.**
 
@@ -443,7 +443,7 @@ Opale porte ses propres composants et fait du verre liquide une option de chacun
 - Les démonstrations de verre se posent sur un paysage, sans quoi le matériau n’a rien à réfracter et ne se voit pas.
 - Rupture : les jetons CSS et les classes publiés prennent le préfixe opale-, et les exports nommés perdent le leur. Le chemin Opale.Button ne change pas.
 
-## 3.0.0 — 18 septembre 2026
+## 2.0.0 — 18 septembre 2026
 
 **Rupture.**
 
@@ -453,15 +453,15 @@ Opale adopte un langage visuel unifié et étend son catalogue sans retirer les 
 - Ajout des thèmes clair et sombre, avec le verre liquide activable composant par composant.
 - Ajout de nouveaux composants Opale en conservant les exports existants.
 
-## 2.1.0 — 18 septembre 2026
+## 1.1.0 — 18 septembre 2026
 
 La vitrine gagne un historique de versions et conserve chaque état publié sous une adresse indépendante.
 
 - Ajout de la page « Notes de versions » dans la navigation.
-- Ajout de snapshots utilisables pour les versions 0.1.0 à 2.0.0.
+- Ajout de snapshots utilisables pour les versions 0.1.0 à 1.0.0.
 - La version courante reste à la racine : les anciennes versions ne sont jamais écrasées.
 
-## 2.0.0 — 14 septembre 2026
+## 1.0.0 — 14 septembre 2026
 
 **Rupture.**
 
@@ -469,9 +469,9 @@ Le paquet devient Opale et adopte ses composants en verre liquide.
 
 - Quatorze composants verre liquide sont publiés à la racine.
 - La vitrine passe d’une charte unique à une documentation navigable.
-- Rupture majeure : les composants maison de la 1.x ne sont plus exportés.
+- Rupture majeure : les composants maison de la 0.x ne sont plus exportés.
 
-## 1.2.0 — 10 septembre 2026
+## 0.6.0 — 10 septembre 2026
 
 Un bouton bulle et sa lentille arrivent sans modifier les API existantes.
 
@@ -479,15 +479,15 @@ Un bouton bulle et sa lentille arrivent sans modifier les API existantes.
 - Ajout de `GlassLens` et de la feuille optionnelle `lens.css`.
 - Les consommateurs qui n’emploient pas ces nouveautés restent inchangés.
 
-## 1.1.0 — 9 septembre 2026
+## 0.5.0 — 9 septembre 2026
 
 Le thème verre liquide devient une feuille optionnelle, sans déplacement de l’API.
 
 - Ajout de `glass.css` et de l’axe de matériau optionnel.
-- Les jetons, rôles, composants et classes de la 1.0 restent compatibles.
+- Les jetons, rôles, composants et classes de la 0.4 restent compatibles.
 - La vitrine documente le coût et les replis du matériau.
 
-## 1.0.0 — 9 septembre 2026
+## 0.4.0 — 9 septembre 2026
 
 L’API du socle est déclarée stable après l’arrivée des composants partagés.
 

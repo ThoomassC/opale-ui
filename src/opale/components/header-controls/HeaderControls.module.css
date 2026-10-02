@@ -54,8 +54,11 @@
   --header-control-border: var(--opale-primary);
 }
 
+/* Au focus, la boîte prend le rayon qui contient le squircle de `::before` :
+   l'anneau suit la forme au lieu d'un rectangle. */
 .theme:focus-visible,
 .languageTrigger:focus-visible {
+  border-radius: calc(var(--opale-squircle-radius) * 0.68);
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
   outline-offset: var(--opale-focus-ring-offset);
 }
@@ -227,6 +230,7 @@
 }
 
 .tab:focus-visible {
+  border-radius: calc(var(--opale-squircle-radius) * 0.68);
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
   outline-offset: var(--opale-focus-ring-offset);
 }

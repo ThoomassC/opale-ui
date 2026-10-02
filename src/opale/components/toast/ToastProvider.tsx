@@ -124,7 +124,7 @@ export type ToastDefinition = {
   description?: ReactNode;
   /** Le ton : couleur de la carte et urgence de l'annonce. Défaut : `neutral`. */
   tone?: OpaleTone;
-  /** @deprecated Depuis 3.6 — utilisez `tone` (`default` → `neutral`). */
+  /** @deprecated Depuis 2.6 — utilisez `tone` (`default` → `neutral`). */
   variant?: ToastVariant;
   /**
    * En millisecondes ; `Infinity` désarme la fermeture. Sans durée ici ni sur

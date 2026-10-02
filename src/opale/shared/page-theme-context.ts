@@ -9,7 +9,7 @@ import { createContext } from 'react';
    donc dans `<body>`, HORS de cette racine : un dialogue blanc s'ouvrait
    au-dessus d'un gabarit sombre.
 
-   UN CONTEXTE, PARCE QU'IL TRAVERSE LES PORTAILS. La 3.9.2 a d'abord repéré
+   UN CONTEXTE, PARCE QU'IL TRAVERSE LES PORTAILS. La 2.9.2 a d'abord repéré
    le thème par une ancre cachée rendue sur place : un `<span>` en plein
    `<tbody>` cassait l'imbrication du DOM — et, rendu par le serveur, le
    parseur le sortait du tableau, d'où une hydratation ratée —, sans compter
@@ -19,7 +19,7 @@ import { createContext } from 'react';
    portails transmettant le contexte React.
 
    `null` hors de tout gabarit : la surimpression ne pose alors rien, et suit
-   le thème global comme en 3.9.1.
+   le thème global comme en 2.9.1.
    ========================================================================== */
 
 /** Le thème effectif du gabarit englobant ; `null` hors de tout gabarit. */

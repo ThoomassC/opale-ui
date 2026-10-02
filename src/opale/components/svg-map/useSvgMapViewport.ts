@@ -42,7 +42,7 @@ export interface UseSvgMapViewportResult {
    * de déplacement, qui n'ont de sens qu'une fois zoomé — la lit plutôt que
    * `view`, pour ne pas apparaître ni disparaître 280 ms après le geste.
    *
-   * Optionnelle dans le type : une vue construite à la main pour la 3.9.2 n'en
+   * Optionnelle dans le type : une vue construite à la main pour la 2.9.2 n'en
    * a pas, et les commandes retombent alors sur `view`. `useSvgMapViewport` la
    * fournit toujours.
    */

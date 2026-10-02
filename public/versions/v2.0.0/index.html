@@ -48,7 +48,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Documentation de @thomascaron/opale 2.0 — la charte mesurée (palette teal et cuivre, échelles, contrat de couleur exécutable) et une page par composant verre liquide, vendorés de react-magic-ui sous licence MIT."
+      content="Documentation de @thomascaron/opale 3.0 — design system inspiré de CanopUI, trois thèmes et composants liquid glass activables à la carte."
     />
     <!--
       La couleur de la barre d'adresse mobile, et la SEULE copie en dur de
@@ -75,7 +75,7 @@
       la barre d'adresse reste au thème clair en thème sombre, panne muette que
       rien ne signale.
     -->
-    <meta name="theme-color" content="#deedf0" />
+    <meta name="theme-color" content="#f7f4ef" />
     <!--
       Le titre AVANT le premier rendu. La coquille (`doc-shell.tsx`) le réécrit
       en « <titre de la page> — @thomascaron/opale » dès qu'elle connaît la page,
@@ -86,35 +86,18 @@
     -->
     <title>Documentation — @thomascaron/opale</title>
     <!--
-      Le seul script bloquant de la page, et il pose LES DEUX attributs de
-      présentation — le thème et le matériau.
+      Le seul script bloquant de la page : il pose le thème choisi avant la
+      première peinture.
 
       Sans lui pour le THÈME, quelqu'un qui a choisi « sombre » sur un système
       clair voit un flash clair : la feuille de jetons sert
       `prefers-color-scheme` jusqu'à ce que React monte et pose `data-theme`.
 
-      Sans lui pour le MATÉRIAU, le flash est PIRE, et c'est ce qui justifie
-      d'étendre ce script plutôt que d'en ajouter un second. Un changement de
-      matériau n'est pas un échange de couleur sur le sol de la page : c'est
-      l'apparition d'un `backdrop-filter`, d'un ménisque et d'un liseré
-      spéculaire sur TOUTES les surfaces qui flottent au-dessus — barre du haut,
-      sommaire, cartes, planches, spécimens. Le flash ne serait pas une teinte
-      qui bouge, il serait la page entière qui change de nature une fois React
-      monté. Poser l'attribut ici, avant la première peinture, le supprime.
+      Le matériau Liquid Glass n'est pas global : chaque page de composant le
+      déclenche après interaction, sur son propre spécimen.
 
-      UN SEUL SCRIPT, UN SEUL `try`, et c'est voulu : les deux lectures
-      partagent le même mode de défaillance. En navigation privée, la SIMPLE
-      LECTURE du stockage lève — la première lecture emporte donc la seconde, et
-      la page rend son état de base (préférence système pour le thème, aplat
-      pour le matériau), qui est exactement le bon repli.
-
-      `data-material` NE PREND QU'UNE VALEUR, `glass` : l'aplat, c'est l'absence
-      d'attribut, jamais `data-material="flat"`. La feuille n'a aucun sélecteur
-      pour `flat` parce qu'aucune préférence système ne peut imposer le verre —
-      il n'existe pas de `prefers-material` — donc il n'y a rien à contredire.
-      `data-theme`, lui, écrit bien ses deux valeurs, parce que `light` doit
-      pouvoir contredire un OS en sombre. La symétrie apparente des deux
-      attributs s'arrête là, et `use-material.ts` porte le même avertissement.
+      `data-theme` écrit bien ses deux valeurs, parce que `light` doit pouvoir
+      contredire un OS en sombre.
 
       Volontairement synchrone et sans `type="module"` : un module est différé,
       donc il s'exécuterait après la première peinture — c'est-à-dire trop tard
@@ -126,15 +109,12 @@
         if (storedTheme === 'dark' || storedTheme === 'light') {
           document.documentElement.setAttribute('data-theme', storedTheme);
         }
-        if (localStorage.getItem('tc-material') === 'glass') {
-          document.documentElement.setAttribute('data-material', 'glass');
-        }
       } catch (error) {
         /* Stockage refusé : les états de base feront l'affaire. */
       }
     </script>
-    <script type="module" crossorigin src="/versions/v2.0.0/assets/index-DuRUABVw.js"></script>
-    <link rel="stylesheet" crossorigin href="/versions/v2.0.0/assets/index-7Zzg1Ljv.css">
+    <script type="module" crossorigin src="/versions/v2.0.0/assets/index-DhVTGjOj.js"></script>
+    <link rel="stylesheet" crossorigin href="/versions/v2.0.0/assets/index-DtKl4212.css">
   </head>
   <body>
     <div id="root"></div>

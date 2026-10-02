@@ -10,11 +10,11 @@
    Le bloc local ne s'applique plus que là où il CHANGE quelque chose : un
    gabarit clair sous un contexte sombre (racine `data-theme='dark'` ou
    gabarit sombre englobant). Ailleurs, le gabarit hérite, marque comprise.
-   `:where()` garde au sélecteur local sa spécificité de 3.9.1 (0,1,0) : une
+   `:where()` garde au sélecteur local sa spécificité de 2.9.1 (0,1,0) : une
    surcharge écrite sur `[data-opale-page-theme='light']` gagne toujours.
 
    `:host` REJOINT LA RACINE : chargée dans une racine fantôme, la feuille n'y
-   trouve pas de `:root`. En 3.9.1, le gabarit portait tout le bloc par son
+   trouve pas de `:root`. En 2.9.1, le gabarit portait tout le bloc par son
    attribut ; un PageScaffold isolé dans un Shadow DOM garde ainsi ses jetons.
 
    LES JETONS DÉRIVÉS SONT REDITS SUR LE THÈME LOCAL, plus bas : voir
@@ -119,6 +119,34 @@
      la surface creusée — le pire des trois fonds clairs. En sombre l'ambre
      d'origine tient déjà 9,36:1 ; le jeton y garde donc sa valeur. */
   --opale-accent-graphic: #8e6000;
+
+  /* LES FONDS DE `ScrollSection`, CHACUN AVEC SON ENCRE. Une section peint
+     toujours son propre couple : c'est ce qui garde son texte lisible pendant
+     que la scène change de fond derrière elle. `paper` vaut la surface et
+     l'encre du thème, et a donc sa valeur sombre ; l'ambre, la nuit et le
+     bleu sont des teintes fixes, les mêmes dans les deux thèmes. Écrits en
+     clair et non en `var()` : un dérivé devrait être redit sur chaque thème
+     local et chaque portée. `opale-scroll-grounds.contract.test.ts` garde
+     `paper` égal à la surface et exige 4,5:1 de chaque couple. */
+  --opale-ground-paper: #fbfaf9;
+  --opale-ground-paper-ink: #14100b;
+  --opale-ground-amber: #f4ad15;
+  --opale-ground-amber-ink: #14100b;
+  --opale-ground-night: #121713;
+  --opale-ground-night-ink: #f3f1ec;
+  --opale-ground-blue: #315c9e;
+  --opale-ground-blue-ink: #ffffff;
+  /* Les boutons posés sur un fond de couleur, que la feuille de ScrollSection
+     substitue dans la section. Sur `blue`, le principal s'inverse — aplat
+     blanc, encre bleue — et ce teint pâle est son survol : encre à 5,29:1,
+     5,29:1 contre le fond. Le secondaire y devient ce bleu pâle sous l'encre
+     sombre du thème local : 4,18:1 contre le fond (3,15:1 au survol), 12,1:1
+     pour l'encre. Sur `amber`, le secondaire fonce : 3,54:1 contre l'ambre
+     (4,17:1 au survol), 6,58:1 pour l'encre claire. */
+  --opale-ground-blue-hover: #dce6f5;
+  --opale-ground-blue-secondary: #b4cff5;
+  --opale-ground-blue-surface: #1d3a63;
+  --opale-ground-amber-secondary: #335f7b;
 
   /* L'ENCRE DU PRIMAIRE QUAND ELLE SE LIT *SUR* UNE SURFACE.
 
@@ -277,7 +305,7 @@
      ni segments. Les ramener sur la grille aurait déplacé des pixels dans un
      correctif ; ils deviennent donc des jetons DE MÊME VALEUR, qu'un hôte
      règle avec le reste de sa densité. Le recalage sur la grille de 4 px
-     attend la 4.0. Quand une valeur tombait déjà sur l'échelle, c'est le pas
+     attend la 3.0. Quand une valeur tombait déjà sur l'échelle, c'est le pas
      de l'échelle qui la remplace. Ils ne portent pas le préfixe
      `--opale-space-`, réservé aux sept pas de l'échelle : ce sont des réglages
      de composant. Restent écrits trois littéraux de GÉOMÉTRIE — la poignée
@@ -345,6 +373,23 @@
   --opale-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --opale-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --opale-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* L'apparition au défilement (`Reveal`) : sa montée, sa durée de repli, le
+     pas de sa cascade et sa courbe, qui part vite et se pose en douceur. */
+  --opale-reveal-distance: 1.5rem;
+  --opale-reveal-duration: 720ms;
+  --opale-reveal-stagger: 60ms;
+  --opale-ease-reveal: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* Le bandeau défilant (`Marquee`) : la période d'une boucle complète, lente
+     assez pour qu'on lise une entrée avant qu'elle ne sorte. */
+  --opale-marquee-duration: 28s;
+  /* Le titre découpé en mots (`SplitHeading`) : la montée d'un mot, sa durée
+     et le pas de la cascade ; la courbe est celle de `Reveal`. */
+  --opale-split-distance: 0.35em;
+  --opale-split-duration: 640ms;
+  --opale-split-stagger: 70ms;
+  /* La scène qui suit la section active (`ScrollStage`) : le fondu de son
+     propre fond d'un couple à l'autre ; la courbe est `--opale-ease`. */
+  --opale-stage-duration: 640ms;
   --opale-drop-shadow-1: drop-shadow(0 0.0625rem 0.0625rem rgba(20, 30, 24, 0.06))
     drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.08));
   --opale-drop-shadow-2: drop-shadow(0 0.0625rem 0.125rem rgba(20, 30, 24, 0.07))
@@ -362,7 +407,7 @@
      ce qui passe dessous pour rester lisible sur une photographie. */
   --opale-glass-frost-blur: 12px;
   --opale-glass-frost-saturate: 1.45;
-  /* Déprécié depuis 3.7 : aucun composant ne le lit. Le flou du matériau est
+  /* Déprécié depuis 2.7 : aucun composant ne le lit. Le flou du matériau est
      `--opale-glass-backdrop-blur`. Conservé pour les feuilles qui le lisent. */
   --opale-glass-blur: 18px;
   /* L'ENCRE DU VERRE EST UN JETON, PARCE QU'ELLE DÉPEND DE CE QU'IL Y A DERRIÈRE.
@@ -519,6 +564,10 @@
      y tient 5,03:1, contre 1,01:1 pour celle du thème clair. */
   --opale-accent-ink: #ffd98a;
   --opale-accent-graphic: #f4ad15;
+  /* Le fond `paper` de `ScrollSection` suit la surface et l'encre sombres ;
+     les trois autres fonds sont fixes et ne se redisent pas ici. */
+  --opale-ground-paper: #1d221e;
+  --opale-ground-paper-ink: #f3f1ec;
 
   --opale-glass-surface: rgba(38, 44, 39, 0.7);
   --opale-glass-border: rgba(169, 199, 244, 0.28);
@@ -688,7 +737,7 @@
    Un jeton écrit `var(--opale-primary)` ou `color-mix(… var(--opale-text) …)`
    se résout là où il est DÉCLARÉ, puis hérite de sa valeur déjà résolue.
    Déclarés sur la seule racine, les dérivés ignoraient donc une surcharge
-   posée sur `[data-opale-page-theme='light']` — qui marchait en 3.9.1, où le
+   posée sur `[data-opale-page-theme='light']` — qui marchait en 2.9.1, où le
    bloc entier y était redéclaré. Seuls ces dérivés sont redits ici, à
    l'identique : les jetons de base continuent d'hériter de l'hôte, et
    `opale-page-theme.contract.test.ts` refuse que ces listes divergent de
@@ -883,7 +932,7 @@
   font-family: var(--opale-font-body);
 }
 
-/* `.opale-dialog` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+/* `.opale-dialog` : Déprécié depuis 2.7 — aucun composant ne la pose, utilisez
    `Modal`. Elle reste pour les pages qui la posent à la main. */
 .opale-surface,
 .opale-card,
@@ -1786,7 +1835,7 @@
   padding: var(--opale-space-lg);
 }
 /* LES QUATRE CRANS DE `elevation`. La prop posait `opale-card--e{n}` depuis
-   la 2.0 et aucune règle ne la servait : `elevation={3}` rendait la même ombre
+   la 1.0 et aucune règle ne la servait : `elevation={3}` rendait la même ombre
    que `elevation={0}`. Les crans prennent l'échelle d'ombres d'Opale, et le
    cran 1 — la valeur par défaut — reste l'ombre que toutes les cartes
    portaient déjà : rien ne bouge pour qui ne passait pas la prop. */
@@ -1827,7 +1876,7 @@
   box-shadow: var(--opale-shadow-3);
 }
 
-/* `.opale-dialog__header`, `.opale-dialog__footer` : Déprécié depuis 3.7 —
+/* `.opale-dialog__header`, `.opale-dialog__footer` : Déprécié depuis 2.7 —
    aucun composant ne les pose, utilisez `Modal`. */
 .opale-card__header,
 .opale-card__footer,
@@ -1932,6 +1981,11 @@ h6.opale-heading {
 }
 .opale-link:hover {
   color: var(--opale-primary-dark);
+}
+/* L'anneau d'un lien cernait les mots d'un rectangle vif : ses angles
+   s'adoucissent, comme ceux des autres contrôles. */
+.opale-link:focus-visible {
+  border-radius: var(--opale-radius-sm);
 }
 
 .opale-field {
@@ -2658,7 +2712,7 @@ h6.opale-heading {
   cursor: not-allowed;
   opacity: var(--opale-disabled-opacity);
 }
-/* `.opale-chip` : Déprécié depuis 3.7 — aucun composant ne la pose, utilisez
+/* `.opale-chip` : Déprécié depuis 2.7 — aucun composant ne la pose, utilisez
    `Badge` (`.opale-badge`), qui partage cette règle. */
 .opale-chip,
 .opale-badge {
@@ -3013,7 +3067,7 @@ h6.opale-heading {
 .opale-panel {
   padding: var(--opale-space-lg);
 }
-/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-dialog-backdrop` :
+/* Déprécié depuis 2.7 — aucun composant ne pose `.opale-dialog-backdrop` :
    `Modal` porte son propre voile. La règle reste pour les pages qui la posent. */
 .opale-dialog-backdrop {
   position: fixed;
@@ -3035,7 +3089,7 @@ h6.opale-heading {
    l'œil doit pouvoir s'arrêter. La gouttière `lg` (1,5 rem) sépare les bandes ;
    le corps garde sa gouttière `sm` entre ses propres lignes, pour que le
    message reste UN bloc et non trois phrases éparses. */
-/* Déprécié depuis 3.7 — `.opale-dialog` et ses parties ne sont posées par
+/* Déprécié depuis 2.7 — `.opale-dialog` et ses parties ne sont posées par
    aucun composant ; utilisez `Modal`. */
 .opale-dialog {
   display: grid;
@@ -3043,13 +3097,13 @@ h6.opale-heading {
   padding: var(--opale-space-lg);
   gap: var(--opale-space-lg);
 }
-/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
+/* Déprécié depuis 2.7 — voir `.opale-dialog`. */
 .opale-dialog__body {
   display: grid;
   gap: var(--opale-space-sm);
   color: var(--opale-text-secondary);
 }
-/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
+/* Déprécié depuis 2.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   border: 0;
   background: transparent;
@@ -3139,7 +3193,7 @@ h6.opale-heading {
    le titre étant collé à côté. Les mêmes boutons de `Modal` (40 px) et de
    `Toast` (32 px) étaient corrects : seul ce chemin-ci était resté en arrière.
    Aucun composant ne pose plus cette classe. */
-/* Déprécié depuis 3.7 — voir `.opale-dialog`. */
+/* Déprécié depuis 2.7 — voir `.opale-dialog`. */
 .opale-dialog__close {
   display: inline-flex;
   inline-size: 2.5rem;
@@ -3293,7 +3347,7 @@ ol.opale-stack {
   transform: rotate(18deg);
 }
 
-/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-stat-grid` ; les
+/* Déprécié depuis 2.7 — aucun composant ne pose `.opale-stat-grid` ; les
    `StatCard` se rangent dans la grille de l'appelant. */
 .opale-stat-grid {
   display: grid;
@@ -3661,7 +3715,7 @@ ol.opale-stack {
    changement d'ordre au bundler pour que le dialogue devienne un plan noir
    portant de l'encre presque noire. Le second `.opale-lightbox img` écrasait
    d'ailleurs déjà la hauteur voulue par la règle qui reste plus haut. */
-/* Déprécié depuis 3.7 — aucun composant ne pose `.opale-upload-list`. La
+/* Déprécié depuis 2.7 — aucun composant ne pose `.opale-upload-list`. La
    règle reste pour les pages qui la posent à la main. */
 .opale-upload-list {
   display: grid;
@@ -4507,6 +4561,11 @@ ol.opale-stack {
     forced-color-adjust: none;
     border: 1px solid CanvasText;
     background: Canvas;
+  }
+  /* La piste garde ses couleurs d'auteur : l'anneau aussi, et un bleu clair
+     sur Canvas tombait à 1,73:1. Il prend la couleur de sélection. */
+  .opale-toggle:focus-visible + .opale-toggle-track {
+    outline-color: Highlight;
   }
   /* La piste de verre reprend la même peau, APRÈS la piste pleine : à
      spécificité égale, la dernière règle gagne (garde de

@@ -13,7 +13,7 @@ import { UI_VERSION } from './version';
    `UI_VERSION` est une constante RECOPIÉE À LA MAIN depuis `package.json` —
    choix assumé pour ne pas ouvrir `resolveJsonModule` sur le paquet publié.
    Une copie que rien ne tient dérive : la barre de navigation afficherait
-   « 1.0.0 » sur une librairie publiée en 1.2.0, et aucune suite ne rougirait.
+   « 0.4.0 » sur une librairie publiée en 0.6.0, et aucune suite ne rougirait.
 
    Ce test lit donc le VRAI fichier. Pas la valeur recopiée une seconde fois
    dans le test — ce qui ne comparerait que deux copies entre elles et laisserait

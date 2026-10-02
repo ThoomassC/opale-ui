@@ -185,7 +185,7 @@ export default function TopbarContent() {
                 <strong>des props nommées</strong> de <code>GlassProps</code> —{' '}
                 <code>rootClassName</code> et <code>rootStyle</code>, qui atteignent l’enveloppe du
                 verre ; <code>enableLiquidAnimation</code> et <code>triggerAnimation</code> restent
-                acceptés mais sont dépréciés depuis 3.7. Il n’intersecte plus{' '}
+                acceptés mais sont dépréciés depuis 2.7. Il n’intersecte plus{' '}
                 <code>GlassProps</code> en entier : cela exposait le <code>as</code> du verre, avec
                 lequel un appelant pouvait remplacer le <code>&lt;header&gt;</code> — donc faire
                 disparaître le point de repère <code>banner</code> — en passant une prop qu’aucune

@@ -25,7 +25,7 @@
    navigation permanent, une barre de page composée, un dialogue générique à
    portail, une file de notifications, un motif d'onglets ARIA, un champ de
    recherche et la navigation de site. `PageScaffold`, retiré comme simple `div`
-   à classe en 3.2.0, revient en 3.3.0 comme gabarit complet. */
+   à classe en 2.2.0, revient en 2.3.0 comme gabarit complet. */
 
 /* LE JEU D'ICÔNES EST PUBLIÉ, SON RENDEUR NE L'EST PAS. `IconGlyph` dessine un
    tracé nu, sans nom accessible ni mise en forme : c'est la pièce interne
@@ -37,11 +37,16 @@ export type { OpaleIconName, IconGroup } from './icon';
 /* LE MATÉRIAU RESTE INTERNE, SES RÉGLAGES DE SURFACE SONT PUBLICS : c'est le
    type que partagent les composants qui portent le verre. */
 export type { GlassSurfaceProps } from './glass';
+export * from './carousel';
 export * from './dropdown-menu';
 export * from './field';
+export * from './marquee';
 export * from './modal';
 export * from './popover';
 export * from './radio-group';
+export * from './reveal';
+export * from './scroll-section';
+export * from './split-heading';
 export * from './textarea';
 export * from './tooltip';
 export * from './page-scaffold';

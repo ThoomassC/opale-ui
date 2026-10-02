@@ -17,7 +17,7 @@ import {
    LES CHAMPS DU CATALOGUE EN 3.10 : TAILLE, SLOT DU CONTRÔLE, LISTE ENRICHIE.
 
    Tout est ADDITIF. Sans `size`, sans `controlClassName`, sans `placeholder`,
-   le balisage est celui de la 3.9 : ces tests vérifient d'abord le nouveau,
+   le balisage est celui de la 2.9 : ces tests vérifient d'abord le nouveau,
    puis que l'ancien défaut ne bouge pas.
    ========================================================================== */
 
@@ -80,7 +80,7 @@ describe('size sur les champs', () => {
     expect(screen.getByRole('combobox', { name: 'Pays' })).not.toHaveAttribute('size');
   });
 
-  it('devrait garder un size numérique comme attribut natif de la liste (3.x)', () => {
+  it('devrait garder un size numérique comme attribut natif de la liste (2.x)', () => {
     const { container } = render(<Select label="Pays" options={COUNTRIES} size={2} />);
 
     expect(screen.getByRole('listbox', { name: 'Pays' })).toHaveAttribute('size', '2');

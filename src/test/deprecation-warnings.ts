@@ -5,7 +5,7 @@ import { DEPRECATED_PROPS, deprecationMessage } from '../opale/deprecations';
 /* =============================================================================
    UN FICHIER DE TEST QUI EMPLOIE DES NOMS DÉPRÉCIÉS LE DIT.
 
-   Depuis 3.9, une prop dépréciée écrit un avertissement en développement — et
+   Depuis 2.9, une prop dépréciée écrit un avertissement en développement — et
    Vitest tourne en `NODE_ENV=test`. Les tests de compatibilité exercent
    l'ancienne API EXPRÈS ; d'autres la croisent en passant. Leurs
    avertissements ne doivent ni polluer la sortie, ni masquer un vrai

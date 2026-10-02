@@ -91,6 +91,24 @@ const NOT_PLATED: Readonly<Record<string, string>> = {
     'encre qui assombrit un fond plein au survol — un réglage, pas une couleur de marque',
   '--opale-on-accent':
     'encre du bouton ambré — elle n’a de sens que sur --opale-accent, déjà plaqué',
+  /* Les fonds de ScrollSection : des couples fond / encre, montrés en grand
+     par la démo de leur page, et dont le contrat
+     `opale-scroll-grounds.contract.test.ts` mesure chaque contraste. */
+  '--opale-ground-paper':
+    'fond `paper` de ScrollSection — la surface de base du thème, déjà plaquée',
+  '--opale-ground-paper-ink': 'encre du fond `paper` — l’encre du thème, déjà plaquée',
+  '--opale-ground-amber': 'fond `amber` de ScrollSection — l’ambre d’accent, déjà plaqué',
+  '--opale-ground-amber-ink': 'encre du fond `amber` — un couple montré par la page ScrollSection',
+  '--opale-ground-night': 'fond `night` de ScrollSection — un couple montré par sa page',
+  '--opale-ground-night-ink': 'encre du fond `night` — même raison',
+  '--opale-ground-blue': 'fond `blue` de ScrollSection — le saphir, déjà plaqué',
+  '--opale-ground-blue-ink': 'encre du fond `blue` — un couple montré par la page ScrollSection',
+  '--opale-ground-blue-hover':
+    'survol du bouton principal inversé sur `blue` — un état, mesuré par le contrat des fonds',
+  '--opale-ground-blue-secondary':
+    'aplat du bouton secondaire sur `blue` — n’a de sens que sur ce fond, mesuré par le même contrat',
+  '--opale-ground-amber-secondary': 'aplat du bouton secondaire sur `amber` — même raison',
+  '--opale-ground-blue-surface': 'surface des composants posés sur `blue` — même raison',
 };
 
 describe('la palette Opale affichée par la page de fondation', () => {

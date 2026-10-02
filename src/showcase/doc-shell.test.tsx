@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DocNavEntry, DocPage } from './doc-model';
-import { GROUPS, HOME_SLUG, hrefFor, navEntriesForPages } from './doc-model';
+import { GROUPS, HOME_SLUG, hrefFor, navEntriesForPages, navSectionsForPages } from './doc-model';
 import { DocShell } from './doc-shell';
 import {
   DOC_NAV_WIDTH_DEFAULT,
@@ -12,7 +12,7 @@ import {
   DOC_NAV_WIDTH_STEP,
 } from './doc-nav';
 import { PAGES } from './pages';
-import { SHOWCASE_CATALOG } from './showcase-catalog';
+import { HOME_COPY } from './pages/accueil/home-copy';
 import { preloadPages } from './pages/lazy-page';
 import { UI_VERSION } from './version';
 
@@ -225,6 +225,16 @@ function navigate(hash: string): void {
   });
 }
 
+/**
+ * Le vrai registre, servi sur une page de documentation : l'accueil est une
+ * page pleine largeur, sans sommaire, et les tests du sommaire le visent
+ * donc ailleurs.
+ */
+function renderDocPage(): void {
+  render(<DocShell pages={PAGES} />);
+  navigate(hrefFor('installation'));
+}
+
 /** Remet l'adresse à la racine SANS émettre `hashchange`. */
 function resetRoute(): void {
   window.history.replaceState(null, '', '/');
@@ -246,7 +256,7 @@ describe('DocShell — la note de version', () => {
      gauche, une note de version ». Premier ENFANT, donc : la trouver quelque
      part dans la nav ne suffit pas. */
   it('devrait rendre la note de version en premier enfant du sommaire', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const first = sommaire().firstElementChild;
 
@@ -274,7 +284,7 @@ describe('DocShell — les onglets du header', () => {
     render(<DocShell pages={PAGES} />);
 
     const links = within(
-      screen.getByRole('navigation', { name: 'Navigation principale' }),
+      screen.getByRole('navigation', { name: 'Navigation de la documentation' }),
     ).getAllByRole('link');
 
     expect(links.map((link) => link.textContent)).toEqual([
@@ -291,7 +301,7 @@ describe('DocShell — les onglets du header', () => {
   });
 
   it('devrait préparer un menu compact pour les largeurs où les onglets ne tiennent plus', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const menu = document.querySelector('.tc-doc-topbar__menu');
 
@@ -344,8 +354,16 @@ describe('DocShell — les onglets du header', () => {
 });
 
 describe('DocShell — la largeur du sommaire', () => {
+  it('devrait annoncer la largeur avec son unité', () => {
+    renderDocPage();
+
+    const resizeHandle = screen.getByRole('slider', { name: 'Largeur du sommaire' });
+
+    expect(resizeHandle).toHaveAttribute('aria-valuetext', `${DOC_NAV_WIDTH_DEFAULT} px`);
+  });
+
   it('devrait prévisualiser la largeur directement pendant un glissement', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const resizeHandle = screen.getByRole('slider', { name: 'Largeur du sommaire' });
     const body = document.querySelector('.tc-doc-body');
@@ -367,7 +385,7 @@ describe('DocShell — la largeur du sommaire', () => {
   it('devrait pouvoir être ajustée au clavier dans des bornes accessibles', async () => {
     const user = userEvent.setup();
 
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const resizeHandle = screen.getByRole('slider', { name: 'Largeur du sommaire' });
     const body = document.querySelector('.tc-doc-body');
@@ -402,7 +420,7 @@ describe('DocShell — les entrées du sommaire', () => {
      qu'il couvre chaque composant publié. Les deux tests se tiennent : l'un
      dit que le registre est complet, l'autre que la barre le rend en entier. */
   it('devrait rendre une entrée par page du registre réel', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     const expected = navOrderOf(PAGES);
 
@@ -415,7 +433,7 @@ describe('DocShell — les entrées du sommaire', () => {
   });
 
   it('devrait donner à chaque entrée l’adresse canonique de sa page', () => {
-    render(<DocShell pages={PAGES} />);
+    renderDocPage();
 
     expect(
       hrefsOf(navLinks()),
@@ -556,7 +574,7 @@ describe('DocShell — la page courante', () => {
    l'autre. Le mode de défaillance visé était le copier-coller, deux boutons
    câblés sur le même hook s'annonçant encore correctement chacun de leur côté.
 
-   L'axe du matériau est supprimé en 2.0 : la seule feuille qui lisait
+   L'axe du matériau est supprimé en 1.0 : la seule feuille qui lisait
    `data-material` était `glass.css`, qui n'est plus publiée, si bien que la
    bascule n'allumait plus rien. Il n'y a donc plus deux axes à croiser, et le
    garde d'indépendance n'a plus d'objet — il est retiré, pas affaibli. Ce qui
@@ -677,22 +695,18 @@ describe('DocShell — le rendu de la page', () => {
     ).toBe('Le soclecorps de l’accueil');
   });
 
-  it('devrait rendre l’accueil Opale sans la carte Beta de la référence', () => {
+  /* L'ACCUEIL DE LA 3.0 EST PLEINE LARGEUR : son `<h1>` est le titre découpé
+     de l'accroche, rendu par la page et non par la coquille. Le détail des
+     bandes est tenu par `pages/accueil/home.test.tsx`. */
+  it('devrait rendre l’accueil pleine largeur, titré par la page elle-même', () => {
     render(<DocShell pages={PAGES} />);
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'Le design system de l’écosystème Opale.',
-    );
-    /* LA VERSION EST DÉRIVÉE, PAS RECOPIÉE. Écrite en dur, elle imposait de
-       retoucher ce test à chaque publication — et surtout elle n'aurait pas
-       rougi si le bandeau avait cessé d'afficher la version courante pour en
-       figer une ancienne, ce qui est le seul défaut qui compte ici. Le reste
-       du fichier dérive déjà de `UI_VERSION` ; cette ligne était la seule
-       copie restante. */
-    expect(screen.getByRole('heading', { name: `Opale UI ${UI_VERSION}` })).toBeInTheDocument();
-    expect(screen.getByText(`${SHOWCASE_CATALOG.length} composants Opale`)).toBeInTheDocument();
+    const title = screen.getByRole('heading', { level: 1 });
+    expect(title).toHaveAccessibleName(HOME_COPY.FR.hero.title);
+    expect(title).not.toHaveClass('tc-doc-page__title');
+    expect(document.querySelector('.tc-doc')).toHaveClass('tc-doc--full-bleed');
     expect(screen.queryByText(/Rejoindre la bêta/i)).toBeNull();
-    expect(screen.getByRole('link', { name: 'Explorer les composants' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: HOME_COPY.FR.hero.components })).toHaveAttribute(
       'href',
       '#/composants/opale-button',
     );
@@ -1132,5 +1146,141 @@ describe('DocShell — le démontage', () => {
       titleAfterUnmount,
     );
     expect(errors, `React a averti après le démontage :\n${errors.join('\n')}`).toEqual([]);
+  });
+});
+
+/* ============================================================================
+   LA PAGE PLEINE LARGEUR — l'accueil de la 3.0.
+
+   Une page `fullBleed` occupe toute la largeur : la coquille ne rend ni le
+   sommaire ni son propre `<h1>`. La page rend le sien, avec les props que la
+   coquille lui passe (`titleProps`), pour que le focus de navigation s'y pose
+   comme sur le titre de la coquille. Le menu de la barre du haut, seule
+   navigation qui reste, mène alors à chaque rubrique du sommaire.
+   ========================================================================== */
+const STAGE_TITLE = 'Une scène pleine page';
+
+const STAGE_FIXTURE: DocPage = {
+  slug: 'scene',
+  label: 'Scène',
+  group: 'introduction',
+  title: STAGE_TITLE,
+  fullBleed: true,
+  render: (context) => (
+    <>
+      <h1 {...context?.titleProps}>{STAGE_TITLE}</h1>
+      <p>langue de la scène : {context?.language}</p>
+    </>
+  ),
+};
+
+const STAGE_PAGES: readonly DocPage[] = [...FIXTURE_PAGES, STAGE_FIXTURE];
+
+describe('DocShell — la page pleine largeur', () => {
+  afterEach(() => localStorage.removeItem('tc-language'));
+
+  it('ne rend ni le sommaire ni le titre de la coquille', () => {
+    render(<DocShell pages={STAGE_PAGES} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(screen.queryByRole('navigation', { name: 'Sommaire' })).toBeNull();
+    expect(document.querySelector('.tc-doc-page__title')).toBeNull();
+    const level1 = screen.getAllByRole('heading', { level: 1 });
+    expect(level1.map((heading) => heading.textContent)).toEqual([STAGE_TITLE]);
+    expect(level1[0]).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('pose la classe pleine largeur sur la coquille et la retire ailleurs', () => {
+    render(<DocShell pages={STAGE_PAGES} />);
+    const shell = document.querySelector('.tc-doc');
+
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+    expect(shell).toHaveClass('tc-doc--full-bleed');
+    expect(screen.getByRole('main')).toHaveClass('tc-doc-main--full-bleed');
+
+    navigate(hrefFor(PALETTE_FIXTURE.slug));
+    expect(shell).not.toHaveClass('tc-doc--full-bleed');
+    expect(screen.getByRole('navigation', { name: 'Sommaire' })).toBeInTheDocument();
+  });
+
+  it('donne le focus au titre de la page après une navigation', () => {
+    render(
+      <StrictMode>
+        <DocShell pages={STAGE_PAGES} />
+      </StrictMode>,
+    );
+
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(describeActiveElement()).toBe(`<h1> « ${STAGE_TITLE} »`);
+  });
+
+  it('garde le titre du document', () => {
+    render(<DocShell pages={STAGE_PAGES} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(document.title).toBe(`${STAGE_TITLE}${TITLE_SUFFIX}`);
+  });
+
+  it('passe la langue choisie à la page, sans l’avis de contenu en français', () => {
+    localStorage.setItem('tc-language', 'EN');
+    render(<DocShell pages={STAGE_PAGES} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    expect(screen.getByText('langue de la scène : EN')).toBeInTheDocument();
+    expect(document.querySelector('.tc-doc-language-notice')).toBeNull();
+  });
+
+  it('ouvre le menu sur chaque rubrique du sommaire, en plus des onglets', () => {
+    const pages = [...PAGES, STAGE_FIXTURE];
+    render(<DocShell pages={pages} />);
+    navigate(hrefFor(STAGE_FIXTURE.slug));
+
+    const menuLinks = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>('.tc-doc-topbar__menu-nav a'),
+    );
+    const sections = navSectionsForPages(pages);
+
+    expect(hrefsOf(menuLinks)).toEqual([
+      hrefFor(''),
+      hrefFor('installation'),
+      hrefFor('notes-de-versions'),
+      ...sections.map((section) => hrefFor(section.entries[0]?.page.slug ?? '')),
+    ]);
+    expect(menuLinks[3]).toHaveTextContent('Prise en main');
+  });
+});
+
+/* LE COUSSIN DE DÉFILEMENT SE RÈGLE SUR LA BARRE PEINTE. `scroll-padding` se
+   lit sur `<html>`, qui ne voit pas une propriété posée plus bas : la hauteur
+   mesurée de la barre doit donc aussi vivre sur la racine. Mesuré à 390 px :
+   barre de 137 px, coussin de 124 px — un champ focalisé passait sous elle. */
+describe('DocShell — la hauteur de la barre du haut', () => {
+  it('devrait poser la hauteur mesurée sur la racine, et l’en retirer au démontage', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      height: 137,
+    } as DOMRect);
+    const { unmount } = render(<DocShell pages={PAGES} />);
+    navigate(hrefFor('installation'));
+
+    expect(document.documentElement.style.getPropertyValue('--tc-doc-topbar-height')).toBe('137px');
+    unmount();
+    expect(document.documentElement.style.getPropertyValue('--tc-doc-topbar-height')).toBe('');
+  });
+});
+
+/* LES REPÈRES DE LA VITRINE ONT LEUR PROPRE NOM. Les démos rendent de vrais
+   PageScaffold, SearchBar et Sidebar, avec les noms par défaut d'Opale : la
+   vitrine qui les reprenait mot pour mot posait deux « Navigation
+   principale », deux « Recherche » et plusieurs `aside` sans nom. */
+describe('DocShell — des repères qu’on distingue des démos', () => {
+  it('devrait nommer la recherche, le sommaire et la navigation de la documentation', () => {
+    renderDocPage();
+
+    expect(screen.getByRole('search', { name: 'Rechercher une page' })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: 'Documentation' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: 'Navigation de la documentation' }),
+    ).toBeInTheDocument();
   });
 });

@@ -27,7 +27,7 @@ export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
   readonly items?: readonly SiteNavItem[];
   /** L'identifiant de la destination qui porte la bulle active. */
   readonly value?: string;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   readonly activeItem?: string;
   /** Le nom accessible du repère de navigation. */
   readonly navLabel?: string;

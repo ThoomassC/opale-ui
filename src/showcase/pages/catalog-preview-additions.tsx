@@ -1,7 +1,10 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useId, useState, type FormEvent, type KeyboardEvent } from 'react';
 
 import {
   Button,
+  Carousel,
+  Checkbox,
+  CarouselSlide,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -14,18 +17,25 @@ import {
   Grid,
   IconActionButton,
   Input,
+  Marquee,
   Popover,
   PopoverContent,
   PopoverTrigger,
   RadioGroup,
+  Reveal,
+  ScrollSection,
+  ScrollStage,
   SegmentedControl,
+  SplitHeading,
   Textarea,
+  Toggle,
   Tooltip,
   type FieldControlProps,
+  type ScrollGround,
 } from '../../opale';
 
 /* =============================================================================
-   LES DÉMONSTRATIONS DES COMPOSANTS DE LA 3.10.0.
+   LES DÉMONSTRATIONS DES COMPOSANTS DE LA 2.10.0.
 
    Elles vivent à part de `catalog-preview.tsx` pour une raison de lecture, pas
    de chargement : chacune tient son propre état, là où l'aperçu commun partage
@@ -218,6 +228,186 @@ export function GridDemo() {
         ))}
       </Grid>
     </div>
+  );
+}
+
+/* Les six diapositives de la planche de direction artistique : une famille
+   d'Opale chacune, et son glyphe. */
+const CAROUSEL_SLIDES = [
+  ['Button', 'Saisie · tons, tailles, verre liquide en option'],
+  ['Textarea', 'Formulaires · grandit avec le texte, compteur annoncé'],
+  ['Popover', 'Couches flottantes · focus gardé, Échap rendu'],
+  ['DataTable', 'Affichage · générique, sélection de lignes'],
+  ['Carousel', 'Nouveau en 3.0 · ce que vous faites défiler en ce moment'],
+  ['SplitHeading', 'Nouveau en 3.0 · un titre qui arrive mot à mot'],
+] as const;
+
+/* Les mêmes diapositives, avec ou sans lecture automatique. Une fonction
+   appelée, pas un composant : le carrousel compte ses enfants directs, et un
+   composant qui les rendrait les lui cacherait. */
+function carouselSlides() {
+  return CAROUSEL_SLIDES.map(([name, text], index) => (
+    <CarouselSlide key={name} className="tc-doc-carousel-slide">
+      <span className="tc-doc-carousel-glyph" aria-hidden="true" data-glyph={index} />
+      <div>
+        <h3>{name}</h3>
+        <p>{text}</p>
+      </div>
+    </CarouselSlide>
+  ));
+}
+
+/* Deux carrousels : le premier à la main, le second en lecture automatique
+   — bouton pause en tête, pause au survol et au focus. */
+export function CarouselDemo() {
+  return (
+    <div className="tc-doc-carousel-demo">
+      <Carousel label="Composants d’Opale" className="tc-doc-carousel">
+        {carouselSlides()}
+      </Carousel>
+      <p className="tc-doc-carousel-caption">Lecture automatique, une diapositive toutes les 4 s</p>
+      <Carousel
+        label="Composants d’Opale, en lecture automatique"
+        autoPlay={4000}
+        className="tc-doc-carousel"
+      >
+        {carouselSlides()}
+      </Carousel>
+    </div>
+  );
+}
+
+/* Les preuves de la bande « qualités » de la planche : assez de cartes pour
+   que les dernières soient sous la vue et montent quand on défile. */
+const REVEAL_ITEMS = [
+  ['Accessible', 'Sémantique native, clavier complet, contrastes forcés'],
+  ['Sans dépendance', 'React et clsx, rien d’autre au poids de l’import'],
+  ['Rendu serveur', 'Visible au repos, sans attendre un script'],
+  ['Verre liquide', 'Une matière en option, jamais une condition'],
+  ['Mouvement sobre', 'Seuls transform et opacity s’animent'],
+  ['Thèmes', 'Clair, sombre et contrastes forcés, aux mêmes jetons'],
+  ['Impression', 'Tout est là, à l’état final, sur papier'],
+  ['Mouvement réduit', 'Aucune montée, le contenu simplement présent'],
+  ['Typé', 'TypeScript strict, chaque prop documentée'],
+] as const;
+
+/* Une colonne de cartes : chaque `Reveal` est un `<li>` enfant direct de la
+   liste, et son rang dans la rangée de trois règle la cascade. */
+export function RevealDemo() {
+  return (
+    <ul className="tc-doc-reveal-demo" aria-label="Les qualités d’Opale">
+      {REVEAL_ITEMS.map(([name, text], index) => (
+        <Reveal key={name} as="li" delay={index % 3} className="tc-doc-reveal-card">
+          <h3>{name}</h3>
+          <p>{text}</p>
+        </Reveal>
+      ))}
+    </ul>
+  );
+}
+
+/* Les garanties de la bande « qualités » de la planche, en enfants directs :
+   le bandeau les rend une fois pour les lecteurs d'écran, et une seconde
+   fois, masquée, pour la boucle. */
+export function MarqueeDemo() {
+  return (
+    <Marquee label="Ce qu’Opale garantit" className="tc-doc-marquee-demo">
+      <span>WCAG 2.2 AA</span>
+      <span>React 19</span>
+      <span>Rendu serveur</span>
+      <span>Verre liquide</span>
+      <span>Aucune dépendance</span>
+    </Marquee>
+  );
+}
+
+/* Deux titres : le premier joue au montage, et « Rejouer » le remonte (une
+   nouvelle clé) ; le second, posé sous la ligne de flottaison par la marge de
+   la démo, part quand il entre dans la vue — une seule fois. */
+export function SplitHeadingDemo() {
+  const [run, setRun] = useState(0);
+  return (
+    <div className="tc-doc-split-demo">
+      <Button variant="secondary" onClick={() => setRun(run + 1)}>
+        Rejouer
+      </Button>
+      <SplitHeading key={run} level={3} trigger="mount">
+        Un titre qui prend son temps.
+      </SplitHeading>
+      <p>Plus bas, un second titre attend d’entrer dans la vue.</p>
+      <SplitHeading level={3} className="tc-doc-split-demo__below">
+        Celui-ci part quand on le voit.
+      </SplitHeading>
+    </div>
+  );
+}
+
+/* Les quatre fonds de la planche, chacun avec son nom lisible et sa phrase. */
+const SCROLL_GROUNDS: readonly (readonly [ScrollGround, string, string])[] = [
+  ['paper', 'Papier', 'Le fond de la page : la surface et l’encre du thème.'],
+  ['amber', 'Ambre', 'L’accent d’Opale, sous une encre presque noire.'],
+  ['night', 'Nuit', 'Un vert presque noir ; les composants y passent en thème sombre.'],
+  ['blue', 'Bleu', 'Le primaire d’Opale, sous une encre blanche.'],
+];
+
+/* Une scène aux quatre fonds, assez haute pour défiler. L'étiquette collante
+   n'est dans aucune section : elle lit le couple actif de la scène
+   (`--opale-stage-ground` / `--opale-stage-ink`), qui change d'un coup. Son
+   nom du fond suit `data-ground` par la feuille — juste dès le montage, même
+   au milieu de la page ; `onGroundChange`, qui ne part qu'au défilement,
+   compte les changements. Les gouttières montrent le fondu du fond propre de
+   la scène. */
+export function ScrollSectionDemo() {
+  const id = useId();
+  const [changes, setChanges] = useState(0);
+  return (
+    <ScrollStage
+      className="tc-doc-stage-demo"
+      onGroundChange={() => setChanges((count) => count + 1)}
+    >
+      <p className="tc-doc-stage-demo__label">
+        Fond actif :{' '}
+        {SCROLL_GROUNDS.map(([value, title]) => (
+          <span key={value} data-name={value}>
+            {title}
+          </span>
+        ))}
+        {` · ${changes} changement${changes > 1 ? 's' : ''}`}
+      </p>
+      {SCROLL_GROUNDS.map(([value, title, text]) => (
+        <ScrollSection
+          key={value}
+          ground={value}
+          aria-labelledby={`${id}-${value}`}
+          className="tc-doc-stage-demo__section"
+        >
+          <h3 id={`${id}-${value}`}>{title}</h3>
+          <p>{text}</p>
+          <div className="tc-doc-opale-preview__row">
+            <Button>Action principale</Button>
+            <Button variant="secondary">Action secondaire</Button>
+          </div>
+          {/* Le bleu inverse le primaire : une case cochée et un interrupteur
+              actif montrent que l'inversion leur va aussi. */}
+          {value === 'blue' && (
+            <div className="tc-doc-opale-preview__row">
+              <Checkbox label="Option cochée" defaultChecked />
+              <Toggle label="Réglage actif" role="switch" defaultChecked />
+            </div>
+          )}
+        </ScrollSection>
+      ))}
+      {/* Une bande plus courte que la demi-vue : elle ne croise jamais le
+          milieu, et devient active en bas de page, ou quand elle le touche. */}
+      <ScrollSection
+        ground="amber"
+        aria-labelledby={`${id}-end`}
+        className="tc-doc-stage-demo__section tc-doc-stage-demo__section--short"
+      >
+        <h3 id={`${id}-end`}>Fin de la scène</h3>
+        <p>Une bande courte, active quand elle contient le milieu de la vue.</p>
+      </ScrollSection>
+    </ScrollStage>
   );
 }
 

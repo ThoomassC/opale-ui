@@ -3,11 +3,16 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Opale } from '../../opale';
 import { SHOWCASE_CATALOG } from '../showcase-catalog';
 import {
+  CarouselDemo,
   DropdownMenuDemo,
   FieldDemo,
   GridDemo,
   PopoverDemo,
   RadioGroupDemo,
+  MarqueeDemo,
+  SplitHeadingDemo,
+  RevealDemo,
+  ScrollSectionDemo,
   TextareaDemo,
   TooltipDemo,
 } from './catalog-preview-additions';
@@ -362,7 +367,7 @@ export function CatalogPreview({
       preview = (
         <Opale.DescriptionList
           items={[
-            { term: 'Version', description: '3.2.0' },
+            { term: 'Version', description: '2.2.0' },
             { term: 'Licence', description: 'MIT' },
             { term: 'React', description: '≥ 19' },
           ]}
@@ -805,6 +810,21 @@ export function CatalogPreview({
       break;
     case 'Grid':
       preview = <GridDemo />;
+      break;
+    case 'Carousel':
+      preview = <CarouselDemo />;
+      break;
+    case 'Reveal':
+      preview = <RevealDemo />;
+      break;
+    case 'Marquee':
+      preview = <MarqueeDemo />;
+      break;
+    case 'SplitHeading':
+      preview = <SplitHeadingDemo />;
+      break;
+    case 'ScrollSection':
+      preview = <ScrollSectionDemo />;
       break;
     case 'Tooltip':
       preview = <TooltipDemo liquidGlass={liquidGlass} />;

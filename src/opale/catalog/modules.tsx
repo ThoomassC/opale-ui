@@ -46,7 +46,7 @@ export interface FileCardProps extends Omit<HTMLAttributes<HTMLElement>, 'onClic
   /** Le poids du fichier, tel qu'il s'affiche : « 2 Mo ». */
   fileSize?: string;
   /**
-   * @deprecated Depuis 3.10 — utilisez `fileSize`. Partout ailleurs dans Opale,
+   * @deprecated Depuis 2.10 — utilisez `fileSize`. Partout ailleurs dans Opale,
    * `size` est l'échelle `OpaleSize` ; ici c'était le poids du fichier.
    */
   size?: string;
@@ -287,7 +287,7 @@ export function Dropzone({
   /* LE CHAMP GARDE SES FICHIERS DÈS QU'UN FORMULAIRE LES ATTEND : avec `name`,
      pour les soumettre ; avec `required`, pour que sa validation passe — vidé
      après chaque choix, un champ requis restait invalide et bloquait l'envoi
-     pour toujours. Sans l'un ni l'autre, il est vidé comme en 3.9.1. */
+     pour toujours. Sans l'un ni l'autre, il est vidé comme en 2.9.1. */
   const keepsFiles = name !== undefined || Boolean(required);
 
   /** Rend `true` quand les fichiers sont retenus, `false` quand ils sont refusés ou ignorés. */
@@ -418,7 +418,7 @@ export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title
   open?: boolean;
   /** Appelée avec `false` sur Échap, le voile, la croix ou Fermer. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<LightboxLabels>;

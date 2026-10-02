@@ -37,9 +37,9 @@ import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
 expectOnlyDeprecationWarnings();
 
 /* =============================================================================
-   CE QU'UNE APPLICATION ÉCRITE POUR 3.5 VOIT ENCORE.
+   CE QU'UNE APPLICATION ÉCRITE POUR 2.5 VOIT ENCORE.
 
-   Une ligne par comportement de 3.5 que 3.6 garde : sans `defaultValue`, pas de
+   Une ligne par comportement de 2.5 que 2.6 garde : sans `defaultValue`, pas de
    mémoire ; `forwardRef` et `displayName` sur Button, Pressable et Input ; les
    anciens rappels reçoivent les mêmes arguments ; une langue de tri inconnue
    retombe sur le français.
@@ -93,7 +93,7 @@ describe('SegmentedControl, sans defaultValue', () => {
     expect(pressed()).toEqual([]);
   });
 
-  it('devrait garder un type de value pas plus large qu’en 3.5', () => {
+  it('devrait garder un type de value pas plus large qu’en 2.5', () => {
     const noNull: null extends SegmentedControlProps['value'] ? false : true = true;
     const noNullDefault: null extends SegmentedControlProps['defaultValue'] ? false : true = true;
 
@@ -203,7 +203,7 @@ describe('Button, Pressable et Input', () => {
   });
 });
 
-/* LES ANCIENS RAPPELS REÇOIVENT CE QU'ILS RECEVAIENT EN 3.5 : l'événement du
+/* LES ANCIENS RAPPELS REÇOIVENT CE QU'ILS RECEVAIENT EN 2.5 : l'événement du
    clic quand le bouton les appelait directement, rien quand la modale ferme. */
 const escape = () => fireEvent.keyDown(window, { key: 'Escape' });
 const arities = (mock: ReturnType<typeof vi.fn>) => mock.mock.calls.map((call) => call.length);
@@ -305,7 +305,7 @@ describe('DataTable, langue de tri', () => {
   });
 });
 
-/* `labels` EST FACULTATIF DANS LE CONTEXTE : une valeur écrite pour 3.5 compile. */
+/* `labels` EST FACULTATIF DANS LE CONTEXTE : une valeur écrite pour 2.5 compile. */
 const legacyContext: SidebarContextValue = {
   size: 'medium',
   collapsed: false,

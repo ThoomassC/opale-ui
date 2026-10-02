@@ -10,7 +10,7 @@ export const verrePage: DocPage = {
     <>
       Onze jetons de matériau — remplissage, flou, ménisque, liseré, spéculaire, ombre — toujours
       publiés et toujours mesurés par le contrat. <strong>Plus rien ne les applique</strong> : la
-      feuille et les composants qui les consommaient ne sont pas dans la 2.0.
+      feuille et les composants qui les consommaient ne sont pas dans la 1.0.
     </>
   ),
   render: lazyPage(() => import('./verre').then((module) => module.default)),

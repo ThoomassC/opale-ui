@@ -1,27 +1,20 @@
-import { Sidebar } from '../../../opale';
-import { UI_VERSION } from '../../version';
 import { Specimen } from '../../section';
 import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { ComponentPageLayout } from '../component-page';
-import { SidebarCollapsibleScene } from './scenes';
-import { MaterialSwitch } from './material-switch';
+import { SidebarCollapsibleScene, SidebarMobileScene } from './scenes';
 
 const USAGE = `import { Badge, Sidebar } from '@thomascaron/opale-ui';
 
-// \`collapsible\` est OBLIGATOIRE pour que Sidebar.Toggle rende quoi que ce soit.
-<Sidebar collapsible defaultValue="etapes">
-  <Sidebar.Header>
-    <strong>Voyage</strong>
-    <Sidebar.Toggle />
-  </Sidebar.Header>
-
+// \`customScrollbar\`, \`resizable\` et \`mobile\` : la barre, la poignée et le format
+// mobile du sommaire de cette documentation.
+<Sidebar customScrollbar resizable mobile="auto" defaultValue="etapes">
   <Sidebar.Items>
-    <Sidebar.Item itemId="etapes" icon={<Pin />}>Étapes</Sidebar.Item>
-    <Sidebar.Item itemId="carte" badge={<Badge>3</Badge>}>Carte</Sidebar.Item>
+    <Sidebar.Group title="Le voyage">
+      <Sidebar.Item itemId="etapes" icon={<Pin />}>Étapes</Sidebar.Item>
+      <Sidebar.Item itemId="carte" badge={<Badge>3</Badge>}>Carte</Sidebar.Item>
+    </Sidebar.Group>
   </Sidebar.Items>
-
-  <Sidebar.Footer>v${UI_VERSION}</Sidebar.Footer>
 </Sidebar>`;
 
 const PROPS: readonly PropRow[] = [
@@ -57,7 +50,7 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         L’état <em>suivant</em>, et rien d’autre. Remplace <code>onToggle</code>, déprécié depuis
-        3.6 et toujours appelé, après lui.
+        2.6 et toujours appelé, après lui.
       </>
     ),
   },
@@ -69,7 +62,7 @@ const PROPS: readonly PropRow[] = [
         L’entrée retenue, contrôlée ou non ; <code>null</code> n’en retient aucune.{' '}
         <code>onValueChange(itemId)</code> est appelée dans les deux cas. Remplacent{' '}
         <code>activeItemId</code>, <code>defaultActiveItemId</code> et <code>onSelectItem</code>,
-        dépréciés depuis 3.6.
+        dépréciés depuis 2.6.
       </>
     ),
   },
@@ -137,6 +130,58 @@ const PROPS: readonly PropRow[] = [
     ),
   },
   {
+    name: 'customScrollbar',
+    type: 'boolean',
+    defaultValue: 'false',
+    description: (
+      <>
+        La barre de défilement du sommaire de cette documentation : un curseur qu’on glisse, et le
+        clavier quand elle a le focus (flèches, pages, <kbd>Début</kbd>, <kbd>Fin</kbd>). Le rail
+        défile dans sa propre zone : donnez-lui une hauteur. Sans contenu qui dépasse, la barre se
+        cache.
+      </>
+    ),
+  },
+  {
+    name: 'resizable · width / defaultWidth · minWidth · maxWidth · onWidthChange',
+    type: 'boolean · number · number · number · (width: number) => void',
+    defaultValue: 'false · taille de size · 224 · 480',
+    description: (
+      <>
+        Une poignée sur le bord règle la largeur, au glisser et au clavier (flèches par 16 px, 32
+        avec <kbd>Maj</kbd>, <kbd>Début</kbd> et <kbd>Fin</kbd> aux bornes). C’est un séparateur
+        focalisable (<code>role=&quot;separator&quot;</code>) dont la valeur est la largeur en
+        pixels. Le rail est enveloppé d’un cadre qui porte la poignée ; plié, il n’en a pas.
+      </>
+    ),
+  },
+  {
+    name: 'mobile',
+    type: "'off' | 'auto' | 'menu'",
+    defaultValue: "'off'",
+    description: (
+      <>
+        Le format mobile du sommaire de cette documentation : un bouton « Sommaire », une rangée de
+        raccourcis vers chaque <code>Sidebar.Group</code>, puis le rail en pleine largeur, sans
+        poignée. <code>auto</code> l’adopte sous 30 rem de fenêtre, <code>menu</code> toujours.
+        Libellés : <code>labels.menu</code> et <code>labels.shortcuts</code>.
+      </>
+    ),
+  },
+  {
+    name: 'Sidebar.Group',
+    type: '{ title, collapsible?, defaultOpen?, open?, onOpenChange? }',
+    defaultValue: 'collapsible et defaultOpen : true',
+    description: (
+      <>
+        Une partie du rail, comme celles du sommaire de cette documentation : un titre en mono
+        capitales, puis ses entrées. Le titre nomme le groupe (<code>role=&quot;group&quot;</code>)
+        ; repliable, c’est un bouton qui dit son état (<code>aria-expanded</code>). Rail plié, le
+        titre est masqué à l’œil et toutes les entrées restent visibles.
+      </>
+    ),
+  },
+  {
     name: 'Sidebar.Items aria-label',
     type: 'string',
     defaultValue: "'Navigation latérale'",
@@ -185,17 +230,15 @@ export default function SidebarContent() {
       imports={['Sidebar']}
       demo={
         <Specimen
-          title="Pliable et contrôlée — repliez-la"
+          title="Le rail du sommaire — faites-le défiler, élargissez-le"
           note={
             <>
-              La scène impose 256 px de hauteur : une barre latérale haute de son seul contenu ne
-              ressemble pas à une barre latérale. Le pli est <strong>contrôlé ici</strong>, pour que
-              l’état soit affiché à côté de la barre — et il survit au changement de matériau :
-              passez au verre liquide rail replié, il le reste. Sur la photographie, le rail n’écrit
-              aucune encre en dur, il hérite de celle de la scène, et l’entrée retenue se lit par un
-              liseré plutôt que par la teinte primaire, dont le contraste dépendrait de ce qu’il y a
-              derrière. Repliez la barre et vérifiez au clavier : les libellés restent des noms de
-              boutons, ils sont seulement masqués à l’œil.
+              Le même rail que le sommaire de cette documentation : des parties titrées, la barre de
+              défilement d’Opale et la poignée de largeur, au glisser comme au clavier. Le rail a
+              une hauteur à lui : son contenu défile dans sa zone. L’entrée retenue est{' '}
+              <strong>contrôlée ici</strong>, pour être affichée à côté — et elle survit au
+              changement de matériau. Sur la photographie, le rail hérite de l’encre de la scène, et
+              l’entrée retenue se lit par un liseré plutôt que par la teinte primaire.
             </>
           }
         >
@@ -206,32 +249,18 @@ export default function SidebarContent() {
         <>
           <UsageBlock label="Import et appels représentatifs de Sidebar" code={USAGE} />
           <Specimen
-            title="Non pliable — et Sidebar.Toggle qui ne rend rien"
+            title="Format mobile — celui du sommaire d’Opale"
             note={
               <>
-                Cette barre porte un <code>Sidebar.Toggle</code> dans son en-tête, et vous ne le
-                voyez pas : sans <code>collapsible</code>, il rend <code>null</code>. C’est un choix{' '}
-                <strong>délibéré du composant</strong>, pas un oubli du spécimen — un bouton qui ne
-                peut rien faire est pire qu’un bouton absent : il occupe un cran de tabulation, il
-                s’annonce, et il ne répond pas.
+                Le bouton « Sommaire » déplie le rail ; la rangée de pastilles mène à chaque partie,
+                qu’elle rouvre si elle était fermée ; <kbd>Échap</kbd> replie et rend le focus au
+                bouton. Ici forcé par <code>mobile=&quot;menu&quot;</code> dans un cadre de
+                téléphone ; <code>mobile=&quot;auto&quot;</code> l’adopte sous 30 rem de fenêtre,
+                comme le sommaire de cette documentation.
               </>
             }
           >
-            <MaterialSwitch name="Sidebar non pliable" tall>
-              {(liquidGlass) => (
-                <Sidebar liquidGlass={liquidGlass} defaultValue="carte" size="small">
-                  <Sidebar.Header>
-                    <strong>Voyage</strong>
-                    <Sidebar.Toggle />
-                  </Sidebar.Header>
-
-                  <Sidebar.Items>
-                    <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
-                    <Sidebar.Item itemId="carte">Carte</Sidebar.Item>
-                  </Sidebar.Items>
-                </Sidebar>
-              )}
-            </MaterialSwitch>
+            <SidebarMobileScene />
           </Specimen>
         </>
       }
@@ -247,7 +276,7 @@ export default function SidebarContent() {
                 <strong>des props nommées</strong> de <code>GlassProps</code> :{' '}
                 <code>rootClassName</code> et <code>rootStyle</code>, qui atteignent l’enveloppe du
                 verre ; <code>enableLiquidAnimation</code> et <code>triggerAnimation</code> restent
-                acceptés mais sont dépréciés depuis 3.7. Il n’intersecte plus{' '}
+                acceptés mais sont dépréciés depuis 2.7. Il n’intersecte plus{' '}
                 <code>GlassProps</code> en entier, qui apportait le <code>as</code> du verre — de
                 quoi remplacer l’
                 <code>&lt;aside&gt;</code> — et tous les attributs d’un <code>&lt;div&gt;</code>.

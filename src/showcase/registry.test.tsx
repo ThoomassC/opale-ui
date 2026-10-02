@@ -159,7 +159,7 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
 
    IL RESTE HUIT EXPORTS NON PRÉFIXÉS `Opale` : `Modal`, `SearchBar`,
    `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider`, `Topbar` et `PageScaffold`.
-   Le dernier est revenu en 3.3.0 avec une vraie structure et un menu accessible.
+   Le dernier est revenu en 2.3.0 avec une vraie structure et un menu accessible.
    Chacun a sa page dans `src/showcase/pages/composants/`. `Glass` a
    quitté la liste : le matériau n'est pas un composant, et `liquidGlass`
    est proposé par les surfaces concernées. Si ce
@@ -202,28 +202,41 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
      l'échéance absolue que sa fiche promettait.
 
    Rupture d'API assumée, à consigner dans les notes de version. */
-/* 61 DEPUIS LA 3.5.0 : `SvgMapControls` rejoint le catalogue avec la refonte
+/* 61 DEPUIS LA 2.5.0 : `SvgMapControls` rejoint le catalogue avec la refonte
    de la carte SVG. */
-/* 73 DEPUIS LA 3.9.2 : les douze parties de `Tabs`, `Sidebar` et `Topbar`
+/* 73 DEPUIS LA 2.9.2 : les douze parties de `Tabs`, `Sidebar` et `Topbar`
    (`TabsList`, `SidebarItem`, `TopbarBrand`…) sont aussi publiées sous leur
    nom, pour les Server Components. Elles se documentent sur la page de leur
    composant (`COMPOUND_PART_OWNERS`). */
-/* 91 DEPUIS LA 3.10.0 : sept composants — `Textarea`, `RadioGroup`, `Field`,
+/* 91 DEPUIS LA 2.10.0 : sept composants — `Textarea`, `RadioGroup`, `Field`,
    `Grid`, `Tooltip`, `Popover` et `DropdownMenu` — et onze parties publiées
    sous leur nom : `Radio`, `PopoverTrigger`, `PopoverContent` et les huit
    `DropdownMenu…`. Les parties se documentent sur la page de leur composant
    (`NAMED_PART_OWNERS`). */
-const PUBLISHED_COMPONENT_COUNT = 91;
+/* 93 DEPUIS LA 3.0 : `Carousel`, premier composant en mouvement, et sa
+   partie `CarouselSlide`, publiée sous son nom. */
+/* 94 : `Reveal`, l'apparition au défilement, rejoint la section MOUVEMENT. */
+/* 95 : `Marquee`, le bandeau défilant, la rejoint à son tour. */
+/* 96 : `SplitHeading`, le titre découpé en mots, après lui. */
+/* 98 : `ScrollSection` et `ScrollStage`, les fonds au défilement, documentés
+   sur une seule page — celle de la section. */
+/* 99 : `SidebarGroup`, les parties du rail, publiée sous son nom et documentée
+   sur la page de `Sidebar`. */
+const PUBLISHED_COMPONENT_COUNT = 99;
 
 /**
  * Les parties publiées SANS membre statique sur leur composant, vers leur
  * propriétaire. `Popover` et `DropdownMenu` n'exposent pas `Popover.Trigger` :
  * leurs parties ne sont publiées que sous leur nom, donc le calcul ci-dessous,
  * qui lit les membres, ne les voit pas. Le préfixe suffit à les rattacher ;
- * `Radio` ne porte pas celui de `RadioGroup` et s'écrit en toutes lettres.
+ * `Radio` ne porte pas celui de `RadioGroup`, ni `ScrollStage` celui de
+ * `ScrollSection` : ils s'écrivent en toutes lettres.
  */
-const NAMED_PART_PREFIXES: readonly string[] = ['DropdownMenu', 'Popover'];
-const NAMED_PART_OWNERS: Readonly<Record<string, string>> = { Radio: 'RadioGroup' };
+const NAMED_PART_PREFIXES: readonly string[] = ['Carousel', 'DropdownMenu', 'Popover'];
+const NAMED_PART_OWNERS: Readonly<Record<string, string>> = {
+  Radio: 'RadioGroup',
+  ScrollStage: 'ScrollSection',
+};
 
 /** Le propriétaire d'une partie publiée sous son seul nom, s'il en a un. */
 function namedPartOwner(component: string): string | undefined {
@@ -527,19 +540,34 @@ describe('Le registre des pages', () => {
 
     /* La coquille rend le `<h1>` — le `title` de la page. Une page qui en rend
        un second donne deux titres de premier niveau au document, donc deux
-       réponses à « où suis-je ». */
-    it.each(PAGE_CASES)('la page « %s » ne devrait rendre aucun <h1>', (_slug, page) => {
-      const { container } = render(<>{page.render()}</>);
-      const own = headingsOf(container)
-        .filter((heading) => levelOf(heading) === 1)
-        .map(describeHeading);
+       réponses à « où suis-je ». Une page pleine largeur, elle, rend le sien
+       — la coquille n'en rend pas — et un seul. */
+    it.each(PAGE_CASES.filter(([, page]) => page.fullBleed))(
+      'la page pleine largeur « %s » devrait rendre un seul <h1>, son titre',
+      (_slug, page) => {
+        const { container } = render(<>{page.render()}</>);
+        const own = headingsOf(container).filter((heading) => levelOf(heading) === 1);
 
-      expect(
-        own,
-        `la page « ${page.slug} » rend ${own.length} <h1> (${own.join(', ')}) alors ` +
-          `que la coquille rend déjà celui du titre « ${page.title} »`,
-      ).toEqual([]);
-    });
+        expect(own).toHaveLength(1);
+        expect(own[0]).toHaveAccessibleName(page.title);
+      },
+    );
+
+    it.each(PAGE_CASES.filter(([, page]) => !page.fullBleed))(
+      'la page « %s » ne devrait rendre aucun <h1>',
+      (_slug, page) => {
+        const { container } = render(<>{page.render()}</>);
+        const own = headingsOf(container)
+          .filter((heading) => levelOf(heading) === 1)
+          .map(describeHeading);
+
+        expect(
+          own,
+          `la page « ${page.slug} » rend ${own.length} <h1> (${own.join(', ')}) alors ` +
+            `que la coquille rend déjà celui du titre « ${page.title} »`,
+        ).toEqual([]);
+      },
+    );
 
     /* ========================================================================
        LE GARDE AJOUTÉ PAR LA MIGRATION 2.0, ET IL A TROUVÉ ONZE DÉFAUTS.
@@ -549,7 +577,7 @@ describe('Le registre des pages', () => {
        `composants/pill`, `composants/field`, `composants/backdrop`,
        `composants/message`, `composants/date-range`, `composants/timeline`,
        `composants/glass-lens`, plus les quatre pages de l'ancien groupe du verre
-       liées entre elles. La 2.0 supprime les dix-sept pages d'Opale et déplace les
+       liées entre elles. La 1.0 supprime les dix-sept pages d'Opale et déplace les
        quatorze autres : chacun de ces liens serait tombé sur un fragment
        inconnu, donc — la vitrine étant servie en statique — sur l'ACCUEIL,
        silencieusement, sans 404 et sans rien de rouge.

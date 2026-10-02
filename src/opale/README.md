@@ -5,7 +5,7 @@ Ce dossier est le **point d'entrée racine du paquet**. `import { Button } from
 ses deux feuilles compilées en une.
 
 Tout ce qu'il contient est écrit par Opale. C'est une phrase courte, et elle a
-coûté cher : jusqu'à la 3.1, ce dossier était la copie d'une librairie tierce.
+coûté cher : jusqu'à la 2.1, ce dossier était la copie d'une librairie tierce.
 La section « D'où vient ce dossier » plus bas raconte cet héritage, parce qu'il
 explique le nom du dossier, le préfixe des classes et la présence d'un fichier
 de notices à la racine — trois choses qu'on ne devine pas.
@@ -44,7 +44,7 @@ retour d'information, navigation, disposition, modules. Le namespace `Opale`
 réunit tous les composants du paquet, composés compris ; les exemples importent
 par nom (`import { Button } from '@thomascaron/opale-ui'`). `OpaleUI`,
 `Opale.Background`, `OPALE_CATALOG` et `CatalogEntry` restent exportés, dépréciés
-depuis 3.6.
+depuis 2.6.
 
 La règle qui gouverne le catalogue est écrite en tête d'`opale.ts`, et elle mérite d'être
 répétée ici : **le verre est la peau, le contrôle natif reste le moteur.** Là où
@@ -118,16 +118,16 @@ surface (`enableLiquidAnimation` de `Topbar`, `Sidebar`, `Tabs`), `as` et
 `SearchBar`. Ces props gardent leur effet et portent `@deprecated` ; en version
 pleine, elles n'arrivent plus dans le DOM.
 
-**Chaque nom déprécié le dit à l'exécution, en développement.** Depuis 3.9, une
+**Chaque nom déprécié le dit à l'exécution, en développement.** Depuis 2.9, une
 prop dépréciée écrit une fois par page, dans la console, un avertissement du
-type « [Opale] Modal : `onClose` est déprécié depuis 3.6 et sera retiré en
-4.0.0 — utilisez `onOpenChange`. ». Le garde lit `process.env.NODE_ENV`, que le
+type « [Opale] Modal : `onClose` est déprécié depuis 2.6 et sera retiré en
+3.0.0 — utilisez `onOpenChange`. ». Le garde lit `process.env.NODE_ENV`, que le
 bundler de l'application remplace : le build de production n'avertit pas. Les
 alias de type et les exports de valeur (`OpaleUI`, `Opale.Background`…) ne
 peuvent pas avertir sans changer d'identité ; ils sont seulement listés. La
 liste complète vit dans `deprecations.ts`, tenue contre chaque `@deprecated`
 par `deprecations.structure.test.ts`, et la vitrine en tire la page « Migrer
-vers la 4.0 » (`#/migrer-vers-4`).
+vers la 3.0 » (`#/migrer-vers-3`).
 
 ## Les classes stables
 

@@ -156,7 +156,7 @@ export function Badge({
      d'Opale étant désormais le contenu du verre, elle garde son ton, sa
      pilule et sa casse. */
   /* `error` ET `danger` SONT LE MÊME ROUGE. Le premier vient d'`OpaleTone`,
-     le second de l'emphase de marque d'avant la 3.10 : une seule classe. */
+     le second de l'emphase de marque d'avant la 2.10 : une seule classe. */
   const toneClass = tone === 'error' ? 'danger' : tone;
   const classes = clsx(
     'opale-badge',
@@ -265,7 +265,7 @@ export interface IconProps extends Omit<ComponentPropsWithRef<'span'>, 'children
    *
    * DÉFAUT SURPRENANT : absent, l'icône dessine `sparkle`, une étincelle de
    * démonstration, et un avertissement de développement le signale. Passez
-   * toujours `name` ; ce défaut disparaîtra en 4.0.0.
+   * toujours `name` ; ce défaut disparaîtra en 3.0.0.
    *
    * LES DEUX FORMES COEXISTENT À DESSEIN. Le composant ne savait rendre qu'un
    * CARACTÈRE, et des appels existants passent « ✦ » ou « ⌘ » ; les casser
@@ -578,7 +578,7 @@ export interface DonutProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   /**
    * Le pourcentage dessiné. DÉFAUT SURPRENANT : absent, l'anneau affiche
    * 60 %, une valeur de démonstration, et un avertissement de développement le
-   * signale. Passez toujours `value` ; ce défaut disparaîtra en 4.0.0.
+   * signale. Passez toujours `value` ; ce défaut disparaîtra en 3.0.0.
    */
   value?: number;
   /** Le texte affiché au centre et lu comme nom. Défaut : la valeur suivie de `%`. */
@@ -649,7 +649,7 @@ export type DataTableRowId = string | number;
 
 /**
  * Une colonne. `T` est le type des lignes : par défaut `DataTableRow`, pour
- * que les tables d'avant la 3.10 compilent à l'identique.
+ * que les tables d'avant la 2.10 compilent à l'identique.
  */
 export interface DataTableColumn<T = DataTableRow> {
   key: string;
@@ -707,7 +707,7 @@ export interface DataTableLabels {
 
 /**
  * Les props de `DataTable`. `T` est le type des lignes, déduit de `rows` et
- * `columns` ; sans paramètre, c'est `DataTableRow`, comme avant la 3.10.
+ * `columns` ; sans paramètre, c'est `DataTableRow`, comme avant la 2.10.
  */
 export interface DataTableProps<T = DataTableRow> extends Omit<
   ComponentPropsWithRef<'div'>,
@@ -746,7 +746,7 @@ export interface DataTableProps<T = DataTableRow> extends Omit<
    * `false`.
    */
   loading?: boolean;
-  /** @deprecated Depuis 3.6 — utilisez `labels.empty`. */
+  /** @deprecated Depuis 2.6 — utilisez `labels.empty`. */
   emptyMessage?: string;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<DataTableLabels>;
@@ -759,7 +759,7 @@ export interface DataTableProps<T = DataTableRow> extends Omit<
   liquidGlass?: boolean;
   /** L'espacement des lignes : `small` resserre sans changer la structure. Défaut : `medium`. */
   size?: DataTableSize;
-  /** @deprecated Depuis 3.6 — utilisez `size` (`compact` → `small`). */
+  /** @deprecated Depuis 2.6 — utilisez `size` (`compact` → `small`). */
   density?: 'comfortable' | 'compact';
   /** Ajoute une alternance discrète aux lignes de données. */
   striped?: boolean;
@@ -805,10 +805,10 @@ const NO_SELECTION: readonly DataTableRowId[] = [];
 /**
  * Ce qu'une cellule sans `cell` peut rendre sans faire échouer React.
  *
- * EN 3.9, TOUT `ReactNode` S'AFFICHAIT : un portail, un itérable, une promesse
+ * EN 2.9, TOUT `ReactNode` S'AFFICHAIT : un portail, un itérable, une promesse
  * (React 19). On les laisse donc passer tels quels. Seul l'objet ordinaire —
  * une `Date`, un enregistrement imbriqué, qu'une ligne générique peut porter
- * depuis la 3.10 — ferait lever React (« Objects are not valid as a React
+ * depuis la 2.10 — ferait lever React (« Objects are not valid as a React
  * child ») : celui-là ne s'affiche pas. Donnez `cell` pour le mettre en forme.
  */
 function renderableCell(value: unknown): ReactNode {

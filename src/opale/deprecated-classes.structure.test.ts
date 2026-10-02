@@ -55,7 +55,7 @@ describe('les classes dépréciées', () => {
     root.walkRules((rule) => {
       if (!classPattern(name).test(rule.selector)) return;
       const previous = rule.prev();
-      const marked = previous?.type === 'comment' && previous.text.includes('Déprécié depuis 3.7');
+      const marked = previous?.type === 'comment' && previous.text.includes('Déprécié depuis 2.7');
       if (!marked) unmarked.push(rule.selector.replace(/\s+/g, ' '));
     });
     expect(unmarked).toEqual([]);

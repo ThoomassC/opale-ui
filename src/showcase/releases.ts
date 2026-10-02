@@ -96,8 +96,8 @@ const V3100_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Traduisible et documenté',
         detail:
-          'Clipboard, Rating, RatingInput, FileCard, Breadcrumb, SelectionBar et LegalLinks prennent labels. Chaque prop publique a sa JSDoc, verrouillée par un test. FileCard.size devient fileSize ; l’ancien nom reste jusqu’à la 4.0.0.',
-        links: [{ label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' }],
+          'Clipboard, Rating, RatingInput, FileCard, Breadcrumb, SelectionBar et LegalLinks prennent labels. Chaque prop publique a sa JSDoc, verrouillée par un test. FileCard.size devient fileSize ; l’ancien nom reste jusqu’à la 3.0.0.',
+        links: [{ label: 'Migrer vers la 3.0', slug: 'migrer-vers-3' }],
       },
     ],
   },
@@ -110,7 +110,7 @@ const V394_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Une page pour personnaliser',
         detail:
-          'La page « Personnaliser » liste les jetons publics, stables en 3.x, avec leurs valeurs claires et sombres, et donne la recette d’une marque. checkBrand, dans le contrat, mesure les contrastes d’une couleur de marque et propose l’encre qui tient.',
+          'La page « Personnaliser » liste les jetons publics, stables en 2.x, avec leurs valeurs claires et sombres, et donne la recette d’une marque. checkBrand, dans le contrat, mesure les contrastes d’une couleur de marque et propose l’encre qui tient.',
         links: [{ label: 'Personnaliser', slug: 'personnaliser' }],
       },
       {
@@ -321,24 +321,24 @@ const V390_RELEASE_SECTIONS: readonly ReleaseSection[] = [
     ],
   },
   {
-    title: 'Préparer la 4.0',
+    title: 'Préparer la 3.0',
     changes: [
       {
         title: 'Les anciens noms se signalent',
         detail:
           'En développement, chaque prop dépréciée écrit une fois dans la console son remplaçant et la version qui la retirera. Rien en production, et les anciens noms marchent toujours.',
-        links: [{ label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' }],
+        links: [{ label: 'Migrer vers la 3.0', slug: 'migrer-vers-3' }],
       },
       {
         title: 'Un guide de migration',
         detail:
-          'La page « Migrer vers la 4.0 » liste chaque ancien nom, ce qui le remplace et depuis quand, ainsi que les changements que la 4.0.0 apportera.',
-        links: [{ label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' }],
+          'La page « Migrer vers la 3.0 » liste chaque ancien nom, ce qui le remplace et depuis quand, ainsi que les changements que la 3.0.0 apportera.',
+        links: [{ label: 'Migrer vers la 3.0', slug: 'migrer-vers-3' }],
       },
       {
         title: 'Toggle en interrupteur, en option',
         detail:
-          'role="switch" sur Toggle l’annonce comme un interrupteur ; ce sera le rôle par défaut en 4.0.0. En développement, un Toggle sans nom accessible est signalé.',
+          'role="switch" sur Toggle l’annonce comme un interrupteur ; ce sera le rôle par défaut en 3.0.0. En développement, un Toggle sans nom accessible est signalé.',
         links: [{ label: 'Toggle', slug: 'composants/opale-toggle' }],
       },
     ],
@@ -502,7 +502,7 @@ const V361_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Un README à jour',
         detail:
-          'Installation, convention d’import, conventions de l’API, thème, contrat de couleur et limites connues, avec des chiffres recalculés depuis le code. Les notes 3.5.0 et 3.3.0 sont complétées.',
+          'Installation, convention d’import, conventions de l’API, thème, contrat de couleur et limites connues, avec des chiffres recalculés depuis le code. Les notes 2.5.0 et 2.3.0 sont complétées.',
         links: [{ label: 'Installation', slug: 'installation' }],
       },
       {
@@ -571,7 +571,7 @@ const V360_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Anciens noms conservés',
         detail:
-          'onChange, page, values, activeItemId, onClose, onCancel, severity, density, OpaleUI et les autres restent acceptés et fonctionnent comme en 3.5 ; l’éditeur les barre et indique le nouveau nom.',
+          'onChange, page, values, activeItemId, onClose, onCancel, severity, density, OpaleUI et les autres restent acceptés et fonctionnent comme en 2.5 ; l’éditeur les barre et indique le nouveau nom.',
       },
       {
         title: 'Corrections visibles',
@@ -588,7 +588,7 @@ const V360_RELEASE_SECTIONS: readonly ReleaseSection[] = [
 ];
 
 const V360_RELEASE_MIGRATION = {
-  fromVersion: '3.5.2',
+  fromVersion: '2.5.2',
   steps: [
     {
       title: 'Passer aux nouveaux noms (facultatif)',
@@ -679,7 +679,7 @@ const V351_RELEASE_SECTIONS: readonly ReleaseSection[] = [
       {
         title: 'Version installable et licence',
         detail:
-          'Les tags v3.3.0, v3.4.0 et v3.5.0 sont publiés et le tag v4.0.0, posé par erreur sur un code antérieur, est retiré. Opale est sous licence MIT.',
+          'Les tags v2.3.0, v2.4.0 et v2.5.0 sont publiés et le tag v4.0.0, posé par erreur sur un code antérieur, est retiré. Opale est sous licence MIT.',
         links: [{ label: 'Installation', slug: 'installation' }],
       },
     ],
@@ -769,11 +769,11 @@ const V350_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   },
 ];
 
-/* LA RUPTURE DE LA 3.5.0 : `SvgMap` n'est plus un cadre. `viewBox` et
+/* LA RUPTURE DE LA 2.5.0 : `SvgMap` n'est plus un cadre. `viewBox` et
    `regions` deviennent obligatoires, et la courbe décorative disparaît ; ce
    qu'on posait en enfants reste possible, dessiné par-dessus les régions. */
 const V350_RELEASE_MIGRATION = {
-  fromVersion: '3.4.0',
+  fromVersion: '2.4.0',
   steps: [
     {
       title: 'Donner le dessin à la carte',
@@ -907,7 +907,7 @@ const V320_RELEASE_SECTIONS: readonly ReleaseSection[] = [
     title: 'Compatibilité et migration',
     changes: [
       {
-        title: '28 exports retirés depuis la 3.1.1',
+        title: '28 exports retirés depuis la 2.1.1',
         detail:
           'Les alias, composants sans comportement propre et promesses non tenues quittent le catalogue. Le tableau de migration ci-dessous indique les remplacements possibles.',
       },
@@ -1016,7 +1016,7 @@ const V320_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   },
 ];
 
-/** Diff vérifié entre les exports publics des tags v3.1.1 et v3.2.0. */
+/** Diff vérifié entre les exports publics des tags v2.1.1 et v2.2.0. */
 export const V320_REMOVED_COMPONENTS: readonly ReleaseReplacement[] = [
   {
     removed: ['AddButton', 'SaveButton', 'ApproveButton', 'EditButton', 'DeleteButton'],
@@ -1085,7 +1085,7 @@ export const V320_REMOVED_COMPONENTS: readonly ReleaseReplacement[] = [
 ];
 
 const V320_RELEASE_MIGRATION = {
-  fromVersion: '3.1.1',
+  fromVersion: '2.1.1',
   steps: [
     {
       title: 'Activer le verre sur le composant',
@@ -1113,7 +1113,7 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
-    version: '3.10.0',
+    version: '2.10.0',
     publishedAt: '2026-09-30',
     dateLabel: '30 septembre 2026',
     summary:
@@ -1127,7 +1127,7 @@ export const RELEASES: readonly ReleaseNote[] = [
     sourceHref: `${REPOSITORY_URL}/tree/recette`,
   },
   {
-    version: '3.9.4',
+    version: '2.9.4',
     publishedAt: '2026-09-30',
     dateLabel: '30 septembre 2026',
     summary:
@@ -1137,12 +1137,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Page « Personnaliser » et checkBrand.', 'Feuille en @layer pour Tailwind v4.'],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.10.0, sur son tag. */
-    appHref: '/versions/v3.9.4/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.9.4`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.10.0, sur son tag. */
+    appHref: '/versions/v2.9.4/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.9.4`,
   },
   {
-    version: '3.9.3',
+    version: '2.9.3',
     publishedAt: '2026-09-30',
     dateLabel: '30 septembre 2026',
     summary:
@@ -1152,12 +1152,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Verre lisible sur une page claire.', 'Contrastes forcés pris en charge.'],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.9.4, sur son tag. */
-    appHref: '/versions/v3.9.3/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.9.3`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.9.4, sur son tag. */
+    appHref: '/versions/v2.9.3/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.9.3`,
   },
   {
-    version: '3.9.2',
+    version: '2.9.2',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
     summary:
@@ -1167,12 +1167,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Hydratation Next.js sans erreur.', 'Deux dialogues ne figent plus la page.'],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.9.3, sur son tag. */
-    appHref: '/versions/v3.9.2/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.9.2`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.9.3, sur son tag. */
+    appHref: '/versions/v2.9.2/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.9.2`,
   },
   {
-    version: '3.9.1',
+    version: '2.9.1',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
     summary:
@@ -1182,27 +1182,27 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Aucune page ne défile en largeur à 320 px.', 'Topbar et SvgMap sur petit écran.'],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.9.2, sur son tag. */
-    appHref: '/versions/v3.9.1/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.9.1`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.9.2, sur son tag. */
+    appHref: '/versions/v2.9.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.9.1`,
   },
   {
-    version: '3.9.0',
+    version: '2.9.0',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
     summary:
-      'La dernière 3.x : une archive construite à chaque version, et la sortie des anciens noms préparée — avertissements en développement, guide de migration, Toggle en interrupteur en option. Sans rupture.',
+      'La dernière 2.x : une archive construite à chaque version, et la sortie des anciens noms préparée — avertissements en développement, guide de migration, Toggle en interrupteur en option. Sans rupture.',
     sections: V390_RELEASE_SECTIONS,
     changes: V390_RELEASE_SECTIONS.flatMap((section) =>
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
-    highlights: ['Archive construite attachée à la release.', 'Guide « Migrer vers la 4.0 ».'],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.9.1, sur son tag. */
-    appHref: '/versions/v3.9.0/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.9.0`,
+    highlights: ['Archive construite attachée à la release.', 'Guide « Migrer vers la 3.0 ».'],
+    /* ARCHIVÉE À LA SORTIE DE LA 2.9.1, sur son tag. */
+    appHref: '/versions/v2.9.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.9.0`,
   },
   {
-    version: '3.8.0',
+    version: '2.8.0',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
     summary:
@@ -1212,12 +1212,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['searchNavigate sur PageScaffold.', 'footerClose sur Lightbox et CommandPalette.'],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.9.0, sur son tag. */
-    appHref: '/versions/v3.8.0/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.8.0`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.9.0, sur son tag. */
+    appHref: '/versions/v2.8.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.8.0`,
   },
   {
-    version: '3.7.1',
+    version: '2.7.1',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
     summary:
@@ -1230,12 +1230,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       'CookieBanner vérifié avec un stockage bloqué.',
       'La carte du monde n’embarque plus de bibliothèque de projection.',
     ],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.8.0, sur son tag. */
-    appHref: '/versions/v3.7.1/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.7.1`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.8.0, sur son tag. */
+    appHref: '/versions/v2.7.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.7.1`,
   },
   {
-    version: '3.7.0',
+    version: '2.7.0',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
     summary:
@@ -1249,12 +1249,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Classes stables et jetons pour tout surcharger.',
       'Un Divider importé seul : 266 octets.',
     ],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.7.1, sur son tag. */
-    appHref: '/versions/v3.7.0/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.7.0`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.7.1, sur son tag. */
+    appHref: '/versions/v2.7.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.7.0`,
   },
   {
-    version: '3.6.1',
+    version: '2.6.1',
     publishedAt: '2026-09-29',
     dateLabel: '29 septembre 2026',
     summary:
@@ -1266,18 +1266,18 @@ export const RELEASES: readonly ReleaseNote[] = [
     highlights: [
       'Même plan sur toutes les pages de composants.',
       'Accessibilité et limites connues documentées page par page.',
-      'README réécrit pour la 3.6.',
+      'README réécrit pour la 2.6.',
     ],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.7.0, sur son tag. */
-    appHref: '/versions/v3.6.1/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.6.1`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.7.0, sur son tag. */
+    appHref: '/versions/v2.6.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.6.1`,
   },
   {
-    version: '3.6.0',
+    version: '2.6.0',
     publishedAt: '2026-09-28',
     dateLabel: '28 septembre 2026',
     summary:
-      'Une seule convention d’API pour les valeurs, l’ouverture, les tailles, les tons, les libellés et les refs, sans casser aucune application en 3.5.',
+      'Une seule convention d’API pour les valeurs, l’ouverture, les tailles, les tons, les libellés et les refs, sans casser aucune application en 2.5.',
     sections: V360_RELEASE_SECTIONS,
     changes: V360_RELEASE_SECTIONS.flatMap((section) =>
       section.changes.map((change) => `${change.title} : ${change.detail}`),
@@ -1288,12 +1288,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       'ref, labels et attributs natifs sur chaque composant.',
     ],
     migration: V360_RELEASE_MIGRATION,
-    /* ARCHIVÉE À LA SORTIE DE LA 3.6.1, sur son tag. */
-    appHref: '/versions/v3.6.0/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.6.0`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.6.1, sur son tag. */
+    appHref: '/versions/v2.6.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.6.0`,
   },
   {
-    version: '3.5.2',
+    version: '2.5.2',
     publishedAt: '2026-09-28',
     dateLabel: '28 septembre 2026',
     summary:
@@ -1307,12 +1307,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Six tailles de texte, un seul anneau de focus.',
       'Toasts annoncés même sous une modale ouverte.',
     ],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.6.0, sur son tag. */
-    appHref: '/versions/v3.5.2/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.5.2`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.6.0, sur son tag. */
+    appHref: '/versions/v2.5.2/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.5.2`,
   },
   {
-    version: '3.5.1',
+    version: '2.5.1',
     publishedAt: '2026-09-28',
     dateLabel: '28 septembre 2026',
     summary:
@@ -1326,12 +1326,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Types lisibles en nodenext, polices livrées en fichiers woff2.',
       'MultiSelect non contrôlé et Feedback corrigés.',
     ],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.5.2, sur son tag. */
-    appHref: '/versions/v3.5.1/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.5.1`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.5.2, sur son tag. */
+    appHref: '/versions/v2.5.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.5.1`,
   },
   {
-    version: '3.5.0',
+    version: '2.5.0',
     publishedAt: '2026-09-27',
     dateLabel: '27 septembre 2026',
     summary:
@@ -1347,12 +1347,12 @@ export const RELEASES: readonly ReleaseNote[] = [
     ],
     migration: V350_RELEASE_MIGRATION,
     breaking: true,
-    /* ARCHIVÉE À LA SORTIE DE LA 3.5.1, sur son tag. */
-    appHref: '/versions/v3.5.0/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.5.0`,
+    /* ARCHIVÉE À LA SORTIE DE LA 2.5.1, sur son tag. */
+    appHref: '/versions/v2.5.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.5.0`,
   },
   {
-    version: '3.4.0',
+    version: '2.4.0',
     publishedAt: '2026-09-27',
     dateLabel: '27 septembre 2026',
     summary:
@@ -1366,12 +1366,12 @@ export const RELEASES: readonly ReleaseNote[] = [
       'SiteNav : version originale ajoutée, verre liquide sans aplat.',
       'Divider, Dropzone, FileCard et Lightbox corrigés.',
     ],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.5.0, sur le commit que la recette servait. */
-    appHref: '/versions/v3.4.0/index.html',
+    /* ARCHIVÉE À LA SORTIE DE LA 2.5.0, sur le commit que la recette servait. */
+    appHref: '/versions/v2.4.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/741a97feecab9b26ccbf7336b13f919744734ac4`,
   },
   {
-    version: '3.3.0',
+    version: '2.3.0',
     publishedAt: '2026-09-26',
     dateLabel: '26 septembre 2026',
     summary: 'PageScaffold compose une page complète dans la direction visuelle d’Opale.',
@@ -1384,15 +1384,15 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Le menu mobile, les repères sémantiques et les suggestions de recherche sont intégrés.',
       'Chaque zone peut être configurée ou remplacée sans modifier le composant.',
     ],
-    /* ARCHIVÉE À LA SORTIE DE LA 3.4.0. `#/` et la branche `recette` désignent
-       désormais la 3.4.0 : gardés, le lien et la provenance de la 3.3.0
+    /* ARCHIVÉE À LA SORTIE DE LA 2.4.0. `#/` et la branche `recette` désignent
+       désormais la 2.4.0 : gardés, le lien et la provenance de la 2.3.0
        auraient ouvert la version suivante. Le build figé vient du commit que
        la recette servait alors. */
-    appHref: '/versions/v3.3.0/index.html',
+    appHref: '/versions/v2.3.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/649162f74cf2be6c13d78158c181e626e7dc4cbe`,
   },
   {
-    version: '3.2.0',
+    version: '2.2.0',
     publishedAt: '2026-09-24',
     dateLabel: '24 septembre 2026',
     summary:
@@ -1409,11 +1409,11 @@ export const RELEASES: readonly ReleaseNote[] = [
     migration: V320_RELEASE_MIGRATION,
     removedComponents: V320_REMOVED_COMPONENTS,
     breaking: true,
-    appHref: '/versions/v3.2.0/index.html',
+    appHref: '/versions/v2.2.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/de045eba2ea3a7f361e3e9ec9f39ad3a84a118bb`,
   },
   {
-    version: '3.1.1',
+    version: '2.1.1',
     publishedAt: '2026-09-21',
     dateLabel: '21 septembre 2026',
     summary:
@@ -1427,19 +1427,19 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Rupture : les jetons CSS et les classes publiés prennent le préfixe opale-, et les exports nommés perdent le leur. Le chemin Opale.Button ne change pas.',
     ],
     breaking: true,
-    /* ARCHIVÉE À LA SORTIE DE LA 3.2.0. `#/` désignait la version courante :
-       gardé, le lien de la 3.1.1 aurait ouvert la 3.2.0. Le build figé vient
+    /* ARCHIVÉE À LA SORTIE DE LA 2.2.0. `#/` désignait la version courante :
+       gardé, le lien de la 2.1.1 aurait ouvert la 2.2.0. Le build figé vient
        de son tag, comme les archives qui la précèdent. */
-    appHref: '/versions/v3.1.1/index.html',
+    appHref: '/versions/v2.1.1/index.html',
     /* LE TAG ET NON LA BRANCHE. `feat/composants` avance à chaque commit :
        « le code qui a produit cette version » y désignerait autre chose demain,
        ce que le contrat de ce champ interdit. Un tag ne bouge pas — c'est
        d'ailleurs le même que celui qu'installe la commande affichée sur la
        page « Installation ». */
-    sourceHref: `${REPOSITORY_URL}/tree/v3.1.1`,
+    sourceHref: `${REPOSITORY_URL}/tree/v2.1.1`,
   },
   {
-    version: '3.0.0',
+    version: '2.0.0',
     publishedAt: '2026-09-18',
     dateLabel: '18 septembre 2026',
     summary:
@@ -1450,44 +1450,44 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Ajout de nouveaux composants Opale en conservant les exports existants.',
     ],
     breaking: true,
-    /* ARCHIVÉE APRÈS COUP, AU MÊME DÉFAUT QUE LA 3.1.1 : `#/` ouvrait la
+    /* ARCHIVÉE APRÈS COUP, AU MÊME DÉFAUT QUE LA 2.1.1 : `#/` ouvrait la
        version courante, et la source visait une branche. Le build figé vient
        de la pointe de `codex/refonte-v3` (438fc00) — ce que ce lien montrait,
-       encore en 3.0.0, et le premier état dont le build garde ses jetons —,
-       marquée depuis par le tag v3.0.0. */
-    appHref: '/versions/v3.0.0/index.html',
-    sourceHref: `${REPOSITORY_URL}/tree/v3.0.0`,
+       encore en 2.0.0, et le premier état dont le build garde ses jetons —,
+       marquée depuis par le tag v2.0.0. */
+    appHref: '/versions/v2.0.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v2.0.0`,
   },
   {
-    version: '2.1.0',
+    version: '1.1.0',
     publishedAt: '2026-09-18',
     dateLabel: '18 septembre 2026',
     summary:
       'La vitrine gagne un historique de versions et conserve chaque état publié sous une adresse indépendante.',
     changes: [
       'Ajout de la page « Notes de versions » dans la navigation.',
-      'Ajout de snapshots utilisables pour les versions 0.1.0 à 2.0.0.',
+      'Ajout de snapshots utilisables pour les versions 0.1.0 à 1.0.0.',
       'La version courante reste à la racine : les anciennes versions ne sont jamais écrasées.',
     ],
-    appHref: '/versions/v2.1.0/index.html',
+    appHref: '/versions/v1.1.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/7a12202`,
   },
   {
-    version: '2.0.0',
+    version: '1.0.0',
     publishedAt: '2026-09-14',
     dateLabel: '14 septembre 2026',
     summary: 'Le paquet devient Opale et adopte ses composants en verre liquide.',
     changes: [
       'Quatorze composants verre liquide sont publiés à la racine.',
       'La vitrine passe d’une charte unique à une documentation navigable.',
-      'Rupture majeure : les composants maison de la 1.x ne sont plus exportés.',
+      'Rupture majeure : les composants maison de la 0.x ne sont plus exportés.',
     ],
     breaking: true,
-    appHref: '/versions/v2.0.0/index.html',
+    appHref: '/versions/v1.0.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/5bdefcf66ed2c77111c7bda0f363a58438430add`,
   },
   {
-    version: '1.2.0',
+    version: '0.6.0',
     publishedAt: '2026-09-10',
     dateLabel: '10 septembre 2026',
     summary: 'Un bouton bulle et sa lentille arrivent sans modifier les API existantes.',
@@ -1496,24 +1496,24 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Ajout de `GlassLens` et de la feuille optionnelle `lens.css`.',
       'Les consommateurs qui n’emploient pas ces nouveautés restent inchangés.',
     ],
-    appHref: '/versions/v1.2.0/index.html',
+    appHref: '/versions/v0.6.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/dec06e86dba0c0f4ab53b6563a57c6d8bf592355`,
   },
   {
-    version: '1.1.0',
+    version: '0.5.0',
     publishedAt: '2026-09-09',
     dateLabel: '9 septembre 2026',
     summary: 'Le thème verre liquide devient une feuille optionnelle, sans déplacement de l’API.',
     changes: [
       'Ajout de `glass.css` et de l’axe de matériau optionnel.',
-      'Les jetons, rôles, composants et classes de la 1.0 restent compatibles.',
+      'Les jetons, rôles, composants et classes de la 0.4 restent compatibles.',
       'La vitrine documente le coût et les replis du matériau.',
     ],
-    appHref: '/versions/v1.1.0/index.html',
+    appHref: '/versions/v0.5.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/20887408adf78c6320a320c8f3dfb74617dc4e45`,
   },
   {
-    version: '1.0.0',
+    version: '0.4.0',
     publishedAt: '2026-09-09',
     dateLabel: '9 septembre 2026',
     summary: 'L’API du socle est déclarée stable après l’arrivée des composants partagés.',
@@ -1522,7 +1522,7 @@ export const RELEASES: readonly ReleaseNote[] = [
       'La vitrine devient une documentation par page.',
       'Les consommateurs de la 0.3.0 disposent d’un contrat stable.',
     ],
-    appHref: '/versions/v1.0.0/index.html',
+    appHref: '/versions/v0.4.0/index.html',
     sourceHref: `${REPOSITORY_URL}/tree/e131e00cdc900a7a96588fe12a72889f8f2677cd`,
   },
   {

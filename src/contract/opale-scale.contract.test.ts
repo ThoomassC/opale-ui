@@ -6,7 +6,7 @@ import fontsSource from '../opale/fonts.css?raw';
 import opaleSource from '../opale/opale.css?raw';
 
 /* ============================================================================
-   L'ÉCHELLE D'OPALE, SANS EXCEPTION CACHÉE (3.9.4).
+   L'ÉCHELLE D'OPALE, SANS EXCEPTION CACHÉE (2.9.4).
 
    Chaque réglage qu'un hôte surcharge doit atteindre toutes les pièces qu'il
    décrit. Quatre fuites relevées par l'audit de personnalisation :

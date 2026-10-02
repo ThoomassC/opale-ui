@@ -4,7 +4,7 @@ import { CATALOG, type ShowcaseCatalogEntry } from '../opale/catalog';
    LES FICHES DE LA VITRINE : LE CATALOGUE DU PAQUET, PLUS CE QUI LUI MANQUE.
 
    `CATALOG` (`src/opale/catalog.ts`) donne à chaque composant son nom, sa
-   famille et sa phrase de présentation. La 3.10.0 publie sept composants que
+   famille et sa phrase de présentation. La 2.10.0 publie sept composants que
    ce fichier du paquet ne recense pas encore. Plutôt que de les laisser sans
    page — ce que `registry.test.tsx` refuse —, la vitrine leur écrit ici leur
    fiche, dans la même forme.
@@ -14,7 +14,8 @@ import { CATALOG, type ShowcaseCatalogEntry } from '../opale/catalog';
    la liste ci-dessous ne sert que les noms qui y manquent encore.
 
    Les familles reprennent celles des sections du sommaire (`doc-model.ts`),
-   sauf « Couches flottantes », qui range les trois surimpressions ancrées.
+   sauf « Couches flottantes », qui range les trois surimpressions ancrées, et
+   « Mouvement », qui ouvre la famille des composants animés de la 3.0.
    ========================================================================== */
 
 const SHOWCASE_ONLY_ENTRIES: readonly ShowcaseCatalogEntry[] = [
@@ -32,6 +33,31 @@ const SHOWCASE_ONLY_ENTRIES: readonly ShowcaseCatalogEntry[] = [
     'DropdownMenu',
     'Couches flottantes',
     'Menu d’actions au clavier : éléments, cases à cocher et choix exclusifs.',
+  ],
+  [
+    'Carousel',
+    'Mouvement',
+    'Carrousel au défilement natif : glisser, flèches, points, clavier et lecture automatique.',
+  ],
+  [
+    'Reveal',
+    'Mouvement',
+    'Bloc qui monte en fondu à son entrée dans la vue, visible au repos et sans script.',
+  ],
+  [
+    'Marquee',
+    'Mouvement',
+    'Bandeau qui défile en boucle sans couture, avec un bouton pause, immobile au repos.',
+  ],
+  [
+    'SplitHeading',
+    'Mouvement',
+    'Titre dont les mots montent en cascade, lu d’un seul tenant et visible au repos.',
+  ],
+  [
+    'ScrollSection',
+    'Mouvement',
+    'Bandes qui peignent chacune leur fond, et une scène qui expose celui de la section active.',
   ],
 ].map(([name, category, description]) => ({ name, category, description }));
 

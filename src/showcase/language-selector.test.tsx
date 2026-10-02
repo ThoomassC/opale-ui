@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { DocShell } from './doc-shell';
 import { PAGES } from './pages';
+import { HOME_COPY } from './pages/accueil/home-copy';
 
 afterEach(cleanup);
 
@@ -67,9 +68,7 @@ describe('le sélecteur de langue de la vitrine', () => {
     expect(localStorage.getItem('tc-language')).toBe('EN');
     expect(screen.getAllByRole('link', { name: 'Home' })).not.toHaveLength(0);
     expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'The design system for the Opale ecosystem.',
-    );
+    expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName(HOME_COPY.EN.hero.title);
 
     /* Le panneau se referme sur le choix : la liste reste dans le DOM pour que
        `aria-controls` désigne un élément présent, mais `hidden` la retire de
@@ -83,9 +82,7 @@ describe('le sélecteur de langue de la vitrine', () => {
     expect(localStorage.getItem('tc-language')).toBe('ES');
     expect(screen.getAllByRole('link', { name: 'Inicio' })).not.toHaveLength(0);
     expect(screen.getByPlaceholderText('Buscar')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'El sistema de diseño del ecosistema Opale.',
-    );
+    expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName(HOME_COPY.ES.hero.title);
     expect(trigger('Idioma')).toBeInTheDocument();
   });
 

@@ -80,7 +80,7 @@ export interface NavbarProps extends Omit<
    * L'entrée courante au montage quand `value` est absente. SEULE ELLE FAIT
    * RETENIR LE CLIC : sans `value` ni `defaultValue`, une entrée cliquée ne
    * devient pas courante (`aria-current`), même si `onValueChange` part. C'est
-   * le comportement de la 3.x, signalé en développement ; passez
+   * le comportement de la 2.x, signalé en développement ; passez
    * `defaultValue` pour que la barre se souvienne seule, `value` pour la tenir.
    */
   defaultValue?: string;
@@ -95,9 +95,9 @@ export interface NavbarProps extends Omit<
    * pour Next.js et React Router.
    */
   onNavigate?: NavigateHandler<NavItem>;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   activeId?: string;
-  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
   onSelect?: (id: string) => void;
   /** Le nom du repère ; `aria-label` gagne. Défaut : « Navigation ». */
   label?: string;
@@ -126,7 +126,7 @@ export function Navbar({
 }: NavbarProps) {
   warnDeprecatedProps('Navbar', { activeId: activeIdProp, onSelect });
   const [activeId, setActiveId] = useOptionalState(value ?? activeIdProp, defaultValue);
-  /* UN CLIC QUI N'EST PAS RETENU SE SIGNALE (DX-13). Rien ne change en 3.x —
+  /* UN CLIC QUI N'EST PAS RETENU SE SIGNALE (DX-13). Rien ne change en 2.x —
      des appelants comptent sur ce « rien » —, mais la barre prévient une fois,
      en développement, quand une entrée cliquée ne devient pas courante.
      LA VÉRIFICATION EST DIFFÉRÉE D'UNE TÂCHE, comme pour `SegmentedControl` :
@@ -362,7 +362,7 @@ export interface SidePanelProps extends Omit<ComponentPropsWithRef<'div'>, 'titl
   children?: ReactNode;
   /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
   labels?: Partial<SidePanelLabels>;
@@ -449,11 +449,11 @@ export interface CommandPaletteProps extends Omit<
   defaultValue?: string;
   /** Appelée à chaque frappe dans la recherche. */
   onValueChange?: (value: string) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
   onChange?: (value: string) => void;
   /** Appelée avec `false` sur Échap, le voile, la croix ou Fermer. Sa présence rend Fermer. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   /** Un contenu libre, rendu sous la recherche. */
   children?: ReactNode;

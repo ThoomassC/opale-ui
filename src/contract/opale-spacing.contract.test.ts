@@ -55,8 +55,15 @@ describe('la charpente', () => {
 
     it(`${name} arrondit par l’échelle des rayons`, () => {
       const offenders: string[] = [];
+      /* Seule dérivée admise : 0,68 fois `--opale-squircle-radius`, lui-même
+         `min(--opale-radius-md, 50%)` — le rayon qui contient un squircle,
+         que prend la boîte au focus pour que l'anneau suive la forme. */
       ast.walkDecls(/radius$/, (decl) => {
-        if (!/^(0|50%|var\(--opale-radius-[\w-]+\))$/.test(decl.value)) {
+        if (
+          !/^(0|50%|var\(--opale-radius-[\w-]+\)|calc\(var\(--opale-squircle-radius\) \* 0\.68\))$/.test(
+            decl.value,
+          )
+        ) {
           offenders.push(`${decl.prop}: ${decl.value}`);
         }
       });

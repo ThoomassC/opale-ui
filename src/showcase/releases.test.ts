@@ -48,8 +48,8 @@ describe('registre des notes de versions', () => {
     }
   });
 
-  it('présente la 3.10.0, sans rupture, et archive les versions précédentes sur leur tag ou leur commit', () => {
-    expect(CURRENT_RELEASE.version).toBe('3.10.0');
+  it('présente la 2.10.0, sans rupture, et archive les versions précédentes sur leur tag ou leur commit', () => {
+    expect(CURRENT_RELEASE.version).toBe('2.10.0');
     expect(CURRENT_RELEASE.breaking).not.toBe(true);
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
       'Formulaires complets',
@@ -58,69 +58,69 @@ describe('registre des notes de versions', () => {
     ]);
     expect(CURRENT_RELEASE.changes).toHaveLength(6);
 
-    const v394 = RELEASES.find((release) => release.version === '3.9.4');
-    expect(v394?.appHref).toBe('/versions/v3.9.4/index.html');
-    expect(v394?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.9.4');
+    const v394 = RELEASES.find((release) => release.version === '2.9.4');
+    expect(v394?.appHref).toBe('/versions/v2.9.4/index.html');
+    expect(v394?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.9.4');
 
-    const v393 = RELEASES.find((release) => release.version === '3.9.3');
-    expect(v393?.appHref).toBe('/versions/v3.9.3/index.html');
-    expect(v393?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.9.3');
+    const v393 = RELEASES.find((release) => release.version === '2.9.3');
+    expect(v393?.appHref).toBe('/versions/v2.9.3/index.html');
+    expect(v393?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.9.3');
 
-    const v392 = RELEASES.find((release) => release.version === '3.9.2');
-    expect(v392?.appHref).toBe('/versions/v3.9.2/index.html');
-    expect(v392?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.9.2');
+    const v392 = RELEASES.find((release) => release.version === '2.9.2');
+    expect(v392?.appHref).toBe('/versions/v2.9.2/index.html');
+    expect(v392?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.9.2');
 
-    const v391 = RELEASES.find((release) => release.version === '3.9.1');
-    expect(v391?.appHref).toBe('/versions/v3.9.1/index.html');
-    expect(v391?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.9.1');
+    const v391 = RELEASES.find((release) => release.version === '2.9.1');
+    expect(v391?.appHref).toBe('/versions/v2.9.1/index.html');
+    expect(v391?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.9.1');
 
-    const v390 = RELEASES.find((release) => release.version === '3.9.0');
-    expect(v390?.appHref).toBe('/versions/v3.9.0/index.html');
-    expect(v390?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.9.0');
+    const v390 = RELEASES.find((release) => release.version === '2.9.0');
+    expect(v390?.appHref).toBe('/versions/v2.9.0/index.html');
+    expect(v390?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.9.0');
 
-    const v380 = RELEASES.find((release) => release.version === '3.8.0');
-    expect(v380?.appHref).toBe('/versions/v3.8.0/index.html');
-    expect(v380?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.8.0');
+    const v380 = RELEASES.find((release) => release.version === '2.8.0');
+    expect(v380?.appHref).toBe('/versions/v2.8.0/index.html');
+    expect(v380?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.8.0');
 
-    const v371 = RELEASES.find((release) => release.version === '3.7.1');
-    expect(v371?.appHref).toBe('/versions/v3.7.1/index.html');
-    expect(v371?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.7.1');
+    const v371 = RELEASES.find((release) => release.version === '2.7.1');
+    expect(v371?.appHref).toBe('/versions/v2.7.1/index.html');
+    expect(v371?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.7.1');
 
-    const v370 = RELEASES.find((release) => release.version === '3.7.0');
-    expect(v370?.appHref).toBe('/versions/v3.7.0/index.html');
-    expect(v370?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.7.0');
+    const v370 = RELEASES.find((release) => release.version === '2.7.0');
+    expect(v370?.appHref).toBe('/versions/v2.7.0/index.html');
+    expect(v370?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.7.0');
 
-    const v361 = RELEASES.find((release) => release.version === '3.6.1');
-    expect(v361?.appHref).toBe('/versions/v3.6.1/index.html');
-    expect(v361?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.6.1');
+    const v361 = RELEASES.find((release) => release.version === '2.6.1');
+    expect(v361?.appHref).toBe('/versions/v2.6.1/index.html');
+    expect(v361?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.6.1');
 
-    const v360 = RELEASES.find((release) => release.version === '3.6.0');
-    expect(v360?.appHref).toBe('/versions/v3.6.0/index.html');
-    expect(v360?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.6.0');
-    expect(v360?.migration?.fromVersion).toBe('3.5.2');
+    const v360 = RELEASES.find((release) => release.version === '2.6.0');
+    expect(v360?.appHref).toBe('/versions/v2.6.0/index.html');
+    expect(v360?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.6.0');
+    expect(v360?.migration?.fromVersion).toBe('2.5.2');
 
-    const v352 = RELEASES.find((release) => release.version === '3.5.2');
-    expect(v352?.appHref).toBe('/versions/v3.5.2/index.html');
-    expect(v352?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.5.2');
+    const v352 = RELEASES.find((release) => release.version === '2.5.2');
+    expect(v352?.appHref).toBe('/versions/v2.5.2/index.html');
+    expect(v352?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.5.2');
 
-    const v351 = RELEASES.find((release) => release.version === '3.5.1');
-    expect(v351?.appHref).toBe('/versions/v3.5.1/index.html');
-    expect(v351?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.5.1');
+    const v351 = RELEASES.find((release) => release.version === '2.5.1');
+    expect(v351?.appHref).toBe('/versions/v2.5.1/index.html');
+    expect(v351?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.5.1');
 
-    const v350 = RELEASES.find((release) => release.version === '3.5.0');
-    expect(v350?.appHref).toBe('/versions/v3.5.0/index.html');
-    expect(v350?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.5.0');
-    expect(v350?.migration?.fromVersion).toBe('3.4.0');
+    const v350 = RELEASES.find((release) => release.version === '2.5.0');
+    expect(v350?.appHref).toBe('/versions/v2.5.0/index.html');
+    expect(v350?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v2.5.0');
+    expect(v350?.migration?.fromVersion).toBe('2.4.0');
 
-    for (const version of ['3.4.0', '3.3.0']) {
+    for (const version of ['2.4.0', '2.3.0']) {
       const archived = RELEASES.find((release) => release.version === version);
       expect(archived?.appHref).toBe(`/versions/v${version}/index.html`);
       expect(archived?.sourceHref).toMatch(/\/tree\/[0-9a-f]{40}$/);
     }
   });
 
-  it('conserve les groupes de la 3.2.0 archivée', () => {
-    const previous = RELEASES.find((release) => release.version === '3.2.0');
+  it('conserve les groupes de la 2.2.0 archivée', () => {
+    const previous = RELEASES.find((release) => release.version === '2.2.0');
     expect(previous?.sections?.map((section) => section.title)).toEqual([
       'Compatibilité et migration',
       'Composants et interactions',
@@ -129,7 +129,7 @@ describe('registre des notes de versions', () => {
     ]);
     expect(previous?.migration?.steps).toHaveLength(3);
     expect(previous?.changes).toHaveLength(12);
-    expect(previous?.appHref).toBe('/versions/v3.2.0/index.html');
+    expect(previous?.appHref).toBe('/versions/v2.2.0/index.html');
   });
 
   it('documente chaque export retiré une seule fois dans le tableau de migration', () => {
@@ -137,7 +137,7 @@ describe('registre des notes de versions', () => {
 
     expect(removed).toHaveLength(28);
     expect(new Set(removed).size).toBe(removed.length);
-    expect(RELEASES.find((release) => release.version === '3.2.0')?.removedComponents).toBe(
+    expect(RELEASES.find((release) => release.version === '2.2.0')?.removedComponents).toBe(
       V320_REMOVED_COMPONENTS,
     );
   });

@@ -17,23 +17,23 @@ export const notesVersionsPage: DocPage = {
     'rupture',
     'Glass',
     'liquidGlass',
-    '3.2.0',
-    '3.3.0',
-    '3.4.0',
-    '3.5.0',
-    '3.5.1',
-    '3.5.2',
-    '3.6.0',
-    '3.6.1',
-    '3.7.0',
-    '3.7.1',
-    '3.8.0',
-    '3.9.0',
-    '3.9.1',
-    '3.9.2',
-    '3.9.3',
-    '3.9.4',
-    '3.10.0',
+    '2.2.0',
+    '2.3.0',
+    '2.4.0',
+    '2.5.0',
+    '2.5.1',
+    '2.5.2',
+    '2.6.0',
+    '2.6.1',
+    '2.7.0',
+    '2.7.1',
+    '2.8.0',
+    '2.9.0',
+    '2.9.1',
+    '2.9.2',
+    '2.9.3',
+    '2.9.4',
+    '2.10.0',
     'SvgMap',
     'PageScaffold',
     'changelog',
@@ -160,7 +160,7 @@ export const notesVersionsPage: DocPage = {
                                   <table>
                                     <thead>
                                       <tr>
-                                        <th scope="col">Export 3.1.1</th>
+                                        <th scope="col">Export 2.1.1</th>
                                         <th scope="col">Migration conseillée</th>
                                       </tr>
                                     </thead>

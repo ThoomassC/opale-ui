@@ -78,10 +78,10 @@ describe('les attributs sans guillemets', () => {
     expect(named(themes, 'dark-explicit').overrides.get('--ink')).toBe('#eee');
   });
 
-  /* `parseThemes` est public (`./contract`) : ce que 3.9.1 acceptait, il
+  /* `parseThemes` est public (`./contract`) : ce que 2.9.1 acceptait, il
      l'accepte encore. Un bloc sombre sous un autre sélecteur n'est pas lu —
      comme avant —, et ne fait pas lever d'erreur. */
-  it('accepte comme en 3.9.1 un bloc sombre posé sous un autre sélecteur', () => {
+  it('accepte comme en 2.9.1 un bloc sombre posé sous un autre sélecteur', () => {
     const css = `:root{--ink:#000} .chart[data-theme="dark"]{--chart-grid:#333} html[data-theme=dark]{--ink:#fff}`;
     expect(() => parseThemes(css)).not.toThrow();
     expect(named(parseThemes(css), 'dark-explicit').overrides.size).toBe(0);

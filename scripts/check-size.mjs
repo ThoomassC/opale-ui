@@ -26,6 +26,43 @@ const entry = join(root, 'dist/opale/index.js');
    module voisin entraîné avec lui. */
 const BUDGETS = {
   Divider: 1_000,
+  /* Le carrousel : défilement natif, glisser à la souris, clavier, lecture
+     automatique et annonces. Posé à 5 000 o avant son écriture, mesuré à
+     8 723 o puis allégé à 7 342 o (flèches en texte, une seule fabrique de
+     classes, préférence de mouvement sans abonnement). 5 000 o ne tiennent
+     pas : la mesure garde l'indentation de la sortie `es`, et Tooltip,
+     Textarea et RadioGroup pèsent 11,3 à 11,5 ko par le même calcul.
+     Relevé une seconde fois, à 10 500 o, après la revue : la mesure continue
+     (ResizeObserver), les positions atteignables et le glisser durci
+     corrigent deux bloquants et cinq défauts majeurs, pour 10 069 o.
+     Puis à 11 000 o : les fragments dépliés et l'avertissement d'un enfant
+     qui cache ses diapositives (un troisième bloquant, vu en navigateur)
+     portent la mesure à 10 723 o — toujours sous Tooltip, Textarea et
+     RadioGroup. Un nouvel ajout passe par un allègement, pas par ce budget. */
+  Carousel: 11_000,
+  /* L'apparition au défilement : une animation CSS liée à la vue, et un
+     repli `IntersectionObserver` pour les seuls éléments sous la ligne de
+     flottaison. Posé à 2 500 o avant son écriture ; un dépassement s'allège,
+     il ne relève pas ce budget. */
+  Reveal: 2_500,
+  /* Le bandeau défilant : une animation CSS sur deux copies, un bouton pause
+     et la direction lue une fois. Posé à 3 000 o avant son écriture ; un
+     dépassement s'allège, il ne relève pas ce budget. */
+  Marquee: 3_000,
+  /* Le titre découpé en mots : des mots en `inline-block`, une copie lisible
+     cachée de l'écran et un observateur pour le déclencheur `view`. Posé à
+     2 500 o avant son écriture ; un dépassement s'allège, il ne relève pas
+     ce budget. */
+  SplitHeading: 2_500,
+  /* La scène qui suit le fond de la section active : ses sections mesurées
+     à chaque image de défilement, et l'attribut `data-ground` qu'une feuille
+     lit. Posé à 2 000 o avant son écriture ; un dépassement s'allège, il ne
+     relève pas ce budget — la réécriture sans observateur, mesurée à 2 549 o,
+     a été allégée à 1 993 o. */
+  ScrollStage: 2_000,
+  /* La section qui peint son propre fond et son encre, et s'inscrit auprès
+     de sa scène. Posé à 1 200 o avant son écriture ; même règle. */
+  ScrollSection: 1_200,
 };
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];

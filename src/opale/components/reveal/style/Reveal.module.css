@@ -1,0 +1,99 @@
+/* =============================================================================
+   L'APPARITION AU DÉFILEMENT — FEUILLE D'OPALE.
+
+   AU REPOS, TOUT EST VISIBLE. Aucune règle de premier niveau ne cache
+   `.root` : sans script et sans animation liée à la vue, le contenu est là.
+
+   LES RÉGLAGES SONT DES JETONS, déclarés sur `:root` dans `opale.css` avec
+   l'échelle de mouvement (une durée ou une courbe écrite ici en clair
+   romprait le contrat de mouvement) : `--opale-reveal-distance` (la montée,
+   1,5 rem), `--opale-reveal-duration` (720 ms, pour le repli),
+   `--opale-reveal-stagger` (le pas d'une cascade, 60 ms) et
+   `--opale-ease-reveal`. `--opale-reveal-index` vient de `delay`.
+
+   SEULS `transform` ET `opacity` S'ANIMENT : la boîte garde sa place dès la
+   première image (aucun décalage de mise en page).
+   ========================================================================== */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--opale-reveal-distance));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* LE NATIF : la montée suit l'entrée de l'élément dans la vue, sans script.
+   Un élément déjà à l'écran au montage peut être en pleine entrée : le script
+   le marque `shown`, et il est figé à son état final. */
+@supports (animation-timeline: view()) {
+  .root {
+    animation-name: rise;
+    animation-fill-mode: both;
+    animation-timing-function: var(--opale-ease-reveal);
+    animation-timeline: view();
+    /* La cascade décale la plage, de 10 % de l'entrée par rang : un délai en
+       temps n'a pas de sens sur une timeline de défilement, et Chromium
+       l'ignore. Bornée : la fin ne passe jamais l'entrée complète, qu'un
+       élément au bas du document atteint toujours. */
+    animation-range: entry min(50%, var(--opale-reveal-index, 0) * 10%) entry
+      min(100%, 80% + var(--opale-reveal-index, 0) * 10%);
+  }
+
+  /* Le focus, ou un élément déjà à l'écran au montage : l'état final, tout
+     de suite (WCAG 2.4.7) — jamais figé à mi-montée tant qu'on ne défile pas. */
+  .root:focus-within,
+  .root[data-reveal='shown'] {
+    animation: none;
+  }
+}
+
+/* LE REPLI : l'attente n'est posée que par le script, et seulement sous la
+   vue ; la montée part quand l'observateur la montre. */
+.root[data-reveal='pending'] {
+  opacity: 0;
+  transform: translateY(var(--opale-reveal-distance));
+}
+
+.root[data-reveal='shown'] {
+  transition-property: opacity, transform;
+  transition-duration: var(--opale-reveal-duration);
+  transition-timing-function: var(--opale-ease-reveal);
+  transition-delay: calc(var(--opale-reveal-index, 0) * var(--opale-reveal-stagger));
+}
+
+/* Montré par le focus : aucune transition. L'élément est déjà centré par la
+   tabulation ; un fondu de 720 ms laisserait le focus sur l'invisible. */
+.root[data-reveal='shown']:focus-within {
+  transition: none;
+}
+
+/* MOUVEMENT RÉDUIT ET IMPRESSION : le contenu, simplement là. Les règles
+   suivent celles qu'elles annulent, à spécificité égale : `.root` défait
+   l'animation native, `[data-reveal='shown']` la transition du repli. */
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root[data-reveal='shown'] {
+    animation: none;
+    transition: none;
+  }
+  .root[data-reveal='pending'] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .root,
+  .root[data-reveal='shown'] {
+    animation: none;
+    transition: none;
+  }
+  .root[data-reveal='pending'] {
+    opacity: 1;
+    transform: none;
+  }
+}

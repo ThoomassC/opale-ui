@@ -250,9 +250,9 @@ describe('DataTable — sélection de lignes', () => {
   });
 });
 
-/* EN 3.9, UNE CELLULE RENDAIT TOUT `ReactNode`. Un portail ou un itérable qui
+/* EN 2.9, UNE CELLULE RENDAIT TOUT `ReactNode`. Un portail ou un itérable qui
    n'est pas un tableau doivent donc toujours s'afficher sans `cell`. */
-describe('DataTable — les ReactNode de la 3.9 restent affichés', () => {
+describe('DataTable — les ReactNode de la 2.9 restent affichés', () => {
   it('devrait rendre un portail et un itérable dans une cellule', () => {
     const host = document.createElement('div');
     document.body.append(host);

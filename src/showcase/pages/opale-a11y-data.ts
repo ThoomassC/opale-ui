@@ -742,6 +742,95 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
       'Un nombre de colonnes fixe ne passe pas à une colonne sur un écran étroit : préférez une largeur minimale de piste.',
     ],
   },
+  Carousel: {
+    states: [],
+    keyboard: [
+      'La piste est focalisable : Flèche droite et Flèche gauche passent à la diapositive suivante et précédente — inversées de droite à gauche —, Début et Fin vont aux extrémités.',
+      'Les flèches d’un champ placé dans une diapositive restent au champ.',
+      'Flèches, points et bouton pause sont des `<button type="button">` natifs. Aux extrémités, les flèches portent `aria-disabled="true"` et restent focalisables : le focus ne tombe jamais sur `<body>`.',
+      'Le bouton pause vient en premier dans l’ordre de tabulation, avant la piste (APG).',
+      'Alt, Ctrl ou Cmd avec une flèche restent au navigateur.',
+      'Les diapositives entièrement hors de la piste sont `inert` : la tabulation ne se pose jamais hors de l’écran.',
+    ],
+    semantics: [
+      'La racine est une `role="region"` nommée par `label`, avec `aria-roledescription="carrousel"`.',
+      'Chaque diapositive est un `role="group"` nommé « 2 sur 6 », avec `aria-roledescription="diapositive"`.',
+      'Les points forment un groupe nommé, un par position atteignable : les diapositives qui ne peuvent venir au bord de départ partagent celle du bout. Le point actif porte `aria-current="true"`.',
+      'Une région polie annonce « 2 sur 6 » une fois la diapositive atteinte après un changement voulu, jamais pendant la lecture automatique ni quand un parent contrôlant refuse le changement.',
+      'La lecture automatique rend toujours un bouton pause (WCAG 2.2.2) et s’arrête sous le pointeur, tant que le focus est dedans et tant que la page est cachée ; sous `prefers-reduced-motion`, elle ne démarre pas et les défilements sont instantanés.',
+    ],
+    limits: [
+      'Sans JavaScript, la piste défile au doigt et à la molette, mais flèches, points et clavier ne font rien.',
+      'Un changement de `prefers-reduced-motion` en cours de visite vaut au prochain montage.',
+    ],
+  },
+  Reveal: {
+    states: [],
+    keyboard: [
+      'Aucune touche propre. Le focus qui entre dans un bloc encore en attente le montre aussitôt : la tabulation ne se pose jamais sur un contenu invisible.',
+    ],
+    semantics: [
+      'L’élément rendu par `as`, sans rôle ajouté : le contenu est lu dans l’ordre du code, qu’il soit monté ou non.',
+      'Visible au repos : le serveur, une page sans script et l’impression rendent le contenu à son état final. Seuls les blocs sous la vue au montage passent en attente, jamais ceux déjà à l’écran.',
+      'Sous `prefers-reduced-motion: reduce`, aucune transformation ni animation : le contenu est simplement là. Rien ne dépend de la couleur ; les contrastes forcés n’ont rien à corriger.',
+    ],
+    limits: [
+      'La montée native, liée au défilement, se rejoue à chaque entrée par le bas, même avec `once`.',
+      'Le repli observe la vue de la page : dans un conteneur qui défile lui-même, un bloc sous son bord reste visible et ne monte pas.',
+    ],
+  },
+  Marquee: {
+    states: [],
+    keyboard: [
+      'Le bouton « Mettre en pause » / « Lire » vient avant le contenu dans l’ordre de tabulation (WCAG 2.2.2). Le focus posé dans le contenu suspend aussi le défilement.',
+    ],
+    semantics: [
+      'Une région nommée par `label`, sans `aria-roledescription` : le rôle natif est annoncé dans la langue du lecteur.',
+      'Le contenu est lu une seule fois : la copie qui assure la boucle est `aria-hidden` et `inert`, rien n’y est focalisable.',
+      'Le bouton change de nom plutôt que de porter `aria-pressed`, comme celui du carrousel.',
+      'Immobile au serveur, sans script, sous `prefers-reduced-motion: reduce` et à l’impression : le contenu passe à la ligne, jamais rogné, et le bouton est caché faute de mouvement à suspendre. En contrastes forcés, le bouton prend les couleurs système.',
+    ],
+    limits: [
+      'Les entrées ne sont pas interactives : ni lien, ni bouton, ni champ, ni média, ni `iframe`, ni composant à effets. La copie de la boucle est inerte — un clic sur deux n’y ferait rien — et dupliquerait champs, lecteurs et effets. Un avertissement de développement le signale.',
+      'Les entrées sont rendues deux fois à l’écran : un `id` dans une entrée serait dupliqué.',
+      'Un changement de `prefers-reduced-motion` en cours de visite arrête le mouvement tout de suite ; la copie masquée n’est retirée qu’au prochain montage.',
+    ],
+  },
+  SplitHeading: {
+    states: [],
+    keyboard: ['Aucune touche propre : un titre ne reçoit pas le focus.'],
+    semantics: [
+      'Un vrai titre `h1` à `h6`, sans `aria-label` (certaines techniques d’assistance l’ignorent sur un titre) : son nom est la phrase entière, rendue une fois, cachée de l’écran. Les mots visibles sont `aria-hidden`.',
+      'Copier le titre rend la phrase une fois : la copie lisible est exclue de la sélection.',
+      'Visible au repos : le serveur, une page sans script, l’impression et `prefers-reduced-motion: reduce` montrent chaque mot à son état final. Sous mouvement réduit, rien ne bouge — pas même un fondu.',
+      'Aucun décalage de mise en page : les mots sont en ligne dès le rendu serveur, seuls `transform` et `opacity` s’animent.',
+    ],
+    limits: [
+      'Du texte seulement : un enfant riche (lien, `em`) est rendu tel quel, sans découpe ni animation, et un avertissement de développement le signale.',
+      'Un texte de droite à gauche (hébreu, arabe…) est rendu sans découpe ni animation : un mot en `inline-block` est neutre pour l’algorithme bidi, et des mots découpés s’afficheraient en ordre inverse sur une page de gauche à droite.',
+      'Un titre vide n’a pas de nom accessible : un avertissement de développement le signale.',
+      'La phrase est dans le DOM deux fois — les mots visibles et la copie lisible : `innerText` et `textContent` du titre la rendent deux fois, et la recherche dans la page (Ctrl+F) peut compter une occurrence invisible. La copie à la souris, elle, ne la rend qu’une fois.',
+      'Dans un conteneur qui défile lui-même, `trigger="view"` attend que le titre soit visible dans ce conteneur et dans la vue.',
+    ],
+  },
+  ScrollSection: {
+    states: [],
+    keyboard: [
+      'Aucune touche propre : le défilement est celui de la page. Un saut (Fin, Début, ancre) finit sur la section d’arrivée ; en haut et en bas de page, la première et la dernière section visibles sont actives, même plus courtes que la demi-vue.',
+    ],
+    semantics: [
+      'Chaque section peint toujours son propre couple fond / encre, à 4,5:1 au moins : son texte ne passe jamais sur le fond d’une voisine, même pendant le fondu de la scène.',
+      'Une `section` nommée par `aria-labelledby` est une région ; sans nom, elle n’en est pas une. `as` rend `div`, `header`, `footer` ou `article`.',
+      '`night` et `blue` posent le thème local sombre, `amber` le clair : les composants imbriqués prennent les encres de leur fond.',
+      'Sans script, à l’impression et avant l’hydratation, la scène porte le fond de la première section. Sous `prefers-reduced-motion: reduce`, elle suit toujours la section active, sans fondu.',
+    ],
+    limits: [
+      'Un texte posé directement sur la scène, hors section, passe pendant le fondu par des couples intermédiaires illisibles : il lit `--opale-stage-ground` et `--opale-stage-ink` sur son propre fond, qui change d’un coup.',
+      'La scène mesure contre la fenêtre : dans un conteneur qui défile lui-même, ou dans une `iframe` d’une autre origine, elle n’est pas prise en charge.',
+      'Une section enveloppée dans un autre composant est suivie, mais ne donne pas le fond de départ : passez alors `initialGround`.',
+      'Les propriétés `--opale-stage-*` ne valent que dans la scène : un en-tête placé hors d’elle suit `onGroundChange`.',
+    ],
+  },
   Tooltip: {
     states: [],
     keyboard: [
