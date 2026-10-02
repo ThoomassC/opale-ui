@@ -224,8 +224,10 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
   customScrollbar?: boolean;
   /**
    * Une poignée sur le bord du rail règle sa largeur, au glisser et au
-   * clavier (flèches, Début, Fin). Le rail est alors enveloppé d'un cadre qui
-   * porte la poignée. Sans effet rail plié. Défaut : `false`.
+   * clavier (flèches, Début, Fin). Le rail est alors enveloppé d'un cadre
+   * (`.opale-sidebar__frame`) qui porte la poignée et prend la hauteur de sa
+   * colonne ; `rootStyle` et `rootClassName` restent sur le rail, dans le
+   * cadre. Sans effet rail plié. Défaut : `false`.
    */
   resizable?: boolean;
   /** La largeur pilotée, en pixels, avec `resizable`. */
@@ -289,7 +291,11 @@ function SidebarScrollArea({
     if (!area) return;
     const update = () => {
       const view = area.clientHeight;
-      const max = Math.max(0, area.scrollHeight - view);
+      /* Sous 2 px d'écart, c'est un arrondi, pas un contenu qui dépasse ; une
+         zone de hauteur nulle n'est pas encore mesurée. Dans les deux cas,
+         rien ne défile et la barre reste cachée. */
+      const overflow = area.scrollHeight - view;
+      const max = view > 0 && overflow >= 2 ? overflow : 0;
       maxRef.current = max;
       const size = max === 0 || !view ? 1 : Math.max(0.14, Math.min(1, view / area.scrollHeight));
       const offset = max === 0 ? 0 : (area.scrollTop / max) * (1 - size);

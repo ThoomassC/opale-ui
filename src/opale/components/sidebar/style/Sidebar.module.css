@@ -606,10 +606,15 @@ button.groupTitle:focus-visible {
   box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
 }
 
-/* Le cadre d'un rail réglable : il porte la poignée, que le verre rognerait. */
+/* Le cadre d'un rail réglable : il porte la poignée, que le verre rognerait.
+   Il prend la hauteur de sa colonne, et le rail la sienne : sans quoi un rail
+   `resizable` perdait le `height: 100%` qu'il avait seul. Pas de `flex: 1` :
+   dans une ligne flex, le cadre grandirait aussi en largeur. */
 .frame {
   position: relative;
   display: flex;
+  align-self: stretch;
+  block-size: 100%;
   max-height: 100%;
 }
 .frame[data-resizing] > .sidebarRoot,
@@ -689,6 +694,8 @@ button.groupTitle:focus-visible {
 .railSlot {
   position: relative;
   display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 100%;
 }
 .railSlot[hidden] {

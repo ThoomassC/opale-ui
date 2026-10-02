@@ -3,6 +3,15 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
+## 3.0.2 — 2 octobre 2026
+
+Deux corrections de la Sidebar remontées par un projet qui l’utilise : la barre de défilement se cache quand rien ne dépasse, et un rail réglable garde la hauteur de sa colonne. Sans rupture.
+
+### La barre latérale
+
+- **Une barre de défilement qui se tait quand rien ne dépasse** — Avec customScrollbar, un rail sans hauteur fixe affichait la barre, curseur à 100 %, alors que rien ne défilait : un écart d’arrondi d’un pixel, ou une zone pas encore mesurée, comptait comme un débordement. Sous 2 px d’écart, la barre reste cachée.
+- **Un rail réglable qui garde la hauteur de sa colonne** — Avec resizable ou mobile, le cadre ajouté autour du rail ne s’étirait pas, et le rail perdait la hauteur de sa colonne. Le cadre s’étire désormais dans la hauteur, jamais dans la largeur ; rootStyle reste sur le rail.
+
 ## 3.0.1 — 2 octobre 2026
 
 La refonte : des composants de mouvement, un nouvel accueil, la direction artistique sur toute la documentation, une Sidebar comme le sommaire, et des champs sans anneau gris au focus. Uniquement des ajouts et des corrections visuelles : aucune API retirée.
