@@ -3,6 +3,26 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
+## 3.0.1 — 2 octobre 2026
+
+La refonte : des composants de mouvement, un nouvel accueil, la direction artistique sur toute la documentation, une Sidebar comme le sommaire, et des champs sans anneau gris au focus. Uniquement des ajouts et des corrections visuelles : aucune API retirée.
+
+### Le mouvement
+
+- **Cinq composants de mouvement** — Carousel (glisser, clavier, annonces), Reveal (apparition au défilement), Marquee (bandeau en boucle avec pause), SplitHeading (titre qui arrive mot à mot) et ScrollStage avec ScrollSection (fonds pleins par section). Tous restent immobiles en mouvement réduit et lisibles sans JavaScript.
+
+### Le site
+
+- **Un nouvel accueil et la DA de la 3.0** — L’accueil devient un récit en cinq bandes, construit avec les composants d’Opale. Toute la documentation reprend la direction artistique : titres en Bricolage, texte à 17 px, code sur fond nuit, pied de page, cibles de 24 px.
+
+### La barre latérale
+
+- **Sidebar comme le sommaire de la documentation** — Sidebar.Group pour les parties titrées, et trois options : customScrollbar (la barre du sommaire), resizable (la largeur au glisser et au clavier) et mobile (le format téléphone du sommaire). Le rail plein se pose sur le fond de la page.
+
+### Le focus
+
+- **Plus d’anneau gris autour des champs** — Input, Select, Textarea, MultiSelect et SearchBar ne tracent plus d’anneau au focus : leur bordure passe au primaire, et c’est le repère. Les autres contrôles gardent leur anneau, qui suit désormais leur forme arrondie au lieu d’un rectangle.
+
 ## 2.10.0 — 30 septembre 2026
 
 Les composants qui manquaient pour un vrai projet : Textarea, RadioGroup, Field, Tooltip, Popover, DropdownMenu et Grid, le routeur partout, DataTable générique. Uniquement des ajouts.
