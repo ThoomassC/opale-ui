@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Sidebar, { type SidebarProps } from './Sidebar';
+import sheet from './style/Sidebar.module.css?raw';
+import { declaration } from '../../../test/css-rules';
 
 /* LA BARRE DE DÉFILEMENT ET LA POIGNÉE DE LARGEUR DU SOMMAIRE DE LA
    DOCUMENTATION, devenues deux options du rail : `customScrollbar` et
@@ -67,6 +69,28 @@ describe('Sidebar — la barre de défilement (`customScrollbar`)', () => {
     expect(region.scrollTop).toBe(0);
     fireEvent.keyDown(bar, { key: 'PageDown' });
     expect(region.scrollTop).toBe(200);
+  });
+
+  /* RETOUR DE GRAND ORAL STUDIO : un rail sans hauteur fixe montrait la barre,
+     curseur à 100 %, alors que rien ne dépassait. Un pixel d'arrondi entre
+     `scrollHeight` et `clientHeight`, ou une zone pas encore mesurée, suffisait. */
+  it('reste cachée pour un pixel d’arrondi ou une zone pas encore mesurée', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(200);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(201);
+    const { unmount } = renderRail({ customScrollbar: true });
+    expect(document.querySelector('.opale-sidebar__scrollbar')).toHaveAttribute(
+      'data-idle',
+      'true',
+    );
+    unmount();
+
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(0);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(400);
+    renderRail({ customScrollbar: true });
+    expect(document.querySelector('.opale-sidebar__scrollbar')).toHaveAttribute(
+      'data-idle',
+      'true',
+    );
   });
 
   it('se traduit avec `labels`', () => {
@@ -145,5 +169,22 @@ describe('Sidebar — la poignée de largeur (`resizable`)', () => {
   it('disparaît quand le rail est plié, qui a sa propre largeur', () => {
     renderRail({ resizable: true, collapsible: true, defaultCollapsed: true });
     expect(screen.queryByRole('separator')).toBeNull();
+  });
+});
+
+/* RETOUR DE GRAND ORAL STUDIO : avec `resizable` (ou `mobile`), le rail est
+   enveloppé d'un cadre ; sans étirement, il ne prenait plus la hauteur de sa
+   colonne. Le cadre s'étire dans la hauteur, jamais dans la largeur — `flex: 1`
+   le ferait grandir dans une ligne flex —, et l'emplacement du rail remplit le
+   cadre en colonne du format mobile. */
+describe('Sidebar — le cadre prend la hauteur de sa colonne', () => {
+  it('étire le cadre dans la hauteur, sans le faire grandir en largeur', () => {
+    expect(declaration(sheet, '.frame', 'align-self')).toBe('stretch');
+    expect(declaration(sheet, '.frame', 'block-size')).toBe('100%');
+    expect(declaration(sheet, '.frame', 'flex')).toBeUndefined();
+  });
+
+  it('fait remplir le cadre par l’emplacement du rail', () => {
+    expect(declaration(sheet, '.railSlot', 'flex')).toBe('1 1 auto');
   });
 });

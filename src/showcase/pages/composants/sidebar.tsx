@@ -151,7 +151,9 @@ const PROPS: readonly PropRow[] = [
         Une poignée sur le bord règle la largeur, au glisser et au clavier (flèches par 16 px, 32
         avec <kbd>Maj</kbd>, <kbd>Début</kbd> et <kbd>Fin</kbd> aux bornes). C’est un séparateur
         focalisable (<code>role=&quot;separator&quot;</code>) dont la valeur est la largeur en
-        pixels. Le rail est enveloppé d’un cadre qui porte la poignée ; plié, il n’en a pas.
+        pixels. Le rail est enveloppé d’un cadre (<code>.opale-sidebar__frame</code>) qui porte la
+        poignée et prend la hauteur de sa colonne ; <code>rootStyle</code> reste sur le rail ; plié,
+        il n’a pas de poignée.
       </>
     ),
   },
