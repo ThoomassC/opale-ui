@@ -1,21 +1,14 @@
-import { Sidebar } from '../../../opale';
 import { Specimen } from '../../section';
 import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
 import { ComponentPageLayout } from '../component-page';
-import { SidebarCollapsibleScene } from './scenes';
-import { MaterialSwitch } from './material-switch';
+import { SidebarCollapsibleScene, SidebarMobileScene } from './scenes';
 
 const USAGE = `import { Badge, Sidebar } from '@thomascaron/opale-ui';
 
-// \`collapsible\` est OBLIGATOIRE pour que Sidebar.Toggle rende quoi que ce soit.
-// \`customScrollbar\` et \`resizable\` : la barre et la poignée du sommaire de cette doc.
-<Sidebar collapsible customScrollbar resizable defaultValue="etapes">
-  <Sidebar.Header>
-    <strong>Voyage</strong>
-    <Sidebar.Toggle />
-  </Sidebar.Header>
-
+// \`customScrollbar\`, \`resizable\` et \`mobile\` : la barre, la poignée et le format
+// mobile du sommaire de cette documentation.
+<Sidebar customScrollbar resizable mobile="auto" defaultValue="etapes">
   <Sidebar.Items>
     <Sidebar.Group title="Le voyage">
       <Sidebar.Item itemId="etapes" icon={<Pin />}>Étapes</Sidebar.Item>
@@ -163,6 +156,19 @@ const PROPS: readonly PropRow[] = [
     ),
   },
   {
+    name: 'mobile',
+    type: "'off' | 'auto' | 'menu'",
+    defaultValue: "'off'",
+    description: (
+      <>
+        Le format mobile du sommaire de cette documentation : un bouton « Sommaire », une rangée de
+        raccourcis vers chaque <code>Sidebar.Group</code>, puis le rail en pleine largeur, sans
+        poignée. <code>auto</code> l’adopte sous 30 rem de fenêtre, <code>menu</code> toujours.
+        Libellés : <code>labels.menu</code> et <code>labels.shortcuts</code>.
+      </>
+    ),
+  },
+  {
     name: 'Sidebar.Group',
     type: '{ title, collapsible?, defaultOpen?, open?, onOpenChange? }',
     defaultValue: 'collapsible et defaultOpen : true',
@@ -224,17 +230,15 @@ export default function SidebarContent() {
       imports={['Sidebar']}
       demo={
         <Specimen
-          title="Pliable et contrôlée — repliez-la"
+          title="Le rail du sommaire — faites-le défiler, élargissez-le"
           note={
             <>
-              La scène impose 256 px de hauteur : une barre latérale haute de son seul contenu ne
-              ressemble pas à une barre latérale. Le pli est <strong>contrôlé ici</strong>, pour que
-              l’état soit affiché à côté de la barre — et il survit au changement de matériau :
-              passez au verre liquide rail replié, il le reste. Sur la photographie, le rail n’écrit
-              aucune encre en dur, il hérite de celle de la scène, et l’entrée retenue se lit par un
-              liseré plutôt que par la teinte primaire, dont le contraste dépendrait de ce qu’il y a
-              derrière. Repliez la barre et vérifiez au clavier : les libellés restent des noms de
-              boutons, ils sont seulement masqués à l’œil.
+              Le même rail que le sommaire de cette documentation : des parties titrées, la barre de
+              défilement d’Opale et la poignée de largeur, au glisser comme au clavier. Le rail a
+              une hauteur à lui : son contenu défile dans sa zone. L’entrée retenue est{' '}
+              <strong>contrôlée ici</strong>, pour être affichée à côté — et elle survit au
+              changement de matériau. Sur la photographie, le rail hérite de l’encre de la scène, et
+              l’entrée retenue se lit par un liseré plutôt que par la teinte primaire.
             </>
           }
         >
@@ -245,37 +249,18 @@ export default function SidebarContent() {
         <>
           <UsageBlock label="Import et appels représentatifs de Sidebar" code={USAGE} />
           <Specimen
-            title="Non pliable — et Sidebar.Toggle qui ne rend rien"
+            title="Format mobile — celui du sommaire d’Opale"
             note={
               <>
-                Cette barre porte un <code>Sidebar.Toggle</code> dans son en-tête, et vous ne le
-                voyez pas : sans <code>collapsible</code>, il rend <code>null</code>. C’est un choix{' '}
-                <strong>délibéré du composant</strong>, pas un oubli du spécimen — un bouton qui ne
-                peut rien faire est pire qu’un bouton absent : il occupe un cran de tabulation, il
-                s’annonce, et il ne répond pas.
+                Le bouton « Sommaire » déplie le rail ; la rangée de pastilles mène à chaque partie,
+                qu’elle rouvre si elle était fermée ; <kbd>Échap</kbd> replie et rend le focus au
+                bouton. Ici forcé par <code>mobile=&quot;menu&quot;</code> dans un cadre de
+                téléphone ; <code>mobile=&quot;auto&quot;</code> l’adopte sous 30 rem de fenêtre,
+                comme le sommaire de cette documentation.
               </>
             }
           >
-            <MaterialSwitch name="Sidebar non pliable" tall>
-              {(liquidGlass) => (
-                <Sidebar
-                  aria-label="Voyage, menu fixe"
-                  liquidGlass={liquidGlass}
-                  defaultValue="carte"
-                  size="small"
-                >
-                  <Sidebar.Header>
-                    <strong>Voyage</strong>
-                    <Sidebar.Toggle />
-                  </Sidebar.Header>
-
-                  <Sidebar.Items>
-                    <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
-                    <Sidebar.Item itemId="carte">Carte</Sidebar.Item>
-                  </Sidebar.Items>
-                </Sidebar>
-              )}
-            </MaterialSwitch>
+            <SidebarMobileScene />
           </Specimen>
         </>
       }

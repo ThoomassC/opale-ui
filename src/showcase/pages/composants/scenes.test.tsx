@@ -8,12 +8,15 @@ import { SidebarCollapsibleScene } from './scenes';
 afterEach(cleanup);
 
 describe('SidebarCollapsibleScene', () => {
-  /* DEMANDE DU PROPRIÉTAIRE : plus de numéro de version au pied de la démo,
-     ni déplié ni replié. */
-  it('n’affiche aucun numéro de version dans le rail déplié', () => {
+  /* DEMANDE DU PROPRIÉTAIRE : ni numéro de version au pied, ni titre ni bouton
+     de pli en tête — le rail commence par ses parties, comme le sommaire. */
+  it('n’affiche ni version, ni titre, ni bouton de pli', () => {
     const { container } = render(<SidebarCollapsibleScene />);
 
-    expect(container.querySelector('aside')).not.toHaveTextContent(`v${UI_VERSION}`);
+    const aside = container.querySelector('aside');
+    expect(aside).not.toHaveTextContent(`v${UI_VERSION}`);
+    expect(aside?.querySelector('.opale-sidebar__header')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Replier le rail' })).toBeNull();
   });
 
   it('montre la barre de défilement et la poignée de largeur du sommaire', () => {
@@ -23,35 +26,16 @@ describe('SidebarCollapsibleScene', () => {
     expect(document.querySelector('.opale-sidebar__scrollbar')).not.toBeNull();
   });
 
-  /* LE PIED D'UN RAIL REPLIÉ NE PEINT RIEN. Il affichait un point médian seul,
-     orphelin sous les vignettes : un signe sans rôle, ni nom ni information. */
-  it('ne laisse aucun signe orphelin dans le pied une fois replié', async () => {
-    const user = userEvent.setup();
-    const { container } = render(<SidebarCollapsibleScene />);
-
-    await user.click(screen.getByRole('button', { name: 'Replier le rail' }));
-
-    const aside = container.querySelector('aside');
-    expect(aside).not.toHaveTextContent('·');
-    expect(aside).not.toHaveTextContent(`v${UI_VERSION}`);
-  });
-
   /* LE MATÉRIAU CHANGE, PAS L'ÉTAT. Passer en verre remonte le rail dans une
-     autre scène : si l'état vivait dans le rail, le pli et l'entrée retenue
-     repartiraient de zéro à chaque bascule du matériau. */
-  it('garde le pli et l’entrée retenue en passant au verre', async () => {
+     autre scène : si l'état vivait dans le rail, l'entrée retenue repartirait
+     de zéro à chaque bascule du matériau. */
+  it('garde l’entrée retenue en passant au verre', async () => {
     const user = userEvent.setup();
-    const { container } = render(<SidebarCollapsibleScene />);
+    render(<SidebarCollapsibleScene />);
 
     await user.click(screen.getByRole('button', { name: 'Photos' }));
-    await user.click(screen.getByRole('button', { name: 'Replier le rail' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour Sidebar pliable' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour Sidebar' }));
 
-    expect(screen.getByRole('button', { name: 'Déplier le rail' })).toHaveAttribute(
-      'aria-expanded',
-      'false',
-    );
     expect(screen.getByRole('button', { name: 'Photos' })).toHaveAttribute('aria-current', 'page');
-    expect(container.querySelector('aside')).not.toHaveTextContent('·');
   });
 });

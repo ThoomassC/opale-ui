@@ -341,3 +341,15 @@ html:has(.tc-doc--full-bleed) {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* L'EXEMPLE MOBILE DE LA SIDEBAR : un cadre à la largeur d'un téléphone, sur
+   le fond de la page, pour voir le format du sommaire tel qu'il s'affiche
+   sous 30 rem. */
+.tc-doc-sidebar-phone {
+  inline-size: min(100%, 23.4375rem);
+  margin-inline: auto;
+  padding: var(--opale-space-sm);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--tc-da-radius-lg);
+  background: var(--opale-background);
+}
