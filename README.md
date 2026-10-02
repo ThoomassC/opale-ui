@@ -17,13 +17,13 @@ porte l'archive du paquet déjà compilé : elle s'installe avec npm, pnpm ou ya
 chaîne de build à l'installation.
 
 ```bash
-npm i https://github.com/ThoomassC/opale-ui/releases/download/v2.10.0/thomascaron-opale-ui-2.10.0.tgz
+npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.0.1/thomascaron-opale-ui-3.0.1.tgz
 ```
 
 **Alternative avec npm — le tag Git** (seule voie pour les versions antérieures à la 2.9.0) :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v2.10.0"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.0.1"
 ```
 
 Prérequis : React 19 et Node 20.19 ou 22.12 et plus. Par le tag Git, le paquet se compile à
