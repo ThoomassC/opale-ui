@@ -1,5 +1,4 @@
 import { Sidebar } from '../../../opale';
-import { UI_VERSION } from '../../version';
 import { Specimen } from '../../section';
 import { PropsTable, UsageBlock } from '../api';
 import type { PropRow } from '../api';
@@ -10,7 +9,8 @@ import { MaterialSwitch } from './material-switch';
 const USAGE = `import { Badge, Sidebar } from '@thomascaron/opale-ui';
 
 // \`collapsible\` est OBLIGATOIRE pour que Sidebar.Toggle rende quoi que ce soit.
-<Sidebar collapsible defaultValue="etapes">
+// \`customScrollbar\` et \`resizable\` : la barre et la poignée du sommaire de cette doc.
+<Sidebar collapsible customScrollbar resizable defaultValue="etapes">
   <Sidebar.Header>
     <strong>Voyage</strong>
     <Sidebar.Toggle />
@@ -22,8 +22,6 @@ const USAGE = `import { Badge, Sidebar } from '@thomascaron/opale-ui';
       <Sidebar.Item itemId="carte" badge={<Badge>3</Badge>}>Carte</Sidebar.Item>
     </Sidebar.Group>
   </Sidebar.Items>
-
-  <Sidebar.Footer>v${UI_VERSION}</Sidebar.Footer>
 </Sidebar>`;
 
 const PROPS: readonly PropRow[] = [
@@ -135,6 +133,32 @@ const PROPS: readonly PropRow[] = [
         libellé. Sans icône, une barre repliée affiche <code>collapsedFallback</code>, à défaut la
         première lettre du libellé, à défaut un point médian ; les trois sont des vignettes, jamais
         un nom.
+      </>
+    ),
+  },
+  {
+    name: 'customScrollbar',
+    type: 'boolean',
+    defaultValue: 'false',
+    description: (
+      <>
+        La barre de défilement du sommaire de cette documentation : un curseur qu’on glisse, et le
+        clavier quand elle a le focus (flèches, pages, <kbd>Début</kbd>, <kbd>Fin</kbd>). Le rail
+        défile dans sa propre zone : donnez-lui une hauteur. Sans contenu qui dépasse, la barre se
+        cache.
+      </>
+    ),
+  },
+  {
+    name: 'resizable · width / defaultWidth · minWidth · maxWidth · onWidthChange',
+    type: 'boolean · number · number · number · (width: number) => void',
+    defaultValue: 'false · taille de size · 224 · 480',
+    description: (
+      <>
+        Une poignée sur le bord règle la largeur, au glisser et au clavier (flèches par 16 px, 32
+        avec <kbd>Maj</kbd>, <kbd>Début</kbd> et <kbd>Fin</kbd> aux bornes). C’est un séparateur
+        focalisable (<code>role=&quot;separator&quot;</code>) dont la valeur est la largeur en
+        pixels. Le rail est enveloppé d’un cadre qui porte la poignée ; plié, il n’en a pas.
       </>
     ),
   },

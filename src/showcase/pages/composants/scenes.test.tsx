@@ -8,10 +8,19 @@ import { SidebarCollapsibleScene } from './scenes';
 afterEach(cleanup);
 
 describe('SidebarCollapsibleScene', () => {
-  it('affiche la version dans le pied du rail déplié', () => {
+  /* DEMANDE DU PROPRIÉTAIRE : plus de numéro de version au pied de la démo,
+     ni déplié ni replié. */
+  it('n’affiche aucun numéro de version dans le rail déplié', () => {
     const { container } = render(<SidebarCollapsibleScene />);
 
-    expect(container.querySelector('aside')).toHaveTextContent(`v${UI_VERSION}`);
+    expect(container.querySelector('aside')).not.toHaveTextContent(`v${UI_VERSION}`);
+  });
+
+  it('montre la barre de défilement et la poignée de largeur du sommaire', () => {
+    render(<SidebarCollapsibleScene />);
+
+    expect(screen.getByRole('separator', { name: 'Largeur du rail' })).toBeInTheDocument();
+    expect(document.querySelector('.opale-sidebar__scrollbar')).not.toBeNull();
   });
 
   /* LE PIED D'UN RAIL REPLIÉ NE PEINT RIEN. Il affichait un point médian seul,

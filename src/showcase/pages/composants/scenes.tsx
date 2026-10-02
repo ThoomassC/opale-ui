@@ -1,7 +1,5 @@
 import { useState } from 'react';
 
-import { UI_VERSION } from '../../version';
-
 import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../opale';
 import type { OpaleIconName, OpaleSize, ToastDefinition } from '../../../opale';
 
@@ -37,6 +35,11 @@ export function SidebarCollapsibleScene() {
             aria-label="Voyage, menu pliable"
             liquidGlass={liquidGlass}
             collapsible
+            customScrollbar
+            resizable
+            /* Une hauteur à lui : le rail défile dans sa zone, et sa barre
+               n'apparaît que si le contenu dépasse. */
+            rootStyle={{ height: '24rem' }}
             collapsed={collapsed}
             onCollapsedChange={setCollapsed}
             value={active}
@@ -77,12 +80,24 @@ export function SidebarCollapsibleScene() {
                   Brouillon
                 </Sidebar.Item>
               </Sidebar.Group>
+              <Sidebar.Group title="Le carnet">
+                <Sidebar.Item itemId="calendrier" icon={<SceneGlyph name="calendar" />}>
+                  Calendrier
+                </Sidebar.Item>
+                <Sidebar.Item itemId="vols" icon={<SceneGlyph name="plane" />}>
+                  Vols
+                </Sidebar.Item>
+                <Sidebar.Item itemId="budget" icon={<SceneGlyph name="wallet" />}>
+                  Budget
+                </Sidebar.Item>
+                <Sidebar.Item itemId="voyageurs" icon={<SceneGlyph name="users" />}>
+                  Voyageurs
+                </Sidebar.Item>
+                <Sidebar.Item itemId="reglages" icon={<SceneGlyph name="settings" />}>
+                  Réglages
+                </Sidebar.Item>
+              </Sidebar.Group>
             </Sidebar.Items>
-
-            {/* LE PIED N'EXISTE QUE DÉPLIÉ. Replié, il peignait un point médian
-            seul sous les vignettes : un signe orphelin, sans nom ni
-            information, que rien ne rattachait à la version qu'il remplaçait. */}
-            {!collapsed && <Sidebar.Footer>v{UI_VERSION}</Sidebar.Footer>}
           </Sidebar>
 
           <p className="tc-doc-stage__label">
