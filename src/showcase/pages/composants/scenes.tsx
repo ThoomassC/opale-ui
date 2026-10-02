@@ -83,6 +83,9 @@ export function SidebarCollapsibleScene() {
             liquidGlass={liquidGlass}
             customScrollbar
             resizable
+            /* Sous 30 rem, le format téléphone du sommaire, sans poignée : à
+               320 px, la poignée débordait de l'écran de 19 px. */
+            mobile="auto"
             /* Une hauteur à lui : le rail défile dans sa zone, et sa barre
                n'apparaît que si le contenu dépasse. */
             rootStyle={{ height: '24rem' }}
