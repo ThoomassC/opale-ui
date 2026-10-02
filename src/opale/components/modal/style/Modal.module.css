@@ -302,6 +302,29 @@
 /* WCAG 2.3.3 — la montée du panneau est du mouvement décoratif. Le fondu
    reste : il n'est pas un mouvement, et c'est lui qui évite l'apparition
    brutale que la réduction d'animation n'a jamais demandée. */
+/* FAIBLE HAUTEUR (téléphone à l'horizontale, zoom 200 %, texte agrandi) :
+   les marges en rem de la fenêtre, du panneau, de l'en-tête et du pied
+   prenaient presque toute la hauteur, et le corps qui défile n'en gardait que
+   55 px. Sous 30 rem de haut, elles se resserrent pour lui rendre la place. */
+@media (max-height: 30rem) {
+  .container {
+    padding-block: var(--opale-space-xs);
+  }
+  .panel {
+    padding: var(--opale-space-sm);
+  }
+  .header:has(.heading) {
+    padding-bottom: var(--opale-space-sm);
+  }
+  .body,
+  .footer {
+    margin-top: var(--opale-space-sm);
+  }
+  .body + .footer {
+    padding-top: var(--opale-space-sm);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shell {
     animation-name: opale-modal-veil;

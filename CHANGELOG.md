@@ -3,6 +3,21 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
+## 3.0.4 — 2 octobre 2026
+
+La suite de la phase 4 : Toggle et Checkbox qui gardent leur forme, Modal et SidePanel sur un écran bas, SegmentedControl et Button en contrastes forcés, et une page Typographie à la DA de la 3.0. Sans rupture.
+
+### Les composants
+
+- **Toggle et Checkbox gardent leur forme** — Dans une ligne étroite, l’interrupteur de Toggle et la case de Checkbox ne se tassent plus quand le libellé passe à la ligne, et l’anneau de focus du Toggle reste ancré à sa ligne.
+- **Modal et SidePanel sur un écran bas** — Sous 30 rem de hauteur (un téléphone à l’horizontale), le panneau resserre ses marges, son en-tête et son pied : le contenu garde la place de défiler.
+- **SegmentedControl replié et Button en contrastes forcés** — Un SegmentedControl qui passe sur plusieurs lignes garde des coins réguliers au lieu d’une pilule déformée. En contrastes forcés, Button garde une bordure visible qui suit sa forme.
+
+### Le site
+
+- **Une page Typographie à la DA de la 3.0** — La page présente les trois voix (Bricolage Grotesque, Chivo, Hack), l’échelle fluide de l’accueil et de la documentation, puis les six pas --opale-text-* que lisent les composants. Chaque échantillon est rendu dans son vrai style.
+- **Layout et Sidebar sans défaut d’accessibilité** — L’aperçu de Layout ne crée plus de second repère principal, et la démo de Sidebar montre son format mobile : les 85 pages passent l’audit axe sans défaut, en clair et en sombre, à 320 et 360 px.
+
 ## 3.0.3 — 2 octobre 2026
 
 Des états courants plus sobres — Sidebar et Navbar sans trait, onglets sans soulignement — et un RadioGroup lisible sous verre liquide. Sans rupture.

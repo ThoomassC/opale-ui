@@ -49,6 +49,55 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V304_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Les composants',
+    changes: [
+      {
+        title: 'Toggle et Checkbox gardent leur forme',
+        detail:
+          'Dans une ligne étroite, l’interrupteur de Toggle et la case de Checkbox ne se tassent plus quand le libellé passe à la ligne, et l’anneau de focus du Toggle reste ancré à sa ligne.',
+        links: [{ label: 'Toggle', slug: 'composants/opale-toggle' }],
+      },
+      {
+        title: 'Modal et SidePanel sur un écran bas',
+        detail:
+          'Sous 30 rem de hauteur (un téléphone à l’horizontale), le panneau resserre ses marges, son en-tête et son pied : le contenu garde la place de défiler.',
+        links: [{ label: 'Modal', slug: 'composants/modal' }],
+      },
+      {
+        title: 'SegmentedControl replié et Button en contrastes forcés',
+        detail:
+          'Un SegmentedControl qui passe sur plusieurs lignes garde des coins réguliers au lieu d’une pilule déformée. En contrastes forcés, Button garde une bordure visible qui suit sa forme.',
+        links: [
+          { label: 'SegmentedControl', slug: 'composants/opale-segmented-control' },
+          { label: 'Button', slug: 'composants/opale-button' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Le site',
+    changes: [
+      {
+        title: 'Une page Typographie à la DA de la 3.0',
+        detail:
+          'La page présente les trois voix (Bricolage Grotesque, Chivo, Hack), l’échelle fluide de l’accueil et de la documentation, puis les six pas --opale-text-* que lisent les composants. Chaque échantillon est rendu dans son vrai style.',
+        links: [{ label: 'Typographie', slug: 'typographie' }],
+      },
+      {
+        title: 'Layout et Sidebar sans défaut d’accessibilité',
+        detail:
+          'L’aperçu de Layout ne crée plus de second repère principal, et la démo de Sidebar montre son format mobile : les 85 pages passent l’audit axe sans défaut, en clair et en sombre, à 320 et 360 px.',
+        links: [
+          { label: 'Layout', slug: 'composants/opale-layout' },
+          { label: 'Sidebar', slug: 'composants/sidebar' },
+        ],
+      },
+    ],
+  },
+];
+
 const V303_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Les états courants',
@@ -1202,6 +1251,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.0.4',
+    publishedAt: '2026-10-02',
+    dateLabel: '2 octobre 2026',
+    summary:
+      'La suite de la phase 4 : Toggle et Checkbox qui gardent leur forme, Modal et SidePanel sur un écran bas, SegmentedControl et Button en contrastes forcés, et une page Typographie à la DA de la 3.0. Sans rupture.',
+    sections: V304_RELEASE_SECTIONS,
+    changes: V304_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Toggle, Modal et SegmentedControl corrigés.', 'Nouvelle page Typographie.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.0.3',
     publishedAt: '2026-10-02',
     dateLabel: '2 octobre 2026',
@@ -1212,8 +1275,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['États courants au fond seul.', 'RadioGroup lisible sous verre.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.0.4, sur son tag. */
+    appHref: '/versions/v3.0.3/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.0.3`,
   },
   {
     version: '3.0.2',

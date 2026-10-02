@@ -708,6 +708,8 @@ export function CatalogPreview({
     case 'Layout':
       preview = (
         <Opale.Layout
+          /* La documentation a déjà son <main> : un seul par page (ACC-17). */
+          mainAs="div"
           className="tc-doc-opale-demo__layout"
           navigation={<Opale.Navbar items={NAV_ITEMS.slice(0, 2)} value="overview" />}
         >

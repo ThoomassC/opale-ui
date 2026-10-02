@@ -8,8 +8,9 @@ export const typographiePage: DocPage = {
   title: 'Typographie',
   lede: (
     <>
-      Huit pas, rapports 1,15 en bas d’échelle et 1,20 en haut. Quatre familles pour trois emplois :
-      Bricolage Grotesque aux titres, Chivo au reste, Hack au code.
+      Trois voix et deux échelles : Bricolage Grotesque pour les titres, Chivo pour lire, Hack pour
+      le code et les légendes ; l’échelle fluide de la planche pour le site, et six pas pour les
+      composants.
     </>
   ),
   render: lazyPage(() => import('./typographie').then((module) => module.default)),
