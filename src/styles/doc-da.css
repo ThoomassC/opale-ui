@@ -345,3 +345,12 @@ html:has(.tc-doc--full-bleed) {
   border-radius: var(--tc-da-radius-lg);
   background: var(--opale-background);
 }
+
+/* EN CONTRASTES FORCÉS, LE BOUTON GARDE SON ARRONDI. Opale lui trace alors un
+   filet ButtonText ; `doc-v3.css` remet le rayon des boutons à 0 avec
+   `!important`, et le filet dessinait un rectangle autour du squircle. */
+@media (forced-colors: active) {
+  .tc-doc .opale-button {
+    border-radius: calc(var(--opale-squircle-radius) * 0.68) !important;
+  }
+}
