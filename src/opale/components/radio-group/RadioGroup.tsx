@@ -183,6 +183,7 @@ export function Radio({
         size !== 'medium' && `opale-radio-row--${size}`,
         styles.row,
         styles[size],
+        liquidGlass && ['opale-radio-row--glass', styles.rowGlass],
         className,
       )}
     >

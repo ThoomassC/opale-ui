@@ -36,10 +36,15 @@ describe('ACC-02 — le focus de la pagination', () => {
 });
 
 describe('ACC-03 — la sélection ne tient pas à la seule teinte', () => {
-  it('souligne l’onglet retenu, sous verre comme sans', () => {
-    const selected = declarations(tabsSource, ".tabsTrigger[aria-selected='true']");
-    expect(selected.get('text-decoration-line')).toBe('underline');
-    expect(selected.get('text-decoration-thickness')).toBe('2px');
+  /* Le soulignement est retiré à la demande du propriétaire (02/10/2026) :
+     l'onglet retenu se lit à sa pastille, et aux contrastes forcés, son aplat
+     `Highlight`, qui reste. */
+  it('garde l’aplat Highlight de l’onglet retenu en contrastes forcés', () => {
+    expect(
+      declaration(tabsSource, ".tabsTrigger[aria-selected='true']", 'background', {
+        within: '@media (forced-colors: active)',
+      }),
+    ).toBe('Highlight');
   });
 
   it('cerne la pastille du segmenté d’un filet de champ', () => {

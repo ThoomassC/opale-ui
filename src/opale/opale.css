@@ -2998,21 +2998,11 @@ h6.opale-heading {
    pourtant juste — `aria-current` est bien posé —, c'est le rendu qui ne
    suivait pas.
 
-   La graisse et le témoin sont deux marques NON colorimétriques, et le rail
-   du sommaire les emploie déjà pour le même état : la solution existait dans
-   la maison. */
+   La graisse est une marque NON colorimétrique. Le témoin vertical qui
+   l'accompagnait est retiré à la demande du propriétaire (02/10/2026) : le
+   fond et la graisse suffisent. */
 .opale-nav__item[aria-current='page'] {
-  position: relative;
   font-weight: 700;
-}
-.opale-nav__item[aria-current='page']::before {
-  position: absolute;
-  inset-block: 0.35rem;
-  inset-inline-start: 0;
-  inline-size: 0.1875rem;
-  border-radius: var(--opale-radius-pill);
-  content: '';
-  background: currentcolor;
 }
 /* Le rail vit sur une photographie assombrie : les couleurs de navigation
    prévues pour une surface claire perdent leur contraste sous verre. */

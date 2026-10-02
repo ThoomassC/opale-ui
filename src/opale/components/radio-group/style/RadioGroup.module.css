@@ -46,6 +46,11 @@
   font-size: var(--opale-text-md);
   cursor: pointer;
 }
+/* Sous verre, le libellé prend l'encre du verre, comme la légende et les
+   descriptions : l'encre de la page ne se lisait pas sur la photographie. */
+.rowGlass {
+  color: var(--opale-glass-ink);
+}
 .small {
   --opale-radio-size: 1rem;
   font-size: var(--opale-text-sm);
