@@ -235,7 +235,7 @@ describe('Champs en erreur : error, aria-invalid et description', () => {
   });
 
   it('Toggle devient un interrupteur avec `role="switch"`, et bascule son état natif', async () => {
-    /* A11Y-15 : l'option recommandée en 3.9, le défaut de la 4.0.0. */
+    /* A11Y-15 : l'option recommandée en 2.9, le défaut de la 3.0.0. */
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<Toggle role="switch" label="Wi-Fi" onChange={onChange} />);
@@ -255,7 +255,7 @@ describe('Champs en erreur : error, aria-invalid et description', () => {
     expect(toggle).not.toBeChecked();
   });
 
-  it('Toggle reste une case à cocher sans `role`, comme en 3.x', () => {
+  it('Toggle reste une case à cocher sans `role`, comme en 2.x', () => {
     render(<Toggle label="Notifications" />);
 
     expect(screen.getByRole('checkbox', { name: 'Notifications' })).toBeInTheDocument();

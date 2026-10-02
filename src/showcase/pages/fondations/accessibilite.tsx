@@ -117,7 +117,7 @@ export default function AccessibiliteContent() {
         </ul>
       </Specimen>
 
-      <Specimen title="Ce que la 2.0 ne promet plus">
+      <Specimen title="Ce que la 1.0 ne promet plus">
         <ul className="tc-doc-checklist">
           <li>
             <strong>« La couleur n’est qu’un renfort » n’est plus une garantie.</strong> Elle

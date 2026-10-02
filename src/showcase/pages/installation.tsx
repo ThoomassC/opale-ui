@@ -201,7 +201,7 @@ export const installationPage: DocPage = {
               <code>npm ci --ignore-scripts</code>, ce script ne tourne pas et le paquet arrive sans
               son dossier <code>dist</code>. pnpm 10 refuse de compiler une dépendance Git, même
               autorisée par son nom dans <code>onlyBuiltDependencies</code> : installez avec npm, ou
-              une version qui porte son archive construite (3.9.0 et plus).
+              une version qui porte son archive construite (2.9.0 et plus).
             </p>
           </>
         )}

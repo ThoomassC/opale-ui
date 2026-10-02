@@ -271,3 +271,24 @@ describe('la forme interactive OpaleUI', () => {
     ).toBe('600');
   });
 });
+
+/* L'ACCUEIL PLEINE LARGEUR n'a plus de sommaire : son menu doit rester
+   atteignable à toutes les largeurs, et rien ne doit le couper. */
+describe('la page pleine largeur', () => {
+  it('rend le menu à toutes les largeurs, sans piste qui le coupe', () => {
+    expect(declaration(docSource, '.tc-doc--full-bleed .tc-doc-topbar__menu', 'display')).toBe(
+      'block',
+    );
+    expect(declaration(docSource, '.tc-doc--full-bleed .tc-doc-topbar__tabs', 'overflow')).toBe(
+      'visible',
+    );
+    expect(
+      declaration(docSource, '.tc-doc--full-bleed .tc-doc-topbar__menu-nav', 'overflow-y'),
+    ).toBe('auto');
+  });
+
+  it('retire la grille du sommaire et le coussin de la colonne', () => {
+    expect(declaration(docSource, '.tc-doc--full-bleed .tc-doc-body', 'display')).toMatch(/^block/);
+    expect(declaration(docSource, '.tc-doc--full-bleed .tc-doc-main', 'padding')).toMatch(/^0/);
+  });
+});

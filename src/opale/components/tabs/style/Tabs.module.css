@@ -165,6 +165,8 @@
    elle, et on ne verrait du focus que les coins. Décalé vers l'intérieur, il
    longe le bord de la capsule et reste entier. */
 .tabsTrigger:focus-visible {
+  /* Il longe la capsule, dont il prend le rayon, plutôt qu'un rectangle. */
+  border-radius: var(--opale-tabs-radius);
   outline: var(--opale-focus-ring-width) solid var(--opale-tabs-focus);
   outline-offset: calc(var(--opale-focus-ring-width) * -1);
 }

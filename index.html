@@ -17,7 +17,7 @@
       "à venir", et à rien d'autre ».
 
       Le dessin est une goutte de verre, parce que c'est ce que la librairie est
-      devenue en 2.0 : du verre liquide. Une goutte translucide, cerclée de
+      devenue en 1.0 : du verre liquide. Une goutte translucide, cerclée de
       clair, avec un reflet en croissant. Ses quatre couleurs sont des jetons,
       et chacune est mesurée :
 
@@ -52,6 +52,25 @@
       NON VÉRIFIÉ : le rendu réel sur un onglet Safari et sur un écran d'accueil
       iOS. Les quatre tailles ont été mesurées dans Chromium seul.
     -->
+    <!-- Les deux polices du premier écran partent avec le document, avant le
+         script : chargées après la première peinture, elles remplaçaient leur
+         police de repli sous les yeux et recomposaient le titre de l'accueil
+         (décalage de mise en page mesuré à 0,0024). Vite réécrit ces adresses
+         vers les fichiers hachés que `fonts.css` sert déjà. -->
+    <link
+      rel="preload"
+      href="/src/opale/fonts/bricolage-grotesque-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/src/opale/fonts/chivo-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

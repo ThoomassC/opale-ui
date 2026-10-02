@@ -3,6 +3,7 @@ export {
   SidebarHeader,
   SidebarFooter,
   SidebarItems,
+  SidebarGroup,
   SidebarItem,
   SidebarToggle,
 } from './Sidebar';

@@ -151,7 +151,7 @@
    voisine en porte une : son libellé commençait sinon sous l'icône des autres.
    Le retrait est exactement celui d'une entrée à icône — coussin, icône de
    1,5 rem, écart. Une liste sans aucune icône n'est pas touchée. */
-.items:has(> .item > .itemIcon) > .item:not(.itemCollapsed):not(:has(> .itemIcon)) {
+.items:has(.itemIcon) .item:not(.itemCollapsed):not(:has(> .itemIcon)) {
   padding-inline-start: calc(var(--opale-space-sm) * 2 + 1.5rem);
 }
 
@@ -229,6 +229,9 @@ a.item {
 
 /* Le focus d'une entrée retenue garde son liseré : la règle générique de
    l'anneau remplacerait l'ombre intérieure par le seul halo. */
+/* Survolée, l'entrée retenue gardait son liseré mais perdait le halo : la
+   règle du survol, plus précise, réécrivait toute l'ombre. */
+.item.itemActive:hover:focus-visible:not(:disabled):not([aria-disabled='true']),
 .item.itemActive:focus-visible {
   box-shadow:
     inset 0 0 0 1.5px var(--opale-sidebar-active-edge),
@@ -430,6 +433,360 @@ a.item {
 }
 
 /* =============================================================================
+   LES PARTIES DU RAIL (`Sidebar.Group`) — LE SOMMAIRE DE LA DOCUMENTATION.
+
+   Le titre parle comme le sur-titre de la DA : mono, capitales, 13 px, gras.
+   Son encre dérive de `currentColor` sur le verre, comme les voiles des
+   entrées ; la surface pleine la règle plus bas sur l'encre secondaire.
+
+   LE CHEVRON EST UN ANGLE DE BORDURE TOURNÉ, pas un glyphe : il suit l'encre
+   du titre, contrastes forcés compris, et pivote d'un quart de tour quand la
+   partie se ferme (`aria-expanded`).
+   ========================================================================== */
+.group + .group {
+  margin-block-start: var(--opale-space-md);
+}
+.groupTitle {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 2.25rem;
+  box-sizing: border-box;
+  align-items: center;
+  border: 0;
+  border-radius: var(--opale-radius-sm);
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  background: transparent;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font: 700 var(--opale-text-xs) / var(--opale-leading-snug) var(--opale-font-mono);
+  letter-spacing: 0.08em;
+  text-align: start;
+  text-transform: uppercase;
+}
+button.groupTitle {
+  padding-inline-end: calc(var(--opale-space-sm) * 2 + 0.5rem);
+  cursor: pointer;
+}
+button.groupTitle::after {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--opale-space-sm);
+  width: 0.5625rem;
+  height: 0.5625rem;
+  box-sizing: border-box;
+  border-block-end: 1.5px solid currentColor;
+  border-inline-end: 1.5px solid currentColor;
+  content: '';
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform var(--opale-motion) var(--opale-ease);
+}
+button.groupTitle[aria-expanded='false']::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+button.groupTitle:hover {
+  color: currentColor;
+}
+/* L'anneau d'Opale, doublé du halo des entrées : sur le verre, l'anneau seul
+   tombait à 1,1:1 selon le fond ; le halo suit l'encre, donc le fond. */
+button.groupTitle:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: calc(var(--opale-focus-ring-width) * -1);
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
+}
+/* Rail plié : le titre est masqué à l'œil seulement, il nomme encore le
+   groupe. Redit ici parce que `.groupTitle`, plus bas dans la feuille que
+   `.itemContentHidden`, lui rendait sa place et sa hauteur. */
+.groupCollapsed > .groupTitle {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  margin: -1px;
+  padding: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.group.groupCollapsed + .group.groupCollapsed {
+  margin-block-start: var(--opale-space-xs);
+}
+.groupItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.groupItems[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  button.groupTitle::after {
+    transition: none;
+  }
+}
+
+/* =============================================================================
+   LA BARRE DE DÉFILEMENT (`customScrollbar`) ET LA POIGNÉE (`resizable`) —
+   CELLES DU SOMMAIRE DE LA DOCUMENTATION.
+
+   LE RAIL PREND LA HAUTEUR DE SON HÔTE et son contenu défile dans sa propre
+   zone, dont la barre native est masquée : la barre d'Opale la remplace. La
+   zone garde à droite la place de la barre, le texte s'arrête avant elle.
+
+   LES DEUX CIBLES FONT 24 PX DE LARGE (WCAG 2.5.8), côte à côte : le curseur
+   s'élargit vers le contenu par un pseudo-élément, la poignée commence où la
+   barre finit et déborde du bord du rail, sur son cadre.
+   ========================================================================== */
+.scrollHost {
+  position: relative;
+  max-height: 100%;
+  overflow: hidden;
+  padding-inline-end: 0;
+}
+.scroll {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--opale-space-md);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: calc(1.15rem + var(--opale-space-sm) + 0.35rem);
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+.sidebarCollapsed .scroll {
+  padding-inline-end: 0;
+}
+.scrollbar {
+  position: absolute;
+  z-index: 2;
+  inset-block: var(--opale-space-md);
+  inset-inline-end: 0.35rem;
+  width: 1.15rem;
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.scrollbar[data-idle='true'] {
+  visibility: hidden;
+}
+.scrollbarThumb {
+  position: absolute;
+  inset-inline: 0.16rem;
+  inset-block-start: var(--opale-sidebar-thumb-offset, 0%);
+  height: var(--opale-sidebar-thumb-size, 28%);
+  min-height: 3.8rem;
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, currentColor 55%, transparent);
+  cursor: grab;
+  touch-action: none;
+}
+.plain .scrollbar {
+  background: var(--opale-surface-sunken);
+}
+.plain .scrollbarThumb {
+  border: 1px solid color-mix(in srgb, var(--opale-primary) 40%, var(--opale-divider));
+  background: color-mix(in srgb, var(--opale-primary) 78%, var(--opale-primary-light));
+}
+.scrollbarThumb:active {
+  cursor: grabbing;
+}
+/* La zone sensible du curseur : 24 px, vers le contenu. */
+.scrollbarThumb::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -0.16rem;
+  width: 1.5rem;
+  content: '';
+}
+.scrollbar:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 32%, transparent);
+}
+
+/* Le cadre d'un rail réglable : il porte la poignée, que le verre rognerait. */
+.frame {
+  position: relative;
+  display: flex;
+  max-height: 100%;
+}
+.frame[data-resizing] > .sidebarRoot,
+.frame[data-resizing] > * > .sidebarRoot {
+  transition: none;
+}
+.frame[data-resizing] {
+  cursor: col-resize;
+  user-select: none;
+}
+.resize {
+  position: absolute;
+  z-index: 3;
+  inset-block: 0;
+  inset-inline-end: -1.15rem;
+  display: grid;
+  width: 1.5rem;
+  place-items: center;
+  cursor: col-resize;
+  touch-action: none;
+}
+.resize > span {
+  width: 0.22rem;
+  height: 3.5rem;
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-primary);
+  opacity: 0.55;
+  transition:
+    height var(--opale-motion-fast) var(--opale-ease),
+    opacity var(--opale-motion-fast) var(--opale-ease);
+}
+.resize:hover > span,
+.resize:focus-visible > span,
+.frame[data-resizing] .resize > span {
+  height: 5.25rem;
+  opacity: 1;
+}
+.resize:focus-visible {
+  outline: none;
+}
+.resize:focus-visible > span {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+@media (prefers-reduced-motion: reduce) {
+  .resize > span {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .scrollbarThumb,
+  .resize > span {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+}
+
+/* =============================================================================
+   LE FORMAT MOBILE (`mobile`) — CELUI DU SOMMAIRE DE LA DOCUMENTATION.
+
+   Un bouton « Sommaire » pleine largeur, dont le chevron dit le sens ; une
+   rangée de raccourcis vers chaque partie, qui défile de côté ; puis le rail
+   en pleine largeur, sans poignée. Replié, le rail est `display: none` : hors
+   de l'écran ET de l'arbre accessible, l'état juste d'un contenu replié.
+
+   `menu` adopte ce format partout ; `auto` sous 30 rem de fenêtre seulement,
+   et rend au-delà le rail ordinaire, bouton et raccourcis masqués.
+   ========================================================================== */
+.frameMobile {
+  flex-direction: column;
+  gap: var(--opale-space-sm);
+}
+.menuToggle,
+.shortcuts {
+  display: none;
+}
+.railSlot {
+  position: relative;
+  display: flex;
+  max-height: 100%;
+}
+.railSlot[hidden] {
+  display: none;
+}
+.frameMobile[data-mobile='menu'],
+.frameMobile[data-mobile='menu'] .railSlot,
+.frameMobile[data-mobile='menu'] .sidebarRoot {
+  width: 100%;
+}
+.frameMobile[data-mobile='menu'] .menuToggle {
+  display: flex;
+}
+.frameMobile[data-mobile='menu'] .shortcuts {
+  display: flex;
+}
+@media (max-width: 30rem) {
+  .frameMobile[data-mobile='auto'],
+  .frameMobile[data-mobile='auto'] .railSlot {
+    width: 100%;
+  }
+  .frameMobile[data-mobile='auto'] .sidebarRoot {
+    width: 100% !important;
+  }
+  .frameMobile[data-mobile='auto'] .menuToggle,
+  .frameMobile[data-mobile='auto'] .shortcuts {
+    display: flex;
+  }
+  .frameMobile[data-mobile='auto'][data-menu='closed'] .railSlot {
+    display: none;
+  }
+  .frameMobile[data-mobile='auto'] .resize {
+    display: none;
+  }
+}
+.menuToggle {
+  width: 100%;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--opale-space-sm);
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  padding: var(--opale-space-xs) var(--opale-space-md);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+.menuToggle::after {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-block-end: 2px solid currentColor;
+  border-inline-end: 2px solid currentColor;
+  content: '';
+  transform: translateY(-0.125rem) rotate(45deg);
+  transition: transform var(--opale-motion) var(--opale-ease);
+}
+.menuToggle[aria-expanded='true']::after {
+  transform: translateY(0.125rem) rotate(-135deg);
+}
+.menuToggle:focus-visible,
+.shortcuts > button:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+.shortcuts {
+  gap: var(--opale-space-xs);
+  overflow-x: auto;
+  padding-block: var(--opale-space-2xs);
+  scrollbar-width: thin;
+}
+.shortcuts > button {
+  flex: none;
+  min-height: 2.5rem;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-pill);
+  padding-inline: var(--opale-space-sm);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--opale-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.shortcuts > button:hover {
+  border-color: var(--opale-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .menuToggle::after {
+    transition: none;
+  }
+}
+
+/* =============================================================================
    LA VERSION ORIGINALE.
 
    Le rail ne savait rendre que du verre : sans matériau il n'avait ni fond, ni
@@ -442,7 +799,47 @@ a.item {
    ========================================================================== */
 .plain {
   border-inline-end: 1px solid var(--opale-divider);
-  background: var(--opale-surface);
+  /* LE FOND DE LA PAGE, comme le sommaire de la documentation : le rail est
+     une colonne de la page, pas une carte posée dessus. Le filet suffit à
+     l'en séparer. */
+  background: var(--opale-background);
+  color: var(--opale-text);
+}
+/* LES ENTRÉES DU SOMMAIRE : 15 px, encre secondaire au repos, encre primaire
+   au survol. 2,25 rem de haut, au-dessus des 24 px de WCAG 2.5.8. */
+.plain .item:not(.itemCollapsed) {
+  min-height: 2.25rem;
+  padding-block: 0.45rem;
+  color: var(--opale-text-secondary);
+  font-size: var(--opale-text-sm);
+}
+.plain .item:hover:not(:disabled):not([aria-disabled='true']) {
+  background: transparent;
+  color: var(--opale-primary-on-surface);
+}
+/* UN TÉMOIN DE FORME, PAS SEULEMENT UNE TEINTE (WCAG 1.4.11, 1.4.1). La
+   pastille à 12 % ne se détache qu'à 1,19:1 du rail et l'encre primaire à
+   1,08:1 des autres entrées ; la graisse, seul autre repère, disparaît avec le
+   libellé quand le rail est plié. Un trait de 3 px en encre primaire, au
+   début de la pastille, tient au moins 5:1 sur le rail, déplié comme plié. */
+.plain .item.itemActive::before {
+  position: absolute;
+  inset-block: 0.5rem;
+  inset-inline-start: 0.25rem;
+  width: 3px;
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-primary-on-surface);
+  content: '';
+}
+/* L'appui garde son voile : un appui à la souris est aussi un survol, et la
+   règle ci-dessus l'effaçait. */
+.plain .item:hover:active:not(:disabled):not([aria-disabled='true']) {
+  background: color-mix(in srgb, var(--opale-primary) 10%, transparent);
+}
+.plain .groupTitle {
+  color: var(--opale-text-secondary);
+}
+.plain button.groupTitle:hover {
   color: var(--opale-text);
 }
 
@@ -454,9 +851,15 @@ a.item {
    Mesuré sur les jetons : le libellé à 5,6:1 (clair) et 7,1:1 (sombre) sur la
    teinte ; le liseré, même encre, aux mêmes ratios — au-delà des 3:1 qu'un
    repère non textuel doit tenir. */
-.plain .itemActive,
+/* Comme l'entrée courante du sommaire : la pastille primaire à 12 %, l'encre
+   primaire et la graisse 600, sans liseré. L'état ne tient pas qu'à la
+   couleur : la graisse change aussi (WCAG 1.4.1), et `aria-current` le dit. */
+.plain .item.itemActive,
+.plain .item.itemActive:not(.itemCollapsed),
 .plain .item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
-  --opale-sidebar-active-edge: var(--opale-primary-on-surface);
+  /* Le liseré passe à `transparent` : les ombres de l'entrée retenue restent
+     posées par les règles générales, dont le halo de focus, survol compris. */
+  --opale-sidebar-active-edge: transparent;
   background: color-mix(in srgb, var(--opale-primary) 12%, transparent);
   color: var(--opale-primary-on-surface);
 }
@@ -470,6 +873,8 @@ a.item {
 .plain .footer {
   border-top-color: var(--opale-divider);
   color: var(--opale-text-secondary);
+  font-family: var(--opale-font-mono);
+  letter-spacing: 0.04em;
 }
 
 /* =============================================================================
@@ -487,6 +892,11 @@ a.item {
   .itemActive,
   .item.itemActive:hover:not(:disabled):not([aria-disabled='true']),
   .plain .itemActive,
+  /* Les mêmes sélecteurs que la surface pleine, plus bas dans la feuille : une
+     requête média n'ajoute aucune spécificité, et `.plain .item.itemActive`
+     reprenait sinon le dessus sur `Highlight`. */
+  .plain .item.itemActive,
+  .plain .item.itemActive:not(.itemCollapsed),
   .plain .item.itemActive:hover:not(:disabled):not([aria-disabled='true']) {
     background: Highlight;
     color: HighlightText;

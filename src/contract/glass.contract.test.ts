@@ -455,7 +455,7 @@ const WORST_CASES: readonly WorstCase[] = [
       'et 1,23 de marge sur le seuil applicable — la note d’origine interdisait donc en toutes ' +
       'lettres un emploi licite. L’exemple qui l’avait fait tomber était ' +
       '`.tc-btn--secondary:hover`, qui posait `border-color: var(--text-accent)` sur un lavis ' +
-      'd’appui ; cette feuille a été SUPPRIMÉE en 2.0 avec les dix-huit composants d’Opale, et ' +
+      'd’appui ; cette feuille a été SUPPRIMÉE en 1.0 avec les dix-huit composants d’Opale, et ' +
       'aucun composant du paquet n’exerce plus ce couple — `src/opale` n’emploie aucun jeton. Le ' +
       'plancher reste celui du TEXTE : il tient le jeton, pas son unique usage passé.',
   },
@@ -480,7 +480,7 @@ const WORST_CASES: readonly WorstCase[] = [
    * pouvait pas tenir, puisque `.tc-message--warn` ne se posait pas sur une
    * carte nue : il peignait son propre lavis, et `Backdrop` l'autorisait à le
    * faire au-dessus d'un halo sans carte du tout. Mesurée, cette chaîne valait
-   * 3,35:1. Les deux composants nommés ici ont été supprimés en 2.0 ; la chaîne
+   * 3,35:1. Les deux composants nommés ici ont été supprimés en 1.0 ; la chaîne
    * de superposition qui les a fait tomber, elle, reste calculable depuis
    * `materials.css`, et c'est elle que la table rejoue — pas eux.
    * L'ambre clair a donc été remplacé par `--tc-amber-300` dans `roles.css` (et
@@ -561,7 +561,7 @@ describe('7. L’enveloppe : le pire cas de chaque encre, étiqueté de son supp
    * LISERÉ (WCAG 1.4.11, 3:1). La seconde moitié était une affirmation en
    * prose ; sans ce bloc, la table pouvait interdire ce que
    * `.tc-btn--secondary:hover` faisait à bon droit sans que rien ne le
-   * signale. Ce bouton n'existe plus depuis la 2.0, et le bloc reste : il ne
+   * signale. Ce bouton n'existe plus depuis la 1.0, et le bloc reste : il ne
    * garde pas un composant, il garde le fait qu'un liseré d'accent sur un lavis
    * d'appui est licite — vrai pour le prochain composant qui l'emploiera.
    *

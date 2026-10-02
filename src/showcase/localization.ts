@@ -30,6 +30,12 @@ export interface InterfaceCopy {
   readonly contentsStart: string;
   readonly contentsWidth: string;
   readonly contentLanguageNotice: string;
+  /** Le nom du repère de navigation du pied de page. */
+  readonly footerNavigation: string;
+  /** La phrase qui présente Opale, sous la marque. */
+  readonly footerTagline: string;
+  /** La licence, après la version. */
+  readonly footerLicense: string;
 }
 
 const COPY: Record<Language, InterfaceCopy> = {
@@ -37,7 +43,7 @@ const COPY: Record<Language, InterfaceCopy> = {
     home: 'Accueil',
     installation: 'Installation',
     releaseNotes: 'Notes de versions',
-    primaryNavigation: 'Navigation principale',
+    primaryNavigation: 'Navigation de la documentation',
     primaryMenu: 'Menu principal',
     openMenu: 'Ouvrir le menu',
     darkTheme: 'Thème sombre',
@@ -53,12 +59,15 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsStart: 'Début du sommaire',
     contentsWidth: 'Largeur du sommaire',
     contentLanguageNotice: '',
+    footerNavigation: 'Pied de page',
+    footerTagline: 'Composants React accessibles et typés, rendus au serveur.',
+    footerLicense: 'Licence MIT',
   },
   EN: {
     home: 'Home',
     installation: 'Installation',
     releaseNotes: 'Release notes',
-    primaryNavigation: 'Primary navigation',
+    primaryNavigation: 'Documentation navigation',
     primaryMenu: 'Primary menu',
     openMenu: 'Open menu',
     darkTheme: 'Dark theme',
@@ -75,12 +84,15 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsWidth: 'Contents width',
     contentLanguageNotice:
       'The navigation is translated; documentation content is currently in French.',
+    footerNavigation: 'Footer',
+    footerTagline: 'Accessible, typed React components, rendered on the server.',
+    footerLicense: 'MIT licence',
   },
   ES: {
     home: 'Inicio',
     installation: 'Instalación',
     releaseNotes: 'Notas de versión',
-    primaryNavigation: 'Navegación principal',
+    primaryNavigation: 'Navegación de la documentación',
     primaryMenu: 'Menú principal',
     openMenu: 'Abrir el menú',
     darkTheme: 'Tema oscuro',
@@ -97,6 +109,9 @@ const COPY: Record<Language, InterfaceCopy> = {
     contentsWidth: 'Ancho del índice',
     contentLanguageNotice:
       'La navegación está traducida; el contenido de la documentación está actualmente en francés.',
+    footerNavigation: 'Pie de página',
+    footerTagline: 'Componentes React accesibles y tipados, renderizados en el servidor.',
+    footerLicense: 'Licencia MIT',
   },
 };
 
@@ -110,7 +125,7 @@ const PAGE_LABELS: Record<Exclude<Language, 'FR'>, Readonly<Record<string, strin
     personnaliser: 'Customizing',
     typographie: 'Typography',
     icones: 'Icons',
-    'migrer-vers-4': 'Migrating to 4.0',
+    'migrer-vers-3': 'Migrating to 3.0',
     palette: 'Color palette',
     espacement: 'Spacing and radii',
     elevation: 'Elevation',
@@ -127,7 +142,7 @@ const PAGE_LABELS: Record<Exclude<Language, 'FR'>, Readonly<Record<string, strin
     personnaliser: 'Personalizar',
     typographie: 'Tipografía',
     icones: 'Iconos',
-    'migrer-vers-4': 'Migrar a la 4.0',
+    'migrer-vers-3': 'Migrar a la 3.0',
     palette: 'Paleta de colores',
     espacement: 'Espaciado y radios',
     elevation: 'Elevación',
@@ -137,12 +152,14 @@ const PAGE_LABELS: Record<Exclude<Language, 'FR'>, Readonly<Record<string, strin
   },
 };
 
+/* Le titre de l'accueil est son accroche : `pages/accueil/home-copy.ts` la
+   traduit, et `home.test.tsx` garde l'égalité des deux. */
 const PAGE_TITLES: Record<Exclude<Language, 'FR'>, Readonly<Record<string, string>>> = {
   EN: {
-    '': 'The design system for the Opale ecosystem.',
+    '': 'Interfaces that move, hiding nothing.',
   },
   ES: {
-    '': 'El sistema de diseño del ecosistema Opale.',
+    '': 'Interfaces que se mueven, sin ocultar nada.',
   },
 };
 

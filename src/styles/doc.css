@@ -287,7 +287,7 @@ body {
    SOUS les quatre couches du verre, ce qui est l'ordre voulu ; et un aplat
    opaque rend inerte le `backdrop-filter` du composant, sans quoi le contenu
    de la page défilerait sous l'encre — le défaut que cette feuille mesurait
-   en 1.x pour refuser le verre sur la barre. */
+   en 0.x pour refuser le verre sur la barre. */
 .tc-doc-topbar__glass,
 .tc-doc-nav__glass {
   background: var(--doc-shell-ground);
@@ -361,7 +361,7 @@ body {
    vient APRÈS la barre : la pastille de version, dont le fond est opaque,
    peignait donc par-dessus le panneau de suggestions. Constaté à 420 px, en
    une colonne, où le panneau descend juste sur elle — la première suggestion
-   disparaissait entièrement derrière « v1.2.0 ».
+   disparaissait entièrement derrière « v0.6.0 ».
 
    Le panneau garde `z-index: 2` DANS le contexte de la barre : la barre étant
    elle-même un contexte d'empilement (elle a un `z-index` numérique), ce 2 ne

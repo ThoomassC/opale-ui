@@ -20,7 +20,7 @@ import {
 } from './opale';
 
 /* =============================================================================
-   LE VOCABULAIRE COMMUN, LES TAILLES ET LES TEXTES DE LA 3.10.
+   LE VOCABULAIRE COMMUN, LES TAILLES ET LES TEXTES DE LA 2.10.
 
    DX-10 : `Badge` parle enfin `OpaleTone` (succès, avertissement, info,
    neutre), et `Feedback` accepte `neutral`. DX-11 : `size` sur `Spinner` et
@@ -115,7 +115,7 @@ describe('FileCard — `fileSize`', () => {
 
     expect(screen.getByText('2 Mo')).toBeInTheDocument();
     expect(messages()).toEqual([
-      '[Opale] FileCard : `size` est déprécié depuis 3.10 et sera retiré en 4.0.0 — utilisez `fileSize`.',
+      '[Opale] FileCard : `size` est déprécié depuis 2.10 et sera retiré en 3.0.0 — utilisez `fileSize`.',
     ]);
   });
 
@@ -232,7 +232,7 @@ describe('Icon et Donut — les défauts surprenants', () => {
     );
 
     expect(messages()).toEqual([
-      '[Opale] Icon : aucun `name` n’est passé — l’icône `sparkle` est dessinée par défaut. Passez `name` : ce défaut disparaîtra en 4.0.0.',
+      '[Opale] Icon : aucun `name` n’est passé — l’icône `sparkle` est dessinée par défaut. Passez `name` : ce défaut disparaîtra en 3.0.0.',
     ]);
   });
 
@@ -246,7 +246,7 @@ describe('Icon et Donut — les défauts surprenants', () => {
     render(<Donut />);
 
     expect(messages()).toEqual([
-      '[Opale] Donut : aucune `value` n’est passée — l’anneau affiche 60 % par défaut. Passez `value` : ce défaut disparaîtra en 4.0.0.',
+      '[Opale] Donut : aucune `value` n’est passée — l’anneau affiche 60 % par défaut. Passez `value` : ce défaut disparaîtra en 3.0.0.',
     ]);
   });
 
@@ -315,7 +315,7 @@ describe('ConfirmDialog — le ton et l’attente', () => {
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
     expect(confirm).toHaveAttribute('aria-busy', 'true');
-    /* Annuler reste possible pendant la promesse, comme en 3.9 : seul
+    /* Annuler reste possible pendant la promesse, comme en 2.9 : seul
        `loading`, posé exprès par l'appelant, verrouille la fermeture. */
     expect(screen.getByRole('button', { name: 'Annuler' })).toBeEnabled();
 

@@ -56,7 +56,7 @@ export interface SelectOption {
    l'enveloppe, et sur elle seule, fait prendre au champ la hauteur du bouton
    `small` ou `large` voisin — y compris sous le cran « au doigt » qui fait
    grandir toute l'échelle, puisque la valeur empruntée est elle-même un jeton.
-   `medium` ne pose rien : le balisage par défaut est celui de la 3.9.
+   `medium` ne pose rien : le balisage par défaut est celui de la 2.9.
 
    La classe `opale-field--<taille>` accompagne le jeton, pour le reste du
    réglage (corps de texte, marges) et pour l'appelant qui veut s'y accrocher.
@@ -377,7 +377,7 @@ Pressable.displayName = 'Pressable';
  * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
  * vrai contrôle.
  *
- * Depuis 3.10, `controlClassName` habille le contrôle lui-même — l'`<input>`
+ * Depuis 2.10, `controlClassName` habille le contrôle lui-même — l'`<input>`
  * natif, à côté de `.opale-input` (ou de `.opale-search-bar__input` avec
  * `type="search"`).
  *
@@ -419,7 +419,7 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'>
   searchLandmarkLabel?: string;
 }
 
-/** @deprecated Depuis 3.6 — utilisez `InputProps`. */
+/** @deprecated Depuis 2.6 — utilisez `InputProps`. */
 export type FieldProps = InputProps;
 
 export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
@@ -543,7 +543,7 @@ Input.displayName = 'Input';
  * vrai contrôle.
  * L'erreur, elle, est rendue en frère de cette rangée, hors de l'enveloppe.
  *
- * Depuis 3.10, `controlClassName` va à l'`<input type="checkbox">` natif, à
+ * Depuis 2.10, `controlClassName` va à l'`<input type="checkbox">` natif, à
  * côté de `.opale-checkbox`. Ce natif est INVISIBLE — il couvre la rangée et
  * reçoit le clic : pour peindre la case, ciblez `.opale-checkbox-mark` depuis
  * la classe de l'enveloppe, ou `.ma-classe:checked + * .opale-checkbox-mark`
@@ -558,7 +558,7 @@ export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'typ
    * La taille de la case : `small`, `medium` ou `large`. Défaut : `medium`.
    * Pose `opale-checkbox-row--<taille>` sur la rangée. L'attribut natif `size`
    * n'a aucun effet sur une case et n'est pas transmis ; un nombre, accepté en
-   * 3.9 par le type natif, reste accepté et ignoré.
+   * 2.9 par le type natif, reste accepté et ignoré.
    */
   size?: OpaleSize | number;
   /** Le libellé cliquable de la case, qui la nomme. */
@@ -570,7 +570,7 @@ export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'typ
    *
    * Le message est rendu en FRÈRE de la rangée, sans conteneur commun : dans
    * une grille ou un flex parent, la case et son erreur occupent deux cellules.
-   * C'est le balisage de toute la 3.x et il ne change pas en correctif — un
+   * C'est le balisage de toute la 2.x et il ne change pas en correctif — un
    * conteneur déplacerait les sélecteurs et la mise en page des intégrations
    * existantes. Pour tenir les deux dans une cellule, enveloppez la case.
    */
@@ -583,7 +583,7 @@ export interface CheckboxProps extends Omit<ComponentPropsWithRef<'input'>, 'typ
    * l'effaçant côté navigateur.
    *
    * Absente, la case ne touche pas à la propriété : un état posé par la `ref`
-   * (`ref.current.indeterminate = true`, la seule voie avant la 3.9.3) tient.
+   * (`ref.current.indeterminate = true`, la seule voie avant la 2.9.3) tient.
    */
   indeterminate?: boolean;
   /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
@@ -631,7 +631,7 @@ export function Checkbox({
      chaque fois, et pas seulement quand la prop change, rétablit l'état
      après un clic — le navigateur l'efface en cochant.
 
-     MAIS SEULEMENT QUAND LA PROP EST LÀ. Avant la 3.9.3, la `ref` était le
+     MAIS SEULEMENT QUAND LA PROP EST LÀ. Avant la 2.9.3, la `ref` était le
      seul moyen de poser l'état mixte : une valeur par défaut `false`, écrite
      à chaque rendu, l'effaçait au premier rendu du parent. Sans la prop, la
      propriété appartient à l'appelant ; on ne l'efface qu'une fois, quand la
@@ -723,7 +723,7 @@ export function Checkbox({
  * vrai contrôle.
  * L'erreur, elle, est rendue en frère de cette rangée, hors de l'enveloppe.
  *
- * Depuis 3.10, `controlClassName` va à l'`<input type="checkbox">` natif, à
+ * Depuis 2.10, `controlClassName` va à l'`<input type="checkbox">` natif, à
  * côté de `.opale-toggle`. Ce natif est INVISIBLE : pour peindre la piste,
  * ciblez `.opale-toggle-track` depuis la classe de l'enveloppe.
  */
@@ -736,7 +736,7 @@ export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'
    * La taille de l'interrupteur : `small`, `medium` ou `large`. Défaut :
    * `medium`. Pose `opale-toggle-row--<taille>` sur la rangée. L'attribut
    * natif `size` n'a aucun effet sur une case et n'est pas transmis ; un
-   * nombre, accepté en 3.9 par le type natif, reste accepté et ignoré.
+   * nombre, accepté en 2.9 par le type natif, reste accepté et ignoré.
    */
   size?: OpaleSize | number;
   /** Le libellé cliquable de l'interrupteur, qui le nomme. */
@@ -752,9 +752,9 @@ export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'
    * Le rôle exposé à la technologie d'assistance. `"switch"` est recommandé :
    * l'interrupteur s'annonce alors « activé / désactivé » plutôt que
    * « coché / non coché », sans changer son état natif (`checked`). Absent,
-   * l'élément reste une case à cocher, comme en 3.x.
+   * l'élément reste une case à cocher, comme en 2.x.
    *
-   * La 4.0.0 posera `role="switch"` par défaut.
+   * La 3.0.0 posera `role="switch"` par défaut.
    */
   role?: AriaRole;
 }
@@ -827,7 +827,7 @@ export function Toggle({
  * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
  * vrai contrôle.
  *
- * Depuis 3.10, `controlClassName` va à l'`<input type="range">` natif, à côté
+ * Depuis 2.10, `controlClassName` va à l'`<input type="range">` natif, à côté
  * de `.opale-range`.
  */
 export interface SliderProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
@@ -1081,7 +1081,7 @@ export function Slider({
  * un formulaire, un test ou une bibliothèque de formulaires vise ainsi le
  * vrai contrôle.
  *
- * Depuis 3.10, `controlClassName` va au `<select>` natif, à côté de
+ * Depuis 2.10, `controlClassName` va au `<select>` natif, à côté de
  * `.opale-select`.
  */
 export interface SelectProps extends Omit<ComponentPropsWithRef<'select'>, 'size'> {
@@ -1106,7 +1106,7 @@ export interface SelectProps extends Omit<ComponentPropsWithRef<'select'>, 'size
    * La hauteur du champ, alignée sur celle du `Button` de même taille :
    * `small`, `medium` ou `large`. Défaut : `medium`.
    *
-   * UN NOMBRE GARDE SON SENS NATIF, comme en 3.9 : le nombre de rangées
+   * UN NOMBRE GARDE SON SENS NATIF, comme en 2.9 : le nombre de rangées
    * visibles, qui fait du champ une liste ouverte. Il est conservé pour la
    * compatibilité ; pour une liste ouverte à choix multiple, préférez
    * `MultiSelect`.
@@ -1244,7 +1244,7 @@ export function Select({
 /* `MultiSelect` NE REPREND PAS LES AJOUTS 3.10 DE `Select`. Sa valeur est un
    tableau (`onValueChange` diffère), son contrôle visible n'est pas le natif
    (`controlClassName` n'aurait rien à habiller) et une liste ouverte n'a ni
-   placeholder ni hauteur de champ. `size` y garde son type de la 3.9 : le
+   placeholder ni hauteur de champ. `size` y garde son type de la 2.9 : le
    nombre natif, posé sur le `<select>` porteur de valeur, caché. */
 export interface MultiSelectProps extends Omit<
   SelectProps,
@@ -1259,7 +1259,7 @@ export interface MultiSelectProps extends Omit<
   value?: SelectProps['value'];
   /** Appelée après chaque bascule, avec la sélection complète. `onChange` natif part aussi. */
   onValueChange?: (value: string[]) => void;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   values?: readonly string[];
   /**
    * Des `<option>` (éventuellement groupées dans des `<optgroup>`), ajoutées
@@ -1601,7 +1601,7 @@ export function MultiSelect({
         aria-hidden="true"
         tabIndex={-1}
         /* `aria-label` reste AUSSI sur le natif, qui est la cible de la `ref`
-           et des attributs de racine depuis 3.6 : caché de l'arbre
+           et des attributs de racine depuis 2.6 : caché de l'arbre
            d'accessibilité, il n'annonce rien, mais un appelant qui le lisait
            là continue de l'y trouver. */
         aria-label={ariaLabel}
@@ -1831,7 +1831,7 @@ export interface SegmentedControlProps extends Omit<
    * SANS L'UNE NI L'AUTRE, L'APPUI N'EST PAS RETENU — contrairement à `Tabs`.
    * Le clic appelle `onValueChange`, mais aucune option ne reste pressée tant
    * que le parent ne renvoie pas `value`. C'est le comportement de toute la
-   * 3.x et il ne change pas avant la 4.0.0 ; en développement, un appui ainsi
+   * 2.x et il ne change pas avant la 3.0.0 ; en développement, un appui ainsi
    * perdu écrit un avertissement, une fois. Passez `defaultValue` pour un
    * groupe libre, `value` + `onValueChange` pour un groupe tenu.
    */
@@ -1840,7 +1840,7 @@ export interface SegmentedControlProps extends Omit<
   defaultValue?: string;
   /** Appelée à chaque appui, même sur l'option déjà pressée. */
   onValueChange?: (value: string) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
   onChange?: (value: string) => void;
   /** Va au groupe (`role="group"`). */
   className?: string;
@@ -1860,7 +1860,7 @@ export interface SegmentedControlProps extends Omit<
 
    Sans `value` ni `defaultValue`, un clic prévient l'appelant et ne presse
    rien. Le corriger — retenir l'appui comme `Tabs` — changerait le rendu d'une
-   intégration 3.x : c'est pour la 4.0.0. En attendant, le développeur est
+   intégration 2.x : c'est pour la 3.0.0. En attendant, le développeur est
    prévenu, et SEULEMENT quand l'appui est réellement perdu.
 
    « Ni `value` ni `defaultValue` au rendu » ne suffit pas à le dire : un

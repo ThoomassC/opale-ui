@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Autocomplete, Button, Checkbox, DataTable, Slider } from './opale';
 
 /* =============================================================================
-   LES ÉTATS DES CONTRÔLES QUE L'AUDIT 3.9.3 A TROUVÉS MUETS OU FUYANTS.
+   LES ÉTATS DES CONTRÔLES QUE L'AUDIT 2.9.3 A TROUVÉS MUETS OU FUYANTS.
 
    Chargement d'un bouton (ACC-09), case indéterminée (DX-12), valeur d'un
    curseur libre (DX-27), options en double d'une saisie assistée (ROB-10) et
@@ -43,7 +43,7 @@ describe('Button — chargement', () => {
   });
 
   /* LE NOM NE CHANGE PAS PENDANT LE CHARGEMENT. Une première version de la
-     3.9.3 ajoutait « Chargement en cours » au nom : `getByRole('button',
+     2.9.3 ajoutait « Chargement en cours » au nom : `getByRole('button',
      { name: 'Enregistrer' })` ne trouvait plus rien chez les intégrateurs.
      L'attente est une DESCRIPTION, et `aria-busy` la signale. */
   it('garde son nom et décrit le chargement, texte remplaçable', () => {
@@ -273,7 +273,7 @@ describe('Checkbox — état indéterminé', () => {
     expect(ref.current?.indeterminate).toBe(true);
   });
 
-  /* 3.9.2 n'avait pas la prop : la ref était LE moyen de poser l'état mixte.
+  /* 2.9.2 n'avait pas la prop : la ref était LE moyen de poser l'état mixte.
      Un rendu sans la prop ne doit donc pas y toucher. */
   it('laisse intact l’état posé par la ref quand la prop est absente', () => {
     const ref = createRef<HTMLInputElement>();

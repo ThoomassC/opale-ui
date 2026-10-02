@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
    LES IDENTIFIANTS D'UNE DESCRIPTION SE FUSIONNENT, ILS NE SE REMPLACENT PAS.
 
    La même règle que `mergeIds` dans `catalog/forms.tsx`, reprise ici pour les
-   trois champs de la 3.10 — `Field`, `Textarea`, `RadioGroup` — qui vivent
+   trois champs de la 2.10 — `Field`, `Textarea`, `RadioGroup` — qui vivent
    hors du catalogue. Les identifiants de l'appelant passent d'abord, puis
    l'aide, puis l'erreur ; les doublons tombent. Interne : non réexporté.
    ========================================================================== */

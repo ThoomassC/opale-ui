@@ -202,6 +202,9 @@ export function DocSearch({ pages, language = 'FR' }: DocSearchProps) {
       </label>
 
       <Opale.SearchBar
+        /* Le repère porte le nom du champ : « Recherche », le défaut d'Opale,
+           est aussi celui des SearchBar des démos. */
+        landmarkLabel={copy.searchLabel}
         className="tc-doc-search__input"
         id={inputId}
         ref={inputRef}

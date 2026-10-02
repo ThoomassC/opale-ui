@@ -4,7 +4,7 @@
    Chaque jeton `--opale-*` déclaré sur `:root` dans `opale.css` a ici une
    ligne, et une seule : son groupe, son rôle en une phrase, et son statut.
 
-   - `public` : une entrée stable en 3.x, faite pour être surchargée sur
+   - `public` : une entrée stable en 2.x, faite pour être surchargée sur
      `:root` (et sur `:root[data-theme='dark']` pour le sombre) — marque,
      neutres, rayons, polices, espacement, hauteurs de contrôle, focus, plans.
    - `internal` : un dérivé ou une mécanique. Il peut changer de valeur ou de
@@ -134,6 +134,18 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   pub('--opale-scrim-blur', 'surface', 'Flou du voile des dialogues.'),
   pub('--opale-disabled-opacity', 'surface', 'Opacité d’un contrôle désactivé.'),
   int('--opale-field-border', 'surface', 'Bord des champs, dérivé du texte et de la surface.'),
+  pub('--opale-ground-paper', 'surface', 'Fond `paper` d’une `ScrollSection`, suit le thème.'),
+  pub('--opale-ground-paper-ink', 'surface', 'Encre posée sur le fond `paper`.'),
+  pub('--opale-ground-amber', 'surface', 'Fond `amber` d’une `ScrollSection`.'),
+  pub('--opale-ground-amber-ink', 'surface', 'Encre posée sur le fond `amber`.'),
+  pub('--opale-ground-night', 'surface', 'Fond `night` d’une `ScrollSection`.'),
+  pub('--opale-ground-night-ink', 'surface', 'Encre posée sur le fond `night`.'),
+  pub('--opale-ground-blue', 'surface', 'Fond `blue` d’une `ScrollSection`.'),
+  pub('--opale-ground-blue-ink', 'surface', 'Encre posée sur le fond `blue`.'),
+  int('--opale-ground-blue-hover', 'surface', 'Survol du bouton principal inversé sur `blue`.'),
+  int('--opale-ground-blue-secondary', 'surface', 'Aplat du bouton secondaire sur `blue`.'),
+  int('--opale-ground-amber-secondary', 'surface', 'Aplat du bouton secondaire sur `amber`.'),
+  int('--opale-ground-blue-surface', 'surface', 'Surface des composants posés sur `blue`.'),
 
   /* Les états. */
   pub('--opale-success', 'etat', 'Couleur de signal du succès.'),
@@ -183,15 +195,39 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   pub('--opale-badge-gap', 'espacement', 'Écart entre l’icône et le texte d’une pastille.'),
   pub('--opale-badge-padding-inline', 'espacement', 'Retrait latéral d’une pastille.'),
   pub('--opale-stat-card-gap', 'espacement', 'Écart entre les lignes d’une carte de statistique.'),
-  pub('--opale-item-padding-inline', 'espacement', 'Retrait latéral d’un élément compact : segment, entrée, cellule.'),
-  pub('--opale-nav-item-padding-block', 'espacement', 'Retrait vertical d’une entrée de navigation.'),
+  pub(
+    '--opale-item-padding-inline',
+    'espacement',
+    'Retrait latéral d’un élément compact : segment, entrée, cellule.',
+  ),
+  pub(
+    '--opale-nav-item-padding-block',
+    'espacement',
+    'Retrait vertical d’une entrée de navigation.',
+  ),
   pub('--opale-stack-gap', 'espacement', 'Écart des lignes serrées d’une pile : options, étoiles.'),
   pub('--opale-cluster-gap', 'espacement', 'Écart d’une grappe de petites commandes.'),
-  pub('--opale-table-count-padding-inline', 'espacement', 'Retrait latéral du compteur d’un tableau.'),
-  pub('--opale-table-state-padding-block', 'espacement', 'Retrait vertical de l’état vide ou de chargement d’un tableau.'),
-  pub('--opale-description-row-gap', 'espacement', 'Écart entre deux lignes d’une liste de descriptions.'),
+  pub(
+    '--opale-table-count-padding-inline',
+    'espacement',
+    'Retrait latéral du compteur d’un tableau.',
+  ),
+  pub(
+    '--opale-table-state-padding-block',
+    'espacement',
+    'Retrait vertical de l’état vide ou de chargement d’un tableau.',
+  ),
+  pub(
+    '--opale-description-row-gap',
+    'espacement',
+    'Écart entre deux lignes d’une liste de descriptions.',
+  ),
   pub('--opale-list-indent', 'espacement', 'Retrait d’une liste à puces.'),
-  pub('--opale-command-option-gap', 'espacement', 'Écart entre deux options de la palette de commandes.'),
+  pub(
+    '--opale-command-option-gap',
+    'espacement',
+    'Écart entre deux options de la palette de commandes.',
+  ),
   pub('--opale-toast-padding-block', 'espacement', 'Retrait vertical d’une notification.'),
 
   /* Les hauteurs de contrôle. */
@@ -233,6 +269,23 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
   pub('--opale-ease', 'mouvement', 'Courbe d’accélération standard.'),
   pub('--opale-ease-out', 'mouvement', 'Courbe de décélération des entrées.'),
   pub('--opale-ease-spring', 'mouvement', 'Courbe à léger rebond.'),
+  pub('--opale-reveal-distance', 'mouvement', 'Montée d’un `Reveal` avant son entrée.'),
+  pub(
+    '--opale-reveal-duration',
+    'mouvement',
+    'Durée de la montée d’un `Reveal`, hors défilement natif.',
+  ),
+  pub(
+    '--opale-reveal-stagger',
+    'mouvement',
+    'Pas d’une cascade de `Reveal`, multiplié par `delay`.',
+  ),
+  pub('--opale-ease-reveal', 'mouvement', 'Courbe de la montée d’un `Reveal`.'),
+  pub('--opale-marquee-duration', 'mouvement', 'Période d’une boucle complète d’un `Marquee`.'),
+  pub('--opale-split-distance', 'mouvement', 'Montée d’un mot de `SplitHeading` avant son entrée.'),
+  pub('--opale-split-duration', 'mouvement', 'Durée de la montée d’un mot de `SplitHeading`.'),
+  pub('--opale-split-stagger', 'mouvement', 'Pas de la cascade des mots d’un `SplitHeading`.'),
+  pub('--opale-stage-duration', 'mouvement', 'Durée du fondu de fond d’un `ScrollStage`.'),
 
   /* Le verre. */
   pub('--opale-glass-ink', 'verre', 'Encre du texte posé sur le verre.'),
@@ -254,7 +307,7 @@ export const OPALE_TOKENS: readonly TokenEntry[] = [
       'verre',
       'Ancien flou du verre ; lire --opale-glass-backdrop-blur.',
     ),
-    deprecatedSince: '3.7',
+    deprecatedSince: '2.7',
   },
 
   /* Les plans. */

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { compositeOver, contrastRatio, withAlpha } from './color';
+import { parseThemes, resolveToken, type Theme } from './stylesheet';
 import opaleSource from '../opale/opale.css?raw';
 import docSource from '../styles/doc-v3.css?raw';
-import { ruleBody, stripComments } from '../test/css-rules';
+import { declaration, parseRules, ruleBody, stripComments } from '../test/css-rules';
 
 /* =============================================================================
    L'ANNEAU DISCRET DE LA VITRINE TIENT 3:1 SUR CHAQUE SOL.
@@ -60,5 +61,71 @@ describe('l’anneau de focus de la vitrine', () => {
         AA_NON_TEXT,
       );
     }
+  });
+});
+
+/* =============================================================================
+   L'ANNEAU SE RECALCULE DANS UN THÈME LOCAL.
+
+   Un `color-mix()` se résout là où il est DÉCLARÉ, puis hérite de sa valeur.
+   Déclaré sur `:root, .tc-doc` seulement, l'anneau gardait l'encre claire
+   dans une section sombre : mesuré à 1,02:1 sur le fond `night` d'une
+   ScrollSection, et le même défaut touchait un PageScaffold sombre. Il est
+   donc redit sur chaque thème local, et sur chaque portée d'Opale, qui peut
+   redéfinir l'encre.
+   ========================================================================== */
+describe('l’anneau de la vitrine dans un thème local', () => {
+  it('est redéclaré sur `[data-opale-page-theme]` et `[data-opale-scope]`', () => {
+    const declaring = parseRules(docSource).filter(
+      (rule) => rule.context.length === 0 && /--tc-doc-focus-ring\s*:\s*color-mix/.test(rule.body),
+    );
+    expect(declaring).toHaveLength(1);
+    expect(declaring[0].selectors).toEqual(
+      expect.arrayContaining([':root', '.tc-doc', '[data-opale-page-theme]', '[data-opale-scope]']),
+    );
+    expect(declaring[0].body).toMatch(/--opale-focus:\s*var\(--tc-doc-focus-ring\)/);
+  });
+});
+
+/* =============================================================================
+   SUR UN FOND DE COULEUR, L'ANNEAU EST CELUI D'OPALE.
+
+   L'encre à 50 % ne peut pas tenir 3:1 sur un bleu moyen : 2,71:1 mesuré sur
+   le fond `blue` d'une ScrollSection, même recalculée dans le thème local.
+   Dans une section `amber`, `night` ou `blue`, la vitrine rend donc la main à
+   l'anneau d'Opale : `--opale-focus` y vaut l'encre du primaire sur une
+   surface — la formule même d'Opale pour une marque dérivée, et la valeur de
+   ses jetons par défaut —, et l'anneau propre de la vitrine la suit.
+   ========================================================================== */
+describe('l’anneau de la vitrine sur un fond de ScrollSection', () => {
+  const SELECTOR = ".tc-doc .opale-scroll-section:not([data-ground='paper'])";
+  const themes = new Map<string, Theme>(parseThemes(opaleSource).map((t) => [t.name, t]));
+
+  it('rend la main à l’anneau d’Opale dans les sections de couleur', () => {
+    const body = ruleBody(docSource, SELECTOR) ?? '';
+    expect(body).toMatch(/--opale-focus:\s*var\(--opale-primary-on-surface\)/);
+    expect(body).toMatch(/--tc-doc-focus-ring:\s*var\(--opale-focus\)/);
+  });
+
+  it.each([
+    ['amber', 'light'],
+    ['night', 'dark-explicit'],
+    ['blue', 'dark-explicit'],
+  ] as const)('tient 3:1 sur le fond %s, dans son thème local', (ground, theme) => {
+    const local = themes.get(theme) as Theme;
+    const ring = resolveToken(local, '--opale-primary-on-surface');
+    const fill = resolveToken(local, `--opale-ground-${ground}`);
+    expect(contrastRatio(ring, fill)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+});
+
+/* WCAG 2.4.11 : l'étiquette collante de la démo du fond défilant s'ajoute à la
+   barre du haut. Sans coussin à sa mesure, un contrôle déjà juste sous elle
+   recevait le focus entièrement caché — le navigateur ne défile pas. */
+describe('la démo du fond défilant ne cache pas le focus', () => {
+  it('compte l’étiquette collante dans le coussin de défilement', () => {
+    expect(
+      declaration(docSource, 'html:has(.tc-doc-stage-demo)', 'scroll-padding-block-start'),
+    ).toBe('calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem + 3.25rem)');
   });
 });

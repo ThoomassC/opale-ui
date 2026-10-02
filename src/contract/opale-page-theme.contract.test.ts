@@ -229,7 +229,7 @@ describe('le thème local de PageScaffold', () => {
     expect(computed(nest(DARK), '--opale-primary', css)).toBe('#00ff00');
   });
 
-  it('respecte encore la surcharge posée sur le sélecteur local, comme en 3.9.1', () => {
+  it('respecte encore la surcharge posée sur le sélecteur local, comme en 2.9.1', () => {
     document.documentElement.setAttribute('data-theme', 'dark');
     const css = withHost(`[data-opale-page-theme='light'] { --opale-primary: ${HOST_GREEN}; }`);
     expect(computed(nest(LIGHT), '--opale-primary', css)).toBe(HOST_GREEN);
@@ -274,7 +274,7 @@ describe('color-scheme', () => {
    Un jeton écrit `var(--opale-primary)` ou `color-mix(… var(--opale-text) …)`
    se résout là où il est DÉCLARÉ, puis hérite de sa valeur résolue. Déclarés
    seulement sur `:root`, les dérivés ignoraient une surcharge posée sur
-   `[data-opale-page-theme='light']` — ce qui marchait en 3.9.1, où tout le
+   `[data-opale-page-theme='light']` — ce qui marchait en 2.9.1, où tout le
    bloc y était redéclaré. Ils sont donc redits sur chaque thème local ; les
    jetons de base, eux, continuent d'hériter de l'hôte.
    ========================================================================== */
@@ -338,7 +338,7 @@ describe('les jetons dérivés', () => {
 /* ============================================================================
    UNE FEUILLE CHARGÉE DANS UNE RACINE FANTÔME.
 
-   `:root` n'y désigne rien. En 3.9.1, le gabarit portait tout le bloc par son
+   `:root` n'y désigne rien. En 2.9.1, le gabarit portait tout le bloc par son
    attribut, et un PageScaffold isolé dans un Shadow DOM avait ses jetons.
    `:host` rejoint donc la racine claire et le contexte clair du sombre.
    ========================================================================== */

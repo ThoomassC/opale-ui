@@ -494,7 +494,7 @@ describe('les constats sérieux de l’audit', () => {
 
   it('structure la liste de définitions et le fil d’Ariane', () => {
     const { container } = render(
-      <DescriptionList items={[{ term: 'Version', description: '3.1.1' }]} />,
+      <DescriptionList items={[{ term: 'Version', description: '2.1.1' }]} />,
     );
 
     expect(

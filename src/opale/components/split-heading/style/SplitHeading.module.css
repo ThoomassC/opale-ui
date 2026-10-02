@@ -1,0 +1,64 @@
+/* =============================================================================
+   LE TITRE DÉCOUPÉ EN MOTS — FEUILLE D'OPALE.
+
+   LA TYPOGRAPHIE EST CELLE DE `.opale-heading` (`opale.css`) : cette feuille
+   n'ajoute que les mots et leur montée.
+
+   AU REPOS, TOUT EST VISIBLE. Aucune règle ne cache un mot hors de
+   l'animation : le départ (`from`) ne vaut que pendant le délai et la montée
+   (`animation-fill-mode: backwards`), l'arrivée est le style de repos.
+
+   LES RÉGLAGES SONT DES JETONS, déclarés sur `:root` dans `opale.css` avec
+   l'échelle de mouvement : `--opale-split-distance` (la montée, 0,35 em),
+   `--opale-split-duration` (640 ms), `--opale-split-stagger` (le pas de la
+   cascade, 70 ms) et `--opale-ease-reveal`. `--opale-split-index` est le
+   rang du mot, posé par le composant.
+   ========================================================================== */
+
+@keyframes word {
+  from {
+    opacity: 0;
+    transform: translateY(var(--opale-split-distance));
+  }
+}
+
+/* LES PARTIES SE DÉSIGNENT PAR LEUR PLACE, sans classe de module : les mots
+   sont les enfants du conteneur `aria-hidden`, la copie lisible le suit.
+   Deux classes de module de plus coûtaient leur table au budget de poids.
+
+   Un bloc en ligne dès le rendu serveur : la ligne coupe aux mêmes endroits
+   avant et après l'hydratation, et `transform` s'y applique. */
+.root > [aria-hidden] > span {
+  display: inline-block;
+}
+
+.root[data-split='play'] > [aria-hidden] > span {
+  animation-name: word;
+  animation-duration: var(--opale-split-duration);
+  animation-timing-function: var(--opale-ease-reveal);
+  animation-fill-mode: backwards;
+  animation-delay: calc(var(--opale-split-index) * var(--opale-split-stagger));
+}
+
+/* La copie lisible, hors de la sélection : copier le titre rend la phrase
+   une fois, celle des mots visibles. Safari ne lit encore que la forme
+   préfixée. */
+.root > [aria-hidden] + span {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* MOUVEMENT RÉDUIT ET IMPRESSION : les mots, simplement là. C'est la feuille
+   seule qui en décide, préférence changée en cours de route comprise : sans
+   animation, le script n'a rien à attendre et passe aussitôt à `done`. */
+@media (prefers-reduced-motion: reduce) {
+  .root[data-split='play'] > [aria-hidden] > span {
+    animation: none;
+  }
+}
+
+@media print {
+  .root[data-split='play'] > [aria-hidden] > span {
+    animation: none;
+  }
+}

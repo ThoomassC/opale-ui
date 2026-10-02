@@ -9,7 +9,7 @@ import { loadPublicApi, readConfig } from '../test/public-api';
 /* =============================================================================
    LA VITRINE N'ENSEIGNE PAS L'API DÉPRÉCIÉE.
 
-   Depuis 3.6, les anciens noms (`OpaleUI`, `Opale.Background`, `onClose`,
+   Depuis 2.6, les anciens noms (`OpaleUI`, `Opale.Background`, `onClose`,
    `activeItemId`, `size="sm"`…) compilent encore et portent `@deprecated`. La
    vitrine est la première chose qu'on recopie : elle ne doit plus les montrer,
    ni dans son code, ni dans les extraits qu'elle affiche.

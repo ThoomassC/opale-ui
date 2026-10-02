@@ -157,7 +157,7 @@ describe('Sidebar.Item avec href', () => {
   });
 });
 
-/* `SidebarItemProps` RESTE UN TYPE OBJET, comme en 3.9 : une interface
+/* `SidebarItemProps` RESTE UN TYPE OBJET, comme en 2.9 : une interface
    d'application peut l'étendre. La variante lien a son propre nom
    (`SidebarItemLinkProps`) ; `tsc` échouerait ici si l'union revenait. */
 export interface ExtendedSidebarItemProps extends SidebarItemProps {

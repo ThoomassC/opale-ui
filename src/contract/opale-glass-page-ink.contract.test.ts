@@ -10,7 +10,7 @@ import tabsSource from '../opale/components/tabs/style/Tabs.module.css?raw';
    LE VERRE POSÉ SUR LA PAGE : UN RÉGLAGE, ET TOUTES LES ENCRES SUIVENT.
 
    ACC-01 et THM-17. Par défaut l'encre du verre est blanche : elle est faite
-   pour une photographie voilée, et ce défaut ne change pas en 3.x. Sur une
+   pour une photographie voilée, et ce défaut ne change pas en 2.x. Sur une
    page claire unie, elle publiait du blanc sur du blanc. L'hôte pose
    `data-opale-glass-ink="page"` sur la racine (ou sur un ancêtre) : l'encre
    rejoint alors celle de la page, et avec elle les champs, les onglets, le

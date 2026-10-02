@@ -1,8 +1,8 @@
-# Revue UX et compatibilité de la branche `codex/recette-ux-v3.2.0`
+# Revue UX et compatibilité de la branche `codex/recette-ux-v2.2.0`
 
 ## Périmètre vérifié
 
-La direction visuelle de la recette 3.2.0 est conservée. Le sommaire mobile reste replié à l’ouverture. Cette branche ajoute des recettes, des états documentés, des contrôles de démonstration, des composants utiles et des corrections d’accessibilité. Elle n’a pas vocation à modifier l’alias public de recette avant revue.
+La direction visuelle de la recette 2.2.0 est conservée. Le sommaire mobile reste replié à l’ouverture. Cette branche ajoute des recettes, des états documentés, des contrôles de démonstration, des composants utiles et des corrections d’accessibilité. Elle n’a pas vocation à modifier l’alias public de recette avant revue.
 
 ## Anciens exports cités dans les notes de version
 
@@ -28,11 +28,11 @@ La direction visuelle de la recette 3.2.0 est conservée. Le sommaire mobile res
 | I18n, LocalStore, RouteGuard                                   | Solutions de l’application                                            | Responsabilités hors du périmètre UI.                                                                |
 | Game, Countdown                                                | Implémentation métier                                                 | Aucun équivalent Opale.                                                                              |
 
-Les 28 noms sont déjà absents du catalogue 3.2.0 de départ ; aucune suppression supplémentaire n’est faite ici. La migration doit être validée dans chaque consommateur avant une suppression d’export public.
+Les 28 noms sont déjà absents du catalogue 2.2.0 de départ ; aucune suppression supplémentaire n’est faite ici. La migration doit être validée dans chaque consommateur avant une suppression d’export public.
 
 ## API légère conservée
 
-`Pressable` appelle `Button` avec la variante texte. `Form` applique l’empilement vertical à un formulaire natif. `BulletList` rend une liste native depuis `items`. `LegalLinks` nomme une navigation de liens légaux. Ces raccourcis ont un faible coût mais restent des imports publics documentés : les retirer pendant la recette 3.2.0 créerait une rupture sans bénéfice d’usage mesuré. Leur éventuelle dépréciation demande un inventaire des consommateurs publiés et une version majeure.
+`Pressable` appelle `Button` avec la variante texte. `Form` applique l’empilement vertical à un formulaire natif. `BulletList` rend une liste native depuis `items`. `LegalLinks` nomme une navigation de liens légaux. Ces raccourcis ont un faible coût mais restent des imports publics documentés : les retirer pendant la recette 2.2.0 créerait une rupture sans bénéfice d’usage mesuré. Leur éventuelle dépréciation demande un inventaire des consommateurs publiés et une version majeure.
 
 ## CSS et compatibilité
 
@@ -42,4 +42,4 @@ Les polices Bricolage Grotesque et Chivo sont désormais embarquées dans la feu
 
 ## Publication
 
-Le tag Git `v3.2.0` pointe encore vers l’état antérieur à cette branche. La commande d’installation depuis ce tag n’inclut donc pas les améliorations proposées ici. Les notes de version de la branche renvoient à son code de revue. Aucune fusion, mise à jour du tag ni déploiement sur `recette` n’est effectué dans cette tâche.
+Le tag Git `v2.2.0` pointe encore vers l’état antérieur à cette branche. La commande d’installation depuis ce tag n’inclut donc pas les améliorations proposées ici. Les notes de version de la branche renvoient à son code de revue. Aucune fusion, mise à jour du tag ni déploiement sur `recette` n’est effectué dans cette tâche.

@@ -69,3 +69,39 @@ describe('l’anneau de focus', () => {
     );
   });
 });
+
+/* ============================================================================
+   L'ANNEAU ÉPOUSE LA SILHOUETTE, IL NE TRACE PAS DE RECTANGLE.
+
+   Un `outline` suit le `border-radius` de la boîte, jamais le `clip-path`
+   d'un pseudo-élément. Les contrôles dont la forme est peinte par `::before`
+   gardent une boîte à angles vifs : au clavier, un rectangle gris cernait
+   la pilule de SearchBar, les points du Carousel, les onglets de Tabs, la
+   marque et les contrôles d'en-tête de PageScaffold. Au focus seulement, la
+   boîte prend un rayon — 0,68 r pour un squircle, comme `.opale-button` —,
+   l'anneau le suit, et rien ne change au repos.
+   ========================================================================== */
+describe('l’anneau suit la forme du contrôle', () => {
+  const SQUIRCLE = /^calc\(var\(--opale-squircle-radius(, [^)]+)?\) \* 0\.68\)$/;
+  const cases: ReadonlyArray<[string, string, RegExp]> = [
+    ['search-bar/style/SearchBar.module.scss', '.plain:has(.input:focus-visible)', SQUIRCLE],
+    ['header-controls/HeaderControls.module.css', '.theme:focus-visible', SQUIRCLE],
+    ['header-controls/HeaderControls.module.css', '.languageTrigger:focus-visible', SQUIRCLE],
+    ['header-controls/HeaderControls.module.css', '.tab:focus-visible', SQUIRCLE],
+    ['carousel/style/Carousel.module.css', '.dot:focus-visible', /^50%$/],
+    ['tabs/style/Tabs.module.css', '.tabsTrigger:focus-visible', /^var\(--opale-tabs-radius\)$/],
+    ['page-scaffold/PageScaffold.module.css', '.brand:focus-visible', /^var\(--opale-radius-sm\)$/],
+  ];
+  for (const [file, selector, expected] of cases) {
+    it(`arrondit ${selector} (${file.split('/')[0]})`, () => {
+      const css = modules[`../opale/components/${file}`];
+      expect(declaration(css, selector, 'border-radius')).toMatch(expected);
+    });
+  }
+
+  it('arrondit le lien texte, dont l’anneau cernait les mots d’un rectangle', () => {
+    expect(declaration(opaleSource, '.opale-link:focus-visible', 'border-radius')).toBe(
+      'var(--opale-radius-sm)',
+    );
+  });
+});

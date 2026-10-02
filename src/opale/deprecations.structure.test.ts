@@ -6,7 +6,7 @@ import { DEPRECATED_EXPORTS, DEPRECATED_PROPS } from './deprecations';
    LA TABLE DES DÉPRÉCIATIONS ET LES `@deprecated` DU CODE NE DIVERGENT PAS.
 
    `deprecations.ts` alimente l'avertissement de développement et la page
-   « Migrer vers la 4.0 ». Le JSDoc, lui, alimente l'éditeur. Deux sources pour
+   « Migrer vers la 3.0 ». Le JSDoc, lui, alimente l'éditeur. Deux sources pour
    un même fait : ce garde les rapproche, dans les deux sens, et vérifie que la
    version et le remplaçant annoncés sont les mêmes des deux côtés.
 

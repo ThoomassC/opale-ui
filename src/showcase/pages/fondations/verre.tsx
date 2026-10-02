@@ -195,7 +195,7 @@ export default function VerreContent() {
             <strong>Les sept composants repeints par le thème ne sont plus publiés.</strong>{' '}
             <code>Button</code>, <code>Field</code>, <code>IconTile</code>, <code>Input</code>,{' '}
             <code>Message</code>, <code>Pill</code> et <code>Tag</code> sont supprimés avec le reste
-            de la 1.0.
+            de la 0.4.
           </li>
         </ul>
       </Specimen>

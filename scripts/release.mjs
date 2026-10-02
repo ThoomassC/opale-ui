@@ -2,10 +2,10 @@
 /* =============================================================================
    LA LIVRAISON POSE LE TAG, PARCE QU'UN HUMAIN L'A OUBLIÉ QUATRE FOIS.
 
-   LE DÉFAUT RÉEL, RELEVÉ LE 21 SEPTEMBRE 2026 : `package.json` annonçait 3.0.0,
-   la vitrine affichait « v3.0.0 », et le dépôt distant ne portait que deux
+   LE DÉFAUT RÉEL, RELEVÉ LE 21 SEPTEMBRE 2026 : `package.json` annonçait 2.0.0,
+   la vitrine affichait « v2.0.0 », et le dépôt distant ne portait que deux
    tags — v0.1.0 et v0.2.0. Les archives figées allaient pourtant jusqu'à
-   v2.1.0. Conséquence : la commande d'installation affichée sur la page
+   v1.1.0. Conséquence : la commande d'installation affichée sur la page
    « Installation », construite depuis la version courante, pointait sur un tag
    INEXISTANT. Elle échouait pour toute version postérieure à 0.2.0, et rien ne
    le disait — ni un test, ni la page elle-même.

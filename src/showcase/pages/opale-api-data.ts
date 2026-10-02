@@ -847,6 +847,157 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('gap', "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'", 'Espace entre les cellules.', 'md'),
     ],
   },
+  Carousel: {
+    states:
+      'Glisser, flèches, points et clavier ; autoPlay se met en pause sous le pointeur et au focus.',
+    rows: [
+      prop(
+        'label',
+        'string',
+        'Nom de la région : ce que le carrousel fait défiler.',
+        undefined,
+        true,
+      ),
+      prop('children', 'ReactNode', 'Les diapositives, des `CarouselSlide`.'),
+      prop('value', 'number', 'Index de la première diapositive visible, contrôlé.'),
+      prop('defaultValue', 'number', 'Index de départ, non contrôlé.', '0'),
+      prop(
+        'onValueChange',
+        '(index: number) => void',
+        'Changement de diapositive, voulu ou par défilement.',
+      ),
+      prop('slideSize', 'string', 'Largeur d’une diapositive, en longueur CSS.', 'min(78%, 22rem)'),
+      prop(
+        'gap',
+        "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'",
+        'Espace entre les diapositives.',
+        'md',
+      ),
+      prop('showArrows', 'boolean', 'Affiche les flèches précédente et suivante.', 'true'),
+      prop('showDots', 'boolean', 'Affiche un point par diapositive.', 'true'),
+      prop(
+        'autoPlay',
+        'number',
+        'Millisecondes entre deux diapositives ; boucle et rend un bouton pause. Jamais sous mouvement réduit.',
+      ),
+      prop('labels', 'Partial<CarouselLabels>', 'Textes français remplacés clé par clé.'),
+    ],
+    parts: [
+      {
+        name: 'CarouselSlide',
+        rows: [
+          prop('children', 'ReactNode', 'Le contenu de la diapositive.'),
+          prop('aria-label', 'string', 'Remplace le nom « 2 sur 6 » posé par le carrousel.'),
+        ],
+      },
+    ],
+  },
+  Reveal: {
+    states:
+      'Visible au repos ; monte à son entrée dans la vue (animation liée à la vue, sinon IntersectionObserver). Aucun mouvement sous mouvement réduit ni à l’impression.',
+    rows: [
+      prop('children', 'ReactNode', 'Le contenu qui monte.'),
+      prop(
+        'as',
+        "'div' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'li' | 'figure'",
+        'La balise rendue.',
+        'div',
+      ),
+      prop('delay', 'number', 'Rang dans une cascade : × `--opale-reveal-stagger` (60 ms).'),
+      prop(
+        'once',
+        'boolean',
+        'Montre une fois sans recacher ; à `false`, le repli recache sous la vue.',
+        'true',
+      ),
+    ],
+  },
+  Marquee: {
+    states:
+      'Défile en boucle ; se met en pause au bouton, sous le pointeur et au focus. Immobile au serveur, sans script, sous mouvement réduit et à l’impression.',
+    rows: [
+      prop(
+        'label',
+        'string',
+        'Nom de la région : ce que le bandeau fait défiler.',
+        undefined,
+        true,
+      ),
+      prop(
+        'children',
+        'ReactNode',
+        'Les entrées, en enfants directs, non interactives ; sans `id`, elles sont rendues deux fois.',
+      ),
+      prop(
+        'duration',
+        'number',
+        'Secondes pour une boucle complète (`--opale-marquee-duration`).',
+        '28',
+      ),
+      prop('reverse', 'boolean', 'Défile dans l’autre sens.', 'false'),
+      prop('gap', "'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'", 'Espace entre deux entrées.', 'xl'),
+      prop('fade', 'boolean', 'Estompe les deux bords du bandeau.', 'true'),
+      prop('labels', 'Partial<MarqueeLabels>', 'Textes français remplacés clé par clé.'),
+    ],
+  },
+  SplitHeading: {
+    states:
+      'Visible au repos ; les mots montent en cascade à l’entrée dans la vue ou au montage, une fois. Immobile sans script, sous mouvement réduit et à l’impression.',
+    rows: [
+      prop(
+        'children',
+        'string',
+        'Le texte du titre, découpé en mots ; un autre enfant, ou un texte de droite à gauche, est rendu sans découpe.',
+        undefined,
+        true,
+      ),
+      prop('level', '1 | 2 | 3 | 4 | 5 | 6', 'Le niveau HTML, sur l’échelle de `Heading`.', '2'),
+      prop('trigger', "'view' | 'mount'", 'Joue à l’entrée dans la vue, ou au montage.', 'view'),
+      prop('by', "'word'", 'L’unité du découpage : les mots, seule valeur pour l’instant.', 'word'),
+    ],
+  },
+  ScrollSection: {
+    states:
+      'Peint toujours son fond et son encre, sans transition ; dans une `ScrollStage`, s’inscrit auprès de la scène.',
+    rows: [
+      prop(
+        'ground',
+        "'paper' | 'amber' | 'night' | 'blue'",
+        'Le fond peint, avec son encre (`--opale-ground-<nom>`) ; `night` et `blue` passent les composants imbriqués en thème sombre, `amber` en clair.',
+        undefined,
+        true,
+      ),
+      prop(
+        'as',
+        "'section' | 'div' | 'header' | 'footer' | 'article'",
+        'La balise rendue ; une `section` nommée par `aria-labelledby` devient une région.',
+        'section',
+      ),
+    ],
+    parts: [
+      {
+        name: 'ScrollStage',
+        rows: [
+          prop(
+            'onGroundChange',
+            '(ground: ScrollGround) => void',
+            'Appelée quand le défilement change la section active ; jamais au montage.',
+          ),
+          prop(
+            'initialGround',
+            "'paper' | 'amber' | 'night' | 'blue'",
+            'Le fond avant la première mesure ; défaut : celui de la première `ScrollSection` des enfants, fragments compris, sinon `paper`.',
+          ),
+          prop('as', "'div' | 'main' | 'article'", 'La balise rendue.', 'div'),
+          prop(
+            'children',
+            'ReactNode',
+            'Les `ScrollSection`, à toute profondeur ; une section enveloppée dans un autre composant est suivie, mais ne donne pas le fond de départ.',
+          ),
+        ],
+      },
+    ],
+  },
   Tooltip: {
     states: 'Au survol après un délai, au focus tout de suite ; Échap la retire.',
     rows: [

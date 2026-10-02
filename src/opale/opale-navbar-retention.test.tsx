@@ -7,7 +7,7 @@ import { Menu, Navbar } from './opale';
 /* =============================================================================
    NAVBAR NE RETIENT PAS LE CLIC SANS VALEUR DE DÉPART (DX-13), ET LE DIT.
 
-   Le comportement ne change pas en 3.x : sans `value` ni `defaultValue`, une
+   Le comportement ne change pas en 2.x : sans `value` ni `defaultValue`, une
    entrée cliquée ne devient pas courante. Un avertissement de développement
    le signale, une fois par chargement — et seulement après le clic, relu une
    tâche plus tard : un parent qui tient la valeur et part de `undefined` la

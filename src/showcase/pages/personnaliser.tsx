@@ -73,7 +73,7 @@ it('et en sombre', () => {
 const POINTS: readonly { readonly key: string; readonly text: ReactNode }[] = [
   {
     key: 'public',
-    text: 'Surchargez seulement les jetons publics : ce sont les noms stables de la 3.x.',
+    text: 'Surchargez seulement les jetons publics : ce sont les noms stables de la 2.x.',
   },
   {
     key: 'theme',

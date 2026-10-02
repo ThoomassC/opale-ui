@@ -72,9 +72,9 @@ export interface PaginationProps extends Omit<
   defaultValue?: number;
   /** Appelée à chaque choix de page, même la page courante. */
   onValueChange?: (page: number) => void;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   page?: number;
-  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
   onChange?: (page: number) => void;
   /** Rend tous les boutons inactifs. Défaut : `false`. */
   disabled?: boolean;
@@ -219,7 +219,7 @@ export interface RatingInputProps extends Omit<
   max?: number;
   /** Appelée à chaque choix d'une note. */
   onValueChange?: (value: number) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
   onChange?: (value: number) => void;
   /** Rend le groupe inactif, radios comprises. Défaut : `false`. */
   disabled?: boolean;

@@ -7,7 +7,7 @@ import { loadPublicApi } from '../test/public-api';
 
    Cette liste est le journal des noms que le paquet publie. Un nom qui
    apparaît ou disparaît fait rougir ce test : l'ajout se décide, il ne
-   s'échappe pas d'un `export *`. Un nom retiré est une rupture ; en 3.x, il
+   s'échappe pas d'un `export *`. Un nom retiré est une rupture ; en 2.x, il
    ne se retire pas, il se déprécie.
    ========================================================================== */
 
@@ -33,6 +33,11 @@ const EXPORT_NAMES = [
   'CardGrid',
   'CardGridProps',
   'CardProps',
+  'Carousel',
+  'CarouselLabels',
+  'CarouselProps',
+  'CarouselSlide',
+  'CarouselSlideProps',
   'CatalogEntry',
   'Checkbox',
   'CheckboxProps',
@@ -134,6 +139,9 @@ const EXPORT_NAMES = [
   'LightboxProps',
   'Link',
   'LinkProps',
+  'Marquee',
+  'MarqueeLabels',
+  'MarqueeProps',
   'Menu',
   'MenuProps',
   'Modal',
@@ -189,6 +197,16 @@ const EXPORT_NAMES = [
   'RatingInputProps',
   'RatingLabels',
   'RatingProps',
+  'Reveal',
+  'RevealElement',
+  'RevealProps',
+  'ScrollGround',
+  'ScrollSection',
+  'ScrollSectionElement',
+  'ScrollSectionProps',
+  'ScrollStage',
+  'ScrollStageElement',
+  'ScrollStageProps',
   'SearchBar',
   'SearchBarLabels',
   'SearchBarProps',
@@ -207,6 +225,8 @@ const EXPORT_NAMES = [
   'SidebarContextValue',
   'SidebarFooter',
   'SidebarFooterProps',
+  'SidebarGroup',
+  'SidebarGroupProps',
   'SidebarHeader',
   'SidebarHeaderProps',
   'SidebarItem',
@@ -228,6 +248,10 @@ const EXPORT_NAMES = [
   'SliderProps',
   'Spinner',
   'SpinnerProps',
+  'SplitHeading',
+  'SplitHeadingBy',
+  'SplitHeadingProps',
+  'SplitHeadingTrigger',
   'Stack',
   'StackAlign',
   'StackElement',
@@ -312,7 +336,7 @@ describe('la surface publique de `src/opale/index.ts`', () => {
   }, 60_000);
 });
 
-describe('les alias dépréciés de 3.6', () => {
+describe('les alias dépréciés de 2.6', () => {
   it.each(['OpaleUI', 'OPALE_CATALOG', 'CatalogEntry', 'DEFAULT_SITE_NAV_ITEMS'])(
     'devrait marquer %s `@deprecated` sans le retirer',
     (name) => {

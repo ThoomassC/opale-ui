@@ -10,7 +10,8 @@ import { CATALOG } from './opale/catalog';
    Le matériau s'appelle « verre liquide » en français et `liquidGlass` dans le
    code. Le nom anglais en deux mots n'est pas un identifiant : c'est de la
    prose, et il n'a sa place que dans les traductions anglaises de
-   `localization.ts`, seul fichier exclu du balayage.
+   `localization.ts` et de l'accueil (`pages/accueil/home-copy.ts`), seuls
+   fichiers exclus du balayage.
 
    Le mot cherché est recomposé à l'exécution, pour que ce fichier ne se
    dénonce pas lui-même. `liquidGlass`, sans espace, ne correspond pas.
@@ -20,7 +21,12 @@ const ENGLISH_NAME = new RegExp(['liquid', 'glass'].join('\\s+'), 'i');
 
 const SOURCES = {
   ...import.meta.glob(
-    ['./**/*.{ts,tsx,css,scss,md}', '!./**/*.test.{ts,tsx}', '!./showcase/localization.ts'],
+    [
+      './**/*.{ts,tsx,css,scss,md}',
+      '!./**/*.test.{ts,tsx}',
+      '!./showcase/localization.ts',
+      '!./showcase/pages/accueil/home-copy.ts',
+    ],
     { query: '?raw', import: 'default', eager: true },
   ),
   ...import.meta.glob('../README.md', { query: '?raw', import: 'default', eager: true }),

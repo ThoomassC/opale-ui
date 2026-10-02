@@ -74,6 +74,7 @@ const LIQUID_GLASS_TARGET: Readonly<Record<string, string>> = {
 /* Les pièces à importer avec le composant, quand il se compose de plusieurs
    exports. La première est celle de la page. */
 const PAGE_IMPORTS: Readonly<Record<string, readonly string[]>> = {
+  Carousel: ['Carousel', 'CarouselSlide'],
   DropdownMenu: [
     'DropdownMenu',
     'DropdownMenuTrigger',
@@ -87,6 +88,7 @@ const PAGE_IMPORTS: Readonly<Record<string, readonly string[]>> = {
   Field: ['Field', 'useFieldProps'],
   Popover: ['Popover', 'PopoverTrigger', 'PopoverContent'],
   RadioGroup: ['RadioGroup', 'Radio'],
+  ScrollSection: ['ScrollSection', 'ScrollStage'],
 };
 
 /** Ajoute la prop à la balise ouvrante ciblée, y compris avec des callbacks `=>` dans les attributs. */
@@ -170,7 +172,7 @@ const REPRESENTATIVE_EXAMPLES: Readonly<Record<string, string>> = {
   onClick={() => void navigator.clipboard?.writeText(location.href)}
 />`,
   DescriptionList: `<Opale.DescriptionList items={[
-  { term: 'Version', description: '3.2.0' },
+  { term: 'Version', description: '2.2.0' },
   { term: 'Licence', description: 'MIT' },
 ]} />`,
   BulletList: `<Opale.BulletList items={['Clavier', 'Thème sombre', 'TypeScript']} />`,
@@ -347,6 +349,67 @@ function SeatStepper({ value }) {
 <Opale.Grid columns="9rem">
   <div>Design</div><div>Code</div><div>Tests</div>
 </Opale.Grid>`,
+  Carousel: `// Le défilement est natif : doigt, trackpad, molette ; glisser à la souris.
+<Opale.Carousel label="Composants d'Opale">
+  <Opale.CarouselSlide>
+    <h3>Button</h3>
+    <p>Saisie · tons, tailles, verre liquide en option</p>
+  </Opale.CarouselSlide>
+  <Opale.CarouselSlide>
+    <h3>Textarea</h3>
+    <p>Formulaires · grandit avec le texte, compteur annoncé</p>
+  </Opale.CarouselSlide>
+</Opale.Carousel>
+
+// autoPlay : rend un bouton pause, s'arrête sous le pointeur et au focus.
+<Opale.Carousel label="À la une" autoPlay={5000} slideSize="100%">
+  …
+</Opale.Carousel>`,
+  Reveal: `// Visible au repos, sans script ; la montée suit l'entrée dans la vue.
+<Opale.Reveal>
+  <h2>Les qualités</h2>
+</Opale.Reveal>
+
+// Une cascade : chaque rang part 60 ms (--opale-reveal-stagger) après le précédent.
+<ul>
+  <Opale.Reveal as="li" delay={0}>Accessible</Opale.Reveal>
+  <Opale.Reveal as="li" delay={1}>Sans dépendance</Opale.Reveal>
+  <Opale.Reveal as="li" delay={2}>Rendu serveur</Opale.Reveal>
+</ul>`,
+  Marquee: `// Des entrées non interactives, en enfants directs. Le bouton pause suit le
+// mouvement : absent sans script, sous mouvement réduit et à l'impression.
+<Opale.Marquee label="Ce qu’Opale garantit">
+  <span>WCAG 2.2 AA</span>
+  <span>React 19</span>
+  <span>Aucune dépendance</span>
+</Opale.Marquee>
+
+// Plus lent, dans l'autre sens, sans estompe des bords.
+<Opale.Marquee label="Partenaires" duration={40} reverse fade={false} gap="lg">
+  …
+</Opale.Marquee>`,
+  SplitHeading: `// Du texte seulement : les mots montent en cascade quand le titre entre dans
+// la vue, une fois. Le pas (70 ms) et la durée sont des jetons, pas des props.
+<Opale.SplitHeading level={2}>Un titre qui prend son temps.</Opale.SplitHeading>
+
+// Au montage plutôt qu'à l'entrée dans la vue.
+<Opale.SplitHeading level={1} trigger="mount">
+  Bienvenue sur la vitrine.
+</Opale.SplitHeading>`,
+  ScrollSection: `// Chaque section peint son fond et son encre ; la scène expose celui de la
+// section qui croise le milieu de la vue, en data-ground et en
+// --opale-stage-ground / --opale-stage-ink, sans jamais repeindre les sections.
+<Opale.ScrollStage onGroundChange={(ground) => console.log(ground)}>
+  <Opale.ScrollSection ground="paper" aria-labelledby="intro">
+    <h2 id="intro">Le papier</h2>
+  </Opale.ScrollSection>
+  <Opale.ScrollSection ground="amber" aria-labelledby="accent">
+    <h2 id="accent">L’ambre</h2>
+  </Opale.ScrollSection>
+  <Opale.ScrollSection ground="night" aria-labelledby="nuit">
+    <h2 id="nuit">La nuit</h2>
+  </Opale.ScrollSection>
+</Opale.ScrollStage>`,
   Tooltip: `// Une description courte, au survol et au focus : jamais une information essentielle.
 <Opale.Tooltip content="Enregistre le brouillon sans le publier.">
   <Opale.Button variant="secondary">Enregistrer</Opale.Button>

@@ -68,7 +68,7 @@ import styles from './style/Modal.module.css';
         d'écran, sans effet sur le clavier ni sur la souris. Les frères du
         conteneur de portail, à chaque niveau jusqu'à `<body>`, reçoivent donc
         `inert` et `aria-hidden` le temps de l'ouverture, et retrouvent
-        exactement leur valeur d'avant au nettoyage. Depuis 3.9.2, cette
+        exactement leur valeur d'avant au nettoyage. Depuis 2.9.2, cette
         inertie et le verrou de défilement passent par une pile PARTAGÉE
         (`shared/overlay-stack.ts`) : deux surimpressions sœurs se refermaient
         en se rendant l'une à l'autre un état périmé.
@@ -89,7 +89,7 @@ import styles from './style/Modal.module.css';
      maintenant PENDANT le rendu, par `useSyncExternalStore` : au client,
      `document.body` dès le premier rendu.
 
-     L'HYDRATATION EST PROPRE DEPUIS 3.9.2. Le garde `typeof document` que ce
+     L'HYDRATATION EST PROPRE DEPUIS 2.9.2. Le garde `typeof document` que ce
      paragraphe assumait faisait rendre `null` au serveur et un portail au
      premier rendu client : React jetait le HTML serveur du sous-arbre. Ce
      n'était PAS « le comportement de tous les portails React », comme on
@@ -136,7 +136,7 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   open: boolean;
   /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   /**
    * Le titre du dialogue, rendu en `<h2>` et relié par `aria-labelledby`. Sans titre, nommez le
@@ -174,11 +174,11 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   liquidGlass?: boolean;
   /** Le panneau du dialogue, celui qui porte `role="dialog"`. */
   ref?: Ref<HTMLDivElement>;
-  /** @deprecated Depuis 3.7 — utilisez `enableLiquidAnimation` ; l'onde d'ouverture est programmée par la modale. */
+  /** @deprecated Depuis 2.7 — utilisez `enableLiquidAnimation` ; l'onde d'ouverture est programmée par la modale. */
   triggerAnimation?: boolean;
-  /** @deprecated Depuis 3.7 — utilisez `className` ; la balise du panneau est interne au verre. */
+  /** @deprecated Depuis 2.7 — utilisez `className` ; la balise du panneau est interne au verre. */
   as?: GlassProps['as'];
-  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
+  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
   pressFeedback?: boolean;
   /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
      côtés, sans quoi l'intersection le ramène à une chaîne. */

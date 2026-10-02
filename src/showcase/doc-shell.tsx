@@ -3,8 +3,8 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { Topbar } from '../opale';
 import { HeaderNavigation } from '../opale/components/header-controls/HeaderNavigation';
-import type { DocPage } from './doc-model';
-import { HOME_SLUG, findPage, hrefFor } from './doc-model';
+import type { DocPage, DocPageContext } from './doc-model';
+import { HOME_SLUG, findPage, hrefFor, navSectionsForPages } from './doc-model';
 import {
   DOC_NAV_WIDTH_DEFAULT,
   DOC_NAV_WIDTH_MAX,
@@ -15,9 +15,16 @@ import {
   DOC_NAV_WIDTH_STEP,
   DocNav,
 } from './doc-nav';
+import { DocFooter } from './doc-footer';
 import { DocSearch } from './doc-search';
 import { LanguageSelector } from './language-selector';
-import { copyFor, pageTitleFor, type InterfaceCopy } from './localization';
+import {
+  copyFor,
+  pageTitleFor,
+  sectionLabelFor,
+  type InterfaceCopy,
+  type Language,
+} from './localization';
 import { PageBoundary } from './page-boundary';
 import { ThemeToggle } from './theme-toggle';
 import { useLanguage } from './use-language';
@@ -65,8 +72,15 @@ export interface DocShellProps {
  * Le corps de la page, rendu par un composant et non par la coquille : ainsi
  * `page.render()` s'exécute sous `PageBoundary`, qui en borne aussi les erreurs.
  */
-function PageContent({ page }: { page: DocPage }): ReactNode {
-  return page.render();
+function PageContent({ page, context }: { page: DocPage; context: DocPageContext }): ReactNode {
+  return page.render(context);
+}
+
+/* Le libellé d'une rubrique en capitales (« PRISE EN MAIN »), écrit en
+   phrase pour le menu : « Prise en main ». */
+function sentenceCase(label: string): string {
+  const lower = label.toLocaleLowerCase();
+  return lower.charAt(0).toLocaleUpperCase() + lower.slice(1);
 }
 
 interface HeaderNavProps {
@@ -74,9 +88,27 @@ interface HeaderNavProps {
   readonly className: string;
   readonly ariaLabel: string;
   readonly copy: InterfaceCopy;
+  /** Les rubriques du sommaire, ajoutées aux onglets quand le sommaire n'est pas rendu. */
+  readonly sections?: { readonly pages: readonly DocPage[]; readonly language: Language };
 }
 
-function HeaderNav({ page, className, ariaLabel, copy }: HeaderNavProps) {
+function HeaderNav({ page, className, ariaLabel, copy, sections }: HeaderNavProps) {
+  /* UNE ENTRÉE PAR RUBRIQUE, vers sa première page : sans sommaire, le menu
+     reste le chemin vers toute la documentation, la recherche l'autre. */
+  const sectionLinks = sections
+    ? navSectionsForPages(sections.pages).flatMap((section) => {
+        const first = section.entries[0];
+        return first
+          ? [
+              {
+                id: `section-${section.id}`,
+                href: hrefFor(first.page.slug),
+                label: sentenceCase(sectionLabelFor(section.id, section.label, sections.language)),
+              },
+            ]
+          : [];
+      })
+    : [];
   const links = [
     { id: HOME_SLUG, href: hrefFor(HOME_SLUG), label: copy.home },
     { id: 'installation', href: hrefFor('installation'), label: copy.installation },
@@ -85,6 +117,7 @@ function HeaderNav({ page, className, ariaLabel, copy }: HeaderNavProps) {
       href: hrefFor('notes-de-versions'),
       label: copy.releaseNotes,
     },
+    ...sectionLinks,
   ];
 
   return (
@@ -116,6 +149,7 @@ export function DocShell({ pages }: DocShellProps) {
   const { language, setLanguage } = useLanguage();
   const copy = copyFor(language);
   const pageTitle = pageTitleFor(page, language);
+  const fullBleed = page.fullBleed === true;
   const [compactNav, setCompactNav] = useState(compactNavViewport);
   const [navWidth, setNavWidth] = useState(
     compactNavViewport() ? DOC_NAV_WIDTH_MOBILE_DEFAULT : DOC_NAV_WIDTH_DEFAULT,
@@ -145,6 +179,7 @@ export function DocShell({ pages }: DocShellProps) {
   const docRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const pageContext: DocPageContext = { language, titleProps: { ref: titleRef, tabIndex: -1 } };
   const topbarRef = useRef<HTMLDivElement>(null);
   const headerMenuRef = useRef<HTMLDetailsElement>(null);
 
@@ -186,6 +221,9 @@ export function DocShell({ pages }: DocShellProps) {
 
       if (height > 0) {
         docElement.style.setProperty('--tc-doc-topbar-height', `${height}px`);
+        /* Aussi sur la racine : `scroll-padding` se lit sur `<html>`, et le
+           coussin doit valoir la barre peinte, pas le jeton (WCAG 2.4.11). */
+        document.documentElement.style.setProperty('--tc-doc-topbar-height', `${height}px`);
       }
     };
 
@@ -199,6 +237,7 @@ export function DocShell({ pages }: DocShellProps) {
       window.removeEventListener('resize', updateTopbarHeight);
       resizeObserver?.disconnect();
       docElement.style.removeProperty('--tc-doc-topbar-height');
+      document.documentElement.style.removeProperty('--tc-doc-topbar-height');
     };
   }, []);
 
@@ -246,7 +285,7 @@ export function DocShell({ pages }: DocShellProps) {
   };
 
   return (
-    <div className="tc-doc" ref={docRef}>
+    <div className={fullBleed ? 'tc-doc tc-doc--full-bleed' : 'tc-doc'} ref={docRef}>
       {/* `.tc-doc-topbar` porte le collage, le `z-index` et un sol opaque :
           l'enveloppe `Glass` de `Topbar` ouvre son propre contexte
           d'empilement, et le flou du verre n'échantillonne ainsi qu'un aplat.
@@ -289,6 +328,7 @@ export function DocShell({ pages }: DocShellProps) {
                 className="tc-doc-topbar__menu-nav"
                 ariaLabel={copy.primaryMenu}
                 copy={copy}
+                sections={fullBleed ? { pages, language } : undefined}
               />
             </details>
           </Topbar.Section>
@@ -314,32 +354,40 @@ export function DocShell({ pages }: DocShellProps) {
         ref={bodyRef}
         style={{ '--tc-doc-nav-width': `${effectiveNavWidth}px` } as CSSProperties}
       >
-        <DocNav
-          pages={pages}
-          currentSlug={page.slug}
-          language={language}
-          resize={{
-            width: effectiveNavWidth,
-            min: navWidthMin,
-            max: navWidthMax,
-            step: DOC_NAV_WIDTH_STEP,
-            onPreview: previewNavWidth,
-            onChange: (width) =>
-              commitNavWidth(Math.max(navWidthMin, Math.min(navWidthMax, width))),
-            onCommit: (width) =>
-              commitNavWidth(Math.max(navWidthMin, Math.min(navWidthMax, width))),
-          }}
-        />
+        {/* Une page pleine largeur n'a pas de sommaire : le menu de la barre du
+            haut en reprend les rubriques. */}
+        {fullBleed ? null : (
+          <DocNav
+            pages={pages}
+            currentSlug={page.slug}
+            language={language}
+            resize={{
+              width: effectiveNavWidth,
+              min: navWidthMin,
+              max: navWidthMax,
+              step: DOC_NAV_WIDTH_STEP,
+              onPreview: previewNavWidth,
+              onChange: (width) =>
+                commitNavWidth(Math.max(navWidthMin, Math.min(navWidthMax, width))),
+              onCommit: (width) =>
+                commitNavWidth(Math.max(navWidthMin, Math.min(navWidthMax, width))),
+            }}
+          />
+        )}
 
         <div className="tc-doc-column">
           <main
-            className={`tc-doc-main${page.slug === HOME_SLUG ? ' tc-doc-main--home' : ''}${page.group === 'composants' ? ' tc-doc-main--components' : ''}`}
+            className={`tc-doc-main${fullBleed ? ' tc-doc-main--full-bleed' : ''}${!fullBleed && page.slug === HOME_SLUG ? ' tc-doc-main--home' : ''}${page.group === 'composants' ? ' tc-doc-main--components' : ''}`}
             id="contenu"
           >
-            <h1 className="tc-doc-page__title" ref={titleRef} tabIndex={-1}>
-              {pageTitle}
-            </h1>
-            {copy.contentLanguageNotice ? (
+            {/* La page pleine largeur rend son propre `<h1>`, avec
+                `titleProps`, et traduit son corps : ni titre ni avis ici. */}
+            {fullBleed ? null : (
+              <h1 className="tc-doc-page__title" ref={titleRef} tabIndex={-1}>
+                {pageTitle}
+              </h1>
+            )}
+            {!fullBleed && copy.contentLanguageNotice ? (
               <p className="tc-doc-language-notice" lang={language.toLowerCase()}>
                 {copy.contentLanguageNotice}
               </p>
@@ -350,9 +398,10 @@ export function DocShell({ pages }: DocShellProps) {
                 emporter les vingt autres avec elle — c'est l'incident que
                 `src/index.ts` documente, arrivé une fois avec un `Pill`. */}
             <PageBoundary resetKey={page.slug}>
-              <PageContent page={page} />
+              <PageContent page={page} context={pageContext} />
             </PageBoundary>
           </main>
+          <DocFooter copy={copy} />
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ import { loadPublicApi } from '../test/public-api';
    ajoutée sans JSDoc le fait rougir.
    ========================================================================== */
 
-/* La couverture atteinte en 3.10.0 : toutes les props propres (665 sur 665,
+/* La couverture atteinte en 2.10.0 : toutes les props propres (665 sur 665,
    contre 397 avant la passe DX-20). Le seuil ne se baisse pas pour faire
    passer une prop nouvelle : on la documente. */
 const MIN_COVERAGE = 1;

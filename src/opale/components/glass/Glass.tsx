@@ -184,9 +184,9 @@ export type GlassSurfaceProps = Pick<
    bandeau d'onglets ne sont pas des cibles d'activation : l'onde y est interne
    au matériau. Les deux props gardent leur effet, sans être recommandées. */
 export type LegacySurfaceAnimationProps = {
-  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; une surface ne fait pas naître d'onde au clic. */
+  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; une surface ne fait pas naître d'onde au clic. */
   readonly enableLiquidAnimation?: boolean;
-  /** @deprecated Depuis 3.7 — utilisez `liquidGlass` ; l'onde programmée est interne au matériau. */
+  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; l'onde programmée est interne au matériau. */
   readonly triggerAnimation?: boolean;
 };
 

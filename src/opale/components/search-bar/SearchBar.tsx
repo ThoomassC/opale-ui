@@ -28,7 +28,7 @@ export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   icon?: ReactNode;
   /** L'onde qui naît au clic dans le champ en verre. Défaut : `true`. */
   enableLiquidAnimation?: boolean;
-  /** @deprecated Depuis 3.7 — utilisez `enableLiquidAnimation`. */
+  /** @deprecated Depuis 2.7 — utilisez `enableLiquidAnimation`. */
   enableClickAnimation?: boolean;
   /** Pose le repère `search` autour du champ. Défaut : `true`. */
   landmark?: boolean;

@@ -12,7 +12,7 @@ import opaleSource from '../opale/opale.css?raw';
    recouvrait le badge ; l'invite et les commandes de la carte en couvraient
    plus de la moitié. Les corrections vivent dans un bloc `@media` : sorties
    de ce bloc, elles changeraient la disposition sur un écran large — ce qu'un
-   correctif de 3.x s'interdit.
+   correctif de 2.x s'interdit.
 
    ET AUCUN DES DEUX N'EST UN CONTENEUR. Un `container-type` sur la barre ou la
    carte changerait la cible des requêtes `@container` anonymes écrites dans

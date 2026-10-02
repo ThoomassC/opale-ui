@@ -1,0 +1,152 @@
+/* =============================================================================
+   LE BANDEAU DÉFILANT — FEUILLE D'OPALE.
+
+   AU REPOS, RIEN NE BOUGE ET RIEN N'EST ROGNÉ. Les règles de premier niveau
+   rendent le contenu une fois, à la ligne si besoin ; la copie de la boucle
+   et le bouton sont absents. C'est l'état d'une page sans script
+   (`scripting: none`), du mouvement réduit et de l'impression.
+
+   LA BANDE VIT DANS UN SEUL BLOC : écran, script, mouvement permis. Sa mise
+   en page y est posée dès la première peinture, avant l'hydratation, pour
+   que la page ne saute pas ; seules l'animation et la copie attendent le
+   script (`[data-animated]`). La piste prend la largeur de ses deux copies
+   et glisse de `--opale-marquee-shift` (-50 %, +50 % de droite à gauche) :
+   exactement une copie, puisque chacune finit par le même espace que celui
+   qui sépare deux entrées.
+
+   LES RÉGLAGES SONT DES PROPRIÉTÉS PERSONNALISÉES : `--opale-marquee-duration`
+   (jeton de `:root`, 28 s, remplacé par `duration`) et `--opale-marquee-gap`
+   (posé par `gap`). Une boucle a une période, pas une durée de l'échelle :
+   le raccourci `infinite` le dit au contrat de mouvement.
+   ========================================================================== */
+
+@keyframes slide {
+  to {
+    transform: translateX(var(--opale-marquee-shift));
+  }
+}
+
+.root {
+  --opale-marquee-shift: -50%;
+  display: grid;
+  gap: var(--opale-space-sm);
+  /* Toute la ligne, même dans un contexte dimensionné au contenu (élément
+     flex, `fit-content`, cellule) : `container-type` y effondrerait la
+     bande à 0. */
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+.root[data-dir='rtl'] {
+  --opale-marquee-shift: 50%;
+}
+
+.copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--opale-marquee-gap, var(--opale-space-xl));
+}
+
+.clone,
+.toggle {
+  display: none;
+}
+
+/* LA BANDE : sa mise en page dépend du média, jamais de l'hydratation — la
+   page ne saute pas quand le script arrive (CLS 0). Seules l'animation et
+   la copie attendent `data-animated`. */
+@media screen and (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  /* La vue est le conteneur de requête des copies : `100cqi` est sa largeur.
+     Le rembourrage loge l'anneau de focus d'une entrée, que `overflow`
+     rognerait en haut et en bas. */
+  .viewport {
+    container-type: inline-size;
+    overflow: hidden;
+    padding-block: calc(var(--opale-focus-ring-width) + var(--opale-focus-ring-offset));
+  }
+  /* Le masque n'estompe que l'axe de la ligne. */
+  .root[data-fade] .viewport {
+    mask: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+  .track {
+    display: flex;
+    inline-size: max-content;
+  }
+  .copy {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    justify-content: space-around;
+    min-inline-size: 100cqi;
+    padding-inline-end: var(--opale-marquee-gap, var(--opale-space-xl));
+    white-space: nowrap;
+  }
+  .toggle {
+    display: inline-grid;
+  }
+  /* Avant l'hydratation, le bouton tient sa place sans être montré, ni
+     focalisable, ni exposé : il ne ferait rien. */
+  .root:not([data-animated]) .toggle {
+    visibility: hidden;
+  }
+  .root[data-animated] .track {
+    animation: slide var(--opale-marquee-duration) linear infinite;
+  }
+  .root[data-animated] .clone {
+    display: flex;
+  }
+  .root[data-animated]:not([data-paused]) .track {
+    will-change: transform;
+  }
+}
+
+.root[data-reverse] .track {
+  animation-direction: reverse;
+}
+
+/* Le bouton, le survol et le focus du contenu suspendent ; le survol est
+   réservé aux pointeurs qui survolent — un doigt qui touche ne doit pas
+   figer le bandeau jusqu'au toucher suivant. */
+.root[data-paused] .track,
+.viewport:focus-within .track {
+  animation-play-state: paused;
+}
+@media (hover: hover) {
+  .viewport:hover .track {
+    animation-play-state: paused;
+  }
+}
+
+.toggle {
+  justify-self: start;
+  block-size: 2.5rem;
+  padding-inline: var(--opale-space-md);
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--opale-text) 22%, transparent);
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-surface);
+  color: var(--opale-text);
+  font: inherit;
+  font-size: var(--opale-text-sm);
+  line-height: 1;
+  cursor: pointer;
+  transition: transform var(--opale-motion-fast) var(--opale-ease);
+}
+.toggle:active {
+  transform: scale(0.94);
+}
+
+/* L'anneau de focus, celui de toute la famille. */
+.toggle:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+
+@media (forced-colors: active) {
+  .toggle {
+    border-color: ButtonText;
+    color: ButtonText;
+  }
+  .toggle:focus-visible {
+    outline-color: CanvasText;
+  }
+}

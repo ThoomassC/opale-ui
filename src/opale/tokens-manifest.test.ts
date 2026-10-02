@@ -104,7 +104,7 @@ describe('les statuts', () => {
 
   it('signale le jeton déprécié et sa version', () => {
     const blur = OPALE_TOKENS.find((entry) => entry.name === '--opale-glass-blur');
-    expect(blur?.deprecatedSince).toBe('3.7');
+    expect(blur?.deprecatedSince).toBe('2.7');
   });
 
   it('publicTokens ne rend que les publics, dans l’ordre du manifeste', () => {

@@ -29,6 +29,11 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
     'menu déroulant',
     'menu d’actions',
   ],
+  Carousel: ['CarouselSlide', 'carrousel', 'diaporama', 'slider', 'autoPlay', 'scroll-snap'],
+  Marquee: ['bandeau', 'défilant', 'ticker', 'boucle', 'marquee', 'pause'],
+  SplitHeading: ['titre', 'mots', 'cascade', 'split text', 'heading', 'stagger'],
+  ScrollSection: ['ScrollStage', 'ScrollGround', 'fond', 'section active', 'défilement', 'scroll'],
+  Reveal: ['apparition', 'défilement', 'scroll', 'animation-timeline', 'cascade', 'stagger'],
   Dropzone: ['FileUploader', 'glisser déposer', 'drag and drop'],
   Feedback: ['Http', 'Validation', 'tone', 'severity'],
   Field: ['useFieldProps', 'FieldWrapperProps', 'champ', 'contrôle personnalisé'],
@@ -57,7 +62,7 @@ export const opaleComponentPages: readonly DocPage[] = SHOWCASE_CATALOG.map((ent
   group: 'composants',
   title: catalogComponentLabel(entry.name),
   searchTerms: [entry.description, ...(COMPONENT_SEARCH_TERMS[entry.name] ?? [])],
-  /* LA CARTE SVG A SA PAGE PROPRE. Refondue en 3.5.0, elle se démontre sur
+  /* LA CARTE SVG A SA PAGE PROPRE. Refondue en 2.5.0, elle se démontre sur
      trois scènes et trois tables d'interface, ce que le gabarit commun d'une
      fiche ne sait pas porter. L'adresse, elle, ne change pas. */
   render:

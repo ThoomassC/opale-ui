@@ -93,7 +93,7 @@ const FEEDBACK_TITLES = {
 
 /**
  * La nature d'un retour : sa couleur, son titre par défaut et l'urgence de son
- * annonce. Les cinq tons d'`OpaleTone` ; `neutral`, ajouté en 3.10, n'a pas de
+ * annonce. Les cinq tons d'`OpaleTone` ; `neutral`, ajouté en 2.10, n'a pas de
  * couleur de signal et s'annonce poliment.
  */
 export type FeedbackTone = OpaleTone;
@@ -101,7 +101,7 @@ export type FeedbackTone = OpaleTone;
 export interface FeedbackProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** Le ton de l'encart : sa couleur, son titre par défaut et son rôle. Défaut : `info`. */
   tone?: FeedbackTone;
-  /** @deprecated Depuis 3.6 — utilisez `tone`. */
+  /** @deprecated Depuis 2.6 — utilisez `tone`. */
   severity?: FeedbackTone;
   /** Le titre de l'encart. Défaut : celui du ton (« Information », « Erreur »…). */
   title?: ReactNode;
@@ -199,13 +199,13 @@ export function Feedback({
 
 /**
  * Les six places possibles à l'écran.
- * @deprecated Depuis 3.6 — utilisez `OpalePlacement`.
+ * @deprecated Depuis 2.6 — utilisez `OpalePlacement`.
  */
 export type ToastPlacement = OpalePlacement;
 
 /**
  * Les tons, et leur couleur. `neutral` n'en porte aucune.
- * @deprecated Depuis 3.6 — utilisez `OpaleTone`.
+ * @deprecated Depuis 2.6 — utilisez `OpaleTone`.
  */
 export type ToastTone = OpaleTone;
 
@@ -269,7 +269,7 @@ export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   message?: ReactNode;
   /**
    * Le texte du message, sous le nom qu'emploie `showToast`. Avec `message`, il
-   * reste ce qu'il était jusqu'en 3.9.3 — l'attribut HTML `title` de la carte —,
+   * reste ce qu'il était jusqu'en 2.9.3 — l'attribut HTML `title` de la carte —,
    * et un avertissement de développement le signale.
    */
   title?: ReactNode;
@@ -284,7 +284,7 @@ export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   open?: boolean;
   /** Appelée avec `false` sur la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
   onClose?: () => void;
   /** Rend la carte dans le matériau « verre liquide ». Originale par défaut. */
   liquidGlass?: boolean;
@@ -349,7 +349,7 @@ export function Toast({
      posées d'avance, vides, et le message entre dans celle de son ton. */
   warnDeprecatedProps('Toast', { onClose });
   /* `message` ET `title` (DOCS-04). Seul, `title` est le texte ; auprès de
-     `message`, il redevient l'attribut natif qu'il était en 3.9.3. */
+     `message`, il redevient l'attribut natif qu'il était en 2.9.3. */
   const text = resolveToastText('Toast', message, title);
   const nativeTitle = message !== undefined && typeof title === 'string' ? title : undefined;
   const hasDescription = description !== undefined && description !== null && description !== false;
@@ -532,7 +532,7 @@ export function Spinner({
  * `role="progressbar"`.
  *
  * Il n'existe pas encore de `rootClassName` ni de `classNames` par zone
- * (candidat 3.10) : pour habiller la barre, ciblez `.opale-progress` depuis la
+ * (candidat 2.10) : pour habiller la barre, ciblez `.opale-progress` depuis la
  * classe de l'enveloppe.
  */
 export interface ProgressBarProps extends ComponentPropsWithRef<'div'> {
@@ -647,7 +647,7 @@ export interface ConfirmDialogProps extends Omit<ComponentPropsWithRef<'div'>, '
   loading?: boolean;
   /** `false` sur Annuler, Échap, le voile ou la croix. Jamais sur Confirmer. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onOpenChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
   onCancel?: () => void;
   /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
   labels?: Partial<ConfirmDialogLabels>;
@@ -693,7 +693,7 @@ export function ConfirmDialog({
   const [pending, setPending] = useState(false);
   const inFlight = useRef(false);
   const busy = loading || pending;
-  /* ANNULER RESTE POSSIBLE PENDANT UNE PROMESSE. En 3.9, le retour de
+  /* ANNULER RESTE POSSIBLE PENDANT UNE PROMESSE. En 2.9, le retour de
      `onConfirm` était ignoré et l'utilisateur pouvait toujours renoncer ; un
      `onConfirm={() => mutation.mutateAsync()}` existant ne doit pas le priver
      d'Annuler, ni le coincer si la promesse ne se termine jamais. Seul

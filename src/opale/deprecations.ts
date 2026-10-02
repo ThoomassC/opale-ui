@@ -1,10 +1,10 @@
 /* =============================================================================
    LES NOMS DÉPRÉCIÉS D'OPALE, EN UN SEUL ENDROIT.
 
-   Depuis 3.6 et 3.7, une quarantaine de props et d'exports portent
+   depuis 2.6 et 2.7, une quarantaine de props et d'exports portent
    `@deprecated` : ils compilent encore, gardent leur effet, et l'éditeur les
-   barre. La 4.0.0 les retirera. Cette table est leur SOURCE DE VÉRITÉ :
-   l'avertissement de développement la lit, la page « Migrer vers la 4.0 » de
+   barre. La 3.0.0 les retirera. Cette table est leur SOURCE DE VÉRITÉ :
+   l'avertissement de développement la lit, la page « Migrer vers la 3.0 » de
    la vitrine s'en déduit, et `deprecations.structure.test.ts` la tient contre
    chaque `@deprecated` du code — une entrée sans JSDoc, ou un JSDoc sans
    entrée, fait rougir la suite.
@@ -19,11 +19,13 @@
    remplace — comme pour React. Voir `isDevelopment`.
    ========================================================================== */
 
+import { isDevelopment, resetWarnings, warnOnce } from './shared/dev-warning';
+
 /** La version où un nom a été déprécié. */
-export type DeprecatedSince = '3.6' | '3.7' | '3.10';
+export type DeprecatedSince = '2.6' | '2.7' | '2.10';
 
 /** La version qui retirera les noms dépréciés. */
-export const DEPRECATION_REMOVAL = '4.0.0';
+export const DEPRECATION_REMOVAL = '3.0.0';
 
 /** Une prop dépréciée : son composant, son ancien nom et celui qui le remplace. */
 export interface DeprecatedPropEntry {
@@ -68,8 +70,8 @@ function legacySurfaceEntries<const C extends string>(component: C) {
       prop: 'enableLiquidAnimation',
       replacement: 'liquidGlass',
       note: 'une surface ne fait pas naître d’onde au clic',
-      since: '3.7',
-      removal: '4.0.0',
+      since: '2.7',
+      removal: '3.0.0',
       source: 'components/glass/Glass.tsx',
     },
     {
@@ -77,8 +79,8 @@ function legacySurfaceEntries<const C extends string>(component: C) {
       prop: 'triggerAnimation',
       replacement: 'liquidGlass',
       note: 'l’onde programmée est interne au matériau',
-      since: '3.7',
-      removal: '4.0.0',
+      since: '2.7',
+      removal: '3.0.0',
       source: 'components/glass/Glass.tsx',
     },
   ] as const satisfies readonly DeprecatedPropEntry[];
@@ -90,8 +92,8 @@ export const DEPRECATED_PROPS = [
     component: 'Modal',
     prop: 'onClose',
     replacement: 'onOpenChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/modal/Modal.tsx',
   },
   {
@@ -99,8 +101,8 @@ export const DEPRECATED_PROPS = [
     prop: 'triggerAnimation',
     replacement: 'enableLiquidAnimation',
     note: 'l’onde d’ouverture est programmée par la modale',
-    since: '3.7',
-    removal: '4.0.0',
+    since: '2.7',
+    removal: '3.0.0',
     source: 'components/modal/Modal.tsx',
   },
   {
@@ -108,8 +110,8 @@ export const DEPRECATED_PROPS = [
     prop: 'as',
     replacement: 'className',
     note: 'la balise du panneau est interne au verre',
-    since: '3.7',
-    removal: '4.0.0',
+    since: '2.7',
+    removal: '3.0.0',
     source: 'components/modal/Modal.tsx',
   },
   {
@@ -117,8 +119,8 @@ export const DEPRECATED_PROPS = [
     prop: 'pressFeedback',
     replacement: 'liquidGlass',
     note: 'le rebond est interne au matériau',
-    since: '3.7',
-    removal: '4.0.0',
+    since: '2.7',
+    removal: '3.0.0',
     source: 'components/modal/Modal.tsx',
   },
 
@@ -128,8 +130,8 @@ export const DEPRECATED_PROPS = [
     prop: 'as',
     replacement: 'className',
     note: 'la balise du contenu est interne au verre',
-    since: '3.7',
-    removal: '4.0.0',
+    since: '2.7',
+    removal: '3.0.0',
     source: 'components/tabs/Tabs.tsx',
   },
   {
@@ -137,8 +139,8 @@ export const DEPRECATED_PROPS = [
     prop: 'pressFeedback',
     replacement: 'liquidGlass',
     note: 'le rebond est interne au matériau',
-    since: '3.7',
-    removal: '4.0.0',
+    since: '2.7',
+    removal: '3.0.0',
     source: 'components/tabs/Tabs.tsx',
   },
 
@@ -152,32 +154,32 @@ export const DEPRECATED_PROPS = [
     component: 'Sidebar',
     prop: 'onToggle',
     replacement: 'onCollapsedChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/sidebar/Sidebar.tsx',
   },
   {
     component: 'Sidebar',
     prop: 'activeItemId',
     replacement: 'value',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/sidebar/Sidebar.tsx',
   },
   {
     component: 'Sidebar',
     prop: 'defaultActiveItemId',
     replacement: 'defaultValue',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/sidebar/Sidebar.tsx',
   },
   {
     component: 'Sidebar',
     prop: 'onSelectItem',
     replacement: 'onValueChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/sidebar/Sidebar.tsx',
   },
 
@@ -186,16 +188,16 @@ export const DEPRECATED_PROPS = [
     component: 'SearchBar',
     prop: 'enableClickAnimation',
     replacement: 'enableLiquidAnimation',
-    since: '3.7',
-    removal: '4.0.0',
+    since: '2.7',
+    removal: '3.0.0',
     source: 'components/search-bar/SearchBar.tsx',
   },
   {
     component: 'SiteNav',
     prop: 'activeItem',
     replacement: 'value',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/site-nav/site-nav.tsx',
   },
   {
@@ -203,8 +205,8 @@ export const DEPRECATED_PROPS = [
     prop: 'variant',
     replacement: 'tone',
     note: '`default` → `neutral`',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/toast/ToastProvider.tsx',
   },
 
@@ -213,8 +215,8 @@ export const DEPRECATED_PROPS = [
     component: 'DataTable',
     prop: 'emptyMessage',
     replacement: 'labels.empty',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/display.tsx',
   },
   {
@@ -222,128 +224,128 @@ export const DEPRECATED_PROPS = [
     prop: 'density',
     replacement: 'size',
     note: '`compact` → `small`',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/display.tsx',
   },
   {
     component: 'FileCard',
     prop: 'size',
     replacement: 'fileSize',
-    since: '3.10',
-    removal: '4.0.0',
+    since: '2.10',
+    removal: '3.0.0',
     source: 'catalog/modules.tsx',
   },
   {
     component: 'Lightbox',
     prop: 'onClose',
     replacement: 'onOpenChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/modules.tsx',
   },
   {
     component: 'Feedback',
     prop: 'severity',
     replacement: 'tone',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/feedback.tsx',
   },
   {
     component: 'Toast',
     prop: 'onClose',
     replacement: 'onOpenChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/feedback.tsx',
   },
   {
     component: 'ConfirmDialog',
     prop: 'onCancel',
     replacement: 'onOpenChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/feedback.tsx',
   },
   {
     component: 'MultiSelect',
     prop: 'values',
     replacement: 'value',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/forms.tsx',
   },
   {
     component: 'SegmentedControl',
     prop: 'onChange',
     replacement: 'onValueChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/forms.tsx',
   },
   {
     component: 'Navbar',
     prop: 'activeId',
     replacement: 'value',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/navigation.tsx',
   },
   {
     component: 'Navbar',
     prop: 'onSelect',
     replacement: 'onValueChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/navigation.tsx',
   },
   {
     component: 'SidePanel',
     prop: 'onClose',
     replacement: 'onOpenChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/navigation.tsx',
   },
   {
     component: 'CommandPalette',
     prop: 'onChange',
     replacement: 'onValueChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/navigation.tsx',
   },
   {
     component: 'CommandPalette',
     prop: 'onClose',
     replacement: 'onOpenChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/navigation.tsx',
   },
   {
     component: 'Pagination',
     prop: 'page',
     replacement: 'value',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'opale-extras.tsx',
   },
   {
     component: 'Pagination',
     prop: 'onChange',
     replacement: 'onValueChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'opale-extras.tsx',
   },
   {
     component: 'RatingInput',
     prop: 'onChange',
     replacement: 'onValueChange',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'opale-extras.tsx',
   },
 ] as const satisfies readonly DeprecatedPropEntry[];
@@ -354,16 +356,16 @@ export const DEPRECATED_EXPORTS = [
     kind: 'value',
     replacement: null,
     note: 'importez chaque composant par son nom',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'opale-namespace.ts',
   },
   {
     name: 'Opale.Background',
     kind: 'value',
     replacement: 'BackgroundSurface',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'opale-namespace.ts',
   },
   {
@@ -371,8 +373,8 @@ export const DEPRECATED_EXPORTS = [
     kind: 'value',
     replacement: null,
     note: 'métadonnée de la vitrine, sans remplaçant public',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'opale.ts',
   },
   {
@@ -380,32 +382,32 @@ export const DEPRECATED_EXPORTS = [
     kind: 'type',
     replacement: null,
     note: 'métadonnée de la vitrine, sans remplaçant public',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'opale.ts',
   },
   {
     name: 'ToastPlacement',
     kind: 'type',
     replacement: 'OpalePlacement',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/feedback.tsx',
   },
   {
     name: 'ToastTone',
     kind: 'type',
     replacement: 'OpaleTone',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/feedback.tsx',
   },
   {
     name: 'FieldProps',
     kind: 'type',
     replacement: 'InputProps',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'catalog/forms.tsx',
   },
   {
@@ -413,8 +415,8 @@ export const DEPRECATED_EXPORTS = [
     kind: 'value',
     replacement: 'items',
     note: 'passez vos destinations à `SiteNav`',
-    since: '3.6',
-    removal: '4.0.0',
+    since: '2.6',
+    removal: '3.0.0',
     source: 'components/site-nav/default-items.ts',
   },
 ] as const satisfies readonly DeprecatedExportEntry[];
@@ -429,33 +431,6 @@ export type DeprecatedPropOf<C extends DeprecatedComponent> = Extract<
   PropTable,
   { readonly component: C }
 >['prop'];
-
-/* `typeof process` ne suffit pas : dans le navigateur, `process` n'existe pas,
-   mais le bundler de l'application a déjà réécrit `process.env.NODE_ENV` en
-   chaîne littérale. Un garde `typeof process !== 'undefined'` éteindrait donc
-   l'avertissement dans tout serveur de développement Vite. On lit l'expression
-   telle quelle — c'est elle que les bundlers remplacent — et une
-   `ReferenceError` (aucun bundler, aucun Node) vaut « on ne sait pas », donc
-   silence. */
-declare const process: { readonly env: { readonly NODE_ENV?: string } };
-
-function isDevelopment(): boolean {
-  try {
-    return process.env.NODE_ENV !== 'production';
-  } catch {
-    return false;
-  }
-}
-
-/* UNE FOIS PAR CHARGEMENT DE PAGE, et par couple composant + prop. Une liste
-   rendue cent fois ne doit pas écrire cent lignes. */
-const warned = new Set<string>();
-
-function warnOnce(key: string, message: string): void {
-  if (!isDevelopment() || warned.has(key)) return;
-  warned.add(key);
-  console.warn(message);
-}
 
 function findProp(component: string, prop: string): DeprecatedPropEntry | undefined {
   return (DEPRECATED_PROPS as readonly DeprecatedPropEntry[]).find(
@@ -582,5 +557,5 @@ export function warnImplicitDefault(component: ImplicitDefaultComponent): void {
 
 /** Oublie les avertissements déjà émis. Réservé aux tests. */
 export function resetDeprecationWarnings(): void {
-  warned.clear();
+  resetWarnings();
 }

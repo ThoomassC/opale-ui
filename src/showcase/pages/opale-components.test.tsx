@@ -103,7 +103,7 @@ describe('le catalogue interactif V3', () => {
     );
 
     /* L'EXPORT NOMMÉ, ET NON PLUS LE NAMESPACE `Opale`. Les composants de la
-       3.10.0 (`Textarea`, `Tooltip`…) sont publiés par l'entrée racine sans
+       2.10.0 (`Textarea`, `Tooltip`…) sont publiés par l'entrée racine sans
        entrer dans `Opale.X` ; l'import nommé est la forme que les extraits
        montrent, c'est donc lui qui doit exister. */
     const exported: Readonly<Record<string, unknown>> = library;

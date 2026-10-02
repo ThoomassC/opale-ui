@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
+
+import type { Language } from './localization';
 
 /* Le modèle de la vitrine : une page par sujet, une entrée de nav par page.
    Le routage passe par le fragment (`#/composants/button`) : la vitrine est
@@ -20,6 +22,24 @@ export const GROUPS: readonly DocGroup[] = [
   { id: 'composants', label: 'Composants' },
 ];
 
+/**
+ * Les props que la coquille confie au `<h1>` d'une page pleine largeur : le
+ * `ref` que vise le focus de navigation et le `tabIndex` qui rend ce focus
+ * possible.
+ */
+export interface DocPageTitleProps {
+  readonly ref: RefObject<HTMLHeadingElement | null>;
+  readonly tabIndex: -1;
+}
+
+/** Ce que la coquille passe au rendu d'une page. */
+export interface DocPageContext {
+  /** La langue de l'interface. Seules les pages pleine largeur traduisent leur corps. */
+  readonly language: Language;
+  /** À poser sur le `<h1>` de la page quand elle est pleine largeur ; ignoré sinon. */
+  readonly titleProps: DocPageTitleProps;
+}
+
 export interface DocPage {
   /** Le fragment sans son préfixe. `''` est l'accueil. */
   readonly slug: string;
@@ -33,11 +53,20 @@ export interface DocPage {
   /** Le chapeau, rendu par la coquille juste sous le titre. */
   readonly lede?: ReactNode;
   /**
+   * La page occupe toute la largeur : la coquille ne rend ni le sommaire ni
+   * le titre, et le menu de la barre du haut mène à chaque rubrique. La page rend alors son propre `<h1>`, avec `titleProps`, et
+   * traduit son corps dans `language`. Défaut : `false`.
+   */
+  readonly fullBleed?: boolean;
+  /**
    * Le corps de la page. Une FONCTION et non un `ReactNode` : le registre est
    * un module de premier niveau, donc évalué à l'import — un nœud construit
    * là rendrait les vingt pages non affichées à chaque chargement.
+   *
+   * La coquille passe toujours `context` ; il est optionnel pour qu'une page
+   * se rende seule, dans un test : en français, sans cible de focus.
    */
-  readonly render: () => ReactNode;
+  readonly render: (context?: DocPageContext) => ReactNode;
 }
 
 /** Une entrée de la navigation visuelle inspirée de la référence V3. */
@@ -112,7 +141,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       { label: 'Personnaliser', slug: 'personnaliser' },
       { label: 'Typographie', slug: 'typographie' },
       { label: 'Icônes', slug: 'icones' },
-      { label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' },
+      { label: 'Migrer vers la 3.0', slug: 'migrer-vers-3' },
     ],
   },
   {
@@ -206,7 +235,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
     ],
   },
   {
-    /* LES SURIMPRESSIONS ANCRÉES DE LA 3.10.0 : une infobulle, un panneau et
+    /* LES SURIMPRESSIONS ANCRÉES DE LA 2.10.0 : une infobulle, un panneau et
        un menu d'actions, posés dans un portail contre leur déclencheur. */
     id: 'couches-flottantes',
     label: 'COUCHES FLOTTANTES',
@@ -214,6 +243,20 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Tooltip', 'Tooltip'),
       opaleEntry('Popover', 'Popover'),
       opaleEntry('DropdownMenu', 'DropdownMenu'),
+    ],
+  },
+  {
+    /* LES COMPOSANTS EN MOUVEMENT DE LA 3.0 : le carrousel ouvre la section,
+       l'apparition au défilement, le bandeau défilant, le titre découpé et
+       les fonds au défilement le suivent, les autres la rejoindront. */
+    id: 'mouvement',
+    label: 'MOUVEMENT',
+    entries: [
+      opaleEntry('Carousel', 'Carousel'),
+      opaleEntry('Reveal', 'Reveal'),
+      opaleEntry('Marquee', 'Marquee'),
+      opaleEntry('SplitHeading', 'SplitHeading'),
+      opaleEntry('ScrollSection', 'ScrollSection'),
     ],
   },
   {
@@ -348,7 +391,14 @@ export function hrefFor(slug: string): string {
   return `#/${slug}`;
 }
 
+/* Les adresses d'avant la renumérotation du 30/09 : un lien gardé vers
+   l'ancienne page de migration mène toujours à la bonne. */
+const SLUG_ALIASES: Readonly<Record<string, string>> = {
+  'migrer-vers-4': 'migrer-vers-3',
+};
+
 /** La page d'un fragment, ou `undefined` — la coquille décide du repli. */
 export function findPage(pages: readonly DocPage[], slug: string): DocPage | undefined {
-  return pages.find((page) => page.slug === slug);
+  const target = SLUG_ALIASES[slug] ?? slug;
+  return pages.find((page) => page.slug === target);
 }

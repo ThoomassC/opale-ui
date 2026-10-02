@@ -73,7 +73,7 @@ export function TokenTable() {
         Les jetons publics
       </DocHeading>
       <p className="tc-doc-specimen__note">
-        Stables en 3.x et faits pour être surchargés. Les {INTERNAL_COUNT} autres jetons de la
+        Stables en 2.x et faits pour être surchargés. Les {INTERNAL_COUNT} autres jetons de la
         feuille sont internes : des dérivés ou des réglages de mécanique, qui peuvent changer de
         formule d’une version à l’autre.
       </p>

@@ -404,7 +404,7 @@ describe('SvgMap : boutons de déplacement', () => {
     });
   });
 
-  /* `target` est arrivé en 3.9.3 : une vue construite à la main pour la 3.9.2
+  /* `target` est arrivé en 2.9.3 : une vue construite à la main pour la 2.9.2
      n'en a pas, et les commandes ne doivent pas s'en trouver cassées. */
   it('accepte une vue construite à la main, sans `target`', () => {
     const view = { x: 10, y: 10, width: 50, height: 50 };

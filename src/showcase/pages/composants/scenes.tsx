@@ -1,7 +1,5 @@
 import { useState } from 'react';
 
-import { UI_VERSION } from '../../version';
-
 import { Modal, Opale, Sidebar, Tabs, ToastProvider, useToast } from '../../../opale';
 import type { OpaleIconName, OpaleSize, ToastDefinition } from '../../../opale';
 
@@ -19,69 +17,109 @@ function SceneGlyph({ name }: { name: OpaleIconName }) {
   return <Opale.Icon name={name} className="tc-doc-sidebar-glyph" />;
 }
 
-/** La barre latérale pliable, contrôlée pour que son état soit affiché. */
-/* L'état vit au-dessus du commutateur de matériau : les deux matériaux se
-   comparent sur le même état. */
+/* Les parties du voyage, partagées par les deux démos : le rail et son
+   format mobile montrent les mêmes entrées. */
+function TravelGroups({ label }: { label: string }) {
+  return (
+    <Sidebar.Items aria-label={label}>
+      <Sidebar.Group title="Le voyage">
+        <Sidebar.Item itemId="etapes" icon={<SceneGlyph name="map-pin" />}>
+          Étapes
+        </Sidebar.Item>
+        {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
+          `<button>` : un `Opale.Badge` sans verre y tiendrait (c'est un
+          `<span>`), mais le même sous `liquidGlass` passe par `Glass`, et
+          `Glass` — le nôtre — enveloppe TOUJOURS son contenu dans un
+          `<div>`, quel que soit le `as` demandé : l'enveloppe qui porte les
+          trois couches est un bloc, seul le contenu suit `as`. Un bloc dans
+          un bouton, c'est du HTML invalide, que ni TypeScript ni React ne
+          signalent. Le `<span>` écrit ici ne dépend d'aucune prop. Écrit
+          dans la prose de la page. */}
+        <Sidebar.Item itemId="carte" icon={<SceneGlyph name="map" />} badge={<span>3</span>}>
+          Carte
+        </Sidebar.Item>
+      </Sidebar.Group>
+      <Sidebar.Group title="Les médias">
+        <Sidebar.Item itemId="photos" icon={<SceneGlyph name="image" />}>
+          Photos
+        </Sidebar.Item>
+        <Sidebar.Item itemId="brouillon" icon={<SceneGlyph name="file-text" />} disabled>
+          Brouillon
+        </Sidebar.Item>
+      </Sidebar.Group>
+      <Sidebar.Group title="Le carnet">
+        <Sidebar.Item itemId="calendrier" icon={<SceneGlyph name="calendar" />}>
+          Calendrier
+        </Sidebar.Item>
+        <Sidebar.Item itemId="vols" icon={<SceneGlyph name="plane" />}>
+          Vols
+        </Sidebar.Item>
+        <Sidebar.Item itemId="budget" icon={<SceneGlyph name="wallet" />}>
+          Budget
+        </Sidebar.Item>
+        <Sidebar.Item itemId="voyageurs" icon={<SceneGlyph name="users" />}>
+          Voyageurs
+        </Sidebar.Item>
+        <Sidebar.Item itemId="reglages" icon={<SceneGlyph name="settings" />}>
+          Réglages
+        </Sidebar.Item>
+      </Sidebar.Group>
+    </Sidebar.Items>
+  );
+}
+
+/** Le rail du sommaire : des parties, la barre de défilement et la poignée. */
+/* L'entrée retenue vit au-dessus du commutateur de matériau : les deux
+   matériaux se comparent sur le même état. */
 export function SidebarCollapsibleScene() {
-  const [collapsed, setCollapsed] = useState(false);
   const [active, setActive] = useState('etapes');
 
   return (
-    <MaterialSwitch name="Sidebar pliable" tall>
+    <MaterialSwitch name="Sidebar" tall>
       {(liquidGlass) => (
         <>
-          {/* `onCollapsedChange` et `onValueChange` reçoivent chacun un
-          `setState` tel quel : le pli arrive en `boolean`, l'entrée en
-          identifiant. */}
           <Sidebar
+            aria-label="Voyage, rail"
             liquidGlass={liquidGlass}
-            collapsible
-            collapsed={collapsed}
-            onCollapsedChange={setCollapsed}
+            customScrollbar
+            resizable
+            /* Une hauteur à lui : le rail défile dans sa zone, et sa barre
+               n'apparaît que si le contenu dépasse. */
+            rootStyle={{ height: '24rem' }}
             value={active}
             onValueChange={setActive}
           >
-            <Sidebar.Header>
-              {!collapsed && <strong>Voyage</strong>}
-              <Sidebar.Toggle />
-            </Sidebar.Header>
-
-            <Sidebar.Items aria-label="Sections du voyage">
-              <Sidebar.Item itemId="etapes" icon={<SceneGlyph name="map-pin" />}>
-                Étapes
-              </Sidebar.Item>
-              {/* `badge` reçoit un `<span>` NU, à dessein. `Sidebar.Item` rend un
-              `<button>` : un `Opale.Badge` sans verre y tiendrait (c'est un
-              `<span>`), mais le même sous `liquidGlass` passe par `Glass`, et
-              `Glass` — le nôtre — enveloppe TOUJOURS son contenu dans un
-              `<div>`, quel que soit le `as` demandé : l'enveloppe qui porte les
-              trois couches est un bloc, seul le contenu suit `as`. Un bloc dans
-              un bouton, c'est du HTML invalide, que ni TypeScript ni React ne
-              signalent. Le `<span>` écrit ici ne dépend d'aucune prop. Écrit
-              dans la prose de la page. */}
-              <Sidebar.Item itemId="carte" icon={<SceneGlyph name="map" />} badge={<span>3</span>}>
-                Carte
-              </Sidebar.Item>
-              <Sidebar.Item itemId="photos" icon={<SceneGlyph name="image" />}>
-                Photos
-              </Sidebar.Item>
-              <Sidebar.Item itemId="brouillon" icon={<SceneGlyph name="file-text" />} disabled>
-                Brouillon
-              </Sidebar.Item>
-            </Sidebar.Items>
-
-            {/* LE PIED N'EXISTE QUE DÉPLIÉ. Replié, il peignait un point médian
-            seul sous les vignettes : un signe orphelin, sans nom ni
-            information, que rien ne rattachait à la version qu'il remplaçait. */}
-            {!collapsed && <Sidebar.Footer>v{UI_VERSION}</Sidebar.Footer>}
+            <TravelGroups label="Sections du voyage" />
           </Sidebar>
 
           <p className="tc-doc-stage__label">
-            Repliée : <code>{String(collapsed)}</code> — entrée retenue : <code>{active}</code>
+            Entrée retenue : <code>{active}</code>
           </p>
         </>
       )}
     </MaterialSwitch>
+  );
+}
+
+/** Le même rail en format mobile, celui du sommaire d'Opale sur téléphone. */
+export function SidebarMobileScene() {
+  const [active, setActive] = useState('etapes');
+
+  return (
+    /* Un cadre de téléphone : `mobile="menu"` adopte le format quelle que soit
+       la fenêtre, là où `auto` attendrait un écran de moins de 30 rem. */
+    <div className="tc-doc-sidebar-phone">
+      <Sidebar
+        aria-label="Voyage, format mobile"
+        mobile="menu"
+        customScrollbar
+        rootStyle={{ height: '20rem' }}
+        value={active}
+        onValueChange={setActive}
+      >
+        <TravelGroups label="Sections du voyage, format mobile" />
+      </Sidebar>
+    </div>
   );
 }
 

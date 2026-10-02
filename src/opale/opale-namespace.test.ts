@@ -5,9 +5,9 @@ import { CATALOG } from './catalog';
 
 /* LE NAMESPACE `Opale` COUVRE TOUT LE CATALOGUE, ET LES ANCIENS NOMS MARCHENT
    ENCORE. `OpaleUI`, `Opale.Background` et `OPALE_CATALOG` sont dépréciés en
-   3.6 : ils désignent toujours les mêmes objets que leurs remplaçants. */
+   2.6 : ils désignent toujours les mêmes objets que leurs remplaçants. */
 
-/** Les membres d'`OpaleUI` en 3.5, qui doivent tous rester. */
+/** Les membres d'`OpaleUI` en 2.5, qui doivent tous rester. */
 const LEGACY_MEMBERS = [
   'Button',
   'Pressable',

@@ -5,7 +5,7 @@ import opaleSource from '../opale/opale.css?raw';
 import siteNavSource from '../opale/components/site-nav/site-nav.module.css?raw';
 
 /* ============================================================================
-   CE QUE L'AUDIT 3.9.3 A CORRIGÉ DANS LA FEUILLE, ET QUI NE DOIT PAS REVENIR.
+   CE QUE L'AUDIT 2.9.3 A CORRIGÉ DANS LA FEUILLE, ET QUI NE DOIT PAS REVENIR.
 
    ACC-11. La région focalisée d'une carte et la région sélectionnée portaient
    le même trait bleu de 2,5 et 3 px : tabuler sur la région déjà choisie ne

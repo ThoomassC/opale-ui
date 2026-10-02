@@ -29,7 +29,7 @@ import { Surface } from './shells';
 import { IconActionButton } from './forms';
 
 /* =============================================================================
-   LA CARTE SVG, REFONDUE EN 3.5.0.
+   LA CARTE SVG, REFONDUE EN 2.5.0.
 
    CE QU'ELLE ÉTAIT. Un `<svg>` de 400 × 180 avec une courbe décorative, qui
    attendait des enfants : un cadre, pas une carte. Ni zoom, ni déplacement,
@@ -703,7 +703,7 @@ export function SvgMapControls({
      pas 280 ms plus tard à la fin de la transition — et une flèche cliquée
      pendant un retour animé n'interrompt pas ce retour à mi-course.
 
-     `target` MANQUE À UNE VUE CONSTRUITE À LA MAIN — il est arrivé en 3.9.3 :
+     `target` MANQUE À UNE VUE CONSTRUITE À LA MAIN — il est arrivé en 2.9.3 :
      on retombe alors sur la vue peinte. Et rien n'est lu tant que les
      flèches ne sont pas demandées. */
   const base = useMemo(() => parseSvgViewBox(viewport.viewBox), [viewport.viewBox]);

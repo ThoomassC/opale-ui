@@ -5,7 +5,9 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ComponentPropsWithoutRef,
   type FocusEvent,
@@ -75,7 +77,7 @@ import styles from './style/Sidebar.module.css';
    compilait pas. Le `onToggle` du DOM est retiré, et l'on récupère la signature
    qui était documentée depuis le début.
 
-   UNE ENTRÉE PEUT ÊTRE UN LIEN (3.10, DX-02). Sans `href`, l'entrée reste un
+   UNE ENTRÉE PEUT ÊTRE UN LIEN (2.10, DX-02). Sans `href`, l'entrée reste un
    `<button>`, au contrat inchangé. Avec `href`, elle rend un `<a>` : clic du
    milieu, ouverture dans un onglet et « copier l'adresse » redeviennent
    possibles, et `Sidebar.onNavigate` remet le clic simple au routeur de
@@ -93,6 +95,16 @@ export interface SidebarLabels {
   expand: string;
   /** Le nom de la bascule quand le rail est déplié. Défaut : « Replier le rail ». */
   collapse: string;
+  /** Le nom de la barre de défilement (`customScrollbar`). Défaut : « Défilement du rail ». */
+  scroll: string;
+  /** Ce que la barre annonce tout en haut. Défaut : « Début du rail ». */
+  scrollStart: string;
+  /** Le nom de la poignée de largeur (`resizable`). Défaut : « Largeur du rail ». */
+  resize: string;
+  /** Le bouton qui déplie le rail en format mobile (`mobile`). Défaut : « Sommaire ». */
+  menu: string;
+  /** Le nom de la rangée de raccourcis vers les parties. Défaut : « Parties du rail ». */
+  shortcuts: string;
 }
 
 /* EN FRANÇAIS, COMME LE RESTE DE LA BIBLIOTHÈQUE : lu avec la voix française
@@ -101,7 +113,20 @@ const DEFAULT_SIDEBAR_LABELS: SidebarLabels = {
   items: 'Navigation latérale',
   expand: 'Déplier le rail',
   collapse: 'Replier le rail',
+  scroll: 'Défilement du rail',
+  scrollStart: 'Début du rail',
+  resize: 'Largeur du rail',
+  menu: 'Sommaire',
+  shortcuts: 'Parties du rail',
 };
+
+/** Une partie du rail, telle qu'elle s'inscrit pour les raccourcis du format mobile. */
+type SidebarGroupEntry = { id: string; label: string; reveal: () => void };
+
+/* Les largeurs des trois tailles, en pixels, celles de la feuille
+   (12,5 · 16,25 · 20 rem) : le point de départ d'un rail `resizable`. */
+const SIZE_WIDTH: Record<SidebarSize, number> = { small: 200, medium: 260, large: 320 };
+const RESIZE_STEP = 16;
 
 export type SidebarContextValue = {
   size: SidebarSize;
@@ -118,12 +143,16 @@ export type SidebarContextValue = {
   onNavigate?: NavigateHandler<SidebarNavigationTarget>;
   /** L'entrée retenue, absente quand aucune ne l'est. */
   value?: string;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   activeItemId?: string;
   /** L'identifiant de l'`<aside>`, pour l'`aria-controls` de la bascule. */
   sidebarId: string;
   /** Les textes effectifs du rail ; absents, les défauts français s'appliquent. */
   labels?: SidebarLabels;
+  /** Inscrit ou met à jour une partie, pour les raccourcis du format mobile. */
+  upsertGroup?: (entry: SidebarGroupEntry) => void;
+  /** Retire une partie démontée. */
+  removeGroup?: (id: string) => void;
 };
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
@@ -152,7 +181,7 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
   collapsible?: boolean;
   /** Appelée à chaque bascule du pli, avec le nouvel état. */
   onCollapsedChange?: (collapsed: boolean) => void;
-  /** @deprecated Depuis 3.6 — utilisez `onCollapsedChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onCollapsedChange`. */
   onToggle?: (collapsed: boolean) => void;
   /** L'entrée retenue. Présente, l'appelant la tient ; `null` : aucune. */
   value?: string | null;
@@ -169,11 +198,11 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * `(item) => navigate(item.href)`.
    */
   onNavigate?: NavigateHandler<SidebarNavigationTarget>;
-  /** @deprecated Depuis 3.6 — utilisez `value`. */
+  /** @deprecated Depuis 2.6 — utilisez `value`. */
   activeItemId?: string;
-  /** @deprecated Depuis 3.6 — utilisez `defaultValue`. */
+  /** @deprecated Depuis 2.6 — utilisez `defaultValue`. */
   defaultActiveItemId?: string;
-  /** @deprecated Depuis 3.6 — utilisez `onValueChange`. */
+  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
   onSelectItem?: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<SidebarLabels>;
@@ -185,6 +214,38 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * état.
    */
   liquidGlass?: boolean;
+  /**
+   * Une barre de défilement dessinée par Opale, celle du sommaire de la
+   * documentation : un curseur qu'on glisse, une piste, et le clavier (flèches,
+   * pages, début, fin) quand elle a le focus. Le contenu du rail défile dans
+   * sa propre zone ; le rail doit donc recevoir une hauteur de son hôte.
+   * Défaut : `false`, la barre du navigateur.
+   */
+  customScrollbar?: boolean;
+  /**
+   * Une poignée sur le bord du rail règle sa largeur, au glisser et au
+   * clavier (flèches, Début, Fin). Le rail est alors enveloppé d'un cadre qui
+   * porte la poignée. Sans effet rail plié. Défaut : `false`.
+   */
+  resizable?: boolean;
+  /** La largeur pilotée, en pixels, avec `resizable`. */
+  width?: number;
+  /** La largeur de départ, en pixels. Défaut : celle de `size` (200, 260 ou 320). */
+  defaultWidth?: number;
+  /** La largeur minimale, en pixels. Défaut : 224. */
+  minWidth?: number;
+  /** La largeur maximale, en pixels. Défaut : 480. */
+  maxWidth?: number;
+  /** Appelée à chaque changement de largeur, au glisser comme au clavier. */
+  onWidthChange?: (width: number) => void;
+  /**
+   * Le format mobile du sommaire de la documentation : un bouton « Sommaire »
+   * qui déplie le rail, une rangée de raccourcis vers chaque `Sidebar.Group`,
+   * puis le rail en pleine largeur, sans poignée. Échap le replie et rend le
+   * focus au bouton. `auto` l'adopte sous 30 rem de fenêtre ; `menu` toujours
+   * (un cadre étroit, un exemple) ; `off` jamais. Défaut : `off`.
+   */
+  mobile?: 'off' | 'auto' | 'menu';
 } & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
   LegacySurfaceAnimationProps;
 
@@ -193,6 +254,237 @@ const widthClassMap: Record<SidebarSize, string> = {
   medium: styles.medium,
   large: styles.large,
 };
+
+/*
+ * LA ZONE QUI DÉFILE ET SA BARRE — LE SOMMAIRE DE LA DOCUMENTATION, EN PIÈCE.
+ *
+ * Le curseur est un indicateur : sa taille, sa position et l'état ARIA de la
+ * barre sont écrits dans le DOM à chaque défilement, sans rendu React — un
+ * état par événement de molette rerendait toutes les entrées.
+ *
+ * La barre est focalisable (`role="scrollbar"`) : les flèches avancent de 80 %
+ * d'une vue, Page précédente et suivante d'une vue entière, Début et Fin
+ * mènent aux bouts. Rail plié, elle disparaît : il ne reste que des icônes.
+ */
+function SidebarScrollArea({
+  id,
+  collapsed,
+  labels,
+  children,
+}: {
+  id: string;
+  collapsed: boolean;
+  labels: SidebarLabels;
+  children: ReactNode;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLSpanElement>(null);
+  const maxRef = useRef(0);
+  const dragRef = useRef<{ pointerId: number; startY: number; start: number; travel: number }>(
+    null,
+  );
+
+  useEffect(() => {
+    const area = scrollRef.current;
+    if (!area) return;
+    const update = () => {
+      const view = area.clientHeight;
+      const max = Math.max(0, area.scrollHeight - view);
+      maxRef.current = max;
+      const size = max === 0 || !view ? 1 : Math.max(0.14, Math.min(1, view / area.scrollHeight));
+      const offset = max === 0 ? 0 : (area.scrollTop / max) * (1 - size);
+      const bar = barRef.current;
+      if (!bar) return;
+      bar.style.setProperty('--opale-sidebar-thumb-size', `${size * 100}%`);
+      bar.style.setProperty('--opale-sidebar-thumb-offset', `${offset * 100}%`);
+      bar.dataset.idle = max === 0 ? 'true' : 'false';
+      bar.setAttribute('aria-valuemax', String(Math.round(max)));
+      bar.setAttribute('aria-valuenow', String(Math.round(area.scrollTop)));
+      bar.setAttribute(
+        'aria-valuetext',
+        max === 0 ? labels.scrollStart : `${Math.round((area.scrollTop / max) * 100)} %`,
+      );
+    };
+    update();
+    area.addEventListener('scroll', update, { passive: true });
+    const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(update);
+    observer?.observe(area);
+    if (area.firstElementChild) observer?.observe(area.firstElementChild);
+    return () => {
+      area.removeEventListener('scroll', update);
+      observer?.disconnect();
+    };
+  }, [collapsed, labels.scrollStart]);
+
+  const scrollTo = (top: number) => {
+    const area = scrollRef.current;
+    if (area) area.scrollTop = Math.max(0, Math.min(maxRef.current, top));
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
+    const area = scrollRef.current;
+    if (!area || maxRef.current === 0) return;
+    const view = area.clientHeight;
+    const targets: Record<string, number> = {
+      ArrowUp: area.scrollTop - Math.max(24, view * 0.8),
+      ArrowDown: area.scrollTop + Math.max(24, view * 0.8),
+      PageUp: area.scrollTop - view,
+      PageDown: area.scrollTop + view,
+      Home: 0,
+      End: maxRef.current,
+    };
+    if (!(event.key in targets)) return;
+    event.preventDefault();
+    scrollTo(targets[event.key] as number);
+  };
+
+  return (
+    <>
+      <div ref={scrollRef} id={id} className={clsx('opale-sidebar__scroll', styles.scroll)}>
+        {children}
+      </div>
+      {!collapsed && (
+        <span
+          ref={barRef}
+          role="scrollbar"
+          aria-label={labels.scroll}
+          aria-controls={id}
+          aria-orientation="vertical"
+          aria-valuemin={0}
+          aria-valuemax={0}
+          aria-valuenow={0}
+          aria-valuetext={labels.scrollStart}
+          tabIndex={0}
+          className={clsx('opale-sidebar__scrollbar', styles.scrollbar)}
+          onKeyDown={onKeyDown}
+        >
+          <span
+            className={clsx('opale-sidebar__scrollbar-thumb', styles.scrollbarThumb)}
+            onPointerDown={(event) => {
+              const bar = barRef.current;
+              const area = scrollRef.current;
+              if (!bar || !area || maxRef.current === 0) return;
+              dragRef.current = {
+                pointerId: event.pointerId,
+                startY: event.clientY,
+                start: area.scrollTop,
+                travel: Math.max(
+                  1,
+                  bar.getBoundingClientRect().height -
+                    event.currentTarget.getBoundingClientRect().height,
+                ),
+              };
+              event.currentTarget.setPointerCapture?.(event.pointerId);
+              event.preventDefault();
+            }}
+            onPointerMove={(event) => {
+              const drag = dragRef.current;
+              if (!drag || drag.pointerId !== event.pointerId) return;
+              scrollTo(drag.start + ((event.clientY - drag.startY) / drag.travel) * maxRef.current);
+            }}
+            onPointerUp={(event) => {
+              if (dragRef.current?.pointerId !== event.pointerId) return;
+              event.currentTarget.releasePointerCapture?.(event.pointerId);
+              dragRef.current = null;
+            }}
+            onPointerCancel={() => {
+              dragRef.current = null;
+            }}
+          />
+        </span>
+      )}
+    </>
+  );
+}
+
+/*
+ * LA POIGNÉE DE LARGEUR — `role="separator"` focalisable, le motif ARIA du
+ * séparateur de fenêtre : sa valeur est la largeur du rail qu'elle contrôle.
+ * Au glisser, le rail suit le pointeur ; au clavier, les flèches avancent de
+ * 16 px (32 avec Maj), Début et Fin mènent aux bornes. En écriture de droite
+ * à gauche, le bord est à gauche : le sens du glisser et des flèches
+ * horizontales s'inverse.
+ */
+function SidebarResizeHandle({
+  width,
+  min,
+  max,
+  label,
+  controls,
+  onChange,
+}: {
+  width: number;
+  min: number;
+  max: number;
+  label: string;
+  controls: string;
+  onChange: (width: number) => void;
+}) {
+  const dragRef = useRef<{ pointerId: number; startX: number; start: number; dir: number }>(null);
+  const rtl = (element: Element) => getComputedStyle(element).direction === 'rtl';
+
+  /* Un séparateur FOCALISABLE est interactif (ARIA 1.2, motif « Window
+     Splitter ») ; jsx-a11y ne connaît que le séparateur statique. */
+  /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
+  return (
+    <div
+      role="separator"
+      aria-label={label}
+      aria-controls={controls}
+      aria-orientation="vertical"
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={width}
+      aria-valuetext={`${width} px`}
+      tabIndex={0}
+      className={clsx('opale-sidebar__resize', styles.resize)}
+      onKeyDown={(event) => {
+        const step = event.shiftKey ? RESIZE_STEP * 2 : RESIZE_STEP;
+        const dir = rtl(event.currentTarget) ? -1 : 1;
+        const targets: Record<string, number> = {
+          ArrowLeft: width - step * dir,
+          ArrowRight: width + step * dir,
+          ArrowDown: width - step,
+          ArrowUp: width + step,
+          Home: min,
+          End: max,
+        };
+        if (!(event.key in targets)) return;
+        event.preventDefault();
+        onChange(targets[event.key] as number);
+      }}
+      onPointerDown={(event) => {
+        dragRef.current = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          start: width,
+          dir: rtl(event.currentTarget) ? -1 : 1,
+        };
+        event.currentTarget.parentElement?.setAttribute('data-resizing', 'true');
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      }}
+      onPointerMove={(event) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        onChange(drag.start + (event.clientX - drag.startX) * drag.dir);
+      }}
+      onPointerUp={(event) => {
+        if (dragRef.current?.pointerId !== event.pointerId) return;
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+        event.currentTarget.parentElement?.removeAttribute('data-resizing');
+        dragRef.current = null;
+      }}
+      onPointerCancel={(event) => {
+        event.currentTarget.parentElement?.removeAttribute('data-resizing');
+        dragRef.current = null;
+      }}
+    >
+      <span aria-hidden="true" />
+    </div>
+  );
+  /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
+}
 
 const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
   (
@@ -212,6 +504,14 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       onSelectItem,
       labels: labelsProp,
       liquidGlass = false,
+      customScrollbar = false,
+      resizable = false,
+      width: widthProp,
+      defaultWidth,
+      minWidth = 224,
+      maxWidth = 480,
+      onWidthChange,
+      mobile = 'off',
       className,
       rootClassName,
       rootStyle,
@@ -290,13 +590,70 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
        enfin son propre identifiant. */
     const generatedId = useId();
     const sidebarId = id ?? generatedId;
-    const { items, expand, collapse } = resolveLabels(DEFAULT_SIDEBAR_LABELS, labelsProp);
+    const { items, expand, collapse, scroll, scrollStart, resize, menu, shortcuts } = resolveLabels(
+      DEFAULT_SIDEBAR_LABELS,
+      labelsProp,
+    );
     /* Mémorisé sur les chaînes : un `labels` littéral recréé à chaque rendu ne
        doit pas renouveler le contexte. */
     const labels = useMemo<SidebarLabels>(
-      () => ({ items, expand, collapse }),
-      [items, expand, collapse],
+      () => ({ items, expand, collapse, scroll, scrollStart, resize, menu, shortcuts }),
+      [items, expand, collapse, scroll, scrollStart, resize, menu, shortcuts],
     );
+
+    /* LES PARTIES INSCRITES, pour les raccourcis du format mobile. Une mise à
+       jour qui ne change rien rend le même tableau : React n'en refait pas le
+       rendu. */
+    const [groups, setGroups] = useState<readonly SidebarGroupEntry[]>([]);
+    const upsertGroup = useCallback((entry: SidebarGroupEntry) => {
+      setGroups((current) => {
+        const index = current.findIndex((group) => group.id === entry.id);
+        if (index >= 0 && current[index]?.label === entry.label) return current;
+        if (index < 0) return [...current, entry];
+        const next = [...current];
+        next[index] = entry;
+        return next;
+      });
+    }, []);
+    const removeGroup = useCallback((groupId: string) => {
+      setGroups((current) => current.filter((group) => group.id !== groupId));
+    }, []);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuToggleRef = useRef<HTMLButtonElement>(null);
+    const frameRef = useRef<HTMLDivElement>(null);
+
+    /* ÉCHAP REPLIE LE RAIL DÉPLIÉ quand le focus est dedans, et rend le focus
+       au bouton. Pressée ailleurs, la touche appartient à la page ; en format
+       ordinaire (`auto` sur grand écran), le bouton est caché : rien à faire. */
+    useEffect(() => {
+      if (!menuOpen) return;
+      const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+        if (event.key !== 'Escape') return;
+        if (!(event.target instanceof Node) || !frameRef.current?.contains(event.target)) return;
+        const narrow =
+          mobile === 'menu' ||
+          (mobile === 'auto' && !!window.matchMedia?.('(max-width: 30rem)').matches);
+        if (!narrow) return;
+        setMenuOpen(false);
+        menuToggleRef.current?.focus();
+      };
+      document.addEventListener('keydown', closeOnEscape);
+      return () => document.removeEventListener('keydown', closeOnEscape);
+    }, [menuOpen, mobile]);
+
+    /* LA LARGEUR RÉGLABLE, contrôlable comme le reste, et toujours bornée. */
+    const clampWidth = (next: number) => Math.max(minWidth, Math.min(maxWidth, Math.round(next)));
+    const [width, setWidthState] = useControllableState(
+      widthProp,
+      () => defaultWidth ?? SIZE_WIDTH[size],
+    );
+    const changeWidth = (next: number) => {
+      const bounded = clampWidth(next);
+      setWidthState(bounded);
+      onWidthChange?.(bounded);
+    };
+    const showResize = resizable && !collapsed && mobile !== 'menu';
+    const widthStyle = showResize ? { width: `${clampWidth(width)}px` } : undefined;
 
     const contextValue = useMemo<SidebarContextValue>(
       () => ({
@@ -311,8 +668,12 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         activeItemId,
         sidebarId,
         labels,
+        upsertGroup,
+        removeGroup,
       }),
       [
+        upsertGroup,
+        removeGroup,
         size,
         collapsed,
         collapsible,
@@ -340,42 +701,144 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       className,
     );
 
+    const body = customScrollbar ? (
+      <SidebarScrollArea collapsed={collapsed} labels={labels} id={`${sidebarId}-scroll`}>
+        {children}
+      </SidebarScrollArea>
+    ) : (
+      children
+    );
+
+    const handle = showResize ? (
+      <SidebarResizeHandle
+        width={clampWidth(width)}
+        min={minWidth}
+        max={maxWidth}
+        label={labels.resize}
+        controls={sidebarId}
+        onChange={changeWidth}
+      />
+    ) : null;
+
+    /* Chaque raccourci ouvre sa partie, puis la fait défiler en tête du rail. */
+    const revealGroup = (group: SidebarGroupEntry) => {
+      group.reveal();
+      requestAnimationFrame(() => {
+        const target = document.getElementById(group.id);
+        const area =
+          document.getElementById(`${sidebarId}-scroll`) ?? document.getElementById(sidebarId);
+        if (!target || !area) return;
+        area.scrollTop += target.getBoundingClientRect().top - area.getBoundingClientRect().top;
+      });
+    };
+
+    const ordered = [...groups].sort((a, b) => {
+      const first = typeof document === 'undefined' ? null : document.getElementById(a.id);
+      const second = typeof document === 'undefined' ? null : document.getElementById(b.id);
+      if (!first || !second) return 0;
+      return first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    });
+
+    /* La poignée déborde du bord du rail : le verre rogne ce qui dépasse
+       (`overflow: hidden`), elle vit donc sur un cadre autour de lui — qui
+       porte aussi le bouton et les raccourcis du format mobile. */
+    const frame = (rail: ReactNode) => {
+      if (mobile === 'off') {
+        return showResize ? (
+          <div className={clsx('opale-sidebar__frame', styles.frame)}>
+            {rail}
+            {handle}
+          </div>
+        ) : (
+          rail
+        );
+      }
+      return (
+        <div
+          className={clsx('opale-sidebar__frame', styles.frame, styles.frameMobile)}
+          data-mobile={mobile}
+          data-menu={menuOpen ? 'open' : 'closed'}
+          ref={frameRef}
+        >
+          <button
+            ref={menuToggleRef}
+            type="button"
+            className={clsx('opale-sidebar__menu-toggle', styles.menuToggle)}
+            aria-expanded={menuOpen}
+            aria-controls={sidebarId}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {labels.menu}
+          </button>
+          {menuOpen && ordered.length > 0 && (
+            <div
+              role="group"
+              aria-label={labels.shortcuts}
+              className={clsx('opale-sidebar__shortcuts', styles.shortcuts)}
+            >
+              {ordered.map((group) => (
+                <button key={group.id} type="button" onClick={() => revealGroup(group)}>
+                  {group.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div
+            className={clsx('opale-sidebar__rail-slot', styles.railSlot)}
+            hidden={mobile === 'menu' && !menuOpen}
+          >
+            {rail}
+            {handle}
+          </div>
+        </div>
+      );
+    };
+
     if (!liquidGlass) {
       return (
         <SidebarContext.Provider value={contextValue}>
-          <aside
-            ref={ref}
-            id={sidebarId}
-            className={clsx(shellClasses, contentClasses, styles.plain)}
-            style={rootStyle ? { ...rootStyle, ...style } : style}
-            {...rest}
-          >
-            {children}
-          </aside>
+          {frame(
+            <aside
+              ref={ref}
+              id={sidebarId}
+              className={clsx(
+                shellClasses,
+                contentClasses,
+                styles.plain,
+                customScrollbar && styles.scrollHost,
+              )}
+              style={{ ...rootStyle, ...style, ...widthStyle }}
+              {...rest}
+            >
+              {body}
+            </aside>,
+          )}
         </SidebarContext.Provider>
       );
     }
 
     return (
       <SidebarContext.Provider value={contextValue}>
-        <Glass
-          as="aside"
-          ref={ref}
-          id={sidebarId}
-          /* LE VERRE NE RÉAGIT PAS AU CLIC ICI, et c'est réfléchi : une onde
+        {frame(
+          <Glass
+            as="aside"
+            ref={ref}
+            id={sidebarId}
+            /* LE VERRE NE RÉAGIT PAS AU CLIC ICI, et c'est réfléchi : une onde
              qui part sous le doigt à chaque sélection d'entrée ferait clignoter
              la surface entière d'un rail qu'on parcourt. Le retour visuel
              appartient à l'entrée, qui l'a. */
-          enableLiquidAnimation={enableLiquidAnimation}
-          triggerAnimation={triggerAnimation}
-          rootClassName={shellClasses}
-          rootStyle={rootStyle}
-          className={contentClasses}
-          style={style}
-          {...rest}
-        >
-          {children}
-        </Glass>
+            enableLiquidAnimation={enableLiquidAnimation}
+            triggerAnimation={triggerAnimation}
+            rootClassName={shellClasses}
+            rootStyle={widthStyle ? { ...rootStyle, ...widthStyle } : rootStyle}
+            className={clsx(contentClasses, customScrollbar && styles.scrollHost)}
+            style={style}
+            {...rest}
+          >
+            {body}
+          </Glass>,
+        )}
       </SidebarContext.Provider>
     );
   },
@@ -455,6 +918,156 @@ const SidebarItems = forwardRef<HTMLElement, SidebarItemsProps>(({ className, ..
 
 SidebarItems.displayName = 'Sidebar.Items';
 
+export type SidebarGroupProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
+  /** Le titre de la partie, qui nomme le groupe pour les lecteurs d'écran. */
+  title: ReactNode;
+  /** Le titre replie et déplie la partie. Défaut : `true`. */
+  collapsible?: boolean;
+  /** Ouverte au départ, quand `open` n'est pas piloté. Défaut : `true`. */
+  defaultOpen?: boolean;
+  /** L'ouverture pilotée par l'appelant. */
+  open?: boolean;
+  /** Appelée avec le nouvel état quand le titre est activé. */
+  onOpenChange?: (open: boolean) => void;
+};
+
+/*
+ * UNE PARTIE DU RAIL : UN TITRE, PUIS SES ENTRÉES — LE SOMMAIRE DE LA
+ * DOCUMENTATION D'OPALE, DEVENU UNE PIÈCE DE LA LIBRAIRIE.
+ *
+ * Le titre nomme le groupe (`role="group"` + `aria-labelledby`) : un lecteur
+ * d'écran annonce « Prise en main, groupe » en y entrant. Repliable, il est un
+ * bouton qui dit son état (`aria-expanded`) et désigne ce qu'il cache
+ * (`aria-controls`) ; le contenu fermé est `hidden`, donc hors de la
+ * tabulation comme de l'arbre d'accessibilité.
+ *
+ * RAIL PLIÉ : le titre n'a plus la place d'être lu. Il reste dans le DOM,
+ * masqué à l'œil seulement, pour nommer le groupe, et toutes les entrées
+ * restent visibles — un groupe fermé ne cacherait plus que des icônes, sans
+ * titre à activer pour les rendre.
+ */
+const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
+  (
+    {
+      title,
+      collapsible = true,
+      defaultOpen = true,
+      open: openProp,
+      onOpenChange,
+      className,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
+    const context = useContext(SidebarContext);
+    const railCollapsed = context?.collapsed ?? false;
+    const id = useId();
+    const titleId = `${id}-title`;
+    const contentId = `${id}-content`;
+    const [openState, setOpenState] = useState(defaultOpen);
+    const open = openProp ?? openState;
+    const canToggle = collapsible && !railCollapsed;
+    const shown = open || !canToggle;
+    const titleRef = useRef<HTMLButtonElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    /* Où est le focus dans le groupe : le DOM ne le dit plus une fois
+       l'élément caché ou démonté, il faut donc le retenir avant. */
+    const focusIn = useRef<'title' | 'content' | null>(null);
+
+    /* LE FOCUS NE TOMBE PAS SUR <body>. Un groupe fermé sous le focus le rend
+       à son titre ; un rail plié sous le titre, à la première entrée. */
+    useLayoutEffect(() => {
+      if (!shown && focusIn.current === 'content') titleRef.current?.focus();
+    }, [shown]);
+    useLayoutEffect(() => {
+      if (!canToggle && focusIn.current === 'title')
+        contentRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus();
+    }, [canToggle]);
+
+    /* L'INSCRIPTION AUPRÈS DU RAIL, pour les raccourcis du format mobile : le
+       libellé est le texte du titre, relu après chaque rendu ; une valeur
+       inchangée ne coûte rien. Le raccourci rouvre la partie. */
+    const reveal = useRef(() => {});
+    useLayoutEffect(() => {
+      reveal.current = () => {
+        if (openProp === undefined) setOpenState(true);
+        if (!open) onOpenChange?.(true);
+      };
+    });
+    const upsert = context?.upsertGroup;
+    const remove = context?.removeGroup;
+    const entryReveal = useRef(() => reveal.current());
+    useEffect(() => {
+      const label = document.getElementById(titleId)?.textContent ?? '';
+      upsert?.({ id: titleId, label, reveal: entryReveal.current });
+    });
+    useEffect(() => () => remove?.(titleId), [remove, titleId]);
+
+    const toggle = () => {
+      const next = !open;
+      if (openProp === undefined) setOpenState(next);
+      onOpenChange?.(next);
+    };
+
+    return (
+      <div
+        ref={ref}
+        role="group"
+        aria-labelledby={titleId}
+        onFocus={(event) => {
+          focusIn.current = contentRef.current?.contains(event.target) ? 'content' : 'title';
+        }}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) focusIn.current = null;
+        }}
+        className={clsx(
+          'opale-sidebar__group',
+          styles.group,
+          railCollapsed && styles.groupCollapsed,
+          className,
+        )}
+        {...rest}
+      >
+        {canToggle ? (
+          <button
+            ref={titleRef}
+            type="button"
+            id={titleId}
+            className={clsx('opale-sidebar__group-title', styles.groupTitle)}
+            aria-expanded={open}
+            aria-controls={contentId}
+            onClick={toggle}
+          >
+            {title}
+          </button>
+        ) : (
+          <span
+            id={titleId}
+            className={clsx(
+              'opale-sidebar__group-title',
+              styles.groupTitle,
+              railCollapsed && styles.itemContentHidden,
+            )}
+          >
+            {title}
+          </span>
+        )}
+        <div
+          ref={contentRef}
+          id={contentId}
+          className={clsx('opale-sidebar__group-items', styles.groupItems)}
+          hidden={!shown}
+        >
+          {children}
+        </div>
+      </div>
+    );
+  },
+);
+
+SidebarGroup.displayName = 'Sidebar.Group';
+
 type SidebarItemOwnProps = {
   /**
    * L'identifiant de l'entrée, comparé à `value` et transmis à `onValueChange`. Unique dans le
@@ -476,7 +1089,7 @@ type SidebarItemOwnProps = {
 
 /**
  * Les props de `Sidebar.Item` sans `href` : l'entrée est un `<button>`, le
- * contrat historique, inchangé. Ce nom reste un type objet, comme en 3.9, pour
+ * contrat historique, inchangé. Ce nom reste un type objet, comme en 2.9, pour
  * qu'une interface puisse toujours l'étendre ; la variante lien est
  * `SidebarItemLinkProps`, et `Sidebar.Item` accepte l'une ou l'autre.
  */
@@ -849,6 +1462,7 @@ type SidebarCompoundComponent = ForwardRefExoticComponent<
   Header: typeof SidebarHeader;
   Footer: typeof SidebarFooter;
   Items: typeof SidebarItems;
+  Group: typeof SidebarGroup;
   Item: typeof SidebarItem;
   Toggle: typeof SidebarToggle;
   useSidebar: () => SidebarContextValue;
@@ -859,6 +1473,7 @@ const Sidebar = SidebarBase as SidebarCompoundComponent;
 Sidebar.Header = SidebarHeader;
 Sidebar.Footer = SidebarFooter;
 Sidebar.Items = SidebarItems;
+Sidebar.Group = SidebarGroup;
 Sidebar.Item = SidebarItem;
 Sidebar.Toggle = SidebarToggle;
 Sidebar.useSidebar = () => useSidebarContext('Sidebar.useSidebar');
@@ -868,4 +1483,4 @@ export default Sidebar;
 /* LES PARTIES SOUS LEUR PROPRE NOM, pour les Server Components : une référence
    client ne se lit pas par un point, `Sidebar.Header` y lève une erreur.
    `SidebarHeader` est le même objet que `Sidebar.Header`. */
-export { SidebarHeader, SidebarFooter, SidebarItems, SidebarItem, SidebarToggle };
+export { SidebarHeader, SidebarFooter, SidebarItems, SidebarGroup, SidebarItem, SidebarToggle };
