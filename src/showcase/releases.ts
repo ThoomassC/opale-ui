@@ -49,6 +49,25 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V302_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'La barre latérale',
+    changes: [
+      {
+        title: 'Une barre de défilement qui se tait quand rien ne dépasse',
+        detail:
+          'Avec customScrollbar, un rail sans hauteur fixe affichait la barre, curseur à 100 %, alors que rien ne défilait : un écart d’arrondi d’un pixel, ou une zone pas encore mesurée, comptait comme un débordement. Sous 2 px d’écart, la barre reste cachée.',
+        links: [{ label: 'Sidebar', slug: 'composants/sidebar' }],
+      },
+      {
+        title: 'Un rail réglable qui garde la hauteur de sa colonne',
+        detail:
+          'Avec resizable ou mobile, le cadre ajouté autour du rail ne s’étirait pas, et le rail perdait la hauteur de sa colonne. Le cadre s’étire désormais dans la hauteur, jamais dans la largeur ; rootStyle reste sur le rail.',
+      },
+    ],
+  },
+];
+
 const V301_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Le mouvement',
@@ -1158,6 +1177,23 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '3.0.2',
+    publishedAt: '2026-10-02',
+    dateLabel: '2 octobre 2026',
+    summary:
+      'Deux corrections de la Sidebar remontées par un projet qui l’utilise : la barre de défilement se cache quand rien ne dépasse, et un rail réglable garde la hauteur de sa colonne. Sans rupture.',
+    sections: V302_RELEASE_SECTIONS,
+    changes: V302_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: [
+      'Barre de défilement cachée quand rien ne dépasse.',
+      'Rail réglable à pleine hauteur.',
+    ],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.0.1',
     publishedAt: '2026-10-02',
     dateLabel: '2 octobre 2026',
@@ -1171,8 +1207,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       'Cinq composants de mouvement.',
       'Sidebar.Group, customScrollbar, resizable et mobile.',
     ],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 3.0.2, sur son tag. */
+    appHref: '/versions/v3.0.1/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.0.1`,
   },
   {
     version: '2.10.0',
