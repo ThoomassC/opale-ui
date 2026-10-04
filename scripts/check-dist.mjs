@@ -60,6 +60,10 @@ for (const modulePath of SERVER_SAFE_MODULES) {
   );
 }
 
+/* La charte `--tc-*` (`src/tokens`) n'est plus publiée depuis la 4.0.0 :
+   seul `--opale-*`, dans `opale.css`, est un contrat public. */
+check(!existsSync('dist/tokens'), "dist/tokens existe : la charte `--tc-*` n'est plus publiée.");
+
 const css = readFileSync('dist/opale/opale.css', 'utf8');
 check(!css.includes('data:font/'), 'dist/opale/opale.css contient encore des polices en base64.');
 check(existsSync('dist/opale/fonts.css'), 'dist/opale/fonts.css est absent.');

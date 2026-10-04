@@ -139,12 +139,12 @@ Les points d'entrée déclarés dans `package.json` :
 | `./opale-nofonts.css` | `dist/opale/opale-nofonts.css` | La même, sans l'`@import` des polices |
 | `./opale-nofonts.layered.css` | `dist/opale/opale-nofonts.layered.css` | Sans polices, et en couche |
 | `./fonts.css`    | `dist/opale/fonts.css`   | Chivo et Bricolage Grotesque, en fichiers woff2            |
-| `./tokens.css`   | `dist/tokens/tokens.css` | La charte `--tc-*`, pour écrire vos propres surfaces       |
 | `./contract`     | `dist/contract/index.js` | Le contrat de couleur — dépendance de développement        |
 | `./package.json` | `package.json`           |                                                            |
 
-Les composants n'ont besoin que d'une feuille : `./opale.css`, ou l'une de ses trois variantes. `./tokens.css` sert à qui compose ses propres
-surfaces dans la palette de la charte.
+Les composants n'ont besoin que d'une feuille : `./opale.css`, ou l'une de ses trois variantes. Ses jetons
+`--opale-*` sont le seul contrat public de couleur : la charte `--tc-*` de `src/tokens`, qui sert la vitrine
+et les contrats, n'est plus publiée depuis la 4.0.0.
 
 ## Les conventions de l'API
 
@@ -344,7 +344,8 @@ import type { BackdropSpec, Theme, ThemeName } from '@thomascaron/opale-ui/contr
 
 ### Architecture des jetons de la charte
 
-Trois couches, une seule direction de dépendance : `materials → roles → primitives`.
+La charte est interne au dépôt depuis la 4.0.0 : elle n'est plus publiée, et une application
+lit les jetons `--opale-*` d'`opale.css`. Trois couches, une seule direction de dépendance : `materials → roles → primitives`.
 
 | Couche         | Fichier                     | Ce qu'elle nomme                        |
 | -------------- | --------------------------- | --------------------------------------- |
