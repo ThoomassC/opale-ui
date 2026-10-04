@@ -3,7 +3,6 @@ import { useId, useLayoutEffect, useRef, type ComponentPropsWithRef } from 'reac
 import Glass from './components/glass/Glass';
 import { GLYPH_STAR } from './components/icon/glyphs';
 import { IconPaths } from './components/icon/IconPaths';
-import { warnDeprecatedProps } from './deprecations';
 import { resolveLabels } from './shared/labels';
 import { useControllableState } from './shared/use-controllable-state';
 
@@ -72,10 +71,6 @@ export interface PaginationProps extends Omit<
   defaultValue?: number;
   /** Appelée à chaque choix de page, même la page courante. */
   onValueChange?: (page: number) => void;
-  /** @deprecated Depuis 2.6 — utilisez `value`. */
-  page?: number;
-  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
-  onChange?: (page: number) => void;
   /** Rend tous les boutons inactifs. Défaut : `false`. */
   disabled?: boolean;
   /** Le nom du repère ; gagne sur `labels.navigation`. */
@@ -91,9 +86,7 @@ export function Pagination({
   value,
   defaultValue = 1,
   onValueChange,
-  page,
   pageCount,
-  onChange,
   disabled = false,
   label,
   labels: labelsProp,
@@ -101,16 +94,14 @@ export function Pagination({
   className,
   ...rest
 }: PaginationProps) {
-  warnDeprecatedProps('Pagination', { page, onChange });
   const [requested, setRequested] = useControllableState<number>(
-    value ?? page,
+    value,
     defaultValue,
     onValueChange,
   );
   const labels = resolveLabels(DEFAULT_PAGINATION_LABELS, labelsProp);
   const choose = (next: number) => {
     setRequested(next);
-    onChange?.(next);
   };
   const stepRef = useRef<HTMLButtonElement | null>(null);
   /* UNE FLÈCHE QUI DEVIENT INACTIVE SOUS LE FOCUS le rendrait à `<body>` :
@@ -219,8 +210,6 @@ export interface RatingInputProps extends Omit<
   max?: number;
   /** Appelée à chaque choix d'une note. */
   onValueChange?: (value: number) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
-  onChange?: (value: number) => void;
   /** Rend le groupe inactif, radios comprises. Défaut : `false`. */
   disabled?: boolean;
   /**
@@ -239,14 +228,12 @@ export function RatingInput({
   defaultValue = 0,
   max = 5,
   onValueChange,
-  onChange,
   disabled = false,
   name,
   labels: labelsProp,
   className,
   ...rest
 }: RatingInputProps) {
-  warnDeprecatedProps('RatingInput', { onChange });
   const labels = resolveLabels(DEFAULT_RATING_INPUT_LABELS, labelsProp);
   const [selected, setSelected] = useControllableState<number>(value, defaultValue, onValueChange);
   const generatedName = useId();
@@ -272,7 +259,6 @@ export function RatingInput({
               checked={selected === number}
               onChange={() => {
                 setSelected(number);
-                onChange?.(number);
               }}
               aria-label={labels.option(number, total)}
             />

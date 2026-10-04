@@ -3,10 +3,6 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MultiSelect } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 
@@ -48,7 +44,7 @@ describe('MultiSelect', () => {
         <MultiSelect
           label="Villes"
           options={OPTIONS}
-          values={values}
+          value={values}
           onChange={(event) => {
             onChange(Array.from(event.currentTarget.selectedOptions, (option) => option.value));
             setValues(Array.from(event.currentTarget.selectedOptions, (option) => option.value));

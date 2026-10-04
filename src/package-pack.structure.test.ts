@@ -41,6 +41,13 @@ describe('scripts/pack.mjs', () => {
     }
   });
 
+  /* LES DÉPENDANCES PAIRS SONT BORNÉES À LA MAJEURE ÉPROUVÉE (4.0.0). `>=19`
+     promettait React 20 et au-delà, sans qu'aucune version n'ait été essayée. */
+  it('borne react et react-dom à ^19', () => {
+    expect(manifest.peerDependencies).toEqual({ react: '^19', 'react-dom': '^19' });
+    expect(packed.peerDependencies).toEqual({ react: '^19', 'react-dom': '^19' });
+  });
+
   /* Un champ ajouté au manifeste doit être classé : publié ou retiré. Sans
      cette règle, il disparaîtrait de l'archive sans que personne l'ait voulu. */
   it('classe chaque champ du manifeste', () => {

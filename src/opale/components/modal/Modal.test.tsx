@@ -8,10 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 import Modal, { type ModalProps } from './Modal';
 import { ToastProvider, useToast } from '../toast';
 import { declarations, selectorsDeclaring } from '../../../test/css-rules';
-import { expectOnlyDeprecationWarnings } from '../../../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
+import { byClass, queryByClass } from '../../../test/stable-class';
 
 /* =============================================================================
    LES SIX CAS D'ORIGINE SONT TOUS LÀ, ET AUCUN N'A ÉTÉ AFFAIBLI.
@@ -58,7 +55,7 @@ describe('Modal', () => {
   it('appelle onOpenChange au clic sur le voile', () => {
     const { onOpenChange } = renderModal();
 
-    const overlay = screen.getByTestId('modal-overlay');
+    const overlay = byClass('opale-modal__backdrop');
     expect(overlay).toBeInTheDocument();
     fireEvent.click(overlay);
 
@@ -68,7 +65,7 @@ describe('Modal', () => {
   it('ne ferme pas quand le clic sur le voile est désarmé', () => {
     const { onOpenChange } = renderModal({ closeOnOverlay: false });
 
-    const overlay = screen.getByTestId('modal-overlay');
+    const overlay = byClass('opale-modal__backdrop');
     expect(overlay).toBeInTheDocument();
     fireEvent.click(overlay);
 
@@ -86,7 +83,7 @@ describe('Modal', () => {
   it('se portaille dans le body par défaut', () => {
     renderModal();
 
-    const modalContainer = screen.getByTestId('modal-container');
+    const modalContainer = byClass('opale-modal');
     expect(modalContainer.parentElement!.tagName).toBe('BODY');
   });
 
@@ -123,7 +120,7 @@ describe('Modal', () => {
     const Harness = ({ open }: { open: boolean }) => (
       <>
         <button type="button">Ouvrir</button>
-        <Modal open={open} onClose={() => {}} title="Glass modal">
+        <Modal open={open} onOpenChange={() => {}} title="Glass modal">
           <p>Modal body content</p>
         </Modal>
       </>
@@ -143,7 +140,12 @@ describe('Modal', () => {
 
   it('piège la tabulation entre le premier et le dernier élément focusable', () => {
     render(
-      <Modal open onClose={() => {}} title="Glass modal" footer={<button type="button">OK</button>}>
+      <Modal
+        open
+        onOpenChange={() => {}}
+        title="Glass modal"
+        footer={<button type="button">OK</button>}
+      >
         <button type="button">Dans le corps</button>
       </Modal>,
     );
@@ -184,7 +186,7 @@ describe('Modal', () => {
     const Harness = ({ open }: { open: boolean }) => (
       <>
         <button type="button">Derrière</button>
-        <Modal open={open} onClose={() => {}} title="Glass modal">
+        <Modal open={open} onOpenChange={() => {}} title="Glass modal">
           <p>Modal body content</p>
         </Modal>
       </>
@@ -222,7 +224,7 @@ describe('Modal', () => {
     const { baseElement } = render(
       <ToastProvider>
         <button type="button">Derrière</button>
-        <Modal open onClose={() => {}} title="Glass modal">
+        <Modal open onOpenChange={() => {}} title="Glass modal">
           <Emit />
         </Modal>
       </ToastProvider>,
@@ -230,7 +232,7 @@ describe('Modal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    const portal = screen.getByTestId('toast-portal');
+    const portal = byClass('opale-toast-provider');
     for (
       let node: HTMLElement | null = portal;
       node && node !== baseElement;
@@ -252,7 +254,7 @@ describe('Modal', () => {
           <p>Contenu</p>
           <div data-opale-modal-exempt="" data-testid="live" />
         </div>
-        <Modal open onClose={() => {}} title="Glass modal">
+        <Modal open onOpenChange={() => {}} title="Glass modal">
           <p>Modal body content</p>
         </Modal>
       </>,
@@ -266,13 +268,13 @@ describe('Modal', () => {
 
   it('n’expose aucun dialogue quand il est fermé', () => {
     render(
-      <Modal open={false} onClose={() => {}} title="Glass modal">
+      <Modal open={false} onOpenChange={() => {}} title="Glass modal">
         <p>Modal body content</p>
       </Modal>,
     );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('modal-container')).not.toBeInTheDocument();
+    expect(queryByClass('opale-modal')).not.toBeInTheDocument();
   });
 
   it('laisse l’appelant surcharger le nom accessible sans perdre role ni aria-modal', () => {
@@ -280,7 +282,12 @@ describe('Modal', () => {
        ne peut plus casser le motif en posant son propre `role`, mais il garde
        la main sur le nom. */
     render(
-      <Modal open onClose={() => {}} aria-label="Dialogue nommé par l’appelant" role="alertdialog">
+      <Modal
+        open
+        onOpenChange={() => {}}
+        aria-label="Dialogue nommé par l’appelant"
+        role="alertdialog"
+      >
         <p>Modal body content</p>
       </Modal>,
     );
@@ -332,7 +339,7 @@ describe('Modal — restitution du focus et inertie, par chaque sortie', () => {
       'le bouton Fermer',
       (user: UserEvent) => user.click(screen.getByRole('button', { name: 'Fermer' })),
     ],
-    ['le clic sur le voile', (user: UserEvent) => user.click(screen.getByTestId('modal-overlay'))],
+    ['le clic sur le voile', (user: UserEvent) => user.click(byClass('opale-modal__backdrop'))],
   ] as const;
 
   it.each(exits)(
@@ -405,7 +412,7 @@ describe('les contours du panneau original', () => {
 
 describe('la croix de fermeture', () => {
   it('devrait dessiner un tracé et non le caractère « × »', () => {
-    render(<Modal open title="Confirmer" onClose={() => {}} />);
+    render(<Modal open title="Confirmer" onOpenChange={() => {}} />);
 
     const croix = screen.getByRole('button', { name: 'Fermer' });
 
@@ -416,7 +423,7 @@ describe('la croix de fermeture', () => {
   /* LE TRACÉ EST MASQUÉ, LE BOUTON EST NOMMÉ. Un `<svg>` exposé ferait
      énumérer des chemins par le lecteur d'écran par-dessus le nom du bouton. */
   it('devrait masquer son tracé aux technologies d’assistance', () => {
-    render(<Modal open title="Confirmer" onClose={() => {}} />);
+    render(<Modal open title="Confirmer" onOpenChange={() => {}} />);
 
     const svg = screen.getByRole('button', { name: 'Fermer' }).querySelector('svg');
 
@@ -432,7 +439,7 @@ describe('l’en-tête sans titre', () => {
      pleine largeur sous un bouton isolé. */
   it('ne devrait pas poser de bloc de titre vide', () => {
     const { baseElement } = render(
-      <Modal open onClose={() => {}}>
+      <Modal open onOpenChange={() => {}}>
         <img alt="Une photographie" src="/x.jpg" />
       </Modal>,
     );
@@ -443,7 +450,7 @@ describe('l’en-tête sans titre', () => {
   });
 
   it('devrait poser le bloc de titre dès qu’il y a un titre', () => {
-    const { baseElement } = render(<Modal open title="Confirmer" onClose={() => {}} />);
+    const { baseElement } = render(<Modal open title="Confirmer" onOpenChange={() => {}} />);
 
     expect(baseElement.querySelector('[class*="heading"]')).not.toBeNull();
   });
@@ -485,22 +492,6 @@ describe('Modal — onOpenChange et taille', () => {
 
     expect(onOpenChange).toHaveBeenNthCalledWith(1, false);
     expect(onOpenChange).toHaveBeenNthCalledWith(2, false);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <Modal
-        open
-        title="Réglages"
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 
   it.each([

@@ -17,8 +17,7 @@ import {
   type RefAttributes,
 } from 'react';
 
-import { warnDeprecatedProps } from '../../deprecations';
-import Glass, { type GlassProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
+import Glass, { type GlassProps } from '../glass/Glass';
 import styles from './style/Tabs.module.css';
 
 /* =============================================================================
@@ -354,12 +353,9 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
    * état.
    */
   readonly liquidGlass?: boolean;
-  /** @deprecated Depuis 2.7 — utilisez `className` ; la balise du contenu est interne au verre. */
-  readonly as?: GlassProps['as'];
-  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
-  readonly pressFeedback?: boolean;
-} & Omit<GlassProps, 'as' | 'pressFeedback' | 'enableLiquidAnimation' | 'triggerAnimation'> &
-  LegacySurfaceAnimationProps;
+  /* Du verre, les onglets ne laissent régler que l'enveloppe : la balise, le
+     rebond et l'onde sont internes au matériau (retirés en 4.0.0). */
+} & Pick<GlassProps, 'rootClassName' | 'rootStyle'>;
 
 const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   {
@@ -373,16 +369,11 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     rootClassName,
     rootStyle,
     style,
-    as,
-    pressFeedback,
-    enableLiquidAnimation,
-    triggerAnimation,
     children,
     ...rest
   },
   ref,
 ) {
-  warnDeprecatedProps('Tabs', { as, pressFeedback, enableLiquidAnimation, triggerAnimation });
   const isControlled = valueProp !== undefined;
   const [ownValue, setOwnValue] = useState(defaultValue);
   const value = isControlled ? valueProp : ownValue;
@@ -441,14 +432,10 @@ const TabsBase = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
       {liquidGlass ? (
         <Glass
           ref={ref}
-          as={as}
           rootClassName={shellClasses}
           rootStyle={rootStyle}
           className={rootClasses}
           style={style}
-          pressFeedback={pressFeedback}
-          enableLiquidAnimation={enableLiquidAnimation}
-          triggerAnimation={triggerAnimation}
           {...rest}
         >
           {children}

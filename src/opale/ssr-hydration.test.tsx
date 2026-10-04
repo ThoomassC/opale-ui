@@ -66,7 +66,6 @@ function ThemeProbe() {
 /* Les surimpressions sont rendues OUVERTES : c'est le cas qui cassait. */
 const COMPONENT_FIXTURES: Record<keyof typeof Opale, () => ReactElement> = {
   Autocomplete: () => <Opale.Autocomplete label="Ville" options={['Lyon', 'Nantes']} />,
-  Background: () => <Opale.Background>x</Opale.Background>,
   BackgroundSurface: () => <Opale.BackgroundSurface>x</Opale.BackgroundSurface>,
   Badge: () => <Opale.Badge>b</Opale.Badge>,
   Breadcrumb: () => <Opale.Breadcrumb items={nav} />,
@@ -319,7 +318,7 @@ describe('rendu serveur puis hydratation, sous StrictMode', () => {
     /* Le nœud rendu par le serveur est repris, pas jeté puis recréé. */
     expect(serverParagraph).not.toBeNull();
     expect(hydrated.host.querySelector('main p')).toBe(serverParagraph);
-    expect(document.querySelector('[data-testid="toast-portal"]')).not.toBeNull();
+    expect(document.querySelector('.opale-toast-provider')).not.toBeNull();
   });
 
   it('applique le thème mémorisé du gabarit une fois l’hydratation faite', async () => {

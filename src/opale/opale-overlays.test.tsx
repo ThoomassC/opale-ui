@@ -2,10 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CommandPalette, ConfirmDialog, CookieBanner, Lightbox, SidePanel, Toast } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
+import { byClass } from '../test/stable-class';
 
 /* =============================================================================
    OUVRIR ET FERMER : `open` + `onOpenChange`.
@@ -18,7 +15,7 @@ expectOnlyDeprecationWarnings();
 afterEach(cleanup);
 
 const escape = () => fireEvent.keyDown(window, { key: 'Escape' });
-const overlay = () => screen.getByTestId('modal-overlay');
+const overlay = () => byClass('opale-modal__backdrop');
 
 describe('ConfirmDialog', () => {
   const renderDialog = () => {
@@ -72,22 +69,6 @@ describe('ConfirmDialog', () => {
     expect(onConfirm).toHaveBeenCalledOnce();
     expect(onOpenChange).not.toHaveBeenCalled();
   });
-
-  it('devrait appeler onOpenChange puis l’onCancel déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <ConfirmDialog
-        open
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onCancel={() => calls.push('onCancel')}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }));
-    escape();
-
-    expect(calls).toEqual(['onOpenChange:false', 'onCancel', 'onOpenChange:false', 'onCancel']);
-  });
 });
 
 describe('SidePanel', () => {
@@ -99,21 +80,6 @@ describe('SidePanel', () => {
     escape();
 
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <SidePanel
-        open
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(overlay());
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 });
 
@@ -127,23 +93,6 @@ describe('Lightbox', () => {
     }
 
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <Lightbox
-        open
-        src="/photo.jpg"
-        alt="Le port"
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    escape();
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 });
 
@@ -160,21 +109,6 @@ describe('CommandPalette', () => {
 
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
   });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <CommandPalette
-        open
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(screen.getAllByRole('button', { name: 'Fermer' })[1]);
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
-  });
 });
 
 describe('Toast', () => {
@@ -185,21 +119,6 @@ describe('Toast', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Fermer la notification' }));
 
     expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <Toast
-        message="Enregistré"
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer la notification' }));
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 });
 

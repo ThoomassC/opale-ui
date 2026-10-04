@@ -115,8 +115,9 @@ export const CATALOG_A11Y: Readonly<Record<string, CatalogA11yDoc>> = {
     keyboard: ['Case native : Espace bascule l’état ; atteinte par Tab.'],
     semantics: [
       'Un `<input type="checkbox">` natif dans un `<label>` ; la piste et la poignée sont peintes depuis `:checked`.',
+      '`role="switch"` par défaut : l’interrupteur s’annonce « activé / désactivé ». Un `role="checkbox"` explicite garde l’annonce d’une case.',
     ],
-    limits: ['Aucun `role="switch"` : l’interrupteur est annoncé comme une case à cocher.'],
+    limits: [],
   },
   Slider: {
     states: [

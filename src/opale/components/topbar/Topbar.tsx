@@ -10,8 +10,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import { warnDeprecatedProps } from '../../deprecations';
-import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
+import Glass, { type GlassSurfaceProps } from '../glass/Glass';
 import { normalizeSize, type OpaleSize } from '../../shared/vocabulary';
 import styles from './style/Topbar.module.css';
 
@@ -43,9 +42,10 @@ import styles from './style/Topbar.module.css';
      `{...rest}` APRÈS son propre `as="header"`. Un appelant pouvait donc
      remplacer l'élément rendu — c'est-à-dire faire disparaître le point de
      repère `banner` — en passant une prop que la documentation ne mentionne
-     nulle part. Seules les quatre props d'habillage du verre restent
-     (`rootClassName`, `rootStyle`, `enableLiquidAnimation`, `triggerAnimation`),
-     et elles sont désormais nommées une par une.
+     nulle part. Seules les deux props d'habillage de l'enveloppe restent
+     (`rootClassName`, `rootStyle`), nommées une par une ; l'onde
+     (`enableLiquidAnimation`, `triggerAnimation`) est interne au matériau
+     depuis la 4.0.0.
 
    — L'ENCRE N'EST PLUS ÉCRITE. Voir la feuille : la version tierce posait
      `text-white` en dur, ce qui condamnait la barre aux fonds sombres.
@@ -108,8 +108,7 @@ export type TopbarProps = ComponentPropsWithoutRef<'header'> & {
    * état.
    */
   liquidGlass?: boolean;
-} & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
-  LegacySurfaceAnimationProps;
+} & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'>;
 
 const sizeClassMap: Record<TopbarSize, string> = {
   compact: styles.compact,
@@ -127,14 +126,11 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
       rootClassName,
       rootStyle,
       style,
-      enableLiquidAnimation,
-      triggerAnimation,
       children,
       ...rest
     },
     ref,
   ) => {
-    warnDeprecatedProps('Topbar', { enableLiquidAnimation, triggerAnimation });
     const size = TOPBAR_SIZE[normalizeSize(sizeProp, 'medium')];
     const value = useMemo<TopbarContextValue>(() => ({ size }), [size]);
 
@@ -178,8 +174,6 @@ const TopbarBase = forwardRef<HTMLElement, TopbarProps>(
           rootStyle={rootStyle}
           className={contentClasses}
           style={style}
-          enableLiquidAnimation={enableLiquidAnimation}
-          triggerAnimation={triggerAnimation}
           {...rest}
         >
           {children}

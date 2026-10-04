@@ -140,7 +140,7 @@ describe('les sept fusions original / liquid glass', () => {
      avoir plus d'un contrôle après bascule qu'avant. */
   it.each([
     { name: 'Checkbox', role: 'checkbox' as const },
-    { name: 'Toggle', role: 'checkbox' as const },
+    { name: 'Toggle', role: 'switch' as const },
     { name: 'Slider', role: 'slider' as const },
     { name: 'Input', role: 'textbox' as const },
     { name: 'Select', role: 'combobox' as const },
@@ -181,7 +181,7 @@ describe('les sept fusions original / liquid glass', () => {
     const user = userEvent.setup();
     render(<Opale.Toggle liquidGlass label="Activé" onChange={onChange} />);
 
-    await user.click(screen.getByRole('checkbox', { name: 'Activé' }));
+    await user.click(screen.getByRole('switch', { name: 'Activé' }));
 
     expect(onChange).toHaveBeenCalledOnce();
     expect(onChange.mock.calls[0][0].target.checked).toBe(true);

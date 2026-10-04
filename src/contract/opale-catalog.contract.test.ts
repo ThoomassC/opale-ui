@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { stripComments } from './stylesheet';
-import { OPALE_CATALOG } from '../opale/opale';
+import { CATALOG } from '../opale/catalog';
 import opaleCss from '../opale/opale.css?raw';
 import { OPALE_CATALOG_SOURCE as opaleSource } from '../test/opale-source';
 import extrasSource from '../opale/opale-extras.tsx?raw';
@@ -9,7 +9,7 @@ import extrasSource from '../opale/opale-extras.tsx?raw';
 /* ============================================================================
    UNE FICHE DIT CE QUE LE COMPOSANT FAIT, PAS CE QU'IL POURRAIT FAIRE.
 
-   La fiche d'`OPALE_CATALOG` est la première phrase qu'on lit sous le titre de
+   La fiche du catalogue (`CATALOG`) est la première phrase qu'on lit sous le titre de
    chaque page de composant. Relues une à une contre leur implémentation, une
    trentaine promettaient ce que le code ne faisait pas : « tri, sélection et
    clavier » pour un `<table>` statique, « glisser-déposer » pour une zone sans
@@ -203,7 +203,7 @@ function classesOf(body: string): Set<string> {
 
 const SHARED = (() => {
   const seen = new Map<string, number>();
-  for (const { name } of OPALE_CATALOG) {
+  for (const { name } of CATALOG) {
     for (const cls of classesOf(bodyOf(name) ?? '')) seen.set(cls, (seen.get(cls) ?? 0) + 1);
   }
   return new Set([...seen].filter(([, count]) => count > 1).map(([cls]) => cls));
@@ -227,14 +227,14 @@ function cssFor(body: string): string {
 }
 
 describe('le catalogue d’Opale', () => {
-  it.each(OPALE_CATALOG.map((entry) => [entry.name]))(
+  it.each(CATALOG.map((entry) => [entry.name]))(
     'devrait trouver le composant %s dans la source du catalogue',
     (name) => {
       expect(bodyOf(name)).toBeDefined();
     },
   );
 
-  it.each(OPALE_CATALOG.map((entry) => [entry.name, entry.description]))(
+  it.each(CATALOG.map((entry) => [entry.name, entry.description]))(
     'devrait tenir chaque promesse de la fiche de %s',
     (name, description) => {
       const body = bodyOf(name) ?? '';

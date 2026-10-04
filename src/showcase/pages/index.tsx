@@ -5,7 +5,7 @@ import { installationPage } from './installation';
 import { themingPage, utilisationPage } from './guide-pages';
 import { iconesPage } from './icones';
 import { personnaliserPage } from './personnaliser.page';
-import { migrationPage } from './migrer-vers-3';
+import { migrationPage } from './migrer-vers-4';
 import { verreLiquidePage } from './verre-liquide';
 import { notesVersionsPage } from './notes-de-versions';
 
@@ -42,8 +42,8 @@ export const PAGES: readonly DocPage[] = [
   /* Juste après « Thèmes » : le thème choisi, on l'habille à sa marque. */
   personnaliserPage,
   iconesPage,
-  /* La dernière 2.x prépare la suivante : la liste des anciens noms, déduite
-     de `src/opale/deprecations.ts`. */
+  /* Ce que la 4.0 a retiré, déduit de `REMOVED_PROPS` et `REMOVED_EXPORTS`
+     (`src/opale/deprecations.ts`). */
   migrationPage,
   /* Juste sous « Présentation », et dans le même groupe : c'est la page qui
      montre l'effet dont toute la 1.0 dépend, avant le catalogue. */

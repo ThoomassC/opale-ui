@@ -338,10 +338,13 @@ describe('Slider — valeur affichée d’un curseur libre', () => {
   });
 
   it('garde la valeur contrôlée et le libellé fourni', () => {
-    const { rerender } = render(<Slider label="Volume" value={30} onChange={() => {}} />);
+    /* Deux montages et non un `rerender` : passer le même champ de contrôlé à
+       non contrôlé est une erreur que React signale, pas le cas testé. */
+    const { unmount } = render(<Slider label="Volume" value={30} onChange={() => {}} />);
     expect(screen.getByText('30')).toBeInTheDocument();
+    unmount();
 
-    rerender(<Slider label="Volume" defaultValue={30} valueLabel="Trente" />);
+    render(<Slider label="Volume" defaultValue={30} valueLabel="Trente" />);
     expect(screen.getByText('Trente')).toBeInTheDocument();
   });
 });

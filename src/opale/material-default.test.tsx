@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -20,11 +20,8 @@ import toastSheet from './components/toast/style/Toast.module.css?raw';
 import topbarSheet from './components/topbar/style/Topbar.module.css?raw';
 import { OPALE_CATALOG_SOURCE as opaleSource } from '../test/opale-source';
 import { useSvgMapViewport } from './components/svg-map';
-import { OPALE_CATALOG, Opale } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
+import { CATALOG } from './catalog';
+import { Opale } from './opale';
 
 afterEach(cleanup);
 
@@ -139,7 +136,12 @@ const PORTEURS = [
       </Modal>
     ),
   },
-  { nom: 'SiteNav', rendre: (g?: boolean) => <SiteNav liquidGlass={g} /> },
+  {
+    nom: 'SiteNav',
+    rendre: (g?: boolean) => (
+      <SiteNav items={[{ id: 'a', href: '/', label: 'Accueil' }]} liquidGlass={g} />
+    ),
+  },
 
   /* LES PORTEURS AJOUTÉS PAR L'AUDIT D'UTILITÉ. Ils peignent tous une
      surface — une carte, un panneau, une piste, un rail —, donc le matériau
@@ -148,7 +150,7 @@ const PORTEURS = [
   {
     nom: 'Feedback',
     rendre: (g?: boolean) => (
-      <Opale.Feedback liquidGlass={g} severity="info" title="Note">
+      <Opale.Feedback liquidGlass={g} tone="info" title="Note">
         Message
       </Opale.Feedback>
     ),
@@ -303,7 +305,7 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
   it('ToastProvider rend l’original tant qu’on ne demande rien', async () => {
     const { container } = render(<ToastHarness />);
 
-    screen.getByRole('button', { name: 'Notifier' }).click();
+    fireEvent.click(screen.getByRole('button', { name: 'Notifier' }));
     await screen.findByText('Enregistré');
 
     expect(material(container) ?? material(document.body)).toBeNull();
@@ -312,7 +314,7 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
   it('ToastProvider rend le verre quand on le demande', async () => {
     render(<ToastHarness liquidGlass />);
 
-    screen.getByRole('button', { name: 'Notifier' }).click();
+    fireEvent.click(screen.getByRole('button', { name: 'Notifier' }));
     await screen.findByText('Enregistré');
 
     expect(material(document.body)).not.toBeNull();
@@ -509,7 +511,7 @@ describe('l’inventaire du matériau', () => {
   ]);
 
   it('devrait ranger chaque composant publié d’un côté ou de l’autre', () => {
-    const publies = OPALE_CATALOG.map((entree) => entree.name);
+    const publies = CATALOG.map((entree) => entree.name);
     const porteurs = new Set<string>([
       ...PORTEURS.map((porteur) => porteur.nom),
       /* Les quatre qui reçoivent la prop par diffusion plutôt qu'en la
@@ -545,7 +547,7 @@ describe('l’inventaire du matériau', () => {
   /* UNE EXCLUSION QUI NE DÉSIGNE PLUS RIEN est un reste : le composant a été
      retiré du paquet et sa ligne est restée. */
   it('ne devrait exclure que des composants qui existent', () => {
-    const publies = new Set(OPALE_CATALOG.map((entree) => entree.name));
+    const publies = new Set(CATALOG.map((entree) => entree.name));
     const fantomes = [...SANS_MATIERE.keys()].filter((nom) => !publies.has(nom));
 
     expect(fantomes).toEqual([]);

@@ -27,10 +27,6 @@ import {
   SegmentedControl,
   SidePanel,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 
@@ -248,7 +244,7 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     {
       nom: 'ConfirmDialog',
       rendre: (onClose: () => void) => (
-        <ConfirmDialog open title="Supprimer ?" onCancel={onClose}>
+        <ConfirmDialog open title="Supprimer ?" onOpenChange={onClose}>
           Cette action est définitive.
         </ConfirmDialog>
       ),
@@ -256,19 +252,19 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     {
       nom: 'SidePanel',
       rendre: (onClose: () => void) => (
-        <SidePanel open title="Détails" onClose={onClose}>
+        <SidePanel open title="Détails" onOpenChange={onClose}>
           Contenu
         </SidePanel>
       ),
     },
     {
       nom: 'CommandPalette',
-      rendre: (onClose: () => void) => <CommandPalette open onClose={onClose} />,
+      rendre: (onClose: () => void) => <CommandPalette open onOpenChange={onClose} />,
     },
     {
       nom: 'Lightbox',
       rendre: (onClose: () => void) => (
-        <Lightbox open src="/image.png" alt="Une image" onClose={onClose} />
+        <Lightbox open src="/image.png" alt="Une image" onOpenChange={onClose} />
       ),
     },
   ];
@@ -300,7 +296,7 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     'structure la palette et son action Fermer avec Liquid Glass=%s',
     async (liquidGlass) => {
       const onClose = vi.fn();
-      render(<CommandPalette open liquidGlass={liquidGlass} onClose={onClose} />);
+      render(<CommandPalette open liquidGlass={liquidGlass} onOpenChange={onClose} />);
 
       const dialog = screen.getByRole('dialog', { name: 'Palette de commandes' });
       const champ = screen.getByRole('searchbox', { name: 'Rechercher une commande' });

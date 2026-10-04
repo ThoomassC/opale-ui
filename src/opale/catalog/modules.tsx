@@ -19,11 +19,9 @@ import Glass from '../components/glass/Glass';
 import { GLYPH_FILE } from '../components/icon/glyphs';
 import { IconPaths } from '../components/icon/IconPaths';
 import { Modal, type ModalLabels } from '../components/modal';
-import { warnDeprecatedProps } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import { Button, type ButtonLabels, type ButtonProps } from './forms';
-import { closeHandler, closeClickHandler } from './close-handlers';
 
 /** Les textes de `FileCard`. */
 export interface FileCardLabels {
@@ -45,11 +43,6 @@ export interface FileCardProps extends Omit<HTMLAttributes<HTMLElement>, 'onClic
   name: string;
   /** Le poids du fichier, tel qu'il s'affiche : « 2 Mo ». */
   fileSize?: string;
-  /**
-   * @deprecated Depuis 2.10 — utilisez `fileSize`. Partout ailleurs dans Opale,
-   * `size` est l'échelle `OpaleSize` ; ici c'était le poids du fichier.
-   */
-  size?: string;
   /** La carte est retenue, annoncée `aria-pressed` quand elle est cliquable. Défaut : `false`. */
   selected?: boolean;
   /** Rend la carte cliquable : la coquille devient un `<button>`. Absente, un `<div>`. */
@@ -65,7 +58,6 @@ export interface FileCardProps extends Omit<HTMLAttributes<HTMLElement>, 'onClic
 export function FileCard({
   name,
   fileSize,
-  size,
   selected = false,
   onClick,
   liquidGlass = false,
@@ -74,9 +66,6 @@ export function FileCard({
   ref,
   ...rest
 }: FileCardProps) {
-  warnDeprecatedProps('FileCard', { size });
-  /* `fileSize` gagne ; l'ancien `size` ne sert que s'il est seul. */
-  const weight = fileSize ?? size;
   const labels = resolveLabels(DEFAULT_FILE_CARD_LABELS, labelsProp);
   /* Une ref d'`HTMLElement` ne se pose pas telle quelle sur un `<button>` : la
      fonction qui l'enveloppe, elle, convient aux deux balises. */
@@ -107,7 +96,7 @@ export function FileCard({
       <IconPaths paths={GLYPH_FILE} className="opale-file-card__icon" />
       <span className="opale-file-card__text">
         <strong>{name}</strong>
-        {weight && <small className="opale-field__helper">{weight}</small>}
+        {fileSize && <small className="opale-field__helper">{fileSize}</small>}
         {selected && !onClick && <span className="opale-visually-hidden">{labels.selected}</span>}
       </span>
     </FileCardShell>
@@ -418,14 +407,12 @@ export interface LightboxProps extends Omit<ComponentPropsWithRef<'div'>, 'title
   open?: boolean;
   /** Appelée avec `false` sur Échap, le voile, la croix ou Fermer. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
-  onClose?: () => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<LightboxLabels>;
   /**
    * Rend le bouton « Fermer » du pied, en plus de la croix d'en-tête. Défaut : `true`.
-   * À `false`, seule la croix ferme le dialogue (elle n'existe qu'avec `onOpenChange`
-   * ou `onClose`) ; son nom et la gestion du focus sont inchangés.
+   * À `false`, seule la croix ferme le dialogue (elle n'existe qu'avec `onOpenChange`) ;
+   * son nom et la gestion du focus sont inchangés.
    */
   footerClose?: boolean;
   /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
@@ -437,14 +424,11 @@ export function Lightbox({
   alt,
   open = false,
   onOpenChange,
-  onClose,
   labels: labelsProp,
   liquidGlass = false,
   footerClose = true,
   ...rest
 }: LightboxProps) {
-  warnDeprecatedProps('Lightbox', { onClose });
-  const close = closeHandler(onOpenChange, onClose);
   const labels = resolveLabels(DEFAULT_LIGHTBOX_LABELS, labelsProp);
   return (
     <Modal
@@ -452,7 +436,7 @@ export function Lightbox({
       {...rest}
       labels={{ close: labels.close }}
       open={open && Boolean(src)}
-      onOpenChange={close}
+      onOpenChange={onOpenChange}
       liquidGlass={liquidGlass}
       rootClassName="opale-lightbox"
       footer={
@@ -464,7 +448,7 @@ export function Lightbox({
           <Button
             variant="tonal"
             liquidGlass={liquidGlass}
-            onClick={closeClickHandler(onOpenChange, onClose)}
+            onClick={onOpenChange ? () => onOpenChange(false) : undefined}
           >
             {labels.close}
           </Button>

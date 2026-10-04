@@ -180,16 +180,6 @@ export type GlassSurfaceProps = Pick<
   'rootClassName' | 'rootStyle' | 'enableLiquidAnimation' | 'triggerAnimation'
 >;
 
-/* LES RÉGLAGES D'ONDE QU'UNE SURFACE ACCEPTE ENCORE. Une barre, un rail ou un
-   bandeau d'onglets ne sont pas des cibles d'activation : l'onde y est interne
-   au matériau. Les deux props gardent leur effet, sans être recommandées. */
-export type LegacySurfaceAnimationProps = {
-  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; une surface ne fait pas naître d'onde au clic. */
-  readonly enableLiquidAnimation?: boolean;
-  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; l'onde programmée est interne au matériau. */
-  readonly triggerAnimation?: boolean;
-};
-
 /* La durée de l'onde, `--opale-motion-slower` dans `Glass.module.css`. */
 const RIPPLE_MS = 600;
 

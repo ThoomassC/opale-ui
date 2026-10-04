@@ -21,7 +21,6 @@ import Glass, { type GlassProps } from '../glass/Glass';
    jeu (`icon-graph.structure.test.ts`). Imports directs, sans le baril. */
 import { GLYPH_CLOSE } from '../icon/glyphs';
 import { IconPaths } from '../icon/IconPaths';
-import { warnDeprecatedProps } from '../../deprecations';
 import { resolveLabels } from '../../shared/labels';
 import { mergeRefs } from '../../shared/merge-refs';
 import { activeElementOf } from '../../shared/tree-root';
@@ -136,8 +135,6 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   open: boolean;
   /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
-  onClose?: () => void;
   /**
    * Le titre du dialogue, rendu en `<h2>` et relié par `aria-labelledby`. Sans titre, nommez le
    * dialogue par `aria-label`.
@@ -174,15 +171,11 @@ export type ModalProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
   liquidGlass?: boolean;
   /** Le panneau du dialogue, celui qui porte `role="dialog"`. */
   ref?: Ref<HTMLDivElement>;
-  /** @deprecated Depuis 2.7 — utilisez `enableLiquidAnimation` ; l'onde d'ouverture est programmée par la modale. */
-  triggerAnimation?: boolean;
-  /** @deprecated Depuis 2.7 — utilisez `className` ; la balise du panneau est interne au verre. */
-  as?: GlassProps['as'];
-  /** @deprecated Depuis 2.7 — utilisez `liquidGlass` ; le rebond est interne au matériau. */
-  pressFeedback?: boolean;
-  /* `GlassProps` REAPPORTE le `title` du `<div>` : il faut l'écarter des DEUX
-     côtés, sans quoi l'intersection le ramène à une chaîne. */
-} & Omit<GlassProps, 'title' | 'triggerAnimation' | 'as' | 'pressFeedback'>;
+  /* DU VERRE, LA MODALE NE LAISSE RÉGLER QUE L'ENVELOPPE. La balise du
+     panneau, son rebond et son onde programmée sont internes au matériau ;
+     `as`, `pressFeedback` et `triggerAnimation`, dépréciés en 2.7, ont été
+     retirés en 4.0.0 avec `onClose`. */
+} & Pick<GlassProps, 'rootClassName' | 'rootStyle'>;
 
 const sizeClass: Record<OpaleSize, string> = {
   small: styles.sm,
@@ -240,8 +233,6 @@ function Panel({
   className,
   style,
   triggerAnimation,
-  as,
-  pressFeedback,
   children,
   ...rest
 }: PanelProps) {
@@ -252,8 +243,6 @@ function Panel({
         ref={ref}
         enableLiquidAnimation={false}
         triggerAnimation={triggerAnimation}
-        as={as}
-        pressFeedback={pressFeedback}
         rootClassName={rootClassName}
         rootStyle={rootStyle}
         className={className}
@@ -278,7 +267,6 @@ function Panel({
 
 const Modal = ({
   open,
-  onClose,
   onOpenChange,
   title,
   description,
@@ -317,12 +305,6 @@ const Modal = ({
   const titleId = useId();
   const descriptionId = useId();
   const labels = resolveLabels(DEFAULT_MODAL_LABELS, labelsProp);
-  warnDeprecatedProps('Modal', {
-    onClose,
-    triggerAnimation: rest.triggerAnimation,
-    as: rest.as,
-    pressFeedback: rest.pressFeedback,
-  });
 
   /* L'ONDE D'OUVERTURE SE DEMANDE UNE IMAGE APRÈS LE MONTAGE, ET ELLE N'A PAS
      LE CHOIX. `Glass` lit désormais `triggerAnimation` comme un FRONT — elle
@@ -354,8 +336,7 @@ const Modal = ({
 
   const handleClose = useCallback(() => {
     onOpenChange?.(false);
-    onClose?.();
-  }, [onClose, onOpenChange]);
+  }, [onOpenChange]);
 
   /* LE VERROU DE DÉFILEMENT RESTAURE LA VALEUR PRÉCÉDENTE, il ne remet pas à
      zéro. Un hôte qui avait déjà posé son propre `overflow` sur `<body>` le
@@ -548,14 +529,13 @@ const Modal = ({
 
   const labelledBy = ariaLabelledBy ?? (title ? titleId : undefined);
   const describedBy = ariaDescribedBy ?? (description ? descriptionId : undefined);
-  const showHeader = Boolean(title || description || onClose || onOpenChange);
+  const showHeader = Boolean(title || description || onOpenChange);
 
   return createPortal(
     <ModalDepthContext.Provider value={depth}>
       <div
         ref={containerRef}
         className={clsx('opale-modal', styles.container)}
-        data-testid="modal-container"
         {...pageThemeAttributes(pageTheme)}
       >
         {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
@@ -566,7 +546,6 @@ const Modal = ({
           ne se déclenche pas ici, justement parce que l'élément est retiré de
           l'arbre d'accessibilité. */}
         <div
-          data-testid="modal-overlay"
           aria-hidden="true"
           className={clsx('opale-modal__backdrop', styles.overlay)}
           onClick={closeOnOverlay ? handleClose : undefined}
@@ -602,7 +581,7 @@ const Modal = ({
           {showHeader && (
             <div className={clsx('opale-modal__header', styles.header)}>
               {/* LE BLOC DE TITRE N'EXISTE QUE S'IL A QUELQUE CHOSE DEDANS.
-                `showHeader` est vrai dès qu'il y a un `onClose`, donc un
+                `showHeader` est vrai dès qu'il y a un `onOpenChange`, donc un
                 dialogue sans titre ni description — une visionneuse d'image,
                 par exemple — posait une boîte vide à côté de sa croix, et le
                 filet de séparation tirait une ligne pleine largeur sous un
@@ -626,7 +605,7 @@ const Modal = ({
                 </div>
               )}
 
-              {(onClose || onOpenChange) && (
+              {onOpenChange && (
                 <button
                   type="button"
                   className={clsx('opale-modal__close', styles.close)}

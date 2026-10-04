@@ -79,7 +79,7 @@ describe('SvgMap', () => {
         '-1',
       ]);
 
-      alpha.focus();
+      act(() => alpha.focus());
       fireEvent.keyDown(alpha, { key: 'ArrowRight' });
       expect(beta).toHaveFocus();
       expect(beta).toHaveAttribute('tabindex', '0');

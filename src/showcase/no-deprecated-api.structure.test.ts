@@ -4,15 +4,18 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 
+import { REMOVED_EXPORTS, REMOVED_PROPS } from '../opale/deprecations';
 import { loadPublicApi, readConfig } from '../test/public-api';
 
 /* =============================================================================
-   LA VITRINE N'ENSEIGNE PAS L'API DÉPRÉCIÉE.
+   LA VITRINE N'ENSEIGNE NI L'API DÉPRÉCIÉE, NI L'API RETIRÉE.
 
-   Depuis 2.6, les anciens noms (`OpaleUI`, `Opale.Background`, `onClose`,
-   `activeItemId`, `size="sm"`…) compilent encore et portent `@deprecated`. La
-   vitrine est la première chose qu'on recopie : elle ne doit plus les montrer,
-   ni dans son code, ni dans les extraits qu'elle affiche.
+   La 4.0.0 a retiré les anciens noms de la 2.x (`OpaleUI`, `Opale.Background`,
+   `onClose`, `activeItemId`…) ; d'autres (`size="sm"`…) restent dépréciés. La
+   vitrine est la première chose qu'on recopie : elle ne doit montrer ni les
+   uns ni les autres, ni dans son code, ni dans les extraits qu'elle affiche.
+   Un nom retiré ne compile plus dans le code : c'est dans les extraits, du
+   texte que personne ne compile, qu'il pourrait survivre.
 
    DEUX LECTURES, parce qu'il y a deux sortes de code.
    1. LE CODE DE LA VITRINE est lu par le vérificateur de TypeScript : tout
@@ -20,7 +23,8 @@ import { loadPublicApi, readConfig } from '../test/public-api';
       champ d'objet — est refusé, sans liste à tenir à jour.
    2. LES EXTRAITS AFFICHÉS sont des gabarits de texte. Ils sont analysés comme
       du TSX, sans types : une balise d'Opale y est rapprochée des props
-      dépréciées de son `XProps`, et un nom d'export déprécié y est refusé dès
+      dépréciées de son `XProps` ET des props retirées de `REMOVED_PROPS`, et
+      un nom d'export déprécié ou retiré (`REMOVED_EXPORTS`) y est refusé dès
       qu'il est importé, qualifié ou typé.
    Les valeurs héritées d'une taille (`sm`, `compact`…) ne sont pas des
    symboles : elles sont cherchées sur `size` et `headerSize`.
@@ -47,7 +51,19 @@ const program = ts.createProgram({ rootNames: [...showcaseFiles, FIXTURE, ...amb
 const checker = program.getTypeChecker();
 const api = loadPublicApi();
 
-const deprecatedExports = new Set(api.exportNames.filter((name) => api.isDeprecated(name)));
+const deprecatedExports = new Set([
+  ...api.exportNames.filter((name) => api.isDeprecated(name)),
+  ...REMOVED_EXPORTS.map((entry) => entry.name).filter((name) => !name.includes('.')),
+]);
+
+/* Les props retirées, par composant : `Modal` → `onClose`, `as`… L'appel
+   `showToast` n'est pas une balise ; son objet est lu à part. */
+const removedProps = new Map<string, Set<string>>();
+for (const { component, prop } of REMOVED_PROPS) {
+  removedProps.set(component, (removedProps.get(component) ?? new Set()).add(prop));
+}
+const isRemovedProp = (component: string, prop: string) =>
+  removedProps.get(component)?.has(prop) ?? false;
 
 function isOpaleSymbol(symbol: ts.Symbol): boolean {
   return (symbol.declarations ?? []).some((declaration) =>
@@ -143,7 +159,10 @@ function snippetFindings(text: string): string[] {
       for (const attribute of node.attributes.properties) {
         if (!ts.isJsxAttribute(attribute) || !ts.isIdentifier(attribute.name)) continue;
         const name = attribute.name.text;
-        if (props?.some((prop) => prop.name === name && prop.deprecated)) {
+        if (
+          isRemovedProp(tag, name) ||
+          props?.some((prop) => prop.name === name && prop.deprecated)
+        ) {
           findings.push(`<${tag} ${name}>`);
         }
         if (
@@ -164,6 +183,20 @@ function snippetFindings(text: string): string[] {
           ? node.expression.getText()
           : undefined;
     if (named && deprecatedExports.has(named)) findings.push(named);
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      removedProps.has(node.expression.text)
+    ) {
+      const callee = node.expression.text;
+      for (const argument of node.arguments) {
+        if (!ts.isObjectLiteralExpression(argument)) continue;
+        for (const property of argument.properties) {
+          const key = property.name && ts.isIdentifier(property.name) ? property.name.text : '';
+          if (isRemovedProp(callee, key)) findings.push(`${callee}({ ${key} })`);
+        }
+      }
+    }
     if (ts.isPropertyAccessExpression(node) && node.getText() === 'Opale.Background') {
       findings.push('Opale.Background');
     }
@@ -193,10 +226,11 @@ function findingsOf(file: string): string[] {
   return [...typedFindings(source), ...templateFindings(source)];
 }
 
-describe('l’API dépréciée dans la vitrine', () => {
+describe('l’API dépréciée ou retirée dans la vitrine', () => {
   it('balaie bien les sources de la vitrine', () => {
     expect(showcaseFiles.length).toBeGreaterThan(40);
     expect(deprecatedExports).toContain('OpaleUI');
+    expect(isRemovedProp('Sidebar', 'activeItemId')).toBe(true);
   });
 
   it(
@@ -205,20 +239,19 @@ describe('l’API dépréciée dans la vitrine', () => {
       const found = findingsOf(FIXTURE).map((finding) => finding.replace(/^\S+ /, ''));
       expect(found).toEqual(
         expect.arrayContaining([
-          'OpaleUI',
-          'Background',
-          'variant',
-          'onCancel',
-          'activeItemId',
-          'density',
-          'emptyMessage',
           'size="sm"',
           'size="spacious"',
           '(extrait) OpaleUI',
+          '(extrait) Opale.Background',
+          '(extrait) FieldProps',
           '(extrait) <ConfirmDialog onCancel>',
           '(extrait) <Modal size="lg">',
           '(extrait) <Modal onClose>',
           '(extrait) <Pagination page>',
+          '(extrait) <Sidebar activeItemId>',
+          '(extrait) <DataTable density>',
+          '(extrait) <DataTable emptyMessage>',
+          '(extrait) showToast({ variant })',
         ]),
       );
     },

@@ -141,7 +141,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       { label: 'Personnaliser', slug: 'personnaliser' },
       { label: 'Typographie', slug: 'typographie' },
       { label: 'Icônes', slug: 'icones' },
-      { label: 'Migrer vers la 3.0', slug: 'migrer-vers-3' },
+      { label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' },
     ],
   },
   {
@@ -391,10 +391,11 @@ export function hrefFor(slug: string): string {
   return `#/${slug}`;
 }
 
-/* Les adresses d'avant la renumérotation du 30/09 : un lien gardé vers
-   l'ancienne page de migration mène toujours à la bonne. */
+/* Les anciennes adresses de la page de migration : elle s'appelait « Migrer
+   vers la 3.0 » tant que les retraits étaient annoncés ; la 4.0.0 les a faits.
+   Un lien gardé (signet, note de version) mène toujours à la bonne page. */
 const SLUG_ALIASES: Readonly<Record<string, string>> = {
-  'migrer-vers-4': 'migrer-vers-3',
+  'migrer-vers-3': 'migrer-vers-4',
 };
 
 /** La page d'un fragment, ou `undefined` — la coquille décide du repli. */

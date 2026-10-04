@@ -18,6 +18,10 @@ import { installCommands } from '../installation';
 import { introductionPage } from '../introduction';
 import { HOME_COPY, HOME_FAMILIES, RUNTIME_DEPENDENCIES } from './home-copy';
 import { FAMILY_SLUGS } from './home-slides';
+import { allowActWarningInFile } from '../../../test/console-guard';
+
+/* La fin d'animation de `SplitHeading` arrive par une promesse, après le rendu synchrone. */
+allowActWarningInFile('SplitHeading');
 
 /* =============================================================================
    L'ACCUEIL DE LA 3.0 : CINQ BANDES, CONSTRUITES AVEC LES SEULS COMPOSANTS
@@ -225,7 +229,7 @@ describe('Accueil — installer', () => {
     expect(writeText).toHaveBeenCalledWith(command);
   });
 
-  it('mène au guide d’installation et à la migration 3.0', () => {
+  it('mène au guide d’installation et à la migration 4.0', () => {
     render(<DocShell pages={PAGES} />);
 
     const band = bands()[4] as HTMLElement;
@@ -234,7 +238,7 @@ describe('Accueil — installer', () => {
     expect(guide).toHaveClass('opale-button', 'opale-button--primary');
     expect(within(band).getByRole('link', { name: FR.install.migrate })).toHaveAttribute(
       'href',
-      hrefFor('migrer-vers-3'),
+      hrefFor('migrer-vers-4'),
     );
   });
 });

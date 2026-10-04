@@ -8,6 +8,10 @@ import {
   ScrollSectionDemo,
   SplitHeadingDemo,
 } from './catalog-preview-additions';
+import { allowActWarningInFile } from '../../test/console-guard';
+
+/* La fin d'animation de `SplitHeading` arrive par une promesse, après le rendu synchrone. */
+allowActWarningInFile('SplitHeading');
 
 /* La démo du carrousel passe ses diapositives en enfants directs : enveloppées
    dans un composant, elles se comptaient comme une seule, et la piste n'offrait

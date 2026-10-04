@@ -35,10 +35,6 @@ import {
   type DataTableColumn,
   type SvgMapRegion,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 
@@ -569,18 +565,11 @@ describe('DataTable locale', () => {
   });
 });
 
-/* (h) L'ANCIEN `emptyMessage` RESTE HONORÉ, ET `labels.empty` GAGNE. */
-describe('DataTable emptyMessage', () => {
-  it('affiche encore `emptyMessage` seul', () => {
-    render(<DataTable columns={NAME_COLUMN} emptyMessage="Rien ici." />);
-    expect(screen.getByText('Rien ici.')).toBeInTheDocument();
-  });
-
-  it('laisse gagner `labels.empty`', () => {
-    render(
-      <DataTable columns={NAME_COLUMN} emptyMessage="Rien ici." labels={{ empty: 'Vide.' }} />,
-    );
+/* (h) LE TEXTE D'UNE TABLE VIDE VIENT DE `labels.empty` (l'ancien
+   `emptyMessage` a été retiré en 4.0.0). */
+describe('DataTable labels.empty', () => {
+  it('affiche `labels.empty` quand la table est vide', () => {
+    render(<DataTable columns={NAME_COLUMN} labels={{ empty: 'Vide.' }} />);
     expect(screen.getByText('Vide.')).toBeInTheDocument();
-    expect(screen.queryByText('Rien ici.')).not.toBeInTheDocument();
   });
 });

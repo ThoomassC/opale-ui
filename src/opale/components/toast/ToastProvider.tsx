@@ -10,7 +10,6 @@ import {
 import clsx from 'clsx';
 import { createPortal } from 'react-dom';
 
-import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
 import { GLYPH_CLOSE } from '../icon/glyphs';
 import { IconPaths } from '../icon/IconPaths';
@@ -86,19 +85,12 @@ import styles from './style/Toast.module.css';
    gardé au mot près, parce que la vitrine le cite.
    ========================================================================== */
 
-/* `warning` A ÉTÉ AJOUTÉ APRÈS COUP, ET SON ABSENCE ÉTAIT UN TROU. La file
-   savait dire « c'est fait », « c'est raté » et « pour information » ; elle
-   n'avait rien pour « c'est passé, mais regardez ». Faute de ton, ces
-   messages-là partaient en `error` — ce qui interrompt pour rien — ou en
-   `default` — ce qui les rend invisibles. */
-type ToastVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
-
 /** Les tons qui doivent INTERROMPRE la lecture plutôt que l'attendre. */
 const ASSERTIVE_TONES = new Set<OpaleTone>(['error', 'warning']);
 
-/* Le nom canonique gagne ; l'ancien `variant` écrit `default` pour `neutral`. */
-const resolveTone = ({ tone, variant }: ToastDefinition): OpaleTone =>
-  tone ?? (variant === 'default' ? 'neutral' : variant) ?? 'neutral';
+/* Sans ton, un message est neutre. L'ancien `variant` (et son `default`) a
+   été retiré en 4.0.0. */
+const resolveTone = ({ tone }: ToastDefinition): OpaleTone => tone ?? 'neutral';
 
 /** L'entrée en scène d'une notification. */
 export type ToastAnimation = 'slide-from-right' | 'slide-from-left' | 'slide-from-bottom' | 'scale';
@@ -124,8 +116,6 @@ export type ToastDefinition = {
   description?: ReactNode;
   /** Le ton : couleur de la carte et urgence de l'annonce. Défaut : `neutral`. */
   tone?: OpaleTone;
-  /** @deprecated Depuis 2.6 — utilisez `tone` (`default` → `neutral`). */
-  variant?: ToastVariant;
   /**
    * En millisecondes ; `Infinity` désarme la fermeture. Sans durée ici ni sur
    * le fournisseur, `error` et `warning` restent jusqu'à leur fermeture.
@@ -386,7 +376,6 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
         animationClass[animation],
         dismissed && styles.leaving,
       )}
-      data-testid="toast"
       /* Les quatre gestionnaires sont le dispositif WCAG 2.2.1, et il en faut
          quatre : la souris et le doigt passent par le pointeur, le clavier par
          le focus. N'en poser que deux laisserait dehors exactement le public
@@ -472,7 +461,6 @@ export const ToastProvider = ({
 
   const showToast = useCallback(
     (toast: ToastDefinition) => {
-      warnDeprecatedProps('showToast', { variant: toast.variant });
       const id = toast.id ?? generateToastId();
 
       const tone = resolveTone(toast);
@@ -618,7 +606,6 @@ export const ToastProvider = ({
           <div
             ref={setPortalRoot}
             className={clsx('opale-toast-provider', styles.root)}
-            data-testid="toast-portal"
             /* Une modale ouverte rend le reste de la page inerte ; les toasts
                lancés depuis elle doivent rester annoncés et refermables. */
             {...{ [MODAL_EXEMPT_ATTRIBUTE]: '' }}

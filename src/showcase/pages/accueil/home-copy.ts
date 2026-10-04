@@ -250,7 +250,7 @@ const FR: HomeCopy = {
     copy: 'Copier la commande',
     clipboardLabels: {},
     guide: 'Lire le guide d’installation',
-    migrate: 'Migrer vers la 3.0',
+    migrate: 'Migrer vers la 4.0',
   },
 };
 
@@ -395,7 +395,7 @@ const EN: HomeCopy = {
       failed: 'Copy failed',
     },
     guide: 'Read the installation guide',
-    migrate: 'Migrate to 3.0',
+    migrate: 'Migrate to 4.0',
   },
 };
 
@@ -542,7 +542,7 @@ const ES: HomeCopy = {
       failed: 'Error al copiar',
     },
     guide: 'Leer la guía de instalación',
-    migrate: 'Migrar a la 3.0',
+    migrate: 'Migrar a la 4.0',
   },
 };
 
