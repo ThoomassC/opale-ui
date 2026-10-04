@@ -65,22 +65,25 @@ describe('les extraits copiables du catalogue', () => {
   /* L'extrait importe chaque composant par son nom : il ne reste aucun
      `Opale.X`, et chaque nom utilisé figure dans l'import. */
   /* SvgMap a sa page propre, sans le gabarit commun ni son extrait généré. */
-  it.each(opaleComponentPages.filter((page) => page.label !== 'SvgMap'))('$label importe ses composants par leur nom', async (page) => {
-    const { label } = page;
-    const user = userEvent.setup();
-    render(<>{page.render()}</>);
-    await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
-    const code =
-      screen.getByRole('group', { name: `Exemple ${label}, défilement horizontal` }).textContent ??
-      '';
+  it.each(opaleComponentPages.filter((page) => page.label !== 'SvgMap'))(
+    '$label importe ses composants par leur nom',
+    async (page) => {
+      const { label } = page;
+      const user = userEvent.setup();
+      render(<>{page.render()}</>);
+      await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
+      const code =
+        screen.getByRole('group', { name: `Exemple ${label}, défilement horizontal` })
+          .textContent ?? '';
 
-    expect(code).not.toMatch(/\bOpale\./);
-    const imported = /^import \{ ([^}]+) \} from '@thomascaron\/opale-ui';/.exec(code)?.[1];
-    expect(imported, 'ligne d’import absente').toBeDefined();
-    for (const name of imported?.split(', ') ?? []) {
-      expect(code.split('\n').slice(1).join('\n')).toMatch(new RegExp(`\\b${name}\\b`));
-    }
-  });
+      expect(code).not.toMatch(/\bOpale\./);
+      const imported = /^import \{ ([^}]+) \} from '@thomascaron\/opale-ui';/.exec(code)?.[1];
+      expect(imported, 'ligne d’import absente').toBeDefined();
+      for (const name of imported?.split(', ') ?? []) {
+        expect(code.split('\n').slice(1).join('\n')).toMatch(new RegExp(`\\b${name}\\b`));
+      }
+    },
+  );
 
   it('importe aussi readCookieConsent quand l’extrait l’appelle', async () => {
     const user = userEvent.setup();
@@ -395,7 +398,7 @@ describe('le commutateur de matière', () => {
     const { container } = render(<>{page.render()}</>);
     /* TOUS LES COMMUTATEURS, ET NON LE SEUL. Une page propre peut en porter
        plusieurs — une par démonstration, comme celle de SvgMap. */
-    const toggles = within(container).queryAllByRole('checkbox', {
+    const toggles = within(container).queryAllByRole('switch', {
       name: new RegExp(`^Verre liquide pour `),
     });
     const toggle = toggles[0] ?? null;
@@ -445,7 +448,7 @@ describe('API et exemples du catalogue', () => {
     const page = opaleComponentPages.find((entry) => entry.label === 'FileCard');
     if (!page) throw new Error('FileCard manquant');
     render(<>{page.render()}</>);
-    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour FileCard' }));
+    await user.click(screen.getByRole('switch', { name: 'Verre liquide pour FileCard' }));
     await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
     const code =
       screen.getByRole('group', { name: 'Exemple FileCard, défilement horizontal' }).textContent ??
@@ -460,7 +463,7 @@ describe('API et exemples du catalogue', () => {
     const page = opaleComponentPages.find((entry) => entry.label === 'CardGrid');
     if (!page) throw new Error('CardGrid manquant');
     render(<>{page.render()}</>);
-    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour CardGrid' }));
+    await user.click(screen.getByRole('switch', { name: 'Verre liquide pour CardGrid' }));
     await user.click(screen.getByRole('button', { name: 'Afficher le code' }));
     const code =
       screen.getByRole('group', { name: 'Exemple CardGrid, défilement horizontal' }).textContent ??

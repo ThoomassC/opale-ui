@@ -95,6 +95,12 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop('label', 'ReactNode', 'Nom visible de l’interrupteur.'),
       prop('checked', 'boolean', 'État contrôlé par l’application.'),
       prop(
+        'role',
+        'AriaRole',
+        'Rôle annoncé ; `checkbox` garde l’annonce d’une case à cocher.',
+        "'switch'",
+      ),
+      prop(
         'size',
         'OpaleSize | number',
         'Taille de l’interrupteur et du texte ; un nombre garde son sens natif.',

@@ -125,7 +125,7 @@ describe('aria-describedby fusionné', () => {
         <Toggle label="Actif" error="Requis" aria-describedby="hint" />
       </>,
     );
-    expect(screen.getByRole('checkbox', { name: 'Actif' })).toHaveAccessibleDescription(
+    expect(screen.getByRole('switch', { name: 'Actif' })).toHaveAccessibleDescription(
       'Huit caractères au moins Requis',
     );
   });

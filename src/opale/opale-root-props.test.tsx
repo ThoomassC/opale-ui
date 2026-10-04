@@ -690,7 +690,7 @@ describe('les refs des champs', () => {
     );
 
     await user.click(screen.getByRole('checkbox', { name: 'Accepter' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Actif' }));
+    await user.click(screen.getByRole('switch', { name: 'Actif' }));
 
     expect(checkbox.current?.checked).toBe(true);
     expect(toggle.current?.checked).toBe(true);

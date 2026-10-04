@@ -228,7 +228,7 @@ describe('Champs en erreur : error, aria-invalid et description', () => {
   it('Toggle décrit son erreur, sans toucher au nom', () => {
     render(<Toggle label="Notifications" error="Activation impossible" />);
 
-    const toggle = screen.getByRole('checkbox', { name: 'Notifications' });
+    const toggle = screen.getByRole('switch', { name: 'Notifications' });
     expect(toggle).toHaveAttribute('aria-invalid', 'true');
     expect(toggle).toHaveAccessibleDescription('Activation impossible');
     expect(screen.getByRole('alert')).toHaveTextContent('Activation impossible');
@@ -255,8 +255,15 @@ describe('Champs en erreur : error, aria-invalid et description', () => {
     expect(toggle).not.toBeChecked();
   });
 
-  it('Toggle reste une case à cocher sans `role`, comme en 2.x', () => {
+  it('Toggle s’annonce en interrupteur sans `role`, depuis la 4.0', () => {
     render(<Toggle label="Notifications" />);
+
+    expect(screen.getByRole('switch', { name: 'Notifications' })).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('Toggle garde l’annonce d’une case à cocher avec un `role="checkbox"` explicite', () => {
+    render(<Toggle role="checkbox" label="Notifications" />);
 
     expect(screen.getByRole('checkbox', { name: 'Notifications' })).toBeInTheDocument();
     expect(screen.queryByRole('switch')).not.toBeInTheDocument();
@@ -331,7 +338,11 @@ describe('Annonces : une fois, et avec leur contexte', () => {
 
   it('Slider suit getValueText à chaque déplacement, même non contrôlé', () => {
     render(
-      <Slider label="Luminosité" defaultValue={20} getValueText={(value) => `${value} pour cent`} />,
+      <Slider
+        label="Luminosité"
+        defaultValue={20}
+        getValueText={(value) => `${value} pour cent`}
+      />,
     );
     const slider = screen.getByRole('slider', { name: 'Luminosité' });
     expect(slider).toHaveAttribute('aria-valuetext', '20 pour cent');

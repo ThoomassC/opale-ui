@@ -746,12 +746,10 @@ export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'
   /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
   /**
-   * Le rôle exposé à la technologie d'assistance. `"switch"` est recommandé :
-   * l'interrupteur s'annonce alors « activé / désactivé » plutôt que
-   * « coché / non coché », sans changer son état natif (`checked`). Absent,
-   * l'élément reste une case à cocher, comme en 2.x.
-   *
-   * La 3.0.0 posera `role="switch"` par défaut.
+   * Le rôle exposé à la technologie d'assistance. Défaut : `"switch"` depuis
+   * la 4.0.0 — l'interrupteur s'annonce « activé / désactivé » plutôt que
+   * « coché / non coché », sans changer son état natif (`checked`). Un
+   * `role="checkbox"` explicite garde l'annonce d'une case, celle de la 2.x.
    */
   role?: AriaRole;
 }
@@ -765,6 +763,7 @@ export function Toggle({
   size = 'medium',
   onChange,
   ref,
+  role = 'switch',
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
   ...props
@@ -790,6 +789,7 @@ export function Toggle({
         className={clsx('opale-toggle', controlClassName)}
         onChange={onChange}
         {...props}
+        role={role}
         aria-invalid={error ? true : ariaInvalid}
         aria-describedby={mergeIds(ariaDescribedBy, error ? errorId : undefined)}
         ref={inputRefs}

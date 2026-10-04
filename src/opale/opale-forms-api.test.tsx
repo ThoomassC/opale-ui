@@ -95,12 +95,10 @@ describe('size sur les champs', () => {
       </>,
     );
 
-    expect(container.querySelector('.opale-checkbox-row')).toHaveClass(
-      'opale-checkbox-row--small',
-    );
+    expect(container.querySelector('.opale-checkbox-row')).toHaveClass('opale-checkbox-row--small');
     expect(container.querySelector('.opale-toggle-row')).toHaveClass('opale-toggle-row--large');
     expect(screen.getByRole('checkbox', { name: 'Accepter' })).not.toHaveAttribute('size');
-    expect(screen.getByRole('checkbox', { name: 'Wi-Fi' })).not.toHaveAttribute('size');
+    expect(screen.getByRole('switch', { name: 'Wi-Fi' })).not.toHaveAttribute('size');
   });
 
   it('devrait poser la taille sur le groupe segmenté', () => {
@@ -157,16 +155,16 @@ describe('controlClassName', () => {
       </>,
     );
 
-    expect(screen.getByRole('combobox', { name: 'Pays' })).toHaveClass('opale-select', 'ctl-select');
+    expect(screen.getByRole('combobox', { name: 'Pays' })).toHaveClass(
+      'opale-select',
+      'ctl-select',
+    );
     expect(screen.getByRole('slider', { name: 'Volume' })).toHaveClass('opale-range', 'ctl-range');
     expect(screen.getByRole('checkbox', { name: 'Accepter' })).toHaveClass(
       'opale-checkbox',
       'ctl-check',
     );
-    expect(screen.getByRole('checkbox', { name: 'Wi-Fi' })).toHaveClass(
-      'opale-toggle',
-      'ctl-toggle',
-    );
+    expect(screen.getByRole('switch', { name: 'Wi-Fi' })).toHaveClass('opale-toggle', 'ctl-toggle');
   });
 
   it('devrait habiller chaque bouton du groupe segmenté', () => {
@@ -193,12 +191,7 @@ describe('Select — onValueChange, placeholder, option désactivée', () => {
     const onValueChange = vi.fn((value: string) => calls.push(`value:${value}`));
     const onChange = vi.fn(() => calls.push('change'));
     render(
-      <Select
-        label="Pays"
-        options={COUNTRIES}
-        onValueChange={onValueChange}
-        onChange={onChange}
-      />,
+      <Select label="Pays" options={COUNTRIES} onValueChange={onValueChange} onChange={onChange} />,
     );
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Pays' }), { target: { value: 'be' } });
