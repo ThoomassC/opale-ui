@@ -14,8 +14,10 @@ import docDaSource from './doc-da.css?raw';
    elle seule. La correspondance est faite sur la classe ENTIÈRE —
    `.tc-doc-install` est un préfixe de `.tc-doc-install-status`, bien vivant.
 
-   `.tc-doc-main--home` reste posé par `doc-shell.tsx` sur la page de secours ;
-   seule la forme `:not(.tc-doc-main--home)` des pages internes le cite encore.
+   `.tc-doc-main--home` n'est plus posé par `doc-shell.tsx` : la page de secours
+   prend l'habillage des pages internes. Seule la forme
+   `:not(.tc-doc-main--home)` le cite encore, toujours vraie, gardée telle quelle
+   pour ne pas changer la spécificité de ces règles.
    ========================================================================== */
 
 const SHEETS = { 'doc.css': docSource, 'doc-v3.css': docV3Source, 'doc-da.css': docDaSource };

@@ -239,6 +239,20 @@ describe('le sommaire repliable', () => {
     expect(toggle()).toHaveAttribute('aria-expanded', 'false');
   });
 
+  /* Toucher le lien de la page déjà affichée ne change pas l'adresse : sans
+     ce repli, le sommaire resterait ouvert par-dessus la page. */
+  it('devrait replier le sommaire quand on choisit la page déjà affichée', () => {
+    const { container } = renderNav('composants/opale-button');
+    fireEvent.click(toggle());
+
+    const nav = screen.getByRole('navigation', { name: 'Sommaire' });
+    const current = within(nav).getByRole('link', { name: 'Button' });
+    expect(current).toHaveAttribute('aria-current', 'page');
+    fireEvent.click(current);
+
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+  });
+
   it('devrait se replier à Échap et rendre le focus à son bouton', () => {
     const { container } = renderNav();
 

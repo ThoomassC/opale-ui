@@ -377,7 +377,7 @@ export function DocShell({ pages }: DocShellProps) {
 
         <div className="tc-doc-column">
           <main
-            className={`tc-doc-main${fullBleed ? ' tc-doc-main--full-bleed' : ''}${!fullBleed && page.slug === HOME_SLUG ? ' tc-doc-main--home' : ''}${page.group === 'composants' ? ' tc-doc-main--components' : ''}`}
+            className={`tc-doc-main${fullBleed ? ' tc-doc-main--full-bleed' : ''}${page.group === 'composants' ? ' tc-doc-main--components' : ''}`}
             id="contenu"
           >
             {/* La page pleine largeur rend son propre `<h1>`, avec

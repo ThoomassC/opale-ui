@@ -496,6 +496,9 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
                             href={hrefFor(page.slug)}
                             aria-current={page.slug === currentSlug ? 'page' : undefined}
                             title={localizedLabel}
+                            /* La page déjà affichée ne change pas l'adresse :
+                               le clic replie donc le sommaire lui-même. */
+                            onClick={() => setMenuOpen(false)}
                           >
                             {localizedLabel}
                           </a>
