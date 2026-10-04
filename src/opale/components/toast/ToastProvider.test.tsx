@@ -4,10 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider, type ToastDefinition, type ToastProviderProps } from './ToastProvider';
 import { useToast } from './toast-context';
 import toastClasses from './style/Toast.module.css';
-import { expectOnlyDeprecationWarnings } from '../../../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    CE QUE CETTE SUITE TIENT, ET POURQUOI ELLE N'EXISTAIT PAS.

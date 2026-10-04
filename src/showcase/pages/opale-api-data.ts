@@ -250,7 +250,7 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       prop(
         'labels',
         'Partial<DataTableLabels>',
-        'Chargement, table vide, compte et annonce du tri ; remplace emptyMessage.',
+        'Chargement, table vide, compte et annonce du tri.',
         "{ empty: 'Aucune donnée à afficher.', … }",
       ),
       prop('locale', 'string | readonly string[]', 'Langue(s) du tri alphabétique.', "'fr'"),

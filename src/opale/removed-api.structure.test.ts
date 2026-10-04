@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { loadPublicApi } from '../test/public-api';
-import {
-  DEPRECATED_EXPORTS,
-  DEPRECATED_PROPS,
-  REMOVAL_VERSION,
-  REMOVED_EXPORTS,
-  REMOVED_PROPS,
-} from './deprecations';
+import { REMOVAL_VERSION, REMOVED_EXPORTS, REMOVED_PROPS } from './deprecations';
 import * as root from '.';
 
 /* =============================================================================
@@ -18,9 +12,6 @@ import * as root from '.';
    prop ne doit plus exister sur le type public de son composant, l'export ne
    doit plus sortir de `src/opale/index.ts`. Un nom qui revient — par un
    `Omit` oublié, un réexport, un alias — fait rougir la suite.
-
-   Tant qu'un nom est encore dans les tables vivantes `DEPRECATED_*`, il n'est
-   pas encore retiré : le test le saute.
    ========================================================================== */
 
 const TIMEOUT = 60_000;
@@ -28,16 +19,6 @@ const TIMEOUT = 60_000;
 /** Le type public qui porte les props d'un composant (ou d'un appel). */
 const PROPS_TYPE: Readonly<Record<string, string>> = { showToast: 'ToastDefinition' };
 const propsTypeOf = (component: string) => PROPS_TYPE[component] ?? `${component}Props`;
-
-const stillDeprecatedProps = new Set<string>(
-  DEPRECATED_PROPS.map((entry) => `${entry.component}.${entry.prop}`),
-);
-const stillDeprecatedExports = new Set<string>(DEPRECATED_EXPORTS.map((entry) => entry.name));
-
-const removedProps = REMOVED_PROPS.filter(
-  (entry) => !stillDeprecatedProps.has(`${entry.component}.${entry.prop}`),
-);
-const removedExports = REMOVED_EXPORTS.filter((entry) => !stillDeprecatedExports.has(entry.name));
 
 describe(`les noms retirés en ${REMOVAL_VERSION}`, () => {
   it('tient une liste complète et sans doublon', () => {
@@ -53,7 +34,7 @@ describe(`les noms retirés en ${REMOVAL_VERSION}`, () => {
     'ne laisse aucune prop retirée sur le type public de son composant',
     () => {
       const api = loadPublicApi();
-      const survivors = removedProps.flatMap((entry) => {
+      const survivors = REMOVED_PROPS.flatMap((entry) => {
         const props = api.propsOfType(propsTypeOf(entry.component));
         if (!props) return [`${propsTypeOf(entry.component)} n’est plus exporté`];
         return props.some((prop) => prop.name === entry.prop)
@@ -69,7 +50,7 @@ describe(`les noms retirés en ${REMOVAL_VERSION}`, () => {
     'ne publie plus aucun export retiré',
     () => {
       const api = loadPublicApi();
-      const survivors = removedExports.filter((entry) => {
+      const survivors = REMOVED_EXPORTS.filter((entry) => {
         const [owner, member] = entry.name.split('.');
         if (!member) return api.exportNames.includes(owner);
         return member in (root as unknown as Record<string, object>)[owner];

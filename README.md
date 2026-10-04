@@ -163,9 +163,9 @@ Chaque composant accepte aussi `ref`, `className`, `style` et les attributs nati
 élément ; les champs de formulaire les transmettent à leur contrôle natif, ce qui les rend
 utilisables avec react-hook-form.
 
-Les anciens noms (`onChange` à valeur, `page`, `values`, `activeItemId`, `onClose`,
-`onCancel`, `severity`, `density`, `OpaleUI`…) restent acceptés et fonctionnent comme en 2.5 ;
-l'éditeur les barre et indique le nouveau nom.
+Les anciens noms de la 2.x (`onChange` à valeur, `page`, `values`, `activeItemId`, `onClose`,
+`onCancel`, `severity`, `density`, `OpaleUI`…) ont été retirés en 4.0.0 : ils ne compilent
+plus. La page « Migrer vers la 4.0 » de la vitrine donne le remplaçant de chacun.
 
 ## PageScaffold — une page prête à adapter
 

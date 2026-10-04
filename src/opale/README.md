@@ -115,19 +115,17 @@ en fait naître une : ouverture de `Modal`, arrivée d'un toast, clic dans
 `SearchBar`. Le reste est interne au matériau : `triggerAnimation`, l'onde d'une
 surface (`enableLiquidAnimation` de `Topbar`, `Sidebar`, `Tabs`), `as` et
 `pressFeedback` de `Modal` et `Tabs`, et l'ancien `enableClickAnimation` de
-`SearchBar`. Ces props gardent leur effet et portent `@deprecated` ; en version
-pleine, elles n'arrivent plus dans le DOM.
+`SearchBar` ont quitté la surface publique en 4.0.0.
 
-**Chaque nom déprécié le dit à l'exécution, en développement.** Depuis 2.9, une
-prop dépréciée écrit une fois par page, dans la console, un avertissement du
-type « [Opale] Modal : `onClose` est déprécié depuis 2.6 et sera retiré en
-3.0.0 — utilisez `onOpenChange`. ». Le garde lit `process.env.NODE_ENV`, que le
-bundler de l'application remplace : le build de production n'avertit pas. Les
-alias de type et les exports de valeur (`OpaleUI`, `Opale.Background`…) ne
-peuvent pas avertir sans changer d'identité ; ils sont seulement listés. La
-liste complète vit dans `deprecations.ts`, tenue contre chaque `@deprecated`
-par `deprecations.structure.test.ts`, et la vitrine en tire la page « Migrer
-vers la 3.0 » (`#/migrer-vers-3`).
+**Les noms dépréciés de la 2.x ont été retirés en 4.0.0.** Ils ne compilent
+plus : c'est le compilateur, et non plus la console, qui les signale. Leur
+liste figée (`REMOVED_PROPS`, `REMOVED_EXPORTS`) vit dans `deprecations.ts` ;
+`removed-api.structure.test.ts` vérifie qu'aucun ne revient sur la surface
+publique, et la vitrine en tire la page « Migrer vers la 4.0 »
+(`#/migrer-vers-4`, l'ancienne adresse `#/migrer-vers-3` y mène encore). Le
+même module garde les deux avertissements de développement qui restent — le
+contrôle sans nom accessible et le défaut de démonstration —, qui lisent
+`process.env.NODE_ENV` : le build de production n'avertit pas.
 
 ## Les classes stables
 

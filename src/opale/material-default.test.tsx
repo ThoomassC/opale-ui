@@ -22,10 +22,6 @@ import { OPALE_CATALOG_SOURCE as opaleSource } from '../test/opale-source';
 import { useSvgMapViewport } from './components/svg-map';
 import { CATALOG } from './catalog';
 import { Opale } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 

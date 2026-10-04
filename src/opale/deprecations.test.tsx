@@ -1,14 +1,8 @@
 import { cleanup, render } from '@testing-library/react';
-import { useEffect, type ReactElement } from 'react';
+import { useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 
-import {
-  DEPRECATED_PROPS,
-  deprecationMessage,
-  resetDeprecationWarnings,
-  warnDeprecated,
-  type DeprecatedComponent,
-} from './deprecations';
+import { resetDeprecationWarnings } from './deprecations';
 import {
   Modal,
   SearchBar,
@@ -34,18 +28,15 @@ import {
   SidePanel,
   Toast,
   Toggle,
-  type DataTableProps,
-  type FileCardProps,
-  type LightboxProps,
 } from './opale';
 
 /* =============================================================================
-   L'AVERTISSEMENT DE DÉVELOPPEMENT DES NOMS DÉPRÉCIÉS.
+   LES AVERTISSEMENTS DE DÉVELOPPEMENT QUI RESTENT.
 
-   Une fois par composant + prop, en développement seulement, et jamais pour
-   qui n'emploie que les nouveaux noms. La dernière partie rend CHAQUE entrée
-   de la table sur son composant : une prop listée mais pas branchée rougit
-   ici, en la nommant.
+   Les noms dépréciés de la 2.x ont été retirés en 4.0.0 : plus rien ne les
+   signale dans la console, le compilateur les refuse. Restent le contrôle
+   sans nom accessible, ici sur `Toggle`, et la promesse qu'une application
+   écrite avec les noms actuels n'écrit RIEN dans la console.
    ========================================================================== */
 
 let warn: MockInstance<typeof console.warn>;
@@ -62,65 +53,6 @@ afterEach(() => {
 });
 
 const messages = () => warn.mock.calls.map(([message]) => String(message));
-
-describe('warnDeprecated', () => {
-  it('écrit le message en français, avec la version et le remplaçant', () => {
-    warnDeprecated('Lightbox', 'onClose');
-
-    expect(messages()).toEqual([
-      '[Opale] Lightbox : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `onOpenChange`.',
-    ]);
-  });
-
-  it('précise la correspondance des valeurs quand il y en a une', () => {
-    warnDeprecated('DataTable', 'density');
-
-    expect(messages()).toEqual([
-      '[Opale] DataTable : `density` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `size` (`compact` → `small`).',
-    ]);
-  });
-
-  it('n’avertit qu’une fois par composant et par prop', () => {
-    warnDeprecated('Lightbox', 'onClose');
-    warnDeprecated('Lightbox', 'onClose');
-    warnDeprecated('DataTable', 'density');
-
-    expect(warn).toHaveBeenCalledTimes(2);
-  });
-
-  it('se tait en production', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-
-    warnDeprecated('Lightbox', 'onClose');
-    render(<Lightbox src="a.png" alt="A" onClose={() => undefined} />);
-
-    expect(warn).not.toHaveBeenCalled();
-  });
-
-  it('ne consomme pas l’avertissement en production', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    warnDeprecated('Lightbox', 'onClose');
-    vi.unstubAllEnvs();
-
-    warnDeprecated('Lightbox', 'onClose');
-
-    expect(warn).toHaveBeenCalledTimes(1);
-  });
-
-  it('avertit une seule fois pour une liste de composants rendus', () => {
-    render(
-      <>
-        <Lightbox src="a.png" alt="A" onClose={() => undefined} />
-        <Lightbox src="b.png" alt="B" onClose={() => undefined} />
-        <Lightbox src="c.png" alt="C" onClose={() => undefined} />
-      </>,
-    );
-
-    expect(messages()).toEqual([
-      '[Opale] Lightbox : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `onOpenChange`.',
-    ]);
-  });
-});
 
 describe('les nouveaux noms', () => {
   it('ne déclenchent aucun avertissement', () => {
@@ -160,55 +92,6 @@ describe('les nouveaux noms', () => {
 
     expect(messages()).toEqual([]);
   });
-});
-
-/* ---- Chaque entrée de la table, rendue sur son composant. */
-
-type Props = Record<string, unknown>;
-
-const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
-  DataTable: (p) => <DataTable {...(p as Partial<DataTableProps>)} />,
-  FileCard: (p) => <FileCard name="a.pdf" {...(p as Partial<FileCardProps>)} />,
-  Lightbox: (p) => <Lightbox src="a.png" alt="A" {...(p as Partial<LightboxProps>)} />,
-};
-
-/** Une valeur plausible pour chaque ancien nom : seule sa présence compte. */
-const SAMPLES: Readonly<Record<string, unknown>> = {
-  onClose: () => undefined,
-  onCancel: () => undefined,
-  onChange: () => undefined,
-  onSelect: () => undefined,
-  onToggle: () => undefined,
-  onSelectItem: () => undefined,
-  triggerAnimation: false,
-  pressFeedback: false,
-  enableLiquidAnimation: false,
-  enableClickAnimation: false,
-  as: 'section',
-  activeItemId: 'a',
-  defaultActiveItemId: 'a',
-  activeItem: 'a',
-  activeId: 'a',
-  variant: 'success',
-  emptyMessage: 'Rien.',
-  density: 'compact',
-  severity: 'warning',
-  values: ['a'],
-  page: 1,
-  size: '2 Mo',
-};
-
-describe('chaque prop dépréciée de la table', () => {
-  it.each(DEPRECATED_PROPS.map((entry) => [`${entry.component}.${entry.prop}`, entry] as const))(
-    '%s avertit quand elle est fournie',
-    (_, entry) => {
-      expect(SAMPLES, `aucune valeur d’essai pour \`${entry.prop}\``).toHaveProperty(entry.prop);
-
-      render(RENDERERS[entry.component]({ [entry.prop]: SAMPLES[entry.prop] }));
-
-      expect(messages()).toContain(deprecationMessage(entry));
-    },
-  );
 });
 
 describe('Toggle sans nom accessible', () => {

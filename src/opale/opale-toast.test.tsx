@@ -11,10 +11,6 @@ import type { Theme } from '../contract/stylesheet';
 import { declarations } from '../test/css-rules';
 import { Opale } from './index';
 import { CatalogPreview } from '../showcase/pages/catalog-preview';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    `Opale.Toast` — LE TON ET LA PLACE.

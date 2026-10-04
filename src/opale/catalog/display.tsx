@@ -24,7 +24,7 @@ import {
 } from '../components/icon/glyphs';
 import { IconPaths } from '../components/icon/IconPaths';
 import type { OpaleSize, OpaleTone } from '../shared';
-import { warnDeprecatedProps, warnImplicitDefault } from '../deprecations';
+import { warnImplicitDefault } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { navigateOnClick, type NavigateHandler } from '../shared/navigate';
 import { useControllableState } from '../shared/use-controllable-state';
@@ -265,7 +265,7 @@ export interface IconProps extends Omit<ComponentPropsWithRef<'span'>, 'children
    *
    * DÉFAUT SURPRENANT : absent, l'icône dessine `sparkle`, une étincelle de
    * démonstration, et un avertissement de développement le signale. Passez
-   * toujours `name` ; ce défaut disparaîtra en 3.0.0.
+   * toujours `name`.
    *
    * LES DEUX FORMES COEXISTENT À DESSEIN. Le composant ne savait rendre qu'un
    * CARACTÈRE, et des appels existants passent « ✦ » ou « ⌘ » ; les casser
@@ -578,7 +578,7 @@ export interface DonutProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   /**
    * Le pourcentage dessiné. DÉFAUT SURPRENANT : absent, l'anneau affiche
    * 60 %, une valeur de démonstration, et un avertissement de développement le
-   * signale. Passez toujours `value` ; ce défaut disparaîtra en 3.0.0.
+   * signale. Passez toujours `value`.
    */
   value?: number;
   /** Le texte affiché au centre et lu comme nom. Défaut : la valeur suivie de `%`. */
@@ -746,8 +746,6 @@ export interface DataTableProps<T = DataTableRow> extends Omit<
    * `false`.
    */
   loading?: boolean;
-  /** @deprecated Depuis 2.6 — utilisez `labels.empty`. */
-  emptyMessage?: string;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<DataTableLabels>;
   /**
@@ -759,8 +757,6 @@ export interface DataTableProps<T = DataTableRow> extends Omit<
   liquidGlass?: boolean;
   /** L'espacement des lignes : `small` resserre sans changer la structure. Défaut : `medium`. */
   size?: DataTableSize;
-  /** @deprecated Depuis 2.6 — utilisez `size` (`compact` → `small`). */
-  density?: 'comfortable' | 'compact';
   /** Ajoute une alternance discrète aux lignes de données. */
   striped?: boolean;
   /** Affiche le nombre de lignes visibles sous la table. */
@@ -904,31 +900,23 @@ export function DataTable<T = DataTableRow>({
   defaultSelectedIds,
   onSelectedIdsChange,
   loading = false,
-  emptyMessage,
   labels: labelsProp,
   locale = 'fr',
   liquidGlass = false,
   size,
-  density,
   striped = false,
   showRowCount = false,
   className,
   ...rest
 }: DataTableProps<T>) {
-  warnDeprecatedProps('DataTable', { emptyMessage, density });
-  /* `size` gagne ; l'ancien `density` ne sert que s'il est seul. */
-  const compact = (size ?? (density === 'compact' ? 'small' : 'medium')) === 'small';
+  const compact = size === 'small';
   const [sort, setSort] = useControllableState<DataTableSort | null>(sortProp, defaultSort ?? null);
   /* L'ANNONCE DÉCRIT LE TRI RÉSOLU, PAS LE TRI DEMANDÉ. En mode contrôlé,
      l'appelant peut refuser un clic ou trier d'ailleurs : l'annonce se calcule
      donc au rendu depuis le tri effectif. Elle reste muette tant qu'aucun
      en-tête n'a été actionné, pour ne pas lire le tri initial au montage. */
   const [hasSorted, setHasSorted] = useState(false);
-  /* `labels.empty` gagne ; l'ancien `emptyMessage` ne sert que s'il est seul. */
-  const labels = resolveLabels(
-    resolveLabels(DEFAULT_DATA_TABLE_LABELS, { empty: emptyMessage }),
-    labelsProp,
-  );
+  const labels = resolveLabels(DEFAULT_DATA_TABLE_LABELS, labelsProp);
   /* Le collateur ne se recrée que si la langue change : la clé est une
      chaîne, donc une liste littérale recréée à chaque rendu ne compte pas. */
   const localeKey = typeof locale === 'string' ? locale : locale.join(',');

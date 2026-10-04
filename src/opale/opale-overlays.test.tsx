@@ -2,10 +2,6 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CommandPalette, ConfirmDialog, CookieBanner, Lightbox, SidePanel, Toast } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    OUVRIR ET FERMER : `open` + `onOpenChange`.
@@ -96,23 +92,6 @@ describe('Lightbox', () => {
     }
 
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <Lightbox
-        open
-        src="/photo.jpg"
-        alt="Le port"
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    escape();
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 });
 

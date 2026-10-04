@@ -17,7 +17,6 @@ import {
   IconActionButton,
   InlineInput,
   Input,
-  Lightbox,
   Navbar,
   Pressable,
   SegmentedControl,
@@ -27,10 +26,6 @@ import {
   type PressableProps,
   type SegmentedControlProps,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    CE QU'UNE APPLICATION ÉCRITE POUR 2.5 VOIT ENCORE.
@@ -192,27 +187,6 @@ describe('Button, Pressable et Input', () => {
     expect(clipboard.current?.tagName).toBe('BUTTON');
     expect(inline.current).toBe(screen.getByRole('textbox', { name: 'Nom' }));
     expect(autocomplete.current).toBe(screen.getByRole('combobox', { name: 'Ville' }));
-  });
-});
-
-/* LES ANCIENS RAPPELS REÇOIVENT CE QU'ILS RECEVAIENT EN 2.5 : l'événement du
-   clic quand le bouton les appelait directement, rien quand la modale ferme. */
-const escape = () => fireEvent.keyDown(window, { key: 'Escape' });
-const arities = (mock: ReturnType<typeof vi.fn>) => mock.mock.calls.map((call) => call.length);
-const isClick = (value: unknown) =>
-  value instanceof Object && 'type' in value && value.type === 'click';
-
-describe('les anciens rappels de fermeture', () => {
-  it('devrait passer l’événement au onClose de Lightbox depuis Fermer, et rien depuis Échap', () => {
-    const onClose = vi.fn();
-    render(<Lightbox open src="/a.png" alt="Une image" onClose={onClose} />);
-
-    const buttons = screen.getAllByRole('button', { name: 'Fermer' });
-    fireEvent.click(buttons[buttons.length - 1]);
-    escape();
-
-    expect(arities(onClose)).toEqual([1, 0]);
-    expect(isClick(onClose.mock.calls[0][0])).toBe(true);
   });
 });
 

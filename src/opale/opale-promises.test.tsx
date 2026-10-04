@@ -27,10 +27,6 @@ import {
   InlineInput,
   readCookieConsent,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 /* ============================================================================
    LES PROMESSES QUE LE CODE TIENT DÉSORMAIS.

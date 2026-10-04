@@ -27,10 +27,6 @@ import {
   SegmentedControl,
   SidePanel,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 
@@ -268,7 +264,7 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     {
       nom: 'Lightbox',
       rendre: (onClose: () => void) => (
-        <Lightbox open src="/image.png" alt="Une image" onClose={onClose} />
+        <Lightbox open src="/image.png" alt="Une image" onOpenChange={onClose} />
       ),
     },
   ];
