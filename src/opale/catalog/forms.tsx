@@ -26,7 +26,7 @@ import Glass from '../components/glass/Glass';
 import SearchBar from '../components/search-bar/SearchBar';
 import { IconGlyph, type OpaleIconName } from '../components/icon';
 import type { OpaleSize } from '../shared';
-import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
+import { warnIfUnnamed } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import { useControllableState, useOptionalState } from '../shared/use-controllable-state';
@@ -1256,8 +1256,6 @@ export interface MultiSelectProps extends Omit<
   value?: SelectProps['value'];
   /** Appelée après chaque bascule, avec la sélection complète. `onChange` natif part aussi. */
   onValueChange?: (value: string[]) => void;
-  /** @deprecated Depuis 2.6 — utilisez `value`. */
-  values?: readonly string[];
   /**
    * Des `<option>` (éventuellement groupées dans des `<optgroup>`), ajoutées
    * après `options`, comme pour `Select`. Tout autre enfant est ignoré.
@@ -1363,7 +1361,6 @@ const NATIVE_SELECTED = Object.getOwnPropertyDescriptor(
 export function MultiSelect({
   value,
   onValueChange,
-  values,
   label,
   helperText,
   error,
@@ -1383,7 +1380,6 @@ export function MultiSelect({
   'aria-invalid': ariaInvalid,
   ...props
 }: MultiSelectProps) {
-  warnDeprecatedProps('MultiSelect', { values });
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
@@ -1401,9 +1397,9 @@ export function MultiSelect({
      visible lisait un ensemble vide recréé à chaque rendu : le clic cochait
      l'option du `<select>` caché, mais ni la coche ni `aria-selected` ne
      bougeaient. L'état part de `defaultValue` et suit chaque `change` du natif ;
-     en mode contrôlé, `value` (ou l'ancien `values`) reste seul maître. */
+     en mode contrôlé, `value` reste seul maître. */
   const [current, setCurrent, isControlled] = useControllableState<readonly string[]>(
-    toSelection(value) ?? values,
+    toSelection(value),
     () => toSelection(defaultValue) ?? [],
   );
   /* La sélection de départ devient celle que `form.reset()` rétablit : React
@@ -1837,8 +1833,6 @@ export interface SegmentedControlProps extends Omit<
   defaultValue?: string;
   /** Appelée à chaque appui, même sur l'option déjà pressée. */
   onValueChange?: (value: string) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
-  onChange?: (value: string) => void;
   /** Va au groupe (`role="group"`). */
   className?: string;
   /** Va à chaque `<button>` d'option, à côté de `.opale-segmented__item`. */
@@ -1914,7 +1908,6 @@ export function SegmentedControl({
   value: valueProp,
   defaultValue,
   onValueChange,
-  onChange,
   className,
   controlClassName,
   size = 'medium',
@@ -1922,7 +1915,6 @@ export function SegmentedControl({
   ref,
   ...rest
 }: SegmentedControlProps) {
-  warnDeprecatedProps('SegmentedControl', { onChange });
   const [value, setValue] = useOptionalState(valueProp, defaultValue);
   /* La dernière `value` reçue, relue par la vérification différée de l'appui. */
   const latestValue = useRef(valueProp);
@@ -2034,7 +2026,6 @@ export function SegmentedControl({
             watchLostClick();
             setValue(option.value);
             onValueChange?.(option.value);
-            onChange?.(option.value);
           }}
         >
           {option.label}

@@ -121,46 +121,6 @@ export const DEPRECATED_PROPS = [
     removal: '3.0.0',
     source: 'catalog/modules.tsx',
   },
-  {
-    component: 'Feedback',
-    prop: 'severity',
-    replacement: 'tone',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/feedback.tsx',
-  },
-  {
-    component: 'Toast',
-    prop: 'onClose',
-    replacement: 'onOpenChange',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/feedback.tsx',
-  },
-  {
-    component: 'ConfirmDialog',
-    prop: 'onCancel',
-    replacement: 'onOpenChange',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/feedback.tsx',
-  },
-  {
-    component: 'MultiSelect',
-    prop: 'values',
-    replacement: 'value',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/forms.tsx',
-  },
-  {
-    component: 'SegmentedControl',
-    prop: 'onChange',
-    replacement: 'onValueChange',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/forms.tsx',
-  },
 ] as const satisfies readonly DeprecatedPropEntry[];
 
 /* Les huit exports dépréciés de la 2.x ont été retirés en 4.0.0 : voir

@@ -48,7 +48,7 @@ describe('MultiSelect', () => {
         <MultiSelect
           label="Villes"
           options={OPTIONS}
-          values={values}
+          value={values}
           onChange={(event) => {
             onChange(Array.from(event.currentTarget.selectedOptions, (option) => option.value));
             setValues(Array.from(event.currentTarget.selectedOptions, (option) => option.value));

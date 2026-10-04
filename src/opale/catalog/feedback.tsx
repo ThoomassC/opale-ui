@@ -41,7 +41,7 @@ import { Modal, type ModalLabels } from '../components/modal';
 import type { ToastLabels } from '../components/toast';
 import { resolveToastText } from '../components/toast/toast-content';
 import type { OpalePlacement, OpaleSize, OpaleTone } from '../shared';
-import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
+import { warnIfUnnamed } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import {
@@ -53,7 +53,6 @@ import {
 import { useScrollPadding } from '../shared/use-scroll-padding';
 import { Button } from './forms';
 import { Card, Icon } from './display';
-import { closeHandler, closeClickHandler } from './close-handlers';
 import { rememberFocusOrigin, returnFocusAfterRemoval } from '../shared/focus-return';
 import {
   getToastAnchor,
@@ -101,8 +100,6 @@ export type FeedbackTone = OpaleTone;
 export interface FeedbackProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** Le ton de l'encart : sa couleur, son titre par défaut et son rôle. Défaut : `info`. */
   tone?: FeedbackTone;
-  /** @deprecated Depuis 2.6 — utilisez `tone`. */
-  severity?: FeedbackTone;
   /** Le titre de l'encart. Défaut : celui du ton (« Information », « Erreur »…). */
   title?: ReactNode;
   /** Le message, sous le titre. */
@@ -115,15 +112,13 @@ export interface FeedbackProps extends Omit<ComponentPropsWithRef<'div'>, 'title
 
 export function Feedback({
   tone,
-  severity,
   title,
   children,
   className,
   liquidGlass = false,
   ...rest
 }: FeedbackProps) {
-  warnDeprecatedProps('Feedback', { severity });
-  const resolvedTone = tone ?? severity ?? 'info';
+  const resolvedTone = tone ?? 'info';
   const classes = clsx(
     'opale-feedback',
     `opale-feedback--${resolvedTone}`,
@@ -272,8 +267,6 @@ export interface ToastProps extends Omit<ComponentPropsWithRef<'div'>, 'children
   open?: boolean;
   /** Appelée avec `false` sur la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
-  onClose?: () => void;
   /** Rend la carte dans le matériau « verre liquide ». Originale par défaut. */
   liquidGlass?: boolean;
   /** Le ton, qui choisit la couleur du filet et de l'icône. */
@@ -312,7 +305,6 @@ export function Toast({
   description,
   open = true,
   onOpenChange,
-  onClose,
   tone = 'neutral',
   position = 'bottom-right',
   liquidGlass = false,
@@ -335,13 +327,12 @@ export function Toast({
      rôle d'une région ne peut pas changer en cours de route sans la remonter,
      ce qui reproduirait exactement le défaut qu'on corrige. Les deux sont donc
      posées d'avance, vides, et le message entre dans celle de son ton. */
-  warnDeprecatedProps('Toast', { onClose });
   /* `message` ET `title` (DOCS-04). Seul, `title` est le texte ; auprès de
      `message`, il redevient l'attribut natif qu'il était en 2.9.3. */
   const text = resolveToastText('Toast', message, title);
   const nativeTitle = message !== undefined && typeof title === 'string' ? title : undefined;
   const hasDescription = description !== undefined && description !== null && description !== false;
-  const closeClick = closeClickHandler(onOpenChange, onClose);
+  const closeClick = onOpenChange ? () => onOpenChange(false) : undefined;
   const labels = resolveLabels(DEFAULT_TOAST_LABELS, labelsProp);
   const assertive = ASSERTIVE_TONES.has(tone);
   const classes = clsx(
@@ -635,8 +626,6 @@ export interface ConfirmDialogProps extends Omit<ComponentPropsWithRef<'div'>, '
   loading?: boolean;
   /** `false` sur Annuler, Échap, le voile ou la croix. Jamais sur Confirmer. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
-  onCancel?: () => void;
   /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
   labels?: Partial<ConfirmDialogLabels>;
   /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
@@ -664,14 +653,12 @@ export function ConfirmDialog({
   children,
   onConfirm,
   onOpenChange,
-  onCancel,
   labels: labelsProp,
   liquidGlass = false,
   tone = 'default',
   loading = false,
   ...rest
 }: ConfirmDialogProps) {
-  warnDeprecatedProps('ConfirmDialog', { onCancel });
   const labels = resolveLabels(DEFAULT_CONFIRM_DIALOG_LABELS, labelsProp);
   /* UN DOUBLE CLIC NE CONFIRME PAS DEUX FOIS (DX-17). Sur un appel réseau, le
      second clic partait avant la réponse : double suppression, double envoi.
@@ -687,11 +674,10 @@ export function ConfirmDialog({
      d'Annuler, ni le coincer si la promesse ne se termine jamais. Seul
      `loading`, que l'appelant pose exprès, verrouille aussi la fermeture. */
   const locked = loading;
-  const close = closeHandler(onOpenChange, onCancel);
   const guardedClose =
-    close &&
+    onOpenChange &&
     ((next: boolean) => {
-      if (!locked) close(next);
+      if (!locked) onOpenChange(next);
     });
   const confirm = () => {
     if (busy || inFlight.current || !onConfirm) return;
@@ -735,7 +721,7 @@ export function ConfirmDialog({
           <Button
             variant="text"
             disabled={locked}
-            onClick={closeClickHandler(onOpenChange, onCancel)}
+            onClick={onOpenChange ? () => onOpenChange(false) : undefined}
           >
             {labels.cancel}
           </Button>

@@ -154,7 +154,7 @@ const PORTEURS = [
   {
     nom: 'Feedback',
     rendre: (g?: boolean) => (
-      <Opale.Feedback liquidGlass={g} severity="info" title="Note">
+      <Opale.Feedback liquidGlass={g} tone="info" title="Note">
         Message
       </Opale.Feedback>
     ),

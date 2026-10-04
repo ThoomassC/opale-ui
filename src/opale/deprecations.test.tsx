@@ -37,14 +37,9 @@ import {
   SidePanel,
   Toast,
   Toggle,
-  type ConfirmDialogProps,
   type DataTableProps,
-  type FeedbackProps,
   type FileCardProps,
   type LightboxProps,
-  type MultiSelectProps,
-  type SegmentedControlProps,
-  type ToastProps,
 } from './opale';
 
 /* =============================================================================
@@ -182,8 +177,6 @@ function FireDeprecatedToast({ options }: { options: Props }) {
   return null;
 }
 
-const OPTIONS = [{ value: 'a', label: 'A' }];
-
 const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
   SearchBar: (p) => <SearchBar aria-label="Rechercher" {...(p as Partial<SearchBarProps>)} />,
   SiteNav: (p) => (
@@ -197,15 +190,6 @@ const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
   DataTable: (p) => <DataTable {...(p as Partial<DataTableProps>)} />,
   FileCard: (p) => <FileCard name="a.pdf" {...(p as Partial<FileCardProps>)} />,
   Lightbox: (p) => <Lightbox src="a.png" alt="A" {...(p as Partial<LightboxProps>)} />,
-  Feedback: (p) => <Feedback {...(p as Partial<FeedbackProps>)}>Texte</Feedback>,
-  Toast: (p) => <Toast message="Enregistré" {...(p as Partial<ToastProps>)} />,
-  ConfirmDialog: (p) => <ConfirmDialog {...(p as Partial<ConfirmDialogProps>)} />,
-  MultiSelect: (p) => (
-    <MultiSelect label="Choix" options={OPTIONS} {...(p as Partial<MultiSelectProps>)} />
-  ),
-  SegmentedControl: (p) => (
-    <SegmentedControl options={OPTIONS} {...(p as Partial<SegmentedControlProps>)} />
-  ),
 };
 
 /** Une valeur plausible pour chaque ancien nom : seule sa présence compte. */

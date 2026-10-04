@@ -248,7 +248,7 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     {
       nom: 'ConfirmDialog',
       rendre: (onClose: () => void) => (
-        <ConfirmDialog open title="Supprimer ?" onCancel={onClose}>
+        <ConfirmDialog open title="Supprimer ?" onOpenChange={onClose}>
           Cette action est définitive.
         </ConfirmDialog>
       ),

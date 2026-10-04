@@ -69,20 +69,19 @@ describe('SegmentedControl', () => {
     }
   });
 
-  it('devrait appeler onValueChange puis l’onChange déprécié', () => {
+  it('devrait appeler onValueChange une fois, même sur l’option déjà pressée', () => {
     const calls: string[] = [];
     render(
       <SegmentedControl
         options={OPTIONS}
         defaultValue="jour"
         onValueChange={(value) => calls.push(`onValueChange:${value}`)}
-        onChange={(value) => calls.push(`onChange:${value}`)}
       />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Jour' }));
 
-    expect(calls).toEqual(['onValueChange:jour', 'onChange:jour']);
+    expect(calls).toEqual(['onValueChange:jour']);
   });
 });
 
@@ -192,8 +191,8 @@ describe('MultiSelect', () => {
     { value: 'lille', label: 'Lille' },
   ];
 
-  it('devrait faire gagner value sur values', () => {
-    render(<MultiSelect label="Villes" options={CITIES} value={['lyon']} values={['paris']} />);
+  it('devrait tenir la sélection contrôlée par value', () => {
+    render(<MultiSelect label="Villes" options={CITIES} value={['lyon']} />);
 
     expect(screen.getByRole('option', { name: 'Lyon' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('option', { name: 'Paris' })).toHaveAttribute('aria-selected', 'false');

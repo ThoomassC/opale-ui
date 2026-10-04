@@ -127,17 +127,17 @@ describe('les régions live', () => {
 });
 
 describe('la fermeture', () => {
-  it('devrait nommer sa croix et appeler onClose', async () => {
+  it('devrait nommer sa croix et appeler onOpenChange(false)', async () => {
     const user = userEvent.setup();
-    const onClose = vi.fn();
-    render(<Opale.Toast message="Publié" onClose={onClose} />);
+    const onOpenChange = vi.fn();
+    render(<Opale.Toast message="Publié" onOpenChange={onOpenChange} />);
 
     await user.click(screen.getByRole('button', { name: 'Fermer la notification' }));
 
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
   });
 
-  it('ne devrait pas poser de croix sans onClose', () => {
+  it('ne devrait pas poser de croix sans onOpenChange', () => {
     render(<Opale.Toast message="Publié" />);
 
     expect(screen.queryByRole('button')).toBeNull();
@@ -413,7 +413,7 @@ describe('les ancres partagées', () => {
     render(
       <>
         <button type="button">Action de la page</button>
-        <Opale.Toast message="En haut" position="top-right" onClose={() => {}} />
+        <Opale.Toast message="En haut" position="top-right" onOpenChange={() => {}} />
       </>,
     );
 

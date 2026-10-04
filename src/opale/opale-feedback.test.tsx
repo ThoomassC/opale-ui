@@ -19,16 +19,16 @@ describe('Feedback', () => {
     ['info', 'Information'],
     ['warning', 'Attention'],
     ['error', 'Erreur'],
-  ] as const)('donne un titre français par défaut à la sévérité %s', (severity, title) => {
-    render(<Feedback severity={severity}>Le message.</Feedback>);
+  ] as const)('donne un titre français par défaut au ton %s', (tone, title) => {
+    render(<Feedback tone={tone}>Le message.</Feedback>);
 
     expect(screen.getByText(title)).toBeInTheDocument();
-    expect(screen.queryByText(severity)).not.toBeInTheDocument();
+    expect(screen.queryByText(tone)).not.toBeInTheDocument();
   });
 
   it('garde le titre de l’appelant quand il en donne un', () => {
     render(
-      <Feedback severity="error" title="Paiement refusé">
+      <Feedback tone="error" title="Paiement refusé">
         La carte a expiré.
       </Feedback>,
     );
@@ -44,17 +44,6 @@ describe('Feedback — tone', () => {
 
     expect(screen.getByRole('alert')).toHaveClass('opale-feedback--error');
     expect(screen.getByText('Erreur')).toBeInTheDocument();
-  });
-
-  it('devrait faire gagner tone sur severity', () => {
-    render(
-      <Feedback tone="success" severity="error">
-        Enregistré.
-      </Feedback>,
-    );
-
-    expect(screen.getByRole('status')).toHaveClass('opale-feedback--success');
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('devrait garder info par défaut', () => {

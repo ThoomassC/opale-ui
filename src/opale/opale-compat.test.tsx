@@ -13,7 +13,6 @@ import {
   Autocomplete,
   Button,
   Clipboard,
-  ConfirmDialog,
   DataTable,
   IconActionButton,
   InlineInput,
@@ -22,7 +21,6 @@ import {
   Navbar,
   Pressable,
   SegmentedControl,
-  Toast,
   type ButtonProps,
   type InputProps,
   type NavbarProps,
@@ -59,13 +57,13 @@ const pressed = () =>
 
 describe('SegmentedControl, sans defaultValue', () => {
   it('ne devrait rien presser au clic, et seulement prévenir l’appelant', () => {
-    const onChange = vi.fn();
-    render(<SegmentedControl options={OPTIONS} onChange={onChange} />);
+    const onValueChange = vi.fn();
+    render(<SegmentedControl options={OPTIONS} onValueChange={onValueChange} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'B' }));
 
     expect(pressed()).toEqual([]);
-    expect(onChange).toHaveBeenCalledExactlyOnceWith('b');
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('b');
   });
 
   it('ne devrait rien presser quand la valeur contrôlée redevient undefined', () => {
@@ -73,7 +71,7 @@ describe('SegmentedControl, sans defaultValue', () => {
       const [value, setValue] = useState<string | undefined>();
       return (
         <>
-          <SegmentedControl options={OPTIONS} value={value} onChange={setValue} />
+          <SegmentedControl options={OPTIONS} value={value} onValueChange={setValue} />
           <button type="button" onClick={() => setValue(undefined)}>
             Effacer
           </button>
@@ -205,32 +203,6 @@ const isClick = (value: unknown) =>
   value instanceof Object && 'type' in value && value.type === 'click';
 
 describe('les anciens rappels de fermeture', () => {
-  it('devrait passer l’événement à onCancel depuis Annuler, et rien depuis la croix ou Échap', () => {
-    const onCancel = vi.fn();
-    render(
-      <ConfirmDialog open onCancel={onCancel}>
-        Corps
-      </ConfirmDialog>,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
-    escape();
-
-    expect(arities(onCancel)).toEqual([1, 0, 0]);
-    expect(isClick(onCancel.mock.calls[0][0])).toBe(true);
-  });
-
-  it('devrait passer l’événement au onClose de Toast', () => {
-    const onClose = vi.fn();
-    render(<Toast message="Enregistré" onClose={onClose} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer la notification' }));
-
-    expect(arities(onClose)).toEqual([1]);
-    expect(isClick(onClose.mock.calls[0][0])).toBe(true);
-  });
-
   it('devrait passer l’événement au onClose de Lightbox depuis Fermer, et rien depuis Échap', () => {
     const onClose = vi.fn();
     render(<Lightbox open src="/a.png" alt="Une image" onClose={onClose} />);

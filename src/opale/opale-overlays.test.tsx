@@ -72,22 +72,6 @@ describe('ConfirmDialog', () => {
     expect(onConfirm).toHaveBeenCalledOnce();
     expect(onOpenChange).not.toHaveBeenCalled();
   });
-
-  it('devrait appeler onOpenChange puis l’onCancel déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <ConfirmDialog
-        open
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onCancel={() => calls.push('onCancel')}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }));
-    escape();
-
-    expect(calls).toEqual(['onOpenChange:false', 'onCancel', 'onOpenChange:false', 'onCancel']);
-  });
 });
 
 describe('SidePanel', () => {
@@ -155,21 +139,6 @@ describe('Toast', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Fermer la notification' }));
 
     expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <Toast
-        message="Enregistré"
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer la notification' }));
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 });
 
