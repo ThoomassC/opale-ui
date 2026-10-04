@@ -169,6 +169,7 @@ export const REMOVED_PROPS: readonly RemovedPropEntry[] = Object.freeze([
     component: 'Sidebar',
     prop: 'onSelectItem',
     replacement: 'onValueChange',
+    note: '`onValueChange(id)`, sans l’événement du clic',
     since: '2.6',
   },
   {
@@ -220,6 +221,7 @@ export const REMOVED_PROPS: readonly RemovedPropEntry[] = Object.freeze([
     component: 'Lightbox',
     prop: 'onClose',
     replacement: 'onOpenChange',
+    note: 'reçoit `false`, et non plus l’événement du clic',
     since: '2.6',
   },
   {
@@ -232,12 +234,14 @@ export const REMOVED_PROPS: readonly RemovedPropEntry[] = Object.freeze([
     component: 'Toast',
     prop: 'onClose',
     replacement: 'onOpenChange',
+    note: 'reçoit `false`, et non plus l’événement du clic',
     since: '2.6',
   },
   {
     component: 'ConfirmDialog',
     prop: 'onCancel',
     replacement: 'onOpenChange',
+    note: 'reçoit `false`, et non plus l’événement du clic',
     since: '2.6',
   },
   {
@@ -280,6 +284,7 @@ export const REMOVED_PROPS: readonly RemovedPropEntry[] = Object.freeze([
     component: 'CommandPalette',
     prop: 'onClose',
     replacement: 'onOpenChange',
+    note: 'reçoit `false`, et non plus l’événement du clic',
     since: '2.6',
   },
   {

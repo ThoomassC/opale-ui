@@ -53,6 +53,31 @@ describe('la page « Migrer vers la 4.0 »', () => {
     expect(screen.queryByRole('heading', { name: 'Voir les avertissements' })).toBeNull();
   });
 
+  it('dit quels rappels changent de signature, et pas seulement de nom', () => {
+    renderPage();
+    const section = screen.getByRole('heading', { name: 'Les rappels qui changent de signature' })
+      .parentElement as HTMLElement;
+
+    expect(section).toHaveTextContent('onSelectItem(id, event)');
+    expect(section).toHaveTextContent('onValueChange(id)');
+    expect(section).toHaveTextContent('l’événement du clic');
+    expect(section).toHaveTextContent('onOpenChange(false)');
+    const table = screen.getByRole('table', { name: 'Les props retirées' });
+    expect(within(table).getByRole('row', { name: /^Sidebar onSelectItem/ })).toHaveTextContent(
+      'sans l’événement',
+    );
+  });
+
+  it('prévient le JavaScript non typé : SiteNav sans items, props qui tombent dans le DOM', () => {
+    const { container } = renderPage();
+
+    expect(container).toHaveTextContent('SiteNav exige items');
+    expect(container).toHaveTextContent('lève au rendu');
+    expect(container).toHaveTextContent('JavaScript non typé');
+    expect(container).toHaveTextContent('passent désormais au DOM');
+    expect(container).toHaveTextContent('RatingInput');
+  });
+
   it('répond encore à son ancienne adresse, celle de « Migrer vers la 3.0 »', () => {
     expect(findPage(PAGES, 'migrer-vers-3')).toBe(migrationPage);
   });

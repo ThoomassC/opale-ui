@@ -63,7 +63,34 @@ const BREAKING_CHANGES: readonly ReactNode[] = [
   </>,
   <>
     <code>SiteNav</code> exige <code>items</code> : ses destinations par défaut ont disparu avec{' '}
-    <code>DEFAULT_SITE_NAV_ITEMS</code>.
+    <code>DEFAULT_SITE_NAV_ITEMS</code>. TypeScript le refuse ; en JavaScript, un{' '}
+    <code>SiteNav</code> sans <code>items</code> lève au rendu.
+  </>,
+  <>
+    En JavaScript non typé, rien ne refuse un ancien nom : les props retirées passent désormais au
+    DOM comme n’importe quel attribut. Un ancien <code>onChange</code> sur{' '}
+    <code>CommandPalette</code> ou <code>RatingInput</code> reçoit ainsi l’événement{' '}
+    <code>change</code> natif qui remonte de leur champ, et non plus une valeur : renommez-le en{' '}
+    <code>onValueChange</code>.
+  </>,
+];
+
+/** Les rappels dont les arguments changent, au-delà du nom. */
+const SIGNATURE_CHANGES: readonly ReactNode[] = [
+  <>
+    <code>Sidebar</code> : <code>onSelectItem(id, event)</code> devient{' '}
+    <code>onValueChange(id)</code>, sans l’événement du clic. Une entrée lien (<code>href</code>)
+    passe par <code>onNavigate</code>.
+  </>,
+  <>
+    <code>Toast</code>, <code>Lightbox</code>, <code>CommandPalette</code> (<code>onClose</code>) et{' '}
+    <code>ConfirmDialog</code> (<code>onCancel</code>) passaient l’événement du clic quand le bouton
+    les appelait directement. <code>onOpenChange(false)</code> reçoit <code>false</code>, quelle que
+    soit la fermeture : croix, bouton, Échap ou voile.
+  </>,
+  <>
+    <code>Modal</code> et <code>SidePanel</code> appelaient <code>onClose()</code> sans argument :{' '}
+    <code>onOpenChange(false)</code> s’y substitue tel quel.
   </>,
 ];
 
@@ -101,7 +128,10 @@ export const migrationPage: DocPage = {
         </p>
         <ul className="tc-doc-checklist">
           <li>TypeScript refuse chaque ancien nom ; le tableau donne son remplaçant.</li>
-          <li>La valeur reste la même, sauf quand la colonne précise une correspondance.</li>
+          <li>
+            La valeur reste la même, sauf quand la colonne précise une correspondance — et sauf pour
+            les rappels listés plus bas, qui changent aussi de signature.
+          </li>
           <li>Aucun avertissement ne part plus dans la console : l’erreur est à la compilation.</li>
         </ul>
       </Specimen>
@@ -109,7 +139,7 @@ export const migrationPage: DocPage = {
       <MigrationTable
         id="migration-props"
         title="Les props retirées"
-        note="Renommez la prop ; la valeur reste la même, sauf quand la colonne précise une correspondance."
+        note="Renommez la prop ; la valeur reste la même, sauf quand la colonne précise une correspondance ou un changement de signature."
         columns={['Composant', 'Ancien nom', 'À utiliser', 'Dépréciée en']}
         rows={PROP_ROWS}
       />
@@ -121,6 +151,14 @@ export const migrationPage: DocPage = {
         columns={['Export', 'Nature', 'À utiliser', 'Déprécié en']}
         rows={EXPORT_ROWS}
       />
+
+      <Specimen title="Les rappels qui changent de signature">
+        <ul className="tc-doc-checklist">
+          {SIGNATURE_CHANGES.map((change, index) => (
+            <li key={index}>{change}</li>
+          ))}
+        </ul>
+      </Specimen>
 
       <Specimen title="Ce que la 4.0 a changé aussi">
         <ul className="tc-doc-checklist">
