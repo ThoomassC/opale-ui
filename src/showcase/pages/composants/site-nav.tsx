@@ -31,7 +31,8 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'items',
     type: 'readonly SiteNavItem[]',
-    description: 'Les destinations, pensées pour quatre entrées. À passer toujours.',
+    required: true,
+    description: 'Les destinations, pensées pour quatre entrées. Obligatoires depuis la 4.0.',
   },
   {
     name: 'value',

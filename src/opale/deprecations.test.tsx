@@ -199,7 +199,9 @@ const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
   Sidebar: (p) => <Sidebar {...(p as Partial<SidebarProps>)} />,
   Topbar: (p) => <Topbar {...(p as Partial<TopbarProps>)} />,
   SearchBar: (p) => <SearchBar aria-label="Rechercher" {...(p as Partial<SearchBarProps>)} />,
-  SiteNav: (p) => <SiteNav {...(p as Partial<SiteNavProps>)} />,
+  SiteNav: (p) => (
+    <SiteNav items={[{ id: 'a', href: '/', label: 'A' }]} {...(p as Partial<SiteNavProps>)} />
+  ),
   showToast: (p) => (
     <ToastProvider>
       <FireDeprecatedToast options={p} />

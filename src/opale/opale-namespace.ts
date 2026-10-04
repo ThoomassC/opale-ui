@@ -132,11 +132,4 @@ const COMPONENTS = {
 } as const;
 
 /** Tous les composants d'Opale sous un seul nom : `Opale.Button` est `Button`. */
-export const Opale = {
-  ...COMPONENTS,
-  /** @deprecated Depuis 2.6 — utilisez `BackgroundSurface`. */
-  Background: BackgroundSurface,
-} as const;
-
-/** @deprecated Depuis 2.6 — utilisez les exports nommés. */
-export const OpaleUI = Opale;
+export const Opale = COMPONENTS;

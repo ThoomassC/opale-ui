@@ -4,7 +4,6 @@ import type { ComponentPropsWithRef, MouseEvent, ReactNode } from 'react';
 import { NavBubble } from './nav-bubble';
 import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
-import { DEFAULT_SITE_NAV_ITEMS } from './default-items';
 
 import styles from './site-nav.module.css';
 
@@ -20,11 +19,8 @@ export type SiteNavItem = {
 export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
   /** La marque, fournie par l'application hôte. Facultative. */
   readonly brand?: ReactNode;
-  /**
-   * Les destinations principales, pensées pour quatre entrées. Passez-les
-   * toujours : le défaut n'est gardé que pour les appels existants.
-   */
-  readonly items?: readonly SiteNavItem[];
+  /** Les destinations principales, pensées pour quatre entrées. Obligatoires. */
+  readonly items: readonly SiteNavItem[];
   /** L'identifiant de la destination qui porte la bulle active. */
   readonly value?: string;
   /** @deprecated Depuis 2.6 — utilisez `value`. */
@@ -58,7 +54,7 @@ export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
  */
 export function SiteNav({
   brand,
-  items = DEFAULT_SITE_NAV_ITEMS,
+  items,
   value,
   activeItem,
   navLabel = 'Navigation principale',

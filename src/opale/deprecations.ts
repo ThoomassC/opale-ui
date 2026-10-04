@@ -350,76 +350,9 @@ export const DEPRECATED_PROPS = [
   },
 ] as const satisfies readonly DeprecatedPropEntry[];
 
-export const DEPRECATED_EXPORTS = [
-  {
-    name: 'OpaleUI',
-    kind: 'value',
-    replacement: null,
-    note: 'importez chaque composant par son nom',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'opale-namespace.ts',
-  },
-  {
-    name: 'Opale.Background',
-    kind: 'value',
-    replacement: 'BackgroundSurface',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'opale-namespace.ts',
-  },
-  {
-    name: 'OPALE_CATALOG',
-    kind: 'value',
-    replacement: null,
-    note: 'métadonnée de la vitrine, sans remplaçant public',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'opale.ts',
-  },
-  {
-    name: 'CatalogEntry',
-    kind: 'type',
-    replacement: null,
-    note: 'métadonnée de la vitrine, sans remplaçant public',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'opale.ts',
-  },
-  {
-    name: 'ToastPlacement',
-    kind: 'type',
-    replacement: 'OpalePlacement',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/feedback.tsx',
-  },
-  {
-    name: 'ToastTone',
-    kind: 'type',
-    replacement: 'OpaleTone',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/feedback.tsx',
-  },
-  {
-    name: 'FieldProps',
-    kind: 'type',
-    replacement: 'InputProps',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'catalog/forms.tsx',
-  },
-  {
-    name: 'DEFAULT_SITE_NAV_ITEMS',
-    kind: 'value',
-    replacement: 'items',
-    note: 'passez vos destinations à `SiteNav`',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'components/site-nav/default-items.ts',
-  },
-] as const satisfies readonly DeprecatedExportEntry[];
+/* Les huit exports dépréciés de la 2.x ont été retirés en 4.0.0 : voir
+   `REMOVED_EXPORTS`. La table reste, vide, tant que la machinerie vit. */
+export const DEPRECATED_EXPORTS: readonly DeprecatedExportEntry[] = [];
 
 /* =============================================================================
    CE QUE LA 4.0.0 RETIRE.

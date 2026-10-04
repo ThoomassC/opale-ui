@@ -419,9 +419,6 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'>
   searchLandmarkLabel?: string;
 }
 
-/** @deprecated Depuis 2.6 — utilisez `InputProps`. */
-export type FieldProps = InputProps;
-
 export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
   {
     label,

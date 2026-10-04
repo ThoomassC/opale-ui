@@ -198,18 +198,6 @@ export function Feedback({
    ========================================================================== */
 
 /**
- * Les six places possibles à l'écran.
- * @deprecated Depuis 2.6 — utilisez `OpalePlacement`.
- */
-export type ToastPlacement = OpalePlacement;
-
-/**
- * Les tons, et leur couleur. `neutral` n'en porte aucune.
- * @deprecated Depuis 2.6 — utilisez `OpaleTone`.
- */
-export type ToastTone = OpaleTone;
-
-/**
  * Les tons qui doivent INTERROMPRE la lecture.
  *
  * Une erreur annoncée poliment arrive à la fin de ce que l'utilisateur est en

@@ -21,16 +21,16 @@
    `preserveModules`, qui reprend l'arborescence de `src/opale`.
    ========================================================================== */
 
+/* `opale` n'y figure plus : depuis le retrait d'`OPALE_CATALOG` (4.0.0), il ne
+   fait que réexporter, et le build le fond dans `index` sans l'émettre. */
 /** Les barils : réexports, sans code client propre. */
-export const SERVER_SAFE_BARRELS = Object.freeze(['index', 'opale', 'opale-namespace']);
+export const SERVER_SAFE_BARRELS = Object.freeze(['index', 'opale-namespace']);
 
 /** Les modules de pure donnée : ni React, ni import d'un module client. */
 export const SERVER_SAFE_DATA_MODULES = Object.freeze([
-  'catalog',
   'catalog/cookie-consent',
   'components/icon/glyphs',
   'components/icon/icons',
-  'components/site-nav/default-items',
   'theme/theme-script',
 ]);
 

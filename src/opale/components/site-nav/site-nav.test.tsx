@@ -37,15 +37,6 @@ describe('SiteNav', () => {
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 
-  it('uses Carte, Pays, Villes and À propos when items are omitted', () => {
-    renderNav({ items: undefined });
-
-    expect(screen.getByRole('link', { name: 'Carte' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Pays' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Villes' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'À propos' })).toBeInTheDocument();
-  });
-
   it('lets the active bubble be dragged to another tab while holding the pointer', () => {
     renderNav();
 

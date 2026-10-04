@@ -7,8 +7,9 @@ import { loadPublicApi } from '../test/public-api';
 
    Cette liste est le journal des noms que le paquet publie. Un nom qui
    apparaît ou disparaît fait rougir ce test : l'ajout se décide, il ne
-   s'échappe pas d'un `export *`. Un nom retiré est une rupture ; en 2.x, il
-   ne se retire pas, il se déprécie.
+   s'échappe pas d'un `export *`. Un nom retiré est une rupture : il se
+   déprécie d'abord, et ne se retire qu'à une version majeure (la 4.0.0 a
+   retiré ceux de la 2.x).
    ========================================================================== */
 
 const EXPORT_NAMES = [
@@ -38,7 +39,6 @@ const EXPORT_NAMES = [
   'CarouselProps',
   'CarouselSlide',
   'CarouselSlideProps',
-  'CatalogEntry',
   'Checkbox',
   'CheckboxProps',
   'Clipboard',
@@ -56,7 +56,6 @@ const EXPORT_NAMES = [
   'CookieBannerLabels',
   'CookieBannerProps',
   'CookieConsent',
-  'DEFAULT_SITE_NAV_ITEMS',
   'DataTable',
   'DataTableColumn',
   'DataTableLabels',
@@ -104,7 +103,6 @@ const EXPORT_NAMES = [
   'Field',
   'FieldControlProps',
   'FieldOwnProps',
-  'FieldProps',
   'FieldWrapperProps',
   'FileCard',
   'FileCardLabels',
@@ -152,7 +150,6 @@ const EXPORT_NAMES = [
   'NavItem',
   'Navbar',
   'NavbarProps',
-  'OPALE_CATALOG',
   'OPALE_ICONS',
   'Opale',
   'OpaleIconName',
@@ -162,7 +159,6 @@ const EXPORT_NAMES = [
   'OpaleThemePreference',
   'OpaleThemeScriptOptions',
   'OpaleTone',
-  'OpaleUI',
   'PageScaffold',
   'PageScaffoldLanguage',
   'PageScaffoldLink',
@@ -294,11 +290,9 @@ const EXPORT_NAMES = [
   'ToastAnimation',
   'ToastDefinition',
   'ToastLabels',
-  'ToastPlacement',
   'ToastProps',
   'ToastProvider',
   'ToastProviderProps',
-  'ToastTone',
   'Toggle',
   'ToggleProps',
   'Tooltip',
@@ -336,17 +330,17 @@ describe('la surface publique de `src/opale/index.ts`', () => {
   }, 60_000);
 });
 
-describe('les alias dépréciés de 2.6', () => {
+describe('les alias dépréciés de 2.6, retirés en 4.0.0', () => {
   it.each(['OpaleUI', 'OPALE_CATALOG', 'CatalogEntry', 'DEFAULT_SITE_NAV_ITEMS'])(
-    'devrait marquer %s `@deprecated` sans le retirer',
+    'ne devrait plus publier %s',
     (name) => {
-      expect(loadPublicApi().isDeprecated(name)).toBe(true);
+      expect(loadPublicApi().exportNames).not.toContain(name);
     },
     60_000,
   );
 
-  it('ne devrait déprécier que `Background` dans le namespace `Opale`', () => {
+  it('ne devrait plus rien déprécier dans le namespace `Opale`', () => {
     expect(loadPublicApi().isDeprecated('Opale')).toBe(false);
-    expect(loadPublicApi().deprecatedMembersOf('Opale')).toEqual(['Background']);
+    expect(loadPublicApi().deprecatedMembersOf('Opale')).toEqual([]);
   }, 60_000);
 });

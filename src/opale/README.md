@@ -43,8 +43,8 @@ vivent dans `catalog.ts`, réparties en catégories — primitives, champs, donn
 retour d'information, navigation, disposition, modules. Le namespace `Opale`
 réunit tous les composants du paquet, composés compris ; les exemples importent
 par nom (`import { Button } from '@thomascaron/opale-ui'`). `OpaleUI`,
-`Opale.Background`, `OPALE_CATALOG` et `CatalogEntry` restent exportés, dépréciés
-depuis 2.6.
+`Opale.Background`, `OPALE_CATALOG` et `CatalogEntry`, dépréciés depuis 2.6, ont
+été retirés en 4.0.0 : le catalogue n'est plus qu'une donnée de la vitrine.
 
 La règle qui gouverne le catalogue est écrite en tête d'`opale.ts`, et elle mérite d'être
 répétée ici : **le verre est la peau, le contrôle natif reste le moteur.** Là où
@@ -57,9 +57,9 @@ mécanique.
 
 Le build pose `"use client"` en tête de chaque module de composant, et de ceux-là
 seulement. `scripts/server-safe-modules.mjs` nomme les exceptions : les barils
-(`index`, `opale`, `opale-namespace`) et les modules de pure donnée (`catalog`,
-`catalog/cookie-consent`, `components/icon/icons`,
-`components/site-nav/default-items`). Posée sur une donnée, la directive en fait
+(`index`, `opale-namespace`) et les modules de pure donnée
+(`catalog/cookie-consent`, `components/icon/glyphs`, `components/icon/icons`,
+`theme/theme-script`). Posée sur une donnée, la directive en fait
 une référence client côté serveur : `ICON_NAMES.length` y valait 0 et
 `COOKIE_CONSENT_KEY` y était une fonction qui lève.
 `server-safe-modules.structure.test.ts` tient la liste sur les sources,

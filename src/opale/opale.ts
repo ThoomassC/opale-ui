@@ -1,5 +1,3 @@
-import { CATALOG, type ShowcaseCatalogEntry } from './catalog';
-
 /* =============================================================================
    LE VERRE EST LA PEAU, LE CONTRÔLE NATIF RESTE LE MOTEUR.
 
@@ -46,7 +44,7 @@ export * from './catalog/navigation';
 export * from './catalog/layout';
 export * from './catalog/modules';
 export * from './catalog/svg-map';
-export { Opale, OpaleUI } from './opale-namespace';
+export { Opale } from './opale-namespace';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export { COOKIE_CONSENT_KEY, readCookieConsent } from './catalog/cookie-consent';
 export type { CookieConsent } from './catalog/cookie-consent';
@@ -57,9 +55,3 @@ export type {
   RatingInputProps,
   SkeletonProps,
 } from './opale-extras';
-
-/** @deprecated Depuis 2.6 — métadonnée de la vitrine, sans remplaçant public. */
-export type CatalogEntry = ShowcaseCatalogEntry;
-
-/** @deprecated Depuis 2.6 — métadonnée de la vitrine, sans remplaçant public. */
-export const OPALE_CATALOG: readonly CatalogEntry[] = CATALOG;
