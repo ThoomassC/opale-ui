@@ -224,7 +224,7 @@ describe('le sommaire repliable', () => {
     expect(shell(container)).toHaveAttribute('data-menu', 'closed');
   });
 
-  it('devrait conserver le choix de visibilité quand on change de page', () => {
+  it('devrait replier le sommaire quand on change de page', () => {
     const { container, rerender } = renderNav();
 
     rerender(<DocNav pages={PAGES} currentSlug="installation" />);
@@ -235,7 +235,8 @@ describe('le sommaire repliable', () => {
 
     rerender(<DocNav pages={PAGES} currentSlug="notes-de-versions" />);
 
-    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('devrait se replier à Échap et rendre le focus à son bouton', () => {

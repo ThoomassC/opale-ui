@@ -120,10 +120,19 @@ export function DocNav({ pages, currentSlug, resize, language = 'FR' }: DocNavPr
   const scrollbarStateRef = useRef<ScrollbarState>(INITIAL_SCROLLBAR_STATE);
 
   /* Sous 30 rem, le sommaire est replié au chargement pour laisser voir la
-     page. Le bouton permet de retrouver le rail de la recette ; le choix de
-     visibilité reste en place pendant la navigation. Au-delà, le rail est
-     permanent et le bouton est masqué par la feuille de style. */
+     page. Le bouton permet de retrouver le rail de la recette ; choisir une
+     page le replie, pour que la page choisie soit visible tout de suite.
+     Au-delà, le rail est permanent et le bouton est masqué par la feuille de
+     style. */
   const [menuOpen, setMenuOpen] = useState(false);
+  /* La page précédente est gardée en état et comparée pendant le rendu :
+     React rejoue aussitôt le rendu avec le sommaire replié, sans effet ni
+     image intermédiaire où il resterait ouvert. */
+  const [menuSlug, setMenuSlug] = useState(currentSlug);
+  if (menuSlug !== currentSlug) {
+    setMenuSlug(currentSlug);
+    setMenuOpen(false);
+  }
   const shellRef = useRef<HTMLDivElement>(null);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
 
