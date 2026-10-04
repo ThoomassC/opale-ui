@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider, type ToastDefinition, type ToastProviderProps } from './ToastProvider';
 import { useToast } from './toast-context';
 import toastClasses from './style/Toast.module.css';
+import { allByClass, byClass, queryByClass } from '../../../test/stable-class';
 
 /* =============================================================================
    CE QUE CETTE SUITE TIENT, ET POURQUOI ELLE N'EXISTAIT PAS.
@@ -79,7 +80,7 @@ describe('ToastProvider', () => {
       />,
     );
 
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Publier' }));
 
@@ -98,7 +99,7 @@ describe('ToastProvider', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Un' }));
     fireEvent.click(screen.getByRole('button', { name: 'Deux' }));
 
-    expect(screen.getAllByTestId('toast')).toHaveLength(2);
+    expect(allByClass('opale-toast-provider__card')).toHaveLength(2);
   });
 
   it('se ferme tout seul au bout de la durée, animation de sortie comprise', async () => {
@@ -107,15 +108,15 @@ describe('ToastProvider', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Publier' }));
-    expect(screen.getByTestId('toast')).toBeInTheDocument();
+    expect(byClass('opale-toast-provider__card')).toBeInTheDocument();
 
     /* La minuterie échoit : la carte passe en sortie mais reste montée le
        temps de l'animation — c'est ce que documente la vitrine. */
     await advance(4000);
-    expect(screen.getByTestId('toast')).toBeInTheDocument();
+    expect(byClass('opale-toast-provider__card')).toBeInTheDocument();
 
     await advance(220);
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
   });
 
   it('ne ferme jamais un toast de durée infinie', async () => {
@@ -127,7 +128,7 @@ describe('ToastProvider', () => {
 
     await advance(60_000);
 
-    expect(screen.getByTestId('toast')).toBeInTheDocument();
+    expect(byClass('opale-toast-provider__card')).toBeInTheDocument();
   });
 
   it('se ferme à la croix, et prévient onClose une seule fois', async () => {
@@ -143,7 +144,7 @@ describe('ToastProvider', () => {
 
     await advance(220);
 
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -159,12 +160,12 @@ describe('ToastProvider', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Un' }));
     fireEvent.click(screen.getByRole('button', { name: 'Deux' }));
-    expect(screen.getAllByTestId('toast')).toHaveLength(2);
+    expect(allByClass('opale-toast-provider__card')).toHaveLength(2);
 
     fireEvent.click(screen.getByRole('button', { name: 'Tout fermer' }));
     await advance(240);
 
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
   });
 
   /* ---------------------------------------------------------------------- */
@@ -175,7 +176,7 @@ describe('ToastProvider', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Publier' }));
-    const card = screen.getByTestId('toast');
+    const card = byClass('opale-toast-provider__card');
 
     /* Trois secondes s'écoulent, puis le pointeur entre. */
     await advance(3000);
@@ -184,13 +185,13 @@ describe('ToastProvider', () => {
     /* Une minute de survol ne doit RIEN fermer. C'est tout l'objet du critère :
        le message attend qu'on ait fini de le lire. */
     await advance(60_000);
-    expect(screen.getByTestId('toast')).toBeInTheDocument();
+    expect(byClass('opale-toast-provider__card')).toBeInTheDocument();
 
     /* À la sortie du pointeur, il reste la seconde qui n'avait pas été
        consommée — pas les quatre du départ. */
     fireEvent.pointerLeave(card);
     await advance(900);
-    expect(screen.getByTestId('toast')).toBeInTheDocument();
+    expect(byClass('opale-toast-provider__card')).toBeInTheDocument();
 
     /* Les deux avances sont SÉPARÉES à dessein : la minuterie de retrait n'est
        armée que par l'effet qui suit le rendu de la phase de sortie, donc elle
@@ -199,7 +200,7 @@ describe('ToastProvider', () => {
        avec le composant. */
     await advance(100);
     await advance(220);
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
   });
 
   it('met la minuterie en pause quand le focus entre dans la carte', async () => {
@@ -219,7 +220,7 @@ describe('ToastProvider', () => {
 
     /* Sans cette pause, la croix s'évanouissait sous le doigt de qui venait
        tout juste de l'atteindre au clavier. */
-    expect(screen.getByTestId('toast')).toBeInTheDocument();
+    expect(byClass('opale-toast-provider__card')).toBeInTheDocument();
   });
 
   it('monte les régions live AVANT le premier toast, et au bon niveau de politesse', () => {
@@ -266,7 +267,7 @@ describe('ToastProvider', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Publier' }));
-    expect(document.body.querySelector('[data-testid="toast-portal"]')).not.toBeNull();
+    expect(document.body.querySelector('.opale-toast-provider')).not.toBeNull();
 
     unmount();
 
@@ -274,8 +275,8 @@ describe('ToastProvider', () => {
        fournisseur ne le nettoie pas, il reste dans `document.body` après le
        démontage et s'accumule d'un montage à l'autre. C'est la fuite classique
        du motif, et elle ne se voit jamais à l'écran. */
-    expect(document.body.querySelector('[data-testid="toast-portal"]')).toBeNull();
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(document.body.querySelector('.opale-toast-provider')).toBeNull();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
   });
 
   it('range chaque toast dans la pile de sa position', () => {
@@ -291,7 +292,7 @@ describe('ToastProvider', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Deux' }));
 
     const stackOf = (text: string) =>
-      screen.getByText(text).closest('[data-testid="toast"]')!.parentElement!.parentElement;
+      screen.getByText(text).closest('.opale-toast-provider__card')!.parentElement!.parentElement;
 
     expect(stackOf('En haut')).not.toBe(stackOf('En bas'));
   });
@@ -308,7 +309,7 @@ describe('ToastProvider', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Un' }));
     fireEvent.click(screen.getByRole('button', { name: 'Deux' }));
 
-    expect(screen.getAllByTestId('toast')).toHaveLength(1);
+    expect(allByClass('opale-toast-provider__card')).toHaveLength(1);
     expect(screen.getByText('Enregistré')).toBeInTheDocument();
     expect(screen.queryByText('Enregistrement…')).not.toBeInTheDocument();
   });
@@ -345,9 +346,9 @@ describe('ToastProvider', () => {
 
 describe('ToastProvider — tone', () => {
   const surfaceOf = (title: string) => {
-    const card = screen
-      .getAllByTestId('toast')
-      .find((element) => element.contains(screen.getByText(title)));
+    const card = allByClass('opale-toast-provider__card').find((element) =>
+      element.contains(screen.getByText(title)),
+    );
     return card?.firstElementChild;
   };
 
@@ -498,10 +499,10 @@ describe('ToastProvider — remplacement par id', () => {
 
     await advance(4900);
     expect(screen.getByText('Enregistré')).toBeInTheDocument();
-    expect(screen.getByTestId('toast')).not.toHaveClass(toastClasses.leaving);
+    expect(byClass('opale-toast-provider__card')).not.toHaveClass(toastClasses.leaving);
 
     await advance(100);
-    expect(screen.getByTestId('toast')).toHaveClass(toastClasses.leaving);
+    expect(byClass('opale-toast-provider__card')).toHaveClass(toastClasses.leaving);
 
     await advance(220);
     expect(screen.queryByText('Enregistré')).not.toBeInTheDocument();
@@ -531,7 +532,7 @@ describe('ToastProvider — remplacement par id', () => {
     expect(first).toHaveBeenCalledTimes(1);
 
     await advance(220);
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
   });
 
   it('ne prévient pas l’onClose d’un toast remplacé avant sa fermeture', async () => {
@@ -550,6 +551,6 @@ describe('ToastProvider — remplacement par id', () => {
     await advance(220);
 
     expect(first).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('toast')).not.toBeInTheDocument();
+    expect(queryByClass('opale-toast-provider__card')).not.toBeInTheDocument();
   });
 });

@@ -536,7 +536,6 @@ const Modal = ({
       <div
         ref={containerRef}
         className={clsx('opale-modal', styles.container)}
-        data-testid="modal-container"
         {...pageThemeAttributes(pageTheme)}
       >
         {/* Le voile n'est PAS un bouton, et il ne doit pas en devenir un : il
@@ -547,7 +546,6 @@ const Modal = ({
           ne se déclenche pas ici, justement parce que l'élément est retiré de
           l'arbre d'accessibilité. */}
         <div
-          data-testid="modal-overlay"
           aria-hidden="true"
           className={clsx('opale-modal__backdrop', styles.overlay)}
           onClick={closeOnOverlay ? handleClose : undefined}

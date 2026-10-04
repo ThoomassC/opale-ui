@@ -535,7 +535,7 @@ interface ContractRow {
 }
 
 /* Le panneau, trouvé sans compter sur le rôle qu'on tente d'écraser. */
-const PANEL = '[data-testid="modal-container"] > div:not([data-testid="modal-overlay"])';
+const PANEL = '.opale-modal > div:not(.opale-modal__backdrop)';
 
 const CONTRACTS: readonly ContractRow[] = [
   {

@@ -318,7 +318,7 @@ describe('rendu serveur puis hydratation, sous StrictMode', () => {
     /* Le nœud rendu par le serveur est repris, pas jeté puis recréé. */
     expect(serverParagraph).not.toBeNull();
     expect(hydrated.host.querySelector('main p')).toBe(serverParagraph);
-    expect(document.querySelector('[data-testid="toast-portal"]')).not.toBeNull();
+    expect(document.querySelector('.opale-toast-provider')).not.toBeNull();
   });
 
   it('applique le thème mémorisé du gabarit une fois l’hydratation faite', async () => {

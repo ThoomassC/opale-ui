@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CommandPalette, ConfirmDialog, CookieBanner, Lightbox, SidePanel, Toast } from './opale';
+import { byClass } from '../test/stable-class';
 
 /* =============================================================================
    OUVRIR ET FERMER : `open` + `onOpenChange`.
@@ -14,7 +15,7 @@ import { CommandPalette, ConfirmDialog, CookieBanner, Lightbox, SidePanel, Toast
 afterEach(cleanup);
 
 const escape = () => fireEvent.keyDown(window, { key: 'Escape' });
-const overlay = () => screen.getByTestId('modal-overlay');
+const overlay = () => byClass('opale-modal__backdrop');
 
 describe('ConfirmDialog', () => {
   const renderDialog = () => {

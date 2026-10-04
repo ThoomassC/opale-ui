@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 import Modal, { type ModalProps } from './Modal';
 import { ToastProvider, useToast } from '../toast';
 import { declarations, selectorsDeclaring } from '../../../test/css-rules';
+import { byClass, queryByClass } from '../../../test/stable-class';
 
 /* =============================================================================
    LES SIX CAS D'ORIGINE SONT TOUS LÀ, ET AUCUN N'A ÉTÉ AFFAIBLI.
@@ -54,7 +55,7 @@ describe('Modal', () => {
   it('appelle onOpenChange au clic sur le voile', () => {
     const { onOpenChange } = renderModal();
 
-    const overlay = screen.getByTestId('modal-overlay');
+    const overlay = byClass('opale-modal__backdrop');
     expect(overlay).toBeInTheDocument();
     fireEvent.click(overlay);
 
@@ -64,7 +65,7 @@ describe('Modal', () => {
   it('ne ferme pas quand le clic sur le voile est désarmé', () => {
     const { onOpenChange } = renderModal({ closeOnOverlay: false });
 
-    const overlay = screen.getByTestId('modal-overlay');
+    const overlay = byClass('opale-modal__backdrop');
     expect(overlay).toBeInTheDocument();
     fireEvent.click(overlay);
 
@@ -82,7 +83,7 @@ describe('Modal', () => {
   it('se portaille dans le body par défaut', () => {
     renderModal();
 
-    const modalContainer = screen.getByTestId('modal-container');
+    const modalContainer = byClass('opale-modal');
     expect(modalContainer.parentElement!.tagName).toBe('BODY');
   });
 
@@ -231,7 +232,7 @@ describe('Modal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    const portal = screen.getByTestId('toast-portal');
+    const portal = byClass('opale-toast-provider');
     for (
       let node: HTMLElement | null = portal;
       node && node !== baseElement;
@@ -273,7 +274,7 @@ describe('Modal', () => {
     );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('modal-container')).not.toBeInTheDocument();
+    expect(queryByClass('opale-modal')).not.toBeInTheDocument();
   });
 
   it('laisse l’appelant surcharger le nom accessible sans perdre role ni aria-modal', () => {
@@ -338,7 +339,7 @@ describe('Modal — restitution du focus et inertie, par chaque sortie', () => {
       'le bouton Fermer',
       (user: UserEvent) => user.click(screen.getByRole('button', { name: 'Fermer' })),
     ],
-    ['le clic sur le voile', (user: UserEvent) => user.click(screen.getByTestId('modal-overlay'))],
+    ['le clic sur le voile', (user: UserEvent) => user.click(byClass('opale-modal__backdrop'))],
   ] as const;
 
   it.each(exits)(

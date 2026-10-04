@@ -376,7 +376,6 @@ function ToastCard({ toast, onDismiss, onRemove, labels }: ToastCardProps) {
         animationClass[animation],
         dismissed && styles.leaving,
       )}
-      data-testid="toast"
       /* Les quatre gestionnaires sont le dispositif WCAG 2.2.1, et il en faut
          quatre : la souris et le doigt passent par le pointeur, le clavier par
          le focus. N'en poser que deux laisserait dehors exactement le public
@@ -607,7 +606,6 @@ export const ToastProvider = ({
           <div
             ref={setPortalRoot}
             className={clsx('opale-toast-provider', styles.root)}
-            data-testid="toast-portal"
             /* Une modale ouverte rend le reste de la page inerte ; les toasts
                lancés depuis elle doivent rester annoncés et refermables. */
             {...{ [MODAL_EXEMPT_ATTRIBUTE]: '' }}
