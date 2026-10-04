@@ -4098,7 +4098,15 @@ ol.opale-stack {
      feuille est préfixé, et `motion.scss` fait déjà de même. Les classes des
      modules (`opale-mod-…`) portent le préfixe ; les descendants sont gardés,
      parce que certaines règles d'Opale animent des éléments sans classe
-     (`.opale-pagination button`). `:where()` laisse le poids à zéro, comme `*`. */
+     (`.opale-pagination button`). `:where()` laisse le poids à zéro, comme `*`.
+
+     LES TRANSITIONS GARDENT LEUR DURÉE, PAS LEUR MOUVEMENT. Les ramener à
+     0,01 ms coupait aussi le fondu de couleur qui confirme un survol : le
+     mouvement réduit demande moins de MOUVEMENT, pas moins de retour. Comme
+     `motion.scss`, le bloc restreint donc la liste des propriétés — couleurs,
+     remplissage, trait, opacité — et laisse la durée écrite : un déplacement,
+     une mise à l'échelle, une ombre ou une taille sautent. Aucun composant
+     n'attend `transitionend`. */
   :where([class^='opale-'], [class*=' opale-']),
   :where([class^='opale-'], [class*=' opale-']) *,
   :where([class^='opale-'], [class*=' opale-'])::before,
@@ -4108,7 +4116,9 @@ ol.opale-stack {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    transition-property:
+      color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+      opacity !important;
   }
 }
 

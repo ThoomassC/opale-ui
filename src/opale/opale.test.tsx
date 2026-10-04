@@ -556,6 +556,22 @@ describe('les constats sérieux de l’audit', () => {
         'par centième de milliseconde au lieu de s’arrêter.',
     ).toBe('1 !important');
   });
+
+  /* LE MOUVEMENT RÉDUIT N'EST PAS L'ABSENCE DE RETOUR VISUEL. Seules les
+     propriétés de couleur et d'opacité gardent une transition, à leur durée
+     écrite ; un déplacement, une mise à l'échelle ou une ombre sautent. */
+  it('garde le retour de couleur et coupe le mouvement quand on demande moins de mouvement', () => {
+    const filet = declarations(opaleSheet, ":where([class^='opale-'], [class*=' opale-'])", {
+      within: '@media (prefers-reduced-motion: reduce)',
+    });
+
+    expect(filet.get('transition-property')).toBe(
+      'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity !important',
+    );
+    expect(filet.get('transition-duration'), 'La durée doit rester celle de la règle.').toBe(
+      undefined,
+    );
+  });
 });
 
 /* =============================================================================

@@ -12,7 +12,9 @@ import opaleSource from '../opale/opale.css?raw';
    courbe de `--opale-ease*`. Deux exceptions, et elles sont de nature :
    - une boucle (`infinite`) a une PÉRIODE, pas une durée — la rotation d'un
      indicateur de chargement, le reflet d'un squelette ;
-   - le bloc `prefers-reduced-motion` ramène tout à 0,01 ms.
+   - le bloc `prefers-reduced-motion` ramène les animations à 0,01 ms. Les
+     transitions, elles, n'y perdent que leurs propriétés de mouvement : la
+     couleur et l'opacité gardent leur durée écrite.
    ========================================================================== */
 
 const modules = import.meta.glob<string>('../opale/components/**/*.{css,scss}', {
@@ -84,6 +86,31 @@ describe('l’échelle de mouvement', () => {
       expect(offenders).toEqual([]);
     });
   }
+
+  /* MOINS DE MOUVEMENT, PAS MOINS DE RETOUR. Une transition ramenée à
+     0,01 ms éteignait aussi le fondu de couleur qui confirme un survol ; le
+     filet restreint donc la liste des propriétés et laisse la durée en place.
+     Aucune propriété de déplacement, de taille ou d'ombre n'y figure. */
+  it('ne coupe sous mouvement réduit que les transitions de mouvement', () => {
+    const MOVEMENT =
+      /\b(transform|translate|scale|rotate|box-shadow|width|height|inset|top|left|all)\b/;
+    for (const file of ['opale.css', 'motion.scss'] as const) {
+      postcss.parse(stripComments(sheets[file] ?? '')).walkDecls((decl) => {
+        if (!inReducedMotion(decl)) return;
+        if (decl.prop === 'transition-duration' || decl.prop === 'transition') {
+          expect(decl.value, `${file} · ${decl.prop}`).not.toMatch(/(?<![\w.-])0?\.01ms\b/);
+        }
+      });
+    }
+    const filet = declarations(opaleSource, ":where([class^='opale-'], [class*=' opale-'])", {
+      within: '@media (prefers-reduced-motion: reduce)',
+    });
+    const property = filet.get('transition-property') ?? '';
+    expect(property).toBe(
+      'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity !important',
+    );
+    expect(property).not.toMatch(MOVEMENT);
+  });
 
   it('n’écrit de courbe `cubic-bezier` qu’à la racine', () => {
     for (const [file, raw] of Object.entries(sheets)) {
