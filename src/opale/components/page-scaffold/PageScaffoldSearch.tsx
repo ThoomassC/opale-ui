@@ -156,6 +156,11 @@ export function PageScaffoldSearch({
               'aria-activedescendant':
                 listVisible && activeSuggestion ? `${listId}-option-${activeIndex}` : undefined,
               value: query,
+              /* Avec des suggestions, le champ est CONTRÔLÉ par `query`, qui
+                 part déjà de `searchProps.defaultValue` : le transmettre en
+                 plus donnait à React un champ à la fois contrôlé et non
+                 contrôlé, signalé en console. */
+              defaultValue: undefined,
               onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
                 setLocalQuery(event.target.value);
                 setOpen(true);

@@ -533,6 +533,18 @@ describe('PageScaffold — la recherche à suggestions', () => {
     expect(searchbox()).toHaveValue('éco');
   });
 
+  /* Le champ à suggestions est contrôlé : `defaultValue` le seedait, mais
+     partait AUSSI vers l'`<input>`, que React refusait — à la fois contrôlé et
+     non contrôlé. */
+  it('ne devrait pas donner au champ value et defaultValue à la fois', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    render(<PageScaffold searchSuggestions={SUGGESTIONS} searchProps={{ defaultValue: 'éco' }} />);
+    const messages = error.mock.calls.map((call) => call.map(String).join(' '));
+    error.mockRestore();
+
+    expect(messages.filter((message) => /both value and defaultValue/.test(message))).toEqual([]);
+  });
+
   it('devrait nommer la liste et l’absence de résultat d’après les libellés fournis', async () => {
     const user = userEvent.setup();
     render(
