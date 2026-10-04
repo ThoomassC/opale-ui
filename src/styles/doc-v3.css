@@ -286,8 +286,11 @@ body {
   pointer-events: none;
   transition: background var(--opale-motion) var(--opale-ease);
 }
+/* L'option désignée pose l'encre du rôle sur l'aplat primaire : le blanc
+   écrit en dur tombait à 3,62:1 sur le primaire sombre (#5d87cb), l'encre
+   `--opale-on-primary` y tient 5,32:1, et 6,38:1 en clair. */
 .tc-doc-search__option[aria-selected='true'] {
-  color: #fff !important;
+  color: var(--opale-on-primary) !important;
 }
 .tc-doc-search__option[aria-selected='true'] .tc-doc-search__label {
   font-weight: 600;
@@ -300,7 +303,7 @@ body {
   color: var(--opale-text-secondary) !important;
 }
 .tc-doc-search__option[aria-selected='true'] .tc-doc-search__group {
-  color: #e8f8fb !important;
+  color: var(--opale-on-primary) !important;
 }
 .tc-doc-search__empty {
   padding: 0.85rem 1rem !important;
@@ -568,10 +571,6 @@ body {
 :root[data-theme='dark'] .tc-doc-nav__versionnumber,
 :root[data-theme='dark'] .tc-doc-home__action:not(.tc-doc-home__action--secondary) {
   color: #0c0f0d !important;
-}
-
-:root[data-theme='dark'] .tc-doc-search__option[aria-selected='true'] .tc-doc-search__group {
-  color: #182033 !important;
 }
 
 .tc-doc-body {

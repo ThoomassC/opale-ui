@@ -15,6 +15,14 @@
    ailleurs que dans l'ancien `charter-page.tsx`, qui n'existe plus sous cette
    forme. Tout le reste — spécimens, plaques, tableaux, échelles, états,
    scènes — est le vocabulaire des PAGES et n'a pas bougé d'une déclaration.
+
+   LES ENCRES DE TEXTE SONT CELLES D'OPALE. `--text-strong` et `--text-body`
+   sont devenus `--opale-text`, `--text-muted` `--opale-text-secondary`,
+   `--text-accent` `--opale-primary-on-surface` et `--rule` `--opale-divider` :
+   les anciens rôles portaient la teinte sarcelle de la palette précédente
+   (`doc-palette.structure.test.ts`). Les ratios cités plus bas au nom des
+   anciens rôles sont historiques ; ceux qui justifient une règle encore en
+   place ont été remesurés sur les jetons Opale.
    ========================================================================== */
 
 /* La hauteur de la barre du haut, citée TROIS fois — par la barre elle-même,
@@ -305,11 +313,11 @@ body {
    sommaire. */
 .tc-doc-topbar .tc-doc-topbar__bar,
 .tc-doc-nav .tc-doc-nav__panel {
-  color: var(--text-body); /* 8,12:1 */
+  color: var(--opale-text); /* 17,26:1 en clair, 17,07:1 en sombre */
 }
 
 .tc-doc {
-  color: var(--text-body);
+  color: var(--opale-text);
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-body);
@@ -338,7 +346,7 @@ body {
 
 .tc-doc-inlinecode {
   margin-inline: var(--space-1);
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
 }
 
 .tc-doc code {
@@ -455,7 +463,7 @@ body {
   white-space: nowrap;
   text-overflow: ellipsis;
   min-block-size: var(--target-min);
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -470,7 +478,7 @@ body {
 }
 
 .tc-doc-topbar__brand:hover {
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
   text-decoration: underline;
   text-underline-offset: 0.25em;
 }
@@ -628,7 +636,7 @@ body {
 
 .tc-doc-search__glyph {
   flex: none;
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-md);
   line-height: 1;
 }
@@ -675,7 +683,7 @@ body {
   padding-block: var(--space-2);
   border: 0;
   background: transparent;
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
 }
@@ -697,13 +705,12 @@ body {
   }
 }
 
-/* `--text-muted` et non une encre plus pâle : un texte de substitution est du
-   texte, donc WCAG 1.4.3 s'y applique. Mesuré ailleurs dans cette feuille,
-   `--text-muted` tient 8,12:1 sur le sol blanc de la vitrine et 8,47:1 en
-   sombre — et il est ici sur `--panel-surface`, un lavis composé sur ce sol,
-   donc au-dessus du seuil dans les deux thèmes. */
+/* `--opale-text-secondary` et non une encre plus pâle : un texte de
+   substitution est du texte, donc WCAG 1.4.3 s'y applique. L'encre secondaire
+   tient 6,04:1 sur la surface creusée claire et 6,82:1 sur la surface sombre,
+   ses deux pires supports — au-dessus du seuil dans les deux thèmes. */
 .tc-doc-search__input::placeholder {
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   opacity: 1;
 }
 
@@ -783,7 +790,7 @@ body {
   padding-block: var(--space-2);
   padding-inline: var(--space-3);
   border-radius: var(--radius-sm);
-  color: var(--text-body);
+  color: var(--opale-text);
   font-size: var(--text-sm);
   cursor: pointer;
 }
@@ -830,7 +837,7 @@ body {
 }
 
 .tc-doc-search__group {
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-xs);
 }
 
@@ -864,7 +871,7 @@ body {
   border-radius: var(--radius-md);
   background: var(--surface);
   box-shadow: var(--elevation-3);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
 }
 
@@ -1055,7 +1062,7 @@ body {
      ni rayon, ni ombre : il est posé sur le sol de la page et séparé du
      contenu par un trait. Le filet est en bas en une colonne, sur le côté en
      deux — c'est la seule chose qui change entre les deux dispositions. */
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
   /* Le défilement de la nav ne doit pas entraîner celui de la page quand elle
      arrive en butée. */
   overscroll-behavior: contain;
@@ -1131,7 +1138,7 @@ body {
   inline-size: 100%;
   margin-block: 0 var(--space-4);
   padding-block-end: var(--space-4);
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
 }
 
 /* UN LAVIS NEUTRE ET NON TEAL : une version ne s'actionne pas, et le teal est
@@ -1146,7 +1153,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   background: var(--panel-surface);
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -1157,12 +1164,12 @@ body {
    était le plus petit texte de toute la coquille. Le mono de la pastille suffit
    à distinguer les deux à taille égale. */
 .tc-doc-nav__versionnote {
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
 }
 
-/* `--text-muted` (8,12:1 sur le sol blanc de la vitrine — 6,76:1 sur le sol
-   publié —, 8,47:1 en sombre) et non `--text-strong` :
+/* `--opale-text-secondary` (6,54:1 sur le fond clair, 9,22:1 sur le fond
+   sombre) et non `--opale-text` :
    capitales + interlettrage + demi-gras faisaient des trois titres de groupe
    les marques les plus noires de la colonne, en concurrence avec l'entrée
    courante. L'ordre de lecture voulu est : page courante, entrées, groupes,
@@ -1216,7 +1223,7 @@ body {
   margin-block-end: var(--space-2);
   padding-block: var(--space-2);
   border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.08em;
@@ -1240,7 +1247,7 @@ body {
   display: inline-block;
   inline-size: 1ch;
   margin-inline-end: var(--space-2);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
   line-height: 1;
   text-align: center;
@@ -1270,7 +1277,7 @@ body {
   margin-block-end: var(--space-3);
   padding-block: var(--space-2);
   border-radius: var(--radius-sm);
-  color: var(--text-body);
+  color: var(--opale-text);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.08em;
@@ -1288,7 +1295,7 @@ body {
   display: inline-block;
   inline-size: 1ch;
   margin-inline-end: var(--space-2);
-  color: var(--text-body);
+  color: var(--opale-text);
   font-size: var(--text-sm);
   line-height: 1;
   text-align: center;
@@ -1313,7 +1320,7 @@ body {
 
 .tc-doc-nav__grouptitle:hover {
   background: var(--panel-surface-hover);
-  color: var(--text-strong);
+  color: var(--opale-text);
 }
 
 /* L'ANNEAU EXACT DES LIENS DU SOMMAIRE, à deux couches — et recopié plutôt que
@@ -1339,7 +1346,7 @@ body {
   display: block;
   margin-block-start: var(--space-1);
   padding-inline-start: calc(1ch + var(--space-2));
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-xs);
   font-weight: var(--weight-regular);
   letter-spacing: normal;
@@ -1377,7 +1384,7 @@ body {
   border-radius: var(--radius-sm);
   border-start-start-radius: 0;
   border-end-start-radius: 0;
-  color: var(--text-body);
+  color: var(--opale-text);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   text-decoration: none;
@@ -1405,7 +1412,7 @@ body {
 .tc-doc-nav__link:hover {
   border-inline-start-color: var(--accent-quiet-border);
   background: var(--panel-surface);
-  color: var(--text-strong);
+  color: var(--opale-text);
 }
 
 .tc-doc-nav__link:focus-visible {
@@ -1421,7 +1428,7 @@ body {
 .tc-doc-nav__link[aria-current='page'] {
   border-inline-start-color: var(--accent);
   background: var(--accent-quiet);
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-weight: var(--weight-semibold);
 }
 
@@ -1487,7 +1494,7 @@ body {
        contenu qui le suit, donc il est en bas ; en deux colonnes le contenu est
        à droite, donc il y va. Un seul trait dans les deux cas. */
     border-block-end: 0;
-    border-inline-end: 1px solid var(--rule);
+    border-inline-end: 1px solid var(--opale-divider);
     padding-block: var(--space-5) var(--space-7);
     transition: padding-inline var(--motion-move) var(--motion-ease);
   }
@@ -1598,7 +1605,7 @@ body {
      sol clair est blanc, et à 6,60:1 chez un consommateur, qui reçoit
      `--site-background`. */
   background: none;
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
   font: inherit;
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -1901,7 +1908,7 @@ body {
     max-block-size: min(48dvh, 30rem);
     padding: var(--space-3) var(--space-4) var(--space-4);
     overflow-y: auto;
-    border-block-end: 1px solid var(--rule);
+    border-block-end: 1px solid var(--opale-divider);
     transition:
       inline-size var(--motion-move) var(--motion-ease),
       max-block-size var(--motion-move) var(--motion-ease),
@@ -1970,7 +1977,7 @@ body {
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-pill);
     background: var(--tc-white-a10);
-    color: var(--text-strong);
+    color: var(--opale-text);
     font-size: 0;
     line-height: 3rem;
     text-align: center;
@@ -2348,7 +2355,7 @@ body {
      contenu, il entoure le titre. Le titre reste un bloc — il se replie
      normalement quand il est plus long que la colonne. */
   inline-size: fit-content;
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-display);
   font-size: var(--text-display-md);
   font-weight: var(--weight-bold);
@@ -2412,7 +2419,7 @@ body {
 .tc-doc-aside {
   padding-inline-start: var(--space-4);
   border-inline-start: 2px solid var(--accent-secondary);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
 }
 
@@ -2452,7 +2459,7 @@ body {
    1.4.3, dont le plancher est 3:1. Conforme d'un facteur 3,7. */
 .tc-doc-specimen__title {
   margin: 0;
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: var(--weight-bold);
@@ -2462,7 +2469,7 @@ body {
 .tc-doc-specimen__note {
   margin: var(--space-2) 0 0;
   max-inline-size: var(--measure);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
 }
 
@@ -2487,7 +2494,7 @@ body {
 
 .tc-doc-release-callout__eyebrow {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.08em;
@@ -2496,7 +2503,7 @@ body {
 
 .tc-doc-release-callout__version {
   margin: var(--space-1) 0 0;
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-mono);
   font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
@@ -2505,7 +2512,7 @@ body {
 .tc-doc-release-callout__text {
   margin: 0;
   max-inline-size: var(--measure);
-  color: var(--text-body);
+  color: var(--opale-text);
   font-size: var(--text-sm);
 }
 
@@ -2532,7 +2539,7 @@ body {
   justify-content: space-between;
   gap: var(--space-3);
   padding-block-end: var(--space-3);
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
 }
 
 .tc-doc-release__meta {
@@ -2548,7 +2555,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   background: var(--panel-surface);
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -2559,25 +2566,25 @@ body {
   padding-inline: var(--space-2);
   border-radius: var(--radius-pill);
   background: var(--accent-quiet);
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
 }
 
 .tc-doc-release__status--breaking {
   background: var(--panel-surface);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
 }
 
 .tc-doc-release__date {
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
 }
 
 .tc-doc-release__title {
   margin: var(--space-4) 0 0;
   max-inline-size: var(--measure);
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: var(--weight-bold);
@@ -2649,7 +2656,7 @@ body {
 
 .tc-doc-install {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
 }
 
@@ -2661,7 +2668,7 @@ body {
 .tc-doc-specimen__stage {
   margin-block-start: var(--space-5);
   padding-block-start: var(--space-5);
-  border-block-start: 1px solid var(--rule);
+  border-block-start: 1px solid var(--opale-divider);
 }
 
 .tc-doc-specimen__stage--inline {
@@ -2700,11 +2707,11 @@ body {
 }
 
 .tc-doc-laws__item--neutral {
-  border-block-start-color: var(--text-muted);
+  border-block-start-color: var(--opale-text-secondary);
 }
 
 .tc-doc-laws__item strong {
-  color: var(--text-strong);
+  color: var(--opale-text);
 }
 
 /* --- Plaques de palette ----------------------------------------------------
@@ -2734,13 +2741,13 @@ body {
 .tc-doc-plate--themed {
   border-color: var(--doc-card-edge);
   background: var(--surface);
-  color: var(--text-body);
+  color: var(--opale-text);
 }
 
 .tc-doc-plate__head {
   padding-block-end: var(--space-4);
   margin-block-end: var(--space-4);
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
 }
 
 .tc-doc-plate__title {
@@ -2764,7 +2771,7 @@ body {
 .tc-doc-plate__grouptitle {
   margin: 0 0 var(--space-2);
   padding-block-end: var(--space-2);
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.06em;
@@ -2865,7 +2872,7 @@ body {
 .tc-doc-table td {
   padding-block: var(--space-3);
   padding-inline: var(--space-4);
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
   text-align: start;
   vertical-align: baseline;
 }
@@ -2884,8 +2891,8 @@ body {
 }
 
 .tc-doc-table thead th {
-  background: var(--panel-surface);
-  color: var(--text-strong);
+  background: var(--opale-surface-sunken);
+  color: var(--opale-text);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.06em;
@@ -2933,7 +2940,7 @@ body {
   gap: var(--space-3);
   align-items: baseline;
   padding-block-end: var(--space-4);
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
 }
 
 .tc-doc-scale__row:last-child {
@@ -2955,25 +2962,25 @@ body {
 .tc-doc-scale__token {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
 }
 
 .tc-doc-scale__value {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
 }
 
 .tc-doc-scale__usage {
   flex: 1 1 100%;
   max-inline-size: var(--measure);
   font-size: var(--text-sm);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
 }
 
 .tc-doc-scale__sample {
   margin: 0;
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-display);
   line-height: var(--leading-heading);
   overflow-wrap: break-word;
@@ -2986,7 +2993,7 @@ body {
 .tc-doc-scale__stack {
   display: block;
   margin-block-start: var(--space-1);
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
@@ -3039,7 +3046,7 @@ body {
 
 .tc-doc-cardtitle {
   margin: 0 0 var(--space-2);
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   line-height: var(--leading-heading);
@@ -3049,7 +3056,7 @@ body {
   margin: 0 0 var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
 }
 
 .tc-doc-cardtext {
@@ -3205,7 +3212,7 @@ body {
    est dans la liste blanche de `tokens.css`, dont l'intention écrite est
    « moins de MOUVEMENT, pas moins de RETOUR D'INFORMATION ». */
 .tc-doc-link {
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
   font-weight: var(--weight-medium);
   text-underline-offset: 0.25em;
   transition: text-decoration-thickness var(--motion-color) var(--motion-ease);
@@ -3250,7 +3257,7 @@ body {
   border-start-start-radius: 0;
   border-end-start-radius: 0;
   background: var(--panel-surface);
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-body);
@@ -3281,7 +3288,7 @@ body {
   border: 2px solid var(--accent);
   border-radius: var(--radius-sm);
   background: var(--accent-quiet);
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
@@ -3339,13 +3346,13 @@ body {
    L'intention annoncée en tête de ce fichier — « le filet du pied tombe sous un
    texte aligné avec lui » — n'était vraie qu'à la largeur exacte des captures. */
 .tc-doc-footer {
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   font-size: var(--text-sm);
 }
 
 .tc-doc-footer .tc-doc-shell {
   padding-block: var(--space-7);
-  border-block-start: 1px solid var(--rule);
+  border-block-start: 1px solid var(--opale-divider);
 }
 
 /* --- Scène de décor ----------------------------------------------------------
@@ -3536,10 +3543,10 @@ body {
 .tc-doc-topbar__glass,
 .tc-doc-nav__glass {
   --doc-shell-ground: var(--surface);
-  --doc-shell-edge: var(--rule);
+  --doc-shell-edge: var(--opale-divider);
   --opale-glass-tint: var(--panel-surface);
   --opale-glass-edge: var(--border-subtle);
-  --opale-glass-ink: var(--text-body);
+  --opale-glass-ink: var(--opale-text);
   background: var(--doc-shell-ground);
   border-color: var(--doc-shell-edge);
 }
@@ -3610,7 +3617,7 @@ body {
 }
 
 .tc-doc-search__input::placeholder {
-  color: var(--text-muted);
+  color: var(--opale-text-secondary);
   opacity: 1;
 }
 
@@ -3618,7 +3625,7 @@ body {
   align-items: center;
   padding-block-start: var(--space-2);
   padding-block-end: var(--space-3);
-  border-block-end: 1px solid var(--rule);
+  border-block-end: 1px solid var(--opale-divider);
 }
 
 .tc-doc-nav__heading {
@@ -3630,7 +3637,7 @@ body {
 
 .tc-doc-nav__eyebrow {
   margin-block-start: var(--space-2);
-  color: var(--text-accent);
+  color: var(--opale-primary-on-surface);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
@@ -3640,7 +3647,7 @@ body {
 
 .tc-doc-nav__title {
   overflow: hidden;
-  color: var(--text-strong);
+  color: var(--opale-text);
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   text-overflow: ellipsis;
@@ -3687,7 +3694,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--text-strong);
+  color: var(--opale-text);
   line-height: var(--target-min);
   text-align: center;
 }
@@ -3718,7 +3725,7 @@ body {
 .tc-doc-nav__grouptitle {
   margin-block-end: var(--space-1);
   padding-inline: var(--space-2);
-  color: var(--text-strong);
+  color: var(--opale-text);
 }
 
 .tc-doc-nav__link {
