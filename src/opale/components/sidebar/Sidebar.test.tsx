@@ -34,21 +34,21 @@ describe('Sidebar component', () => {
     expect(screen.getByRole('button', { name: 'Analytics' })).toBeInTheDocument();
   });
 
-  it('fires onSelectItem with item data', () => {
+  it('fires onValueChange with the item id', () => {
     const handleSelect = vi.fn();
-    renderSidebar({ onSelectItem: handleSelect });
+    renderSidebar({ onValueChange: handleSelect });
 
     fireEvent.click(screen.getByRole('button', { name: 'Analytics' }));
 
     expect(handleSelect).toHaveBeenCalledTimes(1);
-    expect(handleSelect).toHaveBeenCalledWith('analytics', expect.any(Object));
+    expect(handleSelect).toHaveBeenCalledWith('analytics');
   });
 
   it('does not trigger selection for disabled items', () => {
     const handleSelect = vi.fn();
 
     render(
-      <Sidebar collapsible onSelectItem={handleSelect}>
+      <Sidebar collapsible onValueChange={handleSelect}>
         <Sidebar.Items>
           <Sidebar.Item itemId="ready">Ready</Sidebar.Item>
           <Sidebar.Item itemId="blocked" disabled>
@@ -65,9 +65,9 @@ describe('Sidebar component', () => {
     expect(handleSelect).not.toHaveBeenCalled();
   });
 
-  it('calls onToggle when collapsible header toggle clicked', () => {
+  it('calls onCollapsedChange when collapsible header toggle clicked', () => {
     const handleToggle = vi.fn();
-    renderSidebar({ collapsed: false, onToggle: handleToggle });
+    renderSidebar({ collapsed: false, onCollapsedChange: handleToggle });
 
     fireEvent.click(screen.getByRole('button', { name: 'Replier le rail' }));
 
@@ -76,11 +76,11 @@ describe('Sidebar component', () => {
 });
 
 /* =============================================================================
-   LES QUATRE CAS CI-DESSUS SONT LE CAHIER DES CHARGES, ET ILS N'ONT PAS BOUGÉ.
+   LES QUATRE CAS CI-DESSUS SONT LE CAHIER DES CHARGES.
 
    Ils décrivent le comportement hérité, en anglais comme ils ont été écrits ;
-   les reformuler aurait fait mentir le diff sur ce qui a réellement été
-   revérifié. Les cas ci-dessous sont NOUVEAUX et portent sur ce que la
+   seuls les noms de props ont suivi le retrait des anciens en 4.0.0
+   (`onSelectItem` → `onValueChange`, `onToggle` → `onCollapsedChange`). Les cas ci-dessous sont NOUVEAUX et portent sur ce que la
    réécriture corrige : ils sont donc écrits dans la langue du dépôt.
 
    POURQUOI CES CAS-LÀ ET PAS D'AUTRES. Les quatre défauts corrigés sont des
@@ -112,7 +112,7 @@ describe('Sidebar — ce que la réécriture corrige', () => {
 
   it('devrait annoncer l’entrée retenue par aria-current', () => {
     render(
-      <Sidebar activeItemId="carte">
+      <Sidebar value="carte">
         <Sidebar.Items>
           <Sidebar.Item itemId="etapes">Étapes</Sidebar.Item>
           <Sidebar.Item itemId="carte">Carte</Sidebar.Item>
@@ -307,13 +307,11 @@ describe('Sidebar — value, defaultValue, onValueChange, onCollapsedChange', ()
     expect(screen.getByRole('button', { name: 'Analytics' })).not.toHaveAttribute('aria-current');
   });
 
-  it('devrait faire gagner value sur activeItemId, et appeler onValueChange avant onSelectItem', () => {
+  it('devrait appeler onValueChange une fois par sélection, en mode contrôlé', () => {
     const calls: string[] = [];
     renderSidebar({
       value: 'dashboard',
-      activeItemId: 'analytics',
       onValueChange: (id) => calls.push(`onValueChange:${id}`),
-      onSelectItem: (id) => calls.push(`onSelectItem:${id}`),
     });
 
     expect(screen.getByRole('button', { name: 'Dashboard' })).toHaveAttribute(
@@ -323,26 +321,25 @@ describe('Sidebar — value, defaultValue, onValueChange, onCollapsedChange', ()
 
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
-    expect(calls).toEqual(['onValueChange:settings', 'onSelectItem:settings']);
+    expect(calls).toEqual(['onValueChange:settings']);
   });
 
-  it('devrait appeler onCollapsedChange puis l’onToggle déprécié', () => {
+  it('devrait appeler onCollapsedChange une fois par bascule', () => {
     const calls: string[] = [];
     renderSidebar({
       onCollapsedChange: (collapsed) => calls.push(`onCollapsedChange:${collapsed}`),
-      onToggle: (collapsed) => calls.push(`onToggle:${collapsed}`),
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Replier le rail' }));
 
-    expect(calls).toEqual(['onCollapsedChange:true', 'onToggle:true']);
+    expect(calls).toEqual(['onCollapsedChange:true']);
     expect(screen.getByRole('button', { name: 'Déplier le rail' })).toBeInTheDocument();
   });
 
-  it('devrait exposer value dans le contexte', () => {
+  it('devrait exposer value dans le contexte, sans l’ancien activeItemId', () => {
     function Probe() {
-      const { value, activeItemId } = Sidebar.useSidebar();
-      return <output>{`${value ?? '-'}/${activeItemId ?? '-'}`}</output>;
+      const context = Sidebar.useSidebar();
+      return <output>{`${context.value ?? '-'}/${'activeItemId' in context}`}</output>;
     }
     render(
       <Sidebar value="dashboard">
@@ -350,7 +347,7 @@ describe('Sidebar — value, defaultValue, onValueChange, onCollapsedChange', ()
       </Sidebar>,
     );
 
-    expect(screen.getByRole('status')).toHaveTextContent('dashboard/dashboard');
+    expect(screen.getByRole('status')).toHaveTextContent('dashboard/false');
   });
 
   it('fait entendre le badge en description, sans changer le nom', () => {

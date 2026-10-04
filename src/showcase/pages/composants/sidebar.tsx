@@ -49,8 +49,7 @@ const PROPS: readonly PropRow[] = [
     type: '(collapsed: boolean) => void',
     description: (
       <>
-        L’état <em>suivant</em>, et rien d’autre. Remplace <code>onToggle</code>, déprécié depuis
-        2.6 et toujours appelé, après lui.
+        L’état <em>suivant</em>, et rien d’autre.
       </>
     ),
   },
@@ -60,9 +59,7 @@ const PROPS: readonly PropRow[] = [
     description: (
       <>
         L’entrée retenue, contrôlée ou non ; <code>null</code> n’en retient aucune.{' '}
-        <code>onValueChange(itemId)</code> est appelée dans les deux cas. Remplacent{' '}
-        <code>activeItemId</code>, <code>defaultActiveItemId</code> et <code>onSelectItem</code>,
-        dépréciés depuis 2.6.
+        <code>onValueChange(itemId)</code> est appelée dans les deux cas.
       </>
     ),
   },
@@ -277,10 +274,8 @@ export default function SidebarContent() {
                 <code>onToggle</code> du DOM, voir plus bas — et reprend{' '}
                 <strong>des props nommées</strong> de <code>GlassProps</code> :{' '}
                 <code>rootClassName</code> et <code>rootStyle</code>, qui atteignent l’enveloppe du
-                verre ; <code>enableLiquidAnimation</code> et <code>triggerAnimation</code> restent
-                acceptés mais sont dépréciés depuis 2.7. Il n’intersecte plus{' '}
-                <code>GlassProps</code> en entier, qui apportait le <code>as</code> du verre — de
-                quoi remplacer l’
+                verre ; l’onde est interne au matériau. Il n’intersecte plus <code>GlassProps</code>{' '}
+                en entier, qui apportait le <code>as</code> du verre — de quoi remplacer l’
                 <code>&lt;aside&gt;</code> — et tous les attributs d’un <code>&lt;div&gt;</code>.
                 Chaque sous-composant étend l’élément qu’il rend — <code>&apos;div&apos;</code> pour
                 l’en-tête et le pied, <code>&apos;nav&apos;</code> pour <code>.Items</code>,{' '}

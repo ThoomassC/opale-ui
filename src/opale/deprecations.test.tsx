@@ -19,11 +19,8 @@ import {
   Topbar,
   useToast,
   type SearchBarProps,
-  type SidebarProps,
   type SiteNavProps,
-  type TabsProps,
   type ToastDefinition,
-  type TopbarProps,
 } from './components';
 import {
   CommandPalette,
@@ -193,9 +190,6 @@ function FireDeprecatedToast({ options }: { options: Props }) {
 const OPTIONS = [{ value: 'a', label: 'A' }];
 
 const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
-  Tabs: (p) => <Tabs {...(p as Partial<TabsProps>)} />,
-  Sidebar: (p) => <Sidebar {...(p as Partial<SidebarProps>)} />,
-  Topbar: (p) => <Topbar {...(p as Partial<TopbarProps>)} />,
   SearchBar: (p) => <SearchBar aria-label="Rechercher" {...(p as Partial<SearchBarProps>)} />,
   SiteNav: (p) => (
     <SiteNav items={[{ id: 'a', href: '/', label: 'A' }]} {...(p as Partial<SiteNavProps>)} />

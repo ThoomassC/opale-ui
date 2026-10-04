@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import Modal from './modal/Modal';
 import SearchBar from './search-bar/SearchBar';
@@ -89,29 +89,6 @@ describe('rootStyle', () => {
     const header = screen.getByRole('banner');
     expect(header.style.marginTop).toBe('7px');
     expect(header.style.color).toBe('blue');
-  });
-});
-
-describe('les réglages internes du verre sur la version pleine', () => {
-  it.each([
-    ['Topbar', <Topbar key="t" triggerAnimation enableLiquidAnimation />],
-    ['Sidebar', <Sidebar key="s" triggerAnimation enableLiquidAnimation />],
-    [
-      'Tabs',
-      <Tabs key="b" defaultValue="a" triggerAnimation enableLiquidAnimation pressFeedback>
-        <Tabs.List>
-          <Tabs.Trigger value="a">A</Tabs.Trigger>
-        </Tabs.List>
-      </Tabs>,
-    ],
-  ])('%s ne les écrit pas dans le DOM', (_name, element) => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    render(element);
-    const unknown = spy.mock.calls.filter((call) =>
-      call.some((part) => typeof part === 'string' && /does not recognize|non-boolean/i.test(part)),
-    );
-    spy.mockRestore();
-    expect(unknown).toEqual([]);
   });
 });
 
