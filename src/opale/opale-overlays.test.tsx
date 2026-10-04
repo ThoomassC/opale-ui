@@ -100,21 +100,6 @@ describe('SidePanel', () => {
 
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
   });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <SidePanel
-        open
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(overlay());
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
-  });
 });
 
 describe('Lightbox', () => {
@@ -159,21 +144,6 @@ describe('CommandPalette', () => {
     escape();
 
     expect(onOpenChange.mock.calls).toEqual([[false], [false]]);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <CommandPalette
-        open
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(screen.getAllByRole('button', { name: 'Fermer' })[1]);
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 });
 

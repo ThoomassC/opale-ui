@@ -37,18 +37,13 @@ import {
   SidePanel,
   Toast,
   Toggle,
-  type CommandPaletteProps,
   type ConfirmDialogProps,
   type DataTableProps,
   type FeedbackProps,
   type FileCardProps,
   type LightboxProps,
   type MultiSelectProps,
-  type NavbarProps,
-  type PaginationProps,
-  type RatingInputProps,
   type SegmentedControlProps,
-  type SidePanelProps,
   type ToastProps,
 } from './opale';
 
@@ -211,11 +206,6 @@ const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
   SegmentedControl: (p) => (
     <SegmentedControl options={OPTIONS} {...(p as Partial<SegmentedControlProps>)} />
   ),
-  Navbar: (p) => <Navbar items={[{ id: 'a', label: 'A' }]} {...(p as Partial<NavbarProps>)} />,
-  SidePanel: (p) => <SidePanel {...(p as Partial<SidePanelProps>)} />,
-  CommandPalette: (p) => <CommandPalette {...(p as Partial<CommandPaletteProps>)} />,
-  Pagination: (p) => <Pagination pageCount={3} {...(p as Partial<PaginationProps>)} />,
-  RatingInput: (p) => <RatingInput label="Note" {...(p as Partial<RatingInputProps>)} />,
 };
 
 /** Une valeur plausible pour chaque ancien nom : seule sa présence compte. */

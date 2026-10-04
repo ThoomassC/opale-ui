@@ -104,14 +104,13 @@ describe('CommandPalette', () => {
     expect(screen.getByRole('searchbox', { name: 'Rechercher une commande' })).toHaveValue('thème');
   });
 
-  it('devrait garder la valeur contrôlée et appeler les deux rappels, le canonique d’abord', () => {
+  it('devrait garder la valeur contrôlée et appeler onValueChange une fois', () => {
     const calls: string[] = [];
     render(
       <CommandPalette
         open
         value="a"
         onValueChange={(value) => calls.push(`onValueChange:${value}`)}
-        onChange={(value) => calls.push(`onChange:${value}`)}
       />,
     );
 
@@ -119,7 +118,7 @@ describe('CommandPalette', () => {
     fireEvent.change(search, { target: { value: 'ab' } });
 
     expect(search).toHaveValue('a');
-    expect(calls).toEqual(['onValueChange:ab', 'onChange:ab']);
+    expect(calls).toEqual(['onValueChange:ab']);
   });
 });
 
@@ -139,32 +138,19 @@ describe('Pagination', () => {
     expect(onValueChange).toHaveBeenCalledWith(3);
   });
 
-  it('devrait lire page comme un alias de value', () => {
-    render(<Pagination pageCount={5} page={4} />);
-
-    expect(current()).toHaveAccessibleName('Page 4');
-  });
-
-  it('devrait faire gagner value sur page', () => {
-    render(<Pagination pageCount={5} value={2} page={4} />);
-
-    expect(current()).toHaveAccessibleName('Page 2');
-  });
-
-  it('devrait appeler onValueChange puis l’onChange déprécié', () => {
+  it('devrait garder la page contrôlée et appeler onValueChange une fois', () => {
     const calls: string[] = [];
     render(
       <Pagination
         pageCount={5}
         value={1}
         onValueChange={(page) => calls.push(`onValueChange:${page}`)}
-        onChange={(page) => calls.push(`onChange:${page}`)}
       />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Page 5' }));
 
-    expect(calls).toEqual(['onValueChange:5', 'onChange:5']);
+    expect(calls).toEqual(['onValueChange:5']);
     expect(current()).toHaveAccessibleName('Page 1');
   });
 
@@ -176,19 +162,15 @@ describe('Pagination', () => {
 });
 
 describe('RatingInput', () => {
-  it('devrait appeler onValueChange puis l’onChange déprécié', () => {
+  it('devrait appeler onValueChange une fois par choix', () => {
     const calls: string[] = [];
     render(
-      <RatingInput
-        label="Note"
-        onValueChange={(value) => calls.push(`onValueChange:${value}`)}
-        onChange={(value) => calls.push(`onChange:${value}`)}
-      />,
+      <RatingInput label="Note" onValueChange={(value) => calls.push(`onValueChange:${value}`)} />,
     );
 
     fireEvent.click(screen.getByRole('radio', { name: '4 sur 5' }));
 
-    expect(calls).toEqual(['onValueChange:4', 'onChange:4']);
+    expect(calls).toEqual(['onValueChange:4']);
     expect(screen.getByRole('radio', { name: '4 sur 5' })).toBeChecked();
   });
 
@@ -343,14 +325,13 @@ describe('Navbar', () => {
     expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('devrait honorer encore activeId et onSelect, après les noms canoniques', () => {
+  it('devrait appeler onValueChange une fois par clic, en mode contrôlé', () => {
     const calls: string[] = [];
     render(
       <Navbar
         items={ITEMS}
-        activeId="profil"
+        value="profil"
         onValueChange={(id) => calls.push(`onValueChange:${id}`)}
-        onSelect={(id) => calls.push(`onSelect:${id}`)}
       />,
     );
 
@@ -358,13 +339,7 @@ describe('Navbar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Accueil' }));
 
-    expect(calls).toEqual(['onValueChange:accueil', 'onSelect:accueil']);
-  });
-
-  it('devrait faire gagner value sur activeId', () => {
-    render(<Navbar items={ITEMS} value="accueil" activeId="profil" />);
-
-    expect(screen.getByRole('button', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page');
+    expect(calls).toEqual(['onValueChange:accueil']);
   });
 
   it('ne devrait pas appeler onValueChange depuis un lien', () => {
