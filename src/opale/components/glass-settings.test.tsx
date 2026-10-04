@@ -104,12 +104,6 @@ describe('les réglages internes du verre sur la version pleine', () => {
         </Tabs.List>
       </Tabs>,
     ],
-    [
-      'Modal',
-      <Modal key="m" open title="Titre" triggerAnimation pressFeedback>
-        Corps
-      </Modal>,
-    ],
   ])('%s ne les écrit pas dans le DOM', (_name, element) => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(element);

@@ -123,7 +123,7 @@ describe('Modal', () => {
     const Harness = ({ open }: { open: boolean }) => (
       <>
         <button type="button">Ouvrir</button>
-        <Modal open={open} onClose={() => {}} title="Glass modal">
+        <Modal open={open} onOpenChange={() => {}} title="Glass modal">
           <p>Modal body content</p>
         </Modal>
       </>
@@ -143,7 +143,12 @@ describe('Modal', () => {
 
   it('piège la tabulation entre le premier et le dernier élément focusable', () => {
     render(
-      <Modal open onClose={() => {}} title="Glass modal" footer={<button type="button">OK</button>}>
+      <Modal
+        open
+        onOpenChange={() => {}}
+        title="Glass modal"
+        footer={<button type="button">OK</button>}
+      >
         <button type="button">Dans le corps</button>
       </Modal>,
     );
@@ -184,7 +189,7 @@ describe('Modal', () => {
     const Harness = ({ open }: { open: boolean }) => (
       <>
         <button type="button">Derrière</button>
-        <Modal open={open} onClose={() => {}} title="Glass modal">
+        <Modal open={open} onOpenChange={() => {}} title="Glass modal">
           <p>Modal body content</p>
         </Modal>
       </>
@@ -222,7 +227,7 @@ describe('Modal', () => {
     const { baseElement } = render(
       <ToastProvider>
         <button type="button">Derrière</button>
-        <Modal open onClose={() => {}} title="Glass modal">
+        <Modal open onOpenChange={() => {}} title="Glass modal">
           <Emit />
         </Modal>
       </ToastProvider>,
@@ -252,7 +257,7 @@ describe('Modal', () => {
           <p>Contenu</p>
           <div data-opale-modal-exempt="" data-testid="live" />
         </div>
-        <Modal open onClose={() => {}} title="Glass modal">
+        <Modal open onOpenChange={() => {}} title="Glass modal">
           <p>Modal body content</p>
         </Modal>
       </>,
@@ -266,7 +271,7 @@ describe('Modal', () => {
 
   it('n’expose aucun dialogue quand il est fermé', () => {
     render(
-      <Modal open={false} onClose={() => {}} title="Glass modal">
+      <Modal open={false} onOpenChange={() => {}} title="Glass modal">
         <p>Modal body content</p>
       </Modal>,
     );
@@ -280,7 +285,12 @@ describe('Modal', () => {
        ne peut plus casser le motif en posant son propre `role`, mais il garde
        la main sur le nom. */
     render(
-      <Modal open onClose={() => {}} aria-label="Dialogue nommé par l’appelant" role="alertdialog">
+      <Modal
+        open
+        onOpenChange={() => {}}
+        aria-label="Dialogue nommé par l’appelant"
+        role="alertdialog"
+      >
         <p>Modal body content</p>
       </Modal>,
     );
@@ -405,7 +415,7 @@ describe('les contours du panneau original', () => {
 
 describe('la croix de fermeture', () => {
   it('devrait dessiner un tracé et non le caractère « × »', () => {
-    render(<Modal open title="Confirmer" onClose={() => {}} />);
+    render(<Modal open title="Confirmer" onOpenChange={() => {}} />);
 
     const croix = screen.getByRole('button', { name: 'Fermer' });
 
@@ -416,7 +426,7 @@ describe('la croix de fermeture', () => {
   /* LE TRACÉ EST MASQUÉ, LE BOUTON EST NOMMÉ. Un `<svg>` exposé ferait
      énumérer des chemins par le lecteur d'écran par-dessus le nom du bouton. */
   it('devrait masquer son tracé aux technologies d’assistance', () => {
-    render(<Modal open title="Confirmer" onClose={() => {}} />);
+    render(<Modal open title="Confirmer" onOpenChange={() => {}} />);
 
     const svg = screen.getByRole('button', { name: 'Fermer' }).querySelector('svg');
 
@@ -432,7 +442,7 @@ describe('l’en-tête sans titre', () => {
      pleine largeur sous un bouton isolé. */
   it('ne devrait pas poser de bloc de titre vide', () => {
     const { baseElement } = render(
-      <Modal open onClose={() => {}}>
+      <Modal open onOpenChange={() => {}}>
         <img alt="Une photographie" src="/x.jpg" />
       </Modal>,
     );
@@ -443,7 +453,7 @@ describe('l’en-tête sans titre', () => {
   });
 
   it('devrait poser le bloc de titre dès qu’il y a un titre', () => {
-    const { baseElement } = render(<Modal open title="Confirmer" onClose={() => {}} />);
+    const { baseElement } = render(<Modal open title="Confirmer" onOpenChange={() => {}} />);
 
     expect(baseElement.querySelector('[class*="heading"]')).not.toBeNull();
   });
@@ -485,22 +495,6 @@ describe('Modal — onOpenChange et taille', () => {
 
     expect(onOpenChange).toHaveBeenNthCalledWith(1, false);
     expect(onOpenChange).toHaveBeenNthCalledWith(2, false);
-  });
-
-  it('devrait appeler onOpenChange puis l’onClose déprécié', () => {
-    const calls: string[] = [];
-    render(
-      <Modal
-        open
-        title="Réglages"
-        onOpenChange={(open) => calls.push(`onOpenChange:${open}`)}
-        onClose={() => calls.push('onClose')}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
-
-    expect(calls).toEqual(['onOpenChange:false', 'onClose']);
   });
 
   it.each([

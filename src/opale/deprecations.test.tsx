@@ -18,7 +18,6 @@ import {
   ToastProvider,
   Topbar,
   useToast,
-  type ModalProps,
   type SearchBarProps,
   type SidebarProps,
   type SiteNavProps,
@@ -194,7 +193,6 @@ function FireDeprecatedToast({ options }: { options: Props }) {
 const OPTIONS = [{ value: 'a', label: 'A' }];
 
 const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
-  Modal: (p) => <Modal open {...(p as Partial<ModalProps>)} />,
   Tabs: (p) => <Tabs {...(p as Partial<TabsProps>)} />,
   Sidebar: (p) => <Sidebar {...(p as Partial<SidebarProps>)} />,
   Topbar: (p) => <Topbar {...(p as Partial<TopbarProps>)} />,

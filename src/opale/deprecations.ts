@@ -87,43 +87,6 @@ function legacySurfaceEntries<const C extends string>(component: C) {
 }
 
 export const DEPRECATED_PROPS = [
-  /* ---- Modal */
-  {
-    component: 'Modal',
-    prop: 'onClose',
-    replacement: 'onOpenChange',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'components/modal/Modal.tsx',
-  },
-  {
-    component: 'Modal',
-    prop: 'triggerAnimation',
-    replacement: 'enableLiquidAnimation',
-    note: 'l’onde d’ouverture est programmée par la modale',
-    since: '2.7',
-    removal: '3.0.0',
-    source: 'components/modal/Modal.tsx',
-  },
-  {
-    component: 'Modal',
-    prop: 'as',
-    replacement: 'className',
-    note: 'la balise du panneau est interne au verre',
-    since: '2.7',
-    removal: '3.0.0',
-    source: 'components/modal/Modal.tsx',
-  },
-  {
-    component: 'Modal',
-    prop: 'pressFeedback',
-    replacement: 'liquidGlass',
-    note: 'le rebond est interne au matériau',
-    since: '2.7',
-    removal: '3.0.0',
-    source: 'components/modal/Modal.tsx',
-  },
-
   /* ---- Tabs */
   {
     component: 'Tabs',
