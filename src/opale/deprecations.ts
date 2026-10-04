@@ -421,6 +421,331 @@ export const DEPRECATED_EXPORTS = [
   },
 ] as const satisfies readonly DeprecatedExportEntry[];
 
+/* =============================================================================
+   CE QUE LA 4.0.0 RETIRE.
+
+   Une copie FIGÉE des deux tables ci-dessus, prise avant le retrait : elle
+   survit aux noms qu'elle décrit. La page « Migrer vers la 4.0 » la lit, le
+   garde de la vitrine (`no-deprecated-api.structure.test.ts`) y cherche les
+   anciens noms dans les extraits, et `removed-api.structure.test.ts` vérifie
+   que chaque nom listé a bien quitté la surface publique.
+   ========================================================================== */
+
+/** La version qui a retiré les noms dépréciés de la 2.x. */
+export const REMOVAL_VERSION = '4.0.0';
+
+/** Une prop retirée : son composant, son ancien nom et celui qui le remplace. */
+export interface RemovedPropEntry {
+  /** Le composant (ou l'appel) qui acceptait la prop. */
+  readonly component: string;
+  readonly prop: string;
+  /** Le nom à utiliser, tel qu'il s'écrit dans le code. */
+  readonly replacement: string;
+  /** Une précision, quand le passage demande plus qu'un renommage. */
+  readonly note?: string;
+  /** La version qui l'avait dépréciée. */
+  readonly since: DeprecatedSince;
+}
+
+/** Un export retiré, type ou valeur. */
+export interface RemovedExportEntry {
+  /** Le nom tel qu'on l'écrivait : `OpaleUI`, `Opale.Background`. */
+  readonly name: string;
+  readonly kind: 'type' | 'value';
+  /** L'export qui le remplace, ou `null` quand il n'y en a pas. */
+  readonly replacement: string | null;
+  readonly note?: string;
+  /** La version qui l'avait déprécié. */
+  readonly since: DeprecatedSince;
+}
+
+export const REMOVED_PROPS: readonly RemovedPropEntry[] = Object.freeze([
+  {
+    component: 'Modal',
+    prop: 'onClose',
+    replacement: 'onOpenChange',
+    since: '2.6',
+  },
+  {
+    component: 'Modal',
+    prop: 'triggerAnimation',
+    replacement: 'enableLiquidAnimation',
+    note: 'l’onde d’ouverture est programmée par la modale',
+    since: '2.7',
+  },
+  {
+    component: 'Modal',
+    prop: 'as',
+    replacement: 'className',
+    note: 'la balise du panneau est interne au verre',
+    since: '2.7',
+  },
+  {
+    component: 'Modal',
+    prop: 'pressFeedback',
+    replacement: 'liquidGlass',
+    note: 'le rebond est interne au matériau',
+    since: '2.7',
+  },
+  {
+    component: 'Tabs',
+    prop: 'as',
+    replacement: 'className',
+    note: 'la balise du contenu est interne au verre',
+    since: '2.7',
+  },
+  {
+    component: 'Tabs',
+    prop: 'pressFeedback',
+    replacement: 'liquidGlass',
+    note: 'le rebond est interne au matériau',
+    since: '2.7',
+  },
+  {
+    component: 'Tabs',
+    prop: 'enableLiquidAnimation',
+    replacement: 'liquidGlass',
+    note: 'une surface ne fait pas naître d’onde au clic',
+    since: '2.7',
+  },
+  {
+    component: 'Tabs',
+    prop: 'triggerAnimation',
+    replacement: 'liquidGlass',
+    note: 'l’onde programmée est interne au matériau',
+    since: '2.7',
+  },
+  {
+    component: 'Sidebar',
+    prop: 'enableLiquidAnimation',
+    replacement: 'liquidGlass',
+    note: 'une surface ne fait pas naître d’onde au clic',
+    since: '2.7',
+  },
+  {
+    component: 'Sidebar',
+    prop: 'triggerAnimation',
+    replacement: 'liquidGlass',
+    note: 'l’onde programmée est interne au matériau',
+    since: '2.7',
+  },
+  {
+    component: 'Topbar',
+    prop: 'enableLiquidAnimation',
+    replacement: 'liquidGlass',
+    note: 'une surface ne fait pas naître d’onde au clic',
+    since: '2.7',
+  },
+  {
+    component: 'Topbar',
+    prop: 'triggerAnimation',
+    replacement: 'liquidGlass',
+    note: 'l’onde programmée est interne au matériau',
+    since: '2.7',
+  },
+  {
+    component: 'Sidebar',
+    prop: 'onToggle',
+    replacement: 'onCollapsedChange',
+    since: '2.6',
+  },
+  {
+    component: 'Sidebar',
+    prop: 'activeItemId',
+    replacement: 'value',
+    since: '2.6',
+  },
+  {
+    component: 'Sidebar',
+    prop: 'defaultActiveItemId',
+    replacement: 'defaultValue',
+    since: '2.6',
+  },
+  {
+    component: 'Sidebar',
+    prop: 'onSelectItem',
+    replacement: 'onValueChange',
+    since: '2.6',
+  },
+  {
+    component: 'SearchBar',
+    prop: 'enableClickAnimation',
+    replacement: 'enableLiquidAnimation',
+    since: '2.7',
+  },
+  {
+    component: 'SiteNav',
+    prop: 'activeItem',
+    replacement: 'value',
+    since: '2.6',
+  },
+  {
+    component: 'showToast',
+    prop: 'variant',
+    replacement: 'tone',
+    note: '`default` → `neutral`',
+    since: '2.6',
+  },
+  {
+    component: 'DataTable',
+    prop: 'emptyMessage',
+    replacement: 'labels.empty',
+    since: '2.6',
+  },
+  {
+    component: 'DataTable',
+    prop: 'density',
+    replacement: 'size',
+    note: '`compact` → `small`',
+    since: '2.6',
+  },
+  {
+    component: 'FileCard',
+    prop: 'size',
+    replacement: 'fileSize',
+    since: '2.10',
+  },
+  {
+    component: 'Lightbox',
+    prop: 'onClose',
+    replacement: 'onOpenChange',
+    since: '2.6',
+  },
+  {
+    component: 'Feedback',
+    prop: 'severity',
+    replacement: 'tone',
+    since: '2.6',
+  },
+  {
+    component: 'Toast',
+    prop: 'onClose',
+    replacement: 'onOpenChange',
+    since: '2.6',
+  },
+  {
+    component: 'ConfirmDialog',
+    prop: 'onCancel',
+    replacement: 'onOpenChange',
+    since: '2.6',
+  },
+  {
+    component: 'MultiSelect',
+    prop: 'values',
+    replacement: 'value',
+    since: '2.6',
+  },
+  {
+    component: 'SegmentedControl',
+    prop: 'onChange',
+    replacement: 'onValueChange',
+    since: '2.6',
+  },
+  {
+    component: 'Navbar',
+    prop: 'activeId',
+    replacement: 'value',
+    since: '2.6',
+  },
+  {
+    component: 'Navbar',
+    prop: 'onSelect',
+    replacement: 'onValueChange',
+    since: '2.6',
+  },
+  {
+    component: 'SidePanel',
+    prop: 'onClose',
+    replacement: 'onOpenChange',
+    since: '2.6',
+  },
+  {
+    component: 'CommandPalette',
+    prop: 'onChange',
+    replacement: 'onValueChange',
+    since: '2.6',
+  },
+  {
+    component: 'CommandPalette',
+    prop: 'onClose',
+    replacement: 'onOpenChange',
+    since: '2.6',
+  },
+  {
+    component: 'Pagination',
+    prop: 'page',
+    replacement: 'value',
+    since: '2.6',
+  },
+  {
+    component: 'Pagination',
+    prop: 'onChange',
+    replacement: 'onValueChange',
+    since: '2.6',
+  },
+  {
+    component: 'RatingInput',
+    prop: 'onChange',
+    replacement: 'onValueChange',
+    since: '2.6',
+  },
+]);
+
+export const REMOVED_EXPORTS: readonly RemovedExportEntry[] = Object.freeze([
+  {
+    name: 'OpaleUI',
+    kind: 'value',
+    replacement: null,
+    note: 'importez chaque composant par son nom',
+    since: '2.6',
+  },
+  {
+    name: 'Opale.Background',
+    kind: 'value',
+    replacement: 'BackgroundSurface',
+    since: '2.6',
+  },
+  {
+    name: 'OPALE_CATALOG',
+    kind: 'value',
+    replacement: null,
+    note: 'métadonnée de la vitrine, sans remplaçant public',
+    since: '2.6',
+  },
+  {
+    name: 'CatalogEntry',
+    kind: 'type',
+    replacement: null,
+    note: 'métadonnée de la vitrine, sans remplaçant public',
+    since: '2.6',
+  },
+  {
+    name: 'ToastPlacement',
+    kind: 'type',
+    replacement: 'OpalePlacement',
+    since: '2.6',
+  },
+  {
+    name: 'ToastTone',
+    kind: 'type',
+    replacement: 'OpaleTone',
+    since: '2.6',
+  },
+  {
+    name: 'FieldProps',
+    kind: 'type',
+    replacement: 'InputProps',
+    since: '2.6',
+  },
+  {
+    name: 'DEFAULT_SITE_NAV_ITEMS',
+    kind: 'value',
+    replacement: 'items',
+    note: 'passez vos destinations à `SiteNav`',
+    since: '2.6',
+  },
+]);
+
 type PropTable = (typeof DEPRECATED_PROPS)[number];
 
 /** Un composant qui accepte au moins une prop dépréciée. */

@@ -82,10 +82,10 @@ const messages = () => warn.mock.calls.map(([message]) => String(message));
 
 describe('warnDeprecated', () => {
   it('écrit le message en français, avec la version et le remplaçant', () => {
-    warnDeprecated('Modal', 'onClose');
+    warnDeprecated('Lightbox', 'onClose');
 
     expect(messages()).toEqual([
-      '[Opale] Modal : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `onOpenChange`.',
+      '[Opale] Lightbox : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `onOpenChange`.',
     ]);
   });
 
@@ -98,9 +98,9 @@ describe('warnDeprecated', () => {
   });
 
   it('n’avertit qu’une fois par composant et par prop', () => {
-    warnDeprecated('Modal', 'onClose');
-    warnDeprecated('Modal', 'onClose');
     warnDeprecated('Lightbox', 'onClose');
+    warnDeprecated('Lightbox', 'onClose');
+    warnDeprecated('DataTable', 'density');
 
     expect(warn).toHaveBeenCalledTimes(2);
   });
@@ -108,18 +108,18 @@ describe('warnDeprecated', () => {
   it('se tait en production', () => {
     vi.stubEnv('NODE_ENV', 'production');
 
-    warnDeprecated('Modal', 'onClose');
-    render(<Modal open onClose={() => undefined} />);
+    warnDeprecated('Lightbox', 'onClose');
+    render(<Lightbox src="a.png" alt="A" onClose={() => undefined} />);
 
     expect(warn).not.toHaveBeenCalled();
   });
 
   it('ne consomme pas l’avertissement en production', () => {
     vi.stubEnv('NODE_ENV', 'production');
-    warnDeprecated('Modal', 'onClose');
+    warnDeprecated('Lightbox', 'onClose');
     vi.unstubAllEnvs();
 
-    warnDeprecated('Modal', 'onClose');
+    warnDeprecated('Lightbox', 'onClose');
 
     expect(warn).toHaveBeenCalledTimes(1);
   });
@@ -127,14 +127,14 @@ describe('warnDeprecated', () => {
   it('avertit une seule fois pour une liste de composants rendus', () => {
     render(
       <>
-        <Pagination pageCount={3} page={1} />
-        <Pagination pageCount={3} page={2} />
-        <Pagination pageCount={3} page={3} />
+        <Lightbox src="a.png" alt="A" onClose={() => undefined} />
+        <Lightbox src="b.png" alt="B" onClose={() => undefined} />
+        <Lightbox src="c.png" alt="C" onClose={() => undefined} />
       </>,
     );
 
     expect(messages()).toEqual([
-      '[Opale] Pagination : `page` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `value`.',
+      '[Opale] Lightbox : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `onOpenChange`.',
     ]);
   });
 });

@@ -254,7 +254,7 @@ export function Home({ language, titleProps }: HomeProps) {
             >
               {copy.install.guide}
             </a>
-            <Link className="tc-doc-landing__link" href={hrefFor('migrer-vers-3')}>
+            <Link className="tc-doc-landing__link" href={hrefFor('migrer-vers-4')}>
               {copy.install.migrate}
             </Link>
           </div>

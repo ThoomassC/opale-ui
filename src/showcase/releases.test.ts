@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { findPage } from './doc-model';
 import { PAGES } from './pages';
 import { CURRENT_RELEASE, V320_REMOVED_COMPONENTS, RELEASES } from './releases';
 import { UI_VERSION } from './version';
@@ -157,8 +158,9 @@ describe('registre des notes de versions', () => {
     );
   });
 
+  /* Une ancienne adresse (`SLUG_ALIASES`) mène à une fiche : la note de 2.9
+     lie encore « Migrer vers la 3.0 », que `findPage` résout. */
   it('lie chaque changement et remplacement à une fiche existante', () => {
-    const slugs = new Set(PAGES.map((page) => page.slug));
     const linkedSlugs = [
       ...RELEASES.flatMap((release) => release.sections ?? []).flatMap((section) =>
         section.changes.flatMap((change) => change.links?.map((link) => link.slug) ?? []),
@@ -167,7 +169,7 @@ describe('registre des notes de versions', () => {
     ];
 
     for (const slug of linkedSlugs) {
-      expect(slugs.has(slug), `fiche absente : ${slug}`).toBe(true);
+      expect(findPage(PAGES, slug), `fiche absente : ${slug}`).toBeDefined();
     }
   });
 
