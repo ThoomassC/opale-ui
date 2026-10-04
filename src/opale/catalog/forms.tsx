@@ -1823,9 +1823,9 @@ export interface SegmentedControlProps extends Omit<
    *
    * SANS L'UNE NI L'AUTRE, L'APPUI N'EST PAS RETENU — contrairement à `Tabs`.
    * Le clic appelle `onValueChange`, mais aucune option ne reste pressée tant
-   * que le parent ne renvoie pas `value`. C'est le comportement de toute la
-   * 2.x et il ne change pas avant la 3.0.0 ; en développement, un appui ainsi
-   * perdu écrit un avertissement, une fois. Passez `defaultValue` pour un
+   * que le parent ne renvoie pas `value`. C'est le comportement voulu, gardé
+   * depuis la 2.x ; en développement, un appui ainsi perdu écrit un
+   * avertissement, une fois. Passez `defaultValue` pour un
    * groupe libre, `value` + `onValueChange` pour un groupe tenu.
    */
   value?: string;
@@ -1850,9 +1850,9 @@ export interface SegmentedControlProps extends Omit<
    L'APPUI PERDU EST SIGNALÉ, PAS CORRIGÉ (DX-13).
 
    Sans `value` ni `defaultValue`, un clic prévient l'appelant et ne presse
-   rien. Le corriger — retenir l'appui comme `Tabs` — changerait le rendu d'une
-   intégration 2.x : c'est pour la 3.0.0. En attendant, le développeur est
-   prévenu, et SEULEMENT quand l'appui est réellement perdu.
+   rien. Le corriger — retenir l'appui comme `Tabs` — changerait le rendu des
+   intégrations existantes ; aucune version n'est promise pour ce changement.
+   Le développeur est prévenu, et SEULEMENT quand l'appui est réellement perdu.
 
    « Ni `value` ni `defaultValue` au rendu » ne suffit pas à le dire : un
    parent qui tient la valeur peut partir de `undefined` — rien de pressé tant
