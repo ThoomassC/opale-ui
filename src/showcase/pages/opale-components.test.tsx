@@ -12,6 +12,10 @@ import { CatalogPreview } from './catalog-preview';
 import { CATALOG_API } from './opale-api-data';
 import { opaleComponentPages } from './opale-component-pages';
 import { preloadPages } from './lazy-page';
+import { allowActWarningInFile } from '../../test/console-guard';
+
+/* La fin d'animation de `SplitHeading` arrive par une promesse, après le rendu synchrone. */
+allowActWarningInFile('SplitHeading');
 
 /* Les fondations, les composants et le catalogue se chargent à la demande :
    les monter d'un coup suppose de les charger d'avance, sans quoi chaque page

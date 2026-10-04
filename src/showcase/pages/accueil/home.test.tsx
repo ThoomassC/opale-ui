@@ -18,6 +18,10 @@ import { installCommands } from '../installation';
 import { introductionPage } from '../introduction';
 import { HOME_COPY, HOME_FAMILIES, RUNTIME_DEPENDENCIES } from './home-copy';
 import { FAMILY_SLUGS } from './home-slides';
+import { allowActWarningInFile } from '../../../test/console-guard';
+
+/* La fin d'animation de `SplitHeading` arrive par une promesse, après le rendu synchrone. */
+allowActWarningInFile('SplitHeading');
 
 /* =============================================================================
    L'ACCUEIL DE LA 3.0 : CINQ BANDES, CONSTRUITES AVEC LES SEULS COMPOSANTS

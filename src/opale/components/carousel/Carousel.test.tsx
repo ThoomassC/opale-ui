@@ -323,7 +323,7 @@ describe('Carousel — sémantique', () => {
     const onValueChange = vi.fn();
     renderCarousel({ onValueChange });
     const next = screen.getByRole('button', { name: 'Diapositive suivante' });
-    next.focus();
+    act(() => next.focus());
     fireEvent.click(next);
     fireEvent.click(next);
     expect(next).not.toBeDisabled();
@@ -423,7 +423,7 @@ describe('Carousel — sémantique', () => {
 describe('Carousel — clavier', () => {
   it('va et vient aux flèches, Début et Fin', () => {
     renderCarousel();
-    track().focus();
+    act(() => track().focus());
     fireEvent.keyDown(track(), { key: 'ArrowRight' });
     expect(dots()[1]).toHaveAttribute('aria-current', 'true');
     fireEvent.keyDown(track(), { key: 'End' });

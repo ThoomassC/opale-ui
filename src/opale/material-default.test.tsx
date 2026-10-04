@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -305,7 +305,7 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
   it('ToastProvider rend l’original tant qu’on ne demande rien', async () => {
     const { container } = render(<ToastHarness />);
 
-    screen.getByRole('button', { name: 'Notifier' }).click();
+    fireEvent.click(screen.getByRole('button', { name: 'Notifier' }));
     await screen.findByText('Enregistré');
 
     expect(material(container) ?? material(document.body)).toBeNull();
@@ -314,7 +314,7 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
   it('ToastProvider rend le verre quand on le demande', async () => {
     render(<ToastHarness liquidGlass />);
 
-    screen.getByRole('button', { name: 'Notifier' }).click();
+    fireEvent.click(screen.getByRole('button', { name: 'Notifier' }));
     await screen.findByText('Enregistré');
 
     expect(material(document.body)).not.toBeNull();
