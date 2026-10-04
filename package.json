@@ -65,8 +65,8 @@
     "typecheck": "tsc -b --noEmit"
   },
   "peerDependencies": {
-    "react": ">=19",
-    "react-dom": ">=19"
+    "react": "^19",
+    "react-dom": "^19"
   },
   "dependencies": {
     "clsx": "^2.1.1"
