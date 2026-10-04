@@ -9,6 +9,12 @@
    `bundler`. Une déclaration qu'une de ces deux résolutions ne lit pas, un
    fichier oublié par `files`, un export absent : la CI échoue ici.
 
+   4.0.0 — l'application jetable écrit aussi deux usages RETIRÉS (l'export
+   `OpaleUI`, la prop `onClose` de `Modal`), chacun sous `@ts-expect-error` :
+   si l'un d'eux revenait dans les déclarations livrées, la directive
+   deviendrait inutile et `tsc --strict` échouerait. `./tokens.css`, qui n'est
+   plus publié, ne doit plus se résoudre.
+
    LIV-05 — c'est aussi l'archive attachée aux releases GitHub : elle doit
    arriver CONSTRUITE. Emballée et extraite sans aucun script, elle doit déjà
    contenir ses points d'entrée ; sinon l'installation recommandée livrerait
@@ -96,6 +102,11 @@ for (const specifier of [
 ]) {
   require.resolve(specifier);
 }
+assert.throws(
+  () => require.resolve('@thomascaron/opale-ui/tokens.css'),
+  { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' },
+  './tokens.css ne doit plus être publié.',
+);
 const { contrastRatio } = require('@thomascaron/opale-ui/contract');
 assert.strictEqual(Math.round(contrastRatio('#ffffff', '#000000')), 21);
 `,
@@ -119,6 +130,8 @@ import {
   type ButtonProps,
   type ModalProps,
 } from '@thomascaron/opale-ui';
+// @ts-expect-error -- OpaleUI a été retiré en 4.0.0 : cet import doit rester une erreur.
+import { OpaleUI } from '@thomascaron/opale-ui';
 import { contrastRatio } from '@thomascaron/opale-ui/contract';
 
 const props: ButtonProps = { variant: 'primary', size: 'small' };
@@ -127,6 +140,8 @@ export const view = (
   <>
     <Button {...props}>Valider</Button>
     <Modal open={modal.open} onOpenChange={() => undefined} title="Titre" />
+    {/* @ts-expect-error -- onClose a été retiré en 4.0.0 : la prop doit rester refusée. */}
+    <Modal open={false} onClose={() => undefined} title="Ancien nom" />
     {/* Les parties nommées, la seule forme qu'un Server Component peut lire. */}
     <Tabs defaultValue="a">
       <TabsList aria-label="Sections">
@@ -137,6 +152,7 @@ export const view = (
   </>
 );
 export const ratio: number = contrastRatio('#ffffff', '#000000');
+export const removed: unknown = OpaleUI;
 `,
   );
   writeFileSync(join(app, 'css.d.ts'), "declare module '*.css';\n");
@@ -167,7 +183,9 @@ export const ratio: number = contrastRatio('#ffffff', '#000000');
       ],
       app,
     );
-    console.log(`✓ application consommatrice compilée en moduleResolution ${resolution}.`);
+    console.log(
+      `✓ application consommatrice compilée en moduleResolution ${resolution} (OpaleUI et Modal.onClose refusés).`,
+    );
   }
 } catch (error) {
   console.error(`\n✗ le paquet emballé ne se compile pas chez un consommateur.\n${error.stdout ?? error.message}`);
