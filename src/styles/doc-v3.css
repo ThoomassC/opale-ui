@@ -3459,7 +3459,15 @@ body {
    globale d'`opale.css` (`*`) couvrait aussi les éléments `tc-doc-*` ; depuis
    la 2.9.4 elle ne vise plus que les éléments d'Opale, pour ne pas imposer son
    `!important` aux pages hôtes. La vitrine reprend donc ce filet pour elle-même.
-   `tokens.css` ne borne que les propriétés animées, pas les durées. */
+
+   MOINS DE MOUVEMENT, PAS MOINS DE RETOUR. Le filet ramenait aussi toutes les
+   transitions à 0,01 ms ; à son poids (0,1,0), il écrasait les 160 ms de
+   couleur que `tokens.css` garde sur `*` — la page Accessibilité promet le
+   contraire. Il ne restreint plus que la LISTE des propriétés : un
+   déplacement, une mise à l'échelle, une ombre ou une taille sautent, la
+   couleur et l'opacité gardent la durée de `tokens.css`. Rien dans la vitrine
+   n'attend la fin d'une transition (`SplitHeading` attend ses animations, qui
+   se terminent toujours). */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
@@ -3471,7 +3479,9 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    transition-property:
+      color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+      opacity !important;
   }
 }
 
