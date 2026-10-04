@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 
 import { describe, expect, it } from 'vitest';
 
+import { allowConsole } from '../test/console-guard';
 import { UI_VERSION } from './version';
 import { INSTALL_REF, INSTALL_REF_KIND } from './install-ref';
 
@@ -32,6 +33,10 @@ describe('la référence d’installation affichée', () => {
       expect(INSTALL_REF).not.toBe(`v${UI_VERSION}`);
       return;
     }
+
+    /* Sans dépôt Git, ou dans le clone superficiel de la CI, le contrôle est
+       ignoré et le dit sur la console : ce message est attendu. */
+    allowConsole('warn', /vérification (du tag )?ignorée/);
 
     if (tags === null) {
       console.warn('Pas de dépôt Git accessible : vérification du tag ignorée.');
