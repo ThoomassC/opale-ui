@@ -17,12 +17,16 @@ import * as root from '.';
 const TIMEOUT = 60_000;
 
 /** Le type public qui porte les props d'un composant (ou d'un appel). */
-const PROPS_TYPE: Readonly<Record<string, string>> = { showToast: 'ToastDefinition' };
+const PROPS_TYPE: Readonly<Record<string, string>> = {
+  showToast: 'ToastDefinition',
+  'Sidebar.useSidebar': 'SidebarContextValue',
+};
 const propsTypeOf = (component: string) => PROPS_TYPE[component] ?? `${component}Props`;
 
 describe(`les noms retirés en ${REMOVAL_VERSION}`, () => {
   it('tient une liste complète et sans doublon', () => {
-    expect(REMOVED_PROPS).toHaveLength(36);
+    expect(REMOVED_PROPS).toHaveLength(37);
+    expect(REMOVED_PROPS.map((entry) => entry.component)).toContain('Sidebar.useSidebar');
     expect(REMOVED_EXPORTS).toHaveLength(8);
     const pairs = REMOVED_PROPS.map((entry) => `${entry.component}.${entry.prop}`);
     expect(pairs.filter((pair, index) => pairs.indexOf(pair) !== index)).toEqual([]);

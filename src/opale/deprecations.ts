@@ -172,6 +172,13 @@ export const REMOVED_PROPS: readonly RemovedPropEntry[] = Object.freeze([
     since: '2.6',
   },
   {
+    component: 'Sidebar.useSidebar',
+    prop: 'activeItemId',
+    replacement: 'value',
+    note: 'le champ du contexte, lu par `Sidebar.useSidebar()`',
+    since: '2.6',
+  },
+  {
     component: 'SearchBar',
     prop: 'enableClickAnimation',
     replacement: 'enableLiquidAnimation',
