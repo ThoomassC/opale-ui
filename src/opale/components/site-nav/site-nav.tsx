@@ -2,7 +2,6 @@
 
 import type { ComponentPropsWithRef, MouseEvent, ReactNode } from 'react';
 import { NavBubble } from './nav-bubble';
-import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
 
 import styles from './site-nav.module.css';
@@ -23,8 +22,6 @@ export type SiteNavProps = Omit<ComponentPropsWithRef<'header'>, 'children'> & {
   readonly items: readonly SiteNavItem[];
   /** L'identifiant de la destination qui porte la bulle active. */
   readonly value?: string;
-  /** @deprecated Depuis 2.6 — utilisez `value`. */
-  readonly activeItem?: string;
   /** Le nom accessible du repère de navigation. */
   readonly navLabel?: string;
   /**
@@ -56,14 +53,12 @@ export function SiteNav({
   brand,
   items,
   value,
-  activeItem,
   navLabel = 'Navigation principale',
   onNavigate,
   liquidGlass = false,
   className,
   ...headerProps
 }: SiteNavProps) {
-  warnDeprecatedProps('SiteNav', { activeItem });
   const classes = ['opale-site-nav', styles.bar, liquidGlass ? styles.glass : '', className]
     .filter(Boolean)
     .join(' ');
@@ -73,7 +68,7 @@ export function SiteNav({
 
       <div className={`opale-site-nav__inner ${styles.inner}`}>
         <nav aria-label={navLabel}>
-          <NavBubble items={items} activeKey={value ?? activeItem} onNavigate={onNavigate} />
+          <NavBubble items={items} activeKey={value} onNavigate={onNavigate} />
         </nav>
       </div>
     </>

@@ -229,8 +229,8 @@ describe('ToastProvider', () => {
   it('monte les régions live AVANT le premier toast, et au bon niveau de politesse', () => {
     renderWithProvider(
       <>
-        <Trigger label="Info" toast={{ title: 'Carte régénérée', variant: 'info' }} />
-        <Trigger label="Erreur" toast={{ title: 'Publication refusée', variant: 'error' }} />
+        <Trigger label="Info" toast={{ title: 'Carte régénérée', tone: 'info' }} />
+        <Trigger label="Erreur" toast={{ title: 'Publication refusée', tone: 'error' }} />
       </>,
       { duration: Infinity },
     );
@@ -370,35 +370,32 @@ describe('ToastProvider — tone', () => {
     expect(region).toBeDefined();
   });
 
-  it('devrait traiter variant "default" comme tone "neutral"', () => {
+  it('devrait traiter un toast sans ton comme tone "neutral"', () => {
     renderWithProvider(
       <>
-        <Trigger label="Ancien" toast={{ title: 'Toast ancien', variant: 'default' }} />
         <Trigger label="Neutre" toast={{ title: 'Toast neutre', tone: 'neutral' }} />
         <Trigger label="Rien" toast={{ title: 'Toast sans ton' }} />
       </>,
       { duration: Infinity },
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ancien' }));
     fireEvent.click(screen.getByRole('button', { name: 'Neutre' }));
     fireEvent.click(screen.getByRole('button', { name: 'Rien' }));
 
-    expect(surfaceOf('Toast ancien')).toHaveClass(toastClasses.default);
-    expect(surfaceOf('Toast neutre')?.className).toBe(surfaceOf('Toast ancien')?.className);
-    expect(surfaceOf('Toast sans ton')?.className).toBe(surfaceOf('Toast ancien')?.className);
+    expect(surfaceOf('Toast neutre')).toHaveClass(toastClasses.default);
+    expect(surfaceOf('Toast sans ton')?.className).toBe(surfaceOf('Toast neutre')?.className);
   });
 
-  it('devrait faire gagner tone sur variant', () => {
+  it('devrait poser la classe du ton passé par tone', () => {
     renderWithProvider(
-      <Trigger label="Mixte" toast={{ title: 'Toast mixte', tone: 'success', variant: 'error' }} />,
+      <Trigger label="Succès" toast={{ title: 'Toast succès', tone: 'success' }} />,
       { duration: Infinity },
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mixte' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Succès' }));
 
-    expect(surfaceOf('Toast mixte')).toHaveClass(toastClasses.success);
-    expect(surfaceOf('Toast mixte')).not.toHaveClass(toastClasses.error);
+    expect(surfaceOf('Toast succès')).toHaveClass(toastClasses.success);
+    expect(surfaceOf('Toast succès')).not.toHaveClass(toastClasses.error);
   });
 });
 
@@ -429,7 +426,6 @@ describe('ToastProvider — durée des messages urgents', () => {
   it.each([
     ['error', { tone: 'error' }],
     ['warning', { tone: 'warning' }],
-    ['variant error', { variant: 'error' }],
   ] as const)('ne ferme pas seul un toast %s sans durée explicite', async (_, tone) => {
     renderWithProvider(<Trigger label="Lancer" toast={{ title: 'Échec', ...tone }} />);
 

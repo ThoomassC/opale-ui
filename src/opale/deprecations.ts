@@ -61,31 +61,6 @@ export interface DeprecatedExportEntry {
 
 export const DEPRECATED_PROPS = [
   /* ---- SearchBar, SiteNav, file de notifications */
-  {
-    component: 'SearchBar',
-    prop: 'enableClickAnimation',
-    replacement: 'enableLiquidAnimation',
-    since: '2.7',
-    removal: '3.0.0',
-    source: 'components/search-bar/SearchBar.tsx',
-  },
-  {
-    component: 'SiteNav',
-    prop: 'activeItem',
-    replacement: 'value',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'components/site-nav/site-nav.tsx',
-  },
-  {
-    component: 'showToast',
-    prop: 'variant',
-    replacement: 'tone',
-    note: '`default` → `neutral`',
-    since: '2.6',
-    removal: '3.0.0',
-    source: 'components/toast/ToastProvider.tsx',
-  },
 
   /* ---- Le catalogue */
   {

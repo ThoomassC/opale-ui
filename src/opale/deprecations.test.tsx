@@ -18,9 +18,6 @@ import {
   ToastProvider,
   Topbar,
   useToast,
-  type SearchBarProps,
-  type SiteNavProps,
-  type ToastDefinition,
 } from './components';
 import {
   CommandPalette,
@@ -169,24 +166,7 @@ describe('les nouveaux noms', () => {
 
 type Props = Record<string, unknown>;
 
-function FireDeprecatedToast({ options }: { options: Props }) {
-  const { showToast } = useToast();
-  useEffect(() => {
-    showToast({ title: 'Publié', ...(options as Partial<ToastDefinition>) });
-  }, [showToast, options]);
-  return null;
-}
-
 const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
-  SearchBar: (p) => <SearchBar aria-label="Rechercher" {...(p as Partial<SearchBarProps>)} />,
-  SiteNav: (p) => (
-    <SiteNav items={[{ id: 'a', href: '/', label: 'A' }]} {...(p as Partial<SiteNavProps>)} />
-  ),
-  showToast: (p) => (
-    <ToastProvider>
-      <FireDeprecatedToast options={p} />
-    </ToastProvider>
-  ),
   DataTable: (p) => <DataTable {...(p as Partial<DataTableProps>)} />,
   FileCard: (p) => <FileCard name="a.pdf" {...(p as Partial<FileCardProps>)} />,
   Lightbox: (p) => <Lightbox src="a.png" alt="A" {...(p as Partial<LightboxProps>)} />,

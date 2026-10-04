@@ -17,9 +17,7 @@ expectOnlyDeprecationWarnings();
 
    `rootStyle` atteint l'élément qui porte la silhouette dans les DEUX
    matières : l'enveloppe du verre, ou l'élément unique de la version pleine.
-   Les réglages propres au verre ne fuient pas dans le DOM d'une version
-   pleine. `enableLiquidAnimation` est le nom commun de l'onde ; l'ancien
-   `enableClickAnimation` de `SearchBar` garde son effet.
+   `enableLiquidAnimation` est le nom commun de l'onde.
    ========================================================================== */
 
 afterEach(cleanup);
@@ -105,17 +103,5 @@ describe('l’onde de SearchBar', () => {
 
   it('se coupe par enableLiquidAnimation', () => {
     expect(rippleAfterClick(<SearchBar liquidGlass enableLiquidAnimation={false} />)).toBeNull();
-  });
-
-  it('se coupe encore par l’ancien enableClickAnimation', () => {
-    expect(rippleAfterClick(<SearchBar liquidGlass enableClickAnimation={false} />)).toBeNull();
-  });
-
-  it('laisse enableLiquidAnimation l’emporter sur l’ancien nom', () => {
-    expect(
-      rippleAfterClick(
-        <SearchBar liquidGlass enableLiquidAnimation enableClickAnimation={false} />,
-      ),
-    ).not.toBeNull();
   });
 });

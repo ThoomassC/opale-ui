@@ -13,8 +13,8 @@ import { loadPublicApi } from '../../test/public-api';
    Ce qui est interne au matériau a quitté la surface publique en 4.0.0 :
    l'onde programmée (`triggerAnimation`), l'onde au clic sur une SURFACE
    (`enableLiquidAnimation` d'une barre, d'un rail, d'un bandeau d'onglets),
-   la balise du contenu (`as`) et le rebond forcé (`pressFeedback`). L'ancien
-   nom `enableClickAnimation` porte encore `@deprecated`.
+   la balise du contenu (`as`), le rebond forcé (`pressFeedback`) et l'ancien
+   nom `enableClickAnimation`.
    ========================================================================== */
 
 const TIMEOUT = 60_000;
@@ -47,8 +47,8 @@ const EXPECTED: Record<string, Expected> = {
     public: ['liquidGlass', 'rootClassName', 'rootStyle'],
   },
   SearchBarProps: {
-    removed: [],
-    deprecated: ['enableClickAnimation'],
+    removed: ['enableClickAnimation'],
+    deprecated: [],
     public: ['liquidGlass', 'enableLiquidAnimation'],
   },
   ToastProviderProps: {

@@ -37,8 +37,7 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'value',
     type: 'string',
-    description:
-      'Identifiant de l’entrée qui porte l’unique bulle active. Remplace activeItem, déprécié depuis 2.6.',
+    description: 'Identifiant de l’entrée qui porte l’unique bulle active.',
   },
   {
     name: 'navLabel',

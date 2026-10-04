@@ -18,7 +18,7 @@ const renderNav = (props?: Partial<React.ComponentProps<typeof SiteNav>>) =>
     <SiteNav
       brand={<a href="/">Travels in World</a>}
       items={items}
-      activeItem="map"
+      value="map"
       navLabel="Main navigation"
       onNavigate={() => undefined}
       {...props}
@@ -141,15 +141,8 @@ describe('SiteNav', () => {
 
 describe('SiteNav — value', () => {
   it('devrait placer la bulle sur value', () => {
-    renderNav({ activeItem: undefined, value: 'cities' });
+    renderNav({ value: 'cities' });
 
     expect(screen.getByRole('link', { name: 'Cities' })).toHaveAttribute('aria-current', 'page');
-  });
-
-  it('devrait faire gagner value sur activeItem', () => {
-    renderNav({ activeItem: 'map', value: 'about' });
-
-    expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Map' })).not.toHaveAttribute('aria-current');
   });
 });
