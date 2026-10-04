@@ -63,10 +63,8 @@ const ALLOWED: readonly { readonly selector: string; readonly focusable: boolean
   /* Les trois anneaux de focus eux-mêmes : ils POSENT les deux ombres. */
   { selector: '.tc-doc-topbar__brand:focus-visible', focusable: true },
   { selector: '.tc-doc-nav__grouptitle:focus-visible', focusable: true },
-  { selector: '.tc-doc-nav__alltitle:focus-visible', focusable: true },
   { selector: '.tc-doc-nav__link:focus-visible', focusable: true },
   { selector: '.tc-doc-themetoggle:focus-visible', focusable: true },
-  { selector: '.tc-doc-mobile-nav-toggle:focus-visible', focusable: true },
   { selector: '.tc-doc-search:has(.tc-doc-search__input:focus-visible)', focusable: false },
 
   /* Le panneau de suggestions. FOCUSABLE dès qu'il défile, donc son état

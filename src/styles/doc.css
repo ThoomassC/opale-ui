@@ -10,11 +10,14 @@
    La vitrine était UNE page de charte à sept sections ; elle est maintenant un
    site — barre du haut, barre de gauche, une page par sujet. Ce qui a disparu
    avec l'ancienne mise en page, et qu'un `git show` retrouve :
-   `.tc-doc-masthead`, `.tc-doc-title`, `.tc-doc-eyebrow`, `.tc-doc-lede*` et
-   les quatre règles `.tc-doc-toc*`. Aucune de ces classes n'était employée
-   ailleurs que dans l'ancien `charter-page.tsx`, qui n'existe plus sous cette
-   forme. Tout le reste — spécimens, plaques, tableaux, échelles, états,
-   scènes — est le vocabulaire des PAGES et n'a pas bougé d'une déclaration.
+   `.tc-doc-masthead`, `.tc-doc-title`, `.tc-doc-eyebrow` et les quatre règles
+   `.tc-doc-toc*`. Aucune de ces classes n'était employée ailleurs que dans
+   l'ancien `charter-page.tsx`, qui n'existe plus sous cette forme
+   (`.tc-doc-lede` est revenu depuis, habillé par `doc-v3.css`). Les classes
+   que plus aucun composant ne rend sont retirées au fil de l'eau : la liste
+   des derniers départs est tenue plus bas, au-dessus de la démonstration du
+   focus. Le reste — spécimens, plaques, tableaux, échelles, états, scènes —
+   est le vocabulaire des PAGES.
 
    LES ENCRES DE TEXTE SONT CELLES D'OPALE. `--text-strong` et `--text-body`
    sont devenus `--opale-text`, `--text-muted` `--opale-text-secondary`,
@@ -323,16 +326,6 @@ body {
   line-height: var(--leading-body);
 }
 
-/* La mesure du site. Employée par le PIED DE PAGE seul depuis que la colonne de
-   contenu la porte elle-même (`.tc-doc-main`) : les deux valeurs sont les mêmes
-   pour que le filet du pied tombe sous un texte aligné avec lui. */
-.tc-doc-shell {
-  inline-size: 100%;
-  max-inline-size: calc(var(--space-8) * 18);
-  margin-inline: auto;
-  padding-inline: var(--space-5);
-}
-
 .tc-doc-prose {
   max-inline-size: var(--measure);
   margin-block: 0;
@@ -632,13 +625,6 @@ body {
   box-shadow:
     0 0 0 2px var(--focus-inner),
     0 0 0 5px var(--focus-outer);
-}
-
-.tc-doc-search__glyph {
-  flex: none;
-  color: var(--opale-text-secondary);
-  font-size: var(--text-md);
-  line-height: 1;
 }
 
 /* L'INPUT EST DÉSHABILLÉ, et c'est l'enveloppe qui fait la pilule : un champ
@@ -1258,62 +1244,6 @@ body {
   rotate: 90deg;
 }
 
-/* --- Le pli du sommaire ENTIER ---------------------------------------------
-   Même commande que pour un groupe, un cran au-dessus : le `<summary>` devient
-   une flèche horizontale, en un ton plus fort parce qu'il commande les groupes.
-
-   `--text-body` et non `--text-muted` : 10,08:1 sur le sol blanc de la vitrine
-   contre 8,12:1, donc la hiérarchie se lit sans qu'aucune des deux encres
-   descende vers le seuil. En sombre, `--text-body` tient 8,39:1 et
-   `--text-muted` 8,47:1 — les deux sont larges, et c'est la graisse plus que
-   l'encre qui porte la hiérarchie là-bas.
-   -------------------------------------------------------------------------- */
-
-.tc-doc-nav__alltitle {
-  /* Même `display: block` que les titres de groupe, et pour la même raison
-     supposée : un `<summary>` qui quitte `list-item` peut perdre son dépliage
-     dans WebKit. Le risque n'est pas mesuré ici, l'éviter ne coûte rien. */
-  display: block;
-  margin-block-end: var(--space-3);
-  padding-block: var(--space-2);
-  border-radius: var(--radius-sm);
-  color: var(--opale-text);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  list-style: none;
-}
-
-.tc-doc-nav__alltitle::-webkit-details-marker {
-  display: none;
-}
-
-.tc-doc-nav__alltitle::before {
-  content: '\203a';
-  display: inline-block;
-  inline-size: 1ch;
-  margin-inline-end: var(--space-2);
-  color: var(--opale-text);
-  font-size: var(--text-sm);
-  line-height: 1;
-  text-align: center;
-  transition: color var(--motion-color) var(--motion-ease);
-}
-
-.tc-doc-nav__all[open] > .tc-doc-nav__alltitle::before {
-  content: '\2039';
-}
-
-.tc-doc-nav__alltitle:focus-visible {
-  outline: 3px solid var(--focus-outer);
-  outline-offset: 2px;
-  box-shadow:
-    0 0 0 2px var(--focus-inner),
-    0 0 0 5px var(--focus-outer);
-}
-
 /* La flèche change de caractère selon `[open]` — elle reste horizontale dans
    les deux états. La préférence de mouvement n'a donc pas de rotation à
    neutraliser, seulement la transition de couleur du contrôle. */
@@ -1335,22 +1265,6 @@ body {
   box-shadow:
     0 0 0 2px var(--focus-inner),
     0 0 0 5px var(--focus-outer);
-}
-
-/* La note vit dans le titre du groupe : elle reprend donc son fil normal —
-   casse, graisse et interlettrage — au lieu de la capitale espacée. */
-/* LA NOTE EST UN BLOC, donc sur sa propre ligne ; le retrait la remet sous le
-   libellé plutôt que sous le chevron — `1ch` est la largeur déclarée du
-   chevron, `--space-2` la marge qui le sépare du libellé. */
-.tc-doc-nav__groupnote {
-  display: block;
-  margin-block-start: var(--space-1);
-  padding-inline-start: calc(1ch + var(--space-2));
-  color: var(--opale-text-secondary);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-regular);
-  letter-spacing: normal;
-  text-transform: none;
 }
 
 .tc-doc-nav__list {
@@ -1462,20 +1376,6 @@ body {
     transition: grid-template-columns var(--motion-move) var(--motion-ease);
   }
 
-  /* LE SOMMAIRE REPLIÉ REND SA PISTE À LA PAGE. La largeur passe d'une piste
-     de 288 px à un rail de 76 px : la flèche rejoint donc le haut gauche et
-     le contenu récupère l'espace libéré avec une transition fluide.
-
-     `:has()` ET NON UN ATTRIBUT POSÉ PAR REACT, parce que le pli est un
-     `<details>` natif sans état React — c'est la feuille qui doit lire l'état
-     de l'élément, pas un rendu qui doit le recopier. Le sélecteur pèse
-     (0,2,0) contre (0,1,0) pour la règle de base, donc il gagne sans
-     `!important` et sans dépendre de l'ordre. `:has()` est déjà employé
-     quinze lignes plus haut par la pilule de recherche. */
-  .tc-doc-body:has(.tc-doc-nav__all:not([open])) {
-    grid-template-columns: calc(var(--target-min) + (2 * var(--space-4))) minmax(0, 1fr);
-  }
-
   .tc-doc-nav {
     position: sticky;
     /* JUSTE SOUS LA BARRE DU HAUT, sans un pixel de plus. Le décalage valait
@@ -1499,52 +1399,11 @@ body {
     transition: padding-inline var(--motion-move) var(--motion-ease);
   }
 
-  /* Replié, le sommaire n'a plus à occuper toute la hauteur : `block-size` en
-     dur laisserait une colonne vide de 100 dvh bordée d'un filet sur toute la
-     page. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) {
-    block-size: auto;
-  }
-
-  /* EN MODE PLIÉ, LE TEXTE DISPARAÎT, LA PISTE SE RÉDUIT ET LA FLÈCHE PASSE
-     en haut à gauche du rail. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__versionnote {
-    display: none;
-  }
-
   /* La commande est retirée du flux pour rester en haut de la colonne. En mode
      ouvert, le header occupe déjà cette zone : aucun espace supplémentaire ne
      doit être réservé avant « Introduction ». */
   .tc-doc-nav__panel {
     position: relative;
-  }
-
-  .tc-doc-nav__all {
-    padding-block-start: 0;
-  }
-
-  .tc-doc-nav__alltitle {
-    position: absolute;
-    inset-block-start: var(--space-2);
-    inset-inline-end: auto;
-    inset-inline-start: calc(100% - var(--target-min) - var(--space-2));
-    margin: 0;
-    transition:
-      inset-block-start var(--motion-move) var(--motion-ease),
-      inset-inline-start var(--motion-move) var(--motion-ease),
-      background-color var(--motion-color) var(--motion-ease);
-  }
-
-  /* Plié : le rail compact place la commande en haut à gauche. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__alltitle {
-    inset-block-start: 0;
-    inset-inline-start: 0;
-  }
-
-  /* En mode plié, la flèche devient le seul contenu visible : on lui réserve
-     sa hauteur pour que le rail compact ne s'écrase pas. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__all {
-    padding-block-start: calc(var(--target-min) + var(--space-2));
   }
 
   /* LA GRILLE DE CENTRAGE A ÉTÉ RETIRÉE, ET SON ABSENCE EST LE CORRECTIF.
@@ -1960,59 +1819,6 @@ body {
     position: relative;
   }
 
-  .tc-doc-nav__all {
-    position: static;
-    padding-block-start: 0;
-    interpolate-size: allow-keywords;
-  }
-
-  .tc-doc-nav .tc-doc-nav__alltitle {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline-end: var(--space-4);
-    inline-size: 3rem;
-    block-size: 3rem;
-    margin: 0;
-    padding: 0;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-pill);
-    background: var(--tc-white-a10);
-    color: var(--opale-text);
-    font-size: 0;
-    line-height: 3rem;
-    text-align: center;
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    transition:
-      background-color var(--motion-color) var(--motion-ease),
-      border-color var(--motion-color) var(--motion-ease);
-  }
-
-  .tc-doc-nav__alltitle::before {
-    position: absolute;
-    inset: 0;
-    content: '\203a';
-    display: grid;
-    place-items: center;
-    inline-size: auto;
-    margin-inline-end: 0;
-    color: var(--accent);
-    font-size: var(--text-md);
-    line-height: 1;
-    transform: rotate(90deg);
-    transition: transform var(--motion-move) var(--motion-ease);
-  }
-
-  .tc-doc-nav__all[open] > .tc-doc-nav__alltitle::before {
-    content: '\203a';
-    transform: rotate(-90deg);
-  }
-
-  .tc-doc-nav__alltitle:hover {
-    border-color: var(--accent);
-    background: var(--accent-quiet);
-  }
-
   .tc-doc-nav__group {
     margin-block-start: var(--space-3);
   }
@@ -2031,97 +1837,6 @@ body {
     min-block-size: var(--target-min);
     padding-inline: var(--space-3) var(--space-2);
     border-radius: var(--radius-sm);
-  }
-
-  /* Une fermeture garde le même repère horizontal que l'état ouvert. Le
-     panneau devient invisible, mais sa largeur reste celle du sommaire pour
-     que la flèche ne saute pas vers le bord de l'écran entre deux états. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) {
-    justify-self: stretch;
-    inline-size: 100%;
-    block-size: 0;
-    min-block-size: 0;
-    max-block-size: 0;
-    padding: 0;
-    overflow: visible;
-    border-block-end: 0;
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
-    inline-size: 100%;
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__panel {
-    inline-size: 100%;
-    block-size: 0;
-    min-block-size: 0;
-    padding: 0;
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__all {
-    block-size: 0;
-    min-block-size: 0;
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__alltitle {
-    inset-block-start: calc(-1 * (var(--target-min) + var(--space-4)) - 1px);
-    inset-inline-end: calc(2 * var(--space-4));
-    inset-inline-start: auto;
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--text-on-accent);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  /* Le champ s'aligne à gauche pour laisser le bouton replié dans la même
-     rangée, avec 8 px de respiration entre les deux cibles. */
-  .tc-doc:has(.tc-doc-nav__all:not([open])) .tc-doc-topbar__field {
-    justify-content: flex-start;
-  }
-
-  .tc-doc:has(.tc-doc-nav__all:not([open])) .tc-doc-search {
-    inline-size: calc(100% - 3rem - var(--space-2) - var(--space-4));
-    flex: 0 0 calc(100% - 3rem - var(--space-2) - var(--space-4));
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
-    overflow: visible;
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__alltitle::before {
-    color: var(--text-on-accent);
-  }
-
-  /* En mode fermé, les couches du verre s'arrêtent au bouton : aucune petite
-     plaque ne reste autour de lui. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [data-opale-glass]
-    > [data-opale-glass-layer='refraction'],
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [data-opale-glass]
-    > [data-opale-glass-layer='tint'],
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [data-opale-glass]
-    > [data-opale-glass-layer='specular'] {
-    display: none;
-  }
-
-  @supports selector(details::details-content) {
-    .tc-doc-nav__all::details-content {
-      block-size: 0;
-      opacity: 0;
-      overflow: clip;
-      transition:
-        block-size var(--motion-move) var(--motion-ease),
-        opacity var(--motion-color) var(--motion-ease),
-        content-visibility var(--motion-move) allow-discrete;
-    }
-
-    .tc-doc-nav__all[open]::details-content {
-      block-size: auto;
-      opacity: 1;
-    }
   }
 }
 
@@ -2301,8 +2016,7 @@ body {
    `<main>` porte lui-même la mesure et les coussins : la coquille n'a AUCUN
    conteneur entre lui et le titre — le contrat de DOM exige que le `<h1>`, le
    chapeau et le corps soient ses enfants directs — donc il n'y a pas de
-   `.tc-doc-shell` à intercaler ici. La borne est la même que celle du pied de
-   page, qui l'obtient par `.tc-doc-shell` : les deux s'alignent au pixel.
+   conteneur à intercaler ici.
    -------------------------------------------------------------------------- */
 
 .tc-doc-main {
@@ -2365,34 +2079,9 @@ body {
 /* Le corps de la page commence après le bloc de tête, et l'écart se pose par
    VOISINAGE faute de conteneur (voir ci-dessus). `+ *` ne touche que le premier
    nœud rendu par la page, ce qui est exactement l'intention : les suivants
-   gèrent leur propre rythme.
-
-   L'ordre de ces deux règles est porteur : le chapeau est lui aussi le voisin
-   du titre, donc il est d'abord poussé de `--space-7`, puis ramené à
-   `--space-4` par la règle suivante — même spécificité (0,1,0), déclarée après,
-   elle gagne. Les inverser rendrait le chapeau trop bas. */
-.tc-doc-page__title + *,
-.tc-doc-page__lede + * {
+   gèrent leur propre rythme. */
+.tc-doc-page__title + * {
   margin-block-start: var(--space-7);
-}
-
-/* LA MESURE DU CHAPEAU EST RAMENÉE À LA LARGEUR PHYSIQUE DU CORPS, et c'est
-   une correction mesurée : `--measure` vaut `66ch`, et le `ch` se résout sur la
-   fonte de l'ÉLÉMENT — 66 caractères à 19 px font 787 px là où le corps, à
-   16 px, en fait 665. Le contrat « 66 caractères » était tenu, la colonne ne
-   l'était pas : trois bords droits en escalier dans la même page, et le
-   chapeau plus large que le texte qu'il introduit.
-
-   La première déclaration est le REPLI et n'est pas décorative : la division
-   d'une longueur par une longueur relève de CSS Values 4, et un moteur qui la
-   refuse ignore la seconde règle et retrouve le rendu d'avant — le chapeau
-   redevient trop large, rien ne casse. Mesuré à 662,9 px contre 665,2 px pour
-   le corps dans Chromium : 2 px d'écart de métrique. */
-.tc-doc-page__lede {
-  margin-block-start: var(--space-4);
-  max-inline-size: var(--measure);
-  max-inline-size: calc(var(--measure) * var(--text-base) / var(--text-md));
-  font-size: var(--text-md);
 }
 
 /* --- Corps de page ---------------------------------------------------------
@@ -2479,42 +2168,6 @@ body {
    pas de simples ancres vers du texte : le bouton principal reste donc une
    vraie cible, tandis que le lien Git donne la provenance immuable.
    -------------------------------------------------------------------------- */
-
-.tc-doc-release-callout {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--space-4);
-  align-items: center;
-  padding: var(--space-5);
-  border: 1px solid var(--accent-secondary);
-  border-inline-start-width: var(--space-1);
-  border-radius: var(--radius-md);
-  background: var(--panel-surface);
-}
-
-.tc-doc-release-callout__eyebrow {
-  margin: 0;
-  color: var(--opale-text-secondary);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.tc-doc-release-callout__version {
-  margin: var(--space-1) 0 0;
-  color: var(--opale-text);
-  font-family: var(--font-mono);
-  font-size: var(--text-lg);
-  font-weight: var(--weight-semibold);
-}
-
-.tc-doc-release-callout__text {
-  margin: 0;
-  max-inline-size: var(--measure);
-  color: var(--opale-text);
-  font-size: var(--text-sm);
-}
 
 .tc-doc-release-list {
   display: grid;
@@ -2652,12 +2305,6 @@ body {
   margin-block-start: 0;
   padding-block-start: 0;
   border-block-start: 0;
-}
-
-.tc-doc-install {
-  margin: 0;
-  color: var(--opale-text-secondary);
-  font-size: var(--text-sm);
 }
 
 /* Le filet reprend le dispositif de `.tc-doc-plate__head` — coussin puis trait
@@ -2986,18 +2633,6 @@ body {
   overflow-wrap: break-word;
 }
 
-.tc-doc-scale__sample--family {
-  font-size: var(--text-md);
-}
-
-.tc-doc-scale__stack {
-  display: block;
-  margin-block-start: var(--space-1);
-  color: var(--opale-text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-}
-
 /* Le teal a le monopole des états ; une barre de mesure est du décor, donc
    cuivre. */
 .tc-doc-bar {
@@ -3168,10 +2803,15 @@ body {
    des éléments natifs non habillés — c'est même devenu la démonstration juste,
    l'anneau venant de la règle universelle de `tokens.css` et d'aucun composant.
 
-   RESTENT DANS CETTE FEUILLE, ET ELLES ÉTAIENT DÉJÀ MORTES AVANT LA 2.0 :
-   `.tc-doc-eyebrow`, `.tc-doc-lede`, `.tc-doc-masthead`, `.tc-doc-title` et
-   `.tc-doc-toc`, héritées du temps où la vitrine tenait sur une page unique.
-   Elles ne sont pas retirées ici parce qu'elles ne sont pas de ce chantier.
+   ONT SUIVI EN 3.x, faute d'un composant qui les rende encore : la coquille
+   `.tc-doc-shell`, l'ancien pli du sommaire entier (`.tc-doc-nav__all`,
+   `__alltitle`) et son bouton mobile (`.tc-doc-mobile-nav-toggle`), la note de
+   groupe (`.tc-doc-nav__groupnote`), la loupe dessinée de la recherche
+   (`.tc-doc-search__glyph`), le chapeau `.tc-doc-page__lede`, l'encart de
+   version `.tc-doc-release-callout*`, le bloc d'installation `.tc-doc-install`
+   et deux variantes d'échelle (`.tc-doc-scale__sample--family`,
+   `.tc-doc-scale__stack`). Les règles `doc-v3.css` de l'ancien accueil
+   (`.tc-doc-home__*`) sont parties dans le même lot.
    -------------------------------------------------------------------------- */
 
 /* --- Démonstration du focus ------------------------------------------------- */
@@ -3348,11 +2988,6 @@ body {
 .tc-doc-footer {
   color: var(--opale-text-secondary);
   font-size: var(--text-sm);
-}
-
-.tc-doc-footer .tc-doc-shell {
-  padding-block: var(--space-7);
-  border-block-start: 1px solid var(--opale-divider);
 }
 
 /* --- Scène de décor ----------------------------------------------------------
@@ -3612,10 +3247,6 @@ body {
   background: var(--panel-surface-hover);
 }
 
-.tc-doc-search__glyph {
-  color: var(--accent);
-}
-
 .tc-doc-search__input::placeholder {
   color: var(--opale-text-secondary);
   opacity: 1;
@@ -3685,39 +3316,6 @@ body {
   letter-spacing: 0.02em;
 }
 
-.tc-doc-nav__alltitle {
-  inline-size: var(--target-min);
-  block-size: var(--target-min);
-  margin-block-end: var(--space-2);
-  margin-inline-start: auto;
-  padding: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--opale-text);
-  line-height: var(--target-min);
-  text-align: center;
-}
-
-.tc-doc-nav__alltitle::before {
-  margin-inline-end: 0;
-  color: var(--accent);
-  font-size: var(--text-md);
-}
-
-.tc-doc-nav__alltitle:hover {
-  border-color: var(--accent);
-  background: var(--panel-surface-hover);
-}
-
-/* En mode fermé, le rail ne conserve aucune information concurrente : la
-   flèche reste le seul contrôle visible et le sommaire se rouvre au même
-   endroit. */
-.tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__head,
-.tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__version {
-  display: none;
-}
-
 .tc-doc-nav__group {
   margin-block-start: var(--space-4);
 }
@@ -3756,51 +3354,6 @@ body {
   .tc-doc-topbar__brand {
     max-inline-size: 100%;
   }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) {
-    padding-block: var(--space-2);
-    padding-inline: var(--space-2);
-    transition: padding-inline var(--motion-move) var(--motion-ease);
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) > [data-opale-glass] {
-    inline-size: 100%;
-    padding-block: var(--space-2);
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    --opale-glass-tint: transparent;
-    --opale-glass-edge: transparent;
-  }
-
-  /* En mode plié, le verre appartient au contrôle et non à un rail qui
-     l'entoure. Les couches de l'enveloppe sont désactivées pour qu'il ne
-     reste aucune mini-modale visible autour de la flèche. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [data-opale-glass]
-    > [data-opale-glass-layer='refraction'],
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [data-opale-glass]
-    > [data-opale-glass-layer='tint'],
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open]))
-    > [data-opale-glass]
-    > [data-opale-glass-layer='specular'] {
-    display: none;
-  }
-
-  /* La flèche porte seule la surface translucide, avec le même voile que les
-     boutons et modales. */
-  .tc-doc-nav:has(.tc-doc-nav__all:not([open])) .tc-doc-nav__alltitle:not(:focus-visible) {
-    background: color-mix(in srgb, var(--tc-white) 6%, transparent);
-    backdrop-filter: blur(0.75px) saturate(1.08);
-    -webkit-backdrop-filter: blur(0.75px) saturate(1.08);
-  }
-}
-
-/* Le contrôle mobile appartient au header : il ne doit jamais apparaître
-   comme une pastille flottante dans le sommaire. */
-.tc-doc-mobile-nav-toggle {
-  display: none;
 }
 
 @media (max-width: 59.999rem) {
@@ -3832,97 +3385,6 @@ body {
     max-inline-size: none;
     min-inline-size: 0;
     flex: 1 1 auto;
-  }
-
-  .tc-doc-mobile-nav-toggle {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-area: nav-toggle;
-    place-items: center;
-    inline-size: var(--target-min);
-    block-size: var(--target-min);
-    margin-inline-end: var(--space-4);
-    padding: 0;
-    border: 1px solid var(--accent);
-    border-radius: var(--radius-pill);
-    background: var(--accent);
-    color: var(--text-on-accent);
-    font: inherit;
-    cursor: pointer;
-    pointer-events: auto;
-    touch-action: manipulation;
-    transition:
-      background-color var(--motion-color) var(--motion-ease),
-      border-color var(--motion-color) var(--motion-ease);
-  }
-
-  .tc-doc-mobile-nav-toggle::before {
-    content: '';
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    inline-size: 0.5rem;
-    block-size: 0.5rem;
-    border-inline-end: 0.125rem solid currentColor;
-    border-block-end: 0.125rem solid currentColor;
-    color: var(--text-on-accent);
-    transform: translate(-50%, -50%) rotate(45deg);
-    transform-origin: center;
-    transition: transform var(--motion-move) var(--motion-ease);
-  }
-
-  .tc-doc-mobile-nav-toggle[aria-expanded='true']::before {
-    transform: translate(-50%, -50%) rotate(225deg);
-  }
-
-  .tc-doc-mobile-nav-toggle:hover {
-    background: var(--accent-active);
-    border-color: var(--accent-active);
-  }
-
-  /* Le focus clavier reste visible, mais son anneau ne reprend pas le noir
-     global de la page autour du bouton accentué. */
-  .tc-doc-mobile-nav-toggle:focus-visible {
-    outline: 3px solid var(--text-on-accent);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 2px var(--accent),
-      0 0 0 5px var(--text-on-accent);
-  }
-
-  /* Le summary natif reste dans le DOM pour porter le pliage et rester
-     disponible hors mobile ; sur mobile le seul contrôle visible est celui du
-     header. */
-  .tc-doc-nav .tc-doc-nav__alltitle {
-    display: none;
-  }
-
-  /* Les anciens ajustements de l'état fermé ne doivent plus réduire la
-     recherche ni réserver une rangée fantôme : le contrôle est maintenant
-     toujours dans la grille du header. */
-  .tc-doc:has(.tc-doc-nav__all:not([open])) .tc-doc-search {
-    inline-size: 100%;
-    flex: 1 1 auto;
-  }
-
-  /* Une fois ouvert, le sommaire commence directement sous le header : les
-     deux coussins empilés repoussaient inutilement « Opale UI » vers le bas. */
-  .tc-doc-nav:has(.tc-doc-nav__all[open]) {
-    padding-block-start: 0;
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all[open]) .tc-doc-nav__panel {
-    padding-block-start: 0;
-  }
-
-  .tc-doc-nav:has(.tc-doc-nav__all[open]) .tc-doc-nav__head {
-    align-items: flex-start;
-    padding-block-start: 0;
-  }
-
-  .tc-doc-release-callout {
-    grid-template-columns: 1fr;
   }
 
   .tc-doc-release__header {
