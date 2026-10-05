@@ -3,6 +3,125 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
+## 4.0.0 — 5 octobre 2026
+
+**Rupture.**
+
+Les retraits annoncés depuis la 2.6 : anciens noms de props et exports dépréciés, data-testid, publication de tokens.css. Toggle devient un interrupteur, React est borné à ^19. Rupture : suivez « Migrer vers la 4.0 ».
+
+### Les retraits
+
+- **Les anciens noms disparaissent** — Les 37 noms de props dépréciés depuis la 2.6 (onClose, activeItemId, onSelectItem, emptyMessage, FileCard.size…) et 8 exports (OpaleUI, Opale.Background, OPALE_CATALOG, CatalogEntry, ToastPlacement, ToastTone, FieldProps, DEFAULT_SITE_NAV_ITEMS) ne compilent plus. SiteNav exige items. Le guide liste chaque remplaçant.
+- **Ce qui change sans renommage** — Toggle s’annonce en interrupteur (role="switch") ; Modal et ToastProvider ne posent plus de data-testid, visez les classes opale-* ; tokens.css n’est plus publié, seuls les jetons --opale-* d’opale.css font foi ; react et react-dom sont bornés à ^19.
+
+### Les composants
+
+- **Retours de couleur gardés en mouvement réduit** — Sous prefers-reduced-motion, les transitions ne sont plus ramenées à 0,01 ms : les changements de couleur et d’opacité gardent leur durée, rien ne bouge.
+
+### Le site
+
+- **Un sommaire mobile qui se replie, des neutres d’Opale** — Sur téléphone, le sommaire se replie à chaque page choisie. La teinte sarcelle héritée laisse place aux neutres d’Opale (notes, en-têtes de tableau, recherche lisible en sombre), et 1 280 lignes de CSS mort sont retirées.
+
+### Migrer depuis la 3.0.4
+
+#### Fermer par onOpenChange
+
+Avant :
+
+```tsx
+<Modal open={open} onClose={() => setOpen(false)} />
+```
+
+Après :
+
+```tsx
+<Modal open={open} onOpenChange={setOpen} />
+```
+
+#### Piloter la Sidebar par value
+
+Avant :
+
+```tsx
+<Sidebar activeItemId={id} onSelectItem={(next) => setId(next)} />
+```
+
+Après :
+
+```tsx
+<Sidebar value={id} onValueChange={setId} />
+```
+
+#### Typer le ton avec OpaleTone
+
+Avant :
+
+```tsx
+import type { ToastTone } from '@thomascaron/opale-ui';
+```
+
+Après :
+
+```tsx
+import type { OpaleTone } from '@thomascaron/opale-ui';
+```
+
+#### Passer les entrées de SiteNav
+
+Avant :
+
+```tsx
+<SiteNav />
+```
+
+Après :
+
+```tsx
+<SiteNav items={[{ id: "accueil", label: "Accueil", href: "/" }]} />
+```
+
+#### Nommer la taille du fichier
+
+Avant :
+
+```tsx
+<FileCard name="cv.pdf" size="2 Mo" />
+```
+
+Après :
+
+```tsx
+<FileCard name="cv.pdf" fileSize="2 Mo" />
+```
+
+#### Viser les classes stables dans les tests
+
+Avant :
+
+```tsx
+screen.getByTestId('modal-container')
+```
+
+Après :
+
+```tsx
+document.querySelector('.opale-modal')
+```
+
+#### Lire le Toggle comme un interrupteur
+
+Avant :
+
+```tsx
+getByRole('checkbox', { name: 'Notifications' })
+```
+
+Après :
+
+```tsx
+getByRole('switch', { name: 'Notifications' })
+```
+
 ## 3.0.4 — 2 octobre 2026
 
 La suite de la phase 4 : Toggle et Checkbox qui gardent leur forme, Modal et SidePanel sur un écran bas, SegmentedControl et Button en contrastes forcés, et une page Typographie à la DA de la 3.0. Sans rupture.

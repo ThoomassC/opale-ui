@@ -49,14 +49,25 @@ describe('registre des notes de versions', () => {
     }
   });
 
-  it('présente la 3.0.4, sans rupture, et archive les versions précédentes sur leur tag ou leur commit', () => {
-    expect(CURRENT_RELEASE.version).toBe('3.0.4');
-    expect(CURRENT_RELEASE.breaking).not.toBe(true);
+  it('présente la 4.0.0, en rupture annoncée, et archive les versions précédentes sur leur tag ou leur commit', () => {
+    expect(CURRENT_RELEASE.version).toBe('4.0.0');
+    expect(CURRENT_RELEASE.breaking).toBe(true);
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
+      'Les retraits',
       'Les composants',
       'Le site',
     ]);
-    expect(CURRENT_RELEASE.changes).toHaveLength(5);
+    expect(CURRENT_RELEASE.migration?.fromVersion).toBe('3.0.4');
+    expect(CURRENT_RELEASE.migration?.steps.length).toBeGreaterThanOrEqual(6);
+    expect(
+      CURRENT_RELEASE.sections
+        ?.flatMap((section) => section.changes)
+        .some((change) => change.links?.some((link) => link.slug === 'migrer-vers-4')),
+    ).toBe(true);
+
+    const v304 = RELEASES.find((release) => release.version === '3.0.4');
+    expect(v304?.appHref).toBe('/versions/v3.0.4/index.html');
+    expect(v304?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.0.4');
 
     const v303 = RELEASES.find((release) => release.version === '3.0.3');
     expect(v303?.appHref).toBe('/versions/v3.0.3/index.html');
