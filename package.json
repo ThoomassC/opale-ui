@@ -1,6 +1,6 @@
 {
   "name": "@thomascaron/opale-ui",
-  "version": "3.0.4",
+  "version": "4.0.0",
   "private": true,
   "description": "Opale — système de design React 19 : jetons mesurés, contrat de couleur exécutable, composants et matière verre liquide.",
   "author": "Thomas Caron",
@@ -38,7 +38,6 @@
       "import": "./dist/contract/index.js",
       "default": "./dist/contract/index.js"
     },
-    "./tokens.css": "./dist/tokens/tokens.css",
     "./opale.css": "./dist/opale/opale.css",
     "./opale.layered.css": "./dist/opale/opale.layered.css",
     "./opale-nofonts.css": "./dist/opale/opale-nofonts.css",
@@ -50,12 +49,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "build:lib": "rm -rf dist && tsc -p tsconfig.lib.json && npm run build:css && npm run build:opale && node scripts/fix-dts-extensions.mjs dist/opale dist/contract",
+    "build:lib": "rm -rf dist && tsc -p tsconfig.lib.json && npm run build:opale && node scripts/fix-dts-extensions.mjs dist/opale dist/contract",
     "check:dist": "node scripts/check-dist.mjs",
     "check:consumer": "node scripts/check-consumer.mjs",
     "check:size": "node scripts/check-size.mjs",
     "changelog": "node scripts/changelog.mjs",
-    "build:css": "rm -rf dist/tokens && mkdir -p dist/tokens && cp src/tokens/*.css dist/tokens/",
     "build:opale": "rm -rf dist/opale && tsc -p tsconfig.opale.json && vite build --config vite.lib.config.ts && mkdir -p dist/opale/fonts && cp src/opale/fonts.css dist/opale/fonts.css && cp src/opale/fonts/* dist/opale/fonts/ && node scripts/link-fonts.mjs && node scripts/css-variants.mjs",
     "prepare": "npm run build:lib",
     "lint": "eslint . --max-warnings 0",
@@ -67,8 +65,8 @@
     "typecheck": "tsc -b --noEmit"
   },
   "peerDependencies": {
-    "react": ">=19",
-    "react-dom": ">=19"
+    "react": "^19",
+    "react-dom": "^19"
   },
   "dependencies": {
     "clsx": "^2.1.1"

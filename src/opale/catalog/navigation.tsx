@@ -18,7 +18,6 @@ import clsx from 'clsx';
 import Glass from '../components/glass/Glass';
 import { Modal, type ModalLabels } from '../components/modal';
 import toastMotion from '../components/toast/style/Toast.module.css';
-import { warnDeprecatedProps } from '../deprecations';
 import { rememberFocusOrigin, returnFocus } from '../shared/focus-return';
 import { resolveLabels } from '../shared/labels';
 import { navigateOnClick, type NavigateHandler } from '../shared/navigate';
@@ -33,7 +32,6 @@ import {
 } from './cookie-consent';
 import { Surface } from './shells';
 import { Button, Input } from './forms';
-import { closeHandler, closeClickHandler } from './close-handlers';
 
 export interface NavItem {
   id: string;
@@ -95,10 +93,6 @@ export interface NavbarProps extends Omit<
    * pour Next.js et React Router.
    */
   onNavigate?: NavigateHandler<NavItem>;
-  /** @deprecated Depuis 2.6 — utilisez `value`. */
-  activeId?: string;
-  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
-  onSelect?: (id: string) => void;
   /** Le nom du repère ; `aria-label` gagne. Défaut : « Navigation ». */
   label?: string;
   /** Une classe ajoutée à la barre. */
@@ -117,15 +111,12 @@ export function Navbar({
   defaultValue,
   onValueChange,
   onNavigate,
-  activeId: activeIdProp,
-  onSelect,
   label = 'Navigation',
   className,
   liquidGlass = false,
   ...rest
 }: NavbarProps) {
-  warnDeprecatedProps('Navbar', { activeId: activeIdProp, onSelect });
-  const [activeId, setActiveId] = useOptionalState(value ?? activeIdProp, defaultValue);
+  const [activeId, setActiveId] = useOptionalState(value, defaultValue);
   /* UN CLIC QUI N'EST PAS RETENU SE SIGNALE (DX-13). Rien ne change en 2.x —
      des appelants comptent sur ce « rien » —, mais la barre prévient une fois,
      en développement, quand une entrée cliquée ne devient pas courante.
@@ -133,9 +124,9 @@ export function Navbar({
      un parent qui tient la valeur et part de `undefined` la pose en réponse au
      clic, et ne doit pas être accusé. Seule compte la `value` relue après. */
   const insideMenu = useContext(InsideMenuContext);
-  const latestValue = useRef(value ?? activeIdProp);
+  const latestValue = useRef(value);
   useLayoutEffect(() => {
-    latestValue.current = value ?? activeIdProp;
+    latestValue.current = value;
   });
   const lostClickCheck = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(lostClickCheck.current), []);
@@ -151,7 +142,6 @@ export function Navbar({
   const select = (id: string) => {
     setActiveId(id);
     onValueChange?.(id);
-    onSelect?.(id);
     watchLostClick();
   };
   const Rail = liquidGlass ? Glass : 'nav';
@@ -362,8 +352,6 @@ export interface SidePanelProps extends Omit<ComponentPropsWithRef<'div'>, 'titl
   children?: ReactNode;
   /** Appelée avec `false` sur Échap, le voile ou la croix. Sa présence rend la croix. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
-  onClose?: () => void;
   /** Remplace les textes français par défaut, clé par clé. `title` gagne sur `labels.title`. */
   labels?: Partial<SidePanelLabels>;
   /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
@@ -377,12 +365,10 @@ export function SidePanel({
   title,
   children,
   onOpenChange,
-  onClose,
   labels: labelsProp,
   liquidGlass = false,
   ...rest
 }: SidePanelProps) {
-  warnDeprecatedProps('SidePanel', { onClose });
   const labels = resolveLabels(DEFAULT_SIDE_PANEL_LABELS, labelsProp);
   /* IL COULE ENFIN SUR LE CÔTÉ. Sa fiche annonçait « panneau latéral
      coulissant » et il rendait la boîte CENTRÉE du dialogue — même classe,
@@ -392,7 +378,7 @@ export function SidePanel({
     <Modal
       {...rest}
       open={open}
-      onOpenChange={closeHandler(onOpenChange, onClose)}
+      onOpenChange={onOpenChange}
       liquidGlass={liquidGlass}
       labels={{ close: labels.close }}
       title={title === undefined ? labels.title : title}
@@ -449,12 +435,8 @@ export interface CommandPaletteProps extends Omit<
   defaultValue?: string;
   /** Appelée à chaque frappe dans la recherche. */
   onValueChange?: (value: string) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
-  onChange?: (value: string) => void;
   /** Appelée avec `false` sur Échap, le voile, la croix ou Fermer. Sa présence rend Fermer. */
   onOpenChange?: (open: boolean) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onOpenChange`. */
-  onClose?: () => void;
   /** Un contenu libre, rendu sous la recherche. */
   children?: ReactNode;
   /**
@@ -468,8 +450,8 @@ export interface CommandPaletteProps extends Omit<
   labels?: Partial<CommandPaletteLabels>;
   /**
    * Rend le bouton « Fermer » du pied, en plus de la croix d'en-tête. Défaut : `true`.
-   * À `false`, seule la croix ferme le dialogue (elle n'existe qu'avec `onOpenChange`
-   * ou `onClose`) ; son nom et la gestion du focus sont inchangés.
+   * À `false`, seule la croix ferme le dialogue (elle n'existe qu'avec `onOpenChange`) ;
+   * son nom et la gestion du focus sont inchangés.
    */
   footerClose?: boolean;
   /** Rend le panneau dans le matériau « verre liquide ». Défaut : `false`. */
@@ -481,9 +463,7 @@ export function CommandPalette({
   value,
   defaultValue = '',
   onValueChange,
-  onChange,
   onOpenChange,
-  onClose,
   children,
   items,
   onItemSelect,
@@ -492,8 +472,6 @@ export function CommandPalette({
   footerClose = true,
   ...rest
 }: CommandPaletteProps) {
-  warnDeprecatedProps('CommandPalette', { onChange, onClose });
-  const close = closeHandler(onOpenChange, onClose);
   const labels = resolveLabels<Required<CommandPaletteLabels>>(
     DEFAULT_COMMAND_PALETTE_LABELS,
     labelsProp,
@@ -559,13 +537,13 @@ export function CommandPalette({
     <Modal
       {...rest}
       open={open}
-      onOpenChange={close}
+      onOpenChange={onOpenChange}
       liquidGlass={liquidGlass}
       labels={{ close: labels.close }}
       title={labels.title}
       footer={
-        close && footerClose ? (
-          <Button variant="text" onClick={closeClickHandler(onOpenChange, onClose)}>
+        onOpenChange && footerClose ? (
+          <Button variant="text" onClick={() => onOpenChange(false)}>
             {labels.close}
           </Button>
         ) : undefined
@@ -583,7 +561,6 @@ export function CommandPalette({
           onChange={(event) => {
             const next = event.currentTarget.value;
             setQuery(next);
-            onChange?.(next);
           }}
         />
         {items && (

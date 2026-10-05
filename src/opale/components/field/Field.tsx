@@ -14,7 +14,7 @@ import styles from './style/Field.module.css';
  * appartient à l'appelant : il reçoit ses props d'accessibilité par la
  * fonction enfant ou par `useFieldProps()`.
  *
- * `FieldProps` reste l'ancien alias déprécié d'`InputProps` jusqu'en 3.0.0 :
+ * `FieldProps` a longtemps été l'alias d'`InputProps` (retiré en 4.0.0) :
  * d'où ce nom.
  */
 export interface FieldWrapperProps extends Omit<ComponentPropsWithRef<'div'>, 'id' | 'children'> {

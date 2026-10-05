@@ -1,14 +1,8 @@
 import { cleanup, render } from '@testing-library/react';
-import { useEffect, type ReactElement } from 'react';
+import { useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 
-import {
-  DEPRECATED_PROPS,
-  deprecationMessage,
-  resetDeprecationWarnings,
-  warnDeprecated,
-  type DeprecatedComponent,
-} from './deprecations';
+import { resetDeprecationWarnings } from './deprecations';
 import {
   Modal,
   SearchBar,
@@ -18,13 +12,6 @@ import {
   ToastProvider,
   Topbar,
   useToast,
-  type ModalProps,
-  type SearchBarProps,
-  type SidebarProps,
-  type SiteNavProps,
-  type TabsProps,
-  type ToastDefinition,
-  type TopbarProps,
 } from './components';
 import {
   CommandPalette,
@@ -41,28 +28,15 @@ import {
   SidePanel,
   Toast,
   Toggle,
-  type CommandPaletteProps,
-  type ConfirmDialogProps,
-  type DataTableProps,
-  type FeedbackProps,
-  type FileCardProps,
-  type LightboxProps,
-  type MultiSelectProps,
-  type NavbarProps,
-  type PaginationProps,
-  type RatingInputProps,
-  type SegmentedControlProps,
-  type SidePanelProps,
-  type ToastProps,
 } from './opale';
 
 /* =============================================================================
-   L'AVERTISSEMENT DE DÉVELOPPEMENT DES NOMS DÉPRÉCIÉS.
+   LES AVERTISSEMENTS DE DÉVELOPPEMENT QUI RESTENT.
 
-   Une fois par composant + prop, en développement seulement, et jamais pour
-   qui n'emploie que les nouveaux noms. La dernière partie rend CHAQUE entrée
-   de la table sur son composant : une prop listée mais pas branchée rougit
-   ici, en la nommant.
+   Les noms dépréciés de la 2.x ont été retirés en 4.0.0 : plus rien ne les
+   signale dans la console, le compilateur les refuse. Restent le contrôle
+   sans nom accessible, ici sur `Toggle`, et la promesse qu'une application
+   écrite avec les noms actuels n'écrit RIEN dans la console.
    ========================================================================== */
 
 let warn: MockInstance<typeof console.warn>;
@@ -79,65 +53,6 @@ afterEach(() => {
 });
 
 const messages = () => warn.mock.calls.map(([message]) => String(message));
-
-describe('warnDeprecated', () => {
-  it('écrit le message en français, avec la version et le remplaçant', () => {
-    warnDeprecated('Modal', 'onClose');
-
-    expect(messages()).toEqual([
-      '[Opale] Modal : `onClose` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `onOpenChange`.',
-    ]);
-  });
-
-  it('précise la correspondance des valeurs quand il y en a une', () => {
-    warnDeprecated('DataTable', 'density');
-
-    expect(messages()).toEqual([
-      '[Opale] DataTable : `density` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `size` (`compact` → `small`).',
-    ]);
-  });
-
-  it('n’avertit qu’une fois par composant et par prop', () => {
-    warnDeprecated('Modal', 'onClose');
-    warnDeprecated('Modal', 'onClose');
-    warnDeprecated('Lightbox', 'onClose');
-
-    expect(warn).toHaveBeenCalledTimes(2);
-  });
-
-  it('se tait en production', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-
-    warnDeprecated('Modal', 'onClose');
-    render(<Modal open onClose={() => undefined} />);
-
-    expect(warn).not.toHaveBeenCalled();
-  });
-
-  it('ne consomme pas l’avertissement en production', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    warnDeprecated('Modal', 'onClose');
-    vi.unstubAllEnvs();
-
-    warnDeprecated('Modal', 'onClose');
-
-    expect(warn).toHaveBeenCalledTimes(1);
-  });
-
-  it('avertit une seule fois pour une liste de composants rendus', () => {
-    render(
-      <>
-        <Pagination pageCount={3} page={1} />
-        <Pagination pageCount={3} page={2} />
-        <Pagination pageCount={3} page={3} />
-      </>,
-    );
-
-    expect(messages()).toEqual([
-      '[Opale] Pagination : `page` est déprécié depuis 2.6 et sera retiré en 3.0.0 — utilisez `value`.',
-    ]);
-  });
-});
 
 describe('les nouveaux noms', () => {
   it('ne déclenchent aucun avertissement', () => {
@@ -177,90 +92,6 @@ describe('les nouveaux noms', () => {
 
     expect(messages()).toEqual([]);
   });
-});
-
-/* ---- Chaque entrée de la table, rendue sur son composant. */
-
-type Props = Record<string, unknown>;
-
-function FireDeprecatedToast({ options }: { options: Props }) {
-  const { showToast } = useToast();
-  useEffect(() => {
-    showToast({ title: 'Publié', ...(options as Partial<ToastDefinition>) });
-  }, [showToast, options]);
-  return null;
-}
-
-const OPTIONS = [{ value: 'a', label: 'A' }];
-
-const RENDERERS: Record<DeprecatedComponent, (props: Props) => ReactElement> = {
-  Modal: (p) => <Modal open {...(p as Partial<ModalProps>)} />,
-  Tabs: (p) => <Tabs {...(p as Partial<TabsProps>)} />,
-  Sidebar: (p) => <Sidebar {...(p as Partial<SidebarProps>)} />,
-  Topbar: (p) => <Topbar {...(p as Partial<TopbarProps>)} />,
-  SearchBar: (p) => <SearchBar aria-label="Rechercher" {...(p as Partial<SearchBarProps>)} />,
-  SiteNav: (p) => <SiteNav {...(p as Partial<SiteNavProps>)} />,
-  showToast: (p) => (
-    <ToastProvider>
-      <FireDeprecatedToast options={p} />
-    </ToastProvider>
-  ),
-  DataTable: (p) => <DataTable {...(p as Partial<DataTableProps>)} />,
-  FileCard: (p) => <FileCard name="a.pdf" {...(p as Partial<FileCardProps>)} />,
-  Lightbox: (p) => <Lightbox src="a.png" alt="A" {...(p as Partial<LightboxProps>)} />,
-  Feedback: (p) => <Feedback {...(p as Partial<FeedbackProps>)}>Texte</Feedback>,
-  Toast: (p) => <Toast message="Enregistré" {...(p as Partial<ToastProps>)} />,
-  ConfirmDialog: (p) => <ConfirmDialog {...(p as Partial<ConfirmDialogProps>)} />,
-  MultiSelect: (p) => (
-    <MultiSelect label="Choix" options={OPTIONS} {...(p as Partial<MultiSelectProps>)} />
-  ),
-  SegmentedControl: (p) => (
-    <SegmentedControl options={OPTIONS} {...(p as Partial<SegmentedControlProps>)} />
-  ),
-  Navbar: (p) => <Navbar items={[{ id: 'a', label: 'A' }]} {...(p as Partial<NavbarProps>)} />,
-  SidePanel: (p) => <SidePanel {...(p as Partial<SidePanelProps>)} />,
-  CommandPalette: (p) => <CommandPalette {...(p as Partial<CommandPaletteProps>)} />,
-  Pagination: (p) => <Pagination pageCount={3} {...(p as Partial<PaginationProps>)} />,
-  RatingInput: (p) => <RatingInput label="Note" {...(p as Partial<RatingInputProps>)} />,
-};
-
-/** Une valeur plausible pour chaque ancien nom : seule sa présence compte. */
-const SAMPLES: Readonly<Record<string, unknown>> = {
-  onClose: () => undefined,
-  onCancel: () => undefined,
-  onChange: () => undefined,
-  onSelect: () => undefined,
-  onToggle: () => undefined,
-  onSelectItem: () => undefined,
-  triggerAnimation: false,
-  pressFeedback: false,
-  enableLiquidAnimation: false,
-  enableClickAnimation: false,
-  as: 'section',
-  activeItemId: 'a',
-  defaultActiveItemId: 'a',
-  activeItem: 'a',
-  activeId: 'a',
-  variant: 'success',
-  emptyMessage: 'Rien.',
-  density: 'compact',
-  severity: 'warning',
-  values: ['a'],
-  page: 1,
-  size: '2 Mo',
-};
-
-describe('chaque prop dépréciée de la table', () => {
-  it.each(DEPRECATED_PROPS.map((entry) => [`${entry.component}.${entry.prop}`, entry] as const))(
-    '%s avertit quand elle est fournie',
-    (_, entry) => {
-      expect(SAMPLES, `aucune valeur d’essai pour \`${entry.prop}\``).toHaveProperty(entry.prop);
-
-      render(RENDERERS[entry.component]({ [entry.prop]: SAMPLES[entry.prop] }));
-
-      expect(messages()).toContain(deprecationMessage(entry));
-    },
-  );
 });
 
 describe('Toggle sans nom accessible', () => {

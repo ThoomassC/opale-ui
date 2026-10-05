@@ -32,3 +32,6 @@ dist-release
 # Rapport de couverture, régénéré par `npm run coverage`.
 coverage
 .vercel
+
+# Note de passation entre conversations, tenue à la main hors du dépôt.
+passation.md

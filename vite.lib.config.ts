@@ -127,8 +127,8 @@ export default defineConfig({
     // `src/contract` and nothing else, so the collision is gone at the source.
     emptyOutDir: false,
     // One sheet, not one per component. It is published as a single
-    // `@thomascaron/opale-ui/opale.css` import — the only component stylesheet
-    // the package has in 2.0, next to `./tokens.css`.
+    // `@thomascaron/opale-ui/opale.css` import (and its three variants) — the
+    // only stylesheet the package ships besides `fonts.css`.
     cssCodeSplit: false,
     sourcemap: true,
     // Left unminified, like the `tsc` output in `dist/`. A library ships

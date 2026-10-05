@@ -358,7 +358,7 @@ const ROWS: readonly Row[] = [
   },
   { name: 'Heading', render: (p) => <Heading {...p}>Titre</Heading>, target: 'h2' },
   { name: 'Text', render: (p) => <Text {...p}>Texte</Text>, target: 'p.opale-text' },
-  { name: 'Icon', render: (p) => <Icon {...p} />, target: '.opale-icon' },
+  { name: 'Icon', render: (p) => <Icon name="sparkle" {...p} />, target: '.opale-icon' },
   {
     name: 'Feedback',
     render: (p) => <Feedback {...p}>Message</Feedback>,
@@ -535,7 +535,7 @@ interface ContractRow {
 }
 
 /* Le panneau, trouvé sans compter sur le rôle qu'on tente d'écraser. */
-const PANEL = '[data-testid="modal-container"] > div:not([data-testid="modal-overlay"])';
+const PANEL = '.opale-modal > div:not(.opale-modal__backdrop)';
 
 const CONTRACTS: readonly ContractRow[] = [
   {
@@ -578,7 +578,15 @@ const CONTRACTS: readonly ContractRow[] = [
   },
   {
     name: 'ProgressBar',
-    element: <ProgressBar value={40} role="meter" aria-valuenow={5} aria-valuemax={10} />,
+    element: (
+      <ProgressBar
+        value={40}
+        aria-label="Envoi"
+        role="meter"
+        aria-valuenow={5}
+        aria-valuemax={10}
+      />
+    ),
     target: '.opale-progress',
     expected: { role: 'progressbar', 'aria-valuenow': '40', 'aria-valuemax': '100' },
   },
@@ -690,7 +698,7 @@ describe('les refs des champs', () => {
     );
 
     await user.click(screen.getByRole('checkbox', { name: 'Accepter' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Actif' }));
+    await user.click(screen.getByRole('switch', { name: 'Actif' }));
 
     expect(checkbox.current?.checked).toBe(true);
     expect(toggle.current?.checked).toBe(true);

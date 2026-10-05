@@ -5,6 +5,10 @@ import { hrefFor } from '../doc-model';
 import { COMPONENT_ALTERNATIVES } from './component-alternatives';
 import { PAGES } from './index';
 import { preloadPages } from './lazy-page';
+import { allowActWarningInFile } from '../../test/console-guard';
+
+/* La fin d'animation de `SplitHeading` arrive par une promesse, après le rendu synchrone. */
+allowActWarningInFile('SplitHeading');
 
 /* =============================================================================
    UN SEUL GABARIT POUR TOUTES LES PAGES DE COMPOSANT.

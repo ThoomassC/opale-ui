@@ -1,7 +1,11 @@
 import { beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
+import { installConsoleGuard } from './console-guard';
 import { installInertFocus } from './inert';
+
+/** No test writes to `console.warn` / `console.error` unannounced. See `console-guard.ts`. */
+installConsoleGuard();
 
 /** jsdom ignores `inert`; browsers refuse to focus inside it. See `inert.ts`. */
 installInertFocus();

@@ -392,7 +392,7 @@ export function ScrollSectionDemo() {
           {value === 'blue' && (
             <div className="tc-doc-opale-preview__row">
               <Checkbox label="Option cochée" defaultChecked />
-              <Toggle label="Réglage actif" role="switch" defaultChecked />
+              <Toggle label="Réglage actif" defaultChecked />
             </div>
           )}
         </ScrollSection>

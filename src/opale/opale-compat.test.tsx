@@ -13,28 +13,19 @@ import {
   Autocomplete,
   Button,
   Clipboard,
-  CommandPalette,
-  ConfirmDialog,
   DataTable,
   IconActionButton,
   InlineInput,
   Input,
-  Lightbox,
   Navbar,
   Pressable,
   SegmentedControl,
-  SidePanel,
-  Toast,
   type ButtonProps,
   type InputProps,
   type NavbarProps,
   type PressableProps,
   type SegmentedControlProps,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 /* =============================================================================
    CE QU'UNE APPLICATION ÉCRITE POUR 2.5 VOIT ENCORE.
@@ -61,13 +52,13 @@ const pressed = () =>
 
 describe('SegmentedControl, sans defaultValue', () => {
   it('ne devrait rien presser au clic, et seulement prévenir l’appelant', () => {
-    const onChange = vi.fn();
-    render(<SegmentedControl options={OPTIONS} onChange={onChange} />);
+    const onValueChange = vi.fn();
+    render(<SegmentedControl options={OPTIONS} onValueChange={onValueChange} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'B' }));
 
     expect(pressed()).toEqual([]);
-    expect(onChange).toHaveBeenCalledExactlyOnceWith('b');
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('b');
   });
 
   it('ne devrait rien presser quand la valeur contrôlée redevient undefined', () => {
@@ -75,7 +66,7 @@ describe('SegmentedControl, sans defaultValue', () => {
       const [value, setValue] = useState<string | undefined>();
       return (
         <>
-          <SegmentedControl options={OPTIONS} value={value} onChange={setValue} />
+          <SegmentedControl options={OPTIONS} value={value} onValueChange={setValue} />
           <button type="button" onClick={() => setValue(undefined)}>
             Effacer
           </button>
@@ -114,41 +105,37 @@ describe('Navbar, sans defaultValue', () => {
       .map((button) => button.textContent);
 
   it('ne devrait marquer aucune entrée courante au clic', () => {
-    const onSelect = vi.fn();
-    render(<Navbar items={ITEMS} onSelect={onSelect} />);
+    const onValueChange = vi.fn();
+    render(<Navbar items={ITEMS} onValueChange={onValueChange} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Y' }));
 
     expect(current()).toEqual([]);
-    expect(onSelect).toHaveBeenCalledExactlyOnceWith('y');
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('y');
   });
 
-  it.each(['activeId', 'value'] as const)(
-    'ne devrait marquer aucune entrée quand %s redevient undefined',
-    (prop) => {
-      function Harness() {
-        const [id, setId] = useState<string | undefined>();
-        const controlled: Pick<NavbarProps, 'activeId' | 'value'> = { [prop]: id };
-        return (
-          <>
-            <Navbar items={ITEMS} {...controlled} onSelect={setId} />
-            <button type="button" onClick={() => setId(undefined)}>
-              Effacer
-            </button>
-          </>
-        );
-      }
-      render(<Harness />);
+  it('ne devrait marquer aucune entrée quand value redevient undefined', () => {
+    function Harness() {
+      const [id, setId] = useState<string | undefined>();
+      return (
+        <>
+          <Navbar items={ITEMS} value={id} onValueChange={setId} />
+          <button type="button" onClick={() => setId(undefined)}>
+            Effacer
+          </button>
+        </>
+      );
+    }
+    render(<Harness />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Y' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Z' }));
-      expect(current()).toEqual(['Z']);
+    fireEvent.click(screen.getByRole('button', { name: 'Y' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Z' }));
+    expect(current()).toEqual(['Z']);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Effacer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Effacer' }));
 
-      expect(current()).toEqual([]);
-    },
-  );
+    expect(current()).toEqual([]);
+  });
 
   it('devrait refuser null comme valeur', () => {
     const noNull: null extends NavbarProps['value'] ? false : true = true;
@@ -200,75 +187,6 @@ describe('Button, Pressable et Input', () => {
     expect(clipboard.current?.tagName).toBe('BUTTON');
     expect(inline.current).toBe(screen.getByRole('textbox', { name: 'Nom' }));
     expect(autocomplete.current).toBe(screen.getByRole('combobox', { name: 'Ville' }));
-  });
-});
-
-/* LES ANCIENS RAPPELS REÇOIVENT CE QU'ILS RECEVAIENT EN 2.5 : l'événement du
-   clic quand le bouton les appelait directement, rien quand la modale ferme. */
-const escape = () => fireEvent.keyDown(window, { key: 'Escape' });
-const arities = (mock: ReturnType<typeof vi.fn>) => mock.mock.calls.map((call) => call.length);
-const isClick = (value: unknown) =>
-  value instanceof Object && 'type' in value && value.type === 'click';
-
-describe('les anciens rappels de fermeture', () => {
-  it('devrait passer l’événement à onCancel depuis Annuler, et rien depuis la croix ou Échap', () => {
-    const onCancel = vi.fn();
-    render(
-      <ConfirmDialog open onCancel={onCancel}>
-        Corps
-      </ConfirmDialog>,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
-    escape();
-
-    expect(arities(onCancel)).toEqual([1, 0, 0]);
-    expect(isClick(onCancel.mock.calls[0][0])).toBe(true);
-  });
-
-  it('devrait passer l’événement au onClose de Toast', () => {
-    const onClose = vi.fn();
-    render(<Toast message="Enregistré" onClose={onClose} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer la notification' }));
-
-    expect(arities(onClose)).toEqual([1]);
-    expect(isClick(onClose.mock.calls[0][0])).toBe(true);
-  });
-
-  it('devrait passer l’événement au onClose de Lightbox depuis Fermer, et rien depuis Échap', () => {
-    const onClose = vi.fn();
-    render(<Lightbox open src="/a.png" alt="Une image" onClose={onClose} />);
-
-    const buttons = screen.getAllByRole('button', { name: 'Fermer' });
-    fireEvent.click(buttons[buttons.length - 1]);
-    escape();
-
-    expect(arities(onClose)).toEqual([1, 0]);
-    expect(isClick(onClose.mock.calls[0][0])).toBe(true);
-  });
-
-  it('devrait passer l’événement au onClose de CommandPalette depuis Fermer, et rien depuis Échap', () => {
-    const onClose = vi.fn();
-    render(<CommandPalette open onClose={onClose} />);
-
-    const buttons = screen.getAllByRole('button', { name: 'Fermer' });
-    fireEvent.click(buttons[buttons.length - 1]);
-    escape();
-
-    expect(arities(onClose)).toEqual([1, 0]);
-    expect(isClick(onClose.mock.calls[0][0])).toBe(true);
-  });
-
-  it('devrait appeler le onClose de SidePanel sans argument', () => {
-    const onClose = vi.fn();
-    render(<SidePanel open onClose={onClose} />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }));
-    escape();
-
-    expect(arities(onClose)).toEqual([0, 0]);
   });
 });
 

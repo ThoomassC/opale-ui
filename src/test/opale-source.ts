@@ -6,7 +6,6 @@
    du dernier composant du module précédent. Un module ajouté au catalogue
    s'ajoute ici. */
 
-import closeHandlers from '../opale/catalog/close-handlers.ts?raw';
 import cookieConsent from '../opale/catalog/cookie-consent.ts?raw';
 import display from '../opale/catalog/display.tsx?raw';
 import feedback from '../opale/catalog/feedback.tsx?raw';
@@ -28,7 +27,6 @@ export const OPALE_CATALOG_MODULES: readonly string[] = [
   display,
   toastAnchors,
   feedback,
-  closeHandlers,
   navigation,
   cookieConsent,
   layout,

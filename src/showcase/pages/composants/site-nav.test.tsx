@@ -29,7 +29,7 @@ describe('SiteNavContent', () => {
     const user = userEvent.setup();
     render(<SiteNavContent />);
 
-    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour SiteNav' }));
+    await user.click(screen.getByRole('switch', { name: 'Verre liquide pour SiteNav' }));
 
     const header = specimenHeader();
     expect(header?.closest('.tc-doc-stage')).not.toBeNull();

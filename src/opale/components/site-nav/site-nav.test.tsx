@@ -1,10 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SiteNav, type SiteNavItem } from './site-nav';
-import { expectOnlyDeprecationWarnings } from '../../../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 const items: readonly SiteNavItem[] = [
   { id: 'map', href: '/map', label: 'Map' },
@@ -18,7 +14,7 @@ const renderNav = (props?: Partial<React.ComponentProps<typeof SiteNav>>) =>
     <SiteNav
       brand={<a href="/">Travels in World</a>}
       items={items}
-      activeItem="map"
+      value="map"
       navLabel="Main navigation"
       onNavigate={() => undefined}
       {...props}
@@ -35,15 +31,6 @@ describe('SiteNav', () => {
     expect(screen.getAllByRole('link')).toHaveLength(5);
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
-  });
-
-  it('uses Carte, Pays, Villes and À propos when items are omitted', () => {
-    renderNav({ items: undefined });
-
-    expect(screen.getByRole('link', { name: 'Carte' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Pays' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Villes' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'À propos' })).toBeInTheDocument();
   });
 
   it('lets the active bubble be dragged to another tab while holding the pointer', () => {
@@ -150,15 +137,8 @@ describe('SiteNav', () => {
 
 describe('SiteNav — value', () => {
   it('devrait placer la bulle sur value', () => {
-    renderNav({ activeItem: undefined, value: 'cities' });
+    renderNav({ value: 'cities' });
 
     expect(screen.getByRole('link', { name: 'Cities' })).toHaveAttribute('aria-current', 'page');
-  });
-
-  it('devrait faire gagner value sur activeItem', () => {
-    renderNav({ activeItem: 'map', value: 'about' });
-
-    expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Map' })).not.toHaveAttribute('aria-current');
   });
 });

@@ -3,7 +3,7 @@ import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
 /* Les garanties d'accessibilité portées par les jetons : l'anneau de focus
-   (règle `:focus-visible` universelle de `tokens.css`, montrée sur des éléments
+   (règle `:focus-visible` universelle de la charte interne `src/tokens`, montrée sur des éléments
    natifs) et la taille de cible (`--target-min`, `--target-button`).
    « La couleur n'est qu'un renfort » n'est pas garanti par les composants
    actuels : la page le dit au lieu de le démontrer. */
@@ -26,9 +26,9 @@ export default function AccessibiliteContent() {
           <>
             Tabulez dans le cadre. Les trois éléments sont <strong>natifs et non habillés</strong> :
             l’anneau ne vient pas d’un composant, il vient de la règle <code>:focus-visible</code>{' '}
-            universelle de <code>tokens.css</code>. <code>--focus-inner</code> et{' '}
-            <code>--focus-outer</code> s’inversent entre les thèmes, si bien que l’un des deux
-            contraste toujours avec le fond local.
+            universelle de la charte du site (<code>src/tokens</code>, interne depuis la 4.0).{' '}
+            <code>--focus-inner</code> et <code>--focus-outer</code> s’inversent entre les thèmes,
+            si bien que l’un des deux contraste toujours avec le fond local.
           </>
         }
       >
@@ -104,8 +104,7 @@ export default function AccessibiliteContent() {
           </li>
           <li>
             Le double anneau de focus s’applique à <strong>tout</strong> élément focusable de la
-            page, composants compris : il est déclaré sur un sélecteur nu, pas sur une
-            classe.
+            page, composants compris : il est déclaré sur un sélecteur nu, pas sur une classe.
           </li>
           <li>
             Les ratios de la palette sont recalculés en intégration continue, et{' '}

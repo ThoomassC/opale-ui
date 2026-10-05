@@ -21,7 +21,7 @@ import * as library from '../opale';
 import { resetDeprecationWarnings } from '../opale/deprecations';
 
 import type { DocPage } from './doc-model';
-import { GROUPS, HOME_SLUG, catalogComponentLabel, parseSlug } from './doc-model';
+import { GROUPS, HOME_SLUG, catalogComponentLabel, findPage, parseSlug } from './doc-model';
 import { PAGES } from './pages';
 import { preloadPages } from './pages/lazy-page';
 
@@ -593,6 +593,10 @@ describe('Le registre des pages', () => {
        CE TEST LIT LE DOM RENDU et non le source : il attrape donc aussi les
        `href="#palette"` écrits à la main, hérités du temps où la vitrine
        tenait sur une page unique, que rien ne fait passer par `hrefFor`.
+
+       UNE ANCIENNE ADRESSE (`SLUG_ALIASES`) compte comme servie : la coquille
+       la résout par `findPage`, comme les notes de version qui lient encore
+       « Migrer vers la 3.0 ».
        ==================================================================== */
     it.each(PAGE_CASES)('la page « %s » ne devrait lier aucun slug inexistant', (_slug, page) => {
       const { container } = render(<>{page.render()}</>);
@@ -602,7 +606,7 @@ describe('Le registre des pages', () => {
         .map((anchor) => anchor.getAttribute('href') ?? '')
         .filter((href) => {
           if (!href.startsWith('#/') && document.getElementById(href.slice(1))) return false;
-          return !known.has(parseSlug(href));
+          return !known.has(parseSlug(href)) && !findPage(PAGES, parseSlug(href));
         })
         .map((href) => `« ${href} » → slug « ${parseSlug(href)} »`);
 

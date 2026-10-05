@@ -26,7 +26,7 @@ import Glass from '../components/glass/Glass';
 import SearchBar from '../components/search-bar/SearchBar';
 import { IconGlyph, type OpaleIconName } from '../components/icon';
 import type { OpaleSize } from '../shared';
-import { warnDeprecatedProps, warnIfUnnamed } from '../deprecations';
+import { warnIfUnnamed } from '../deprecations';
 import { resolveLabels } from '../shared/labels';
 import { mergeRefs } from '../shared/merge-refs';
 import { useControllableState, useOptionalState } from '../shared/use-controllable-state';
@@ -419,9 +419,6 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'>
   searchLandmarkLabel?: string;
 }
 
-/** @deprecated Depuis 2.6 — utilisez `InputProps`. */
-export type FieldProps = InputProps;
-
 export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
   {
     label,
@@ -749,12 +746,10 @@ export interface ToggleProps extends Omit<ComponentPropsWithRef<'input'>, 'type'
   /** Rend le composant dans le matériau « verre liquide ». Défaut : `false`. */
   liquidGlass?: boolean;
   /**
-   * Le rôle exposé à la technologie d'assistance. `"switch"` est recommandé :
-   * l'interrupteur s'annonce alors « activé / désactivé » plutôt que
-   * « coché / non coché », sans changer son état natif (`checked`). Absent,
-   * l'élément reste une case à cocher, comme en 2.x.
-   *
-   * La 3.0.0 posera `role="switch"` par défaut.
+   * Le rôle exposé à la technologie d'assistance. Défaut : `"switch"` depuis
+   * la 4.0.0 — l'interrupteur s'annonce « activé / désactivé » plutôt que
+   * « coché / non coché », sans changer son état natif (`checked`). Un
+   * `role="checkbox"` explicite garde l'annonce d'une case, celle de la 2.x.
    */
   role?: AriaRole;
 }
@@ -768,6 +763,7 @@ export function Toggle({
   size = 'medium',
   onChange,
   ref,
+  role = 'switch',
   'aria-describedby': ariaDescribedBy,
   'aria-invalid': ariaInvalid,
   ...props
@@ -793,6 +789,7 @@ export function Toggle({
         className={clsx('opale-toggle', controlClassName)}
         onChange={onChange}
         {...props}
+        role={role}
         aria-invalid={error ? true : ariaInvalid}
         aria-describedby={mergeIds(ariaDescribedBy, error ? errorId : undefined)}
         ref={inputRefs}
@@ -1259,8 +1256,6 @@ export interface MultiSelectProps extends Omit<
   value?: SelectProps['value'];
   /** Appelée après chaque bascule, avec la sélection complète. `onChange` natif part aussi. */
   onValueChange?: (value: string[]) => void;
-  /** @deprecated Depuis 2.6 — utilisez `value`. */
-  values?: readonly string[];
   /**
    * Des `<option>` (éventuellement groupées dans des `<optgroup>`), ajoutées
    * après `options`, comme pour `Select`. Tout autre enfant est ignoré.
@@ -1366,7 +1361,6 @@ const NATIVE_SELECTED = Object.getOwnPropertyDescriptor(
 export function MultiSelect({
   value,
   onValueChange,
-  values,
   label,
   helperText,
   error,
@@ -1386,7 +1380,6 @@ export function MultiSelect({
   'aria-invalid': ariaInvalid,
   ...props
 }: MultiSelectProps) {
-  warnDeprecatedProps('MultiSelect', { values });
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const labelId = `${fieldId}-label`;
@@ -1404,9 +1397,9 @@ export function MultiSelect({
      visible lisait un ensemble vide recréé à chaque rendu : le clic cochait
      l'option du `<select>` caché, mais ni la coche ni `aria-selected` ne
      bougeaient. L'état part de `defaultValue` et suit chaque `change` du natif ;
-     en mode contrôlé, `value` (ou l'ancien `values`) reste seul maître. */
+     en mode contrôlé, `value` reste seul maître. */
   const [current, setCurrent, isControlled] = useControllableState<readonly string[]>(
-    toSelection(value) ?? values,
+    toSelection(value),
     () => toSelection(defaultValue) ?? [],
   );
   /* La sélection de départ devient celle que `form.reset()` rétablit : React
@@ -1830,9 +1823,9 @@ export interface SegmentedControlProps extends Omit<
    *
    * SANS L'UNE NI L'AUTRE, L'APPUI N'EST PAS RETENU — contrairement à `Tabs`.
    * Le clic appelle `onValueChange`, mais aucune option ne reste pressée tant
-   * que le parent ne renvoie pas `value`. C'est le comportement de toute la
-   * 2.x et il ne change pas avant la 3.0.0 ; en développement, un appui ainsi
-   * perdu écrit un avertissement, une fois. Passez `defaultValue` pour un
+   * que le parent ne renvoie pas `value`. C'est le comportement voulu, gardé
+   * depuis la 2.x ; en développement, un appui ainsi perdu écrit un
+   * avertissement, une fois. Passez `defaultValue` pour un
    * groupe libre, `value` + `onValueChange` pour un groupe tenu.
    */
   value?: string;
@@ -1840,8 +1833,6 @@ export interface SegmentedControlProps extends Omit<
   defaultValue?: string;
   /** Appelée à chaque appui, même sur l'option déjà pressée. */
   onValueChange?: (value: string) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
-  onChange?: (value: string) => void;
   /** Va au groupe (`role="group"`). */
   className?: string;
   /** Va à chaque `<button>` d'option, à côté de `.opale-segmented__item`. */
@@ -1859,9 +1850,9 @@ export interface SegmentedControlProps extends Omit<
    L'APPUI PERDU EST SIGNALÉ, PAS CORRIGÉ (DX-13).
 
    Sans `value` ni `defaultValue`, un clic prévient l'appelant et ne presse
-   rien. Le corriger — retenir l'appui comme `Tabs` — changerait le rendu d'une
-   intégration 2.x : c'est pour la 3.0.0. En attendant, le développeur est
-   prévenu, et SEULEMENT quand l'appui est réellement perdu.
+   rien. Le corriger — retenir l'appui comme `Tabs` — changerait le rendu des
+   intégrations existantes ; aucune version n'est promise pour ce changement.
+   Le développeur est prévenu, et SEULEMENT quand l'appui est réellement perdu.
 
    « Ni `value` ni `defaultValue` au rendu » ne suffit pas à le dire : un
    parent qui tient la valeur peut partir de `undefined` — rien de pressé tant
@@ -1917,7 +1908,6 @@ export function SegmentedControl({
   value: valueProp,
   defaultValue,
   onValueChange,
-  onChange,
   className,
   controlClassName,
   size = 'medium',
@@ -1925,7 +1915,6 @@ export function SegmentedControl({
   ref,
   ...rest
 }: SegmentedControlProps) {
-  warnDeprecatedProps('SegmentedControl', { onChange });
   const [value, setValue] = useOptionalState(valueProp, defaultValue);
   /* La dernière `value` reçue, relue par la vérification différée de l'appui. */
   const latestValue = useRef(valueProp);
@@ -2037,7 +2026,6 @@ export function SegmentedControl({
             watchLostClick();
             setValue(option.value);
             onValueChange?.(option.value);
-            onChange?.(option.value);
           }}
         >
           {option.label}

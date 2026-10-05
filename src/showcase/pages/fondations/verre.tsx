@@ -4,11 +4,11 @@ import { hrefFor } from '../../doc-model';
 import { Specimen } from '../../section';
 import { PageBody } from '../api';
 
-/* Les jetons du matériau (`--glass-*`), déclarés dans `src/tokens/materials.css`,
-   publiés par `tokens.css` et mesurés par `glass.contract.test.ts`. Aucune
-   feuille publiée ne les applique : la page documente un matériau disponible,
-   et son seul spécimen visuel, recomposé en `var(--glass-*)`, est étiqueté
-   comme tel. */
+/* Les jetons du matériau (`--glass-*`), déclarés dans `src/tokens/materials.css`
+   — charte interne, plus publiée depuis la 4.0.0 — et mesurés par
+   `glass.contract.test.ts`. Aucune feuille publiée ne les applique : la page
+   documente un matériau, et son seul spécimen visuel, recomposé en
+   `var(--glass-*)`, est étiqueté comme tel. */
 
 interface MaterialToken {
   readonly token: string;
@@ -166,9 +166,9 @@ export default function VerreContent() {
       >
         <ul className="tc-doc-checklist">
           <li>
-            <strong>Les onze jetons restent publiés.</strong> Ils sont déclarés dans{' '}
-            <code>src/tokens/materials.css</code>, que <code>tokens.css</code> importe : un
-            consommateur de <code>@thomascaron/opale-ui/tokens.css</code> les a tous.
+            <strong>Les onze jetons restent dans la charte du site.</strong> Ils sont déclarés dans{' '}
+            <code>src/tokens/materials.css</code> ; la charte n’est plus publiée depuis la 4.0, et
+            le contrat public d’une application reste les jetons <code>--opale-*</code>.
           </li>
           <li>
             <strong>Ils restent mesurés.</strong> <code>glass.contract.test.ts</code> lit cette

@@ -34,7 +34,7 @@ describe('SidebarCollapsibleScene', () => {
     render(<SidebarCollapsibleScene />);
 
     await user.click(screen.getByRole('button', { name: 'Photos' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Verre liquide pour Sidebar' }));
+    await user.click(screen.getByRole('switch', { name: 'Verre liquide pour Sidebar' }));
 
     expect(screen.getByRole('button', { name: 'Photos' })).toHaveAttribute('aria-current', 'page');
   });

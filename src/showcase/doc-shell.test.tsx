@@ -15,6 +15,10 @@ import { PAGES } from './pages';
 import { HOME_COPY } from './pages/accueil/home-copy';
 import { preloadPages } from './pages/lazy-page';
 import { UI_VERSION } from './version';
+import { allowActWarningInFile } from '../test/console-guard';
+
+/* La fin d'animation de `SplitHeading` arrive par une promesse, après le rendu synchrone. */
+allowActWarningInFile('SplitHeading');
 
 /* Les fondations, les composants et le catalogue se chargent à la demande :
    les monter d'un coup suppose de les charger d'avance, sans quoi chaque page

@@ -1,6 +1,5 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import clsx from 'clsx';
-import { warnDeprecatedProps } from '../../deprecations';
 import Glass from '../glass/Glass';
 import { resolveLabels } from '../../shared/labels';
 import styles from './style/SearchBar.module.scss';
@@ -28,8 +27,6 @@ export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   icon?: ReactNode;
   /** L'onde qui naît au clic dans le champ en verre. Défaut : `true`. */
   enableLiquidAnimation?: boolean;
-  /** @deprecated Depuis 2.7 — utilisez `enableLiquidAnimation`. */
-  enableClickAnimation?: boolean;
   /** Pose le repère `search` autour du champ. Défaut : `true`. */
   landmark?: boolean;
   /**
@@ -58,7 +55,6 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       icon,
       disabled,
       enableLiquidAnimation,
-      enableClickAnimation,
       landmark = true,
       landmarkLabel,
       labels: labelsProp,
@@ -69,7 +65,6 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
     },
     ref,
   ) => {
-    warnDeprecatedProps('SearchBar', { enableClickAnimation });
     const labels = resolveLabels(DEFAULT_SEARCH_BAR_LABELS, labelsProp);
     /* LE REPÈRE A UN NOM PAR DÉFAUT (ACC-22). Deux repères `search` sans nom
        sur une page ne se distinguent pas dans la liste des régions. Le nom suit
@@ -155,7 +150,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         aria-label={landmarkName}
         rootClassName={clsx('opale-search-bar__shell', styles.root)}
         rootStyle={{ width: '100%' }}
-        enableLiquidAnimation={!disabled && (enableLiquidAnimation ?? enableClickAnimation ?? true)}
+        enableLiquidAnimation={!disabled && (enableLiquidAnimation ?? true)}
         className={clsx('opale-search-bar', styles.searchBar)}
       >
         {content}

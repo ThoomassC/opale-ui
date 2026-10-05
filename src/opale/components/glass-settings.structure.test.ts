@@ -10,7 +10,7 @@ import { loadPublicApi } from '../../test/public-api';
    `enableLiquidAnimation` règle l'onde là où le composant en fait naître une
    (ouverture d'une modale, arrivée d'un toast, clic dans le champ).
 
-   Ce qui est interne au matériau reste accepté mais porte `@deprecated` :
+   Ce qui est interne au matériau a quitté la surface publique en 4.0.0 :
    l'onde programmée (`triggerAnimation`), l'onde au clic sur une SURFACE
    (`enableLiquidAnimation` d'une barre, d'un rail, d'un bandeau d'onglets),
    la balise du contenu (`as`), le rebond forcé (`pressFeedback`) et l'ancien
@@ -19,28 +19,40 @@ import { loadPublicApi } from '../../test/public-api';
 
 const TIMEOUT = 60_000;
 
-const EXPECTED: Record<string, { deprecated: readonly string[]; public: readonly string[] }> = {
+interface Expected {
+  readonly removed: readonly string[];
+  readonly deprecated: readonly string[];
+  readonly public: readonly string[];
+}
+
+const EXPECTED: Record<string, Expected> = {
   ModalProps: {
-    deprecated: ['triggerAnimation', 'as', 'pressFeedback'],
+    removed: ['triggerAnimation', 'as', 'pressFeedback'],
+    deprecated: [],
     public: ['liquidGlass', 'rootClassName', 'rootStyle', 'enableLiquidAnimation'],
   },
   TabsProps: {
-    deprecated: ['triggerAnimation', 'enableLiquidAnimation', 'as', 'pressFeedback'],
+    removed: ['triggerAnimation', 'enableLiquidAnimation', 'as', 'pressFeedback'],
+    deprecated: [],
     public: ['liquidGlass', 'rootClassName', 'rootStyle'],
   },
   TopbarProps: {
-    deprecated: ['triggerAnimation', 'enableLiquidAnimation'],
+    removed: ['triggerAnimation', 'enableLiquidAnimation'],
+    deprecated: [],
     public: ['liquidGlass', 'rootClassName', 'rootStyle'],
   },
   SidebarProps: {
-    deprecated: ['triggerAnimation', 'enableLiquidAnimation'],
+    removed: ['triggerAnimation', 'enableLiquidAnimation'],
+    deprecated: [],
     public: ['liquidGlass', 'rootClassName', 'rootStyle'],
   },
   SearchBarProps: {
-    deprecated: ['enableClickAnimation'],
+    removed: ['enableClickAnimation'],
+    deprecated: [],
     public: ['liquidGlass', 'enableLiquidAnimation'],
   },
   ToastProviderProps: {
+    removed: [],
     deprecated: [],
     public: ['liquidGlass', 'enableLiquidAnimation'],
   },
@@ -51,6 +63,10 @@ const ROWS = Object.entries(EXPECTED).flatMap(([type, { deprecated, public: kept
   ...kept.map((prop) => ({ typeName: type, prop, deprecated: false })),
 ]);
 
+const REMOVED_ROWS = Object.entries(EXPECTED).flatMap(([type, { removed }]) =>
+  removed.map((prop) => ({ typeName: type, prop })),
+);
+
 describe('les réglages du verre', () => {
   it.each(ROWS)(
     '$typeName.$prop existe, dépréciée : $deprecated',
@@ -59,6 +75,16 @@ describe('les réglages du verre', () => {
       const found = props.find((candidate) => candidate.name === prop);
       expect(found, `${typeName}.${prop} a disparu`).toBeDefined();
       expect(found?.deprecated).toBe(deprecated);
+    },
+    TIMEOUT,
+  );
+
+  it.each(REMOVED_ROWS)(
+    '$typeName.$prop n’existe plus',
+    ({ typeName, prop }) => {
+      const props = loadPublicApi().propsOfType(typeName);
+      expect(props, `${typeName} n’est plus exporté`).toBeDefined();
+      expect(props?.map((candidate) => candidate.name)).not.toContain(prop);
     },
     TIMEOUT,
   );
