@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest';
 import * as root from '.';
 import { CATALOG } from './catalog';
 
-/* LE NAMESPACE `Opale` COUVRE TOUT LE CATALOGUE, ET LES ANCIENS NOMS MARCHENT
-   ENCORE. `OpaleUI`, `Opale.Background` et `OPALE_CATALOG` sont dépréciés en
-   2.6 : ils désignent toujours les mêmes objets que leurs remplaçants. */
+/* LE NAMESPACE `Opale` COUVRE TOUT LE CATALOGUE. `OpaleUI`, `Opale.Background`
+   et `OPALE_CATALOG`, dépréciés en 2.6, ont été retirés en 4.0.0 : `Opale`
+   garde chacun des membres qu'avait `OpaleUI`. */
 
-/** Les membres d'`OpaleUI` en 2.5, qui doivent tous rester. */
+/** Les membres d'`OpaleUI` en 2.5, que `Opale` doit tous garder. */
 const LEGACY_MEMBERS = [
   'Button',
   'Pressable',
@@ -73,32 +73,30 @@ describe('le namespace Opale', () => {
     expect(root.Opale[name]).toBe(root[name]);
   });
 
-  it('devrait garder `Background` comme alias de `BackgroundSurface`', () => {
-    expect(root.Opale.Background).toBe(root.BackgroundSurface);
+  it('ne garde plus l’alias `Background`, retiré en 4.0.0', () => {
+    expect('Background' in root.Opale).toBe(false);
   });
 
   it('devrait désigner chaque membre par l’export nommé de même nom', () => {
     const drifts = Object.entries(root.Opale)
-      .filter(([name]) => name !== 'Background')
       .filter(([name, value]) => !Object.is(Reflect.get(root, name), value))
       .map(([name]) => name);
     expect(drifts).toEqual([]);
   });
 });
 
-describe('les alias dépréciés', () => {
-  it('garde `OpaleUI` utilisable, avec tous ses anciens membres', () => {
+describe('les alias retirés en 4.0.0', () => {
+  it('garde dans `Opale` chaque membre de l’ancien `OpaleUI`', () => {
     for (const name of LEGACY_MEMBERS) {
-      const value = Reflect.get(root.OpaleUI, name);
+      const value = Reflect.get(root.Opale, name);
       expect(value, name).toBeDefined();
       expect(value, name).toBe(Reflect.get(root, name));
     }
-    expect(root.OpaleUI.Button).toBe(root.Button);
-    expect(root.OpaleUI.SvgMapControls).toBe(root.SvgMapControls);
   });
 
-  it('garde `OPALE_CATALOG`, qui est le catalogue de la vitrine', () => {
-    expect(root.OPALE_CATALOG).toBe(CATALOG);
-    expect(root.OPALE_CATALOG.length).toBeGreaterThan(50);
+  it('ne publie plus `OpaleUI` ni `OPALE_CATALOG`', () => {
+    expect('OpaleUI' in root).toBe(false);
+    expect('OPALE_CATALOG' in root).toBe(false);
+    expect(CATALOG.length).toBeGreaterThan(50);
   });
 });

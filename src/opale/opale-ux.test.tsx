@@ -3,10 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { DataTable, Dropzone, FileCard, Pagination, RatingInput, Skeleton } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 
@@ -14,7 +10,7 @@ describe('composants de parcours', () => {
   it('Pagination borne les actions et annonce la page courante', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    render(<Pagination page={1} pageCount={8} onChange={onChange} />);
+    render(<Pagination value={1} pageCount={8} onValueChange={onChange} />);
     expect(screen.getByRole('button', { name: 'Page précédente' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Page 1' })).toHaveAttribute('aria-current', 'page');
     await user.click(screen.getByRole('button', { name: 'Page suivante' }));
@@ -24,7 +20,7 @@ describe('composants de parcours', () => {
   it('RatingInput permet un choix nommé au clavier', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
-    render(<RatingInput label="Qualité" defaultValue={2} onChange={onChange} />);
+    render(<RatingInput label="Qualité" defaultValue={2} onValueChange={onChange} />);
     const group = screen.getByRole('group', { name: 'Qualité' });
     const target = within(group).getByRole('radio', { name: '4 sur 5' });
     await user.click(target);

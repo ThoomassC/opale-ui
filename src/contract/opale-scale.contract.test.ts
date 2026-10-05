@@ -335,7 +335,13 @@ describe('le mouvement réduit', () => {
     const body = declarations(`.x { ${reduced()[0]?.nodes.map(String).join('; ')} }`, '.x');
     expect(body.get('animation-duration')).toBe('0.01ms !important');
     expect(body.get('animation-iteration-count')).toBe('1 !important');
-    expect(body.get('transition-duration')).toBe('0.01ms !important');
+    /* Les transitions de mouvement disparaissent, mais le retour de couleur
+       garde sa durée écrite : ramenée à 0,01 ms, elle supprimait aussi les
+       160 ms que `tokens.css` réserve aux encres et aux fonds. */
+    expect(body.get('transition-property')).toBe(
+      'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity !important',
+    );
+    expect(body.has('transition-duration')).toBe(false);
     expect(body.get('scroll-behavior')).toBe('auto !important');
   });
 });

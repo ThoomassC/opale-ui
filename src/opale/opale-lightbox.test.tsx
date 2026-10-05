@@ -4,10 +4,6 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { declaration } from '../test/css-rules';
 import modalStyles from './components/modal/style/Modal.module.css?raw';
 import { Lightbox } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 
@@ -18,7 +14,7 @@ describe('Lightbox', () => {
      « Fermer ». `tonal` est le bouton secondaire du système — celui des
      actions « Afficher le code » de la vitrine. */
   it('ferme par un Button tonal, et non par la variante fantôme', () => {
-    render(<Lightbox open src="/image.png" alt="Une image" onClose={() => undefined} />);
+    render(<Lightbox open src="/image.png" alt="Une image" onOpenChange={() => undefined} />);
 
     const footerButton = screen
       .getAllByRole('button', { name: 'Fermer' })

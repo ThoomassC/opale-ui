@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Marquee, type MarqueeProps } from './Marquee';
 import { resetWarnings } from '../../shared/dev-warning';
+import { expectConsole } from '../../../test/console-guard';
 import {
   atRules,
   declaration,
@@ -90,6 +91,8 @@ describe('Marquee — sémantique', () => {
   });
 
   it('cache la copie de la boucle : `aria-hidden` et `inert`, sans rien de focalisable', () => {
+    /* Des liens dans la boucle : le composant prévient que leur copie est inerte. */
+    expectConsole('warn', /Marquee : une entrée interactive est inerte dans la copie/);
     render(
       <Marquee label="Liens">
         <a href="#a">Premier</a>

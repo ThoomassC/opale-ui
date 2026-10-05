@@ -286,8 +286,11 @@ body {
   pointer-events: none;
   transition: background var(--opale-motion) var(--opale-ease);
 }
+/* L'option désignée pose l'encre du rôle sur l'aplat primaire : le blanc
+   écrit en dur tombait à 3,62:1 sur le primaire sombre (#5d87cb), l'encre
+   `--opale-on-primary` y tient 5,32:1, et 6,38:1 en clair. */
 .tc-doc-search__option[aria-selected='true'] {
-  color: #fff !important;
+  color: var(--opale-on-primary) !important;
 }
 .tc-doc-search__option[aria-selected='true'] .tc-doc-search__label {
   font-weight: 600;
@@ -300,59 +303,10 @@ body {
   color: var(--opale-text-secondary) !important;
 }
 .tc-doc-search__option[aria-selected='true'] .tc-doc-search__group {
-  color: #e8f8fb !important;
+  color: var(--opale-on-primary) !important;
 }
 .tc-doc-search__empty {
   padding: 0.85rem 1rem !important;
-}
-
-.tc-doc-mobile-nav-toggle {
-  --tc-doc-control-fill: transparent;
-  position: relative;
-  isolation: isolate;
-  z-index: 1;
-  display: grid !important;
-  grid-area: nav;
-  width: 2.75rem !important;
-  height: 2.75rem !important;
-  margin: 0 !important;
-  place-items: center;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: var(--opale-text) !important;
-}
-
-.tc-doc-mobile-nav-toggle::before {
-  width: 1.25rem !important;
-  height: 0.9rem !important;
-  border: 0 !important;
-  background:
-    linear-gradient(currentColor 0 0) top / 100% 0.13rem no-repeat,
-    linear-gradient(currentColor 0 0) center / 100% 0.13rem no-repeat,
-    linear-gradient(currentColor 0 0) bottom / 100% 0.13rem no-repeat !important;
-  color: currentColor !important;
-  transform: none !important;
-}
-.tc-doc-mobile-nav-toggle::after {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: var(--tc-doc-control-fill);
-  clip-path: var(--opale-squircle-clip);
-  content: '';
-  pointer-events: none;
-  transition: background var(--opale-motion) var(--opale-ease);
-}
-.tc-doc-mobile-nav-toggle[aria-expanded='true']::before {
-  height: 1.25rem !important;
-  background:
-    linear-gradient(45deg, transparent 46%, currentColor 47% 53%, transparent 54%),
-    linear-gradient(-45deg, transparent 46%, currentColor 47% 53%, transparent 54%) !important;
-}
-.tc-doc-mobile-nav-toggle:hover {
-  --tc-doc-control-fill: color-mix(in srgb, var(--opale-primary) 10%, transparent);
-  color: var(--opale-primary-on-surface) !important;
 }
 
 .tc-doc-themetoggle {
@@ -565,13 +519,8 @@ body {
 
 :root[data-theme='dark'] .tc-doc-search__option[aria-selected='true'],
 :root[data-theme='dark'] .tc-doc-topbar__version,
-:root[data-theme='dark'] .tc-doc-nav__versionnumber,
-:root[data-theme='dark'] .tc-doc-home__action:not(.tc-doc-home__action--secondary) {
+:root[data-theme='dark'] .tc-doc-nav__versionnumber {
   color: #0c0f0d !important;
-}
-
-:root[data-theme='dark'] .tc-doc-search__option[aria-selected='true'] .tc-doc-search__group {
-  color: #182033 !important;
 }
 
 .tc-doc-body {
@@ -694,12 +643,6 @@ body {
   height: 5.25rem;
   opacity: 1;
 }
-.tc-doc-nav[data-open='false'] {
-  display: block !important;
-}
-.tc-doc-body:has(.tc-doc-nav[data-open='false']) {
-  grid-template-columns: 4.75rem minmax(0, 1fr) !important;
-}
 .tc-doc-nav__glass {
   position: relative;
   width: 100% !important;
@@ -759,51 +702,6 @@ body {
   color: var(--opale-text-secondary);
   font-size: 0.8rem;
 }
-.tc-doc-nav__alltitle {
-  position: relative !important;
-  isolation: isolate;
-  inset: auto !important;
-  display: grid !important;
-  width: 2.75rem;
-  height: 2.75rem;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  margin: 0 0 1.1rem auto;
-  place-items: center;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--opale-primary-on-surface);
-  cursor: pointer;
-  font-size: 0;
-}
-.tc-doc-nav__alltitle::before {
-  content: '\2039';
-  display: block !important;
-  margin: 0 !important;
-  font-size: 1.3rem;
-  line-height: 1;
-  transform: none !important;
-}
-.tc-doc-nav__alltitle::after {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: color-mix(in srgb, var(--opale-primary) 8%, var(--opale-background));
-  clip-path: var(--opale-squircle-clip);
-  content: '';
-  pointer-events: none;
-  transition: background var(--opale-motion) var(--opale-ease);
-}
-.tc-doc-nav__alltitle::-webkit-details-marker {
-  display: none;
-}
-.tc-doc-nav__all:not([open]) > .tc-doc-nav__alltitle::before {
-  content: '\203A';
-}
-.tc-doc-nav__alltitle:hover::after {
-  background: color-mix(in srgb, var(--opale-primary) 15%, var(--opale-surface));
-}
 .tc-doc-nav__scrollbar {
   position: absolute;
   z-index: 2;
@@ -838,13 +736,6 @@ body {
     linear-gradient(var(--opale-surface) 0 0) center / 100% 1px no-repeat,
     linear-gradient(var(--opale-surface) 0 0) center calc(100% - 0.08rem) / 100% 1px no-repeat;
   opacity: 0.78;
-}
-.tc-doc-nav[data-open='false'] .tc-doc-nav__scroll {
-  overflow: hidden;
-  padding: 0.75rem;
-}
-.tc-doc-nav[data-open='false'] .tc-doc-nav__alltitle {
-  margin-inline: auto;
 }
 .tc-doc-nav__grouptitle {
   margin: 0;
@@ -977,9 +868,6 @@ body {
 .tc-doc-nav__link[aria-current='page'] {
   font-weight: 600;
 }
-.tc-doc-nav[data-open='false'] .tc-doc-nav__scrollbar {
-  display: none;
-}
 
 /* LA PLAQUE DE PALETTE EST SORTIE DE CETTE LISTE, ET C'ÉTAIT UN CONTRESENS.
 
@@ -1002,8 +890,7 @@ body {
 .tc-doc-specimen,
 .tc-doc-aside,
 .tc-doc-bar,
-.tc-doc-release,
-.tc-doc-release-callout {
+.tc-doc-release {
   border-color: var(--opale-divider) !important;
   border-radius: var(--opale-radius-md) !important;
   background: var(--opale-surface) !important;
@@ -1036,7 +923,6 @@ body {
 }
 
 .tc-doc-specimen__title,
-.tc-doc-specimen__header h2,
 .tc-doc-release__title {
   color: var(--opale-text) !important;
   font-family: var(--opale-font-display) !important;
@@ -1044,7 +930,6 @@ body {
   letter-spacing: -0.035em;
 }
 .tc-doc-specimen__title,
-.tc-doc-specimen__header h2,
 .tc-doc-release__title,
 .tc-doc-plate__title {
   font-size: clamp(1.15rem, 1.8vw, 1.45rem) !important;
@@ -1071,14 +956,7 @@ body {
    pour porter une encre claire, pas pour en être une. Sur la surface sombre —
    mesuré au navigateur sur soixante pages — il tombe à 3,94:1, juste sous le
    seuil. Le primaire CLAIR, lui, y tient 8,21:1 et reste le même bleu. */
-.tc-doc-specimen__eyebrow,
-.tc-doc-release-callout__eyebrow {
-  color: var(--opale-primary-on-surface) !important;
-  font: 600 0.75rem var(--opale-font-body) !important;
-  letter-spacing: 0.12em;
-}
-.tc-doc-code,
-.tc-doc-install {
+.tc-doc-code {
   border-color: var(--opale-divider) !important;
   border-radius: var(--opale-radius-md) !important;
   background: color-mix(in srgb, var(--opale-surface-base) 88%, var(--opale-primary) 4%) !important;
@@ -1273,9 +1151,6 @@ body {
   background: color-mix(in srgb, var(--opale-primary) 7%, var(--opale-surface));
   color: var(--opale-text-secondary);
 }
-.tc-doc-specimen--opale .tc-doc-specimen__header h2 {
-  margin: 0;
-}
 @media (max-width: 42rem) {
   .tc-doc-release__migration-code {
     grid-template-columns: minmax(0, 1fr);
@@ -1359,9 +1234,6 @@ body {
   border-radius: var(--opale-radius-md);
 }
 @media (max-width: 30rem) {
-  .tc-doc-specimen--opale .tc-doc-specimen__header {
-    margin-block-end: var(--opale-space-sm);
-  }
   .tc-doc-opale-material-toggle {
     margin-block: var(--opale-space-sm);
     padding: 0.5rem 0.75rem;
@@ -1451,24 +1323,6 @@ body {
    défaut contre trois. */
 .tc-doc-opale-demo > .opale-button {
   justify-self: start;
-}
-.tc-doc-opale-demo__carousel {
-  grid-template-columns: repeat(3, minmax(13rem, 1fr));
-  overflow-x: auto;
-  padding-block-end: var(--opale-space-sm);
-  scroll-snap-type: x proximity;
-}
-.tc-doc-opale-demo__carousel > * {
-  scroll-snap-align: start;
-}
-.tc-doc-opale-demo__scroll {
-  max-height: 9rem;
-  padding: var(--opale-space-md);
-  border: 1px solid var(--opale-divider);
-  background: var(--opale-surface-sunken);
-}
-.tc-doc-opale-demo__scroll p {
-  margin: 0 0 var(--opale-space-sm);
 }
 .tc-doc-opale-demo__layout {
   min-height: 16rem;
@@ -1638,13 +1492,6 @@ body {
 .tc-doc-popover-form > .opale-field {
   justify-self: stretch;
 }
-.tc-doc-opale-demo__page {
-  display: grid;
-  min-height: 14rem;
-  gap: var(--opale-space-lg);
-  border: 1px solid var(--opale-divider);
-  padding: var(--opale-space-md);
-}
 .tc-doc-opale-demo__background {
   display: grid;
   min-height: 14rem;
@@ -1807,9 +1654,6 @@ body {
   .tc-doc-topbar__bar {
     min-height: var(--doc-topbar-size) !important;
   }
-  .tc-doc-mobile-nav-toggle {
-    display: grid !important;
-  }
   .tc-doc-nav__resize {
     display: grid;
   }
@@ -1851,22 +1695,10 @@ body {
   .tc-doc-nav__scrollbar {
     inset-block: 0.6rem;
   }
-  .tc-doc-nav[data-open='false'] {
-    height: auto !important;
-    max-height: none !important;
-    padding: var(--opale-space-sm) var(--opale-space-md) !important;
-    overflow: visible !important;
-  }
-  .tc-doc-nav[data-open='false'] .tc-doc-nav__glass,
-  .tc-doc-nav[data-open='false'] .tc-doc-nav__panel {
-    height: auto !important;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tc-doc-nav,
-  .tc-doc-mobile-nav-toggle::before,
-  .tc-doc-mobile-nav-toggle::after,
   .tc-doc-topbar__tab::before,
   .tc-doc-nav__link::before,
   .tc-doc-codeexample__reveal {
@@ -1877,9 +1709,7 @@ body {
     animation: none !important;
   }
   .tc-doc .opale-button:hover,
-  .tc-doc .opale-button:active,
-  .tc-doc-home__action:hover,
-  .tc-doc-home__action:focus-visible {
+  .tc-doc .opale-button:active {
     transform: none !important;
   }
 }
@@ -2025,10 +1855,6 @@ body {
   width: 100%;
 }
 
-.tc-doc-mobile-nav-toggle {
-  display: none !important;
-}
-
 .tc-doc-nav__list {
   /* Le conteneur du rail empiète de 0,2 rem sur la liste : ce retrait
      supplémentaire garde le fond actif à égale distance des deux côtés. */
@@ -2046,7 +1872,6 @@ body {
     .tc-doc-language__trigger,
     .tc-doc-topbar__menu-toggle,
     .tc-doc-topbar__tab,
-    .tc-doc-home__action,
     .opale-button
   ) {
   border-radius: 0 !important;
@@ -2209,15 +2034,12 @@ body {
     .opale-button,
     .tc-doc-codeaction,
     .tc-doc-nav__link,
-    .tc-doc-nav__alltitle,
     .tc-doc-themetoggle,
     .tc-doc-language__trigger,
     .tc-doc-language__option,
     .tc-doc-topbar__menu-toggle,
     .tc-doc-topbar__tab,
-    .tc-doc-mobile-nav-toggle,
-    .tc-doc-search__option,
-    .tc-doc-home__action
+    .tc-doc-search__option
   ):focus-visible {
   /* `!important` parce qu'une règle plus haut remet ces boîtes à 0 de la même
      façon ; celle-ci, plus précise, ne vaut que le temps du focus clavier. */
@@ -2495,335 +2317,6 @@ body {
 
   .tc-doc-nav__resize {
     display: none !important;
-  }
-}
-
-/* Accueil inspiré de la référence : même séquence éditoriale, avec les chiffres,
-   la version et les promesses propres à Opale. La carte d'inscription Beta de
-   la référence n'est volontairement pas reproduite. */
-.tc-doc-main--home {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1.25rem, 3vw, 2rem);
-  max-width: 82rem;
-  padding-block-start: clamp(2rem, 5vw, 4.5rem) !important;
-}
-
-.tc-doc-main--home > .tc-doc-section__body,
-.tc-doc-main--home .tc-doc-home {
-  display: contents;
-}
-
-.tc-doc-main--home > .tc-doc-section__body {
-  margin-block-start: 0 !important;
-}
-
-.tc-doc-main--home .tc-doc-home__eyebrow {
-  order: 1;
-}
-
-.tc-doc-main--home .tc-doc-page__title {
-  order: 2;
-  max-width: 62rem;
-  margin-block-end: 0 !important;
-  color: var(--opale-text) !important;
-  font-size: clamp(1.8rem, 3vw, 2.75rem) !important;
-  /* La graisse est REDÉCLARÉE ici, et l'oublier aurait annulé le changement
-     sur la seule page où le titre est le sujet : cette règle recouvre celle de
-     `.tc-doc-page__title` pour l'accueil. */
-  font-weight: 600 !important;
-  letter-spacing: -0.04em !important;
-  line-height: 1.06 !important;
-}
-
-.tc-doc-home__eyebrow {
-  align-self: flex-start;
-  width: fit-content;
-  margin: 0;
-  border-radius: var(--opale-radius-sm);
-  padding: 0.28rem 0.7rem;
-  background: color-mix(in srgb, var(--opale-primary) 16%, var(--opale-surface));
-  color: var(--opale-primary-on-surface);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.tc-doc-home__intro {
-  order: 3;
-  max-width: 56rem;
-  margin: 0;
-  color: var(--opale-text-secondary);
-  font-size: clamp(1.05rem, 2vw, 1.3rem);
-  line-height: 1.55;
-}
-
-.tc-doc-home__actions {
-  order: 4;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--opale-space-md);
-  margin: 0;
-}
-
-.tc-doc-home__action {
-  --tc-doc-control-fill: var(--opale-primary);
-  --tc-doc-control-hover-fill: var(--opale-primary-dark);
-  position: relative;
-  isolation: isolate;
-  display: inline-flex;
-  min-height: 3.2rem;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  border: 0;
-  border-radius: 0;
-  padding: 0.75rem 1.35rem;
-  background: transparent;
-  color: #fff !important;
-  font-weight: 600;
-  text-decoration: none;
-  transition:
-    transform var(--opale-motion-fast) var(--opale-ease),
-    filter var(--opale-motion) var(--opale-ease);
-}
-
-.tc-doc-home__action::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: var(--tc-doc-control-fill);
-  clip-path: var(--opale-squircle-clip);
-  content: '';
-  pointer-events: none;
-  transition: background var(--opale-motion) var(--opale-ease);
-}
-
-.tc-doc-home__action:hover,
-.tc-doc-home__action:focus-visible {
-  color: #fff !important;
-  filter: var(--opale-drop-shadow-2);
-  transform: translateY(-1px);
-}
-
-.tc-doc-home__action:hover::before,
-.tc-doc-home__action:focus-visible::before {
-  background: var(--tc-doc-control-hover-fill);
-}
-
-.tc-doc-home__action--secondary {
-  --tc-doc-control-fill: color-mix(in srgb, var(--opale-primary-light) 24%, var(--opale-surface));
-  --tc-doc-control-hover-fill: color-mix(in srgb, var(--opale-primary) 16%, var(--opale-surface));
-  color: var(--opale-text) !important;
-}
-
-.tc-doc-home__action--secondary:hover,
-.tc-doc-home__action--secondary:focus-visible {
-  color: var(--opale-primary-on-surface) !important;
-}
-
-.tc-doc-home__stats {
-  order: 5;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--opale-space-lg);
-  max-width: 60rem;
-  margin: 0;
-  padding-block: 0.5rem;
-  margin-block-start: 1.5rem;
-}
-
-.tc-doc-home__stats > div {
-  min-width: 0;
-  text-align: center;
-}
-
-.tc-doc-home__stats dt {
-  color: var(--opale-primary-on-surface);
-  font: 600 clamp(1.4rem, 2.5vw, 2rem)/1.08 var(--opale-font-title);
-  font-variation-settings: 'opsz' 72;
-  letter-spacing: -0.03em;
-}
-
-.tc-doc-home__stats dd {
-  margin: 0.6rem 0 0;
-  color: var(--opale-text-secondary);
-  font-size: 0.9rem;
-}
-
-.tc-doc-home__release {
-  order: 6;
-  display: grid;
-  gap: 1rem;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  border: 1px solid var(--opale-divider);
-  border-radius: var(--opale-radius-md);
-  background: var(--opale-surface);
-  box-shadow: var(--opale-shadow-1);
-  margin-block-start: 1.5rem;
-}
-
-.tc-doc-home__release-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  color: var(--opale-text-secondary);
-  font-size: 0.85rem;
-}
-
-.tc-doc-home__release-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-.tc-doc-home__release-eyebrow {
-  color: var(--opale-accent-ink);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.tc-doc-home__release-status {
-  border-radius: var(--opale-radius-sm);
-  padding: 0.25rem 0.65rem;
-  background: color-mix(in srgb, var(--opale-primary) 18%, var(--opale-surface));
-  color: var(--opale-primary-on-surface);
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.tc-doc-home__release h2,
-.tc-doc-home__features h2 {
-  margin: 0;
-  color: var(--opale-text);
-  font: 400 clamp(1.2rem, 2vw, 1.6rem)/1.2 var(--opale-font-display);
-  letter-spacing: -0.03em;
-}
-
-.tc-doc-home__release ul {
-  display: grid;
-  gap: 0.65rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tc-doc-home__release li {
-  overflow: hidden;
-  color: var(--opale-text-secondary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tc-doc-home__release li::before {
-  margin-inline-end: 0.7rem;
-  color: var(--opale-primary-on-surface);
-  content: '›';
-  font-weight: 600;
-}
-
-.tc-doc-home__release-link {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: 0.6rem;
-  color: var(--opale-primary-on-surface) !important;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.tc-doc-home__features {
-  order: 7;
-  display: grid;
-  gap: var(--opale-space-lg);
-  margin-block-start: 1.5rem;
-}
-
-.tc-doc-home__features > h2 {
-  text-align: center;
-}
-
-.tc-doc-home__feature-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--opale-space-lg);
-}
-
-.tc-doc-home__feature {
-  min-height: 12rem;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  border: 1px solid var(--opale-divider);
-  border-radius: var(--opale-radius-md);
-  background: var(--opale-surface);
-  box-shadow: var(--opale-shadow-1);
-}
-
-.tc-doc-home__feature-icon {
-  display: block;
-  margin-block-end: 1.15rem;
-  color: var(--opale-primary-on-surface);
-  font-size: 2.1rem;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.tc-doc-home__feature h3 {
-  margin: 0;
-  color: var(--opale-text);
-  font: 400 1rem/1.35 var(--opale-font-display);
-}
-
-.tc-doc-home__feature p {
-  margin: 1rem 0 0;
-  color: var(--opale-text-secondary);
-  line-height: 1.55;
-}
-
-.tc-doc-home__footer {
-  order: 8;
-  display: grid;
-  gap: 0.25rem;
-  border-block-start: 1px solid var(--opale-divider);
-  padding-block-start: 2.5rem;
-  color: var(--opale-text-secondary);
-  font-size: 0.85rem;
-  text-align: center;
-  margin-block-start: 1.5rem;
-}
-
-.tc-doc-home__footer p {
-  margin: 0;
-}
-
-@media (max-width: 42rem) {
-  .tc-doc-home__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 1.5rem;
-  }
-
-  .tc-doc-home__feature-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .tc-doc-home__intro {
-    margin: 0;
-  }
-
-  .tc-doc-home__actions {
-    margin: 0;
-  }
-
-  .tc-doc-home__action {
-    width: 100%;
-  }
-
-  .tc-doc-home__release li {
-    white-space: normal;
   }
 }
 
@@ -3105,44 +2598,6 @@ body {
   min-block-size: 60vh;
 }
 
-/* Accès direct aux tâches réelles sans modifier la direction visuelle V3.2.0. */
-.tc-doc-home__entry-grid {
-  order: 5;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--opale-space-md);
-}
-.tc-doc-home__entry-grid a {
-  display: grid;
-  gap: 0.45rem;
-  padding: 1.25rem;
-  border: 1px solid var(--opale-divider);
-  border-radius: var(--opale-radius-md);
-  background: var(--opale-surface);
-  color: var(--opale-text);
-  text-decoration: none;
-  box-shadow: var(--opale-shadow-1);
-}
-.tc-doc-home__entry-grid a:hover,
-.tc-doc-home__entry-grid a:focus-visible {
-  border-color: var(--opale-primary);
-}
-.tc-doc-home__entry-grid span {
-  color: var(--opale-text-secondary);
-  font-size: 0.875rem;
-}
-.tc-doc-home__stats {
-  order: 8;
-}
-.tc-doc-home__footer {
-  order: 9;
-}
-@media (max-width: 42rem) {
-  .tc-doc-home__entry-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .tc-doc-nav__shortcuts {
   display: none;
 }
@@ -3227,20 +2682,6 @@ body {
 }
 .tc-doc-main--components .tc-doc-props .tc-doc-specimen__note {
   display: block;
-}
-
-/* La page est montrée directement, sans seconde carte blanche autour du gabarit. */
-.tc-doc-page-scaffold-section {
-  margin-block: 2rem;
-}
-
-.tc-doc-page-scaffold-section > .tc-doc-specimen__title,
-.tc-doc-page-scaffold-section > .tc-doc-specimen__note {
-  display: block;
-}
-
-.tc-doc-page-scaffold-section > .tc-doc-specimen__note {
-  margin-block-end: 1.25rem;
 }
 
 .tc-doc-page-scaffold-demo {
@@ -3460,7 +2901,15 @@ body {
    globale d'`opale.css` (`*`) couvrait aussi les éléments `tc-doc-*` ; depuis
    la 2.9.4 elle ne vise plus que les éléments d'Opale, pour ne pas imposer son
    `!important` aux pages hôtes. La vitrine reprend donc ce filet pour elle-même.
-   `tokens.css` ne borne que les propriétés animées, pas les durées. */
+
+   MOINS DE MOUVEMENT, PAS MOINS DE RETOUR. Le filet ramenait aussi toutes les
+   transitions à 0,01 ms ; à son poids (0,1,0), il écrasait les 160 ms de
+   couleur que `tokens.css` garde sur `*` — la page Accessibilité promet le
+   contraire. Il ne restreint plus que la LISTE des propriétés : un
+   déplacement, une mise à l'échelle, une ombre ou une taille sautent, la
+   couleur et l'opacité gardent la durée de `tokens.css`. Rien dans la vitrine
+   n'attend la fin d'une transition (`SplitHeading` attend ses animations, qui
+   se terminent toujours). */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
@@ -3472,7 +2921,9 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    transition-property:
+      color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+      opacity !important;
   }
 }
 

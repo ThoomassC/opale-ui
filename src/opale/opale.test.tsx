@@ -27,10 +27,6 @@ import {
   SegmentedControl,
   SidePanel,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 afterEach(cleanup);
 
@@ -248,7 +244,7 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     {
       nom: 'ConfirmDialog',
       rendre: (onClose: () => void) => (
-        <ConfirmDialog open title="Supprimer ?" onCancel={onClose}>
+        <ConfirmDialog open title="Supprimer ?" onOpenChange={onClose}>
           Cette action est définitive.
         </ConfirmDialog>
       ),
@@ -256,19 +252,19 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     {
       nom: 'SidePanel',
       rendre: (onClose: () => void) => (
-        <SidePanel open title="Détails" onClose={onClose}>
+        <SidePanel open title="Détails" onOpenChange={onClose}>
           Contenu
         </SidePanel>
       ),
     },
     {
       nom: 'CommandPalette',
-      rendre: (onClose: () => void) => <CommandPalette open onClose={onClose} />,
+      rendre: (onClose: () => void) => <CommandPalette open onOpenChange={onClose} />,
     },
     {
       nom: 'Lightbox',
       rendre: (onClose: () => void) => (
-        <Lightbox open src="/image.png" alt="Une image" onClose={onClose} />
+        <Lightbox open src="/image.png" alt="Une image" onOpenChange={onClose} />
       ),
     },
   ];
@@ -300,7 +296,7 @@ describe('les bloquants de l’audit d’accessibilité', () => {
     'structure la palette et son action Fermer avec Liquid Glass=%s',
     async (liquidGlass) => {
       const onClose = vi.fn();
-      render(<CommandPalette open liquidGlass={liquidGlass} onClose={onClose} />);
+      render(<CommandPalette open liquidGlass={liquidGlass} onOpenChange={onClose} />);
 
       const dialog = screen.getByRole('dialog', { name: 'Palette de commandes' });
       const champ = screen.getByRole('searchbox', { name: 'Rechercher une commande' });
@@ -555,6 +551,22 @@ describe('les constats sérieux de l’audit', () => {
       'Sans plafond d’itérations, une animation `infinite` se rejoue une fois ' +
         'par centième de milliseconde au lieu de s’arrêter.',
     ).toBe('1 !important');
+  });
+
+  /* LE MOUVEMENT RÉDUIT N'EST PAS L'ABSENCE DE RETOUR VISUEL. Seules les
+     propriétés de couleur et d'opacité gardent une transition, à leur durée
+     écrite ; un déplacement, une mise à l'échelle ou une ombre sautent. */
+  it('garde le retour de couleur et coupe le mouvement quand on demande moins de mouvement', () => {
+    const filet = declarations(opaleSheet, ":where([class^='opale-'], [class*=' opale-'])", {
+      within: '@media (prefers-reduced-motion: reduce)',
+    });
+
+    expect(filet.get('transition-property')).toBe(
+      'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity !important',
+    );
+    expect(filet.get('transition-duration'), 'La durée doit rester celle de la règle.').toBe(
+      undefined,
+    );
   });
 });
 

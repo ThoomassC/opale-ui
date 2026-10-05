@@ -50,4 +50,14 @@ describe('scripts/css-variants.mjs', () => {
     }
     expect(manifest.exports).toHaveProperty('./opale.css', './dist/opale/opale.css');
   });
+
+  /* LA CHARTE `--tc-*` N'EST PLUS PUBLIÉE (4.0.0). `src/tokens` reste la charte
+     interne de la vitrine et des contrats ; le seul contrat public de couleur
+     est `--opale-*`, porté par `opale.css`. */
+  it('ne publie plus ./tokens.css', () => {
+    expect(manifest.exports).not.toHaveProperty('./tokens.css');
+    expect(Object.values(manifest.exports).join(' ')).not.toContain('dist/tokens');
+    expect(manifest.scripts).not.toHaveProperty('build:css');
+    expect(manifest.scripts['build:lib']).not.toContain('build:css');
+  });
 });

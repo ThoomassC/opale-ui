@@ -224,7 +224,7 @@ describe('le sommaire repliable', () => {
     expect(shell(container)).toHaveAttribute('data-menu', 'closed');
   });
 
-  it('devrait conserver le choix de visibilité quand on change de page', () => {
+  it('devrait replier le sommaire quand on change de page', () => {
     const { container, rerender } = renderNav();
 
     rerender(<DocNav pages={PAGES} currentSlug="installation" />);
@@ -235,7 +235,22 @@ describe('le sommaire repliable', () => {
 
     rerender(<DocNav pages={PAGES} currentSlug="notes-de-versions" />);
 
-    expect(shell(container)).toHaveAttribute('data-menu', 'open');
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  /* Toucher le lien de la page déjà affichée ne change pas l'adresse : sans
+     ce repli, le sommaire resterait ouvert par-dessus la page. */
+  it('devrait replier le sommaire quand on choisit la page déjà affichée', () => {
+    const { container } = renderNav('composants/opale-button');
+    fireEvent.click(toggle());
+
+    const nav = screen.getByRole('navigation', { name: 'Sommaire' });
+    const current = within(nav).getByRole('link', { name: 'Button' });
+    expect(current).toHaveAttribute('aria-current', 'page');
+    fireEvent.click(current);
+
+    expect(shell(container)).toHaveAttribute('data-menu', 'closed');
   });
 
   it('devrait se replier à Échap et rendre le focus à son bouton', () => {

@@ -110,22 +110,6 @@ describe('FileCard — `fileSize`', () => {
     expect(messages()).toEqual([]);
   });
 
-  it('garde `size`, déprécié, avec un avertissement', () => {
-    render(<FileCard name="rapport.pdf" size="2 Mo" />);
-
-    expect(screen.getByText('2 Mo')).toBeInTheDocument();
-    expect(messages()).toEqual([
-      '[Opale] FileCard : `size` est déprécié depuis 2.10 et sera retiré en 3.0.0 — utilisez `fileSize`.',
-    ]);
-  });
-
-  it('préfère `fileSize` quand les deux sont passés', () => {
-    render(<FileCard name="rapport.pdf" fileSize="3 Mo" size="2 Mo" />);
-
-    expect(screen.getByText('3 Mo')).toBeInTheDocument();
-    expect(screen.queryByText('2 Mo')).toBeNull();
-  });
-
   it('prend le texte de sélection dans `labels`', () => {
     render(<FileCard name="rapport.pdf" selected labels={{ selected: 'Selected' }} />);
 
@@ -232,7 +216,7 @@ describe('Icon et Donut — les défauts surprenants', () => {
     );
 
     expect(messages()).toEqual([
-      '[Opale] Icon : aucun `name` n’est passé — l’icône `sparkle` est dessinée par défaut. Passez `name` : ce défaut disparaîtra en 3.0.0.',
+      '[Opale] Icon : aucun `name` n’est passé — l’icône `sparkle` est dessinée par défaut. Passez `name` pour choisir l’icône.',
     ]);
   });
 
@@ -246,7 +230,7 @@ describe('Icon et Donut — les défauts surprenants', () => {
     render(<Donut />);
 
     expect(messages()).toEqual([
-      '[Opale] Donut : aucune `value` n’est passée — l’anneau affiche 60 % par défaut. Passez `value` : ce défaut disparaîtra en 3.0.0.',
+      '[Opale] Donut : aucune `value` n’est passée — l’anneau affiche 60 % par défaut. Passez `value` pour afficher la vôtre.',
     ]);
   });
 

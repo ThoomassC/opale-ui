@@ -19,8 +19,9 @@ describe('Notes de versions — actions', () => {
       screen.getByText('<Lightbox src="/visuel.png" alt="Aperçu du composant" open />'),
     ).toBeVisible();
     /* Trois étapes pour la 2.2.0, une pour la 2.5.0 et la refonte de SvgMap,
-       deux, facultatives, pour les nouveaux noms de la 2.6.0. */
-    expect(screen.getAllByRole('button', { name: 'Copier le code après' })).toHaveLength(6);
+       deux, facultatives, pour les nouveaux noms de la 2.6.0, et sept pour
+       les retraits de la 4.0.0. */
+    expect(screen.getAllByRole('button', { name: 'Copier le code après' })).toHaveLength(13);
     expect(screen.getByText('Guide de migration depuis la 2.4.0')).toBeVisible();
     fireEvent.click(screen.getByText('Correspondance des 28 exports retirés'));
     expect(screen.getByRole('columnheader', { name: 'Export 2.1.1' })).toBeVisible();

@@ -27,10 +27,6 @@ import {
   InlineInput,
   readCookieConsent,
 } from './opale';
-import { expectOnlyDeprecationWarnings } from '../test/deprecation-warnings';
-
-/* Ce fichier croise l'ancienne API : ses avertissements sont attendus. */
-expectOnlyDeprecationWarnings();
 
 /* ============================================================================
    LES PROMESSES QUE LE CODE TIENT DÉSORMAIS.
@@ -528,7 +524,7 @@ describe('InlineInput — ce que la relecture a trouvé', () => {
   it('devrait garder la modale ouverte quand Échap annule une saisie, et la fermer au second', () => {
     const onClose = vi.fn();
     render(
-      <Modal open onClose={onClose} title="Renommer">
+      <Modal open onOpenChange={onClose} title="Renommer">
         <InlineInput label="Nom" defaultValue="A" />
       </Modal>,
     );

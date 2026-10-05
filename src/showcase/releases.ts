@@ -49,6 +49,88 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V400_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Les retraits',
+    changes: [
+      {
+        title: 'Les anciens noms disparaissent',
+        detail:
+          'Les 37 noms de props dépréciés depuis la 2.6 (onClose, activeItemId, onSelectItem, emptyMessage, FileCard.size…) et 8 exports (OpaleUI, Opale.Background, OPALE_CATALOG, CatalogEntry, ToastPlacement, ToastTone, FieldProps, DEFAULT_SITE_NAV_ITEMS) ne compilent plus. SiteNav exige items. Le guide liste chaque remplaçant.',
+        links: [{ label: 'Migrer vers la 4.0', slug: 'migrer-vers-4' }],
+      },
+      {
+        title: 'Ce qui change sans renommage',
+        detail:
+          'Toggle s’annonce en interrupteur (role="switch") ; Modal et ToastProvider ne posent plus de data-testid, visez les classes opale-* ; tokens.css n’est plus publié, seuls les jetons --opale-* d’opale.css font foi ; react et react-dom sont bornés à ^19.',
+        links: [{ label: 'Toggle', slug: 'composants/opale-toggle' }],
+      },
+    ],
+  },
+  {
+    title: 'Les composants',
+    changes: [
+      {
+        title: 'Retours de couleur gardés en mouvement réduit',
+        detail:
+          'Sous prefers-reduced-motion, les transitions ne sont plus ramenées à 0,01 ms : les changements de couleur et d’opacité gardent leur durée, rien ne bouge.',
+      },
+    ],
+  },
+  {
+    title: 'Le site',
+    changes: [
+      {
+        title: 'Un sommaire mobile qui se replie, des neutres d’Opale',
+        detail:
+          'Sur téléphone, le sommaire se replie à chaque page choisie. La teinte sarcelle héritée laisse place aux neutres d’Opale (notes, en-têtes de tableau, recherche lisible en sombre), et 1 280 lignes de CSS mort sont retirées.',
+        links: [{ label: 'Sidebar', slug: 'composants/sidebar' }],
+      },
+    ],
+  },
+];
+
+const V400_RELEASE_MIGRATION = {
+  fromVersion: '3.0.4',
+  steps: [
+    {
+      title: 'Fermer par onOpenChange',
+      before: '<Modal open={open} onClose={() => setOpen(false)} />',
+      after: '<Modal open={open} onOpenChange={setOpen} />',
+    },
+    {
+      title: 'Piloter la Sidebar par value',
+      before: '<Sidebar activeItemId={id} onSelectItem={(next) => setId(next)} />',
+      after: '<Sidebar value={id} onValueChange={setId} />',
+    },
+    {
+      title: 'Typer le ton avec OpaleTone',
+      before: "import type { ToastTone } from '@thomascaron/opale-ui';",
+      after: "import type { OpaleTone } from '@thomascaron/opale-ui';",
+    },
+    {
+      title: 'Passer les entrées de SiteNav',
+      before: '<SiteNav />',
+      after: '<SiteNav items={[{ id: "accueil", label: "Accueil", href: "/" }]} />',
+    },
+    {
+      title: 'Nommer la taille du fichier',
+      before: '<FileCard name="cv.pdf" size="2 Mo" />',
+      after: '<FileCard name="cv.pdf" fileSize="2 Mo" />',
+    },
+    {
+      title: 'Viser les classes stables dans les tests',
+      before: "screen.getByTestId('modal-container')",
+      after: "document.querySelector('.opale-modal')",
+    },
+    {
+      title: 'Lire le Toggle comme un interrupteur',
+      before: "getByRole('checkbox', { name: 'Notifications' })",
+      after: "getByRole('switch', { name: 'Notifications' })",
+    },
+  ],
+} as const;
+
 const V304_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Les composants',
@@ -1251,6 +1333,22 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '4.0.0',
+    publishedAt: '2026-10-05',
+    dateLabel: '5 octobre 2026',
+    summary:
+      'Les retraits annoncés depuis la 2.6 : anciens noms de props et exports dépréciés, data-testid, publication de tokens.css. Toggle devient un interrupteur, React est borné à ^19. Rupture : suivez « Migrer vers la 4.0 ».',
+    sections: V400_RELEASE_SECTIONS,
+    changes: V400_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['37 props et 8 exports retirés.', 'Guide « Migrer vers la 4.0 ».'],
+    migration: V400_RELEASE_MIGRATION,
+    breaking: true,
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '3.0.4',
     publishedAt: '2026-10-02',
     dateLabel: '2 octobre 2026',
@@ -1261,8 +1359,9 @@ export const RELEASES: readonly ReleaseNote[] = [
       section.changes.map((change) => `${change.title} : ${change.detail}`),
     ),
     highlights: ['Toggle, Modal et SegmentedControl corrigés.', 'Nouvelle page Typographie.'],
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 4.0.0, sur son tag. */
+    appHref: '/versions/v3.0.4/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v3.0.4`,
   },
   {
     version: '3.0.3',

@@ -38,7 +38,7 @@ describe('Toast : la croix rend le focus', () => {
     fireEvent.click(trigger);
 
     const close = await screen.findByRole('button', { name: 'Fermer la notification' });
-    close.focus();
+    act(() => close.focus());
     fireEvent.click(close);
 
     await waitFor(() => expect(document.activeElement).toBe(trigger));
@@ -120,7 +120,7 @@ describe('ToastProvider : la croix rend le focus', () => {
     fireEvent.click(trigger);
 
     const close = await screen.findByRole('button', { name: 'Fermer la notification' });
-    close.focus();
+    act(() => close.focus());
     fireEvent.click(close);
 
     await waitFor(() => expect(document.activeElement).toBe(trigger));

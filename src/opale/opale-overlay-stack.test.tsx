@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Modal, PageScaffold, ToastProvider, useToast } from './components';
 import { ConfirmDialog, SidePanel, Toast } from './opale';
+import { byClass } from '../test/stable-class';
 
 /* =============================================================================
    PLUSIEURS SURIMPRESSIONS À LA FOIS — ROB-01, ROB-05, ROB-08, THM-05.
@@ -273,7 +274,7 @@ describe('le thème local du gabarit — THM-05', () => {
       </PageScaffold>,
     );
 
-    const container = screen.getByTestId('modal-container');
+    const container = byClass('opale-modal');
     expect(container.closest('[data-opale-page-theme]')).toBe(container);
     expect(container).toHaveAttribute('data-opale-page-theme', 'dark');
   });
@@ -292,7 +293,7 @@ describe('le thème local du gabarit — THM-05', () => {
     }
 
     render(<App />);
-    const container = screen.getByTestId('modal-container');
+    const container = byClass('opale-modal');
     expect(container).toHaveAttribute('data-opale-page-theme', 'light');
 
     act(() => api.setTheme?.('dark'));
@@ -319,10 +320,7 @@ describe('le thème local du gabarit — THM-05', () => {
       const tbody = document.querySelector('tbody');
       expect(tbody?.children).toHaveLength(1);
       expect(consoleError).not.toHaveBeenCalled();
-      expect(screen.getByTestId('modal-container')).toHaveAttribute(
-        'data-opale-page-theme',
-        'dark',
-      );
+      expect(byClass('opale-modal')).toHaveAttribute('data-opale-page-theme', 'dark');
     } finally {
       consoleError.mockRestore();
     }
@@ -335,12 +333,12 @@ describe('le thème local du gabarit — THM-05', () => {
         <Modal open title="À côté" onOpenChange={() => {}} />
       </>,
     );
-    expect(screen.getByTestId('modal-container')).not.toHaveAttribute('data-opale-page-theme');
+    expect(byClass('opale-modal')).not.toHaveAttribute('data-opale-page-theme');
   });
 
   it('ne pose rien hors de tout gabarit', () => {
     render(<Modal open title="Seule" onOpenChange={() => {}} />);
-    expect(screen.getByTestId('modal-container')).not.toHaveAttribute('data-opale-page-theme');
+    expect(byClass('opale-modal')).not.toHaveAttribute('data-opale-page-theme');
   });
 
   it('pose le thème du gabarit sur le panneau latéral et la confirmation', () => {
@@ -349,7 +347,7 @@ describe('le thème local du gabarit — THM-05', () => {
         <SidePanel open title="Filtres" onOpenChange={() => {}} />
       </PageScaffold>,
     );
-    expect(screen.getByTestId('modal-container')).toHaveAttribute('data-opale-page-theme', 'dark');
+    expect(byClass('opale-modal')).toHaveAttribute('data-opale-page-theme', 'dark');
   });
 
   it('pose le thème du gabarit sur le message posé à l’écran', () => {
@@ -400,7 +398,7 @@ describe('le thème local du gabarit — THM-05', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Publier' }));
 
-    expect(screen.getByTestId('toast-portal')).toHaveAttribute('data-opale-page-theme', 'dark');
+    expect(byClass('opale-toast-provider')).toHaveAttribute('data-opale-page-theme', 'dark');
   });
 
   it('suit la file quand le gabarit est remplacé, un toast persistant affiché', async () => {
@@ -432,13 +430,13 @@ describe('le thème local du gabarit — THM-05', () => {
 
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Montrer' }));
-    expect(screen.getByTestId('toast-portal')).toHaveAttribute('data-opale-page-theme', 'dark');
+    expect(byClass('opale-toast-provider')).toHaveAttribute('data-opale-page-theme', 'dark');
 
     /* Une navigation client remplace la page : l'observateur rend la main en
        micro-tâche, que l'`act` asynchrone laisse passer. */
     await act(async () => api.setDark?.(false));
 
-    expect(screen.getByTestId('toast-portal')).toHaveAttribute('data-opale-page-theme', 'light');
+    expect(byClass('opale-toast-provider')).toHaveAttribute('data-opale-page-theme', 'light');
   });
 });
 

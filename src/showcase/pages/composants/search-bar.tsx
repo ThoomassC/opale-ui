@@ -20,8 +20,7 @@ const PROPS: readonly PropRow[] = [
     name: 'enableLiquidAnimation',
     type: 'boolean',
     defaultValue: 'true',
-    description:
-      'Active la déformation liquide au clic, en verre liquide. `enableClickAnimation` reste accepté, déprécié.',
+    description: 'Active la déformation liquide au clic, en verre liquide.',
   },
   {
     name: 'icon',

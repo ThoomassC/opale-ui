@@ -32,8 +32,9 @@ export default function PaletteContent() {
         ))}
       </div>
 
-      {/* Ensuite, ce que publie `tokens.css` : les rôles qu'installe un
-        consommateur, tenus contre la feuille par `palette-data.test.ts`. */}
+      {/* Ensuite, la charte interne `src/tokens` (plus publiée depuis la 4.0.0) :
+        les rôles qui peignent la vitrine, tenus contre la feuille par
+        `palette-data.test.ts`. */}
       <div className="tc-doc-plates">
         {PLATES.map((plate) => (
           <PalettePlate plate={plate} key={plate.id} />

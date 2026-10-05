@@ -1,8 +1,8 @@
 /* LE CATALOGUE DE LA VITRINE : une fiche par composant publié — son nom, sa
    famille et la phrase qui le présente. C'est une métadonnée de documentation,
    pas une pièce de l'interface : la vitrine et le contrat des fiches la lisent
-   ici. `OPALE_CATALOG` et `CatalogEntry`, réexportés par `opale.ts`, restent
-   publics mais dépréciés. */
+   ici. Elle n'est plus publiée : `OPALE_CATALOG` et `CatalogEntry` ont été
+   retirés en 4.0.0. */
 
 /** Une fiche du catalogue de la vitrine. */
 export interface ShowcaseCatalogEntry {

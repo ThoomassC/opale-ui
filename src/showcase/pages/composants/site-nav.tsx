@@ -31,13 +31,13 @@ const PROPS: readonly PropRow[] = [
   {
     name: 'items',
     type: 'readonly SiteNavItem[]',
-    description: 'Les destinations, pensées pour quatre entrées. À passer toujours.',
+    required: true,
+    description: 'Les destinations, pensées pour quatre entrées. Obligatoires depuis la 4.0.',
   },
   {
     name: 'value',
     type: 'string',
-    description:
-      'Identifiant de l’entrée qui porte l’unique bulle active. Remplace activeItem, déprécié depuis 2.6.',
+    description: 'Identifiant de l’entrée qui porte l’unique bulle active.',
   },
   {
     name: 'navLabel',

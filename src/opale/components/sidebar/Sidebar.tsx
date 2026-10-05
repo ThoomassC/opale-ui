@@ -19,8 +19,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 
-import { warnDeprecatedProps } from '../../deprecations';
-import Glass, { type GlassSurfaceProps, type LegacySurfaceAnimationProps } from '../glass/Glass';
+import Glass, { type GlassSurfaceProps } from '../glass/Glass';
 import type { OpaleSize } from '../../shared';
 import { resolveLabels } from '../../shared/labels';
 import { mergeRefs } from '../../shared/merge-refs';
@@ -41,11 +40,12 @@ import styles from './style/Sidebar.module.css';
    parce que ses défauts sont des défauts d'ACCESSIBILITÉ — ils ne se voient
    pas à l'écran, ils s'entendent.
 
-   L'INTERFACE PUBLIQUE NE BOUGE PAS. `SidebarProps`, `SidebarHeaderProps`,
+   L'INTERFACE PUBLIQUE A GARDÉ SES NOMS. `SidebarProps`, `SidebarHeaderProps`,
    `SidebarFooterProps`, `SidebarItemsProps`, `SidebarItemProps`,
-   `SidebarToggleProps` gardent leurs noms, leurs props et leur comportement ;
-   `collapsed`, `activeItemId`, leurs pendants non contrôlés, `onToggle` et
-   `onSelectItem` se comportent exactement comme avant.
+   `SidebarToggleProps` n'ont pas changé ; les anciens `activeItemId`,
+   `defaultActiveItemId`, `onToggle` et `onSelectItem`, dépréciés en 2.6, ont
+   été retirés en 4.0.0 au profit de `value`, `defaultValue`,
+   `onCollapsedChange` et `onValueChange`.
 
    QUATRE DÉFAUTS CORRIGÉS, ET CHACUN SE CONSTATE.
 
@@ -81,8 +81,7 @@ import styles from './style/Sidebar.module.css';
    `<button>`, au contrat inchangé. Avec `href`, elle rend un `<a>` : clic du
    milieu, ouverture dans un onglet et « copier l'adresse » redeviennent
    possibles, et `Sidebar.onNavigate` remet le clic simple au routeur de
-   l'application, avec la règle commune de `shared/navigate.ts`. Le rappel
-   déprécié `onSelectItem`, typé sur un `<button>`, ne part pas d'un lien.
+   l'application, avec la règle commune de `shared/navigate.ts`.
    ========================================================================== */
 
 type SidebarSize = OpaleSize;
@@ -135,7 +134,7 @@ export type SidebarContextValue = {
   toggleCollapsed: () => void;
   handleItemSelect: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
   /**
-   * Retient une entrée lien et prévient `onValueChange`, sans `onSelectItem`.
+   * Retient une entrée lien et prévient `onValueChange`.
    * Facultatif : une valeur écrite pour 3.9 compile encore.
    */
   selectLink?: (itemId: string) => void;
@@ -143,8 +142,6 @@ export type SidebarContextValue = {
   onNavigate?: NavigateHandler<SidebarNavigationTarget>;
   /** L'entrée retenue, absente quand aucune ne l'est. */
   value?: string;
-  /** @deprecated Depuis 2.6 — utilisez `value`. */
-  activeItemId?: string;
   /** L'identifiant de l'`<aside>`, pour l'`aria-controls` de la bascule. */
   sidebarId: string;
   /** Les textes effectifs du rail ; absents, les défauts français s'appliquent. */
@@ -181,8 +178,6 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
   collapsible?: boolean;
   /** Appelée à chaque bascule du pli, avec le nouvel état. */
   onCollapsedChange?: (collapsed: boolean) => void;
-  /** @deprecated Depuis 2.6 — utilisez `onCollapsedChange`. */
-  onToggle?: (collapsed: boolean) => void;
   /** L'entrée retenue. Présente, l'appelant la tient ; `null` : aucune. */
   value?: string | null;
   /** L'entrée retenue au montage quand `value` est absente. */
@@ -198,12 +193,6 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * `(item) => navigate(item.href)`.
    */
   onNavigate?: NavigateHandler<SidebarNavigationTarget>;
-  /** @deprecated Depuis 2.6 — utilisez `value`. */
-  activeItemId?: string;
-  /** @deprecated Depuis 2.6 — utilisez `defaultValue`. */
-  defaultActiveItemId?: string;
-  /** @deprecated Depuis 2.6 — utilisez `onValueChange`. */
-  onSelectItem?: (itemId: string, event: MouseEvent<HTMLButtonElement>) => void;
   /** Remplace les textes français par défaut, clé par clé. */
   labels?: Partial<SidebarLabels>;
   /**
@@ -248,8 +237,7 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'aside'>, 'onToggle' | 
    * (un cadre étroit, un exemple) ; `off` jamais. Défaut : `off`.
    */
   mobile?: 'off' | 'auto' | 'menu';
-} & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'> &
-  LegacySurfaceAnimationProps;
+} & Pick<GlassSurfaceProps, 'rootClassName' | 'rootStyle'>;
 
 const widthClassMap: Record<SidebarSize, string> = {
   small: styles.small,
@@ -500,14 +488,10 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       defaultCollapsed = false,
       collapsible = false,
       onCollapsedChange,
-      onToggle,
       value: valueProp,
       defaultValue,
       onValueChange,
       onNavigate,
-      activeItemId: activeItemIdProp,
-      defaultActiveItemId,
-      onSelectItem,
       labels: labelsProp,
       liquidGlass = false,
       customScrollbar = false,
@@ -522,25 +506,12 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       rootClassName,
       rootStyle,
       style,
-      enableLiquidAnimation: enableLiquidAnimationProp,
-      triggerAnimation: triggerAnimationProp,
       children,
       id,
       ...rest
     },
     ref,
   ) => {
-    /* Les valeurs BRUTES, avant leur défaut : une prop absente n'avertit pas. */
-    warnDeprecatedProps('Sidebar', {
-      onToggle,
-      activeItemId: activeItemIdProp,
-      defaultActiveItemId,
-      onSelectItem,
-      enableLiquidAnimation: enableLiquidAnimationProp,
-      triggerAnimation: triggerAnimationProp,
-    });
-    const enableLiquidAnimation = enableLiquidAnimationProp ?? false;
-    const triggerAnimation = triggerAnimationProp ?? false;
     /* LES DEUX ÉTATS SONT CONTRÔLABLES SÉPARÉMENT, et le motif est le même pour
        les deux : une prop présente rend l'appelant maître, une prop absente
        laisse le composant se souvenir. Le rappel part dans les DEUX cas — un
@@ -552,9 +523,8 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       (next: boolean) => {
         setCollapsedState(next);
         onCollapsedChange?.(next);
-        onToggle?.(next);
       },
-      [setCollapsedState, onCollapsedChange, onToggle],
+      [setCollapsedState, onCollapsedChange],
     );
 
     const handleToggle = useCallback(() => {
@@ -565,21 +535,20 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
       setCollapsed(!collapsed);
     }, [collapsible, collapsed, setCollapsed]);
 
-    /* Le nom canonique gagne : `value` d'abord, puis l'ancien `activeItemId`.
-       `null` est une valeur contrôlée, d'où la comparaison à `undefined`. */
+    /* `null` est une valeur contrôlée — aucune entrée retenue —, d'où le
+       défaut à `null` et non à `undefined`. */
     const [active, setActive] = useControllableState<string | null>(
-      valueProp !== undefined ? valueProp : activeItemIdProp,
-      defaultValue !== undefined ? defaultValue : (defaultActiveItemId ?? null),
+      valueProp,
+      defaultValue ?? null,
     );
-    const activeItemId = active ?? undefined;
+    const activeValue = active ?? undefined;
 
     const handleItemSelect = useCallback(
-      (itemId: string, event: MouseEvent<HTMLButtonElement>) => {
+      (itemId: string) => {
         setActive(itemId);
         onValueChange?.(itemId);
-        onSelectItem?.(itemId, event);
       },
-      [setActive, onValueChange, onSelectItem],
+      [setActive, onValueChange],
     );
 
     const selectLink = useCallback(
@@ -670,8 +639,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         handleItemSelect,
         selectLink,
         onNavigate,
-        value: activeItemId,
-        activeItemId,
+        value: activeValue,
         sidebarId,
         labels,
         upsertGroup,
@@ -687,7 +655,7 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
         handleItemSelect,
         selectLink,
         onNavigate,
-        activeItemId,
+        activeValue,
         sidebarId,
         labels,
       ],
@@ -834,8 +802,6 @@ const SidebarBase = forwardRef<HTMLElement, SidebarProps>(
              qui part sous le doigt à chaque sélection d'entrée ferait clignoter
              la surface entière d'un rail qu'on parcourt. Le retour visuel
              appartient à l'entrée, qui l'a. */
-            enableLiquidAnimation={enableLiquidAnimation}
-            triggerAnimation={triggerAnimation}
             rootClassName={shellClasses}
             rootStyle={widthStyle ? { ...rootStyle, ...widthStyle } : rootStyle}
             className={clsx(contentClasses, customScrollbar && styles.scrollHost)}

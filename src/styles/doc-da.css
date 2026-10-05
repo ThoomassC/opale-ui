@@ -231,7 +231,6 @@ html:has(.tc-doc--full-bleed) {
    syntaxe sont celles du thème sombre, mesurées sur une surface plus claire
    que cette nuit : elles y gagnent du contraste. */
 .tc-doc-code,
-.tc-doc-install,
 .tc-doc-codeexample__reveal .tc-doc-code {
   border-color: transparent !important;
   border-radius: var(--tc-da-radius-sm) !important;
@@ -250,13 +249,13 @@ html:has(.tc-doc--full-bleed) {
 /* En contrastes forcés, le fond nuit devient `Canvas` : sans contour, le bloc
    à copier ne se distinguait plus du texte qui l'entoure. */
 @media (forced-colors: active) {
-  .tc-doc :is(.tc-doc-code, .tc-doc-install) {
+  .tc-doc .tc-doc-code {
     border: 1px solid CanvasText !important;
   }
 }
 /* En sombre, la nuit (#121713) touche presque la page (#0c0f0d, 1,05:1) : un
    filet clair rend au bloc son bord. */
-:root[data-theme='dark'] :is(.tc-doc-code, .tc-doc-install) {
+:root[data-theme='dark'] .tc-doc-code {
   border: 1px solid color-mix(in srgb, var(--opale-ground-night-ink) 18%, transparent) !important;
 }
 

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { findPage } from './doc-model';
 import { PAGES } from './pages';
 import { CURRENT_RELEASE, V320_REMOVED_COMPONENTS, RELEASES } from './releases';
 import { UI_VERSION } from './version';
@@ -48,14 +49,25 @@ describe('registre des notes de versions', () => {
     }
   });
 
-  it('présente la 3.0.4, sans rupture, et archive les versions précédentes sur leur tag ou leur commit', () => {
-    expect(CURRENT_RELEASE.version).toBe('3.0.4');
-    expect(CURRENT_RELEASE.breaking).not.toBe(true);
+  it('présente la 4.0.0, en rupture annoncée, et archive les versions précédentes sur leur tag ou leur commit', () => {
+    expect(CURRENT_RELEASE.version).toBe('4.0.0');
+    expect(CURRENT_RELEASE.breaking).toBe(true);
     expect(CURRENT_RELEASE.sections?.map((section) => section.title)).toEqual([
+      'Les retraits',
       'Les composants',
       'Le site',
     ]);
-    expect(CURRENT_RELEASE.changes).toHaveLength(5);
+    expect(CURRENT_RELEASE.migration?.fromVersion).toBe('3.0.4');
+    expect(CURRENT_RELEASE.migration?.steps.length).toBeGreaterThanOrEqual(6);
+    expect(
+      CURRENT_RELEASE.sections
+        ?.flatMap((section) => section.changes)
+        .some((change) => change.links?.some((link) => link.slug === 'migrer-vers-4')),
+    ).toBe(true);
+
+    const v304 = RELEASES.find((release) => release.version === '3.0.4');
+    expect(v304?.appHref).toBe('/versions/v3.0.4/index.html');
+    expect(v304?.sourceHref).toBe('https://github.com/ThoomassC/opale-ui/tree/v3.0.4');
 
     const v303 = RELEASES.find((release) => release.version === '3.0.3');
     expect(v303?.appHref).toBe('/versions/v3.0.3/index.html');
@@ -157,8 +169,9 @@ describe('registre des notes de versions', () => {
     );
   });
 
+  /* Une ancienne adresse (`SLUG_ALIASES`) mène à une fiche : la note de 2.9
+     lie encore « Migrer vers la 3.0 », que `findPage` résout. */
   it('lie chaque changement et remplacement à une fiche existante', () => {
-    const slugs = new Set(PAGES.map((page) => page.slug));
     const linkedSlugs = [
       ...RELEASES.flatMap((release) => release.sections ?? []).flatMap((section) =>
         section.changes.flatMap((change) => change.links?.map((link) => link.slug) ?? []),
@@ -167,7 +180,7 @@ describe('registre des notes de versions', () => {
     ];
 
     for (const slug of linkedSlugs) {
-      expect(slugs.has(slug), `fiche absente : ${slug}`).toBe(true);
+      expect(findPage(PAGES, slug), `fiche absente : ${slug}`).toBeDefined();
     }
   });
 

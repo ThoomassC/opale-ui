@@ -17,13 +17,13 @@ porte l'archive du paquet déjà compilé : elle s'installe avec npm, pnpm ou ya
 chaîne de build à l'installation.
 
 ```bash
-npm i https://github.com/ThoomassC/opale-ui/releases/download/v3.0.4/thomascaron-opale-ui-3.0.4.tgz
+npm i https://github.com/ThoomassC/opale-ui/releases/download/v4.0.0/thomascaron-opale-ui-4.0.0.tgz
 ```
 
 **Alternative avec npm — le tag Git** (seule voie pour les versions antérieures à la 2.9.0) :
 
 ```bash
-npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v3.0.4"
+npm i "@thomascaron/opale-ui@github:ThoomassC/opale-ui#v4.0.0"
 ```
 
 Prérequis : React 19 et Node 20.19 ou 22.12 et plus. Par le tag Git, le paquet se compile à
@@ -139,12 +139,12 @@ Les points d'entrée déclarés dans `package.json` :
 | `./opale-nofonts.css` | `dist/opale/opale-nofonts.css` | La même, sans l'`@import` des polices |
 | `./opale-nofonts.layered.css` | `dist/opale/opale-nofonts.layered.css` | Sans polices, et en couche |
 | `./fonts.css`    | `dist/opale/fonts.css`   | Chivo et Bricolage Grotesque, en fichiers woff2            |
-| `./tokens.css`   | `dist/tokens/tokens.css` | La charte `--tc-*`, pour écrire vos propres surfaces       |
 | `./contract`     | `dist/contract/index.js` | Le contrat de couleur — dépendance de développement        |
 | `./package.json` | `package.json`           |                                                            |
 
-Les composants n'ont besoin que d'une feuille : `./opale.css`, ou l'une de ses trois variantes. `./tokens.css` sert à qui compose ses propres
-surfaces dans la palette de la charte.
+Les composants n'ont besoin que d'une feuille : `./opale.css`, ou l'une de ses trois variantes. Ses jetons
+`--opale-*` sont le seul contrat public de couleur : la charte `--tc-*` de `src/tokens`, qui sert la vitrine
+et les contrats, n'est plus publiée depuis la 4.0.0.
 
 ## Les conventions de l'API
 
@@ -163,9 +163,9 @@ Chaque composant accepte aussi `ref`, `className`, `style` et les attributs nati
 élément ; les champs de formulaire les transmettent à leur contrôle natif, ce qui les rend
 utilisables avec react-hook-form.
 
-Les anciens noms (`onChange` à valeur, `page`, `values`, `activeItemId`, `onClose`,
-`onCancel`, `severity`, `density`, `OpaleUI`…) restent acceptés et fonctionnent comme en 2.5 ;
-l'éditeur les barre et indique le nouveau nom.
+Les anciens noms de la 2.x (`onChange` à valeur, `page`, `values`, `activeItemId`, `onClose`,
+`onCancel`, `severity`, `density`, `OpaleUI`…) ont été retirés en 4.0.0 : ils ne compilent
+plus. La page « Migrer vers la 4.0 » de la vitrine donne le remplaçant de chacun.
 
 ## PageScaffold — une page prête à adapter
 
@@ -344,7 +344,8 @@ import type { BackdropSpec, Theme, ThemeName } from '@thomascaron/opale-ui/contr
 
 ### Architecture des jetons de la charte
 
-Trois couches, une seule direction de dépendance : `materials → roles → primitives`.
+La charte est interne au dépôt depuis la 4.0.0 : elle n'est plus publiée, et une application
+lit les jetons `--opale-*` d'`opale.css`. Trois couches, une seule direction de dépendance : `materials → roles → primitives`.
 
 | Couche         | Fichier                     | Ce qu'elle nomme                        |
 | -------------- | --------------------------- | --------------------------------------- |

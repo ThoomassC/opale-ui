@@ -73,23 +73,16 @@ describe('la forme interactive OpaleUI', () => {
      déjà à grande taille. Les titres et les chiffres passent à Bricolage
      Grotesque, dont le 400 est nettement plus léger : garder le chiffre aurait
      gardé la lettre de la décision en perdant ce qu'elle cherchait. Ce qui est
-     gardé, c'est l'ÉCHELLE — les deux `clamp` n'ont pas bougé d'un pixel — et
-     le fait que les titres restent plus légers que le gras plein. */
+     gardé, c'est l'ÉCHELLE — le `clamp` du titre n'a pas bougé d'un pixel — et
+     le fait que les titres restent plus légers que le gras plein. L'ancien
+     accueil (`.tc-doc-home__*`), qui redéclarait titre et chiffres, n'est plus
+     rendu : ses règles sont retirées et leur garde avec elles. */
   it('tient l’échelle d’affichage et la police de titre', () => {
     const pageTitle = declarations(docSource, '.tc-doc-page__title');
-    const homeTitle = declarations(docSource, '.tc-doc-main--home .tc-doc-page__title');
 
     expect(atRules(opaleSource, 'import').filter((params) => params.includes('Titan'))).toEqual([]);
     expect(pageTitle.get('font')).toMatch(/^600 clamp\(1\.8rem, 3vw, 2\.75rem\)/);
     expect(pageTitle.get('letter-spacing')).toMatch(/^-0\.03em/);
-    expect(homeTitle.get('font-size')).toMatch(/^clamp\(1\.8rem, 3vw, 2\.75rem\)/);
-    /* La règle de l'accueil REDÉCLARE la graisse : sans ce garde, la ramener à
-       400 annulerait le changement sur la seule page où le titre est le
-       sujet, et aucun autre test ne le verrait. */
-    expect(homeTitle.get('font-weight')).toMatch(/^600/);
-    expect(declaration(docSource, '.tc-doc-home__stats dt', 'font')).toMatch(
-      /^600 clamp\(1\.4rem, 2\.5vw, 2rem\)/,
-    );
     expect(declaration(opaleSource, '.opale-text--metric', 'font-size')).toBe(
       'var(--opale-text-2xl)',
     );
@@ -205,7 +198,6 @@ describe('la forme interactive OpaleUI', () => {
     '.tc-doc-topbar__tab::before',
     '.tc-doc-search__option::before',
     '.tc-doc-nav__link::before',
-    '.tc-doc-home__action::before',
   ])('%s devrait réutiliser la même squircle', (selector) => {
     expect(declaration(docSource, selector, 'clip-path')).toBe('var(--opale-squircle-clip)');
   });

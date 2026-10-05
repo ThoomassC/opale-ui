@@ -67,8 +67,9 @@ export default function ElevationContent() {
         <a className="tc-doc-link" href={hrefFor('composants/opale-card')}>
           Card
         </a>
-        . Les jetons <code>--elevation-*</code> de cette page restent publiés pour qui compose ses
-        propres surfaces avec <code>tokens.css</code>.
+        . Les jetons <code>--elevation-*</code> de cette page appartiennent à la charte interne du
+        site, qui n’est plus publiée depuis la 4.0 : pour vos propres surfaces, lisez{' '}
+        <code>--opale-shadow-*</code>.
       </p>
     </PageBody>
   );
