@@ -10,7 +10,7 @@
    Suppose `dist/` construit (`npm run build:lib`).
    ========================================================================== */
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
@@ -73,7 +73,8 @@ const BUDGETS = {
      Posé à 30 000 o avant son écriture, puis à 50 000 o : ses commandes
      emportent `IconActionButton` et `Surface`, qui pèsent à eux seuls près de
      27 ko dans `SvgMapControls`. Un dépassement s'allège, il ne relève pas
-     ce budget. */
+     ce budget. Le globe et l'imagerie, chargés à la demande, ont leurs
+     propres budgets (`LAZY_BUDGETS`). */
   WorldMap: 50_000,
 };
 
@@ -82,6 +83,35 @@ const BUDGETS = {
    le script — une coquille ne doit pas passer pour un budget tenu. Le nom sort
    de cette liste le jour où le composant est exporté. */
 const RESERVED = new Set([]);
+
+/* =============================================================================
+   CE QU'UN COMPOSANT NE CHARGE QU'À LA DEMANDE.
+
+   Le budget d'un composant mesure son CHARGEMENT INITIAL : le morceau
+   d'entrée et ce qu'il importe statiquement. Un module qu'il importe par
+   `import()` — le globe et l'imagerie de `WorldMap`, chargés au premier
+   usage — sort de cette mesure et a son propre budget, ci-dessous : le
+   morceau dynamique et ce qu'il est seul à importer, sans ce que l'entrée
+   apporte déjà. Plusieurs modules d'un même groupe se mesurent ensemble.
+
+   Un module déclaré ici DOIT être un morceau dynamique du composant : s'il
+   est importé statiquement, le script échoue — c'est ce qui garde la
+   frontière paresseuse. Les chemins sont ceux de `dist/opale`, sans
+   extension. Tant que le fichier n'est pas émis, le groupe est réservé. */
+const LAZY_BUDGETS = {
+  WorldMap: [
+    /* Le globe vectoriel : découpe par l'horizon, graticule, limbe. Posé à
+       20 000 o avant son écriture ; un dépassement s'allège. */
+    { label: 'globe vectoriel', budget: 20_000, modules: ['components/world-map/GlobeLayer'] },
+    /* L'imagerie : tuiles en plan, texture du globe et son échantillonnage.
+       Posé à 20 000 o avant son écriture ; même règle. */
+    {
+      label: 'imagerie satellite',
+      budget: 20_000,
+      modules: ['components/world-map/FlatRaster', 'components/world-map/GlobeRaster'],
+    },
+  ],
+};
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];
 
@@ -100,9 +130,41 @@ const bundledSize = async (name, work) => {
     },
   });
   const outputs = (Array.isArray(result) ? result : [result]).flatMap((item) => item.output);
-  return outputs
-    .filter((chunk) => chunk.type === 'chunk')
-    .reduce((total, chunk) => total + Buffer.byteLength(chunk.code), 0);
+  const chunks = new Map(
+    outputs.filter((chunk) => chunk.type === 'chunk').map((chunk) => [chunk.fileName, chunk]),
+  );
+  /* Un morceau et ceux qu'il importe statiquement, de proche en proche. */
+  const closure = (fileName, into = new Set()) => {
+    if (into.has(fileName) || !chunks.has(fileName)) return into;
+    into.add(fileName);
+    for (const imported of chunks.get(fileName).imports) closure(imported, into);
+    return into;
+  };
+  const weigh = (names) =>
+    [...names].reduce((total, file) => total + Buffer.byteLength(chunks.get(file).code), 0);
+  const initial = new Set();
+  for (const chunk of chunks.values()) if (chunk.isEntry) closure(chunk.fileName, initial);
+  /* Le morceau dynamique d'un module de `dist/opale`, s'il y en a un. */
+  const lazyChunk = (modulePath) =>
+    [...chunks.values()].find(
+      (chunk) =>
+        chunk.isDynamicEntry &&
+        chunk.facadeModuleId === join(root, 'dist/opale', `${modulePath}.js`),
+    );
+  return {
+    size: weigh(initial),
+    /** Le poids d'un groupe chargé à la demande ; `null` si un module n'est pas dynamique. */
+    lazySize: (modules) => {
+      const group = new Set();
+      for (const modulePath of modules) {
+        const chunk = lazyChunk(modulePath);
+        if (!chunk) return null;
+        closure(chunk.fileName, group);
+      }
+      for (const file of initial) group.delete(file);
+      return weigh(group);
+    },
+  };
 };
 
 /* Les noms exportés par l'entrée construite, lus sans l'exécuter : les
@@ -132,10 +194,28 @@ try {
       }
       continue;
     }
-    const size = await bundledSize(name, work);
+    const { size, lazySize } = await bundledSize(name, work);
     const line = `${name} seul : ${size} o minifiés (budget ${budget} o)`;
     if (size > budget) failures.push(line);
     else console.log(`✓ ${line}`);
+    for (const { label, budget: lazyBudget, modules } of LAZY_BUDGETS[name] ?? []) {
+      if (
+        modules.every((modulePath) => !existsSync(join(root, 'dist/opale', `${modulePath}.js`)))
+      ) {
+        console.log(
+          `· ${name}, ${label} : budget réservé (${lazyBudget} o), modules pas encore émis`,
+        );
+        continue;
+      }
+      const lazy = lazySize(modules);
+      if (lazy === null) {
+        failures.push(`${name}, ${label} : ${modules.join(', ')} n'est pas chargé à la demande`);
+        continue;
+      }
+      const lazyLine = `${name}, ${label} à la demande : ${lazy} o minifiés (budget ${lazyBudget} o)`;
+      if (lazy > lazyBudget) failures.push(lazyLine);
+      else console.log(`✓ ${lazyLine}`);
+    }
   }
 } finally {
   rmSync(work, { recursive: true, force: true });
