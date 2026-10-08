@@ -3,6 +3,19 @@
 Généré par `npm run changelog` depuis `src/showcase/releases.ts` : ne pas modifier à la main.
 Les mêmes notes, avec leurs démonstrations, sont sur la page « Versions » de la vitrine.
 
+## 4.1.0 — 8 octobre 2026
+
+Plus de rectangle gris au focus des contrôles, une seule bordure bleue sur les champs, et un Slider dessiné par Opale, identique dans tous les navigateurs. Sans rupture.
+
+### Le focus
+
+- **Plus de rectangle gris dans les contrôles** — Le champ d’une SearchBar, et les autres contrôles natifs enveloppés (Input, Select, MultiSelect, Checkbox, Toggle, Radio, Dropzone, SvgMap), n’annulaient leur anneau qu’à poids égal avec un anneau universel de l’application : selon l’ordre des feuilles, un rectangle gris apparaissait dans la pilule. Leur remise à zéro l’emporte désormais partout.
+- **Une seule bordure bleue au focus des champs** — Input, Select, Textarea et MultiSelect gardent leur bordure bleue au focus, sans le halo plus large qui la doublait.
+
+### Les composants
+
+- **Un Slider identique dans tous les navigateurs** — Sans verre, le Slider n’était qu’un curseur natif teinté, peint différemment par chaque navigateur (piste grise et poignée carrée dans Chrome). Opale dessine maintenant sa piste, sa part remplie et une poignée ronde, cernée au focus clavier ; en contrastes forcés, le natif revient.
+
 ## 4.0.0 — 5 octobre 2026
 
 **Rupture.**
