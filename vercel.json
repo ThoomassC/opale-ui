@@ -1,4 +1,10 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist-showcase"
+  "outputDirectory": "dist-showcase",
+  "headers": [
+    {
+      "source": "/world-map/v1/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
 }

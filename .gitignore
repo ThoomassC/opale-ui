@@ -35,3 +35,6 @@ coverage
 
 # Note de passation entre conversations, tenue à la main hors du dépôt.
 passation.md
+
+# Archives Natural Earth téléchargées par `scripts/world-data.mjs`.
+.cache/natural-earth/
