@@ -49,6 +49,37 @@ export interface ReleaseNote {
   readonly sourceHref: string;
 }
 
+const V410_RELEASE_SECTIONS: readonly ReleaseSection[] = [
+  {
+    title: 'Le focus',
+    changes: [
+      {
+        title: 'Plus de rectangle gris dans les contrôles',
+        detail:
+          'Le champ d’une SearchBar, et les autres contrôles natifs enveloppés (Input, Select, MultiSelect, Checkbox, Toggle, Radio, Dropzone, SvgMap), n’annulaient leur anneau qu’à poids égal avec un anneau universel de l’application : selon l’ordre des feuilles, un rectangle gris apparaissait dans la pilule. Leur remise à zéro l’emporte désormais partout.',
+        links: [{ label: 'SearchBar', slug: 'composants/search-bar' }],
+      },
+      {
+        title: 'Une seule bordure bleue au focus des champs',
+        detail:
+          'Input, Select, Textarea et MultiSelect gardent leur bordure bleue au focus, sans le halo plus large qui la doublait.',
+        links: [{ label: 'Input', slug: 'composants/opale-input' }],
+      },
+    ],
+  },
+  {
+    title: 'Les composants',
+    changes: [
+      {
+        title: 'Un Slider identique dans tous les navigateurs',
+        detail:
+          'Sans verre, le Slider n’était qu’un curseur natif teinté, peint différemment par chaque navigateur (piste grise et poignée carrée dans Chrome). Opale dessine maintenant sa piste, sa part remplie et une poignée ronde, cernée au focus clavier ; en contrastes forcés, le natif revient.',
+        links: [{ label: 'Slider', slug: 'composants/opale-slider' }],
+      },
+    ],
+  },
+];
+
 const V400_RELEASE_SECTIONS: readonly ReleaseSection[] = [
   {
     title: 'Les retraits',
@@ -1333,6 +1364,20 @@ const REPOSITORY_URL = 'https://github.com/ThoomassC/opale-ui';
  */
 export const RELEASES: readonly ReleaseNote[] = [
   {
+    version: '4.1.0',
+    publishedAt: '2026-10-08',
+    dateLabel: '8 octobre 2026',
+    summary:
+      'Plus de rectangle gris au focus des contrôles, une seule bordure bleue sur les champs, et un Slider dessiné par Opale, identique dans tous les navigateurs. Sans rupture.',
+    sections: V410_RELEASE_SECTIONS,
+    changes: V410_RELEASE_SECTIONS.flatMap((section) =>
+      section.changes.map((change) => `${change.title} : ${change.detail}`),
+    ),
+    highlights: ['Focus sans rectangle gris.', 'Slider identique partout.'],
+    appHref: '#/',
+    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+  },
+  {
     version: '4.0.0',
     publishedAt: '2026-10-05',
     dateLabel: '5 octobre 2026',
@@ -1345,8 +1390,9 @@ export const RELEASES: readonly ReleaseNote[] = [
     highlights: ['37 props et 8 exports retirés.', 'Guide « Migrer vers la 4.0 ».'],
     migration: V400_RELEASE_MIGRATION,
     breaking: true,
-    appHref: '#/',
-    sourceHref: `${REPOSITORY_URL}/tree/recette`,
+    /* ARCHIVÉE À LA SORTIE DE LA 4.1.0, sur son tag. */
+    appHref: '/versions/v4.0.0/index.html',
+    sourceHref: `${REPOSITORY_URL}/tree/v4.0.0`,
   },
   {
     version: '3.0.4',
