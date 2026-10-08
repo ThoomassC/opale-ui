@@ -61,8 +61,14 @@ export interface LabelOptions {
   /** Les tailles de police, en unités du cadre. */
   readonly countryFontSize: number;
   readonly cityFontSize: number;
-  /** Les boîtes qu'aucune étiquette ne recouvre : les repères de la carte. */
+  /** Les boîtes qu'aucune étiquette ne recouvre : les repères et les commandes de la carte. */
   readonly obstacles?: readonly LabelBox[];
+  /**
+   * La marge gardée au bord du cadre, en unités du cadre : la largeur d'une
+   * étiquette est estimée, et une étiquette qui effleure le bord y était
+   * rognée. Défaut : 0.
+   */
+  readonly margin?: number;
 }
 
 /**
@@ -91,14 +97,14 @@ const byId = (a: { readonly id: string }, b: { readonly id: string }) =>
 export function placeLabels(
   countries: readonly CountryCandidate[],
   cities: readonly CityCandidate[],
-  { width, height, countryFontSize, cityFontSize, obstacles = [] }: LabelOptions,
+  { width, height, countryFontSize, cityFontSize, obstacles = [], margin = 0 }: LabelOptions,
 ): PlacedLabel[] {
   const placed: PlacedLabel[] = [];
   const fits = (box: LabelBox) =>
-    box.left >= 0 &&
-    box.top >= 0 &&
-    box.right <= width &&
-    box.bottom <= height &&
+    box.left >= margin &&
+    box.top >= margin &&
+    box.right <= width - margin &&
+    box.bottom <= height - margin &&
     !obstacles.some((obstacle) => collides(obstacle, box)) &&
     !placed.some((label) => collides(label.box, box));
 

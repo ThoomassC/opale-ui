@@ -633,6 +633,8 @@ describe('WorldMap — imagerie', () => {
       expect(img.src).toMatch(/^https:\/\/gibs\.earthdata\.nasa\.gov\/wmts\/.+\/2\/\d\/\d\.jpeg$/);
     }
     expect(screen.getByText(/NASA GIBS/)).toBeInTheDocument();
+    /* Hors du cadre rogné : sous 30 rem, il passe sous la carte. */
+    expect(screen.getByText(/NASA GIBS/).closest('.opale-world-map__canvas')).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Satellite' }));
     expect(screen.queryByText(/NASA GIBS/)).toBeNull();
@@ -730,6 +732,159 @@ describe('WorldMap — imagerie', () => {
   });
 });
 
+describe('WorldMap — revue d’accessibilité', () => {
+  it('ferme l’infobulle à Échap, même quand le focus est hors de la carte', async () => {
+    network(ALL_FILES);
+    const { container } = render(
+      <>
+        <button type="button">Ailleurs</button>
+        <WorldMap dataUrl="/world-map/v1" label="Villes" />
+      </>,
+    );
+    await waitFor(() => expect(container.querySelector('[data-country="FR"]')).not.toBeNull());
+    fireEvent.pointerMove(container.querySelector('[data-country="FR"]') as Element, {
+      clientX: 10,
+      clientY: 10,
+    });
+    expect(screen.getByText('France')).toBeInTheDocument();
+    const elsewhere = screen.getByRole('button', { name: 'Ailleurs' });
+    act(() => elsewhere.focus());
+
+    fireEvent.keyDown(elsewhere, { key: 'Escape' });
+
+    expect(screen.queryByText('France')).not.toBeInTheDocument();
+  });
+
+  it('cache la description de l’affichage sans la retirer de l’arbre', () => {
+    network({});
+    render(<Harness description="Neuf villes." />);
+    const id = surface().getAttribute('aria-describedby') ?? '';
+    const description = document.getElementById(id);
+    expect(description).toHaveAttribute('hidden');
+    expect(surface()).toHaveAccessibleDescription(/Neuf villes\./);
+  });
+
+  it('rend les commandes avant le cadre, dans l’ordre de lecture', () => {
+    network({});
+    const { container } = render(<Harness />);
+    const frame = container.querySelector('.opale-world-map__frame') as HTMLElement;
+    const order = [...frame.children].map((child) => child.className);
+    const canvas = order.findIndex((name) => name.includes('opale-world-map__canvas'));
+    expect(order.findIndex((name) => name.includes('opale-world-map__layers'))).toBeLessThan(
+      canvas,
+    );
+    expect(order.findIndex((name) => name.includes('opale-world-map__controls'))).toBeLessThan(
+      canvas,
+    );
+  });
+
+  it('relie « Zoomer » indisponible du globe à sa consigne', () => {
+    reduceMotion();
+    network({});
+    render(<Harness defaultMode="globe" initialView={{ longitude: 0, latitude: 0, zoom: 3 }} />);
+    const zoomIn = screen.getByRole('button', { name: 'Zoomer' });
+    expect(zoomIn).toHaveAttribute('aria-disabled', 'true');
+    expect(zoomIn).toHaveAccessibleDescription('Passer en plan pour plus de détail');
+  });
+
+  it('n’annonce rien après une flèche sans effet', async () => {
+    reduceMotion();
+    network(ALL_FILES);
+    const { container } = render(<Harness />);
+    await waitFor(() => expect(container.querySelector('[data-country="FR"]')).not.toBeNull());
+
+    /* Au zoom 0, le plan montre tout le monde : rien à gauche. */
+    fireEvent.keyDown(surface(), { key: 'ArrowLeft' });
+    await act(() => new Promise((resolve) => setTimeout(resolve, 700)));
+
+    expect(container.querySelector('[aria-live="polite"]')).toHaveTextContent('');
+  });
+
+  it('ne pose pas d’étiquette sous les bascules ni sous les commandes', async () => {
+    /* Une mise en page simulée : le cadre fait 1000 × 562,5 px, les bascules
+       couvrent son coin haut gauche. */
+    const rects: Record<string, Partial<DOMRect>> = {
+      'opale-world-map__canvas': { left: 0, top: 0, right: 1000, bottom: 562.5, width: 1000 },
+      'opale-world-map__layers': { left: 0, top: 0, right: 300, bottom: 80, width: 300 },
+      'opale-world-map__controls': { left: 940, top: 0, right: 1000, bottom: 200, width: 60 },
+    };
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function rect(
+      this: Element,
+    ) {
+      const known = Object.keys(rects).find((name) => this.classList.contains(name));
+      return {
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: 0,
+        height: 0,
+        ...(known ? rects[known] : {}),
+      } as DOMRect;
+    });
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        readonly callback: ResizeObserverCallback;
+        constructor(callback: ResizeObserverCallback) {
+          this.callback = callback;
+        }
+        observe() {
+          this.callback(
+            [{ contentRect: { width: 1000 } } as ResizeObserverEntry],
+            this as unknown as ResizeObserver,
+          );
+        }
+        disconnect() {}
+      },
+    );
+    const labelled = {
+      ...LEVEL,
+      countryLabels: [
+        /* Sous les bascules, en haut à gauche. */
+        { id: 'FR', lon: -165, lat: 75, min: 0, max: 10 },
+        /* Au milieu, libre. */
+        { id: 'JP', lon: 20, lat: 0, min: 0, max: 10 },
+      ],
+    };
+    network({ 'v1/index.json': INDEX, 'v1/110m.json': labelled, 'v1/50m.json': labelled });
+    const { container } = render(<WorldMap dataUrl="/world-map/v1" label="Villes" />);
+
+    await waitFor(() =>
+      expect(container.querySelector('.opale-world-map__country-label')).not.toBeNull(),
+    );
+    const labels = [...container.querySelectorAll('.opale-world-map__country-label')].map(
+      (node) => node.textContent,
+    );
+    expect(labels).toEqual(['Japon']);
+  });
+
+  it('mène les flèches aux repères de la face visible avant ceux de derrière', () => {
+    reduceMotion();
+    network({});
+    const pins: readonly WorldMapPin[] = [
+      { id: 'tokyo', longitude: 139.69, latitude: 35.69, label: 'Tokyo' },
+      { id: 'sydney', longitude: 151.21, latitude: -33.87, label: 'Sydney' },
+      /* À 162,5° au sud de Tokyo, au-delà du pôle : derrière le globe, mais
+         projeté juste sous le centre — plus près que Sydney. */
+      { id: 'back', longitude: -40.31, latitude: -53.19, label: 'Mer de Weddell' },
+    ];
+    render(
+      <Harness
+        defaultMode="globe"
+        pins={pins}
+        initialView={{ longitude: 139.69, latitude: 35.69, zoom: 0 }}
+      />,
+    );
+    const tokyo = screen.getByRole('button', { name: 'Tokyo' });
+    act(() => tokyo.focus());
+
+    fireEvent.keyDown(tokyo, { key: 'ArrowDown' });
+
+    expect(screen.getByRole('button', { name: 'Sydney' })).toHaveFocus();
+  });
+});
+
 /* =============================================================================
    LES TRAITS SE VOIENT SUR LES TERRES.
 
@@ -816,4 +971,47 @@ describe('WorldMap — traits sur l’imagerie', () => {
       });
     }
   }
+});
+
+/* =============================================================================
+   LA REVUE VISUELLE : imagerie, contrastes forcés, crédit.
+   ========================================================================== */
+describe('WorldMap — feuille, revue visuelle', () => {
+  const satellite = ".opale-world-map[data-basemap='satellite']";
+  const forced = '@media (forced-colors: active)';
+
+  it('trace l’anneau de focus des repères à l’encre de la nuit sur l’imagerie', () => {
+    const selector = `${satellite} .opale-world-map__pin-button:focus-visible`;
+    expect(declaration(opaleSource, selector, 'outline-color')).toBe(
+      'var(--opale-ground-night-ink)',
+    );
+    expect(declaration(opaleSource, selector, 'box-shadow')).toContain('var(--opale-ground-night)');
+  });
+
+  it('distingue les fleuves des frontières sur l’imagerie', () => {
+    expect(declaration(opaleSource, satellite, '--opale-world-map-river')).not.toBe(
+      declaration(opaleSource, satellite, '--opale-world-map-border'),
+    );
+  });
+
+  it('marque la bascule enfoncée et le bord du globe en contrastes forcés', () => {
+    const pressed = ".opale-world-map__layers [aria-pressed='true']";
+    expect(declaration(opaleSource, pressed, 'background', { within: forced })).toBe('Highlight');
+    expect(declaration(opaleSource, pressed, 'color', { within: forced })).toBe('HighlightText');
+    expect(declaration(opaleSource, pressed, 'forced-color-adjust', { within: forced })).toBe(
+      'none',
+    );
+    expect(declaration(opaleSource, '.opale-world-map__disc', 'stroke', { within: forced })).toBe(
+      'CanvasText',
+    );
+  });
+
+  it('laisse passer le pointeur sous le crédit, et le pose sous la carte sur un écran étroit', () => {
+    expect(declaration(opaleSource, '.opale-world-map__credit', 'pointer-events')).toBe('none');
+    expect(
+      declaration(opaleSource, '.opale-world-map__credit', 'position', {
+        within: '@media (max-width: 30rem)',
+      }),
+    ).toBe('static');
+  });
 });

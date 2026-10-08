@@ -47,6 +47,7 @@ import {
 } from '../components/world-map/data-cache';
 import {
   placeLabels,
+  type LabelBox,
   type CityCandidate,
   type CountryCandidate,
 } from '../components/world-map/labels';
@@ -364,6 +365,8 @@ const COUNTRY_FONT_PX = 12;
 const CITY_FONT_PX = 11;
 /** La pastille d'un repère, anneaux compris, en pixels affichés. */
 const PIN_PX = 20;
+/** La marge des étiquettes au bord du cadre, en pixels affichés. */
+const LABEL_MARGIN_PX = 4;
 
 /** Le rapport d'un `aspect-ratio` CSS : `'16 / 9'`, `'2'`. Un rapport illisible retombe sur 16 / 9. */
 function parseRatio(value: string): number {
@@ -468,7 +471,9 @@ export function WorldMap({
 
   const svgRef = useRef<SVGSVGElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const descriptionId = useId();
+  const limitId = useId();
   const { onPointerDown, onClickCapture, dragging, hint } = useSvgMapGestures(
     svgRef,
     viewport.gestureTarget,
@@ -488,6 +493,42 @@ export function WorldMap({
     observer.observe(svg);
     return () => observer.disconnect();
   }, []);
+  /* LES COMMANDES POSÉES SUR LA CARTE SONT DES OBSTACLES pour les
+     étiquettes : leurs boîtes sont mesurées, en unités du cadre, à chaque
+     changement de taille (le groupe des flèches paraît au premier zoom).
+     Sous 30 rem, elles passent sous la carte et ne gênent plus rien. */
+  const [controlBoxes, setControlBoxes] = useState<readonly LabelBox[]>([]);
+  useEffect(() => {
+    const node = frameRef.current;
+    const surface = canvasRef.current;
+    if (!node || !surface || typeof ResizeObserver === 'undefined') return undefined;
+    const boxes = [
+      ...node.querySelectorAll('.opale-world-map__layers, .opale-world-map__controls'),
+    ];
+    const measure = () => {
+      const box = surface.getBoundingClientRect();
+      if (box.width <= 0) return;
+      const k = frame.width / box.width;
+      const next = boxes.flatMap((element) => {
+        const r = element.getBoundingClientRect();
+        const left = (r.left - box.left) * k;
+        const top = (r.top - box.top) * k;
+        const right = (r.right - box.left) * k;
+        const bottom = (r.bottom - box.top) * k;
+        return right > left && right > 0 && bottom > 0 && left < frame.width && top < frame.height
+          ? [{ left, top, right, bottom }]
+          : [];
+      });
+      setControlBoxes((previous) =>
+        JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
+      );
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    for (const element of boxes) observer.observe(element);
+    return () => observer.disconnect();
+  }, [frame, controls, layerControls]);
+
   /** Une unité du cadre, en pixels affichés : les tailles s'écrivent en pixels. */
   const unit = frame.width / framePx;
 
@@ -694,8 +735,8 @@ export function WorldMap({
         });
       }
     }
-    /* Les étiquettes contournent les repères : une pastille sur « Islande »
-       en cachait le nom. */
+    /* Les étiquettes contournent les repères — une pastille sur « Islande »
+       en cachait le nom — et les commandes posées sur la carte. */
     const half = (PIN_PX / 2) * unit;
     const obstacles = pinSpots.flatMap(([longitude = 0, latitude = 0]) => {
       const [x, y, face] = at(longitude, latitude);
@@ -706,12 +747,13 @@ export function WorldMap({
       height: frame.height,
       countryFontSize: COUNTRY_FONT_PX * unit,
       cityFontSize: CITY_FONT_PX * unit,
-      obstacles,
+      obstacles: [...obstacles, ...controlBoxes],
+      margin: LABEL_MARGIN_PX * unit,
     }).map(({ id, text, kind }) => {
       const [longitude, latitude] = geo.get(id) ?? [0, 0];
       return { id, text, kind, longitude, latitude };
     });
-  }, [level, settled, frame, restZoom, nameOf, locale, unit, projector, pinSpots]);
+  }, [level, settled, frame, restZoom, nameOf, locale, unit, projector, pinSpots, controlBoxes]);
 
   /* ------------------------------------------------------------------------
      Les repères.
@@ -727,6 +769,12 @@ export function WorldMap({
     return { pin, x, y, face };
   });
   const centers = new Map(pinPoints.map(({ pin, x, y }) => [pin.id, { x, y }]));
+  /* SUR LE GLOBE, LA FACE VISIBLE D'ABORD : un repère de derrière se projette
+     en miroir, et passait pour le voisin d'en dessous. Il n'est atteint aux
+     flèches que s'il n'y a rien devant dans cette direction. */
+  const frontCenters = new Map(
+    pinPoints.filter(({ face }) => face >= 0.2).map(({ pin, x, y }) => [pin.id, { x, y }]),
+  );
   const has = (id: string | undefined): id is string =>
     id !== undefined && pins.some((pin) => pin.id === id);
   const rovingId = has(activePin)
@@ -750,7 +798,8 @@ export function WorldMap({
     if (event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
     const id = pins[index].id;
     const target = isArrowKey(event.key)
-      ? nearestInDirection(centers, id, event.key)
+      ? ((frontCenters.has(id) ? nearestInDirection(frontCenters, id, event.key) : null) ??
+        nearestInDirection(centers, id, event.key))
       : event.key === 'Home'
         ? pins[0].id
         : event.key === 'End'
@@ -807,6 +856,17 @@ export function WorldMap({
   /* Échap ferme l'infobulle jusqu'au survol d'un autre pays (WCAG 1.4.13). */
   const [tooltipDismissed, setTooltipDismissed] = useState(false);
   const tooltipName = hovered && !tooltipDismissed && !dragging ? nameOf(hovered.id) : undefined;
+  /* Échap ferme l'infobulle d'où que soit le focus : survoler la carte ne
+     l'y met pas. Écouté sur le document tant que l'infobulle est là. */
+  const tooltipShown = Boolean(tooltipName);
+  useEffect(() => {
+    if (!tooltipShown) return undefined;
+    const close = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setTooltipDismissed(true);
+    };
+    document.addEventListener('keydown', close);
+    return () => document.removeEventListener('keydown', close);
+  }, [tooltipShown]);
 
   /* Les raccourcis ne partent que de la carte, de ses repères et de ses
      commandes : un champ posé à côté garde « 0 » et « - ». */
@@ -834,24 +894,34 @@ export function WorldMap({
     }
     const onSurface = event.target === svgRef.current;
     const pan = isArrowKey(event.key) ? ARROW_DIRECTIONS[event.key] : undefined;
-    let acted = true;
+    /* `handled` : la touche est la nôtre ; `moved` : elle a changé la vue.
+       Une flèche au bord du monde ou « + » au zoom maximal ne s'annonce pas. */
+    let handled = true;
+    let moved = true;
     if (pan && (onSurface || event.shiftKey)) {
+      moved = hasRoom(viewport.target, pan[0], pan[1], {
+        mode,
+        frame,
+        maxZoom: viewport.maxZoom,
+      });
       viewport.gestureTarget.panBy(
         pan[0] * frame.width * PAN_STEP,
         pan[1] * frame.height * PAN_STEP,
       );
     } else if (event.key === '+' || event.key === '=') {
+      moved = viewport.canZoomIn;
       viewport.zoomBy(ZOOM_STEP, { animate: true });
     } else if (event.key === '-' || event.key === '_') {
+      moved = viewport.zoomed;
       viewport.zoomBy(1 / ZOOM_STEP, { animate: true });
     } else if (event.key === '0' || (event.key === 'Home' && onSurface)) {
       viewport.reset();
     } else {
-      acted = false;
+      handled = false;
     }
-    if (acted) {
+    if (handled) {
       event.preventDefault();
-      announce();
+      if (moved) announce();
     }
   };
 
@@ -887,9 +957,6 @@ export function WorldMap({
     globe && !viewport.canZoomIn && labels.globeZoomLimit,
   ].filter((message): message is string => Boolean(message));
   const template = tileUrl ?? GIBS_BLUE_MARBLE_URL;
-  /* Les composants à la demande du rendu courant (voir `lazyLayer`). */
-  const Globe = { Layer: GlobeLayer.current, Raster: GlobeRaster.current };
-  const Flat = { Raster: FlatRaster.current };
   /* LE CRÉDIT DE LA NASA NE SE RETIRE PAS : seule une autre source le remplace. */
   const credit =
     template === GIBS_BLUE_MARBLE_URL
@@ -917,7 +984,7 @@ export function WorldMap({
       {hydrated && imagery && (
         <Suspense fallback={null}>
           {globe ? (
-            <Globe.Raster
+            <GlobeRaster.current
               view={view}
               frame={frame}
               framePx={framePx}
@@ -926,7 +993,7 @@ export function WorldMap({
               onFailure={onImageryFailure}
             />
           ) : (
-            <Flat.Raster
+            <FlatRaster.current
               view={view}
               settled={settled}
               frame={frame}
@@ -964,7 +1031,7 @@ export function WorldMap({
             />
             {hydrated && (
               <Suspense fallback={null}>
-                <Globe.Layer
+                <GlobeLayer.current
                   files={level?.files ?? []}
                   view={view}
                   frame={frame}
@@ -1082,16 +1149,18 @@ export function WorldMap({
       {/* La région vit dès le premier rendu : un message qui paraît y est lu. */}
       <p className="opale-world-map__status" role="status">
         {messages.map((message) => (
-          <span key={message}>{message}</span>
+          <span key={message} id={message === labels.globeZoomLimit ? limitId : undefined}>
+            {message}
+          </span>
         ))}
       </p>
-
-      {imagery && credit && <p className="opale-world-map__credit">{credit}</p>}
 
       <span className="opale-visually-hidden" aria-live="polite">
         {announcement}
       </span>
-      <span id={descriptionId} className="opale-visually-hidden">
+      {/* `hidden` : lue par `aria-describedby`, pas une seconde fois au
+          parcours du lecteur d'écran. */}
+      <span id={descriptionId} hidden>
         {description ? <>{description} </> : null}
         {labels.instructions}
       </span>
@@ -1099,8 +1168,10 @@ export function WorldMap({
   );
 
   const frameNode = (
-    <div className="opale-world-map__frame">
-      {canvas}
+    <div ref={frameRef} className="opale-world-map__frame">
+      {/* LES COMMANDES D'ABORD, dans l'ordre de lecture comme à l'écran, où
+          elles sont posées sur la carte ; sous 30 rem, `order` remet la carte
+          au-dessus. */}
       {(controls || layerControls) && (
         <WorldMapControls
           viewport={viewport}
@@ -1123,9 +1194,15 @@ export function WorldMap({
                 }
               : undefined
           }
+          zoomLimitId={globe && !viewport.canZoomIn ? limitId : undefined}
           onKeyboardAction={announce}
         />
       )}
+      {canvas}
+      {/* Le crédit est hors du cadre rogné : posé sur sa marge en bas à
+          droite, il passe dessous sur un écran étroit, où il couvrait des
+          repères. */}
+      {imagery && credit && <p className="opale-world-map__credit">{credit}</p>}
     </div>
   );
 
@@ -1153,6 +1230,30 @@ export function WorldMap({
   );
 }
 
+/**
+ * Vrai si un pas de déplacement `(dx, dy)` — en cinquièmes du cadre —
+ * change encore la vue visée : le plan bute aux bords du monde, le globe
+ * aux pôles (il tourne avec le pointeur, d'où le signe).
+ */
+function hasRoom(
+  target: WorldMapView,
+  dx: number,
+  dy: number,
+  bounds: { readonly mode: WorldMapMode; readonly frame: Frame; readonly maxZoom: number },
+): boolean {
+  const globe = bounds.mode === 'globe';
+  const next = (globe ? rotateByPixels : panByPixels)(
+    target,
+    (globe ? -dx : dx) * bounds.frame.width * PAN_STEP,
+    (globe ? -dy : dy) * bounds.frame.height * PAN_STEP,
+    bounds,
+  );
+  return (
+    Math.abs(next.longitude - target.longitude) > 1e-6 ||
+    Math.abs(next.latitude - target.latitude) > 1e-6
+  );
+}
+
 /** Les quatre flèches : direction, glyphe, clé de libellé. */
 const PAN_BUTTONS = [
   { key: 'panUp', direction: [0, -1], glyph: GLYPH_ARROW_UP, area: 'up' },
@@ -1177,6 +1278,8 @@ interface WorldMapControlsProps {
   };
   /** Appelée après une action faite au clavier, pour l'annonce. */
   readonly onKeyboardAction: () => void;
+  /** La consigne qui décrit « Zoomer » indisponible, sur le globe. */
+  readonly zoomLimitId?: string;
 }
 
 /* LES COMMANDES SUIVENT LA VUE VISÉE, pas la vue peinte : les flèches
@@ -1192,23 +1295,12 @@ function WorldMapControls({
   zoom,
   layers,
   onKeyboardAction,
+  zoomLimitId,
 }: WorldMapControlsProps) {
   const { target } = viewport;
   const globe = mode === 'globe';
-  const bounds = { mode, frame, maxZoom: viewport.maxZoom } as const;
-  /** Vrai si un pas dans cette direction déplace encore la vue (le globe tourne avec le pointeur). */
-  const room = (dx: number, dy: number) => {
-    const next = (globe ? rotateByPixels : panByPixels)(
-      target,
-      (globe ? -dx : dx) * frame.width * PAN_STEP,
-      (globe ? -dy : dy) * frame.height * PAN_STEP,
-      bounds,
-    );
-    return (
-      Math.abs(next.longitude - target.longitude) > 1e-6 ||
-      Math.abs(next.latitude - target.latitude) > 1e-6
-    );
-  };
+  const room = (dx: number, dy: number) =>
+    hasRoom(target, dx, dy, { mode, frame, maxZoom: viewport.maxZoom });
   /* Un clic au clavier (Entrée, Espace) a un `detail` nul : celui-là s'annonce. */
   const act = (enabled: boolean, run: () => void) => (event: MouseEvent<HTMLButtonElement>) => {
     if (!enabled) return;
@@ -1235,11 +1327,16 @@ function WorldMapControls({
     name: string,
     enabled: boolean,
     run: () => void,
-    extra: { readonly className?: string; readonly ref?: Ref<HTMLButtonElement> } = {},
+    extra: {
+      readonly className?: string;
+      readonly ref?: Ref<HTMLButtonElement>;
+      readonly describedBy?: string;
+    } = {},
   ) => (
     <Button
       key={key}
       ref={extra.ref}
+      aria-describedby={extra.describedBy}
       variant="tonal"
       size="small"
       liquidGlass={liquidGlass}
@@ -1281,8 +1378,13 @@ function WorldMapControls({
           aria-label={labels.zoom}
           className="opale-world-map-controls opale-world-map__controls"
         >
-          {control('in', GLYPH_ZOOM_IN, labels.zoomIn, viewport.canZoomIn, () =>
-            viewport.zoomBy(ZOOM_STEP, { animate: true }),
+          {control(
+            'in',
+            GLYPH_ZOOM_IN,
+            labels.zoomIn,
+            viewport.canZoomIn,
+            () => viewport.zoomBy(ZOOM_STEP, { animate: true }),
+            { describedBy: zoomLimitId },
           )}
           {control('out', GLYPH_ZOOM_OUT, labels.zoomOut, viewport.zoomed, () =>
             viewport.zoomBy(1 / ZOOM_STEP, { animate: true }),

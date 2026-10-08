@@ -120,4 +120,12 @@ describe('placeLabels', () => {
     const pin = { left: 510, right: 530, top: 290, bottom: 310 };
     expect(placeLabels([], [paris], { ...OPTIONS, obstacles: [pin] })).toEqual([]);
   });
+
+  it('garde une marge au bord du cadre : une étiquette qui l’effleure serait rognée', () => {
+    /* « Paris » à 11 px : 30,25 de large, de 510,5 à 540,75. */
+    const paris = city('Paris', 505, 300, 2_000_000);
+    const tight = { ...OPTIONS, width: 545 };
+    expect(placeLabels([], [paris], tight)).toHaveLength(1);
+    expect(placeLabels([], [paris], { ...tight, margin: 6 })).toEqual([]);
+  });
 });

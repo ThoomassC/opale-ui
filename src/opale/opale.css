@@ -4365,7 +4365,9 @@ ol.opale-stack {
   --opale-world-map-coast: var(--opale-ground-night-ink);
   --opale-world-map-border: var(--opale-ground-night-ink);
   --opale-world-map-admin1: var(--opale-ground-night-ink);
-  --opale-world-map-river: var(--opale-ground-night-ink);
+  /* Les fleuves gardent une teinte d'eau : sur la même encre blanche que
+     les frontières, on ne les distinguait plus. */
+  --opale-world-map-river: var(--opale-primary-light);
   --opale-world-map-halo: var(--opale-ground-night);
 }
 .opale-world-map[data-basemap='satellite'] .opale-world-map__plate {
@@ -4396,9 +4398,12 @@ ol.opale-stack {
   stroke-dasharray: none;
 }
 /* LE CRÉDIT DE L'IMAGERIE reste lisible sur la photographie : l'encre de la
-   nuit sur un voile de nuit. */
+   nuit sur un voile de nuit. Il laisse passer le pointeur vers les repères
+   qu'il recouvre ; un lien qu'il contiendrait reste cliquable. */
 .opale-world-map__credit {
   position: absolute;
+  z-index: 1;
+  pointer-events: none;
   inset-block-end: 0;
   inset-inline-end: 0;
   max-inline-size: 100%;
@@ -4409,6 +4414,10 @@ ol.opale-stack {
   color: var(--opale-ground-night-ink);
   font-size: var(--opale-text-xs);
   line-height: var(--opale-leading-snug);
+}
+.opale-world-map__credit a {
+  color: inherit;
+  pointer-events: auto;
 }
 /* LES ÉTIQUETTES ONT UN HALO DE LA SURFACE, peint sous le texte
    (`paint-order`) : elles se lisent sur une côte comme sur une frontière. */
@@ -4508,6 +4517,14 @@ ol.opale-stack {
 .opale-world-map__pin-button:focus-visible {
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
   outline-offset: var(--opale-focus-ring-offset);
+}
+/* SUR L'IMAGERIE, l'anneau de focus prend la paire de la nuit : l'encre
+   claire cernée de sombre tient 3:1 sur n'importe quelle photographie, le
+   bleu du focus ne le tenait pas sur l'océan. */
+.opale-world-map[data-basemap='satellite'] .opale-world-map__pin-button:focus-visible {
+  outline-color: var(--opale-ground-night-ink);
+  box-shadow: 0 0 0 calc(var(--opale-focus-ring-offset) + var(--opale-focus-ring-width) + 2px)
+    var(--opale-ground-night);
 }
 /* L'ÉTIQUETTE PARAÎT AU SURVOL ET AU FOCUS ; elle double le nom accessible,
    elle est donc cachée de l'arbre. */
@@ -4650,9 +4667,19 @@ ol.opale-stack {
     flex-wrap: wrap;
     gap: var(--opale-space-sm);
   }
+  /* Les commandes précèdent la carte dans le DOM : la carte remonte en tête,
+     le crédit passe juste dessous, les commandes ensuite. */
   .opale-world-map__canvas {
     flex: 1 0 100%;
     min-inline-size: 0;
+    order: -2;
+  }
+  .opale-world-map__credit {
+    position: static;
+    flex: 1 0 100%;
+    order: -1;
+    margin-block-start: calc(-1 * var(--opale-space-sm));
+    border-radius: 0;
   }
   .opale-world-map__controls {
     position: static;
@@ -4716,6 +4743,16 @@ ol.opale-stack {
   .opale-world-map__credit {
     background: Canvas;
     color: CanvasText;
+  }
+  /* L'état enfoncé ne tenait qu'à une ombre, que le système efface. */
+  .opale-world-map__layers [aria-pressed='true'] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  /* Le bord du globe : sans lui, le disque se confond avec le canevas. */
+  .opale-world-map__disc {
+    stroke: CanvasText;
   }
   .opale-world-map__plate,
   .opale-world-map__ocean,
