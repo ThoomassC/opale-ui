@@ -529,6 +529,21 @@ describe('WorldMap — globe', () => {
     expect(screen.getByText('Passer en plan pour plus de détail')).toBeInTheDocument();
   });
 
+  it('garde le 50m au clavier : seul un glisser passe au 110m', async () => {
+    reduceMotion();
+    const { requests } = network(ALL_FILES);
+    const { container } = render(<Harness defaultMode="globe" />);
+    await waitFor(() => expect(container.querySelector('[data-country="FR"]')).not.toBeNull());
+    expect(requests.map(({ url }) => url).filter((url) => url.endsWith('110m.json'))).toEqual([]);
+
+    fireEvent.keyDown(surface(), { key: 'ArrowRight' });
+    fireEvent.keyDown(surface(), { key: '+' });
+    /* La vue se pose 150 ms après : le niveau suivant aurait eu le temps de partir. */
+    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
+
+    expect(requests.map(({ url }) => url).filter((url) => url.endsWith('110m.json'))).toEqual([]);
+  });
+
   it('garde le centre en passant du plan au globe et retour', () => {
     reduceMotion();
     network({});

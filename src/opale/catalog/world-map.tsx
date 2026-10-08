@@ -526,13 +526,16 @@ export function WorldMap({
     [setImageryFailed],
   );
 
-  /* SUR LE GLOBE, le 110m pendant un geste et le 50m au repos : il faut
+  /* SUR LE GLOBE, le 110m pendant un glisser et le 50m sinon : il faut
      redécouper à chaque image. */
   const tiles = globe ? null : visibleTiles(flatBounds(settled, frame));
   const lod = selectLod({
     mode,
     webZoom: restZoom,
-    gesturing: moving,
+    /* Seul un glisser du pointeur passe au 110m : une flèche, un zoom animé
+       ou un vol font aussi « bouger » la vue, et faisaient clignoter le
+       globe de 50m en 110m à chaque touche. */
+    gesturing: dragging,
     previous: level?.lod,
     tileCount: tiles?.length ?? null,
   });
