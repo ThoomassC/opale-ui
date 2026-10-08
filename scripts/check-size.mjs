@@ -105,6 +105,12 @@ const LAZY_BUDGETS = {
     { label: 'globe vectoriel', budget: 20_000, modules: ['components/world-map/GlobeLayer'] },
     /* L'imagerie : tuiles en plan, texture du globe et son échantillonnage.
        Posé à 20 000 o avant son écriture ; même règle. */
+    /* Les étiquettes des pays et des villes, et la mesure des commandes
+       qu'elles contournent : elles ne paraissent qu'avec les données, qui
+       arrivent après le premier rendu, et se chargent avec elles. Posé à
+       6 000 o avant leur extraction, quand la revue a porté le chargement
+       initial à 51 964 o ; un dépassement s'allège. */
+    { label: 'étiquettes', budget: 6_000, modules: ['components/world-map/LabelLayer'] },
     {
       label: 'imagerie satellite',
       budget: 20_000,
