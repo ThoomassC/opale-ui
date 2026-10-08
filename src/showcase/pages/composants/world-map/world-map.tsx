@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Opale, WorldMap, useWorldMapViewport } from '../../../../opale';
-import type { WorldMapPin, WorldMapView } from '../../../../opale';
+import type { WorldMapBasemap, WorldMapMode, WorldMapPin, WorldMapView } from '../../../../opale';
 import { Specimen } from '../../../section';
 import { PropsTable, UsageBlock } from '../../api';
 import type { PropRow } from '../../api';
@@ -36,7 +36,17 @@ const viewport = useWorldMapViewport();
 <button onClick={() => viewport.flyTo({ longitude: 2.35, latitude: 48.86, zoom: 4 })}>
   Paris
 </button>
-<WorldMap dataUrl="/world-map/v1" viewport={viewport} />`;
+<WorldMap dataUrl="/world-map/v1" viewport={viewport} />
+
+// Le globe et l'imagerie NASA : chargés au premier usage seulement.
+const [mode, setMode] = useState<WorldMapMode>('globe');
+<WorldMap
+  dataUrl="/world-map/v1"
+  mode={mode}                    // 'flat' | 'globe' ; zoom du globe borné à 3
+  onModeChange={setMode}
+  defaultBasemap="satellite"     // 'vector' | 'satellite' (NASA GIBS Blue Marble)
+  onBasemapError={(error) => report(error)}
+/>`;
 
 const CITIES: readonly WorldMapPin[] = [
   { id: 'paris', longitude: 2.352, latitude: 48.857, label: 'Paris' },
@@ -138,6 +148,152 @@ function CityMap() {
   );
 }
 
+/* =============================================================================
+   PLAN OU GLOBE, DESSIN OU SATELLITE — EN CONTRÔLÉ.
+
+   Les bascules sont celles de la page, pas celles de la carte
+   (`layerControls={false}`) : la carte suit `mode` et `basemap`, et ne fait
+   que demander un changement par `onModeChange` et `onBasemapChange`.
+   ========================================================================== */
+function LayersDemo() {
+  const [mode, setMode] = useState<WorldMapMode>('globe');
+  const [basemap, setBasemap] = useState<WorldMapBasemap>('satellite');
+  const [failure, setFailure] = useState<string | null>(null);
+
+  return (
+    <MaterialSwitch name="le globe" stack>
+      {(liquidGlass) => (
+        <div className="tc-doc-svgmap-demo">
+          <div className="tc-doc-svgmap-demo__bar tc-doc-svgmap-demo__bar--start">
+            {(
+              [
+                ['flat', 'Plan'],
+                ['globe', 'Globe'],
+              ] as const
+            ).map(([value, text]) => (
+              <Opale.Button
+                key={value}
+                size="small"
+                variant={mode === value ? 'primary' : 'tonal'}
+                liquidGlass={liquidGlass}
+                aria-pressed={mode === value}
+                onClick={() => setMode(value)}
+              >
+                {text}
+              </Opale.Button>
+            ))}
+            {(
+              [
+                ['vector', 'Dessin'],
+                ['satellite', 'Satellite'],
+              ] as const
+            ).map(([value, text]) => (
+              <Opale.Button
+                key={value}
+                size="small"
+                variant={basemap === value ? 'primary' : 'tonal'}
+                liquidGlass={liquidGlass}
+                aria-pressed={basemap === value}
+                onClick={() => {
+                  setFailure(null);
+                  setBasemap(value);
+                }}
+              >
+                {text}
+              </Opale.Button>
+            ))}
+          </div>
+          <WorldMap
+            dataUrl={DATA_URL}
+            label="Le monde, en globe ou en plan"
+            defaultView={{ longitude: 10, latitude: 25, zoom: 0 }}
+            mode={mode}
+            onModeChange={setMode}
+            basemap={basemap}
+            onBasemapChange={setBasemap}
+            onBasemapError={(error) => setFailure(error.message)}
+            layerControls={false}
+            pins={CITIES}
+            liquidGlass={liquidGlass}
+          />
+          <p role="status" className="tc-doc-svgmap-demo__status">
+            {failure ? `onBasemapError : ${failure}` : ''}
+          </p>
+        </div>
+      )}
+    </MaterialSwitch>
+  );
+}
+
+/* Une couche GIBS qui n'existe pas : chaque tuile répond 400. */
+const BROKEN_TILES =
+  'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Couche_inexistante/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg';
+
+/* =============================================================================
+   LES ÉTATS D'ERREUR, À LA DEMANDE.
+
+   Rien ne part tant qu'on n'a pas choisi une panne : la page ne demande pas
+   de tuiles en échec à chaque visite.
+   ========================================================================== */
+function ErrorsDemo() {
+  const [broken, setBroken] = useState<'imagery' | 'data' | null>(null);
+  const [log, setLog] = useState('');
+
+  return (
+    <div className="tc-doc-svgmap-demo">
+      <div className="tc-doc-svgmap-demo__bar tc-doc-svgmap-demo__bar--start">
+        <Opale.Button
+          size="small"
+          variant={broken === 'imagery' ? 'primary' : 'tonal'}
+          aria-pressed={broken === 'imagery'}
+          onClick={() => {
+            setLog('');
+            setBroken('imagery');
+          }}
+        >
+          Imagerie introuvable
+        </Opale.Button>
+        <Opale.Button
+          size="small"
+          variant={broken === 'data' ? 'primary' : 'tonal'}
+          aria-pressed={broken === 'data'}
+          onClick={() => {
+            setLog('');
+            setBroken('data');
+          }}
+        >
+          Données introuvables
+        </Opale.Button>
+        <Opale.Button
+          size="small"
+          variant="ghost"
+          aria-disabled={broken ? undefined : true}
+          onClick={() => {
+            if (!broken) return;
+            setLog('');
+            setBroken(null);
+          }}
+        >
+          Rétablir
+        </Opale.Button>
+      </div>
+      <WorldMap
+        key={broken ?? 'ok'}
+        dataUrl={broken === 'data' ? '/world-map/absent' : DATA_URL}
+        label="Carte du monde, en panne simulée"
+        defaultBasemap={broken === 'imagery' ? 'satellite' : 'vector'}
+        tileUrl={broken === 'imagery' ? BROKEN_TILES : undefined}
+        tileAttribution={broken === 'imagery' ? 'Couche d’essai inexistante' : undefined}
+        onBasemapError={(error) => setLog(`onBasemapError : ${error.message}`)}
+        onDataError={(error) => setLog(`onDataError : ${error.message}`)}
+      />
+      <p role="status" className="tc-doc-svgmap-demo__status">
+        {log}
+      </p>
+    </div>
+  );
+}
+
 const PIN_ROWS: readonly PropRow[] = [
   {
     name: 'id',
@@ -215,7 +371,39 @@ export default function WorldMapContent() {
           <CityMap />
         </Specimen>
       }
-      examples={<UsageBlock label="Import et appels représentatifs de WorldMap" code={USAGE} />}
+      examples={
+        <>
+          <UsageBlock label="Import et appels représentatifs de WorldMap" code={USAGE} />
+          <Specimen
+            title="Le globe et l’imagerie satellite"
+            note={
+              <>
+                Glissez pour faire tourner le globe ; au clavier, les flèches le tournent d’un
+                cinquième du cadre. Son zoom s’arrête à 3, et le dit : au-delà, le plan prend le
+                relais avec son détail 10m. En satellite, la mosaïque Blue Marble de la NASA passe
+                sous le dessin, réduit à des traits clairs cernés de sombre ; le crédit reste
+                affiché tant qu’elle l’est. Globe et imagerie ne se téléchargent qu’à leur premier
+                usage.
+              </>
+            }
+          >
+            <LayersDemo />
+          </Specimen>
+          <Specimen
+            title="Pannes — imagerie et données"
+            note={
+              <>
+                Une imagerie dont plus de la moitié des tuiles échouent rend la main au dessin, le
+                dit et appelle <code>onBasemapError</code> ; les tuiles en échec ne sont pas
+                redemandées. Des données introuvables affichent « Détails indisponibles » et
+                appellent <code>onDataError</code>.
+              </>
+            }
+          >
+            <ErrorsDemo />
+          </Specimen>
+        </>
+      }
       props={
         <>
           <PropsTable id="world-map" note={api.states} rows={api.rows} />
@@ -235,7 +423,10 @@ export default function WorldMapContent() {
           <p className="tc-doc-prose tc-doc-svgmap-credit">
             Données : Natural Earth, du domaine public (« Made with Natural Earth »). Elles ne font
             pas partie de la librairie : l’application les sert depuis son propre dossier, comme la
-            vitrine depuis <code>public/world-map/v1/</code>.
+            vitrine depuis <code>public/world-map/v1/</code>. Imagerie : « We acknowledge the use of
+            imagery provided by services from NASA’s Global Imagery Browse Services (GIBS), part of
+            NASA’s Earth Science Data and Information System (ESDIS). » — Blue Marble, NASA Earth
+            Observatory.
           </p>
         </>
       }
@@ -265,6 +456,9 @@ export default function WorldMapContent() {
             <>
               Un niveau qui échoue affiche « Détails indisponibles » et appelle{' '}
               <code>onDataError</code> ; le niveau précédent reste affiché, rien n’est retenté seul.
+              Une imagerie indisponible — plus de la moitié des tuiles en échec, ou une texture du
+              globe refusée par CORS — ramène au dessin, affiche « Imagerie indisponible : retour au
+              dessin » et appelle <code>onBasemapError</code>.
             </>
           ),
         },
@@ -285,6 +479,12 @@ export default function WorldMapContent() {
           <>
             <kbd>Échap</kbd> masque l’infobulle du pays survolé.
           </>,
+          <>
+            Sur le globe, les flèches le font tourner ; un repère de la face cachée est ramené
+            devant quand il prend le focus. À son zoom maximal, « Zoomer » passe en{' '}
+            <code>aria-disabled</code> et la consigne « Passer en plan pour plus de détail »
+            s’affiche et s’annonce.
+          </>,
         ],
         semantics: [
           <>
@@ -303,6 +503,12 @@ export default function WorldMapContent() {
             L’infobulle et la consigne de molette sont <code>aria-hidden</code>. Sous{' '}
             <code>prefers-reduced-motion</code>, les vols ne sont pas animés.
           </>,
+          <>
+            Les bascules « Globe » et « Satellite » sont des boutons <code>aria-pressed</code>.
+            L’imagerie (<code>&lt;img alt=&quot;&quot;&gt;</code>, toile) et le limbe du globe sont
+            décoratifs, cachés de l’arbre et retirés en contrastes forcés ; le crédit, lui, est du
+            texte.
+          </>,
         ],
       }}
       limits={[
@@ -312,6 +518,11 @@ export default function WorldMapContent() {
         </>,
         <>Les pays ne sont pas sélectionnables ; seuls les repères le sont.</>,
         <>Le monde ne se répète pas horizontalement, et le nord reste en haut.</>,
+        <>
+          Le globe ne descend pas sous le zoom 3 ni sous le détail 50m, et ne tourne pas tout seul.
+          L’imagerie GIBS s’arrête au niveau 8 : au-delà, elle est agrandie. Une politique de
+          sécurité doit autoriser <code>img-src https://gibs.earthdata.nasa.gov</code>.
+        </>,
         <>
           Une molette sans <kbd>Ctrl</kbd> ou <kbd>⌘</kbd> fait défiler la page ; un contact qui
           bouge de plus de six pixels ne vaut plus un clic.
