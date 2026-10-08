@@ -138,7 +138,13 @@ Le crédit est affiché sur la carte tant que l'imagerie l'est.
 - **Conditions** : imagerie de la NASA, sans restriction d'usage ; la NASA
   demande de citer la source : « We acknowledge the use of imagery provided by
   services from NASA's Global Imagery Browse Services (GIBS), part of NASA's
-  Earth Science Data and Information System (ESDIS). »
+  Earth Science Data and Information System (ESDIS). » — mention relevée le
+  8 octobre 2026 sur
+  <https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api>
+  (« Data Use Guidance and Acknowledgements »).
+- **Affichage** : le crédit « Imagerie : NASA GIBS (ESDIS), Blue Marble » reste
+  visible sur la carte tant que l'imagerie l'est ; seul un `tileUrl` désignant
+  une autre source le remplace, par son propre `tileAttribution`.
 
 ---
 
