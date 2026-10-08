@@ -34,15 +34,22 @@
 import {
   GLYPH_ALERT_TRIANGLE,
   GLYPH_ARCHIVE,
+  GLYPH_ARROW_DOWN,
+  GLYPH_ARROW_LEFT,
+  GLYPH_ARROW_RIGHT,
+  GLYPH_ARROW_UP,
   GLYPH_CHECK_CIRCLE,
   GLYPH_CHEVRON_DOWN,
   GLYPH_CHEVRON_UP,
   GLYPH_CLOSE,
   GLYPH_FILE,
+  GLYPH_HOME,
   GLYPH_INFO,
   GLYPH_SORT,
   GLYPH_STAR,
   GLYPH_X_CIRCLE,
+  GLYPH_ZOOM_IN,
+  GLYPH_ZOOM_OUT,
 } from './glyphs';
 
 /**
@@ -72,10 +79,10 @@ function dot(cx: number, cy: number): string {
    ========================================================================== */
 export const OPALE_ICONS = {
   /* --- Navigation ------------------------------------------------------- */
-  'arrow-up': ['M12 20V4', 'M5 11l7-7 7 7'],
-  'arrow-down': ['M12 4v16', 'M19 13l-7 7-7-7'],
-  'arrow-left': ['M20 12H4', 'M11 19l-7-7 7-7'],
-  'arrow-right': ['M4 12h16', 'M13 5l7 7-7 7'],
+  'arrow-up': GLYPH_ARROW_UP,
+  'arrow-down': GLYPH_ARROW_DOWN,
+  'arrow-left': GLYPH_ARROW_LEFT,
+  'arrow-right': GLYPH_ARROW_RIGHT,
   'chevron-up': GLYPH_CHEVRON_UP,
   'chevron-down': GLYPH_CHEVRON_DOWN,
   'chevron-left': ['M15 5l-7 7 7 7'],
@@ -83,7 +90,7 @@ export const OPALE_ICONS = {
   'chevrons-left': ['M13 6l-6 6 6 6', 'M19 6l-6 6 6 6'],
   'chevrons-right': ['M11 6l6 6-6 6', 'M5 6l6 6-6 6'],
   'corner-turn': ['M4 8h9a4 4 0 0 1 4 4v8', 'M8 4L4 8l4 4'],
-  home: ['M3 11l9-7.5L21 11', 'M5.5 9.6V19a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.6', 'M10 20v-5.5h4V20'],
+  home: GLYPH_HOME,
   menu: ['M4 7h16', 'M4 12h16', 'M4 17h16'],
   close: GLYPH_CLOSE,
   'external-link': ['M14 4h6v6', 'M20 4l-8.5 8.5', 'M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'],
@@ -213,8 +220,8 @@ export const OPALE_ICONS = {
   /* --- Divers ----------------------------------------------------------- */
   eye: ['M2.8 12S6.6 6 12 6s9.2 6 9.2 6-3.8 6-9.2 6-9.2-6-9.2-6z', circle(12, 12, 2.9)],
   'eye-off': ['M9.5 6.4A8.6 8.6 0 0 1 12 6c5.4 0 9.2 6 9.2 6a16 16 0 0 1-3 3.5', 'M6.1 8.1A16.6 16.6 0 0 0 2.8 12s3.8 6 9.2 6a8.4 8.4 0 0 0 3.3-.7', 'M4 3.5l16 17', 'M10.1 10.2a2.9 2.9 0 0 0 3.9 4'],
-  'zoom-in': [circle(11, 11, 6.2), 'M15.6 15.6L20 20', 'M11 8.5v5', 'M8.5 11h5'],
-  'zoom-out': [circle(11, 11, 6.2), 'M15.6 15.6L20 20', 'M8.5 11h5'],
+  'zoom-in': GLYPH_ZOOM_IN,
+  'zoom-out': GLYPH_ZOOM_OUT,
   link: ['M10.2 13.8a3.8 3.8 0 0 0 5.4 0l2.9-2.9a3.8 3.8 0 0 0-5.4-5.4l-1.5 1.5', 'M13.8 10.2a3.8 3.8 0 0 0-5.4 0l-2.9 2.9a3.8 3.8 0 0 0 5.4 5.4l1.5-1.5'],
   code: ['M8.5 8L4 12l4.5 4', 'M15.5 8l4.5 4-4.5 4', 'M13.6 4.5l-3.2 15'],
   terminal: ['M3.5 4.5h17a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1z', 'M6.5 9.5l3 2.5-3 2.5', 'M12.5 15h5'],
