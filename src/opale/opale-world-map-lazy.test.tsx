@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { clearWorldDataCache } from './components/world-map/data-cache';
@@ -75,7 +75,7 @@ describe('WorldMap — chargement à la demande', () => {
 
     await waitFor(() => expect(container.querySelector('[data-country="FR"]')).not.toBeNull());
     /* Un tour de plus : un `import()` lancé dans un effet aurait eu le temps de partir. */
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
 
     expect([...loaded]).toEqual([]);
   });

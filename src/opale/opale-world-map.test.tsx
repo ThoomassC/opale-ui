@@ -850,13 +850,13 @@ describe('WorldMap — revue d’accessibilité', () => {
     network({ 'v1/index.json': INDEX, 'v1/110m.json': labelled, 'v1/50m.json': labelled });
     const { container } = render(<WorldMap dataUrl="/world-map/v1" label="Villes" />);
 
-    await waitFor(() =>
-      expect(container.querySelector('.opale-world-map__country-label')).not.toBeNull(),
-    );
-    const labels = [...container.querySelectorAll('.opale-world-map__country-label')].map(
-      (node) => node.textContent,
-    );
-    expect(labels).toEqual(['Japon']);
+    /* Les étiquettes se chargent à la demande, puis les commandes sont
+       mesurées : le placement se refait une fois leurs boîtes connues. */
+    const shown = () =>
+      [...container.querySelectorAll('.opale-world-map__country-label')].map(
+        (node) => node.textContent,
+      );
+    await waitFor(() => expect(shown()).toEqual(['Japon']));
   });
 
   it('mène les flèches aux repères de la face visible avant ceux de derrière', () => {
