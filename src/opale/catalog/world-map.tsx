@@ -822,7 +822,7 @@ export function WorldMap({
   const messages = [
     failed && labels.dataError,
     basemap === 'satellite' && imageryFailed && labels.basemapError,
-    !level && labels.loading,
+    !level && !failed && labels.loading,
     globe && !viewport.canZoomIn && labels.globeZoomLimit,
   ].filter((message): message is string => Boolean(message));
   const template = tileUrl ?? GIBS_BLUE_MARBLE_URL;

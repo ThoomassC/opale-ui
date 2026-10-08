@@ -172,6 +172,14 @@ describe('WorldMap — données', () => {
     expect(container.querySelector('[data-country="FR"]')).not.toBeNull();
   });
 
+  it('cesse d’annoncer le chargement quand le premier niveau échoue', async () => {
+    network(ALL_FILES, ['v1/index.json']);
+    render(<WorldMap dataUrl="/world-map/v1" />);
+
+    await waitFor(() => expect(screen.getByText('Détails indisponibles')).toBeInTheDocument());
+    expect(screen.queryByText(/Chargement de la carte/)).toBeNull();
+  });
+
   it('abandonne la requête en cours quand dataUrl change', async () => {
     const { requests } = network({});
     const { rerender } = render(<WorldMap dataUrl="/a" />);
