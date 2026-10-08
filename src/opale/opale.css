@@ -4173,6 +4173,627 @@ ol.opale-stack {
   stroke: var(--opale-glass-scrim);
   stroke-width: 6;
 }
+/* =============================================================================
+   LA CARTE DU MONDE.
+
+   SES JETONS PORTENT SA PEINTURE : les terres, l'eau, et chaque famille de
+   traits. Une couleur calculée par l'appelant passe en style en ligne sur le
+   pays, et l'emporte sur le remplissage par défaut.
+
+   LES TRAITS PORTENT LA GÉOGRAPHIE, ILS TIENNENT 3:1 CONTRE LES TERRES.
+   Côtes, frontières, limites régionales et fleuves sont des objets graphiques
+   porteurs de sens (WCAG 1.4.11) : chacun est mesuré en clair et en sombre
+   contre le remplissage par défaut — voir `opale-world-map.test.tsx`. Les
+   remplissages n'ont pas de contour : un pays découpé en tuiles montrerait
+   ses coutures.
+
+   L'EAU EST BLEUE, LES TERRES NEUTRES, et l'eau plus sombre que les terres
+   dans les deux thèmes : le primaire voile le fond de page, l'encre voile la
+   surface. En sombre, l'ancien mélange (primaire sur la surface creusée)
+   laissait 1,09:1 entre eau et terres ; celui-ci en tient 1,2 en sombre et
+   1,39 en clair, la teinte faisant le reste. Le trait de côte, plus épais
+   que les frontières, dessine le littoral.
+   ========================================================================== */
+.opale-world-map {
+  --opale-world-map-land: color-mix(in srgb, var(--opale-text) 10%, var(--opale-surface));
+  --opale-world-map-water: color-mix(in srgb, var(--opale-primary) 30%, var(--opale-background));
+  --opale-world-map-coast: color-mix(in srgb, var(--opale-text) 62%, var(--opale-surface));
+  --opale-world-map-border: color-mix(in srgb, var(--opale-text) 58%, var(--opale-surface));
+  --opale-world-map-admin1: color-mix(in srgb, var(--opale-text) 52%, var(--opale-surface));
+  --opale-world-map-river: color-mix(
+    in srgb,
+    var(--opale-primary-on-surface) 85%,
+    var(--opale-surface)
+  );
+  --opale-world-map-ink: var(--opale-text);
+
+  position: relative;
+  inline-size: 100%;
+  margin-inline: auto;
+  color: var(--opale-world-map-ink);
+}
+.opale-world-map__plate {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--opale-divider);
+  border-radius: var(--opale-radius-md);
+  background: var(--opale-world-map-water);
+}
+/* L'ANNEAU DE FOCUS EST SUR LA PLAQUE, qui porte l'arrondi : tracé sur le
+   `<svg>`, il serait rogné aux coins. Trois classes contre l'anneau
+   universel d'une application (voir la carte SVG). */
+.opale-world-map__plate:has(.opale-world-map__svg:focus-visible) {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+.opale-world-map .opale-world-map__svg:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.opale-world-map__frame {
+  position: relative;
+}
+/* LE CADRE A SA PROPORTION AVANT LES DONNÉES : rien ne bouge quand elles
+   arrivent. Ce qui en dépasse — un repère hors champ — est rogné, jamais
+   retiré : il garde son focus. */
+.opale-world-map__canvas {
+  position: relative;
+  overflow: hidden;
+  /* `clip`, pas `hidden` : un conteneur `hidden` défile pour montrer un
+     repère hors champ qui prend le focus, et le laissait hors du cadre après
+     le vol. `hidden` reste le repli des navigateurs sans `clip`. */
+  overflow: clip;
+  aspect-ratio: var(--opale-world-map-ratio, 16 / 9);
+}
+/* Le doigt fait défiler la page tant que la carte n'est pas zoomée. */
+.opale-world-map__svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.opale-world-map__canvas[data-zoomed='true'] .opale-world-map__svg {
+  cursor: grab;
+  touch-action: none;
+}
+.opale-world-map__canvas[data-dragging='true'] .opale-world-map__svg {
+  cursor: grabbing;
+}
+.opale-world-map__ocean,
+.opale-world-map__lake {
+  fill: var(--opale-world-map-water);
+}
+.opale-world-map__land {
+  fill: var(--opale-world-map-land);
+}
+.opale-world-map__lines path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.opale-world-map__lines .opale-world-map__lake {
+  fill: var(--opale-world-map-water);
+}
+.opale-world-map__coast {
+  stroke: var(--opale-world-map-coast);
+  stroke-width: calc(1.25px + var(--opale-world-map-halo-width, 0px));
+}
+.opale-world-map__border {
+  stroke: var(--opale-world-map-border);
+  stroke-width: calc(1px + var(--opale-world-map-halo-width, 0px));
+}
+.opale-world-map__admin1 {
+  stroke: var(--opale-world-map-admin1);
+  stroke-dasharray: 3 2;
+  stroke-width: calc(0.75px + var(--opale-world-map-halo-width, 0px));
+}
+.opale-world-map__river {
+  stroke: var(--opale-world-map-river);
+  stroke-width: calc(0.75px + var(--opale-world-map-halo-width, 0px));
+}
+/* LE GLOBE : un disque d'eau, un graticule discret, et un limbe — le bord
+   assombri du disque puis un liseré d'atmosphère —, décor caché de l'arbre
+   et retiré en contrastes forcés. */
+.opale-world-map__disc {
+  fill: var(--opale-world-map-water);
+}
+/* Autour du globe, l'espace : la surface creusée, pas l'eau du plan. */
+.opale-world-map[data-mode='globe'] .opale-world-map__plate {
+  background: var(--opale-surface-sunken);
+}
+.opale-world-map__graticule {
+  fill: none;
+  stroke: color-mix(in srgb, var(--opale-text) 14%, transparent);
+  stroke-width: 0.5;
+  pointer-events: none;
+}
+.opale-world-map__limb {
+  pointer-events: none;
+}
+.opale-world-map__limb-clear {
+  stop-color: var(--opale-ground-night);
+  stop-opacity: 0;
+}
+.opale-world-map__limb-shade {
+  stop-color: var(--opale-ground-night);
+  stop-opacity: 0.24;
+}
+.opale-world-map__limb-air {
+  stop-color: var(--opale-primary-light);
+  stop-opacity: 0.45;
+}
+.opale-world-map[data-mode='globe'] .opale-world-map__svg {
+  cursor: grab;
+}
+.opale-world-map[data-mode='globe']
+  .opale-world-map__canvas[data-dragging='true']
+  .opale-world-map__svg {
+  cursor: grabbing;
+}
+/* L'IMAGERIE SOUS LE DESSIN : des tuiles posées en pourcentages, que leur
+   conteneur déplace pendant un geste ; la texture du globe sur sa toile. */
+.opale-world-map__raster,
+.opale-world-map__texture {
+  position: absolute;
+  pointer-events: none;
+}
+.opale-world-map__raster {
+  inset: 0;
+  transform-origin: 0 0;
+}
+.opale-world-map__raster img {
+  position: absolute;
+  max-inline-size: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.opale-world-map__texture {
+  background: var(--opale-world-map-water);
+  image-rendering: auto;
+}
+/* SUR L'IMAGERIE, LES TRAITS SONT CLAIRS ET CERNÉS DE SOMBRE : la nuit et
+   son encre, teintes fixes des deux thèmes, tiennent 3:1 entre elles quelle
+   que soit la photographie (voir `opale-world-map.test.tsx`). Le halo est le
+   même tracé, rendu dessous, plus large et à l'encre de la nuit. Pas de
+   remplissage : l'eau et les terres sont celles de l'image. */
+.opale-world-map[data-basemap='satellite'] {
+  --opale-world-map-coast: var(--opale-ground-night-ink);
+  --opale-world-map-border: var(--opale-ground-night-ink);
+  --opale-world-map-admin1: var(--opale-ground-night-ink);
+  /* Les fleuves gardent une teinte d'eau : sur la même encre blanche que
+     les frontières, on ne les distinguait plus. */
+  --opale-world-map-river: var(--opale-primary-light);
+  --opale-world-map-halo: var(--opale-ground-night);
+}
+.opale-world-map[data-basemap='satellite'] .opale-world-map__plate {
+  background: var(--opale-ground-night);
+}
+.opale-world-map[data-basemap='satellite']
+  :is(
+    .opale-world-map__ocean,
+    .opale-world-map__disc,
+    .opale-world-map__land,
+    .opale-world-map__lake
+  ) {
+  fill: transparent;
+}
+.opale-world-map[data-basemap='satellite'] .opale-world-map__graticule {
+  stroke: color-mix(in srgb, var(--opale-ground-night-ink) 30%, transparent);
+}
+.opale-world-map__halo {
+  --opale-world-map-coast: var(--opale-world-map-halo);
+  --opale-world-map-border: var(--opale-world-map-halo);
+  --opale-world-map-admin1: var(--opale-world-map-halo);
+  --opale-world-map-river: var(--opale-world-map-halo);
+  --opale-world-map-halo-width: 2px;
+
+  opacity: 0.7;
+}
+.opale-world-map__halo .opale-world-map__admin1 {
+  stroke-dasharray: none;
+}
+/* LE CRÉDIT DE L'IMAGERIE reste lisible sur la photographie : l'encre de la
+   nuit sur un voile de nuit. Il laisse passer le pointeur vers les repères
+   qu'il recouvre ; un lien qu'il contiendrait reste cliquable. */
+.opale-world-map__credit {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  max-inline-size: 100%;
+  margin: 0;
+  padding: var(--opale-space-2xs) var(--opale-space-xs);
+  border-start-start-radius: var(--opale-radius-sm);
+  background: color-mix(in srgb, var(--opale-ground-night) 72%, transparent);
+  color: var(--opale-ground-night-ink);
+  font-size: var(--opale-text-xs);
+  line-height: var(--opale-leading-snug);
+}
+.opale-world-map__credit a {
+  color: inherit;
+  pointer-events: auto;
+}
+/* LES ÉTIQUETTES ONT UN HALO DE LA SURFACE, peint sous le texte
+   (`paint-order`) : elles se lisent sur une côte comme sur une frontière. */
+.opale-world-map__labels {
+  pointer-events: none;
+}
+.opale-world-map__labels text {
+  fill: var(--opale-world-map-ink);
+  stroke: var(--opale-surface);
+  stroke-linejoin: round;
+  paint-order: stroke;
+  dominant-baseline: central;
+  font-family: inherit;
+}
+.opale-world-map__country-label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-anchor: middle;
+}
+.opale-world-map__city circle {
+  fill: var(--opale-world-map-ink);
+  stroke: var(--opale-surface);
+}
+/* LES REPÈRES SONT DES BOUTONS HTML, posés en pourcentages du cadre : le
+   rendu serveur les place juste, sans mesure. La liste ne capte pas le
+   pointeur ; seules les pastilles le prennent. */
+.opale-world-map__pins {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.opale-world-map__pin {
+  --opale-world-map-pin: var(--opale-primary-on-surface);
+
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.opale-world-map__pin[data-face='hidden'] {
+  opacity: 0;
+  pointer-events: none;
+}
+.opale-world-map__pin[data-tone='accent'] {
+  --opale-world-map-pin: var(--opale-accent-graphic);
+}
+.opale-world-map__pin[data-tone='neutral'] {
+  --opale-world-map-pin: var(--opale-text);
+}
+/* LA CIBLE FAIT 24 PX (WCAG 2.5.8), la pastille 14 : un DOUBLE ANNEAU — la
+   surface, puis la teinte — la détache de n'importe quel fond (3:1). */
+.opale-world-map__pin-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.opale-world-map__pin-button::before {
+  content: '';
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  border-radius: 50%;
+  background: var(--opale-world-map-pin);
+  box-shadow:
+    0 0 0 2px var(--opale-surface),
+    0 0 0 3.5px var(--opale-world-map-pin);
+  transition: transform var(--opale-motion-fast) var(--opale-ease);
+}
+.opale-world-map__pin-button:hover::before,
+.opale-world-map__pin-button[aria-pressed='true']::before {
+  transform: scale(1.25);
+}
+/* AU LOIN, LA PASTILLE RAPETISSE, PAS LA CIBLE : en vue d'ensemble sur un
+   écran étroit, deux villes voisines se chevauchaient. Le bouton garde ses
+   24 px ; les repères trop proches ont leur équivalent en liste (WCAG
+   2.5.8, exception de l'équivalent). */
+.opale-world-map__canvas[data-pins='small'] .opale-world-map__pin-button::before {
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  box-shadow:
+    0 0 0 1.5px var(--opale-surface),
+    0 0 0 2.5px var(--opale-world-map-pin);
+}
+.opale-world-map__canvas[data-pins='small']
+  .opale-world-map__pin-button:is(:hover, :focus-visible, [aria-pressed='true'])::before {
+  transform: scale(1.75);
+}
+.opale-world-map__pin-button:focus-visible {
+  outline: var(--opale-focus-ring-width) solid var(--opale-focus);
+  outline-offset: var(--opale-focus-ring-offset);
+}
+/* SUR L'IMAGERIE, l'anneau de focus prend la paire de la nuit : l'encre
+   claire cernée de sombre tient 3:1 sur n'importe quelle photographie, le
+   bleu du focus ne le tenait pas sur l'océan. */
+.opale-world-map[data-basemap='satellite'] .opale-world-map__pin-button:focus-visible {
+  outline-color: var(--opale-ground-night-ink);
+  box-shadow: 0 0 0 calc(var(--opale-focus-ring-offset) + var(--opale-focus-ring-width) + 2px)
+    var(--opale-ground-night);
+}
+/* L'ÉTIQUETTE PARAÎT AU SURVOL ET AU FOCUS ; elle double le nom accessible,
+   elle est donc cachée de l'arbre. */
+.opale-world-map__pin-label {
+  position: absolute;
+  inset-block-end: calc(100% + 0.25rem);
+  inset-inline-start: 50%;
+  padding: var(--opale-space-2xs) var(--opale-space-xs);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-text);
+  color: var(--opale-surface);
+  font-size: var(--opale-text-xs);
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity var(--opale-motion-fast) var(--opale-ease);
+  white-space: nowrap;
+}
+.opale-world-map__pin-button:hover .opale-world-map__pin-label,
+.opale-world-map__pin-button:focus-visible .opale-world-map__pin-label {
+  opacity: 1;
+}
+.opale-world-map__pin:has(:hover, :focus-visible) {
+  z-index: 1;
+}
+.opale-world-map__tooltip {
+  position: absolute;
+  z-index: 2;
+  padding: var(--opale-space-2xs) var(--opale-space-xs);
+  border-radius: var(--opale-radius-sm);
+  background: var(--opale-text);
+  box-shadow: var(--opale-shadow-2);
+  color: var(--opale-surface);
+  font-size: var(--opale-text-xs);
+  font-weight: 600;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 0.5rem));
+  white-space: nowrap;
+}
+.opale-world-map__hint,
+.opale-world-map__status {
+  position: absolute;
+  inset-block-end: var(--opale-space-sm);
+  margin: 0;
+  padding: var(--opale-space-2xs) var(--opale-space-sm);
+  border-radius: var(--opale-radius-pill);
+  background: color-mix(in srgb, var(--opale-text) 86%, transparent);
+  color: var(--opale-surface);
+  font-size: var(--opale-text-xs);
+  font-weight: 600;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.opale-world-map__hint {
+  inset-inline-start: 50%;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity var(--opale-motion) var(--opale-ease);
+}
+.opale-world-map__hint[data-visible='true'] {
+  opacity: 1;
+}
+.opale-world-map__status {
+  inset-inline-start: var(--opale-space-sm);
+  max-inline-size: calc(100% - 2 * var(--opale-space-sm));
+  white-space: normal;
+}
+.opale-world-map__status:empty {
+  display: none;
+}
+.opale-world-map__status > span {
+  display: block;
+}
+/* Les bascules du globe et de l'imagerie, en haut à gauche. */
+.opale-world-map__layers {
+  position: absolute;
+  /* Rendues avant le cadre dans le DOM : sans cela, il les recouvrirait. */
+  z-index: 2;
+  inset-block-start: var(--opale-space-sm);
+  inset-inline-start: var(--opale-space-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-2xs);
+}
+.opale-world-map__layers [aria-pressed='true'] {
+  --opale-button-background: var(--opale-primary);
+  --opale-button-hover-background: var(--opale-primary-dark);
+
+  color: var(--opale-on-primary);
+}
+.opale-world-map__controls {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: var(--opale-space-sm);
+  inset-inline-end: var(--opale-space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--opale-space-2xs);
+}
+/* La croix des flèches, en gauche à droite même dans une page de droite à
+   gauche : la flèche gauche déplace vers la gauche du dessin. */
+.opale-world-map-controls__pan {
+  display: grid;
+  grid-template-areas:
+    '. up .'
+    'left . right'
+    '. down .';
+  gap: var(--opale-space-2xs);
+  margin-block-start: var(--opale-space-2xs);
+  direction: ltr;
+}
+.opale-world-map-controls__pan-up,
+.opale-world-map-controls__pan > :has(> .opale-world-map-controls__pan-up) {
+  grid-area: up;
+}
+.opale-world-map-controls__pan-left,
+.opale-world-map-controls__pan > :has(> .opale-world-map-controls__pan-left) {
+  grid-area: left;
+}
+.opale-world-map-controls__pan-right,
+.opale-world-map-controls__pan > :has(> .opale-world-map-controls__pan-right) {
+  grid-area: right;
+}
+.opale-world-map-controls__pan-down,
+.opale-world-map-controls__pan > :has(> .opale-world-map-controls__pan-down) {
+  grid-area: down;
+}
+/* INDISPONIBLE, LE BOUTON GARDE SON FOND, SEULE L'ICÔNE PÂLIT : posé sur la
+   carte, un bouton entier à demi transparent laissait passer le dessin et
+   se perdait. L'opacité est celle d'Opale, `--opale-disabled-opacity`. */
+.opale-world-map-controls [aria-disabled='true'] {
+  cursor: not-allowed;
+}
+.opale-world-map-controls [aria-disabled='true'] .opale-icon__glyph {
+  opacity: var(--opale-disabled-opacity);
+}
+/* SOUS 30 REM D'ÉCRAN, LES COMMANDES PASSENT SOUS LE DESSIN : posées dessus,
+   elles en couvraient la moitié. */
+@media (max-width: 30rem) {
+  .opale-world-map__frame {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--opale-space-sm);
+  }
+  /* Les commandes précèdent la carte dans le DOM : la carte remonte en tête,
+     le crédit passe juste dessous, les commandes ensuite. */
+  .opale-world-map__canvas {
+    flex: 1 0 100%;
+    min-inline-size: 0;
+    order: -2;
+  }
+  .opale-world-map__credit {
+    position: static;
+    flex: 1 0 100%;
+    order: -1;
+    margin-block-start: calc(-1 * var(--opale-space-sm));
+    border-radius: 0;
+  }
+  .opale-world-map__controls {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-inline-start: auto;
+    padding: 0 var(--opale-space-sm) var(--opale-space-sm);
+  }
+  .opale-world-map__controls .opale-world-map-controls__pan {
+    margin-block-start: 0;
+  }
+  .opale-world-map__layers {
+    position: static;
+    padding: 0 var(--opale-space-sm) var(--opale-space-sm);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opale-world-map__pin-button::before,
+  .opale-world-map__pin-label,
+  .opale-world-map__hint {
+    transition: none;
+  }
+}
+/* SOUS VERRE, LA PLAQUE EST LE MATÉRIAU : l'eau devient transparente pour
+   laisser passer la réfraction, les terres un voile de l'encre du verre. */
+.opale-world-map--glass {
+  --opale-world-map-land: color-mix(in srgb, var(--opale-glass-ink) 18%, transparent);
+  --opale-world-map-water: transparent;
+  --opale-world-map-coast: color-mix(in srgb, var(--opale-glass-ink) 80%, transparent);
+  --opale-world-map-border: color-mix(in srgb, var(--opale-glass-ink) 70%, transparent);
+  --opale-world-map-ink: var(--opale-glass-ink);
+}
+.opale-world-map--glass .opale-world-map__plate {
+  border-color: transparent;
+  background: transparent;
+}
+/* EN CONTRASTES FORCÉS, LA CARTE PREND LES COULEURS DU SYSTÈME : terres et
+   eau sur le canevas, traits à l'encre, repères en couleur de bouton et
+   focus en couleur de sélection. Les teintes de `fill` cèdent : le système
+   ne garantit que ses paires. */
+@media (forced-colors: active) {
+  .opale-world-map__svg,
+  .opale-world-map__pin-button {
+    forced-color-adjust: none;
+  }
+  /* L'imagerie et le limbe sont du décor : ils cèdent la place au canevas. */
+  .opale-world-map__raster,
+  .opale-world-map__texture,
+  .opale-world-map__limb,
+  .opale-world-map__halo {
+    display: none;
+  }
+  .opale-world-map__disc,
+  .opale-world-map[data-basemap='satellite'] :is(.opale-world-map__ocean, .opale-world-map__disc) {
+    fill: Canvas;
+  }
+  .opale-world-map__graticule {
+    stroke: GrayText;
+  }
+  .opale-world-map__credit {
+    background: Canvas;
+    color: CanvasText;
+  }
+  /* L'état enfoncé ne tenait qu'à une ombre, que le système efface. */
+  .opale-world-map__layers [aria-pressed='true'] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+  /* Le bord du globe : sans lui, le disque se confond avec le canevas. */
+  .opale-world-map__disc {
+    stroke: CanvasText;
+  }
+  .opale-world-map__plate,
+  .opale-world-map__ocean,
+  .opale-world-map__lake,
+  .opale-world-map__lines .opale-world-map__lake {
+    background: Canvas;
+    fill: Canvas;
+  }
+  .opale-world-map__land {
+    fill: Canvas !important;
+  }
+  .opale-world-map__coast,
+  .opale-world-map__border,
+  .opale-world-map__admin1,
+  .opale-world-map__river {
+    stroke: CanvasText;
+  }
+  .opale-world-map__labels text,
+  .opale-world-map__city circle {
+    fill: CanvasText;
+    stroke: Canvas;
+  }
+  .opale-world-map__pin-button::before {
+    background: ButtonText;
+    box-shadow:
+      0 0 0 2px Canvas,
+      0 0 0 3.5px ButtonText;
+  }
+  .opale-world-map__pin-button[aria-pressed='true']::before {
+    background: Highlight;
+    box-shadow:
+      0 0 0 2px Canvas,
+      0 0 0 3.5px Highlight;
+  }
+  .opale-world-map__pin-button:focus-visible {
+    outline-color: Highlight;
+  }
+}
 .opale-legal-links {
   display: flex;
   flex-wrap: wrap;

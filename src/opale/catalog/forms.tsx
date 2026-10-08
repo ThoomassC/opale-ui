@@ -360,12 +360,21 @@ Button.displayName = 'Button';
 /** Les props de `Pressable` : celles de `Button`, dont la variante `text` est le défaut. */
 export type PressableProps = ButtonProps;
 
-export const Pressable = forwardRef<HTMLButtonElement, Omit<PressableProps, 'ref'>>(
-  function Pressable(props, ref) {
-    return <Button variant="text" {...props} ref={ref} />;
-  },
+/* LE NOM D'AFFICHAGE EST POSÉ DANS L'EXPRESSION, PAS APRÈS. Une affectation
+   `Input.displayName = 'Input'` au niveau du module est, pour un bundler, un
+   effet qu'il n'ose pas supprimer : il gardait `Input`, et avec lui
+   `SearchBar`, dans toute application qui n'importait qu'un `Button` — 4 ko
+   mesurés sur `WorldMap`. `Object.assign` annoté pur se retire quand le
+   composant n'est pas importé, et pose le même `displayName`. */
+// eslint-disable-next-line react-refresh/only-export-components -- un composant, que la règle ne reconnaît pas sous `Object.assign` (voir plus haut)
+export const Pressable = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ forwardRef<HTMLButtonElement, Omit<PressableProps, 'ref'>>(
+    function Pressable(props, ref) {
+      return <Button variant="text" {...props} ref={ref} />;
+    },
+  ),
+  { displayName: 'Pressable' },
 );
-Pressable.displayName = 'Pressable';
 
 /**
  * Les props de `Input`.
@@ -419,35 +428,37 @@ export interface InputProps extends Omit<ComponentPropsWithRef<'input'>, 'size'>
   searchLandmarkLabel?: string;
 }
 
-export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
-  {
-    label,
-    helperText,
-    error,
-    icon,
-    liquidGlass = false,
-    searchLandmark,
-    searchLandmarkLabel,
-    className,
-    controlClassName,
-    size = 'medium',
-    id,
-    'aria-describedby': ariaDescribedBy,
-    'aria-invalid': ariaInvalid,
-    ...props
-  },
-  ref,
-) {
-  const generatedId = useId();
-  const inputId = id ?? generatedId;
-  const messageId = `${inputId}-message`;
-  const message = error || helperText;
-  /* L'erreur l'emporte sur un `aria-invalid={false}` passé par un formulaire :
+// eslint-disable-next-line react-refresh/only-export-components -- un composant, que la règle ne reconnaît pas sous `Object.assign` (voir plus haut)
+export const Input = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(function Input(
+    {
+      label,
+      helperText,
+      error,
+      icon,
+      liquidGlass = false,
+      searchLandmark,
+      searchLandmarkLabel,
+      className,
+      controlClassName,
+      size = 'medium',
+      id,
+      'aria-describedby': ariaDescribedBy,
+      'aria-invalid': ariaInvalid,
+      ...props
+    },
+    ref,
+  ) {
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
+    const messageId = `${inputId}-message`;
+    const message = error || helperText;
+    /* L'erreur l'emporte sur un `aria-invalid={false}` passé par un formulaire :
      le message affiché et l'état annoncé ne doivent pas se contredire. */
-  const invalid = error ? true : ariaInvalid;
-  const described = mergeIds(ariaDescribedBy, message ? messageId : undefined);
+    const invalid = error ? true : ariaInvalid;
+    const described = mergeIds(ariaDescribedBy, message ? messageId : undefined);
 
-  /* LE MESSAGE SORT DU `<label>`, ET C'EST TOUT L'OBJET DE CE REMANIEMENT.
+    /* LE MESSAGE SORT DU `<label>`, ET C'EST TOUT L'OBJET DE CE REMANIEMENT.
 
      L'ensemble du champ était enveloppé dans un `<label>` : le texte d'aide
      et le message d'erreur se retrouvaient donc DANS le nom accessible.
@@ -461,17 +472,17 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
 
      Le libellé redevient donc un `<label htmlFor>` — le clic dessus focalise
      toujours le champ —, et le message devient une description annoncée. */
-  return (
-    <div
-      className={clsx('opale-field', sizeModifier('opale-field', size), className)}
-      style={fieldSizeStyle(size)}
-    >
-      {label && (
-        <label className="opale-field__label" htmlFor={inputId}>
-          {label}
-        </label>
-      )}
-      {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
+    return (
+      <div
+        className={clsx('opale-field', sizeModifier('opale-field', size), className)}
+        style={fieldSizeStyle(size)}
+      >
+        {label && (
+          <label className="opale-field__label" htmlFor={inputId}>
+            {label}
+          </label>
+        )}
+        {/* LA FRONTIÈRE PASSE SOUS LE LIBELLÉ, ET AU-DESSUS DU CHAMP.
 
           Ce qui porte du TEXTE reste hors du verre — le libellé, le texte
           d'aide, le message d'erreur, et l'association `htmlFor`/`id` qui les
@@ -481,53 +492,54 @@ export const Input = forwardRef<HTMLInputElement, Omit<InputProps, 'ref'>>(funct
           aucun emplacement où la poser, donc la prop était silencieusement
           ignorée dès qu'on basculait le commutateur. La coquille étant
           désormais la nôtre, l'icône y reste. */}
-      {props.type === 'search' ? (
-        <SearchBar
-          {...props}
-          ref={ref}
-          id={inputId}
-          className={controlClassName}
-          size={isOpaleSize(size) ? size : undefined}
-          icon={icon}
-          liquidGlass={liquidGlass}
-          landmark={searchLandmark}
-          landmarkLabel={searchLandmarkLabel}
-          aria-invalid={invalid}
-          aria-describedby={described}
-        />
-      ) : (
-        <FieldShell
-          liquidGlass={liquidGlass}
-          className={clsx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
-          rootClassName="opale-input--glass-root"
-        >
-          {icon}
-          <input
+        {props.type === 'search' ? (
+          <SearchBar
+            {...props}
             ref={ref}
             id={inputId}
-            className={clsx('opale-input', controlClassName)}
-            {...props}
+            className={controlClassName}
+            size={isOpaleSize(size) ? size : undefined}
+            icon={icon}
+            liquidGlass={liquidGlass}
+            landmark={searchLandmark}
+            landmarkLabel={searchLandmarkLabel}
             aria-invalid={invalid}
             aria-describedby={described}
           />
-        </FieldShell>
-      )}
-      {message && (
-        <span
-          id={messageId}
-          /* `role="alert"` SUR LA SEULE ERREUR. Un texte d'aide est là dès
+        ) : (
+          <FieldShell
+            liquidGlass={liquidGlass}
+            className={clsx('opale-input-shell', liquidGlass && 'opale-input-shell--glass')}
+            rootClassName="opale-input--glass-root"
+          >
+            {icon}
+            <input
+              ref={ref}
+              id={inputId}
+              className={clsx('opale-input', controlClassName)}
+              {...props}
+              aria-invalid={invalid}
+              aria-describedby={described}
+            />
+          </FieldShell>
+        )}
+        {message && (
+          <span
+            id={messageId}
+            /* `role="alert"` SUR LA SEULE ERREUR. Un texte d'aide est là dès
              le départ : l'annoncer d'autorité couperait la parole au reste
              de la page pour redire ce que la description dit déjà. */
-          role={error ? 'alert' : undefined}
-          className={clsx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
-        >
-          {message}
-        </span>
-      )}
-    </div>
-  );
-});
-Input.displayName = 'Input';
+            role={error ? 'alert' : undefined}
+            className={clsx('opale-field__helper', Boolean(error) && 'opale-field__helper--error')}
+          >
+            {message}
+          </span>
+        )}
+      </div>
+    );
+  }),
+  { displayName: 'Input' },
+);
 
 /**
  * Les props de `Checkbox`.

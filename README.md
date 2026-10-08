@@ -1,6 +1,6 @@
 # Opale — `@thomascaron/opale-ui`
 
-Le système de design Opale pour React 19 : **61 composants**, leurs jetons `--opale-*`, deux
+Le système de design Opale pour React 19 : **62 composants**, leurs jetons `--opale-*`, deux
 thèmes (clair et sombre), une matière « verre liquide » à activer composant par composant, et un
 contrat de couleur exécutable qui recalcule chaque ratio de contraste en CI.
 
@@ -202,7 +202,7 @@ Tout est exporté à la racine.
   `PageScaffold`, `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` (et le hook
   `useToast`) et `Topbar`. Les parties de `Tabs`, `Sidebar` et `Topbar` sont aussi exportées
   par leur nom (`TabsList`, `SidebarItem`, `TopbarBrand`…).
-- **Le catalogue**, dans `src/opale/catalog/` : **52 fiches** réparties en sept familles —
+- **Le catalogue**, dans `src/opale/catalog/` : **53 fiches** réparties en sept familles —
   saisie, boutons spécialisés, affichage de données, navigation, retours, mise en page et
   modules. La vitrine génère une page de démonstration par fiche.
 
@@ -321,6 +321,57 @@ it('la marque tient ses contrastes', () => {
 `checkBrand` mesure l'encre de chaque rôle sur son remplissage (4,5:1), le rôle écrit sur la
 surface et sur le fond (4,5:1), et l'anneau de focus (3:1). Pour chaque remplissage, il propose
 l'encre du thème qui tient. Passez `{ theme: 'dark' }` pour le thème sombre.
+
+## La carte du monde — `WorldMap`
+
+`WorldMap` dessine le monde sans bibliothèque de cartographie : plan Mercator ou globe
+orthographique, dessin vectoriel ou imagerie satellite, repères au clavier. Le globe et
+l'imagerie sont des modules à part, importés au premier usage seulement.
+
+### Les données, servies par l'application
+
+**Le paquet ne contient aucune donnée.** `dataUrl` désigne un dossier que l'application sert
+elle-même, avec cette disposition :
+
+```text
+public/world-map/v1/
+├── index.json      # version, source, niveaux et liste des tuiles 10m
+├── 110m.json       # le monde entier, ~160 Ko
+├── 50m.json        # le monde entier, ~1,2 Mo
+└── 10m/            # tuiles de 10° × 10° : {colonne}_{rangée}.json, ~13 Mo en tout
+```
+
+Pour l'obtenir, copiez `public/world-map/v1/` depuis le dépôt, à l'étiquette de la version
+installée — c'est le dossier que sert la vitrine —, ou régénérez-le avec
+`node scripts/world-data.mjs` (Natural Earth 5.1.2, archives épinglées par leur SHA-256). Le
+dossier est versionné (`v1`) : servez ses niveaux et ses tuiles avec un cache long et
+immuable, et `index.json` avec un cache court revalidé, comme le fait `vercel.json` pour la
+vitrine. Une régénération qui change le contenu des fichiers change aussi de dossier (`v2`) :
+un navigateur ne redemande jamais un fichier immuable.
+
+```tsx
+<WorldMap dataUrl="/world-map/v1" pins={offices} defaultMode="globe" />
+```
+
+### Politique de sécurité du contenu
+
+- `connect-src` doit autoriser l'hôte des données (`'self'` quand l'application les sert) :
+  elles arrivent par `fetch`.
+- En satellite, `img-src https://gibs.earthdata.nasa.gov` : les tuiles sont des `<img>`, et le
+  globe les lit en `crossOrigin="anonymous"` pour en faire sa texture. Une autre source passe
+  par `tileUrl` (gabarit `{z}/{x}/{y}`) et doit porter son crédit dans `tileAttribution`.
+
+### Licences
+
+- **Natural Earth** : domaine public. « Made with Natural Earth. Free vector and raster map
+  data @ naturalearthdata.com. »
+- **NASA GIBS, Blue Marble** : imagerie de la NASA, demandée par le navigateur et jamais
+  redistribuée. La carte affiche son crédit tant que l'imagerie l'est ; la NASA demande la
+  mention « We acknowledge the use of imagery provided by services from NASA's Global Imagery
+  Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS). »
+  ([GIBS API, Data Use Guidance and Acknowledgements](https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api)).
+
+Le détail est dans [`THIRD-PARTY-NOTICES.md`](./THIRD-PARTY-NOTICES.md).
 
 ## La charte et le contrat de couleur
 

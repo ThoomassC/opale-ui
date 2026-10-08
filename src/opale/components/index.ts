@@ -66,6 +66,17 @@ export type {
   UseSvgMapViewportResult,
 } from './svg-map';
 export type { Bounds as SvgMapBounds } from './svg-map';
+/* LA CARTE DU MONDE PUBLIE SA VUE, PAS SON MOTEUR : `WorldMap` vit dans
+   `catalog/world-map.tsx`, et seul le crochet qui pilote sa vue de
+   l'extérieur sort d'ici. Projection, découpe, niveaux et données restent
+   internes. */
+export { useWorldMapViewport } from './world-map/useWorldMapViewport';
+export type {
+  UseWorldMapViewportResult,
+  WorldMapMoveOptions,
+  WorldMapView,
+  WorldMapViewportOptions,
+} from './world-map/useWorldMapViewport';
 export * from './tabs';
 export * from './toast';
 export * from './topbar';

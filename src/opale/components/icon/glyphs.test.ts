@@ -53,4 +53,11 @@ describe('les tracés isolés', () => {
   ])('%s devrait dessiner le cercle du jeu', (_constant, paths) => {
     expect(paths[0]).toBe(circle(12, 12, 8.5));
   });
+
+  it.each([
+    ['GLYPH_ZOOM_IN', glyphs.GLYPH_ZOOM_IN],
+    ['GLYPH_ZOOM_OUT', glyphs.GLYPH_ZOOM_OUT],
+  ])('%s devrait dessiner la loupe du jeu', (_constant, paths) => {
+    expect(paths[0]).toBe(circle(11, 11, 6.2));
+  });
 });

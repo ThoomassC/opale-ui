@@ -746,6 +746,88 @@ export const CATALOG_API: Readonly<Record<string, CatalogApiDoc>> = {
       ),
     ],
   },
+  WorldMap: {
+    states:
+      'Carte image qui prend le focus ; les repères forment une liste de boutons à un seul arrêt de tabulation. Le détail se charge au repos, par niveau.',
+    rows: [
+      prop(
+        'dataUrl',
+        'string',
+        'Dossier des données Natural Earth servi par l’application : index.json, 110m.json, 50m.json, 10m/.',
+        undefined,
+        true,
+      ),
+      prop(
+        'label',
+        'string',
+        'Nom de la carte, annoncé par les lecteurs d’écran.',
+        "'Carte du monde'",
+      ),
+      prop('pins', 'readonly WorldMapPin[]', 'Les repères : un identifiant, une position, un nom.'),
+      prop('onPinSelect', '(id) => void', 'Appelé avec l’identifiant du repère choisi.'),
+      prop(
+        'selectedPins',
+        'readonly string[]',
+        'Repères retenus : soulignés et annoncés aria-pressed.',
+      ),
+      prop('fill', '(countryId) => string | undefined', 'Couleur d’un pays, par son code ISO.'),
+      prop('viewport', 'UseWorldMapViewportResult', 'Vue partagée, pour voler de l’extérieur.'),
+      prop('defaultView', 'WorldMapView', 'Vue de départ, et celle de « Vue d’ensemble ».'),
+      prop('locale', 'string', 'Langue des noms de pays et de villes.', "'fr'"),
+      prop('aspectRatio', 'string', 'Rapport du cadre, au format aspect-ratio.', "'16 / 9'"),
+      prop('controls', 'boolean', 'Boutons de zoom et de déplacement intégrés.', 'true'),
+      prop(
+        'wheel',
+        "'modifier' | 'always' | false",
+        'Zoom à la molette : avec Ctrl ou ⌘, toujours, ou jamais.',
+        "'modifier'",
+      ),
+      prop('mode', "'flat' | 'globe'", 'Mode de rendu contrôlé : plan, ou globe borné au zoom 3.'),
+      prop('defaultMode', "'flat' | 'globe'", 'Mode de départ, non contrôlé.', "'flat'"),
+      prop('onModeChange', '(mode) => void', 'Appelée quand l’utilisateur demande un autre mode.'),
+      prop(
+        'basemap',
+        "'vector' | 'satellite'",
+        'Fond contrôlé : dessin, ou imagerie NASA GIBS Blue Marble.',
+      ),
+      prop('defaultBasemap', "'vector' | 'satellite'", 'Fond de départ, non contrôlé.', "'vector'"),
+      prop(
+        'onBasemapChange',
+        '(basemap) => void',
+        'Appelée quand l’utilisateur demande un autre fond.',
+      ),
+      prop(
+        'tileUrl',
+        'string',
+        'Gabarit des tuiles d’imagerie ({z}, {x}, {y}).',
+        'GIBS_BLUE_MARBLE_URL',
+      ),
+      prop('tileMaxZoom', 'number', 'Niveau le plus fin des tuiles ; au-delà, agrandies.', '8'),
+      prop(
+        'tileAttribution',
+        'ReactNode',
+        'Crédit de l’imagerie quand tileUrl désigne une autre source ; celui de la NASA ne se retire pas.',
+      ),
+      prop(
+        'layerControls',
+        'boolean',
+        'Bascules « Globe » et « Satellite », en aria-pressed.',
+        'true',
+      ),
+      prop('onDataError', '(error) => void', 'Un niveau de détail n’a pas pu être chargé.'),
+      prop(
+        'onBasemapError',
+        '(error) => void',
+        'L’imagerie a échoué ; la carte revient au dessin et le dit.',
+      ),
+      prop(
+        'labels',
+        'Partial<WorldMapLabels>',
+        'Textes de l’interface, clé par clé ; une clé omise garde son défaut français.',
+        "{ zoomIn: 'Zoomer', … }",
+      ),
+    ],
+  },
   Textarea: {
     states:
       'La hauteur suit le texte avec `autoResize` ; le compteur décrit la limite et annonce le reste.',

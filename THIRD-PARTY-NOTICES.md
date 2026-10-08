@@ -1,9 +1,10 @@
 # Third-party notices
 
 Ce fichier recense ce que la distribution d'Opale contient et qui n'est pas
-d'Opale : des **polices**, et rien d'autre. Aucun code tiers n'est embarqué —
-tout ce que `@thomascaron/opale-ui` publie est écrit par Opale, sous la licence
-MIT du dépôt (`LICENSE`).
+d'Opale : des **polices**, et, pour la vitrine seulement, des **données
+cartographiques**. Aucun code tiers n'est embarqué — tout ce que
+`@thomascaron/opale-ui` publie est écrit par Opale, sous la licence MIT du dépôt
+(`LICENSE`).
 
 Les textes de licence sont en anglais : une licence se recopie, elle ne se
 traduit pas.
@@ -103,6 +104,47 @@ the sale, use or other dealings in this Font Software without prior written
 authorization from the Gnome Foundation or Bitstream Inc., respectively. For
 further information, contact: fonts at gnome dot org.
 ```
+
+---
+
+## Natural Earth — données de la carte du monde
+
+**Ce qui en vient** : les pays, côtes, frontières, lacs, fleuves, limites
+régionales et villes de `public/world-map/v1/`, que la vitrine sert à
+`WorldMap`. `scripts/world-data.mjs` les produit à partir des archives
+Natural Earth (simplifiées, découpées en tuiles, quantifiées).
+
+**Le paquet npm ne les embarque pas** : `vite.lib.config.ts` construit la
+librairie avec `publicDir: false`, et `WorldMap` charge ses données depuis
+l'adresse que lui passe l'application (`dataUrl`).
+
+- **Source** : <https://www.naturalearthdata.com/>, archives de
+  <https://naciscdn.org/naturalearth/>
+- **Version** : 5.1.2
+- **Licence** : domaine public. Aucune obligation ; la mention d'usage
+  demandée par le projet est reproduite ici : « Made with Natural Earth. Free
+  vector and raster map data @ naturalearthdata.com. »
+
+## NASA GIBS — imagerie satellite
+
+**Rien n'est distribué** : en mode satellite, `WorldMap` affiche des tuiles
+Blue Marble que le navigateur de l'utilisateur demande directement à NASA GIBS.
+Le crédit est affiché sur la carte tant que l'imagerie l'est.
+
+- **Source** : NASA Global Imagery Browse Services (GIBS),
+  <https://gibs.earthdata.nasa.gov/>
+- **Couche** : `BlueMarble_ShadedRelief_Bathymetry` — Blue Marble, NASA Earth
+  Observatory
+- **Conditions** : imagerie de la NASA, sans restriction d'usage ; la NASA
+  demande de citer la source : « We acknowledge the use of imagery provided by
+  services from NASA's Global Imagery Browse Services (GIBS), part of NASA's
+  Earth Science Data and Information System (ESDIS). » — mention relevée le
+  8 octobre 2026 sur
+  <https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api>
+  (« Data Use Guidance and Acknowledgements »).
+- **Affichage** : le crédit « Imagerie : NASA GIBS (ESDIS), Blue Marble » reste
+  visible sur la carte tant que l'imagerie l'est ; seul un `tileUrl` désignant
+  une autre source le remplace, par son propre `tileAttribution`.
 
 ---
 

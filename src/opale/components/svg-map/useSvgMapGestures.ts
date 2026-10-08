@@ -13,6 +13,13 @@ import type { Point } from './viewport';
  */
 export type SvgMapWheel = 'modifier' | 'always' | false;
 
+/**
+ * Ce que les gestes demandent à une vue : la lire, la déplacer, la zoomer.
+ * Interne — `useSvgMapViewport` le fournit, et une autre carte peut fournir
+ * une façade qui traduit ces unités de dessin dans les siennes.
+ */
+export type SvgMapGestureTarget = Pick<UseSvgMapViewportResult, 'getView' | 'panBy' | 'zoomBy'>;
+
 export interface SvgMapGestureOptions {
   readonly tapTolerance: number;
   readonly wheel: SvgMapWheel;
@@ -40,7 +47,7 @@ const HINT_MS = 1600;
    ========================================================================== */
 export function useSvgMapGestures(
   svgRef: RefObject<SVGSVGElement | null>,
-  viewport: UseSvgMapViewportResult,
+  viewport: SvgMapGestureTarget,
   { tapTolerance, wheel }: SvgMapGestureOptions,
 ) {
   const pointers = useRef(new Map<number, Point>());

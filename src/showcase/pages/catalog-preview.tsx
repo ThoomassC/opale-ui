@@ -801,6 +801,20 @@ export function CatalogPreview({
         />
       );
       break;
+    case 'WorldMap':
+      preview = (
+        <Opale.WorldMap
+          liquidGlass={liquidGlass}
+          label="Trois villes"
+          dataUrl="/world-map/v1"
+          pins={[
+            { id: 'paris', longitude: 2.35, latitude: 48.86, label: 'Paris' },
+            { id: 'new-york', longitude: -74, latitude: 40.71, label: 'New York' },
+            { id: 'tokyo', longitude: 139.69, latitude: 35.69, label: 'Tokyo' },
+          ]}
+        />
+      );
+      break;
     case 'Textarea':
       preview = <TextareaDemo liquidGlass={liquidGlass} />;
       break;

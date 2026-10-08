@@ -97,4 +97,9 @@ export const CATALOG: readonly ShowcaseCatalogEntry[] = [
     'Modules',
     'Carte SVG interactive : zoom, déplacement, sélection et cadrage des régions.',
   ],
+  [
+    'WorldMap',
+    'Modules',
+    'Carte du monde Natural Earth : détail au zoom, repères au clavier, sans dépendance.',
+  ],
 ].map(([name, category, description]) => ({ name, category, description }));

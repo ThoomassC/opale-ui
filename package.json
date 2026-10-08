@@ -94,6 +94,7 @@
     "globals": "^17.12.0",
     "hack-font": "^3.3.0",
     "jsdom": "^29.1.1",
+    "mapshaper": "0.7.60",
     "postcss": "^8.5.28",
     "prettier": "^3.9.6",
     "react": "^19.2.8",

@@ -297,6 +297,7 @@ export const OPALE_NAV_SECTIONS: readonly DocNavSectionDefinition[] = [
       opaleEntry('Lightbox', 'Lightbox'),
       opaleEntry('Clipboard', 'Clipboard'),
       opaleEntry('SvgMap', 'SvgMap'),
+      opaleEntry('WorldMap', 'WorldMap'),
     ],
   },
 ];

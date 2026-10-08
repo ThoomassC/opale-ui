@@ -48,117 +48,120 @@ export type SearchBarProps = Omit<ComponentPropsWithoutRef<'input'>, 'size'> & {
   liquidGlass?: boolean;
 };
 
-const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
-  (
-    {
-      size = 'medium',
-      icon,
-      disabled,
-      enableLiquidAnimation,
-      landmark = true,
-      landmarkLabel,
-      labels: labelsProp,
-      liquidGlass = false,
-      className,
-      ['aria-label']: ariaLabel,
-      ...props
-    },
-    ref,
-  ) => {
-    const labels = resolveLabels(DEFAULT_SEARCH_BAR_LABELS, labelsProp);
-    /* LE REPÈRE A UN NOM PAR DÉFAUT (ACC-22). Deux repères `search` sans nom
+/* Le nom d'affichage dans l'expression annotée pure : voir `Pressable`
+   dans `catalog/forms.tsx`. */
+const SearchBar = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ forwardRef<HTMLInputElement, SearchBarProps>(
+    (
+      {
+        size = 'medium',
+        icon,
+        disabled,
+        enableLiquidAnimation,
+        landmark = true,
+        landmarkLabel,
+        labels: labelsProp,
+        liquidGlass = false,
+        className,
+        ['aria-label']: ariaLabel,
+        ...props
+      },
+      ref,
+    ) => {
+      const labels = resolveLabels(DEFAULT_SEARCH_BAR_LABELS, labelsProp);
+      /* LE REPÈRE A UN NOM PAR DÉFAUT (ACC-22). Deux repères `search` sans nom
        sur une page ne se distinguent pas dans la liste des régions. Le nom suit
        d'abord celui du champ quand l'appelant l'a écrit — deux barres nommées
        différemment donnent deux repères distincts —, puis « Recherche ». */
-    const landmarkName = landmark ? (landmarkLabel ?? ariaLabel ?? labels.landmark) : undefined;
-    /* LE CONTENU EST ÉCRIT UNE FOIS. Les deux matières n'ont pas la même
+      const landmarkName = landmark ? (landmarkLabel ?? ariaLabel ?? labels.landmark) : undefined;
+      /* LE CONTENU EST ÉCRIT UNE FOIS. Les deux matières n'ont pas la même
        enveloppe — le verre en a une, la version pleine n'en a pas besoin —,
        mais l'icône, le champ, son nom et ses classes ne dépendent d'aucune
        des deux. Les séparer est ce qui empêche les deux rendus de diverger. */
-    const content = (
-      <>
-        {icon ?? (
-          <svg
-            className={clsx('opale-search-bar__icon', styles.icon)}
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <circle
-              cx="10.8"
-              cy="10.8"
-              r="5.8"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
-            <path
-              d="m15.2 15.2 4.3 4.3"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="1.8"
-            />
-          </svg>
-        )}
-        <input
-          ref={ref}
-          type="search"
-          disabled={disabled}
-          {...props}
-          /* LE REPLI NE JOUE QUE S'IL N'Y A AUCUN AUTRE NOM. Posé toujours, il
+      const content = (
+        <>
+          {icon ?? (
+            <svg
+              className={clsx('opale-search-bar__icon', styles.icon)}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle
+                cx="10.8"
+                cy="10.8"
+                r="5.8"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+              <path
+                d="m15.2 15.2 4.3 4.3"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeWidth="1.8"
+              />
+            </svg>
+          )}
+          <input
+            ref={ref}
+            type="search"
+            disabled={disabled}
+            {...props}
+            /* LE REPLI NE JOUE QUE S'IL N'Y A AUCUN AUTRE NOM. Posé toujours, il
            écrasait une étiquette visible : un appelant qui associait un
            `<label for>` « Filtrer les destinations » obtenait un champ nommé
            « Rechercher », sans un mot en commun avec ce qu'on lit à l'écran
            (WCAG 2.5.3). Un `id` compte aussi, puisqu'un `<label for>` peut
            s'y accrocher depuis l'extérieur du composant. */
-          aria-label={
-            ariaLabel ?? (props['aria-labelledby'] || props.id ? undefined : labels.field)
-          }
-          className={clsx(
-            'opale-search-bar__input',
-            styles.input,
-            styles[size],
-            disabled && styles.disabled,
-            className,
-          )}
-        />
-      </>
-    );
+            aria-label={
+              ariaLabel ?? (props['aria-labelledby'] || props.id ? undefined : labels.field)
+            }
+            className={clsx(
+              'opale-search-bar__input',
+              styles.input,
+              styles[size],
+              disabled && styles.disabled,
+              className,
+            )}
+          />
+        </>
+      );
 
-    if (!liquidGlass) {
+      if (!liquidGlass) {
+        return (
+          <div
+            role={landmark ? 'search' : undefined}
+            aria-label={landmarkName}
+            className={clsx(
+              'opale-search-bar__shell',
+              'opale-search-bar',
+              styles.root,
+              styles.searchBar,
+              styles.plain,
+            )}
+          >
+            {content}
+          </div>
+        );
+      }
+
       return (
-        <div
+        <Glass
           role={landmark ? 'search' : undefined}
           aria-label={landmarkName}
-          className={clsx(
-            'opale-search-bar__shell',
-            'opale-search-bar',
-            styles.root,
-            styles.searchBar,
-            styles.plain,
-          )}
+          rootClassName={clsx('opale-search-bar__shell', styles.root)}
+          rootStyle={{ width: '100%' }}
+          enableLiquidAnimation={!disabled && (enableLiquidAnimation ?? true)}
+          className={clsx('opale-search-bar', styles.searchBar)}
         >
           {content}
-        </div>
+        </Glass>
       );
-    }
-
-    return (
-      <Glass
-        role={landmark ? 'search' : undefined}
-        aria-label={landmarkName}
-        rootClassName={clsx('opale-search-bar__shell', styles.root)}
-        rootStyle={{ width: '100%' }}
-        enableLiquidAnimation={!disabled && (enableLiquidAnimation ?? true)}
-        className={clsx('opale-search-bar', styles.searchBar)}
-      >
-        {content}
-      </Glass>
-    );
-  },
+    },
+  ),
+  { displayName: 'SearchBar' },
 );
-
-SearchBar.displayName = 'SearchBar';
 
 export default SearchBar;

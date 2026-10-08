@@ -1,7 +1,7 @@
 import { act, StrictMode, useState, type ReactElement } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { Opale, useOpaleTheme, useSvgMapViewport } from './index';
 
@@ -52,6 +52,18 @@ function SvgMapWithControls() {
     </>
   );
 }
+
+/* LA CARTE DU MONDE CHARGE SES DONNÉES EN EFFET : le réseau est simulé, et
+   ne répond jamais — l'hydratation se joue sur le HTML serveur, chargement
+   en cours. */
+const worldPins = [{ id: 'p', longitude: 2.35, latitude: 48.85, label: 'Paris' }];
+let fetchSpy: { mockRestore(): void } | undefined;
+beforeAll(() => {
+  fetchSpy = vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(() => new Promise<Response>(() => undefined));
+});
+afterAll(() => fetchSpy?.mockRestore());
 
 /* Le thème mémorisé que ni le serveur ni l'hydratation ne doivent lire. */
 function ThemeProbe() {
@@ -168,6 +180,7 @@ const COMPONENT_FIXTURES: Record<keyof typeof Opale, () => ReactElement> = {
     </Opale.ToastProvider>
   ),
   Toggle: () => <Opale.Toggle label="t" />,
+  WorldMap: () => <Opale.WorldMap dataUrl="/world-map/v1" pins={worldPins} />,
   Topbar: () => (
     <Opale.Topbar>
       <Opale.Topbar.Brand>b</Opale.Topbar.Brand>
