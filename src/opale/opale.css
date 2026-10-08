@@ -4367,7 +4367,7 @@ ol.opale-stack {
 }
 .opale-world-map__pin-button:focus-visible {
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
-  outline-offset: 2px;
+  outline-offset: var(--opale-focus-ring-offset);
 }
 /* L'ÉTIQUETTE PARAÎT AU SURVOL ET AU FOCUS ; elle double le nom accessible,
    elle est donc cachée de l'arbre. */
