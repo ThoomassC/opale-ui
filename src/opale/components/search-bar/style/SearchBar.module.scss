@@ -65,8 +65,11 @@
 }
 
 /* Le champ intérieur ne dessine pas de focus : le contour arrondi
-   de la barre porte seul l'état actif. */
-.input:focus-visible {
+   de la barre porte seul l'état actif. Portée par la barre, la règle vaut
+   0,3,0 : un anneau universel de l'hôte (`.app :focus-visible`, 0,2,0) ne
+   l'emporte plus selon l'ordre des feuilles — en production, la vitrine
+   dessinait ainsi un rectangle gris dans la pilule (retour du 08/10). */
+.searchBar .input:focus-visible {
   outline: none;
   box-shadow: none;
 }

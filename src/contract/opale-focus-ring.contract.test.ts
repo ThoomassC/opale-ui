@@ -136,6 +136,20 @@ describe('le focus des champs de saisie', () => {
     );
   });
 
+  /* DEMANDE DU PROPRIÉTAIRE (08/10) : la bordure bleue reste, le second
+     contour bleu — plus fin, plus large, un halo à 18 % — disparaît. */
+  it('ne double plus la bordure bleue d’un halo', () => {
+    expect(
+      declaration(opaleSource, '.opale-input-shell:focus-within', 'box-shadow'),
+    ).toBeUndefined();
+    expect(
+      declaration(opaleSource, '.opale-multiselect:focus-within', 'box-shadow'),
+    ).toBeUndefined();
+    expect(stripComments(opaleSource)).not.toMatch(
+      /box-shadow:\s*0 0 0 3px color-mix\(in srgb, var\(--opale-primary\) 18%/,
+    );
+  });
+
   it('ne trace plus d’anneau autour de SearchBar sur la surface pleine', () => {
     const css = modules['../opale/components/search-bar/style/SearchBar.module.scss'];
     expect(declaration(css, '.plain:has(.input:focus-visible)', 'outline')).toBe('none');

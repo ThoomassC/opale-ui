@@ -2017,8 +2017,9 @@ h6.opale-heading {
   border-color: var(--opale-field-border);
 }
 .opale-input-shell:focus-within {
+  /* La bordure seule porte le focus : plus de halo bleu autour (demande du
+     propriétaire, 08/10). */
   border-color: var(--opale-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--opale-primary) 18%, transparent);
 }
 .opale-input,
 .opale-select {
@@ -2120,7 +2121,6 @@ h6.opale-heading {
 .opale-multiselect:focus-within,
 .opale-multiselect:focus {
   border-color: var(--opale-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--opale-primary) 18%, transparent);
   outline: none;
 }
 .opale-multiselect__option {
@@ -2417,6 +2417,136 @@ h6.opale-heading {
 .opale-range {
   width: 100%;
   accent-color: var(--opale-primary);
+}
+
+/* =============================================================================
+   LES CONTRÔLES INTÉRIEURS NE DESSINENT JAMAIS D'ANNEAU, QUEL QUE SOIT L'HÔTE.
+
+   Le champ d'un Input ou d'un Select, la liste d'un
+   MultiSelect, la case native d'une Checkbox, d'un Toggle ou d'une Radio, le
+   champ fichier d'une Dropzone, le natif d'un curseur sous verre et le tracé
+   d'une carte : leur coquille, leur marque ou leur poignée porte le repère de
+   focus. Leurs remises à zéro valaient 0,2,0 — autant qu'un anneau universel
+   d'application (`.app :focus-visible`) —, si bien que l'ORDRE DES FEUILLES
+   décidait. En production, la vitrine dessinait ainsi un rectangle gris carré
+   dans la pilule de la SearchBar (retour du propriétaire, 08/10). Ces règles,
+   portées par la classe de la coquille, valent 0,3,0 et l'emportent partout.
+   La SearchBar, composant à module, porte la sienne dans sa propre feuille.
+   ========================================================================== */
+.opale-input-shell .opale-input:focus-visible,
+.opale-input-shell .opale-select:focus-visible,
+.opale-multiselect .opale-multiselect__list:focus-visible,
+.opale-range-field .opale-range:focus-visible,
+.opale-svg-map .opale-svg-map__region:focus-visible,
+.opale-dropzone .opale-visually-hidden:focus-visible,
+.opale-checkbox-row .opale-checkbox:focus-visible,
+.opale-toggle-row .opale-toggle:focus-visible,
+.opale-radio-row .opale-radio:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* =============================================================================
+   LE CURSEUR SANS VERRE, DESSINÉ PAR OPALE.
+
+   Teinté par `accent-color` seulement, le natif restait celui de chaque
+   navigateur : juste dans Arc, une piste grise et une poignée carrée dans
+   Chrome (retour du propriétaire, 08/10). La piste, la part remplie et la
+   poignée sont donc les nôtres, dans Blink/WebKit comme dans Gecko.
+
+   La part remplie suit `--opale-range-progress`, que le composant pose sur la
+   coquille à chaque rendu et à chaque geste (0 à 1) : Gecko a son propre
+   pseudo-élément de progression, Blink/WebKit n'en ont pas, d'où le dégradé
+   à arrêt franc sur la piste. La boîte fait 24 px de haut : la cible du
+   pointeur, pas l'épaisseur de la piste.
+   ========================================================================== */
+.opale-range-shell > .opale-range {
+  --opale-range-track: 0.375rem;
+  --opale-range-thumb: 1.125rem;
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  inline-size: 100%;
+  block-size: 1.5rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.opale-range-shell > .opale-range:disabled {
+  cursor: not-allowed;
+  opacity: var(--opale-disabled-opacity);
+}
+.opale-range-shell > .opale-range::-webkit-slider-runnable-track {
+  block-size: var(--opale-range-track);
+  border-radius: var(--opale-radius-pill);
+  background: linear-gradient(
+    to right,
+    var(--opale-primary) calc(var(--opale-range-progress, 0) * 100%),
+    var(--opale-surface-sunken) calc(var(--opale-range-progress, 0) * 100%)
+  );
+  box-shadow: inset 0 0 0 1px var(--opale-field-border);
+}
+.opale-range-shell > .opale-range:dir(rtl)::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to left,
+    var(--opale-primary) calc(var(--opale-range-progress, 0) * 100%),
+    var(--opale-surface-sunken) calc(var(--opale-range-progress, 0) * 100%)
+  );
+}
+.opale-range-shell > .opale-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  inline-size: var(--opale-range-thumb);
+  block-size: var(--opale-range-thumb);
+  /* Centrée sur la piste : Blink aligne la poignée sur le haut de la piste. */
+  margin-block-start: calc((var(--opale-range-track) - var(--opale-range-thumb)) / 2);
+  border: 2px solid var(--opale-primary);
+  border-radius: 50%;
+  background: var(--opale-surface);
+  box-shadow: var(--opale-shadow-1);
+}
+.opale-range-shell > .opale-range::-moz-range-track {
+  block-size: var(--opale-range-track);
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--opale-field-border);
+}
+.opale-range-shell > .opale-range::-moz-range-progress {
+  block-size: var(--opale-range-track);
+  border-radius: var(--opale-radius-pill);
+  background: var(--opale-primary);
+}
+.opale-range-shell > .opale-range::-moz-range-thumb {
+  box-sizing: border-box;
+  inline-size: var(--opale-range-thumb);
+  block-size: var(--opale-range-thumb);
+  border: 2px solid var(--opale-primary);
+  border-radius: 50%;
+  background: var(--opale-surface);
+  box-shadow: var(--opale-shadow-1);
+}
+/* Le focus clavier cerne la poignée, ronde, et non la boîte rectangulaire de
+   l'`<input>` : un anneau décalé, posé en ombres pour suivre le cercle. */
+.opale-range-shell > .opale-range:focus-visible {
+  outline: none;
+}
+.opale-range-shell > .opale-range:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 var(--opale-focus-ring-offset) var(--opale-surface),
+    0 0 0 calc(var(--opale-focus-ring-offset) + var(--opale-focus-ring-width)) var(--opale-focus);
+}
+.opale-range-shell > .opale-range:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 var(--opale-focus-ring-offset) var(--opale-surface),
+    0 0 0 calc(var(--opale-focus-ring-offset) + var(--opale-focus-ring-width)) var(--opale-focus);
+}
+/* En contrastes forcés, le natif revient : le système le peint dans ses
+   propres couleurs, ce que des pseudo-éléments dessinés à la main perdraient. */
+@media (forced-colors: active) {
+  .opale-range-shell > .opale-range {
+    -webkit-appearance: auto;
+    appearance: auto;
+  }
 }
 
 /* =============================================================================
