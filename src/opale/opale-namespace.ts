@@ -58,6 +58,7 @@ import {
 import { Stack, Layout, Divider, BackgroundSurface } from './catalog/layout';
 import { FileCard, Dropzone, Lightbox, Clipboard } from './catalog/modules';
 import { SvgMap, SvgMapControls } from './catalog/svg-map';
+import { WorldMap } from './catalog/world-map';
 
 /* LE NAMESPACE `Opale` : chaque composant du paquet sous un seul nom. Les
    exports nommés (`import { Button } from '@thomascaron/opale-ui'`) restent la
@@ -123,6 +124,7 @@ const COMPONENTS = {
   Clipboard: Clipboard,
   SvgMap: SvgMap,
   SvgMapControls: SvgMapControls,
+  WorldMap: WorldMap,
   Modal: Modal,
   Tabs: Tabs,
   Sidebar: Sidebar,

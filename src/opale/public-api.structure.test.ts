@@ -109,6 +109,7 @@ const EXPORT_NAMES = [
   'FileCardProps',
   'Form',
   'FormProps',
+  'GIBS_BLUE_MARBLE_URL',
   'GlassSurfaceProps',
   'Grid',
   'GridProps',
@@ -315,6 +316,16 @@ const EXPORT_NAMES = [
   'UseOpaleThemeResult',
   'UseSvgMapViewportResult',
   'UseToastResult',
+  'UseWorldMapViewportResult',
+  'WorldMap',
+  'WorldMapBasemap',
+  'WorldMapLabels',
+  'WorldMapMode',
+  'WorldMapMoveOptions',
+  'WorldMapPin',
+  'WorldMapProps',
+  'WorldMapView',
+  'WorldMapViewportOptions',
   'isOpaleIconName',
   'opaleThemeScript',
   'readCookieConsent',
@@ -322,6 +333,7 @@ const EXPORT_NAMES = [
   'useOpaleTheme',
   'useSvgMapViewport',
   'useToast',
+  'useWorldMapViewport',
 ];
 
 describe('la surface publique de `src/opale/index.ts`', () => {

@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
   Modal,
@@ -24,6 +24,16 @@ import { CATALOG } from './catalog';
 import { Opale } from './opale';
 
 afterEach(cleanup);
+
+/* La carte du monde charge ses données en effet : le réseau est simulé et ne
+   répond jamais, la plaque se rend avec son message de chargement. */
+let fetchSpy: { mockRestore(): void } | undefined;
+beforeAll(() => {
+  fetchSpy = vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(() => new Promise<Response>(() => undefined));
+});
+afterAll(() => fetchSpy?.mockRestore());
 
 /* =============================================================================
    LA RÈGLE DU CATALOGUE : ORIGINAL PAR DÉFAUT, VERRE SUR DEMANDE.
@@ -269,6 +279,10 @@ const PORTEURS = [
       />
     ),
   },
+  {
+    nom: 'WorldMap',
+    rendre: (g?: boolean) => <Opale.WorldMap liquidGlass={g} dataUrl="/world-map/v1" />,
+  },
 ] as const;
 
 describe('la matière est une option, jamais le rendu par défaut', () => {
@@ -336,6 +350,7 @@ describe('la matière est une option, jamais le rendu par défaut', () => {
       ['FieldShell', 'coquille interne, jamais exportée : elle sert les champs ci-dessus'],
       ['Surface', 'primitive interne, jamais exportée : Card et StatCard la portent'],
       ['FileCardShell', 'coquille interne de FileCard, jamais exportée'],
+      ['WorldMapControls', 'commandes internes de WorldMap, jamais exportées : WorldMap les porte'],
       /* CES QUATRE-LÀ NE SONT PAS DES COMPOSANTS mais des VARIABLES LOCALES :
          `const Track = liquidGlass ? Glass : 'div'`. Elles portent une
          majuscule parce que JSX l'exige d'un type d'élément, et c'est à cela

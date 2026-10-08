@@ -17,6 +17,7 @@ import navigation from '../opale/catalog/navigation.tsx?raw';
 import shells from '../opale/catalog/shells.tsx?raw';
 import svgMap from '../opale/catalog/svg-map.tsx?raw';
 import toastAnchors from '../opale/catalog/toast-anchors.ts?raw';
+import worldMap from '../opale/catalog/world-map.tsx?raw';
 
 const IMPORT_DECLARATION = /^import\b[^;]*;[ \t]*\r?\n/gm;
 
@@ -32,6 +33,7 @@ export const OPALE_CATALOG_MODULES: readonly string[] = [
   layout,
   modules,
   svgMap,
+  worldMap,
   namespace,
 ];
 

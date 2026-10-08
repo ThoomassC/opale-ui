@@ -1,6 +1,6 @@
 # Opale — `@thomascaron/opale-ui`
 
-Le système de design Opale pour React 19 : **61 composants**, leurs jetons `--opale-*`, deux
+Le système de design Opale pour React 19 : **62 composants**, leurs jetons `--opale-*`, deux
 thèmes (clair et sombre), une matière « verre liquide » à activer composant par composant, et un
 contrat de couleur exécutable qui recalcule chaque ratio de contraste en CI.
 
@@ -202,7 +202,7 @@ Tout est exporté à la racine.
   `PageScaffold`, `SearchBar`, `Sidebar`, `SiteNav`, `Tabs`, `ToastProvider` (et le hook
   `useToast`) et `Topbar`. Les parties de `Tabs`, `Sidebar` et `Topbar` sont aussi exportées
   par leur nom (`TabsList`, `SidebarItem`, `TopbarBrand`…).
-- **Le catalogue**, dans `src/opale/catalog/` : **52 fiches** réparties en sept familles —
+- **Le catalogue**, dans `src/opale/catalog/` : **53 fiches** réparties en sept familles —
   saisie, boutons spécialisés, affichage de données, navigation, retours, mise en page et
   modules. La vitrine génère une page de démonstration par fiche.
 

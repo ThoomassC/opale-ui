@@ -44,6 +44,7 @@ export * from './catalog/navigation';
 export * from './catalog/layout';
 export * from './catalog/modules';
 export * from './catalog/svg-map';
+export * from './catalog/world-map';
 export { Opale } from './opale-namespace';
 export { Pagination, RatingInput, Skeleton } from './opale-extras';
 export { COOKIE_CONSENT_KEY, readCookieConsent } from './catalog/cookie-consent';

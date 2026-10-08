@@ -31,6 +31,7 @@ export const SERVER_SAFE_DATA_MODULES = Object.freeze([
   'catalog/cookie-consent',
   'components/icon/glyphs',
   'components/icon/icons',
+  'components/world-map/basemap',
   'theme/theme-script',
 ]);
 
