@@ -97,7 +97,7 @@ const RESERVED = new Set([]);
    Un module déclaré ici DOIT être un morceau dynamique du composant : s'il
    est importé statiquement, le script échoue — c'est ce qui garde la
    frontière paresseuse. Les chemins sont ceux de `dist/opale`, sans
-   extension. Tant que le fichier n'est pas émis, le groupe est réservé. */
+   extension ; un module absent de `dist/` fait aussi échouer le script. */
 const LAZY_BUDGETS = {
   WorldMap: [
     /* Le globe vectoriel : découpe par l'horizon, graticule, limbe. Posé à
@@ -199,12 +199,14 @@ try {
     if (size > budget) failures.push(line);
     else console.log(`✓ ${line}`);
     for (const { label, budget: lazyBudget, modules } of LAZY_BUDGETS[name] ?? []) {
-      if (
-        modules.every((modulePath) => !existsSync(join(root, 'dist/opale', `${modulePath}.js`)))
-      ) {
-        console.log(
-          `· ${name}, ${label} : budget réservé (${lazyBudget} o), modules pas encore émis`,
-        );
+      /* Le composant est exporté : un module de son groupe qui manque à
+         `dist/` est un échec, pas un budget réservé — sinon un renommage
+         ferait passer le groupe pour tenu sans rien mesurer. */
+      const absent = modules.filter(
+        (modulePath) => !existsSync(join(root, 'dist/opale', `${modulePath}.js`)),
+      );
+      if (absent.length > 0) {
+        failures.push(`${name}, ${label} : ${absent.join(', ')} absent de dist/opale`);
         continue;
       }
       const lazy = lazySize(modules);
