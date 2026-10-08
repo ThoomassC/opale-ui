@@ -53,9 +53,14 @@ export interface UseWorldMapViewportResult {
   reset(options?: WorldMapMoveOptions): void;
   /** La vue à l'instant, sans attendre le prochain rendu. */
   getView(): WorldMapView;
+}
 
-  /* --- Branchements internes de `WorldMap` : hors du contrat public. --- */
-
+/**
+ * Ce que `WorldMap` lit en plus de la vue publique : ses branchements. Hors
+ * du contrat public — le crochet exporté ne les déclare pas, mais l'objet
+ * qu'il rend les porte, et la carte les retrouve par `isWorldMapViewportState`.
+ */
+export interface WorldMapViewportState extends UseWorldMapViewportResult {
   /** Le zoom maximal du mode courant. */
   readonly maxZoom: number;
   /** Vrai pendant un mouvement (geste ou animation), jusqu'à ce que la vue se pose. */
@@ -69,6 +74,13 @@ export interface UseWorldMapViewportResult {
   readonly gestureTarget: SvgMapGestureTarget;
   /** La carte y dépose son mode et son cadre ; la vue est rebornée au besoin. */
   registerFrame(mode: WorldMapMode, frame: Frame): void;
+}
+
+/** Vrai pour une vue rendue par `useWorldMapViewport` — pas pour un objet construit à la main. */
+export function isWorldMapViewportState(
+  viewport: UseWorldMapViewportResult,
+): viewport is WorldMapViewportState {
+  return 'registerFrame' in viewport && 'gestureTarget' in viewport;
 }
 
 /** La vue d'ensemble par défaut : le monde entier, un peu au nord de l'équateur. */
@@ -102,11 +114,16 @@ interface ViewportState {
  * Rien n'est lu de `window` au rendu : le crochet se rend tel quel sur le
  * serveur.
  */
-export function useWorldMapViewport({
+export function useWorldMapViewport(options?: WorldMapViewportOptions): UseWorldMapViewportResult {
+  return useWorldMapViewportState(options);
+}
+
+/** Le même crochet, branchements compris : celui que `WorldMap` appelle. Interne. */
+export function useWorldMapViewportState({
   initialView = DEFAULT_WORLD_MAP_VIEW,
   maxZoom = DEFAULT_MAX_ZOOM,
   onViewChange,
-}: WorldMapViewportOptions = {}): UseWorldMapViewportResult {
+}: WorldMapViewportOptions = {}): WorldMapViewportState {
   const [state, setState] = useState<ViewportState>(() => {
     const bounds: ViewBounds = { mode: 'flat', frame: frameOf(16 / 9), maxZoom };
     const view = clampView(initialView, bounds);

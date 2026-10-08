@@ -5,7 +5,7 @@ import { unprojectFlat, frameOf } from './view';
 import {
   DEFAULT_WORLD_MAP_VIEW,
   SETTLE_MS,
-  useWorldMapViewport,
+  useWorldMapViewportState,
   type WorldMapViewportOptions,
 } from './useWorldMapViewport';
 
@@ -46,7 +46,7 @@ const reduceMotion = () =>
   }));
 
 const setup = (options?: WorldMapViewportOptions) =>
-  renderHook(() => useWorldMapViewport(options)).result;
+  renderHook(() => useWorldMapViewportState(options)).result;
 
 const PARIS = { longitude: 2.35, latitude: 48.85, zoom: 5 };
 
@@ -166,7 +166,7 @@ describe('useWorldMapViewport — au repos seulement', () => {
   it('ne prévient plus après le démontage', () => {
     fakeClock();
     const onViewChange = vi.fn();
-    const { result, unmount } = renderHook(() => useWorldMapViewport({ onViewChange }));
+    const { result, unmount } = renderHook(() => useWorldMapViewportState({ onViewChange }));
     act(() => result.current.flyTo(PARIS, { animate: false }));
     unmount();
     act(() => {
