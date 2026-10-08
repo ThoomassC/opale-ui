@@ -689,7 +689,9 @@ export function WorldMap({
 
   const focusPin = (id: string) => {
     setActivePin(id);
-    pinRefs.current.get(id)?.focus();
+    /* Le cadre est rogné : le navigateur le ferait défiler pour montrer le
+       repère, qui resterait hors champ après le vol. */
+    pinRefs.current.get(id)?.focus({ preventScroll: true });
   };
 
   const handlePinKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -843,6 +845,12 @@ export function WorldMap({
       data-zoomed={viewport.zoomed ? 'true' : undefined}
       data-dragging={dragging ? 'true' : undefined}
       data-pins={restZoom < 1.5 ? 'small' : undefined}
+      onScroll={(event) => {
+        /* Filet de sécurité : un cadre rogné qui a défilé quand même
+           (`overflow: clip` non pris en charge) revient à zéro. */
+        event.currentTarget.scrollLeft = 0;
+        event.currentTarget.scrollTop = 0;
+      }}
     >
       {hydrated && imagery && (
         <Suspense fallback={null}>

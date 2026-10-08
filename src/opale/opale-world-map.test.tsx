@@ -320,6 +320,28 @@ describe('WorldMap — repères', () => {
     expect(zoom).toBe(4);
   });
 
+  it('ne fait jamais défiler le cadre rogné pour montrer un repère', () => {
+    reduceMotion();
+    network({});
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus');
+    const { container } = render(<Harness />);
+    const paris = screen.getByRole('button', { name: 'Paris' });
+    act(() => paris.focus());
+    focus.mockClear();
+
+    fireEvent.keyDown(paris, { key: 'ArrowRight' });
+
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    /* Le navigateur peut tout de même faire défiler un conteneur rogné : le
+       cadre revient à zéro. */
+    const canvas = container.querySelector('.opale-world-map__canvas') as HTMLElement;
+    canvas.scrollLeft = 120;
+    canvas.scrollTop = 80;
+    fireEvent.scroll(canvas);
+    expect([canvas.scrollLeft, canvas.scrollTop]).toEqual([0, 0]);
+    expect(declaration(opaleSource, '.opale-world-map__canvas', 'overflow')).toBe('clip');
+  });
+
   it('ne déplace pas la vue pour un repère déjà visible', () => {
     reduceMotion();
     network({});

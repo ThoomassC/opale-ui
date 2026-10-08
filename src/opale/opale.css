@@ -4239,6 +4239,10 @@ ol.opale-stack {
 .opale-world-map__canvas {
   position: relative;
   overflow: hidden;
+  /* `clip`, pas `hidden` : un conteneur `hidden` défile pour montrer un
+     repère hors champ qui prend le focus, et le laissait hors du cadre après
+     le vol. `hidden` reste le repli des navigateurs sans `clip`. */
+  overflow: clip;
   aspect-ratio: var(--opale-world-map-ratio, 16 / 9);
 }
 /* Le doigt fait défiler la page tant que la carte n'est pas zoomée. */
