@@ -4353,6 +4353,7 @@ ol.opale-stack {
   -webkit-user-select: none;
 }
 .opale-world-map__texture {
+  background: var(--opale-world-map-water);
   image-rendering: auto;
 }
 /* SUR L'IMAGERIE, LES TRAITS SONT CLAIRS ET CERNÉS DE SOMBRE : la nuit et

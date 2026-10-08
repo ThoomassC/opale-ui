@@ -218,7 +218,9 @@ export function sampleGlobe(
     out[o] = data[t];
     out[o + 1] = data[t + 1];
     out[o + 2] = data[t + 2];
-    out[o + 3] = 255;
+    /* Un texel que la texture n'a pas (une tuile en échec) reste transparent :
+       la toile laisse voir l'eau posée dessous, pas un coin noir. */
+    out[o + 3] = data[t + 3];
   }
 }
 

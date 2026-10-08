@@ -117,6 +117,14 @@ describe('sampleGlobe', () => {
     expect(sample(0, -90)[0]).toBeGreaterThanOrEqual(4);
   });
 
+  it('garde transparent un texel que la texture n’a pas (une tuile en échec)', () => {
+    const holed = numbered(4, 2);
+    holed.data[2 * 4 + 3] = 0;
+    const out = new Uint8ClampedArray(4);
+    sampleGlobe(holed, centre, 45, 30, out);
+    expect(out[3]).toBe(0);
+  });
+
   it('laisse transparent ce qui est hors du disque', () => {
     const disk = diskVectors(3, 3, { x0: -1.5, y0: -1.5, x1: 1.5, y1: 1.5 }, 0, 0, 1);
     const out = new Uint8ClampedArray(9 * 4).fill(9);

@@ -182,8 +182,10 @@ export default function GlobeRaster({
     guard.record(performance.now() - started, { moving, resized });
   }, [texture, longitude, latitude, zoom, frame, framePx, moving, guard]);
 
-  const { rect } = diskOf(frame, zoom);
+  const { cx, cy, radius, rect } = diskOf(frame, zoom);
   const percent = (value: number, of: number) => `${(value / of) * 100}%`;
+  const width = rect.x1 - rect.x0;
+  const height = rect.y1 - rect.y0;
   return (
     <canvas
       ref={canvasRef}
@@ -192,8 +194,14 @@ export default function GlobeRaster({
       style={{
         left: percent(rect.x0, frame.width),
         top: percent(rect.y0, frame.height),
-        width: percent(rect.x1 - rect.x0, frame.width),
-        height: percent(rect.y1 - rect.y0, frame.height),
+        width: percent(width, frame.width),
+        height: percent(height, frame.height),
+        /* Sous la texture, l'eau, rognée au disque : un texel manquant la
+           laisse voir. */
+        clipPath: `ellipse(${percent(radius, width)} ${percent(radius, height)} at ${percent(
+          cx - rect.x0,
+          width,
+        )} ${percent(cy - rect.y0, height)})`,
       }}
     />
   );
