@@ -4602,6 +4602,8 @@ ol.opale-stack {
 /* Les bascules du globe et de l'imagerie, en haut à gauche. */
 .opale-world-map__layers {
   position: absolute;
+  /* Rendues avant le cadre dans le DOM : sans cela, il les recouvrirait. */
+  z-index: 2;
   inset-block-start: var(--opale-space-sm);
   inset-inline-start: var(--opale-space-sm);
   display: flex;
@@ -4616,6 +4618,7 @@ ol.opale-stack {
 }
 .opale-world-map__controls {
   position: absolute;
+  z-index: 2;
   inset-block-start: var(--opale-space-sm);
   inset-inline-end: var(--opale-space-sm);
   display: flex;

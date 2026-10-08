@@ -1006,6 +1006,14 @@ describe('WorldMap — feuille, revue visuelle', () => {
     );
   });
 
+  /* Rendues avant le cadre dans le DOM, les commandes passaient SOUS lui :
+     un élément positionné se peint dans l'ordre du document. */
+  it('peint les commandes au-dessus du cadre qui les suit dans le DOM', () => {
+    for (const selector of ['.opale-world-map__controls', '.opale-world-map__layers']) {
+      expect(Number(declaration(opaleSource, selector, 'z-index'))).toBeGreaterThan(0);
+    }
+  });
+
   it('laisse passer le pointeur sous le crédit, et le pose sous la carte sur un écran étroit', () => {
     expect(declaration(opaleSource, '.opale-world-map__credit', 'pointer-events')).toBe('none');
     expect(
