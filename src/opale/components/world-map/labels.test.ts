@@ -113,4 +113,11 @@ describe('placeLabels', () => {
     const b = placeLabels([], [...cities].reverse(), OPTIONS);
     expect(b).toEqual(a);
   });
+
+  it('laisse la place aux obstacles — les repères posés sur la carte', () => {
+    const paris = city('Paris', 500, 300, 2_000_000);
+    expect(placeLabels([], [paris], OPTIONS)).toHaveLength(1);
+    const pin = { left: 510, right: 530, top: 290, bottom: 310 };
+    expect(placeLabels([], [paris], { ...OPTIONS, obstacles: [pin] })).toEqual([]);
+  });
 });

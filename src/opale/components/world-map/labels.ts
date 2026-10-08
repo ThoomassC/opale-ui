@@ -61,6 +61,8 @@ export interface LabelOptions {
   /** Les tailles de police, en unités du cadre. */
   readonly countryFontSize: number;
   readonly cityFontSize: number;
+  /** Les boîtes qu'aucune étiquette ne recouvre : les repères de la carte. */
+  readonly obstacles?: readonly LabelBox[];
 }
 
 /**
@@ -89,7 +91,7 @@ const byId = (a: { readonly id: string }, b: { readonly id: string }) =>
 export function placeLabels(
   countries: readonly CountryCandidate[],
   cities: readonly CityCandidate[],
-  { width, height, countryFontSize, cityFontSize }: LabelOptions,
+  { width, height, countryFontSize, cityFontSize, obstacles = [] }: LabelOptions,
 ): PlacedLabel[] {
   const placed: PlacedLabel[] = [];
   const fits = (box: LabelBox) =>
@@ -97,6 +99,7 @@ export function placeLabels(
     box.top >= 0 &&
     box.right <= width &&
     box.bottom <= height &&
+    !obstacles.some((obstacle) => collides(obstacle, box)) &&
     !placed.some((label) => collides(label.box, box));
 
   const sortedCountries = [...countries].sort((a, b) => a.minLabel - b.minLabel || byId(a, b));
