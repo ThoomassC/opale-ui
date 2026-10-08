@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   clearWorldDataCache,
+  coversPoint,
   MAX_CACHED_TILES,
   WorldDataSession,
   type LoadedLevel,
@@ -150,6 +151,23 @@ describe('WorldDataSession', () => {
     expect(loads[0].files).toEqual([file(0), file(10)]);
   });
 
+  it('rend les tuiles reçues quand une autre échoue, et le signale', async () => {
+    const network = fakeNetwork();
+    const { instance, loads, errors } = session(network);
+    instance.show('10m', ['0_0', '1_0', '35_17']);
+    await flush();
+    await network.answer(`${DATA}index.json`, INDEX);
+    await network.answer(`${DATA}10m/1_0.json`, {}, 503);
+    expect(loads).toHaveLength(0);
+    await network.answer(`${DATA}10m/0_0.json`, file(0));
+
+    expect(loads).toHaveLength(1);
+    expect(loads[0].files).toEqual([file(0)]);
+    expect(loads[0].tiles).toEqual(['0_0', '1_0', '35_17']);
+    expect(loads[0].missing).toEqual(['1_0']);
+    expect(errors).toHaveLength(1);
+  });
+
   it('en cas d’échec : prévient une fois, ne réessaie pas, garde le niveau précédent', async () => {
     const network = fakeNetwork();
     const { instance, loads, errors } = session(network);
@@ -213,5 +231,20 @@ describe('WorldDataSession', () => {
     await flush();
     expect(request?.signal?.aborted).toBe(true);
     expect(loads).toHaveLength(0);
+  });
+});
+
+describe('coversPoint', () => {
+  const tiled = { lod: '10m', files: [], tiles: ['18_8', '19_8'], missing: ['19_8'] } as const;
+
+  it('couvre le monde entier en 110m et 50m', () => {
+    expect(coversPoint({ lod: '50m', files: [] }, 140, -35)).toBe(true);
+  });
+
+  it('en 10m, ne couvre que les tuiles demandées et reçues', () => {
+    /* 18_8 : de 0° à 10° E, de 0° à 10° N. */
+    expect(coversPoint(tiled, 5, 5)).toBe(true);
+    expect(coversPoint(tiled, 15, 5)).toBe(false);
+    expect(coversPoint(tiled, -60, -30)).toBe(false);
   });
 });

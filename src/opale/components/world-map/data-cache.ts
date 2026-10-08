@@ -11,10 +11,11 @@
      abandonnée.
    - Une réponse arrivée pour un niveau DÉPASSÉ est ignorée : seul le dernier
      `show` compte.
-   - En cas d'échec, `onError` est appelée une fois par erreur, le niveau
-     déjà affiché reste, et rien n'est retenté automatiquement : le fichier en
-     échec reste en cache tant qu'une carte le demande. La carte affiche
-     « Détails indisponibles ».
+   - En cas d'échec, `onError` est appelée une fois par erreur, et rien
+     n'est retenté automatiquement. Un niveau sans aucun fichier reçu laisse
+     le précédent ; des tuiles 10m reçues se rendent même si une voisine a
+     échoué (`missing`). Le fichier en échec reste en cache tant qu'une
+     carte le demande. La carte affiche « Détails indisponibles ».
 
    Ce module ne lit `window` qu'à la construction d'une session — dans un
    effet, jamais au rendu.
@@ -27,7 +28,7 @@ import {
   type WorldDataFile,
   type WorldDataIndex,
 } from './data-format';
-import type { Lod } from './lod';
+import { tileKey, type Lod } from './lod';
 
 /** Le plus de tuiles 10m gardées en mémoire. */
 export const MAX_CACHED_TILES = 64;
@@ -145,8 +146,26 @@ function acquire<T>(
 
 export interface LoadedLevel {
   readonly lod: Lod;
-  /** Un fichier pour 110m et 50m ; les tuiles demandées qui existent, dans l'ordre, pour 10m. */
+  /** Un fichier pour 110m et 50m ; les tuiles reçues, dans l'ordre, pour 10m. */
   readonly files: readonly WorldDataFile[];
+  /** En 10m : les tuiles demandées, qu'elles existent ou non (une cellule absente de l'index est de l'eau). */
+  readonly tiles?: readonly string[];
+  /** En 10m : les tuiles demandées qui ont échoué. */
+  readonly missing?: readonly string[];
+}
+
+/**
+ * Vrai si le niveau chargé sait ce qu'il y a en `(longitude, latitude)` :
+ * 110m et 50m couvrent le monde ; en 10m, seules les tuiles demandées et
+ * reçues. Hors de là, la carte ne peut pas dire « l'océan ».
+ */
+export function coversPoint(level: LoadedLevel, longitude: number, latitude: number): boolean {
+  if (level.lod !== '10m') return true;
+  const key = tileKey(
+    Math.min(35, Math.max(0, Math.floor((longitude + 180) / 10))),
+    Math.min(17, Math.max(0, Math.floor((90 - latitude) / 10))),
+  );
+  return (level.tiles ?? []).includes(key) && !(level.missing ?? []).includes(key);
 }
 
 export interface WorldDataSessionOptions {
@@ -190,9 +209,10 @@ export class WorldDataSession {
       (index) => {
         if (!current()) return;
         const available = new Set(index.lods['10m'].tiles);
+        const keys = tiles.filter((key) => available.has(key));
         const urls =
           lod === '10m'
-            ? tiles.filter((key) => available.has(key)).map((key) => `${this.#base}10m/${key}.json`)
+            ? keys.map((key) => `${this.#base}10m/${key}.json`)
             : [`${this.#base}${index.lods[lod].file}`];
         /* Les nouvelles parts AVANT de rendre les anciennes : une tuile encore
            visible n'est ni abandonnée ni rechargée. */
@@ -201,14 +221,27 @@ export class WorldDataSession {
         );
         for (const lease of this.#leases) lease.release();
         this.#leases = leases;
-        Promise.all(leases.map((lease) => lease.promise)).then(
-          (files) => {
-            if (current()) this.#options.onLoad({ lod, files });
-          },
-          (error: unknown) => {
-            if (current()) this.#report(error);
-          },
-        );
+        /* UNE TUILE EN ÉCHEC NE RETIENT PAS LES AUTRES : le niveau se rend
+           avec ce qui est arrivé, et l'échec est signalé. Tout attendre
+           gardait le niveau précédent — une autre région — tant que la
+           tuile manquante restait en vue. */
+        Promise.allSettled(leases.map((lease) => lease.promise)).then((results) => {
+          if (!current()) return;
+          const files: WorldDataFile[] = [];
+          const missing: string[] = [];
+          results.forEach((result, position) => {
+            if (result.status === 'fulfilled') {
+              files.push(result.value);
+            } else {
+              missing.push(keys[position] ?? lod);
+              this.#report(result.reason);
+            }
+          });
+          if (results.length > 0 && files.length === 0) return;
+          this.#options.onLoad(
+            lod === '10m' ? { lod, files, tiles: [...tiles], missing } : { lod, files },
+          );
+        });
       },
       (error: unknown) => {
         if (current()) this.#report(error);

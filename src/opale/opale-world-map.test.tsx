@@ -172,6 +172,34 @@ describe('WorldMap — données', () => {
     expect(container.querySelector('[data-country="FR"]')).not.toBeNull();
   });
 
+  it('dessine les tuiles 10m reçues quand une voisine échoue, et le dit', async () => {
+    reduceMotion();
+    const tiled = {
+      ...INDEX,
+      lods: { ...INDEX.lods, '10m': { tileDegrees: 10, tiles: ['18_4', '19_4'] } },
+    };
+    network(
+      {
+        'v1/index.json': tiled,
+        'v1/110m.json': LEVEL,
+        'v1/50m.json': LEVEL,
+        '10m/18_4.json': LEVEL,
+      },
+      ['10m/19_4.json'],
+    );
+    const onDataError = vi.fn();
+    const { container } = render(
+      <Harness
+        initialView={{ longitude: 2.35, latitude: 48.85, zoom: 4 }}
+        onDataError={onDataError}
+      />,
+    );
+
+    await waitFor(() => expect(onDataError).toHaveBeenCalled());
+    await waitFor(() => expect(container.querySelector('[data-country="FR"]')).not.toBeNull());
+    expect(screen.getByText('Détails indisponibles')).toBeInTheDocument();
+  });
+
   it('cesse d’annoncer le chargement quand le premier niveau échoue', async () => {
     network(ALL_FILES, ['v1/index.json']);
     render(<WorldMap dataUrl="/world-map/v1" />);

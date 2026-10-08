@@ -494,7 +494,8 @@ export function WorldMap({
     const session = new WorldDataSession(dataUrl, {
       onLoad: (loaded) => {
         setLevel(loaded);
-        setFailed(false);
+        /* Un niveau rendu avec des tuiles manquantes reste « indisponible ». */
+        setFailed(Boolean(loaded.missing?.length));
       },
       onError: (error) => {
         setFailed(true);
