@@ -46,6 +46,10 @@ export default function FlatRaster({
   onFailure,
 }: FlatRasterProps) {
   const [failed, setFailed] = useState<ReadonlySet<string>>(() => new Set());
+  /* LES ÉCHECS SE COMPTENT DANS UNE RÉFÉRENCE : une rafale d'erreurs arrive
+     avant le rendu suivant, et chaque gestionnaire lisait l'ensemble capturé
+     au rendu — le dernier effaçait les autres. */
+  const failures = useRef(new Set<string>());
   const reported = useRef(false);
 
   const tiles = useMemo(() => {
@@ -66,10 +70,10 @@ export default function FlatRaster({
   }, [settled, frame, framePx, maxZoom, template]);
 
   const fail = (url: string) => {
-    const next = new Set(failed).add(url);
-    setFailed(next);
+    failures.current.add(url);
+    setFailed(new Set(failures.current));
     const wanted = tiles.slice(1);
-    const missing = wanted.filter((tile) => next.has(tile.url)).length;
+    const missing = wanted.filter((tile) => failures.current.has(tile.url)).length;
     if (!reported.current && missing * 2 > wanted.length) {
       reported.current = true;
       onFailure(new Error('Imagerie indisponible.'));

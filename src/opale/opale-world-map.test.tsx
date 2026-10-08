@@ -583,6 +583,24 @@ describe('WorldMap — imagerie', () => {
     );
   });
 
+  it('compte chaque échec d’une rafale arrivée avant le rendu suivant', async () => {
+    network(ALL_FILES);
+    const onBasemapError = vi.fn();
+    const { container } = render(
+      <Harness defaultBasemap="satellite" onBasemapError={onBasemapError} />,
+    );
+    await waitFor(() => expect(tiles(container).length).toBeGreaterThan(0));
+    const failing = tiles(container).slice(0, Math.floor(tiles(container).length / 2) + 1);
+
+    /* Toutes les erreurs dans le même lot : aucun rendu entre elles. */
+    act(() => {
+      for (const img of failing) img.dispatchEvent(new Event('error'));
+    });
+
+    await waitFor(() => expect(onBasemapError).toHaveBeenCalledOnce());
+    expect(container.querySelector('.opale-world-map')).toHaveAttribute('data-basemap', 'vector');
+  });
+
   it('revient au dessin quand la texture du globe est refusée (SecurityError)', async () => {
     network(ALL_FILES);
     class LoadingImage {
