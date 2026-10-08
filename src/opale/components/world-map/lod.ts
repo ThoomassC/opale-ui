@@ -11,28 +11,15 @@
      chaque seuil évite de recharger en boucle quand on zoome autour.
    - Globe : 110m pendant un geste (il faut redécouper à chaque image),
      50m au repos, jamais 10m.
-   - Imagerie : z = round(zoom web), borné à [0, 8] ; au-delà, les tuiles du
-     niveau 8 sont agrandies (sur-zoom), jamais plus de 48 images.
+   - Imagerie : voir `raster.ts`, chargé avec elle à la demande.
    ========================================================================== */
 
-import {
-  flatTransform,
-  unprojectFlat,
-  webZoom as toWebZoom,
-  WORLD_SIZE,
-  type Frame,
-  type WorldMapMode,
-  type WorldMapView,
-} from './view';
+import { unprojectFlat, type Frame, type WorldMapMode, type WorldMapView } from './view';
 
 export type Lod = '110m' | '50m' | '10m';
 
 /** Le plus de tuiles 10m chargées pour une vue. */
 export const MAX_VECTOR_TILES = 16;
-/** Le plus d'images d'imagerie posées pour une vue. */
-export const MAX_RASTER_TILES = 48;
-/** Le niveau le plus fin de l'imagerie (NASA GIBS, `GoogleMapsCompatible_Level8`). */
-export const RASTER_MAX_ZOOM = 8;
 
 const LEVELS: readonly Lod[] = ['110m', '50m', '10m'];
 const THRESHOLDS = [2.5, 4] as const;
@@ -109,61 +96,6 @@ export function flatBounds(view: WorldMapView, frame: Frame): [number, number, n
   const [west, north] = unprojectFlat(0, 0, view, frame);
   const [east, south] = unprojectFlat(frame.width, frame.height, view, frame);
   return [Math.max(-180, west), Math.max(-90, south), Math.min(180, east), Math.min(90, north)];
-}
-
-export interface RasterTile {
-  readonly z: number;
-  readonly x: number;
-  readonly y: number;
-  /** Position et côté de l'image, en unités du cadre. */
-  readonly left: number;
-  readonly top: number;
-  readonly size: number;
-}
-
-/**
- * Les tuiles d'imagerie qui couvrent une vue en plan, `framePx` la largeur
- * affichée du cadre en pixels.
- */
-export function rasterTiles(
-  view: WorldMapView,
-  frame: Frame,
-  framePx: number,
-  maxZoom: number = RASTER_MAX_ZOOM,
-): RasterTile[] {
-  const { scale, x: tx, y: ty } = flatTransform(view, frame);
-  /* La fenêtre visible, en unités du monde. */
-  const x0 = -tx / scale;
-  const x1 = (frame.width - tx) / scale;
-  const y0 = -ty / scale;
-  const y1 = (frame.height - ty) / scale;
-  let z = clampInt(Math.round(toWebZoom(view.zoom, framePx)), 0, maxZoom);
-  for (;;) {
-    const count = 2 ** z;
-    const tile = WORLD_SIZE / count;
-    const colMin = clampInt(Math.floor(x0 / tile), 0, count - 1);
-    const colMax = clampInt(Math.ceil(x1 / tile) - 1, colMin, count - 1);
-    const rowMin = clampInt(Math.floor(y0 / tile), 0, count - 1);
-    const rowMax = clampInt(Math.ceil(y1 / tile) - 1, rowMin, count - 1);
-    if ((colMax - colMin + 1) * (rowMax - rowMin + 1) > MAX_RASTER_TILES && z > 0) {
-      z -= 1;
-      continue;
-    }
-    const tiles: RasterTile[] = [];
-    for (let row = rowMin; row <= rowMax; row += 1) {
-      for (let col = colMin; col <= colMax; col += 1) {
-        tiles.push({
-          z,
-          x: col,
-          y: row,
-          left: col * tile * scale + tx,
-          top: row * tile * scale + ty,
-          size: tile * scale,
-        });
-      }
-    }
-    return tiles;
-  }
 }
 
 /** Ce qui paraît au zoom web courant : `mz ≤ zoom`. */

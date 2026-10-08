@@ -8,16 +8,14 @@
    110m et 50m, trois en 10m). Les arrondis portent sur les positions
    absolues, pas sur les deltas : l'erreur ne s'accumule pas.
 
-   GLOBE. La découpe par l'horizon dépend de la rotation : le tracé est
-   refait à chaque rendu, en unités du cadre, à partir des anneaux décodés
-   une fois par fichier.
+   Le GLOBE a son module, `globe-paths.ts`, chargé avec lui à la demande ; il
+   reprend `writePath`.
 
-   Dans les deux cas : un `<path>` par pays pour les remplissages (règle
+   Un `<path>` par pays pour les remplissages (règle
    `evenodd` : les trous et les recouvrements de tuiles se peignent juste),
    un seul par couche de lignes et par fichier.
    ========================================================================== */
 
-import { clipLine, clipRing, type Rotation } from './clip';
 import {
   decodeRing,
   type EncodedLine,
@@ -43,14 +41,6 @@ export interface FlatPaths {
   admin1(webZoom: number): string;
 }
 
-export interface GlobePaths {
-  readonly countries: readonly CountryPath[];
-  readonly lakes: string;
-  readonly coast: string;
-  readonly borders: string;
-  readonly rivers: string;
-}
-
 /** Un entier à `digits` décimales fixes, écrit au plus court : `12.34`, `-.5`, `3`. */
 export function formatFixed(value: number, digits: number): string {
   const unit = 10 ** digits;
@@ -67,7 +57,12 @@ export function formatFixed(value: number, digits: number): string {
  * Écrit une suite de points absolus (entiers à `digits` décimales fixes) :
  * `M` absolu, puis `l` relatifs, segments nuls omis.
  */
-function writePath(out: string[], points: ArrayLike<number>, digits: number, closed: boolean) {
+export function writePath(
+  out: string[],
+  points: ArrayLike<number>,
+  digits: number,
+  closed: boolean,
+) {
   const n = points.length;
   if (n < 4) return;
   let x = points[0];
@@ -156,89 +151,4 @@ export function flatPaths(file: WorldDataFile): FlatPaths {
   };
   flatCache.set(file, paths);
   return paths;
-}
-
-/* -----------------------------------------------------------------------------
-   Globe.
-   -------------------------------------------------------------------------- */
-
-interface DecodedFile {
-  readonly countries: readonly { readonly id: string; readonly rings: readonly Float64Array[] }[];
-  readonly lakes: readonly Float64Array[];
-  readonly coast: readonly Float64Array[];
-  readonly borders: readonly Float64Array[];
-  readonly rivers: readonly { readonly mz: number; readonly line: Float64Array }[];
-}
-
-const decodedCache = new WeakMap<WorldDataFile, DecodedFile>();
-
-function decoded(file: WorldDataFile): DecodedFile {
-  const known = decodedCache.get(file);
-  if (known) return known;
-  const decode = (line: EncodedLine) => decodeRing(line, file.q);
-  const result: DecodedFile = {
-    countries: file.countries.map(({ id, r }) => ({ id, rings: r.flat().map(decode) })),
-    lakes: (file.lakes ?? []).flat().map(decode),
-    coast: file.coast.map(decode),
-    borders: file.borders.map(decode),
-    rivers: (file.rivers ?? []).map(({ mz, l }) => ({ mz, line: decode(l) })),
-  };
-  decodedCache.set(file, result);
-  return result;
-}
-
-export interface GlobeOptions {
-  readonly rotate: Rotation;
-  /** Le centre et le rayon du disque, en unités du cadre. */
-  readonly cx: number;
-  readonly cy: number;
-  readonly radius: number;
-  /** Le zoom web, pour filtrer les fleuves. */
-  readonly webZoom: number;
-}
-
-/** Une décimale en unités du cadre : un dixième de pixel à l'échelle 1. */
-const GLOBE_DIGITS = 1;
-
-/** Les tracés du globe pour une rotation : refaits à chaque rendu. */
-export function globePaths(
-  file: WorldDataFile,
-  { rotate, cx, cy, radius, webZoom }: GlobeOptions,
-): GlobePaths {
-  const data = decoded(file);
-  const unit = 10 ** GLOBE_DIGITS;
-  const toFrame = (disk: readonly number[]) => {
-    const out = new Int32Array(disk.length);
-    for (let i = 0; i < disk.length; i += 2) {
-      out[i] = Math.round((cx + disk[i] * radius) * unit);
-      out[i + 1] = Math.round((cy + disk[i + 1] * radius) * unit);
-    }
-    return out;
-  };
-  const rings = (items: readonly Float64Array[]) => {
-    const out: string[] = [];
-    for (const ring of items) {
-      const clipped = clipRing(ring, rotate);
-      if (clipped) writePath(out, toFrame(clipped), GLOBE_DIGITS, true);
-    }
-    return out.join('');
-  };
-  const lines = (items: readonly Float64Array[]) => {
-    const out: string[] = [];
-    for (const line of items) {
-      for (const piece of clipLine(line, rotate))
-        writePath(out, toFrame(piece), GLOBE_DIGITS, false);
-    }
-    return out.join('');
-  };
-  return {
-    countries: data.countries.flatMap(({ id, rings: items }) => {
-      const d = rings(items);
-      return d ? [{ id, d }] : [];
-    }),
-    lakes: rings(data.lakes),
-    coast: lines(data.coast),
-    borders: lines(data.borders),
-    rivers: lines(byMinZoom(data.rivers, webZoom).map((item) => item.line)),
-  };
 }

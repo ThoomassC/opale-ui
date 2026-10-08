@@ -1,16 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { tileKey as scriptTileKey, tilesCovering } from '../../../../scripts/world-data.mjs';
-import {
-  byMinZoom,
-  flatBounds,
-  MAX_RASTER_TILES,
-  MAX_VECTOR_TILES,
-  rasterTiles,
-  selectLod,
-  tileKey,
-  visibleTiles,
-} from './lod';
+import { byMinZoom, flatBounds, MAX_VECTOR_TILES, selectLod, tileKey, visibleTiles } from './lod';
 import { frameOf } from './view';
 
 const frame = frameOf(16 / 9);
@@ -75,32 +66,6 @@ describe('flatBounds', () => {
     expect(east).toBeCloseTo(180, 9);
     expect(north).toBeCloseTo(-south, 9);
     expect(north).toBeLessThan(85);
-  });
-});
-
-describe('rasterTiles', () => {
-  it('prend z = round(zoom web) et couvre la vue', () => {
-    const tiles = rasterTiles({ longitude: 0, latitude: 0, zoom: 0 }, frame, 1000);
-    expect(new Set(tiles.map((tile) => tile.z))).toEqual(new Set([2]));
-    expect(tiles).toHaveLength(16);
-    expect(tiles[0]).toEqual({ z: 2, x: 0, y: 0, left: 0, top: -218.75, size: 250 });
-  });
-
-  it('sur-zoome au-delà du niveau 8 au lieu de demander des tuiles absentes', () => {
-    const tiles = rasterTiles({ longitude: 2.35, latitude: 48.85, zoom: 9 }, frame, 1000);
-    expect(tiles.every((tile) => tile.z === 8)).toBe(true);
-    expect(tiles[0].size).toBeCloseTo(2000, 6);
-  });
-
-  it(`ne dépasse jamais ${MAX_RASTER_TILES} images`, () => {
-    expect(MAX_RASTER_TILES).toBe(48);
-    for (const px of [400, 1000, 2600, 4000]) {
-      for (const zoom of [0, 1.4, 3.6, 7]) {
-        const tiles = rasterTiles({ longitude: 10, latitude: 20, zoom }, frameOf(1), px);
-        expect(tiles.length).toBeLessThanOrEqual(48);
-        expect(tiles.length).toBeGreaterThan(0);
-      }
-    }
   });
 });
 
