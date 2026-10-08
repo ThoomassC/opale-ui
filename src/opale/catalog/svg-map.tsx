@@ -19,7 +19,7 @@ import {
   type SvgMapWheel,
   type UseSvgMapViewportResult,
 } from '../components/svg-map';
-import { type Bounds } from '../components/svg-map/path-bounds';
+import { ARROW_DIRECTIONS, isArrowKey, nearestInDirection } from '../components/svg-map/neighbour';
 import { useRegionBounds } from '../components/svg-map/useRegionBounds';
 import { useSvgMapGestures } from '../components/svg-map/useSvgMapGestures';
 import { parseViewBox as parseSvgViewBox, zoomOf } from '../components/svg-map/viewport';
@@ -227,14 +227,6 @@ const SVG_MAP_DEFAULT_STEP = 1.6;
 /** Le pas d'un déplacement, clavier ou flèche : un cinquième de la vue. */
 const SVG_MAP_PAN_STEP = 0.2;
 
-/** La direction de chaque flèche, en unités de la vue. */
-const SVG_MAP_ARROWS: Readonly<Record<string, readonly [number, number]>> = {
-  ArrowRight: [1, 0],
-  ArrowLeft: [-1, 0],
-  ArrowDown: [0, 1],
-  ArrowUp: [0, -1],
-};
-
 export function SvgMap({
   viewBox,
   regions,
@@ -310,32 +302,19 @@ export function SvgMap({
     regionRefs.current.get(id)?.focus();
   };
 
-  /* LES FLÈCHES SUIVENT LA GÉOGRAPHIE, PAS LA LISTE. L'ordre du tableau ne
-     dit rien de la carte — il peut même être mélangé — et « droite » doit
-     mener à droite. Chaque flèche vise la région la plus proche dans sa
-     direction, l'écart perpendiculaire pesant double ; sans voisine dans cette
-     direction, le focus reste où il est. Début et Fin gardent l'ordre de la
-     liste, qui est un ordre de lecture. */
-  const neighbour = (id: string, key: string): string | null => {
-    const from = bounds.get(id);
-    if (!from) return null;
-    const center = (b: Bounds) => ({ x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 });
-    const origin = center(from);
-    const direction = SVG_MAP_ARROWS[key];
-    if (!direction) return null;
-    const [ax, ay] = direction;
-    let best: { id: string; score: number } | null = null;
-    for (const [candidate, box] of bounds) {
-      if (candidate === id) continue;
-      const c = center(box);
-      const along = (c.x - origin.x) * ax + (c.y - origin.y) * ay;
-      if (along <= 0.5) continue;
-      const across = Math.abs((c.x - origin.x) * ay) + Math.abs((c.y - origin.y) * ax);
-      const score = along + 2 * across;
-      if (!best || score < best.score) best = { id: candidate, score };
-    }
-    return best?.id ?? null;
-  };
+  /* LES FLÈCHES SUIVENT LA GÉOGRAPHIE, PAS LA LISTE : voir
+     `nearestInDirection`. Début et Fin gardent l'ordre de la liste, qui est
+     un ordre de lecture. */
+  const centers = useMemo(
+    () =>
+      new Map(
+        [...bounds].map(([id, box]) => [
+          id,
+          { x: (box.minX + box.maxX) / 2, y: (box.minY + box.maxY) / 2 },
+        ]),
+      ),
+    [bounds],
+  );
 
   const handleRegionKeyDown = (event: KeyboardEvent<SVGPathElement>, index: number) => {
     const id = regions[index].id;
@@ -343,7 +322,9 @@ export function SvgMap({
       event.shiftKey || event.ctrlKey || event.metaKey || event.altKey
         ? null
         : event.key.startsWith('Arrow')
-          ? neighbour(id, event.key)
+          ? isArrowKey(event.key)
+            ? nearestInDirection(centers, id, event.key)
+            : null
           : event.key === 'Home'
             ? regions[0].id
             : event.key === 'End'
@@ -392,7 +373,7 @@ export function SvgMap({
     /* SE DÉPLACER AU CLAVIER. Une carte zoomée ne se parcourait qu'en la
        glissant (WCAG 2.1.1, 2.5.7). Maj + flèches déplacent la vue de partout ;
        sur une carte sans régions à choisir, les flèches seules suffisent. */
-    const pan = SVG_MAP_ARROWS[event.key];
+    const pan = isArrowKey(event.key) ? ARROW_DIRECTIONS[event.key] : undefined;
     if (pan && (event.shiftKey || event.target === svgRef.current)) {
       event.preventDefault();
       /* Le pas se mesure sur la vue d'arrivée, d'où part le déplacement. */

@@ -10,7 +10,7 @@
    Suppose `dist/` construit (`npm run build:lib`).
    ========================================================================== */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import process from 'node:process';
@@ -63,7 +63,23 @@ const BUDGETS = {
   /* La section qui peint son propre fond et son encre, et s'inscrit auprès
      de sa scène. Posé à 1 200 o avant son écriture ; même règle. */
   ScrollSection: 1_200,
+  /* La carte SVG : régions au clavier, gestes, vue animée, infobulle et ses
+     commandes. Mesurée à 47 197 o avant l'écriture de `WorldMap` — elle
+     emporte `IconActionButton` et `Surface` ; le budget est la mesure plus
+     5 %, pour qu'une extraction partagée avec `WorldMap` ne l'alourdisse pas
+     sans qu'on le voie. */
+  SvgMap: 49_557,
+  /* La carte du monde : plan, globe, imagerie, niveaux de détail et repères.
+     Posé à 30 000 o avant son écriture ; un dépassement s'allège, il ne
+     relève pas ce budget. */
+  WorldMap: 30_000,
 };
+
+/* Les budgets posés AVANT leur composant : tant qu'il n'est pas exporté, la
+   mesure est sautée et le dit. Un nom qui manque sans figurer ici fait échouer
+   le script — une coquille ne doit pas passer pour un budget tenu. Le nom sort
+   de cette liste le jour où le composant est exporté. */
+const RESERVED = new Set(['WorldMap']);
 
 const EXTERNAL = [/^react(\/.*)?$/, /^react-dom(\/.*)?$/, 'clsx'];
 
@@ -87,10 +103,33 @@ const bundledSize = async (name, work) => {
     .reduce((total, chunk) => total + Buffer.byteLength(chunk.code), 0);
 };
 
+/* Les noms exportés par l'entrée construite, lus sans l'exécuter : les
+   `export { … }` de l'entrée construite. */
+const exportedNames = new Set(
+  [...readFileSync(entry, 'utf8').matchAll(/export\s*\{([^}]*)\}/g)].flatMap(([, list]) =>
+    list.split(',').map(
+      (item) =>
+        item
+          .trim()
+          .split(/\s+as\s+/)
+          .pop()
+          ?.trim() ?? '',
+    ),
+  ),
+);
+
 const work = mkdtempSync(join(tmpdir(), 'opale-size-'));
 const failures = [];
 try {
   for (const [name, budget] of Object.entries(BUDGETS)) {
+    if (RESERVED.has(name)) {
+      if (exportedNames.has(name)) {
+        failures.push(`${name} est exporté : retirez-le de RESERVED pour mesurer son budget`);
+      } else {
+        console.log(`· ${name} : budget réservé (${budget} o), composant pas encore exporté`);
+      }
+      continue;
+    }
     const size = await bundledSize(name, work);
     const line = `${name} seul : ${size} o minifiés (budget ${budget} o)`;
     if (size > budget) failures.push(line);
