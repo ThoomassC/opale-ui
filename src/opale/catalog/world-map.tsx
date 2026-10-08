@@ -13,6 +13,7 @@ import {
   useSyncExternalStore,
   type ComponentPropsWithRef,
   type ComponentType,
+  type LazyExoticComponent,
   type CSSProperties,
   type KeyboardEvent,
   type MouseEvent,
@@ -223,26 +224,56 @@ interface LazyLayerProps {
   readonly onFailure: (error: Error) => void;
 }
 
+/** Un module à la demande : son composant paresseux, et de quoi le redemander. */
+interface LazyLayer<P> {
+  readonly current: LazyExoticComponent<ComponentType<P>>;
+  /** Après un échec, le prochain rendu réimporte le module. Sans effet sinon. */
+  retry(): void;
+}
+
 /* UN MODULE QUI NE SE CHARGE PAS NE FAIT PAS TOMBER LA CARTE : un
    déploiement a pu renommer ses morceaux. Il est remplacé par un composant
-   vide qui le signale, et la carte revient au dessin ou le dit. */
-function lazyLayer<P extends LazyLayerProps>(load: () => Promise<{ default: ComponentType<P> }>) {
-  return lazy(() =>
-    load().catch((error: unknown) => ({
-      default: function Unavailable({ onFailure }: P) {
-        useEffect(
-          () =>
-            onFailure(
-              error instanceof Error || error instanceof DOMException
-                ? error
-                : new Error(String(error)),
-            ),
-          [onFailure],
-        );
-        return null;
-      },
-    })),
-  );
+   vide qui le signale, et la carte revient au dessin ou le dit.
+
+   `lazy` garde son résultat pour toute la vie de la page, échec compris :
+   l'échec est donc noté, et `retry` fabrique un nouveau composant paresseux
+   quand l'utilisateur redemande le globe ou l'imagerie — pas avant, sans
+   quoi la carte réessaierait en boucle. */
+function lazyLayer<P extends LazyLayerProps>(
+  load: () => Promise<{ default: ComponentType<P> }>,
+): LazyLayer<P> {
+  let failed = false;
+  const make = () =>
+    lazy(() =>
+      load().catch((error: unknown) => {
+        failed = true;
+        return {
+          default: function Unavailable({ onFailure }: P) {
+            useEffect(
+              () =>
+                onFailure(
+                  error instanceof Error || error instanceof DOMException
+                    ? error
+                    : new Error(String(error)),
+                ),
+              [onFailure],
+            );
+            return null;
+          },
+        };
+      }),
+    );
+  let current = make();
+  return {
+    get current() {
+      return current;
+    },
+    retry() {
+      if (!failed) return;
+      failed = false;
+      current = make();
+    },
+  };
 }
 
 const GlobeLayer = /* @__PURE__ */ lazyLayer(() => import('../components/world-map/GlobeLayer'));
@@ -404,12 +435,23 @@ export function WorldMap({
     () => false,
   );
 
-  /* L'IMAGERIE EN ÉCHEC RAMÈNE AU DESSIN jusqu'à ce qu'on la redemande. */
+  /* L'IMAGERIE EN ÉCHEC RAMÈNE AU DESSIN jusqu'à ce qu'on la redemande ; un
+     globe dont le module manque le dit jusqu'à ce qu'on le redemande. Les
+     redemander réimporte un module en échec (`retry`, idempotent). */
   const [imageryFailed, setImageryFailed] = useState(false);
   const [askedBasemap, setAskedBasemap] = useState(basemap);
   if (askedBasemap !== basemap) {
     setAskedBasemap(basemap);
     setImageryFailed(false);
+    FlatRaster.retry();
+    GlobeRaster.retry();
+  }
+  const [layerFailed, setLayerFailed] = useState(false);
+  const [askedMode, setAskedMode] = useState(mode);
+  if (askedMode !== mode) {
+    setAskedMode(mode);
+    setLayerFailed(false);
+    GlobeLayer.retry();
   }
   const imagery = basemap === 'satellite' && !imageryFailed;
 
@@ -467,12 +509,14 @@ export function WorldMap({
     errorRef.current = { onDataError, onBasemapError };
   });
   /* Stables : les modules à la demande les reçoivent en dépendance d'effet. */
+  /* UN ÉTAT À PART pour le module du globe : `failed` suit les données, et
+     le niveau suivant l'effaçait alors que le globe restait sans terres. */
   const onLayerFailure = useCallback(
     (error: Error) => {
-      setFailed(true);
+      setLayerFailed(true);
       errorRef.current.onDataError?.(error);
     },
-    [setFailed],
+    [setLayerFailed],
   );
   const onImageryFailure = useCallback(
     (error: Error) => {
@@ -834,12 +878,15 @@ export function WorldMap({
   /* Plusieurs messages peuvent valoir ensemble : la consigne du globe ne
      masque pas le chargement. */
   const messages = [
-    failed && labels.dataError,
+    (failed || (globe && layerFailed)) && labels.dataError,
     basemap === 'satellite' && imageryFailed && labels.basemapError,
     !level && !failed && labels.loading,
     globe && !viewport.canZoomIn && labels.globeZoomLimit,
   ].filter((message): message is string => Boolean(message));
   const template = tileUrl ?? GIBS_BLUE_MARBLE_URL;
+  /* Les composants à la demande du rendu courant (voir `lazyLayer`). */
+  const Globe = { Layer: GlobeLayer.current, Raster: GlobeRaster.current };
+  const Flat = { Raster: FlatRaster.current };
   /* LE CRÉDIT DE LA NASA NE SE RETIRE PAS : seule une autre source le remplace. */
   const credit =
     template === GIBS_BLUE_MARBLE_URL
@@ -867,7 +914,7 @@ export function WorldMap({
       {hydrated && imagery && (
         <Suspense fallback={null}>
           {globe ? (
-            <GlobeRaster
+            <Globe.Raster
               view={view}
               frame={frame}
               framePx={framePx}
@@ -876,7 +923,7 @@ export function WorldMap({
               onFailure={onImageryFailure}
             />
           ) : (
-            <FlatRaster
+            <Flat.Raster
               view={view}
               settled={settled}
               frame={frame}
@@ -914,7 +961,7 @@ export function WorldMap({
             />
             {hydrated && (
               <Suspense fallback={null}>
-                <GlobeLayer
+                <Globe.Layer
                   files={level?.files ?? []}
                   view={view}
                   frame={frame}
@@ -1066,6 +1113,8 @@ export function WorldMap({
                   toggleGlobe: () => setMode(globe ? 'flat' : 'globe'),
                   toggleImagery: () => {
                     setImageryFailed(false);
+                    FlatRaster.retry();
+                    GlobeRaster.retry();
                     setBasemap(imagery ? 'vector' : 'satellite');
                   },
                 }
