@@ -2047,21 +2047,45 @@ body {
 }
 
 /* La vitrine charge aussi son focus générique : il ne doit pas réapparaître
-   sur le champ intérieur, dont la coquille porte désormais l'anneau arrondi. */
-.tc-doc :is(.opale-input, .opale-select, .opale-multiselect__list):focus-visible {
+   sur un contrôle intérieur, dont la coquille, la marque ou la poignée porte
+   le repère. La liste couvre tous ceux de la bibliothèque : la SearchBar y
+   manquait, et le build de production, qui charge son module AVANT cette
+   feuille, lui dessinait un rectangle gris (retour du propriétaire, 08/10). */
+.tc-doc
+  :is(
+    .opale-input,
+    .opale-select,
+    .opale-multiselect__list,
+    .opale-search-bar__input,
+    .opale-range,
+    .opale-svg-map__region,
+    .opale-checkbox,
+    .opale-toggle,
+    .opale-radio,
+    .opale-dropzone .opale-visually-hidden
+  ):focus-visible {
   outline: none;
   box-shadow: none;
 }
 
-/* Les contrôles nus gardent un indicateur de clavier, mais aux coins arrondis. */
+/* Les contrôles nus gardent un indicateur de clavier, mais aux coins arrondis :
+   le pied de page, les blocs dépliables et les liens légaux traçaient encore
+   un rectangle. Le bouton radio natif garde un anneau rond. */
 .tc-doc
   :is(
     .tc-doc-topbar__brand,
     .tc-doc-link,
+    .tc-doc-footer__link,
+    .tc-doc summary,
+    .opale-legal-links a,
     .tc-doc-focusdemo button,
-    .tc-doc-focusdemo input
+    .tc-doc-focusdemo input,
+    input[type='color']
   ):focus-visible {
   border-radius: 0.5rem;
+}
+.tc-doc input[type='radio']:focus-visible {
+  border-radius: 50%;
 }
 
 /* La poignée est une pilule courte : le focus suit cette poignée visible,
