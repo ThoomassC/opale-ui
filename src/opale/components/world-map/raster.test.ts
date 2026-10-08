@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   diskVectors,
   equirectangular,
+  frameGuard,
   MAX_RASTER_TILES,
   rasterTiles,
   sampleGlobe,
@@ -131,5 +132,34 @@ describe('sampleGlobe', () => {
     sampleGlobe(texture, disk, -90, 10, out);
     expect(out[0]).toBe(0);
     expect(out[4]).toBe(1);
+  });
+});
+
+describe('frameGuard', () => {
+  it('ne cède qu’après deux images de geste lentes CONSÉCUTIVES', () => {
+    const guard = frameGuard();
+    guard.record(30, { moving: true });
+    guard.record(5, { moving: true });
+    guard.record(30, { moving: true });
+    expect(guard.skip(true)).toBe(false);
+    guard.record(30, { moving: true });
+    expect(guard.skip(true)).toBe(true);
+    /* Au repos, le globe se peint toujours. */
+    expect(guard.skip(false)).toBe(false);
+  });
+
+  it('ne compte pas l’image qui suit un changement de taille de toile', () => {
+    const guard = frameGuard();
+    guard.record(30, { moving: true, resized: true });
+    guard.record(30, { moving: true });
+    expect(guard.skip(true)).toBe(false);
+  });
+
+  it('repart de zéro après une image au repos', () => {
+    const guard = frameGuard();
+    guard.record(30, { moving: true });
+    guard.record(30, { moving: true });
+    guard.record(40, { moving: false });
+    expect(guard.skip(true)).toBe(false);
   });
 });

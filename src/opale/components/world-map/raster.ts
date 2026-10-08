@@ -221,3 +221,25 @@ export function sampleGlobe(
     out[o + 3] = 255;
   }
 }
+
+/** Le temps d'une image, au-delà duquel le globe ne se repeint plus pendant un geste. */
+export const FRAME_BUDGET_MS = 16;
+
+/**
+ * Le garde-fou de la toile du globe : deux images de geste lentes À LA
+ * SUITE, et le globe ne se repeint plus qu'au repos. Une image qui a
+ * recalculé les vecteurs du disque (nouvelle taille de toile) ne compte
+ * pas : elle paie un travail que les suivantes n'ont plus. Une image au
+ * repos remet le compte à zéro : chaque geste a sa chance.
+ */
+export function frameGuard(budget: number = FRAME_BUDGET_MS) {
+  let slow = 0;
+  return {
+    /** Vrai si cette image de geste doit être sautée. */
+    skip: (moving: boolean) => moving && slow >= 2,
+    record(ms: number, { moving, resized = false }: { moving: boolean; resized?: boolean }) {
+      if (!moving) slow = 0;
+      else if (!resized) slow = ms > budget ? slow + 1 : 0;
+    },
+  };
+}

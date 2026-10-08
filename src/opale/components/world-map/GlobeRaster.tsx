@@ -9,8 +9,8 @@
    taille de toile.
 
    LA TOILE EST BORNÉE : min(diamètre × densité de pixels, 720) au repos, la
-   moitié pendant un geste. Si deux images dépassent 16 ms, le globe ne se
-   repeint plus qu'au repos.
+   moitié pendant un geste. Si deux images de geste À LA SUITE dépassent
+   16 ms, le globe ne se repeint plus qu'au repos de ce geste (`frameGuard`).
 
    UNE TEXTURE ILLISIBLE REND LA MAIN À LA CARTE. Plus de la moitié des tuiles
    en échec, pas de contexte 2D, ou une `SecurityError` (un serveur sans CORS
@@ -22,6 +22,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   diskVectors,
   equirectangular,
+  frameGuard,
   sampleGlobe,
   tileUrl,
   type FrameRect,
@@ -46,7 +47,6 @@ export interface GlobeRasterProps {
 const TEXTURE_ZOOM = 2;
 const TILE_PX = 256;
 const MAX_CANVAS_PX = 720;
-const FRAME_BUDGET_MS = 16;
 
 const textures = new Map<string, Promise<Texture>>();
 
@@ -121,7 +121,7 @@ export default function GlobeRaster({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [texture, setTexture] = useState<Texture | null>(null);
   const failureRef = useRef(onFailure);
-  const slowFrames = useRef(0);
+  const [guard] = useState(frameGuard);
   const disk = useRef<{ key: string; vectors: Float32Array } | null>(null);
   const { longitude, latitude, zoom } = view;
 
@@ -154,7 +154,7 @@ export default function GlobeRaster({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !texture) return;
-    if (moving && slowFrames.current >= 2) return;
+    if (guard.skip(moving)) return;
     const started = performance.now();
     const { cx, cy, radius, rect } = diskOf(frame, zoom);
     const density = (framePx / frame.width) * (window.devicePixelRatio || 1);
@@ -166,21 +166,21 @@ export default function GlobeRaster({
     const columns = Math.max(1, Math.round((rect.x1 - rect.x0) * density * scale));
     const rows = Math.max(1, Math.round((rect.y1 - rect.y0) * density * scale));
     const key = `${columns}:${rows}:${rect.x0}:${rect.y0}:${rect.x1}:${rect.y1}:${radius}`;
-    if (disk.current?.key !== key) {
-      disk.current = { key, vectors: diskVectors(columns, rows, rect, cx, cy, radius) };
-    }
+    const known = disk.current;
+    const resized = known?.key !== key;
+    const vectors =
+      known && !resized ? known.vectors : diskVectors(columns, rows, rect, cx, cy, radius);
+    disk.current = { key, vectors };
     const context = canvas.getContext('2d');
     if (!context) return;
     /* Redimensionner une toile la réalloue : seulement quand sa taille change. */
     if (canvas.width !== columns) canvas.width = columns;
     if (canvas.height !== rows) canvas.height = rows;
     const image = context.createImageData(columns, rows);
-    sampleGlobe(texture, disk.current.vectors, longitude, latitude, image.data);
+    sampleGlobe(texture, vectors, longitude, latitude, image.data);
     context.putImageData(image, 0, 0);
-    /* Seules les images d'un geste comptent : au repos, la toile pleine a
-       droit à plus d'une image (720 px, ≈ 18 ms mesurés). */
-    if (moving && performance.now() - started > FRAME_BUDGET_MS) slowFrames.current += 1;
-  }, [texture, longitude, latitude, zoom, frame, framePx, moving]);
+    guard.record(performance.now() - started, { moving, resized });
+  }, [texture, longitude, latitude, zoom, frame, framePx, moving, guard]);
 
   const { rect } = diskOf(frame, zoom);
   const percent = (value: number, of: number) => `${(value / of) * 100}%`;
