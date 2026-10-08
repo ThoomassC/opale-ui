@@ -2833,6 +2833,16 @@ body {
   text-align: center;
 }
 
+/* --- WorldMap : la liste des villes, équivalent des repères --------------- */
+.tc-doc-worldmap-cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 /* =============================================================================
    LE GABARIT DES PAGES DE COMPOSANT.
 
@@ -2982,7 +2992,9 @@ body {
    la compte, sinon un contrôle déjà juste sous elle recevrait le focus caché
    (WCAG 2.4.11) — le navigateur ne défile pas pour lui. */
 html:has(.tc-doc-stage-demo) {
-  scroll-padding-block-start: calc(var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem + 3.25rem);
+  scroll-padding-block-start: calc(
+    var(--tc-doc-topbar-height, var(--doc-topbar-size)) + 0.75rem + 3.25rem
+  );
 }
 .tc-doc-stage-demo__label {
   position: sticky;

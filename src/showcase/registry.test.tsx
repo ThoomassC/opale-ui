@@ -222,7 +222,8 @@ const PUBLISHED_COMPONENTS: readonly string[] = Object.entries(library)
    sur une seule page — celle de la section. */
 /* 99 : `SidebarGroup`, les parties du rail, publiée sous son nom et documentée
    sur la page de `Sidebar`. */
-const PUBLISHED_COMPONENT_COUNT = 99;
+/* 100 : `WorldMap`, la carte du monde Natural Earth, rejoint les MODULES. */
+const PUBLISHED_COMPONENT_COUNT = 100;
 
 /**
  * Les parties publiées SANS membre statique sur leur composant, vers leur

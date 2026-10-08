@@ -50,6 +50,7 @@ const COMPONENT_SEARCH_TERMS: Readonly<Record<string, readonly string[]>> = {
   Toast: ['tone', 'placement', 'notification'],
   Toggle: ['ThemeToggle', 'Sound'],
   Tooltip: ['infobulle', 'survol'],
+  WorldMap: ['carte', 'monde', 'globe', 'satellite', 'repère', 'pin', 'Map'],
 } as const;
 
 /* Les pages du catalogue, sans leur contenu : les métadonnées viennent du
@@ -62,13 +63,18 @@ export const opaleComponentPages: readonly DocPage[] = SHOWCASE_CATALOG.map((ent
   group: 'composants',
   title: catalogComponentLabel(entry.name),
   searchTerms: [entry.description, ...(COMPONENT_SEARCH_TERMS[entry.name] ?? [])],
-  /* LA CARTE SVG A SA PAGE PROPRE. Refondue en 2.5.0, elle se démontre sur
-     trois scènes et trois tables d'interface, ce que le gabarit commun d'une
-     fiche ne sait pas porter. L'adresse, elle, ne change pas. */
+  /* LES CARTES ONT LEUR PAGE PROPRE. Refondue en 2.5.0, la carte SVG se
+     démontre sur trois scènes et trois tables d'interface, ce que le gabarit
+     commun d'une fiche ne sait pas porter ; la carte du monde charge ses
+     données et se pilote de l'extérieur. L'adresse, elle, ne change pas. */
   render:
     entry.name === 'SvgMap'
       ? lazyPage(() => import('./composants/svg-map/svg-map').then((module) => module.default))
-      : lazyPage(() => import('./opale-components').then((module) => module.ComponentPage), {
-          entry,
-        }),
+      : entry.name === 'WorldMap'
+        ? lazyPage(() =>
+            import('./composants/world-map/world-map').then((module) => module.default),
+          )
+        : lazyPage(() => import('./opale-components').then((module) => module.ComponentPage), {
+            entry,
+          }),
 }));

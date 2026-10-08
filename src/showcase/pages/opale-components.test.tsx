@@ -68,8 +68,9 @@ describe('la page V3 de Button', () => {
 describe('les extraits copiables du catalogue', () => {
   /* L'extrait importe chaque composant par son nom : il ne reste aucun
      `Opale.X`, et chaque nom utilisé figure dans l'import. */
-  /* SvgMap a sa page propre, sans le gabarit commun ni son extrait généré. */
-  it.each(opaleComponentPages.filter((page) => page.label !== 'SvgMap'))(
+  /* SvgMap et WorldMap ont leur page propre, sans le gabarit commun ni son
+     extrait généré. */
+  it.each(opaleComponentPages.filter((page) => !['SvgMap', 'WorldMap'].includes(page.label)))(
     '$label importe ses composants par leur nom',
     async (page) => {
       const { label } = page;

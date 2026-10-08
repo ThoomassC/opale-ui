@@ -61,6 +61,7 @@ const FORWARDS_LIQUID_GLASS: readonly string[] = [
   'Toast',
   'Toggle',
   'Tooltip',
+  'WorldMap',
 ];
 
 /* La balise qui reçoit le matériau quand ce n'est pas celle du composant : les
