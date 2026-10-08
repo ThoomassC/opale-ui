@@ -594,7 +594,9 @@ export function WorldMap({
     announceTimer.current = setTimeout(() => {
       announceTimer.current = null;
       const { viewport: current, level: loaded, labels: texts, nameOf: name } = latest.current;
-      const { longitude, latitude, zoom } = current.getView();
+      /* LA VUE VISÉE, PAS LA VUE PEINTE : une page en arrière-plan suspend
+         ses images, et l'animation peut ne pas être arrivée. */
+      const { longitude, latitude, zoom } = current.target;
       const country = loaded ? countryAt(loaded.files, longitude, latitude) : undefined;
       const place = country ? (name(country) ?? country) : loaded ? texts.ocean : undefined;
       setAnnouncement(
