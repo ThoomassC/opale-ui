@@ -1,7 +1,18 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
-import { clipLine, clipRing, MAX_SEGMENT_DEGREES } from './clip';
+import { clipLine, clipRings, MAX_SEGMENT_DEGREES, type Rotation } from './clip';
+import { decodeRing, parseWorldDataFile } from './data-format';
 import { createRotation } from './projection';
+
+/** Le seul anneau rendu, ou `null` s'il n'y en a pas. */
+const clipRing = (ring: readonly number[], rotate: Rotation): number[] | null => {
+  const rings = clipRings(ring, rotate);
+  expect(rings.length).toBeLessThanOrEqual(1);
+  return rings[0] ?? null;
+};
 
 /** Une suite de `[lon, lat]` à plat. */
 const flat = (points: readonly (readonly [number, number])[]) => points.flat();
@@ -115,6 +126,87 @@ describe('clipRing', () => {
     /* Le même anneau parcouru à l'envers couvre la même surface. */
     const reversed = clipRing(flat([...south].reverse()), createRotation(0, 10)) ?? [];
     expect(Math.abs(area(reversed))).toBeCloseTo(Math.abs(area(ring)), 6);
+  });
+});
+
+describe('clipRings — anneaux concaves qui passent plusieurs fois l’horizon', () => {
+  const facing = createRotation(0, 0);
+  const disc = Math.PI;
+
+  /* Un « ⊐ » ouvert vers l'ouest : ses deux bras sont visibles, sa base (vers
+     145° E) est sur la face cachée. L'anneau sort par le bras sud, rentre par
+     le bras NORD : relier chaque sortie à l'entrée suivante dans l'ordre de
+     l'anneau tirait un arc de 320° et peignait tout le disque. */
+  const bracket = flat([
+    [80, -30],
+    [150, -30],
+    [150, 30],
+    [80, 30],
+    [80, 20],
+    [140, 20],
+    [140, -20],
+    [80, -20],
+  ]);
+
+  it('rend deux bras, chacun fermé par un court arc d’horizon', () => {
+    const rings = clipRings(bracket, facing);
+    expect(rings).toHaveLength(2);
+    const total = rings.reduce((sum, ring) => sum + Math.abs(area(ring)), 0);
+    expect(total).toBeLessThan(0.1 * disc);
+    for (const ring of rings) expect(points(ring).every(([x]) => x > 0.75)).toBe(true);
+  });
+
+  it('rend la même surface parcouru à l’envers', () => {
+    const reversed = flat(
+      points(bracket)
+        .map(([x, y]) => [x, y] as const)
+        .reverse(),
+    );
+    const sum = (rings: number[][]) => rings.reduce((t, ring) => t + Math.abs(area(ring)), 0);
+    expect(sum(clipRings(reversed, facing))).toBeCloseTo(sum(clipRings(bracket, facing)), 9);
+  });
+});
+
+/* =============================================================================
+   LES VRAIES DONNÉES : aucun pays ne couvre le disque.
+
+   L'audit a vu le Canada, la Russie, le Mali ou l'Antarctique peindre tout le
+   globe à certaines orientations. Aucun pays de Natural Earth 110m ne couvre
+   un hémisphère : un anneau découpé qui couvre 90 % du disque est un défaut.
+   ========================================================================== */
+describe('clipRings — Natural Earth 110m', () => {
+  const file = parseWorldDataFile(
+    JSON.parse(
+      readFileSync(
+        resolve(import.meta.dirname, '../../../../public/world-map/v1/110m.json'),
+        'utf8',
+      ),
+    ),
+  );
+  /* Les vues où l'audit et la mise au point ont vu le disque se remplir :
+     un anneau qui rase le limbe, ou qui y plonge un instant. */
+  const orientations: [number, number][] = [
+    [100, -60],
+    [-80, 60],
+    [135.37, 67.63],
+  ];
+  for (let lat = -90; lat <= 90; lat += 30) {
+    for (let lon = -180; lon < 180; lon += 20) orientations.push([lon, lat]);
+  }
+
+  it('ne peint jamais le disque entier pour un seul anneau', () => {
+    const offenders: string[] = [];
+    for (const [lon, lat] of orientations) {
+      const rotate = createRotation(lon, lat);
+      for (const { id, r } of file.countries) {
+        for (const line of r.flat()) {
+          for (const ring of clipRings(decodeRing(line, file.q), rotate)) {
+            if (Math.abs(area(ring)) >= 0.9 * Math.PI) offenders.push(`${id} @ ${lon},${lat}`);
+          }
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });
 

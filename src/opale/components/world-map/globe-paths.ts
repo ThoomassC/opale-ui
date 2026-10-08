@@ -13,7 +13,7 @@
    subdivision — la moitié du monde, à chaque image d'un geste.
    ========================================================================== */
 
-import { clipLine, clipRing, MAX_SEGMENT_DEGREES, type Rotation } from './clip';
+import { clipLine, clipRings, MAX_SEGMENT_DEGREES, type Rotation } from './clip';
 import { decodeRing, type EncodedLine, type WorldDataFile } from './data-format';
 import { byMinZoom } from './lod';
 import { writePath, type CountryPath } from './path-builder';
@@ -148,8 +148,9 @@ function writers({ rotate, cx, cy, radius }: GlobeFrame) {
       const out: string[] = [];
       for (const { points, cap } of items) {
         if (hiddenCap(cap, rotate)) continue;
-        const clipped = clipRing(points, rotate);
-        if (clipped) writePath(out, toFrame(clipped), GLOBE_DIGITS, true);
+        for (const clipped of clipRings(points, rotate)) {
+          writePath(out, toFrame(clipped), GLOBE_DIGITS, true);
+        }
       }
       return out.join('');
     },
