@@ -344,8 +344,10 @@ public/world-map/v1/
 Pour l'obtenir, copiez `public/world-map/v1/` depuis le dépôt, à l'étiquette de la version
 installée — c'est le dossier que sert la vitrine —, ou régénérez-le avec
 `node scripts/world-data.mjs` (Natural Earth 5.1.2, archives épinglées par leur SHA-256). Le
-dossier est versionné (`v1`) : servez-le avec un cache long et immuable, comme le fait
-`vercel.json` pour la vitrine.
+dossier est versionné (`v1`) : servez ses niveaux et ses tuiles avec un cache long et
+immuable, et `index.json` avec un cache court revalidé, comme le fait `vercel.json` pour la
+vitrine. Une régénération qui change le contenu des fichiers change aussi de dossier (`v2`) :
+un navigateur ne redemande jamais un fichier immuable.
 
 ```tsx
 <WorldMap dataUrl="/world-map/v1" pins={offices} defaultMode="globe" />

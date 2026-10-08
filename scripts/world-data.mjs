@@ -20,6 +20,11 @@
    de leurs propres couches de lignes. Les budgets de poids sont vérifiés à la
    fin : au-delà, le script échoue sans rien laisser de partiel derrière lui.
 
+   LE DOSSIER EST VERSIONNÉ, ET IMMUABLE UNE FOIS PUBLIÉ. Les niveaux et les
+   tuiles sont servis pour un an sans revalidation (`vercel.json`) ; seul
+   `index.json` se revalide. Une régénération qui change le contenu des
+   fichiers doit donc écrire un nouveau dossier (`v2`), pas réécrire `v1`.
+
    Usage : `node scripts/world-data.mjs`.
    ========================================================================== */
 import { createHash } from 'node:crypto';
