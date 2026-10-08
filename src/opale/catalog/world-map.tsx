@@ -39,7 +39,11 @@ import {
 } from '../components/icon/glyphs';
 import { IconPaths } from '../components/icon/IconPaths';
 import { GIBS_BLUE_MARBLE_URL } from '../components/world-map/basemap';
-import { WorldDataSession, type LoadedLevel } from '../components/world-map/data-cache';
+import {
+  coversPoint,
+  WorldDataSession,
+  type LoadedLevel,
+} from '../components/world-map/data-cache';
 import {
   placeLabels,
   type CityCandidate,
@@ -735,7 +739,14 @@ export function WorldMap({
          ses images, et l'animation peut ne pas être arrivée. */
       const { longitude, latitude, zoom } = current.target;
       const country = loaded ? countryAt(loaded.files, longitude, latitude) : undefined;
-      const place = country ? (name(country) ?? country) : loaded ? texts.ocean : undefined;
+      /* « L'océan » seulement là où le niveau chargé sait qu'il n'y a pas de
+         terre : une tuile 10m manquante ou pas encore arrivée laisse les
+         degrés. */
+      const place = country
+        ? (name(country) ?? country)
+        : loaded && coversPoint(loaded, longitude, latitude)
+          ? texts.ocean
+          : undefined;
       setAnnouncement(
         texts.announceView({ zoom: Math.round(zoom * 10) / 10, place, longitude, latitude }),
       );

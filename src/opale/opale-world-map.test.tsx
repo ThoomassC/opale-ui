@@ -276,6 +276,37 @@ describe('WorldMap — clavier sur la carte', () => {
   });
 });
 
+describe('WorldMap — annonce sur un niveau incomplet', () => {
+  it('ne dit pas « l’océan » là où la tuile 10m manque', async () => {
+    reduceMotion();
+    const tiled = {
+      ...INDEX,
+      lods: { ...INDEX.lods, '10m': { tileDegrees: 10, tiles: ['18_4', '19_4'] } },
+    };
+    network(
+      {
+        'v1/index.json': tiled,
+        'v1/110m.json': LEVEL,
+        'v1/50m.json': LEVEL,
+        '10m/18_4.json': LEVEL,
+      },
+      ['10m/19_4.json'],
+    );
+    const onDataError = vi.fn();
+    const { container } = render(
+      <Harness initialView={{ longitude: 15, latitude: 45, zoom: 4 }} onDataError={onDataError} />,
+    );
+    await waitFor(() => expect(container.querySelector('[data-country="FR"]')).not.toBeNull());
+
+    fireEvent.keyDown(surface(), { key: 'ArrowRight' });
+
+    const live = container.querySelector('[aria-live="polite"]') as HTMLElement;
+    await waitFor(() => expect(live.textContent).toMatch(/^Zoom 4, centré sur/));
+    expect(live.textContent).not.toContain('océan');
+    expect(live.textContent).toMatch(/° N, .+° E$/);
+  });
+});
+
 describe('WorldMap — repères', () => {
   it('est une liste nommée, à un seul arrêt de tabulation', () => {
     network({});
