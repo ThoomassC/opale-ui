@@ -4186,14 +4186,17 @@ ol.opale-stack {
    contre le remplissage par défaut — voir `opale-world-map.test.tsx`. Les
    remplissages n'ont pas de contour : un pays découpé en tuiles montrerait
    ses coutures.
+
+   L'EAU EST BLEUE, LES TERRES NEUTRES, et l'eau plus sombre que les terres
+   dans les deux thèmes : le primaire voile le fond de page, l'encre voile la
+   surface. En sombre, l'ancien mélange (primaire sur la surface creusée)
+   laissait 1,09:1 entre eau et terres ; celui-ci en tient 1,2 en sombre et
+   1,39 en clair, la teinte faisant le reste. Le trait de côte, plus épais
+   que les frontières, dessine le littoral.
    ========================================================================== */
 .opale-world-map {
-  --opale-world-map-land: color-mix(in srgb, var(--opale-primary) 6%, var(--opale-surface));
-  --opale-world-map-water: color-mix(
-    in srgb,
-    var(--opale-primary) 18%,
-    var(--opale-surface-sunken)
-  );
+  --opale-world-map-land: color-mix(in srgb, var(--opale-text) 10%, var(--opale-surface));
+  --opale-world-map-water: color-mix(in srgb, var(--opale-primary) 30%, var(--opale-background));
   --opale-world-map-coast: color-mix(in srgb, var(--opale-text) 62%, var(--opale-surface));
   --opale-world-map-border: color-mix(in srgb, var(--opale-text) 58%, var(--opale-surface));
   --opale-world-map-admin1: color-mix(in srgb, var(--opale-text) 52%, var(--opale-surface));
@@ -4274,20 +4277,133 @@ ol.opale-stack {
 }
 .opale-world-map__coast {
   stroke: var(--opale-world-map-coast);
-  stroke-width: 1;
+  stroke-width: calc(1.25px + var(--opale-world-map-halo-width, 0px));
 }
 .opale-world-map__border {
   stroke: var(--opale-world-map-border);
-  stroke-width: 1;
+  stroke-width: calc(1px + var(--opale-world-map-halo-width, 0px));
 }
 .opale-world-map__admin1 {
   stroke: var(--opale-world-map-admin1);
   stroke-dasharray: 3 2;
-  stroke-width: 0.75;
+  stroke-width: calc(0.75px + var(--opale-world-map-halo-width, 0px));
 }
 .opale-world-map__river {
   stroke: var(--opale-world-map-river);
-  stroke-width: 0.75;
+  stroke-width: calc(0.75px + var(--opale-world-map-halo-width, 0px));
+}
+/* LE GLOBE : un disque d'eau, un graticule discret, et un limbe — le bord
+   assombri du disque puis un liseré d'atmosphère —, décor caché de l'arbre
+   et retiré en contrastes forcés. */
+.opale-world-map__disc {
+  fill: var(--opale-world-map-water);
+}
+/* Autour du globe, l'espace : la surface creusée, pas l'eau du plan. */
+.opale-world-map[data-mode='globe'] .opale-world-map__plate {
+  background: var(--opale-surface-sunken);
+}
+.opale-world-map__graticule {
+  fill: none;
+  stroke: color-mix(in srgb, var(--opale-text) 14%, transparent);
+  stroke-width: 0.5;
+  pointer-events: none;
+}
+.opale-world-map__limb {
+  pointer-events: none;
+}
+.opale-world-map__limb-clear {
+  stop-color: var(--opale-ground-night);
+  stop-opacity: 0;
+}
+.opale-world-map__limb-shade {
+  stop-color: var(--opale-ground-night);
+  stop-opacity: 0.24;
+}
+.opale-world-map__limb-air {
+  stop-color: var(--opale-primary-light);
+  stop-opacity: 0.45;
+}
+.opale-world-map[data-mode='globe'] .opale-world-map__svg {
+  cursor: grab;
+}
+.opale-world-map[data-mode='globe']
+  .opale-world-map__canvas[data-dragging='true']
+  .opale-world-map__svg {
+  cursor: grabbing;
+}
+/* L'IMAGERIE SOUS LE DESSIN : des tuiles posées en pourcentages, que leur
+   conteneur déplace pendant un geste ; la texture du globe sur sa toile. */
+.opale-world-map__raster,
+.opale-world-map__texture {
+  position: absolute;
+  pointer-events: none;
+}
+.opale-world-map__raster {
+  inset: 0;
+  transform-origin: 0 0;
+}
+.opale-world-map__raster img {
+  position: absolute;
+  max-inline-size: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.opale-world-map__texture {
+  image-rendering: auto;
+}
+/* SUR L'IMAGERIE, LES TRAITS SONT CLAIRS ET CERNÉS DE SOMBRE : la nuit et
+   son encre, teintes fixes des deux thèmes, tiennent 3:1 entre elles quelle
+   que soit la photographie (voir `opale-world-map.test.tsx`). Le halo est le
+   même tracé, rendu dessous, plus large et à l'encre de la nuit. Pas de
+   remplissage : l'eau et les terres sont celles de l'image. */
+.opale-world-map[data-basemap='satellite'] {
+  --opale-world-map-coast: var(--opale-ground-night-ink);
+  --opale-world-map-border: var(--opale-ground-night-ink);
+  --opale-world-map-admin1: var(--opale-ground-night-ink);
+  --opale-world-map-river: var(--opale-ground-night-ink);
+  --opale-world-map-halo: var(--opale-ground-night);
+}
+.opale-world-map[data-basemap='satellite'] .opale-world-map__plate {
+  background: var(--opale-ground-night);
+}
+.opale-world-map[data-basemap='satellite']
+  :is(
+    .opale-world-map__ocean,
+    .opale-world-map__disc,
+    .opale-world-map__land,
+    .opale-world-map__lake
+  ) {
+  fill: transparent;
+}
+.opale-world-map[data-basemap='satellite'] .opale-world-map__graticule {
+  stroke: color-mix(in srgb, var(--opale-ground-night-ink) 30%, transparent);
+}
+.opale-world-map__halo {
+  --opale-world-map-coast: var(--opale-world-map-halo);
+  --opale-world-map-border: var(--opale-world-map-halo);
+  --opale-world-map-admin1: var(--opale-world-map-halo);
+  --opale-world-map-river: var(--opale-world-map-halo);
+  --opale-world-map-halo-width: 2px;
+
+  opacity: 0.7;
+}
+.opale-world-map__halo .opale-world-map__admin1 {
+  stroke-dasharray: none;
+}
+/* LE CRÉDIT DE L'IMAGERIE reste lisible sur la photographie : l'encre de la
+   nuit sur un voile de nuit. */
+.opale-world-map__credit {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  max-inline-size: 100%;
+  margin: 0;
+  padding: var(--opale-space-2xs) var(--opale-space-xs);
+  border-start-start-radius: var(--opale-radius-sm);
+  background: color-mix(in srgb, var(--opale-ground-night) 72%, transparent);
+  color: var(--opale-ground-night-ink);
+  font-size: var(--opale-text-xs);
+  line-height: var(--opale-leading-snug);
 }
 /* LES ÉTIQUETTES ONT UN HALO DE LA SURFACE, peint sous le texte
    (`paint-order`) : elles se lisent sur une côte comme sur une frontière. */
@@ -4328,6 +4444,10 @@ ol.opale-stack {
   position: absolute;
   transform: translate(-50%, -50%);
 }
+.opale-world-map__pin[data-face='hidden'] {
+  opacity: 0;
+  pointer-events: none;
+}
 .opale-world-map__pin[data-tone='accent'] {
   --opale-world-map-pin: var(--opale-accent-graphic);
 }
@@ -4364,6 +4484,21 @@ ol.opale-stack {
 .opale-world-map__pin-button:hover::before,
 .opale-world-map__pin-button[aria-pressed='true']::before {
   transform: scale(1.25);
+}
+/* AU LOIN, LA PASTILLE RAPETISSE, PAS LA CIBLE : en vue d'ensemble sur un
+   écran étroit, deux villes voisines se chevauchaient. Le bouton garde ses
+   24 px ; les repères trop proches ont leur équivalent en liste (WCAG
+   2.5.8, exception de l'équivalent). */
+.opale-world-map__canvas[data-pins='small'] .opale-world-map__pin-button::before {
+  inline-size: 0.375rem;
+  block-size: 0.375rem;
+  box-shadow:
+    0 0 0 1.5px var(--opale-surface),
+    0 0 0 2.5px var(--opale-world-map-pin);
+}
+.opale-world-map__canvas[data-pins='small']
+  .opale-world-map__pin-button:is(:hover, :focus-visible, [aria-pressed='true'])::before {
+  transform: scale(1.75);
 }
 .opale-world-map__pin-button:focus-visible {
   outline: var(--opale-focus-ring-width) solid var(--opale-focus);
@@ -4433,6 +4568,29 @@ ol.opale-stack {
 }
 .opale-world-map__status {
   inset-inline-start: var(--opale-space-sm);
+  max-inline-size: calc(100% - 2 * var(--opale-space-sm));
+  white-space: normal;
+}
+.opale-world-map__status:empty {
+  display: none;
+}
+.opale-world-map__status > span {
+  display: block;
+}
+/* Les bascules du globe et de l'imagerie, en haut à gauche. */
+.opale-world-map__layers {
+  position: absolute;
+  inset-block-start: var(--opale-space-sm);
+  inset-inline-start: var(--opale-space-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--opale-space-2xs);
+}
+.opale-world-map__layers [aria-pressed='true'] {
+  --opale-button-background: var(--opale-primary);
+  --opale-button-hover-background: var(--opale-primary-dark);
+
+  color: var(--opale-on-primary);
 }
 .opale-world-map__controls {
   position: absolute;
@@ -4470,8 +4628,13 @@ ol.opale-stack {
 .opale-world-map-controls__pan > :has(> .opale-world-map-controls__pan-down) {
   grid-area: down;
 }
+/* INDISPONIBLE, LE BOUTON GARDE SON FOND, SEULE L'ICÔNE PÂLIT : posé sur la
+   carte, un bouton entier à demi transparent laissait passer le dessin et
+   se perdait. L'opacité est celle d'Opale, `--opale-disabled-opacity`. */
 .opale-world-map-controls [aria-disabled='true'] {
   cursor: not-allowed;
+}
+.opale-world-map-controls [aria-disabled='true'] .opale-icon__glyph {
   opacity: var(--opale-disabled-opacity);
 }
 /* SOUS 30 REM D'ÉCRAN, LES COMMANDES PASSENT SOUS LE DESSIN : posées dessus,
@@ -4496,6 +4659,10 @@ ol.opale-stack {
   }
   .opale-world-map__controls .opale-world-map-controls__pan {
     margin-block-start: 0;
+  }
+  .opale-world-map__layers {
+    position: static;
+    padding: 0 var(--opale-space-sm) var(--opale-space-sm);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -4526,6 +4693,24 @@ ol.opale-stack {
   .opale-world-map__svg,
   .opale-world-map__pin-button {
     forced-color-adjust: none;
+  }
+  /* L'imagerie et le limbe sont du décor : ils cèdent la place au canevas. */
+  .opale-world-map__raster,
+  .opale-world-map__texture,
+  .opale-world-map__limb,
+  .opale-world-map__halo {
+    display: none;
+  }
+  .opale-world-map__disc,
+  .opale-world-map[data-basemap='satellite'] :is(.opale-world-map__ocean, .opale-world-map__disc) {
+    fill: Canvas;
+  }
+  .opale-world-map__graticule {
+    stroke: GrayText;
+  }
+  .opale-world-map__credit {
+    background: Canvas;
+    color: CanvasText;
   }
   .opale-world-map__plate,
   .opale-world-map__ocean,

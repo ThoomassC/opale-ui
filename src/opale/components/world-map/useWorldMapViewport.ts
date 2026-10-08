@@ -124,11 +124,21 @@ export function useWorldMapViewportState({
   maxZoom = DEFAULT_MAX_ZOOM,
   onViewChange,
 }: WorldMapViewportOptions = {}): WorldMapViewportState {
+  /* LA VUE DE DÉPART N'EST BORNÉE QU'À L'INSCRIPTION DE LA CARTE, qui seule
+     connaît son mode et son cadre (`registerFrame`). Bornée ici en plan, un
+     globe centré sur Tokyo partirait du méridien d'origine : au zoom 0, le
+     plan recentre le monde. Seul le zoom est borné tout de suite : ses bornes
+     ne dépendent pas du mode. */
   const [state, setState] = useState<ViewportState>(() => {
-    const bounds: ViewBounds = { mode: 'flat', frame: frameOf(16 / 9), maxZoom };
-    const view = clampView(initialView, bounds);
-    return { view, target: view, bounds, moving: false };
+    const view = { ...initialView, zoom: Math.min(maxZoom, Math.max(0, initialView.zoom)) };
+    return {
+      view,
+      target: view,
+      bounds: { mode: 'flat', frame: frameOf(16 / 9), maxZoom },
+      moving: false,
+    };
   });
+  const registeredRef = useRef(false);
 
   /* LE ZOOM MAXIMAL SUIT LA PROP, PENDANT LE RENDU : c'est un état dérivé, la
      vue est rebornée sans attendre un effet. */
@@ -298,7 +308,10 @@ export function useWorldMapViewportState({
   const registerFrame = useCallback(
     (mode: WorldMapMode, frame: Frame) => {
       const previous = boundsRef.current;
+      const first = !registeredRef.current;
+      registeredRef.current = true;
       if (
+        !first &&
         previous.mode === mode &&
         previous.frame.width === frame.width &&
         previous.frame.height === frame.height

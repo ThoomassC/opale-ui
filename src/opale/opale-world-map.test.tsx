@@ -386,6 +386,228 @@ describe('WorldMap — infobulle', () => {
   });
 });
 
+describe('WorldMap — globe', () => {
+  it('se rend sur le serveur en globe : le disque et les repères, sans rien charger', () => {
+    const { fetch } = network(ALL_FILES);
+    vi.stubGlobal('window', undefined);
+    vi.stubGlobal('document', undefined);
+    let html = '';
+    try {
+      html = renderToString(
+        <WorldMap dataUrl="/world-map/v1" label="Villes" pins={PINS} defaultMode="globe" />,
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+
+    expect(html).toContain('data-mode="globe"');
+    expect(html).toContain('opale-world-map__disc');
+    for (const pin of PINS) expect(html).toContain(`aria-label="${pin.label}"`);
+    expect(html).toContain('aria-pressed="true"');
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('dessine graticule, pays et limbe une fois le globe chargé', async () => {
+    network(ALL_FILES);
+    const { container } = render(<Harness defaultMode="globe" />);
+
+    await waitFor(() => expect(container.querySelector('[data-country="FR"]')).not.toBeNull());
+    expect(container.querySelector('.opale-world-map__graticule')?.getAttribute('d')).toMatch(/^M/);
+    const limb = container.querySelector('.opale-world-map__limb');
+    expect(limb).toHaveAttribute('aria-hidden', 'true');
+    expect(limb?.getAttribute('fill')).toMatch(/^url\(#/);
+  });
+
+  it('tourne au clavier, et borne le zoom à 3 en le disant', () => {
+    reduceMotion();
+    network({});
+    render(<Harness defaultMode="globe" />);
+    const svg = surface();
+
+    fireEvent.keyDown(svg, { key: 'ArrowRight' });
+    expect(viewOf()[0]).toBeGreaterThan(0);
+    fireEvent.keyDown(svg, { key: 'ArrowUp' });
+    expect(viewOf()[1]).toBeGreaterThan(20);
+    /* La longitude fait le tour : huit pas à gauche passent l'antiméridien. */
+    for (let i = 0; i < 8; i += 1) fireEvent.keyDown(svg, { key: 'ArrowLeft' });
+    expect(viewOf()[0]).toBeGreaterThanOrEqual(-180);
+    expect(viewOf()[0]).toBeLessThan(180);
+
+    for (let i = 0; i < 5; i += 1) fireEvent.keyDown(svg, { key: '+' });
+    expect(viewOf()[2]).toBe(3);
+    const zoomIn = screen.getByRole('button', { name: 'Zoomer' });
+    expect(zoomIn).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText('Passer en plan pour plus de détail')).toBeInTheDocument();
+  });
+
+  it('garde le centre en passant du plan au globe et retour', () => {
+    reduceMotion();
+    network({});
+    render(<Harness initialView={{ longitude: 2.35, latitude: 48.85, zoom: 2 }} />);
+    const globe = screen.getByRole('button', { name: 'Globe' });
+    expect(globe).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(globe);
+
+    expect(globe).toHaveAttribute('aria-pressed', 'true');
+    expect(viewOf()).toEqual([2.35, 48.85, 2]);
+    fireEvent.click(globe);
+    expect(globe).toHaveAttribute('aria-pressed', 'false');
+    expect(viewOf()).toEqual([2.35, 48.85, 2]);
+  });
+
+  it('ramène au focus un repère de la face cachée', () => {
+    reduceMotion();
+    network({});
+    render(
+      <Harness defaultMode="globe" initialView={{ longitude: 139.69, latitude: 35.69, zoom: 0 }} />,
+    );
+    const rio = screen.getByRole('button', { name: 'Rio de Janeiro' });
+    expect(rio.closest('li')).toHaveAttribute('data-face', 'hidden');
+    expect(screen.getByRole('button', { name: 'Tokyo' }).closest('li')).not.toHaveAttribute(
+      'data-face',
+    );
+
+    act(() => rio.focus());
+
+    const [longitude, latitude] = viewOf();
+    expect(longitude).toBeCloseTo(-43.2, 1);
+    expect(latitude).toBeCloseTo(-22.9, 1);
+    expect(rio.closest('li')).not.toHaveAttribute('data-face');
+  });
+});
+
+describe('WorldMap — bascules', () => {
+  it('montre Globe et Satellite en aria-pressed, et les tait sans layerControls', () => {
+    network({});
+    const { unmount } = render(<Harness />);
+    const satellite = screen.getByRole('button', { name: 'Satellite' });
+    expect(satellite).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(satellite);
+    expect(satellite).toHaveAttribute('aria-pressed', 'true');
+    unmount();
+
+    render(<Harness layerControls={false} />);
+    expect(screen.queryByRole('button', { name: 'Globe' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Satellite' })).toBeNull();
+  });
+
+  it('en contrôlé, demande le changement sans le faire', () => {
+    network({});
+    const onModeChange = vi.fn();
+    const onBasemapChange = vi.fn();
+    render(
+      <Harness
+        mode="flat"
+        onModeChange={onModeChange}
+        basemap="vector"
+        onBasemapChange={onBasemapChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Globe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Satellite' }));
+
+    expect(onModeChange).toHaveBeenCalledWith('globe');
+    expect(onBasemapChange).toHaveBeenCalledWith('satellite');
+    expect(screen.getByRole('button', { name: 'Globe' })).toHaveAttribute('aria-pressed', 'false');
+  });
+});
+
+describe('WorldMap — imagerie', () => {
+  /* Les tuiles de la vue, sans l'image du monde entier posée dessous. */
+  const tiles = (container: HTMLElement) =>
+    [...container.querySelectorAll('img.opale-world-map__tile')] as HTMLImageElement[];
+
+  it('pose les tuiles sous le dessin, sans nom, et crédite la NASA tant qu’elles sont là', async () => {
+    network(ALL_FILES);
+    const { container } = render(<Harness defaultBasemap="satellite" />);
+
+    await waitFor(() => expect(tiles(container).length).toBeGreaterThan(0));
+    for (const img of tiles(container)) {
+      expect(img).toHaveAttribute('alt', '');
+      expect(img.src).toMatch(/^https:\/\/gibs\.earthdata\.nasa\.gov\/wmts\/.+\/2\/\d\/\d\.jpeg$/);
+    }
+    expect(screen.getByText(/NASA GIBS/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Satellite' }));
+    expect(screen.queryByText(/NASA GIBS/)).toBeNull();
+  });
+
+  it('crédite la source de l’appelant quand tileUrl est surchargé', async () => {
+    network(ALL_FILES);
+    const { container } = render(
+      <Harness
+        defaultBasemap="satellite"
+        tileUrl="https://tiles.test/{z}/{x}/{y}.png"
+        tileAttribution="© Tuiles d’essai"
+      />,
+    );
+
+    await waitFor(() => expect(tiles(container).length).toBeGreaterThan(0));
+    expect(tiles(container)[0].src).toMatch(/^https:\/\/tiles\.test\/2\/\d\/\d\.png$/);
+    expect(screen.getByText('© Tuiles d’essai')).toBeInTheDocument();
+    expect(screen.queryByText(/NASA GIBS/)).toBeNull();
+  });
+
+  it('revient au dessin quand plus de la moitié des tuiles échouent, sans les redemander', async () => {
+    network(ALL_FILES);
+    const onBasemapError = vi.fn();
+    const { container } = render(
+      <Harness defaultBasemap="satellite" onBasemapError={onBasemapError} />,
+    );
+    await waitFor(() => expect(tiles(container).length).toBeGreaterThan(0));
+    const requested = tiles(container).length;
+
+    for (const img of tiles(container).slice(0, Math.floor(requested / 2) + 1)) {
+      fireEvent.error(img);
+    }
+
+    await waitFor(() =>
+      expect(screen.getByText('Imagerie indisponible : retour au dessin')).toBeInTheDocument(),
+    );
+    expect(onBasemapError).toHaveBeenCalledOnce();
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('.opale-world-map')).toHaveAttribute('data-basemap', 'vector');
+    expect(screen.getByRole('button', { name: 'Satellite' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('revient au dessin quand la texture du globe est refusée (SecurityError)', async () => {
+    network(ALL_FILES);
+    class LoadingImage {
+      crossOrigin: string | null = null;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.());
+      }
+    }
+    vi.stubGlobal('Image', LoadingImage);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+      () =>
+        ({
+          drawImage: () => undefined,
+          getImageData: () => {
+            throw new DOMException('Toile souillée', 'SecurityError');
+          },
+        }) as unknown as CanvasRenderingContext2D,
+    );
+    const onBasemapError = vi.fn();
+    render(
+      <Harness defaultMode="globe" defaultBasemap="satellite" onBasemapError={onBasemapError} />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Imagerie indisponible : retour au dessin')).toBeInTheDocument(),
+    );
+    expect(onBasemapError).toHaveBeenCalledOnce();
+    expect((onBasemapError.mock.calls[0]?.[0] as Error).name).toBe('SecurityError');
+  });
+});
+
 /* =============================================================================
    LES TRAITS SE VOIENT SUR LES TERRES.
 
@@ -411,6 +633,23 @@ describe('WorldMap — contraste des traits', () => {
   };
 
   for (const name of ['light', 'dark-explicit'] as const) {
+    /* L'eau et les terres se distinguent d'un coup d'œil, en clair comme en
+       sombre : le littoral n'est pas porté par le seul trait de côte. La
+       teinte y aide — l'eau est bleue, les terres neutres —, la luminance
+       seule garde 1,2:1 au moins (1,09:1 en sombre avant correction). */
+    it(`sépare l’eau des terres en ${name}`, () => {
+      const theme = themes.get(name) as Theme;
+      const paint = ({ top, share, bottom }: ReturnType<typeof mixOf>) =>
+        compositeOver(withAlpha(resolveToken(theme, top), share), resolveToken(theme, bottom));
+
+      expect(
+        contrastRatio(
+          paint(mixOf('--opale-world-map-water')),
+          paint(mixOf('--opale-world-map-land')),
+        ),
+      ).toBeGreaterThanOrEqual(1.2);
+    });
+
     for (const line of ['coast', 'border', 'admin1', 'river'] as const) {
       it(`tient 3:1 entre ${line} et les terres en ${name}`, () => {
         const theme = themes.get(name) as Theme;
@@ -421,6 +660,37 @@ describe('WorldMap — contraste des traits', () => {
         const stroke = paint(mixOf(`--opale-world-map-${line}`));
 
         expect(contrastRatio(stroke, land)).toBeGreaterThanOrEqual(3);
+      });
+    }
+  }
+});
+
+/* =============================================================================
+   SUR L'IMAGERIE, LES TRAITS SONT CLAIRS ET CERNÉS DE SOMBRE.
+
+   La photographie change d'un pixel à l'autre : aucun trait coloré n'y tient
+   3:1 partout. Le trait clair et son halo sombre, des teintes fixes des deux
+   thèmes, tiennent 3:1 entre eux — quelle que soit l'image dessous.
+   ========================================================================== */
+describe('WorldMap — traits sur l’imagerie', () => {
+  const themes = new Map<string, Theme>(parseThemes(opaleSource).map((t) => [t.name, t]));
+  const selector = ".opale-world-map[data-basemap='satellite']";
+  const tokenOf = (property: string) => {
+    const match = /^var\((--[\w-]+)\)$/.exec(declaration(opaleSource, selector, property) ?? '');
+    expect(match, `${property} attendu en var() d’un jeton`).not.toBeNull();
+    return match?.[1] ?? '';
+  };
+
+  for (const name of ['light', 'dark-explicit'] as const) {
+    for (const line of ['coast', 'border', 'admin1', 'river'] as const) {
+      it(`tient 3:1 entre ${line} et son halo en ${name}`, () => {
+        const theme = themes.get(name) as Theme;
+        expect(
+          contrastRatio(
+            resolveToken(theme, tokenOf(`--opale-world-map-${line}`)),
+            resolveToken(theme, tokenOf('--opale-world-map-halo')),
+          ),
+        ).toBeGreaterThanOrEqual(3);
       });
     }
   }

@@ -1,6 +1,8 @@
 /* La carte du monde : plan vectoriel, niveaux de détail et repères. */
 
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useId,
@@ -8,7 +10,9 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ComponentPropsWithRef,
+  type ComponentType,
   type CSSProperties,
   type KeyboardEvent,
   type MouseEvent,
@@ -26,12 +30,15 @@ import {
   GLYPH_ARROW_LEFT,
   GLYPH_ARROW_RIGHT,
   GLYPH_ARROW_UP,
+  GLYPH_GLOBE,
   GLYPH_HOME,
+  GLYPH_LAYERS,
   GLYPH_ZOOM_IN,
   GLYPH_ZOOM_OUT,
   type IconPathData,
 } from '../components/icon/glyphs';
 import { IconPaths } from '../components/icon/IconPaths';
+import { GIBS_BLUE_MARBLE_URL } from '../components/world-map/basemap';
 import { WorldDataSession, type LoadedLevel } from '../components/world-map/data-cache';
 import {
   placeLabels,
@@ -41,6 +48,7 @@ import {
 import { byMinZoom, flatBounds, selectLod, visibleTiles } from '../components/world-map/lod';
 import { flatPaths } from '../components/world-map/path-builder';
 import { countryAt, regionNamer } from '../components/world-map/place';
+import { createRotation } from '../components/world-map/projection';
 import {
   isWorldMapViewportState,
   useWorldMapViewportState,
@@ -51,8 +59,10 @@ import {
 import {
   flatTransform,
   frameOf,
+  globeRadius,
   panByPixels,
   projectFlat,
+  rotateByPixels,
   webZoom,
   WORLD_SIZE,
   type Frame,
@@ -64,7 +74,7 @@ import { useControllableState } from '../shared/use-controllable-state';
 import { Button } from './forms';
 import { Surface } from './shells';
 
-export { GIBS_BLUE_MARBLE_URL } from '../components/world-map/basemap';
+export { GIBS_BLUE_MARBLE_URL };
 export type { WorldMapMode } from '../components/world-map/view';
 
 /* =============================================================================
@@ -88,9 +98,13 @@ export type { WorldMapMode } from '../components/world-map/view';
    repères se placent en pourcentages du cadre dès le HTML, et les données,
    la largeur affichée et la préférence de mouvement arrivent en effets.
 
-   Le globe et l'imagerie satellite sont déclarés dans l'interface
-   (`mode`, `basemap`) mais pas encore dessinés : la carte se rend en plan
-   vectoriel, et n'affiche pas de bascule tant qu'il n'y a rien à basculer.
+   LE GLOBE ET L'IMAGERIE SE CHARGENT AU PREMIER USAGE. Le globe
+   orthographique (`mode="globe"`) et le fond satellite (`basemap`) sont des
+   modules à part, importés par `import()` la première fois qu'on les
+   demande, après l'hydratation : une carte qui reste en plan vectoriel n'en
+   télécharge rien. Le disque d'océan du globe et les repères, eux, se
+   rendent dès le serveur. La vue est la même dans les deux modes : passer
+   de l'un à l'autre garde le centre.
    ========================================================================== */
 
 /** Le fond de carte : le dessin vectoriel, ou l'imagerie satellite. */
@@ -149,6 +163,11 @@ export interface WorldMapLabels {
   basemapError: string;
   /** La consigne du globe à son zoom maximal. */
   globeZoomLimit: string;
+  /**
+   * Le crédit de l'imagerie NASA, affiché tant qu'elle l'est. Traduisible,
+   * pas masquable : une chaîne vide rend le crédit par défaut.
+   */
+  imageryCredit: string;
   /** Le lieu annoncé quand le centre de la vue n'est sur aucun pays. Défaut : « l’océan ». */
   ocean: string;
   /** L'annonce d'une vue, après une action au clavier. */
@@ -184,6 +203,7 @@ const DEFAULT_WORLD_MAP_LABELS: WorldMapLabels = {
   dataError: 'Détails indisponibles',
   basemapError: 'Imagerie indisponible : retour au dessin',
   globeZoomLimit: 'Passer en plan pour plus de détail',
+  imageryCredit: 'Imagerie : NASA GIBS (ESDIS), Blue Marble',
   ocean: 'l’océan',
   announceView: ({ zoom, place, longitude, latitude }) =>
     `Zoom ${frenchNumber(zoom)}, centré sur ${
@@ -193,6 +213,42 @@ const DEFAULT_WORLD_MAP_LABELS: WorldMapLabels = {
       )}° ${longitude < 0 ? 'O' : 'E'}`
     }`,
 };
+
+/** Ce que reçoit tout module chargé à la demande : de quoi dire qu'il manque. */
+interface LazyLayerProps {
+  readonly onFailure: (error: Error) => void;
+}
+
+/* UN MODULE QUI NE SE CHARGE PAS NE FAIT PAS TOMBER LA CARTE : un
+   déploiement a pu renommer ses morceaux. Il est remplacé par un composant
+   vide qui le signale, et la carte revient au dessin ou le dit. */
+function lazyLayer<P extends LazyLayerProps>(load: () => Promise<{ default: ComponentType<P> }>) {
+  return lazy(() =>
+    load().catch((error: unknown) => ({
+      default: function Unavailable({ onFailure }: P) {
+        useEffect(
+          () =>
+            onFailure(
+              error instanceof Error || error instanceof DOMException
+                ? error
+                : new Error(String(error)),
+            ),
+          [onFailure],
+        );
+        return null;
+      },
+    })),
+  );
+}
+
+const GlobeLayer = /* @__PURE__ */ lazyLayer(() => import('../components/world-map/GlobeLayer'));
+const FlatRaster = /* @__PURE__ */ lazyLayer(() => import('../components/world-map/FlatRaster'));
+const GlobeRaster = /* @__PURE__ */ lazyLayer(() => import('../components/world-map/GlobeRaster'));
+
+const subscribeNothing = () => () => undefined;
+
+/** Le niveau le plus fin de l'imagerie GIBS par défaut. */
+const DEFAULT_TILE_MAX_ZOOM = 8;
 
 export interface WorldMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSelect' | 'children'> {
   /**
@@ -205,13 +261,13 @@ export interface WorldMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSel
   readonly viewport?: UseWorldMapViewportResult;
   /** La vue de départ, et celle où ramène « Vue d’ensemble » (vue interne seulement). */
   readonly defaultView?: WorldMapView;
-  /** Le mode de rendu, contrôlé : plan ou globe. Le globe n'est pas encore dessiné. */
+  /** Le mode de rendu, contrôlé : plan ou globe (orthographique, zoom borné à 3). */
   readonly mode?: WorldMapMode;
   /** Le mode de départ, non contrôlé. Défaut : `'flat'`. */
   readonly defaultMode?: WorldMapMode;
   /** Appelée quand l'utilisateur demande un autre mode. */
   readonly onModeChange?: (mode: WorldMapMode) => void;
-  /** Le fond de carte, contrôlé : dessin ou imagerie. L'imagerie n'est pas encore dessinée. */
+  /** Le fond de carte, contrôlé : dessin ou imagerie satellite (NASA GIBS par défaut). */
   readonly basemap?: WorldMapBasemap;
   /** Le fond de départ, non contrôlé. Défaut : `'vector'`. */
   readonly defaultBasemap?: WorldMapBasemap;
@@ -244,7 +300,7 @@ export interface WorldMapProps extends Omit<ComponentPropsWithRef<'div'>, 'onSel
   readonly aspectRatio?: string;
   /** Boutons de zoom et de déplacement intégrés. Défaut : `true`. */
   readonly controls?: boolean;
-  /** Bascules plan / globe et dessin / satellite, affichées quand ces rendus existent. Défaut : `true`. */
+  /** Bascules « Globe » et « Satellite », en `aria-pressed`. Défaut : `true`. */
   readonly layerControls?: boolean;
   /** Zoom à la molette : avec Ctrl ou ⌘ par défaut, toujours, ou jamais. */
   readonly wheel?: SvgMapWheel;
@@ -271,6 +327,8 @@ const DEFAULT_FRAME_PX = 1000;
 /** Tailles des étiquettes, en pixels affichés. */
 const COUNTRY_FONT_PX = 12;
 const CITY_FONT_PX = 11;
+/** La pastille d'un repère, anneaux compris, en pixels affichés. */
+const PIN_PX = 20;
 
 /** Le rapport d'un `aspect-ratio` CSS : `'16 / 9'`, `'2'`. Un rapport illisible retombe sur 16 / 9. */
 function parseRatio(value: string): number {
@@ -307,15 +365,11 @@ export function WorldMap({
   basemap: basemapProp,
   defaultBasemap = 'vector',
   onBasemapChange,
-  /* Les réglages de l'imagerie et des bascules sont reçus, et non transmis
-     au `<div>` : ils seront lus par le globe et le fond satellite. */
-  /* eslint-disable @typescript-eslint/no-unused-vars -- lus par le globe et le fond satellite, à venir */
   tileUrl,
-  tileMaxZoom,
+  tileMaxZoom = DEFAULT_TILE_MAX_ZOOM,
   tileAttribution,
   onBasemapError,
   layerControls = true,
-  /* eslint-enable @typescript-eslint/no-unused-vars */
   pins = [],
   onPinSelect,
   selectedPins,
@@ -335,8 +389,25 @@ export function WorldMap({
   ...rest
 }: WorldMapProps) {
   const labels = resolveLabels(DEFAULT_WORLD_MAP_LABELS, labelsProp);
-  const [mode] = useControllableState(modeProp, defaultMode, onModeChange);
-  const [basemap] = useControllableState(basemapProp, defaultBasemap, onBasemapChange);
+  const [mode, setMode] = useControllableState(modeProp, defaultMode, onModeChange);
+  const [basemap, setBasemap] = useControllableState(basemapProp, defaultBasemap, onBasemapChange);
+  const globe = mode === 'globe';
+  /* Les modules à la demande attendent l'hydratation : le serveur et le
+     premier rendu client n'importent rien, et se rendent pareil. */
+  const hydrated = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+
+  /* L'IMAGERIE EN ÉCHEC RAMÈNE AU DESSIN jusqu'à ce qu'on la redemande. */
+  const [imageryFailed, setImageryFailed] = useState(false);
+  const [askedBasemap, setAskedBasemap] = useState(basemap);
+  if (askedBasemap !== basemap) {
+    setAskedBasemap(basemap);
+    setImageryFailed(false);
+  }
+  const imagery = basemap === 'satellite' && !imageryFailed;
 
   /* LE CROCHET EST TOUJOURS APPELÉ, et la vue de l'appelant l'emporte : l'ordre
      des crochets ne peut pas dépendre d'une prop. */
@@ -347,7 +418,7 @@ export function WorldMap({
 
   const ratio = parseRatio(aspectRatio);
   const frame = useMemo(() => frameOf(ratio), [ratio]);
-  useLayoutEffect(() => registerFrame('flat', frame), [registerFrame, frame]);
+  useLayoutEffect(() => registerFrame(mode, frame), [registerFrame, mode, frame]);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -387,15 +458,33 @@ export function WorldMap({
   const [failed, setFailed] = useState(false);
   const sessionRef = useRef<WorldDataSession | null>(null);
   const shownRef = useRef('');
-  const errorRef = useRef(onDataError);
+  const errorRef = useRef({ onDataError, onBasemapError });
   useLayoutEffect(() => {
-    errorRef.current = onDataError;
+    errorRef.current = { onDataError, onBasemapError };
   });
+  /* Stables : les modules à la demande les reçoivent en dépendance d'effet. */
+  const onLayerFailure = useCallback(
+    (error: Error) => {
+      setFailed(true);
+      errorRef.current.onDataError?.(error);
+    },
+    [setFailed],
+  );
+  const onImageryFailure = useCallback(
+    (error: Error) => {
+      setImageryFailed(true);
+      errorRef.current.onBasemapError?.(error);
+    },
+    [setImageryFailed],
+  );
 
-  const tiles = visibleTiles(flatBounds(settled, frame));
+  /* SUR LE GLOBE, le 110m pendant un geste et le 50m au repos : il faut
+     redécouper à chaque image. */
+  const tiles = globe ? null : visibleTiles(flatBounds(settled, frame));
   const lod = selectLod({
-    mode: 'flat',
+    mode,
     webZoom: restZoom,
+    gesturing: moving,
     previous: level?.lod,
     tileCount: tiles?.length ?? null,
   });
@@ -409,7 +498,7 @@ export function WorldMap({
       },
       onError: (error) => {
         setFailed(true);
-        errorRef.current?.(error);
+        errorRef.current.onDataError?.(error);
       },
     });
     sessionRef.current = session;
@@ -422,21 +511,48 @@ export function WorldMap({
 
   useEffect(() => {
     const key = `${lod}:${tileList}`;
-    if (moving || shownRef.current === key) return;
+    if ((moving && !globe) || shownRef.current === key) return;
     shownRef.current = key;
     sessionRef.current?.show(lod, tileList ? tileList.split(',') : []);
-  }, [dataUrl, moving, lod, tileList]);
+  }, [dataUrl, moving, globe, lod, tileList]);
 
   /* ------------------------------------------------------------------------
      Le dessin : tracés écrits une fois par fichier, en unités du monde.
      --------------------------------------------------------------------- */
-  const layers = useMemo(() => (level ? level.files.map(flatPaths) : []), [level]);
-  const drawing = useMemo(
-    () => (
+  const layers = useMemo(() => (level && !globe ? level.files.map(flatPaths) : []), [level, globe]);
+  const drawing = useMemo(() => {
+    const lines = layers.map((paths, index) => (
+      <g key={index} className="opale-world-map__lines">
+        {paths.lakes && (
+          <path d={paths.lakes} className="opale-world-map__lake" fillRule="evenodd" />
+        )}
+        <path
+          d={paths.admin1(restZoom)}
+          className="opale-world-map__admin1"
+          vectorEffect="non-scaling-stroke"
+        />
+        <path
+          d={paths.rivers(restZoom)}
+          className="opale-world-map__river"
+          vectorEffect="non-scaling-stroke"
+        />
+        <path
+          d={paths.borders}
+          className="opale-world-map__border"
+          vectorEffect="non-scaling-stroke"
+        />
+        <path
+          d={paths.coast}
+          className="opale-world-map__coast"
+          vectorEffect="non-scaling-stroke"
+        />
+      </g>
+    ));
+    return (
       <>
         {layers.map((paths, index) =>
           paths.countries.map(({ id, d }) => {
-            const color = fill?.(id);
+            const color = imagery ? undefined : fill?.(id);
             return (
               <path
                 key={`${index}:${id}`}
@@ -449,64 +565,72 @@ export function WorldMap({
             );
           }),
         )}
-        {layers.map((paths, index) => (
-          <g key={index} className="opale-world-map__lines">
-            {paths.lakes && (
-              <path d={paths.lakes} className="opale-world-map__lake" fillRule="evenodd" />
-            )}
-            <path
-              d={paths.admin1(restZoom)}
-              className="opale-world-map__admin1"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d={paths.rivers(restZoom)}
-              className="opale-world-map__river"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d={paths.borders}
-              className="opale-world-map__border"
-              vectorEffect="non-scaling-stroke"
-            />
-            <path
-              d={paths.coast}
-              className="opale-world-map__coast"
-              vectorEffect="non-scaling-stroke"
-            />
-          </g>
-        ))}
+        {/* SUR L'IMAGERIE, chaque trait est doublé dessous d'un halo sombre :
+            les mêmes tracés, plus larges, d'autres jetons. */}
+        {imagery && <g className="opale-world-map__halo">{lines}</g>}
+        {lines}
       </>
-    ),
-    [layers, fill, restZoom],
+    );
+  }, [layers, fill, restZoom, imagery]);
+
+  /* ------------------------------------------------------------------------
+     La projection d'une vue : `[x, y, face]` en unités du cadre, la face
+     négative sur l'hémisphère caché du globe (toujours 1 en plan).
+     --------------------------------------------------------------------- */
+  const projector = useCallback(
+    (v: WorldMapView): ((longitude: number, latitude: number) => readonly number[]) => {
+      if (!globe)
+        return (longitude, latitude) => [...projectFlat(longitude, latitude, v, frame), 1];
+      const rotate = createRotation(v.longitude, v.latitude);
+      const radius = globeRadius(frame, v.zoom);
+      return (longitude, latitude) => {
+        const [x, y, z] = rotate(longitude, latitude);
+        return [frame.width / 2 + x * radius, frame.height / 2 + y * radius, z];
+      };
+    },
+    [globe, frame],
   );
+  const project = projector(view);
 
   /* ------------------------------------------------------------------------
      Les étiquettes : choisies au repos, placées sur la vue peinte.
      --------------------------------------------------------------------- */
   const nameOf = useMemo(() => regionNamer(locale), [locale]);
+  /* Les positions des repères, par leur valeur : un tableau `pins` recréé à
+     chaque rendu de l'appelant ne relance pas le placement. */
+  const pinKey = pins.map(({ longitude, latitude }) => `${longitude},${latitude}`).join(';');
+  const pinSpots = useMemo(
+    () => (pinKey ? pinKey.split(';').map((spot) => spot.split(',').map(Number)) : []),
+    [pinKey],
+  );
   const placed = useMemo<readonly Placed[]>(() => {
     if (!level) return [];
     const geo = new Map<string, readonly [number, number]>();
     const countries: CountryCandidate[] = [];
     const cities: CityCandidate[] = [];
-    const inFrame = (x: number, y: number) =>
-      x >= 0 && y >= 0 && x <= frame.width && y <= frame.height;
+    const at = projector(settled);
+    const inFrame = ([x, y, face]: readonly number[]) =>
+      face >= 0 && x >= 0 && y >= 0 && x <= frame.width && y <= frame.height;
+    /* Une carte étroite montre le monde sous le zoom web 1 : les plus grands
+       pays y sont nommés quand même, si la place le permet. */
+    const labelZoom = Math.max(restZoom, 1.5);
     for (const file of level.files) {
       for (const candidate of file.countryLabels ?? []) {
-        if (geo.has(candidate.id) || candidate.min > restZoom + 0.5 || candidate.max < restZoom) {
+        if (geo.has(candidate.id) || candidate.min > labelZoom + 0.5 || candidate.max < restZoom) {
           continue;
         }
         const text = nameOf(candidate.id);
-        const [x, y] = projectFlat(candidate.lon, candidate.lat, settled, frame);
-        if (!text || !inFrame(x, y)) continue;
+        const point = at(candidate.lon, candidate.lat);
+        const [x, y] = point;
+        if (!text || !inFrame(point)) continue;
         geo.set(candidate.id, [candidate.lon, candidate.lat]);
         countries.push({ id: candidate.id, text, x, y, minLabel: candidate.min });
       }
       for (const place of byMinZoom(file.places ?? [], restZoom)) {
         const id = `${place.n}@${place.lon},${place.lat}`;
-        const [x, y] = projectFlat(place.lon, place.lat, settled, frame);
-        if (geo.has(id) || !inFrame(x, y)) continue;
+        const point = at(place.lon, place.lat);
+        const [x, y] = point;
+        if (geo.has(id) || !inFrame(point)) continue;
         geo.set(id, [place.lon, place.lat]);
         cities.push({
           id,
@@ -518,16 +642,24 @@ export function WorldMap({
         });
       }
     }
+    /* Les étiquettes contournent les repères : une pastille sur « Islande »
+       en cachait le nom. */
+    const half = (PIN_PX / 2) * unit;
+    const obstacles = pinSpots.flatMap(([longitude = 0, latitude = 0]) => {
+      const [x, y, face] = at(longitude, latitude);
+      return face < 0 ? [] : [{ left: x - half, right: x + half, top: y - half, bottom: y + half }];
+    });
     return placeLabels(countries, cities, {
       width: frame.width,
       height: frame.height,
       countryFontSize: COUNTRY_FONT_PX * unit,
       cityFontSize: CITY_FONT_PX * unit,
+      obstacles,
     }).map(({ id, text, kind }) => {
       const [longitude, latitude] = geo.get(id) ?? [0, 0];
       return { id, text, kind, longitude, latitude };
     });
-  }, [level, settled, frame, restZoom, nameOf, locale, unit]);
+  }, [level, settled, frame, restZoom, nameOf, locale, unit, projector, pinSpots]);
 
   /* ------------------------------------------------------------------------
      Les repères.
@@ -539,8 +671,8 @@ export function WorldMap({
   const pointerFocus = useRef(false);
   const selectedSet = useMemo(() => new Set(selectedPins ?? []), [selectedPins]);
   const pinPoints = pins.map((pin) => {
-    const [x, y] = projectFlat(pin.longitude, pin.latitude, view, frame);
-    return { pin, x, y };
+    const [x, y, face] = project(pin.longitude, pin.latitude);
+    return { pin, x, y, face };
   });
   const centers = new Map(pinPoints.map(({ pin, x, y }) => [pin.id, { x, y }]));
   const has = (id: string | undefined): id is string =>
@@ -550,8 +682,10 @@ export function WorldMap({
     : (selectedPins?.find((id) => has(id)) ?? pins[0]?.id);
   /** Une marge d'une demi-pastille : un repère rogné par le bord est hors champ. */
   const margin = 12 * unit;
-  const offView = (x: number, y: number) =>
-    x < margin || y < margin || x > frame.width - margin || y > frame.height - margin;
+  /* Sur le globe, un repère au ras du limbe est aussi hors champ : il y est
+     écrasé. Au-delà, il est sur la face cachée. */
+  const offView = (x: number, y: number, face: number) =>
+    face < 0.2 || x < margin || y < margin || x > frame.width - margin || y > frame.height - margin;
 
   const focusPin = (id: string) => {
     setActivePin(id);
@@ -683,7 +817,20 @@ export function WorldMap({
      Le rendu.
      --------------------------------------------------------------------- */
   const { scale, x: tx, y: ty } = flatTransform(view, frame);
-  const status = failed ? labels.dataError : level ? undefined : labels.loading;
+  /* Plusieurs messages peuvent valoir ensemble : la consigne du globe ne
+     masque pas le chargement. */
+  const messages = [
+    failed && labels.dataError,
+    basemap === 'satellite' && imageryFailed && labels.basemapError,
+    !level && labels.loading,
+    globe && !viewport.canZoomIn && labels.globeZoomLimit,
+  ].filter((message): message is string => Boolean(message));
+  const template = tileUrl ?? GIBS_BLUE_MARBLE_URL;
+  /* LE CRÉDIT DE LA NASA NE SE RETIRE PAS : seule une autre source le remplace. */
+  const credit =
+    template === GIBS_BLUE_MARBLE_URL
+      ? labels.imageryCredit || DEFAULT_WORLD_MAP_LABELS.imageryCredit
+      : tileAttribution;
   const style = {
     ...styleProp,
     '--opale-world-map-ratio': aspectRatio,
@@ -695,7 +842,32 @@ export function WorldMap({
       className="opale-world-map__canvas"
       data-zoomed={viewport.zoomed ? 'true' : undefined}
       data-dragging={dragging ? 'true' : undefined}
+      data-pins={restZoom < 1.5 ? 'small' : undefined}
     >
+      {hydrated && imagery && (
+        <Suspense fallback={null}>
+          {globe ? (
+            <GlobeRaster
+              view={view}
+              frame={frame}
+              framePx={framePx}
+              moving={moving}
+              template={template}
+              onFailure={onImageryFailure}
+            />
+          ) : (
+            <FlatRaster
+              view={view}
+              settled={settled}
+              frame={frame}
+              framePx={framePx}
+              template={template}
+              maxZoom={tileMaxZoom}
+              onFailure={onImageryFailure}
+            />
+          )}
+        </Suspense>
+      )}
       {/* LA SURFACE EST UNE IMAGE QUI PREND LE FOCUS, pas une `application` :
           ses raccourcis sont décrits par `aria-describedby`, et le lecteur
           d'écran garde ses propres commandes. */}
@@ -712,13 +884,41 @@ export function WorldMap({
         onPointerMove={handlePointerMove}
         onPointerLeave={() => setHovered(null)}
       >
-        <g className="opale-world-map__world" transform={`translate(${tx} ${ty}) scale(${scale})`}>
-          <rect className="opale-world-map__ocean" width={WORLD_SIZE} height={WORLD_SIZE} />
-          {drawing}
-        </g>
+        {globe ? (
+          <>
+            <circle
+              className="opale-world-map__disc"
+              cx={frame.width / 2}
+              cy={frame.height / 2}
+              r={globeRadius(frame, view.zoom)}
+            />
+            {hydrated && (
+              <Suspense fallback={null}>
+                <GlobeLayer
+                  files={level?.files ?? []}
+                  view={view}
+                  frame={frame}
+                  webZoom={restZoom}
+                  fill={fill}
+                  imagery={imagery}
+                  onFailure={onLayerFailure}
+                />
+              </Suspense>
+            )}
+          </>
+        ) : (
+          <g
+            className="opale-world-map__world"
+            transform={`translate(${tx} ${ty}) scale(${scale})`}
+          >
+            <rect className="opale-world-map__ocean" width={WORLD_SIZE} height={WORLD_SIZE} />
+            {drawing}
+          </g>
+        )}
         <g className="opale-world-map__labels" aria-hidden="true">
           {placed.map(({ id, text, kind, longitude, latitude }) => {
-            const [x, y] = projectFlat(longitude, latitude, view, frame);
+            const [x, y, face] = project(longitude, latitude);
+            if (face < 0) return null;
             return kind === 'country' ? (
               <text
                 key={id}
@@ -749,11 +949,12 @@ export function WorldMap({
 
       {pins.length > 0 && (
         <ul className="opale-world-map__pins" aria-label={labels.pins}>
-          {pinPoints.map(({ pin, x, y }, index) => (
+          {pinPoints.map(({ pin, x, y, face }, index) => (
             <li
               key={pin.id}
               className="opale-world-map__pin"
               data-tone={pin.tone ?? 'primary'}
+              data-face={face < 0 ? 'hidden' : undefined}
               style={{ left: `${(x / frame.width) * 100}%`, top: `${(y / frame.height) * 100}%` }}
             >
               <button
@@ -776,7 +977,7 @@ export function WorldMap({
                 }}
                 onFocus={() => {
                   setActivePin(pin.id);
-                  if (!pointerFocus.current && offView(x, y)) {
+                  if (!pointerFocus.current && offView(x, y, face)) {
                     viewport.flyTo({ longitude: pin.longitude, latitude: pin.latitude });
                   }
                 }}
@@ -808,11 +1009,14 @@ export function WorldMap({
         {labels.wheelHint}
       </span>
 
-      {status && (
-        <p className="opale-world-map__status" role="status">
-          {status}
-        </p>
-      )}
+      {/* La région vit dès le premier rendu : un message qui paraît y est lu. */}
+      <p className="opale-world-map__status" role="status">
+        {messages.map((message) => (
+          <span key={message}>{message}</span>
+        ))}
+      </p>
+
+      {imagery && credit && <p className="opale-world-map__credit">{credit}</p>}
 
       <span className="opale-visually-hidden" aria-live="polite">
         {announcement}
@@ -827,12 +1031,26 @@ export function WorldMap({
   const frameNode = (
     <div className="opale-world-map__frame">
       {canvas}
-      {controls && (
+      {(controls || layerControls) && (
         <WorldMapControls
           viewport={viewport}
+          mode={mode}
           frame={frame}
           labels={labels}
           liquidGlass={liquidGlass}
+          zoom={controls}
+          layers={
+            layerControls
+              ? {
+                  imagery,
+                  toggleGlobe: () => setMode(globe ? 'flat' : 'globe'),
+                  toggleImagery: () => {
+                    setImageryFailed(false);
+                    setBasemap(imagery ? 'vector' : 'satellite');
+                  },
+                }
+              : undefined
+          }
           onKeyboardAction={announce}
         />
       )}
@@ -849,7 +1067,7 @@ export function WorldMap({
       className={clsx('opale-world-map', liquidGlass && 'opale-world-map--glass', className)}
       style={style}
       data-mode={mode}
-      data-basemap={basemap}
+      data-basemap={imagery ? 'satellite' : 'vector'}
       onKeyDown={handleKeyDown}
     >
       {liquidGlass ? (
@@ -873,9 +1091,18 @@ const PAN_BUTTONS = [
 
 interface WorldMapControlsProps {
   readonly viewport: WorldMapViewportState;
+  readonly mode: WorldMapMode;
   readonly frame: Frame;
   readonly labels: WorldMapLabels;
   readonly liquidGlass: boolean;
+  /** Les boutons de zoom et de déplacement. */
+  readonly zoom: boolean;
+  /** Les bascules du globe et de l'imagerie, si elles sont affichées. */
+  readonly layers?: {
+    readonly imagery: boolean;
+    toggleGlobe(): void;
+    toggleImagery(): void;
+  };
   /** Appelée après une action faite au clavier, pour l'annonce. */
   readonly onKeyboardAction: () => void;
 }
@@ -886,19 +1113,23 @@ interface WorldMapControlsProps {
    clavier en haut de la page. */
 function WorldMapControls({
   viewport,
+  mode,
   frame,
   labels,
   liquidGlass,
+  zoom,
+  layers,
   onKeyboardAction,
 }: WorldMapControlsProps) {
   const { target } = viewport;
-  const bounds = { mode: 'flat', frame, maxZoom: viewport.maxZoom } as const;
-  /** Vrai si un pas dans cette direction déplace encore la vue. */
+  const globe = mode === 'globe';
+  const bounds = { mode, frame, maxZoom: viewport.maxZoom } as const;
+  /** Vrai si un pas dans cette direction déplace encore la vue (le globe tourne avec le pointeur). */
   const room = (dx: number, dy: number) => {
-    const next = panByPixels(
+    const next = (globe ? rotateByPixels : panByPixels)(
       target,
-      dx * frame.width * PAN_STEP,
-      dy * frame.height * PAN_STEP,
+      (globe ? -dx : dx) * frame.width * PAN_STEP,
+      (globe ? -dy : dy) * frame.height * PAN_STEP,
       bounds,
     );
     return (
@@ -949,44 +1180,69 @@ function WorldMapControls({
     </Button>
   );
 
-  return (
-    <div
-      role="group"
-      aria-label={labels.zoom}
-      className="opale-world-map-controls opale-world-map__controls"
+  /* LES BASCULES SONT NOMMÉES PAR LEUR TEXTE, et leur état par
+     `aria-pressed` : « Globe, bouton bascule, enfoncé ». */
+  const toggle = (glyph: IconPathData, name: string, pressed: boolean, run: () => void) => (
+    <Button
+      variant="tonal"
+      size="small"
+      liquidGlass={liquidGlass}
+      aria-pressed={pressed}
+      startIcon={<IconPaths paths={glyph} className="opale-icon__glyph" />}
+      onClick={act(true, run)}
     >
-      {control('in', GLYPH_ZOOM_IN, labels.zoomIn, viewport.canZoomIn, () =>
-        viewport.zoomBy(ZOOM_STEP, { animate: true }),
+      {name}
+    </Button>
+  );
+
+  return (
+    <>
+      {layers && (
+        <div className="opale-world-map-controls opale-world-map__layers">
+          {toggle(GLYPH_GLOBE, labels.globe, globe, layers.toggleGlobe)}
+          {toggle(GLYPH_LAYERS, labels.satellite, layers.imagery, layers.toggleImagery)}
+        </div>
       )}
-      {control('out', GLYPH_ZOOM_OUT, labels.zoomOut, viewport.zoomed, () =>
-        viewport.zoomBy(1 / ZOOM_STEP, { animate: true }),
-      )}
-      {control('reset', GLYPH_HOME, labels.reset, viewport.zoomed, () => viewport.reset(), {
-        ref: resetRef,
-      })}
-      {viewport.zoomed && (
+      {zoom && (
         <div
-          ref={panGroupRef}
           role="group"
-          aria-label={labels.pan}
-          className="opale-world-map-controls__pan"
+          aria-label={labels.zoom}
+          className="opale-world-map-controls opale-world-map__controls"
         >
-          {PAN_BUTTONS.map(({ key, direction: [dx, dy], glyph, area }) =>
-            control(
-              key,
-              glyph,
-              labels[key],
-              room(dx, dy),
-              () =>
-                viewport.gestureTarget.panBy(
-                  dx * frame.width * PAN_STEP,
-                  dy * frame.height * PAN_STEP,
+          {control('in', GLYPH_ZOOM_IN, labels.zoomIn, viewport.canZoomIn, () =>
+            viewport.zoomBy(ZOOM_STEP, { animate: true }),
+          )}
+          {control('out', GLYPH_ZOOM_OUT, labels.zoomOut, viewport.zoomed, () =>
+            viewport.zoomBy(1 / ZOOM_STEP, { animate: true }),
+          )}
+          {control('reset', GLYPH_HOME, labels.reset, viewport.zoomed, () => viewport.reset(), {
+            ref: resetRef,
+          })}
+          {(viewport.zoomed || globe) && (
+            <div
+              ref={panGroupRef}
+              role="group"
+              aria-label={labels.pan}
+              className="opale-world-map-controls__pan"
+            >
+              {PAN_BUTTONS.map(({ key, direction: [dx, dy], glyph, area }) =>
+                control(
+                  key,
+                  glyph,
+                  labels[key],
+                  room(dx, dy),
+                  () =>
+                    viewport.gestureTarget.panBy(
+                      dx * frame.width * PAN_STEP,
+                      dy * frame.height * PAN_STEP,
+                    ),
+                  { className: `opale-world-map-controls__pan-${area}` },
                 ),
-              { className: `opale-world-map-controls__pan-${area}` },
-            ),
+              )}
+            </div>
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }
